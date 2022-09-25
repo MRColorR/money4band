@@ -1,0 +1,92 @@
+#######################################################################
+# File name : docker-compose.yml
+# Author : MRColor
+# This Docker-compose file use data from .env file
+#######################################################################
+
+
+version: "3.8"
+services:
+
+# EARNAPP CONTAINER
+    earnapp:
+        container_name: earnapp
+        image: fazalfarhan01/earnapp:lite
+        environment:
+            EARNAPP_UUID: $EARNAPP_DEVICE_UUID
+        volumes:
+            - earnapp-data:/etc/earnapp
+        restart: always
+
+# HONEYGAIN CONTAINER
+    honeygain:
+        container_name: honeygain
+        image: honeygain/honeygain
+        command: '-tou-accept -email $HONEYGAIN_EMAIL -pass $HONEYGAIN_PASSWD -device $DEVICE_NAME'
+        restart: always
+
+# IPROYAL CONTAINER
+    iproyal:
+        container_name: iproyal
+        image: iproyal/pawns-cli:latest
+        command: '-accept-tos -email=$IPROYALPAWNS_EMAIL -password=$IPROYALPAWNS_PASSWD -device-name=$DEVICE_NAME'
+        restart: always
+
+# PEER2PROFIT CONTAINER
+    Peer2profit:
+        container_name: peer2profit
+        image: peer2profit/peer2profit_linux:latest
+        restart: always
+        environment:
+            - P2P_EMAIL=$PEER2PROFIT_EMAIL
+
+# PACKETSTREAM CONTAINER
+    Packetstream:
+        container_name: packetstream
+        image: packetstream/psclient:latest
+        restart: always
+        environment:
+            - CID=$PACKETSTREAM_CID
+
+#TRAFFMONETIZER CONTAINER
+    TraffMonetizer:
+        container_name: traffmonetizer
+        image: traffmonetizer/cli:latest
+        command: start accept status --token ${TRAFFMONETIZER_TOKEN} --device-name $DEVICE_NAME
+        restart: always
+
+ #BITPING CONTAINER 
+ # !!For this app you'll need a one-time operation to claim your node: the first time if you do not have a backup of your identity you will need to enter manually your credentials to initialize it use : sudo docker run --rm -it -v ${PWD}/.data/.bitping/:/root/.bitping bitping/bitping-node:latest , then enter your credential , once this is done CTRL+C to end container and then if using bind folder just use docker compose to restart it as always, if you use the docker volume mount it in the previous comamnd or copy the created credentials in the volume using ' docker cp ${PWD}/.data/.bitping bitping:/root/' or just mount the volume in the interactive temporary container
+    Bitping:
+        container_name: bitping
+        image: bitping/bitping-node:latest
+        restart: always
+        volumes:
+            # You have 2 options
+            - ./.data/.bitping:/root/.bitping # Bind an host folder to the container (more insecure but simplier to port and backup) this option mount a new identity or a backed up one from the host file system
+            # OR
+            #- bitping-data:/root/.bitping # if you use this also uncomment the relative volume in volumes section, this  Use docker volumes (more secure harder to access, backup and restore) you'll need to do backups using 'docker cp
+      
+      
+
+    watchtower:
+        container_name: watchtower
+        image: containrrr/watchtower
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
+        environment:
+            - WATCHTOWER_POLL_INTERVAL=9000
+            - WATCHTOWER_NOTIFICATIONS=shoutrrr
+            - WATCHTOWER_NOTIFICATION_URL=$SHOUTRRR_URL
+            #- WATCHTOWER_NOTIFICATION_TEMPLATE=$WATCHTOWER_TEMPLATE
+            #- WATCHTOWER_NOTIFICATION_TITLE_TAG=$DEVICE_NAME preferred but bugged atm see watchtower git for updates
+            - WATCHTOWER_NOTIFICATIONS_HOSTNAME=$DEVICE_NAME
+            - WATCHTOWER_ROLLING_RESTART=true
+            - WATCHTOWER_NO_STARTUP_MESSAGE=true
+            - WATCHTOWER_CLEANUP=true
+        restart: always
+volumes:
+    earnapp-data:
+    #bitping-data: # uncomment this if in bitping volumes you choose to use docker volumes instead of binding an host folder
+
+
