@@ -52,6 +52,10 @@ sudo docker compose up -d
 After a few minutes you should be able to see the device in the dashboards of the various apps of your active and connected that is earning.
 - 4.c) (not necessary if you do not use earnapp) for EarnApp after the first start-up phase it is necessary to claim the node in your account. To do so just go to the earnapp dashboard and then register the node by copying the node_UUID previously saved in the .env file in this URL prototype (https://earnapp.com/r/<your_device_uuid>) and then copy the resulting real URL into your web browser. Your url should look like this: https://earnapp.com/r/sdk-node-dtrbf9f1437a4287947fd58b5ka4d7. Navigating to your url should register your node in your dashboard (this is a one time process). 
 
+### Enyoy your passive income
 
 ### Disclaimer
 Always check that the laws of your country and the contractual conditions of your internet plan allow the use of such applications. In any case, I do not take any responsibility for any consequences deriving from the use of such apps. This stack proposed by me simply brings them together, allows easy configuration even for the less experienced and updates them automatically. 
+
+## License
+[GNU](https://www.gnu.org/licenses/gpl-3.0.html)
