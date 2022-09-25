@@ -1,0 +1,2 @@
+# money4band
+A multi platform, self updating, lightweight docker stack that use docker-compose to run many passive income applications like Honeygain , EarnApp , IPRoyal Pawns , PacketStream , Peer2Profit, Bitping, Myst Node etc. that pay you in USD or in crypto to share your unused internet bandwidth. This stack includes also an auto updater and web GUI. You can also chooese to use only some of the offered applications.
