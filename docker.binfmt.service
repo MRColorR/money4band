@@ -1,0 +1,15 @@
+[Unit]
+Description=Autostart binfmt container as a Service
+After=docker.service
+Requires=docker.service
+
+[Service]
+TimeoutStartSec=0
+Restart=no
+ExecStartPre=-/usr/bin/docker exec %n stop
+ExecStartPre=-/usr/bin/docker rm %n
+ExecStartPre=/usr/bin/docker pull tonistiigi/binfmt
+ExecStart=/usr/bin/docker run --privileged --rm --name %n tonistiigi/binfmt --install all
+
+[Install]
+WantedBy=default.target
