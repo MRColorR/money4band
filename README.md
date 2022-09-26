@@ -62,6 +62,7 @@ After a few minutes you should be able to see the device in the dashboards of th
 - 4.c) (For EarnApp) This step is not needed if EarnApp is not used. For EarnApp after the first start-up phase it is necessary to claim your device in your account. To do so just go to the earnapp dashboard and then register it by copying the node_UUID previously saved in the .env file in this URL prototype (https://earnapp.com/r/<your_device_uuid>) and then copy the resulting real URL into your web browser. Your url should look like this: https://earnapp.com/r/sdk-node-dtrbf9f1437a4287947fd58b5ka4d7. Navigating to your url should register your node in your dashboard. 
 
 ### Enyoy your passive income
+Keep in mind if you have several ip, you can run a stack on each ip to increase revenue, but running several time this stack on same ip should not give you more. You can also install some of this apps on your smartphone and use also your mobile network to earn.
 
 ### Disclaimer
 Always check that the laws of your country and the contractual terms of your internet plan allow the use of such applications. In any case, I do not take any responsibility for any consequences deriving from the use of such apps. This stack proposed by me simply brings them together, allows easy configuration even for the less experienced and updates the apps' images automatically. 
