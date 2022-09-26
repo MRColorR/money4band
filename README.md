@@ -13,7 +13,7 @@ This Docker Stack should work on anything that may have docker installed. In par
 ```bash
 sudo docker run --privileged --rm tonistiigi/binfmt --install all
 ```
-You can also make a service to run the emulation layer at system startup (This should be needed only on arm devices): To do so open a terminal in the folder containing the docker.binfmt.service file and then copy tath file in /etc/systemmd/system using
+You can also make a service to run the emulation layer at system startup (this should be needed only on arm devices): To do so open a terminal in the folder containing the docker.binfmt.service file and then copy that file in /etc/systemmd/system using
 ```bash
 sudo cp ${PWD}/docker.binfmt.service /etc/systemd/system
 ```
