@@ -131,6 +131,8 @@ fn_setupEnv(){
     read -n 1 -s -r -p "When done, press any key to continue"$'\n'
     echo "To configure this app we will need to start an interactive container (so Docker needs to be already installed), then wait and enter your bitping email and password in it when prompted , hit enter and then close it as we will not need it anymore"$'\n'
     echo "To do that open a new terminal in this same folder (this project folder) and run bitpingSetup.sh "$'\n'
+    #read -n 1 -s -r -p "When ready to start, press any key to continue"$'\n'
+    #sudo docker run --rm -it -v ${PWD}/.data/.bitping/:/root/.bitping bitping/bitping-node:latest
 
     greenprint "env file setup complete."
     read -n 1 -s -r -p "Press any key to go back to the menu"$'\n'
