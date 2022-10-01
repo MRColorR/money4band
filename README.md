@@ -34,7 +34,19 @@ Using the following referral links, register on the apps' sites. You should also
 - Go to [TRAFFMONETIZER](https://traffmonetizer.com/?aff=366499)
 - Go to [BITPING](https://app.bitping.com?r=qm7mIuX3)
 
-### 3) Edit the .env file, adding where required the data to access the accounts you just created. You can find more detailed instructions directly inside the .env file.
+### 3) Use runme.sh to complete the automatic guided setup
+- Just start runme.sh and follow the steps to configure the .env file and then start the stack.
+- If needed add execute permission using:
+```bash
+sudo chmod +x runme.sh
+```
+
+### Enyoy your passive income
+Keep in mind if you have several ip, you can run a stack on each ip to increase revenue, but running several time this stack on same ip should not give you more. You can also install some of this apps on your smartphone and use also your mobile network to earn.
+
+## (Alternative) Manual setup
+
+### 3) Edit the .env file, adding where required the data to access the accounts you just created. You can find more detailed instructions directly inside the .env file
 - Device_name : set any name you like
 - Earnapp_Device_uuid: it must start with sdk-node- followed by an md5sum of a string of your choice
 - HoneyGain _email and _password: just insert your account credentials
