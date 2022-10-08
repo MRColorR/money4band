@@ -1,201 +1,241 @@
+#!/bin/pwsh
+set-executionpolicy -scope CurrentUser -executionPolicy Bypass -Force
 
-#!/bin/bash
 
 ### Colors ##
-ESC=$(printf '\033') RESET="${ESC}[0m" BLACK="${ESC}[30m" RED="${ESC}[31m"
-$GREEN="${ESC}[32m" YELLOW="${ESC}[33m" BLUE="${ESC}[34m" MAGENTA="${ESC}[35m"
-$CYAN="${ESC}[36m" WHITE="${ESC}[37m" DEFAULT="${ESC}[39m"
+# ESC=$(printf '\033') RESET="${ESC}[0m" BLACK="${ESC}[30m" RED="${ESC}[31m"
+# $GREEN="${ESC}[32m" YELLOW="${ESC}[33m" BLUE="${ESC}[34m" MAGENTA="${ESC}[35m"
+# $CYAN="${ESC}[36m" WHITE="${ESC}[37m" DEFAULT="${ESC}[39m"
 
 ### Color Functions ##
 
-greenprint() { printf "${GREEN}%s${RESET}\n" "$1"; }
-blueprint() { printf "${BLUE}%s${RESET}\n" "$1"; }
-redprint() { printf "${RED}%s${RESET}\n" "$1"; }
-yellowprint() { printf "${YELLOW}%s${RESET}\n" "$1"; }
-magentaprint() { printf "${MAGENTA}%s${RESET}\n" "$1"; }
-cyanprint() { printf "${CYAN}%s${RESET}\n" "$1"; }
+# greenprint { printf  "$1"; }
+# blueprint { printf  "$1"; }
+# redprint { printf  "$1"; }
+# yellowprint { printf  "$1"; }
+# magentaprint { printf  "$1"; }
+# cyanprint { printf  "$1"; }
 
 ### Links ##
-readonly EARNAPP_LNK="Earnapp | https://earnapp.com/i/3zulx7k"
-readonly HONEYGAIN_LNK="HoneyGain | https://r.honeygain.me/MINDL15721"
-readonly IPROYAL_LNK="IPROYAL | https://pawns.app?r=MiNe"
-readonly PACKETSTREAM_LNK="PACKETSTREAM | https://packetstream.io/?psr=3zSD"
-readonly PEER2PROFIT_LNK="PEER2PROFIT | https://p2pr.me/165849012262da8d0aa13c8"
-readonly TRAFFMONETIZER_LNK="TRAFFMONETIZER | https://traffmonetizer.com/?aff=366499"
-readonly BITPING_LNK="BITPING | https://app.bitping.com?r=qm7mIuX3"
+$EARNAPP_LNK = "Earnapp | https://earnapp.com/i/3zulx7k"
+$HONEYGAIN_LNK = "HoneyGain | https://r.honeygain.me/MINDL15721"
+$IPROYAL_LNK = "IPROYAL | https://pawns.app?r=MiNe"
+$PACKETSTREAM_LNK = "PACKETSTREAM | https://packetstream.io/?psr=3zSD"
+$PEER2PROFIT_LNK = "PEER2PROFIT | https://p2pr.me/165849012262da8d0aa13c8"
+$TRAFFMONETIZER_LNK = "TRAFFMONETIZER | https://traffmonetizer.com/?aff=366499"
+$BITPING_LNK = "BITPING | https://app.bitping.com?r=qm7mIuX3"
 
 ### .env File Prototype Link##
-readonly ENV_SRC='https://github.com/MRColorR/money4band/raw/main/.env'
+$ENV_SRC = 'https://github.com/MRColorR/money4band/raw/main/.env'
 
 ### Functions ##
-fn_bye() { echo "Bye bye."; exit 0; }
-fn_fail() { echo "Wrong option." exit 1; }
-fn_unknown() { redprint "Unknown choice $REPLY, please choose a valid option";}
+function fn_bye { echo "Bye bye."; exit 0; }
+function fn_fail { echo "Wrong option." exit 1; }
+function fn_unknown { echo "Unknown choice $REPLY, please choose a valid option"; }
 
 ### Sub-menu Functions ##
-fn_showLinks(){
-    greenprint "Use CTRL+Click to open links or copy them:";
-    PS3="Select item please:";
-    items=("$EARNAPP_LNK" "$HONEYGAIN_LNK" "$IPROYAL_LNK" "$PACKETSTREAM_LNK" "$PEER2PROFIT_LNK" "$TRAFFMONETIZER_LNK" "$BITPING_LNK")    
-        select item in "${items[@]}" "Go back"
-        do
+function fn_showLinks {
+    clear;
+    echo "Use CTRL+Click to open links or copy them:"
+    echo $EARNAPP_LNK
+    echo $HONEYGAIN_LNK
+    echo $IPROYAL_LNK
+    echo $PACKETSTREAM_LNK
+    echo $PEER2PROFIT_LNK
+    echo $TRAFFMONETIZER_LNK
+    echo $BITPING_LNK
+    Read-Host -Prompt "Press enter to go back to mainmenu"
+    mainmenu
+}
+
+function fn_dockerInstall {
+    clear;
+    echo "This menu item will launch a script that will attempt to install docker"
+    echo "Use it only if you do not know how to perform the manual docker installation described at https://docs.docker.com/get-docker/ as the automatic script in some cases and depending on the OS you are using may fail to install docker correctly."
+    $yn = Read-Host -Prompt "Do you wish to proceed with the Docker automatic installation Y/N?  "
+    if ($yn -eq 'Y' -or $yn -eq 'y' -or $yn -eq 'Yes' -or $yn -eq 'yes' ) {
         clear;
-            case $REPLY in
-                1) cyanprint "$EARNAPP_LNK";fn_showLinks;;
-                2) cyanprint "$HONEYGAIN_LNK";fn_showLinks;;
-                3) cyanprint "$IPROYAL_LNK"; fn_showLinks;;
-                4) cyanprint "$PACKETSTREAM_LNK"; fn_showLinks;;
-                5) cyanprint "$PEER2PROFIT_LNK"; fn_showLinks;;
-                6) cyanprint "$TRAFFMONETIZER_LNK"; fn_showLinks;;
-                7) cyanprint "$BITPING_LNK"; fn_showLinks;;
-                $((${#items[@]}+1))) mainmenu;;
-                *) fn_unknown; fn_showLinks;;
-            esac
-        done
-    
+        echo "Which version of Docker do you want to install?"
+        echo "1) Install Docker for Linux"
+        echo "2) Install Docker for Windows"
+        $yn = Read-Host
+        Switch ($Select) {
+            1 {
+                echo "Starting Docker for linux auto installation script"
+                curl -fsSL https://get.docker.com -o get-docker.sh;
+                sudo sh get-docker.sh;
+                echo "Script completed. Docker should be installed"
+                Read-Host -Prompt "Press enter to go back to mainmenu"
+                mainmenu
+            }
+            2 {
+                echo "Starting Docker for Windows auto installation script"
+                invoke-expression -Command ./winDockerAutoSetup.ps1
+                echo "Script completed. Docker should be installed"
+                Read-Host -Prompt "Press enter to go back to mainmenu"
+                mainmenu
+            }
+            DEFAULT {
+                fn_unknown
+            }
+        }
     }
-
-fn_dockerInstall(){
-    yellowprint "This menu item will launch a script that will attempt to install docker"
-    yellowprint "Use it only if you do not know how to perform the manual docker installation described at https://docs.docker.com/get-docker/ as the automatic script in some rare cases and depending on the distros may fail to install docker correctly."
-    read -p "Do you wish to proceed with the Docker automatic installation Y/N?  " yn
-    case $yn in
-        [Yy]* ) curl -fsSL https://get.docker.com -o get-docker.sh; sudo sh get-docker.sh; greenprint "Docker installed"; mainmenu;;
-        [Nn]* ) blueprint "Docker unattended installation canceled. Make sure you have docker installed before proceeding with the other steps. You will be redirected to the main menu"; sleep 9; mainmenu;;
-        * ) echo "Please answer yes or no.";;
-    esac
-}
-
-fn_setupEnv(){
-    read -p "Do you wish to proceed with the .env file guided setup Y/N?  " yn
-    case $yn in
-        [Yy]* ) clear;;
-        [Nn]* ) blueprint ".env file setup canceled. Make sure you have a valid .env file before proceeding with the stack startup. You will be redirected to the main menu"; sleep 9; mainmenu;;
-        * ) echo "Please answer yes or no.";;
-    esac
-    echo "beginnning env file guided setup"
-    read -n 1 -s -r -p "Press any key to continue"$'\n'
-    touch .env
-    yellowprint "PLEASE ENTER A NAME FOR YOUR DEVICE:"
-    read DEVICE_NAME
-    sed -i "s/yourDeviceName/$DEVICE_NAME/" .env
-
-    yellowprint "PLEASE REGISTER ON THE PLATFORMS USING THIS LINKS, YOU'LL NEED TO ENTER SOME DATA BELOW:"
-    greenprint "Use CTRL+Click to open links or copy them:"
-
-    #EarnApp app env setup
-    cyanprint "Go to $EARNAPP_LNK and register"
-    read -n 1 -s -r -p "When done, press any key to continue"$'\n'
-    echo "generating an UUID for earnapp"$'\n'
-    $UUID="$(echo -n "$DEVICE_NAME" | md5sum | cut -c1-32)"
-    sed -i "s/yourMD5sum/$UUID/" .env
-    cyanprint "Save the following link somewhere to claim your earnapp node after completing the setup and after starting the apps stack: https://earnapp.com/r/sdk-node-$UUID"
-
-    #HoneyGain app env setup
-    cyanprint "Go to $HONEYGAIN_LNK and register"
-    read -n 1 -s -r -p "When done, press any key to continue"$'\n'
-    echo "Enter your HoneyGain Email"$'\n'
-    read HG_EMAIL
-    sed -i "s/yourHGMail/$HG_EMAIL/" .env
-    echo "Now enter your HoneyGain Password"$'\n'
-    read HG_PASSWORD
-    sed -i "s/yourHGPw/$HG_PASSWORD/" .env
-
-    #Pawn IPRoyal app env setup
-    cyanprint "Go to $IPROYAL_LNK and register"
-    read -n 1 -s -r -p "When done, press any key to continue"$'\n'
-    echo "Enter your Pawn IPRoyal Email"$'\n'
-    read IR_EMAIL
-    sed -i "s/yourIRMail/$IR_EMAIL/" .env
-    echo "Now enter your HoneyGain Password"$'\n'
-    read IR_PASSWORD
-    sed -i "s/yourIRPw/$IR_PASSWORD/" .env
-
-    #Peer2Profit app env setup
-    cyanprint "Go to $PEER2PROFIT_LNK and register"
-    read -n 1 -s -r -p "When done, press any key to continue"$'\n'
-    echo "Enter your Peer2Profit Email"$'\n'
-    read P2P_EMAIL
-    sed -i "s/yourP2PMail/$P2P_EMAIL/" .env
-
-    #PacketStream app env setup
-    cyanprint "Go to $PACKETSTREAM_LNK and register"
-    read -n 1 -s -r -p "When done, press any key to continue"$'\n'
-    echo "Enter your PacketStream CID."$'\n'
-    echo "You can find it going in your dashboard https://packetstream.io/dashboard/download?linux# then click on -> Looking for linux app -> now search for CID= in the code shown in the page (you can also use CTRL+F) you need to enter the code after -e CID= (e.g. if in the code CID=6aTk, just enter 3zSD)"$'\n'
-    read PS_CID
-    sed -i "s/yourPSCID/$PS_CID/" .env
-
-    # TraffMonetizer app env setup
-    cyanprint "Go to $TRAFFMONETIZER_LNK and register"
-    read -n 1 -s -r -p "When done, press any key to continue"$'\n'
-    echo "Enter your TraffMonetizer Token."$'\n'
-    echo "You can find it going in your dashboard https://app.traffmonetizer.com/dashboard then -> Look for Your application token -> just insert it here (you can also copy and then paste it)"$'\n'
-    read TM_TOKEN
-    sed -i "s/yourTMToken/$TM_TOKEN/" .env
-    
-    # Bitping app env setup
-    cyanprint "Go to $BITPING_LNK and register"
-    read -n 1 -s -r -p "When done, press any key to continue"$'\n'
-    echo "To configure this app we will need to start an interactive container (so Docker needs to be already installed), then wait and enter your bitping email and password in it when prompted , hit enter and then close it as we will not need it anymore"$'\n'
-    echo "To do that open a new terminal in this same folder (this project folder) and run bitpingSetup.sh "$'\n'
-    #read -n 1 -s -r -p "When ready to start, press any key to continue"$'\n'
-    #sudo docker run --rm -it -v ${PWD}/.data/.bitping/:/root/.bitping bitping/bitping-node:latest
-
-    greenprint "env file setup complete."
-    read -n 1 -s -r -p "Press any key to go back to the menu"$'\n'
-
-    mainmenu;
+    else {
+        clear;
+        echo "Docker unattended installation canceled. Make sure you have docker installed before proceeding with the other steps. You will be redirected to the main menu";
+        sleep 9;
+        mainmenu;
     }
-
-fn_startStack(){
-    yellowprint "This menu item will launch all the apps using the configured .env file and the docker-compose.yml file (Docker must be already installed and running)"
-    read -p "Do you wish to proceed Y/N?  " yn
-    case $yn in
-        [Yy]* ) sudo docker compose up -d; greenprint "All Apps started. If not already done use the previously generated earnapp node URL to add your device in your earnapp dashboard. Check the README file for more details."; mainmenu;;
-        [Nn]* ) blueprint "Docker unattended installation canceled. Make sure you have docker installed before proceeding with the other steps"; mainmenu;;
-        * ) echo "Please answer yes or no.";;
-    esac
 }
 
-fn_resetEnv(){
-    redprint "Now a fresh env file will be downloaded and will need to be reconfigured to be used again"
-    read -p "Do you wish to proceed Y/N?  " yn
-    case $yn in
-        [Yy]* ) curl -LJO $ENV_SRC; greenprint ".env file resetted, remember to reconfigure it";;
-        [Nn]* ) blueprint ".env file reset aborted. The file is left as it is"; mainmenu;;
-        * ) echo "Please answer yes or no.";;
-    esac
+function fn_setupEnv {
+    clear;
+    $yn = Read-Host -p "Do you wish to proceed with the .env file guided setup Y/N?  "
+    if ($yn -eq 'Y' -or $yn -eq 'y' -or $yn -eq 'Yes' -or $yn -eq 'yes' ) {
+        clear;
+        echo "Beginnning env file guided setup"
+        #touch .env
+        $DEVICE_NAME=Read-Host -prompt "PLEASE ENTER A NAME FOR YOUR DEVICE:"
+        (Get-Content .\.env).replace('yourDeviceName', "$DEVICE_NAME") | Set-Content .\.env
+
+        echo "PLEASE REGISTER ON THE PLATFORMS USING THIS LINKS, YOU'LL NEED TO ENTER SOME DATA BELOW:"
+        echo "Use CTRL+Click to open links or copy them:"
+
+        #EarnApp app env setup
+        echo "Go to $EARNAPP_LNK and register"
+        Read-Host -prompt "When done, press enter to continue"
+        echo "generating an UUID for earnapp"
+        $md5 = New-Object -TypeName System.Security.Cryptography.MD5CryptoServiceProvider
+        $utf8 = New-Object -TypeName System.Text.UTF8Encoding
+        $UUID = [System.BitConverter]::ToString($md5.ComputeHash($utf8.GetBytes($DEVICE_NAME))).replace("-", "").ToLower()
+        (Get-Content .\.env).replace('yourMD5sum', "$UUID") | Set-Content .\.env
+        echo "SAVE THE FOLLOWING LINK SOMEWHERE TO CLAIM YOUR EARNAPP NODE after completing the setup and after starting the apps stack: https://earnapp.com/r/sdk-node-$UUID"
+
+        #HoneyGain app env setup
+        echo "Go to $HONEYGAIN_LNK and register"
+        Read-Host -prompt "When done, press enter to continue"
+        $HG_EMAIL = Read-Host -prompt "Enter your HoneyGain Email"
+        (Get-Content .\.env).replace('yourHGMail', "$HG_EMAIL") | Set-Content .\.env
+        $HG_PASSWORD = Read-Host -prompt "Now enter your HoneyGain Password"
+        (Get-Content .\.env).replace('yourHGPw', "$HG_PASSWORD") | Set-Content .\.env
+
+        #Pawn IPRoyal app env setup
+        echo "Go to $IPROYAL_LNK and register"
+        Read-Host -prompt "When done, press enter to continue"
+        echo "Enter your Pawn IPRoyal Email"
+        Read-Host IR_EMAIL
+        sed -i "s/yourIRMail/$IR_EMAIL/" .env
+        echo "Now enter your HoneyGain Password"
+        Read-Host IR_PASSWORD
+        sed -i "s/yourIRPw/$IR_PASSWORD/" .env
+
+        #Peer2Profit app env setup
+        echo "Go to $PEER2PROFIT_LNK and register"
+        Read-Host -prompt "When done, press enter to continue"
+        echo "Enter your Peer2Profit Email"
+        Read-Host P2P_EMAIL
+        sed -i "s/yourP2PMail/$P2P_EMAIL/" .env
+
+        #PacketStream app env setup
+        echo "Go to $PACKETSTREAM_LNK and register"
+        Read-Host -prompt "When done, press enter to continue"
+        echo "Enter your PacketStream CID."
+        echo "You can find it going in your dashboard https://packetstream.io/dashboard/download?linux# then click on -> Looking for linux app -> now search for CID= in the code shown in the page (you can also use CTRL+F) you need to enter the code after -e CID= (e.g. if in the code CID=6aTk, just enter 3zSD)"
+        Read-Host PS_CID
+        sed -i "s/yourPSCID/$PS_CID/" .env
+
+        # TraffMonetizer app env setup
+        echo "Go to $TRAFFMONETIZER_LNK and register"
+        Read-Host -prompt "When done, press enter to continue"
+        echo "Enter your TraffMonetizer Token."
+        echo "You can find it going in your dashboard https://app.traffmonetizer.com/dashboard then -> Look for Your application token -> just insert it here (you can also copy and then paste it)"
+        Read-Host TM_TOKEN
+        sed -i "s/yourTMToken/$TM_TOKEN/" .env
+    
+        # Bitping app env setup
+        echo "Go to $BITPING_LNK and register"
+        Read-Host -prompt "When done, press enter to continue"
+        echo "To configure this app we will need to start an interactive container (so Docker needs to be already installed), then wait and enter your bitping email and password in it when prompted , hit enter and then close it as we will not need it anymore"
+        echo "To do that open a new terminal in this same folder (this project folder) and run bitpingSetup.sh "
+        #Read-Host -prompt "When ready to start, press enter to continue"
+        #sudo docker run --rm -it -v ${PWD}/.data/.bitping/:/root/.bitping bitping/bitping-node:latest
+
+        echo "env file setup complete."
+        Read-Host -prompt "Press enter to go back to the menu"
+
+        mainmenu;
+
+    }
+    else {
+        echo ".env file setup canceled. Make sure you have a valid .env file before proceeding with the stack startup. You will be redirected to the main menu";
+        sleep 9;
+        mainmenu;
+    }
+    
+}
+
+# fn_startStack{
+#     echo "This menu item will launch all the apps using the configured .env file and the docker-compose.yml file (Docker must be already installed and running)"
+#     Read-Host -p "Do you wish to proceed Y/N?  " yn
+#     case $yn in
+#         [Yy]* ) sudo docker compose up -d; echo "All Apps started. If not already done use the previously generated earnapp node URL to add your device in your earnapp dashboard. Check the README file for more details."; mainmenu;;
+#         [Nn]* ) echo "Docker unattended installation canceled. Make sure you have docker installed before proceeding with the other steps"; mainmenu;;
+#         * ) echo "Please answer yes or no.";;
+#     esac
+# }
+
+# fn_resetEnv{
+#     echo "Now a fresh env file will be downloaded and will need to be reconfigured to be used again"
+#     Read-Host -p "Do you wish to proceed Y/N?  " yn
+#     case $yn in
+#         [Yy]* ) curl -LJO $ENV_SRC; echo ".env file resetted, remember to reconfigure it";;
+#         [Nn]* ) echo ".env file reset aborted. The file is left as it is"; mainmenu;;
+#         * ) echo "Please answer yes or no.";;
+#     esac
     
 
     
 
-}
+# }
 
 ### Main Menu ##
-mainmenu() {
+function mainmenu {
     clear;
-    $PS3="Select item please: "
-
-    items=("Show apps' links to register or go to dashboard", "Install Docker", "Setup .env file", "Start apps stack", "Reset .env File")
-
-    select item in "${items[@]}" Quit
-    do
-        case $REPLY in
-            1) clear; fn_showLinks; break;;
-            2) clear; fn_dockerInstall; break;;
-            3) clear; fn_setupEnv; break;;
-            4) clear; fn_startStack; break;;
-            5) clear; fn_resetEnv; break;;
-            $((${#items[@]}+1))) fn_bye;;
-            *) clear; fn_unknown; break;;
-        esac
-    done
+    Write-Output "Select an option and press Enter: "
+    Write-Output "1) Show apps' links to register or go to dashboard"
+    Write-Output "2) Install Docker"
+    Write-Output "3) Setup .env file"
+    Write-Output "4) Start apps stack"
+    Write-Output "5) Reset .env File"
+    Write-Output "6) Exit"
+    Do {
+        $Select = Read-Host
+        Switch ($Select) {
+            1 {
+                fn_showLinks
+            }
+            2 {
+                fn_dockerInstall
+            }
+            3 {
+                fn_setupEnv
+            }
+            4 {
+                fn_startStack
+            }
+            5 {
+                fn_resetEnv
+            }
+            6 {
+                fn_bye
+            }
+            DEFAULT {
+                fn_unknown
+            }
+        }
+    }
+    While ($Select -ne 6)
 }
 
 ### Startup ##
-
-
-while true; do
-    mainmenu
-done
+mainmenu

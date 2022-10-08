@@ -33,24 +33,16 @@ fn_unknown() { redprint "Unknown choice $REPLY, please choose a valid option";}
 
 ### Sub-menu Functions ##
 fn_showLinks(){
+    clear;
     greenprint "Use CTRL+Click to open links or copy them:";
-    PS3="Select an option and press Enter";
-    items=("$EARNAPP_LNK" "$HONEYGAIN_LNK" "$IPROYAL_LNK" "$PACKETSTREAM_LNK" "$PEER2PROFIT_LNK" "$TRAFFMONETIZER_LNK" "$BITPING_LNK")    
-        select item in "${items[@]}" "Go back"
-        do
-        clear;
-            case $REPLY in
-                1) cyanprint "$EARNAPP_LNK";fn_showLinks;;
-                2) cyanprint "$HONEYGAIN_LNK";fn_showLinks;;
-                3) cyanprint "$IPROYAL_LNK"; fn_showLinks;;
-                4) cyanprint "$PACKETSTREAM_LNK"; fn_showLinks;;
-                5) cyanprint "$PEER2PROFIT_LNK"; fn_showLinks;;
-                6) cyanprint "$TRAFFMONETIZER_LNK"; fn_showLinks;;
-                7) cyanprint "$BITPING_LNK"; fn_showLinks;;
-                $((${#items[@]}+1))) mainmenu;;
-                *) fn_unknown; fn_showLinks;;
-            esac
-        done
+                cyanprint "1) $EARNAPP_LNK";
+                cyanprint "2) $HONEYGAIN_LNK";
+                cyanprint "3) $IPROYAL_LNK";
+                cyanprint "4) $PACKETSTREAM_LNK";
+                cyanprint "5) $PEER2PROFIT_LNK";
+                cyanprint "6) $TRAFFMONETIZER_LNK";
+                cyanprint "7) $BITPING_LNK";
+                read -p "Press enter to go back to mainmenu"
     
     }
 
