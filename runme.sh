@@ -38,6 +38,7 @@ fn_showLinks(){
     items=("$EARNAPP_LNK" "$HONEYGAIN_LNK" "$IPROYAL_LNK" "$PACKETSTREAM_LNK" "$PEER2PROFIT_LNK" "$TRAFFMONETIZER_LNK" "$BITPING_LNK")    
         select item in "${items[@]}" "Go back"
         do
+        clear;
             case $REPLY in
                 1) cyanprint "$EARNAPP_LNK";fn_showLinks;;
                 2) cyanprint "$HONEYGAIN_LNK";fn_showLinks;;
@@ -59,12 +60,18 @@ fn_dockerInstall(){
     read -p "Do you wish to proceed with the Docker automatic installation Y/N?  " yn
     case $yn in
         [Yy]* ) curl -fsSL https://get.docker.com -o get-docker.sh; sudo sh get-docker.sh; greenprint "Docker installed"; mainmenu;;
-        [Nn]* ) blueprint "Docker unattended installation canceled. Make sure you have docker installed before proceeding with the other steps"; mainmenu;;
+        [Nn]* ) blueprint "Docker unattended installation canceled. Make sure you have docker installed before proceeding with the other steps. You will be redirected to the main menu"; sleep 9; mainmenu;;
         * ) echo "Please answer yes or no.";;
     esac
 }
 
 fn_setupEnv(){
+    read -p "Do you wish to proceed with the .env file guided setup Y/N?  " yn
+    case $yn in
+        [Yy]* ) clear;;
+        [Nn]* ) blueprint ".env file setup canceled. Make sure you have a valid .env file before proceeding with the stack startup. You will be redirected to the main menu"; sleep 9; mainmenu;;
+        * ) echo "Please answer yes or no.";;
+    esac
     echo "beginnning env file guided setup"
     read -n 1 -s -r -p "Press any key to continue"$'\n'
     touch .env
@@ -166,20 +173,21 @@ fn_resetEnv(){
 
 ### Main Menu ##
 mainmenu() {
+    clear;
     PS3="Select item please: "
 
-    items=("Show apps' links to register or go to dashboard" "Install Docker" "Setup .env file" "Start apps stack" "Reset .env File")
+    items=("Show apps' links to register or go to dashboard", "Install Docker", "Setup .env file", "Start apps stack", "Reset .env File")
 
     select item in "${items[@]}" Quit
     do
         case $REPLY in
-            1) fn_showLinks; break;;
-            2) fn_dockerInstall; break;;
-            3) fn_setupEnv; break;;
-            4) fn_startStack; break;;
-            5) fn_resetEnv; break;;
+            1) clear; fn_showLinks; break;;
+            2) clear; fn_dockerInstall; break;;
+            3) clear; fn_setupEnv; break;;
+            4) clear; fn_startStack; break;;
+            5) clear; fn_resetEnv; break;;
             $((${#items[@]}+1))) fn_bye;;
-            *) fn_unknown; break;;
+            *) clear; fn_unknown; break;;
         esac
     done
 }
