@@ -83,7 +83,7 @@ function fn_dockerInstall {
     else {
         clear;
         echo "Docker unattended installation canceled. Make sure you have docker installed before proceeding with the other steps. You will be redirected to the main menu";
-        sleep 9;
+        sleep 8;
         mainmenu;
     }
 }
@@ -95,13 +95,14 @@ function fn_setupEnv {
         clear;
         echo "Beginnning env file guided setup"
         #touch .env
-        $DEVICE_NAME=Read-Host -prompt "PLEASE ENTER A NAME FOR YOUR DEVICE:"
+        $DEVICE_NAME = Read-Host -prompt "PLEASE ENTER A NAME FOR YOUR DEVICE:"
         (Get-Content .\.env).replace('yourDeviceName', "$DEVICE_NAME") | Set-Content .\.env
 
         echo "PLEASE REGISTER ON THE PLATFORMS USING THIS LINKS, YOU'LL NEED TO ENTER SOME DATA BELOW:"
         echo "Use CTRL+Click to open links or copy them:"
 
         #EarnApp app env setup
+        clear
         echo "Go to $EARNAPP_LNK and register"
         Read-Host -prompt "When done, press enter to continue"
         echo "generating an UUID for earnapp"
@@ -124,7 +125,7 @@ function fn_setupEnv {
         Read-Host -prompt "When done, press enter to continue"
         $IR_EMAIL = Read-Host -prompt "Enter your Pawn IPRoyal Email"
         (Get-Content .\.env).replace('yourIRMail', "$IR_EMAIL") | Set-Content .\.env
-        $IR_PASSWORD = Read-Host n -prompt "Now enter your IPRoyal Password"
+        $IR_PASSWORD = Read-Host -prompt "Now enter your IPRoyal Password"
         (Get-Content .\.env).replace('yourIRPw', "$IR_PASSWORD") | Set-Content .\.env
 
         #Peer2Profit app env setup
@@ -165,35 +166,39 @@ function fn_setupEnv {
     }
     else {
         echo ".env file setup canceled. Make sure you have a valid .env file before proceeding with the stack startup. You will be redirected to the main menu";
-        sleep 9;
+        sleep 8;
         mainmenu;
     }
     
 }
 
-# fn_startStack{
-#     echo "This menu item will launch all the apps using the configured .env file and the docker-compose.yml file (Docker must be already installed and running)"
-#     Read-Host -p "Do you wish to proceed Y/N?  " yn
-#     case $yn in
-#         [Yy]* ) sudo docker compose up -d; echo "All Apps started. If not already done use the previously generated earnapp node URL to add your device in your earnapp dashboard. Check the README file for more details."; mainmenu;;
-#         [Nn]* ) echo "Docker unattended installation canceled. Make sure you have docker installed before proceeding with the other steps"; mainmenu;;
-#         * ) echo "Please answer yes or no.";;
-#     esac
-# }
+function fn_startStack {
+    echo "This menu item will launch all the apps using the configured .env file and the docker-compose.yml file (Docker must be already installed and running)"
+    $yn = Read-Host -prompt "Do you wish to proceed Y/N?"
+    if ($yn -eq 'Y' -or $yn -eq 'y' -or $yn -eq 'Yes' -or $yn -eq 'yes' ) {
+        docker compose up -d
+        echo "All Apps started. If not already done use the previously generated earnapp node URL to add your device in your earnapp dashboard. Check the README file for more details.";
+        mainmenu;
+    }
+    else {
+        echo "Docker unattended installation canceled. Make sure you have docker installed before proceeding with the other steps. You will be redirected to the main menu"
+        sleep 8;
+        mainmenu;
+    }
+}
 
-# fn_resetEnv{
-#     echo "Now a fresh env file will be downloaded and will need to be reconfigured to be used again"
-#     Read-Host -p "Do you wish to proceed Y/N?  " yn
-#     case $yn in
-#         [Yy]* ) curl -LJO $ENV_SRC; echo ".env file resetted, remember to reconfigure it";;
-#         [Nn]* ) echo ".env file reset aborted. The file is left as it is"; mainmenu;;
-#         * ) echo "Please answer yes or no.";;
-#     esac
-    
-
-    
-
-# }
+function fn_resetEnv {
+    echo "Now a fresh env file will be downloaded and will need to be reconfigured to be used again"
+    $yn = Read-Host -prompt "Do you wish to proceed Y/N?  "
+    if ($yn -eq 'Y' -or $yn -eq 'y' -or $yn -eq 'Yes' -or $yn -eq 'yes' ) {
+        curl -LJO $ENV_SRC; echo ".env file resetted, remember to reconfigure it";
+    }
+    else {
+        echo ".env file reset canceled. The file is left as it is. You will be redirected to the main menu"
+        sleep 8;
+        mainmenu;
+    }
+}
 
 ### Main Menu ##
 function mainmenu {
