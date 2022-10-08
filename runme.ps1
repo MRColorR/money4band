@@ -122,40 +122,37 @@ function fn_setupEnv {
         #Pawn IPRoyal app env setup
         echo "Go to $IPROYAL_LNK and register"
         Read-Host -prompt "When done, press enter to continue"
-        echo "Enter your Pawn IPRoyal Email"
-        Read-Host IR_EMAIL
-        sed -i "s/yourIRMail/$IR_EMAIL/" .env
-        echo "Now enter your HoneyGain Password"
-        Read-Host IR_PASSWORD
-        sed -i "s/yourIRPw/$IR_PASSWORD/" .env
+        $IR_EMAIL = Read-Host -prompt "Enter your Pawn IPRoyal Email"
+        (Get-Content .\.env).replace('yourIRMail', "$IR_EMAIL") | Set-Content .\.env
+        $IR_PASSWORD = Read-Host n -prompt "Now enter your IPRoyal Password"
+        (Get-Content .\.env).replace('yourIRPw', "$IR_PASSWORD") | Set-Content .\.env
 
         #Peer2Profit app env setup
         echo "Go to $PEER2PROFIT_LNK and register"
         Read-Host -prompt "When done, press enter to continue"
-        echo "Enter your Peer2Profit Email"
-        Read-Host P2P_EMAIL
-        sed -i "s/yourP2PMail/$P2P_EMAIL/" .env
+        $P2P_EMAIL = Read-Host -prompt "Enter your Peer2Profit Email"
+        (Get-Content .\.env).replace('yourP2PMail', "$P2P_EMAIL") | Set-Content .\.env
 
         #PacketStream app env setup
         echo "Go to $PACKETSTREAM_LNK and register"
         Read-Host -prompt "When done, press enter to continue"
         echo "Enter your PacketStream CID."
-        echo "You can find it going in your dashboard https://packetstream.io/dashboard/download?linux# then click on -> Looking for linux app -> now search for CID= in the code shown in the page (you can also use CTRL+F) you need to enter the code after -e CID= (e.g. if in the code CID=6aTk, just enter 3zSD)"
-        Read-Host PS_CID
-        sed -i "s/yourPSCID/$PS_CID/" .env
+        echo "You can find it going in your dashboard https://packetstream.io/dashboard/download?linux# then click on -> Looking for linux app -> now search for CID= in the code shown in the page (you can also use CTRL+F) you need to enter the code after -e CID= (e.g. if in the code CID=3zSD, just enter 3zSD)"
+        $PS_CID = Read-Host PS_CID
+        (Get-Content .\.env).replace('yourPSCID', "$PS_CID") | Set-Content .\.env
 
         # TraffMonetizer app env setup
         echo "Go to $TRAFFMONETIZER_LNK and register"
         Read-Host -prompt "When done, press enter to continue"
         echo "Enter your TraffMonetizer Token."
         echo "You can find it going in your dashboard https://app.traffmonetizer.com/dashboard then -> Look for Your application token -> just insert it here (you can also copy and then paste it)"
-        Read-Host TM_TOKEN
-        sed -i "s/yourTMToken/$TM_TOKEN/" .env
+        $TM_TOKEN = Read-Host TM_TOKEN
+        (Get-Content .\.env).replace('yourTMToken', "$TM_TOKEN") | Set-Content .\.env
     
         # Bitping app env setup
         echo "Go to $BITPING_LNK and register"
         Read-Host -prompt "When done, press enter to continue"
-        echo "To configure this app we will need to start an interactive container (so Docker needs to be already installed), then wait and enter your bitping email and password in it when prompted , hit enter and then close it as we will not need it anymore"
+        echo "To configure this app we will need to start an interactive container (so Docker needs to be already installed), then wait and enter your bitping email and password in it when prompted, hit enter and then close it as we will not need it anymore"
         echo "To do that open a new terminal in this same folder (this project folder) and run bitpingSetup.sh "
         #Read-Host -prompt "When ready to start, press enter to continue"
         #sudo docker run --rm -it -v ${PWD}/.data/.bitping/:/root/.bitping bitping/bitping-node:latest
