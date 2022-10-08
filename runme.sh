@@ -98,7 +98,7 @@ fn_setupEnv(){
     echo "Enter your Pawn IPRoyal Email"$'\n'
     read IR_EMAIL
     sed -i "s/yourIRMail/$IR_EMAIL/" .env
-    echo "Now enter your HoneyGain Password"$'\n'
+    echo "Now enter your IPRoyal Password"$'\n'
     read IR_PASSWORD
     sed -i "s/yourIRPw/$IR_PASSWORD/" .env
 
