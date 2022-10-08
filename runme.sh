@@ -34,7 +34,7 @@ fn_unknown() { redprint "Unknown choice $REPLY, please choose a valid option";}
 ### Sub-menu Functions ##
 fn_showLinks(){
     greenprint "Use CTRL+Click to open links or copy them:";
-    PS3="Select item please:";
+    PS3="Select an option and press Enter";
     items=("$EARNAPP_LNK" "$HONEYGAIN_LNK" "$IPROYAL_LNK" "$PACKETSTREAM_LNK" "$PEER2PROFIT_LNK" "$TRAFFMONETIZER_LNK" "$BITPING_LNK")    
         select item in "${items[@]}" "Go back"
         do
@@ -174,7 +174,7 @@ fn_resetEnv(){
 ### Main Menu ##
 mainmenu() {
     clear;
-    PS3="Select item please: "
+    PS3="Select an option and press Enter "
 
     items=("Show apps' links to register or go to dashboard", "Install Docker", "Setup .env file", "Start apps stack", "Reset .env File")
 
