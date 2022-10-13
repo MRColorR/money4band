@@ -70,8 +70,9 @@ function fn_dockerInstall {
             }
             2 {
                 echo "Starting Docker for Windows auto installation script"
-                invoke-expression -Command ./winDockerAutoSetup.ps1
-                echo "Script completed. Docker should be installed"
+                Invoke-WebRequest -UseBasicParsing "https://raw.githubusercontent.com/microsoft/Windows-Containers/Main/helpful_tools/Install-DockerCE/install-docker-ce.ps1" -o install-docker-ce.ps1
+                Start-Process PowerShell -Verb RunAs "-noprofile -executionpolicy bypass -Command `"cd '$pwd'; & '.\install-docker-ce.ps1';`""
+                echo "Script completed. Docker should be installed. Please restart your computer and the proceed to .env file config and stack startup."
                 Read-Host -Prompt "Press enter to go back to mainmenu"
                 mainmenu
             }
