@@ -34,16 +34,24 @@ Using the following referral links, register on the apps' sites. You should also
 - Go to [TRAFFMONETIZER](https://traffmonetizer.com/?aff=366499)
 - Go to [BITPING](https://app.bitping.com?r=qm7mIuX3)
 
-### 3) Use runme.sh or runme.ps1 to complete the automatic guided setup
-- Just start runme.sh (linux) or runme.ps1 (windows/linux) and follow the steps to configure the .env file and then start the stack.
-- If needed add execute permission using:
+### 3) Complete the automatic guided setup using runme.sh (linux) or runme.ps1 (Windows/linux)
+* (On linux) Just start runme.sh and follow the steps to configure the .env file and then start the stack.
+  * If needed add execute permission using: sudo chmod +x runme.sh
 ```bash
 sudo chmod +x runme.sh
+sudo runme.sh
+```
+
+
+- (On Windows) Just start runme.ps1 and follow the steps to configure the .env file and then start the stack.
+```pwsh
+runme.ps1
 ```
 
 ### Enjoy your passive income
 
-Keep in mind if you have several ip, you can run a stack on each ip to increase revenue, but running several time this stack on same ip should not give you more. You can also install some of this apps on your smartphone and use also your mobile network to earn.  
+- Keep in mind if you have several ip, you can run a stack on each ip to increase revenue, but running several time this stack on same ip should not give you more. You can also install some of this apps on your smartphone and use also your mobile network to earn.  
+- While the docker stack is running you can acess the web dashboard navigating with your browser to http://localhost:8081/
 
 ---
 
@@ -77,7 +85,8 @@ After a few minutes you should be able to see the device in the dashboards of th
 - 4.c) (For EarnApp) This step is not needed if EarnApp is not used. For EarnApp after the first start-up phase it is necessary to claim your device in your account. To do so just go to the earnapp dashboard and then register it by copying the node_UUID previously saved in the .env file in this URL prototype (https://earnapp.com/r/<your_device_uuid>) and then copy the resulting real URL into your web browser. Your url should look like this: https://earnapp.com/r/sdk-node-dtrbf9f1437a4287947fd58b5ka4d7. Navigating to your url should register your node in your dashboard. 
 
 ### Enjoy your passive income
-Keep in mind if you have several ip, you can run a stack on each ip to increase revenue, but running several time this stack on same ip should not give you more. You can also install some of this apps on your smartphone and use also your mobile network to earn.
+- Keep in mind if you have several ip, you can run a stack on each ip to increase revenue, but running several time this stack on same ip should not give you more. You can also install some of this apps on your smartphone and use also your mobile network to earn.  
+- While the docker stack is running you can acess the web dashboard navigating with your browser to http://localhost:8081/
 
 ### Disclaimer
 Always check that the laws of your country and the contractual terms of your internet plan allow the use of such applications. In any case, I do not take any responsibility for any consequences deriving from the use of such apps. This stack proposed by me simply brings them together, allows easy configuration even for the less experienced and updates the apps' images automatically. 
