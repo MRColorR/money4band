@@ -68,7 +68,7 @@ services:
             #- bitping-data:/root/.bitping # if you use this also uncomment the relative volume in volumes section, this  Use docker volumes (more secure harder to access, backup and restore) you'll need to do backups using 'docker cp
       
       
-
+#WATCHTOWER AUTO-UPDATER AND NOTIFICATIONS
     watchtower:
         container_name: watchtower
         image: containrrr/watchtower
@@ -85,6 +85,16 @@ services:
             - WATCHTOWER_NO_STARTUP_MESSAGE=true
             - WATCHTOWER_CLEANUP=true
         restart: always
+# WEB DASBOARD
+    webdashboard:
+        container_name: webdashboard
+        image: fnichol/uhttpd
+        volumes:
+            - ./www/Money4Band:/www
+        ports:
+            - 80:80
+        restart: always
+        
 volumes:
     earnapp-data:
     #bitping-data: # uncomment this if in bitping volumes you choose to use docker volumes instead of binding an host folder

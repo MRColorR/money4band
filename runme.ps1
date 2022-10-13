@@ -83,8 +83,8 @@ function fn_dockerInstall {
     }
     else {
         clear;
-        echo "Docker unattended installation canceled. Make sure you have docker installed before proceeding with the other steps. You will be redirected to the main menu";
-        sleep 8;
+        echo "Docker unattended installation canceled. Make sure you have docker installed before proceeding with the other steps.  ";
+        Read-Host -prompt "Press enter to go back to the menu";
         mainmenu;
     }
 }
@@ -111,9 +111,11 @@ function fn_setupEnv {
         $utf8 = New-Object -TypeName System.Text.UTF8Encoding
         $UUID = [System.BitConverter]::ToString($md5.ComputeHash($utf8.GetBytes($DEVICE_NAME))).replace("-", "").ToLower()
         (Get-Content .\.env).replace('yourMD5sum', "$UUID") | Set-Content .\.env
-        echo "SAVE THE FOLLOWING LINK SOMEWHERE TO CLAIM YOUR EARNAPP NODE after completing the setup and after starting the apps stack: https://earnapp.com/r/sdk-node-$UUID"
+        echo "!!SAVE THE FOLLOWING LINK SOMEWHERE TO CLAIM YOUR EARNAPP NODE after completing the setup and after starting the apps stack: https://earnapp.com/r/sdk-node-$UUID"
+        Read-Host -prompt "When done, press enter to continue to the next app"
 
         #HoneyGain app env setup
+        clear
         echo "Go to $HONEYGAIN_LNK and register"
         Read-Host -prompt "When done, press enter to continue"
         $HG_EMAIL = Read-Host -prompt "Enter your HoneyGain Email"
@@ -155,19 +157,19 @@ function fn_setupEnv {
         echo "Go to $BITPING_LNK and register"
         Read-Host -prompt "When done, press enter to continue"
         echo "To configure this app we will need to start an interactive container (so Docker needs to be already installed), then wait and enter your bitping email and password in it when prompted, hit enter and then close it as we will not need it anymore"
-        echo "To do that open a new terminal in this same folder (this project folder) and run bitpingSetup.sh "
-        #Read-Host -prompt "When ready to start, press enter to continue"
-        #sudo docker run --rm -it -v ${PWD}/.data/.bitping/:/root/.bitping bitping/bitping-node:latest
+        echo "To do that we will open a new terminal in this same folder and run bitpingSetup.sh for you"
+        Read-Host -prompt "When ready to start, press enter to continue"
+        Start-Process PowerShell -Verb RunAs "-Command `"cd '$pwd'; & '.\bitpingSetup.ps1';`""
 
         echo "env file setup complete."
-        Read-Host -prompt "Press enter to go back to the menu"
+        Read-Host -prompt "Press enter to go back to the menu";
 
         mainmenu;
 
     }
     else {
-        echo ".env file setup canceled. Make sure you have a valid .env file before proceeding with the stack startup. You will be redirected to the main menu";
-        sleep 8;
+        echo ".env file setup canceled. Make sure you have a valid .env file before proceeding with the stack startup.  ";
+        Read-Host -prompt "Press enter to go back to the menu";
         mainmenu;
     }
     
@@ -182,8 +184,8 @@ function fn_startStack {
         mainmenu;
     }
     else {
-        echo "Docker unattended installation canceled. Make sure you have docker installed before proceeding with the other steps. You will be redirected to the main menu"
-        sleep 8;
+        echo "Docker unattended installation canceled. Make sure you have docker installed before proceeding with the other steps.  "
+        Read-Host -prompt "Press enter to go back to the menu";
         mainmenu;
     }
 }
@@ -195,8 +197,8 @@ function fn_resetEnv {
         curl -LJO $ENV_SRC; echo ".env file resetted, remember to reconfigure it";
     }
     else {
-        echo ".env file reset canceled. The file is left as it is. You will be redirected to the main menu"
-        sleep 8;
+        echo ".env file reset canceled. The file is left as it is.  "
+        Read-Host -prompt "Press enter to go back to the menu";
         mainmenu;
     }
 }
