@@ -92,7 +92,7 @@ services:
         volumes:
             - ./www/Money4Band:/www
         ports:
-            - 80:80
+            - 8081:80
         restart: always
         
 volumes:
