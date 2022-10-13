@@ -142,6 +142,7 @@ fn_setupEnv(){
     echo "Then wait and enter your bitping email and password in it when prompted, hit enter and then close it as we will not need it anymore"
     echo "To do that we will open a new terminal in this same folder and run bitpingSetup.sh for you"$'\n'
     read -n 1 -s -r -p "When ready to start, press any key to continue"$'\n'
+    chmod u+x ./bitpingSetup.sh;
     sudo sh -c './bitpingSetup.sh';
     #sudo docker run --rm -it -v ${PWD}/.data/.bitping/:/root/.bitping bitping/bitping-node:latest
 
