@@ -1,5 +1,5 @@
 # Money4Band
-A multiplatform self updating, lightweight docker stack that runs many passive income applications like Honeygain, EarnApp, IPRoyal Pawns, PacketStream, Peer2Profit, Bitping etc. that pay you in USD or in crypto to share your unused internet bandwidth. This docker stack makes it easier to set up and use those apps and it also includes an auto updater. You can also choose to use only some of the offered applications if that's what you want. All of them use a very small percentage of your unused internet bandwidth to perform searches such as Price Comparison, Brand Protection, Web Scraping, Ad Verification, QA Testing.  According to the creators of the various apps used here, all of these activities are safe and carried out only on behalf of verified customers who have passed their security standards such as companies and brands that have business relationships with them; So their use should be safe and risk-free.
+A multiplatform self updating, lightweight docker stack that runs many passive income applications like Honeygain, EarnApp, IPRoyal Pawns, PacketStream, Peer2Profit, Bitping etc. that pay you in USD or in crypto to share your unused internet bandwidth. This docker stack makes it easier to set up and use those apps and it also includes an auto updater and web dasboard. You can also choose to use only some of the offered applications if that's what you want. All of them use a very small percentage of your unused internet bandwidth to perform searches such as Price Comparison, Brand Protection, Web Scraping, Ad Verification, QA Testing.  According to the creators of the various apps used here, all of these activities are safe and carried out only on behalf of verified customers who have passed their security standards such as companies and brands that have business relationships with them; So their use should be safe and risk-free.
 
 This Docker Stack should work on anything that may have docker installed. In particular, it has been tested on: Windows 11 and Linux Ubuntu 64 Bit on x86_64 / amd64 PC, Linux Raspbian OS 64 bit on arm64 Raspberry Pi3 and Pi4.
 
@@ -8,7 +8,7 @@ This Docker Stack should work on anything that may have docker installed. In par
 - A 64-bit operating system is strongly recommended.
 - Virtualization function in the BIOS must be active to use Docker.
 - (Optional) To run on Windows, Virtualization platform and Windows Subsystem for Linux must be active as this two functions are required by Docker.
-- Docker must already be installed and able to run on startup. If it is not already installed you can follow the instructions for your platform at https://docs.docker.com/get-docker/
+- Docker must already be installed and able to run on startup. If it is not already installed you can follow the instructions for your platform at https://docs.docker.com/get-docker/ or use the built-in script to install it.
 - (Optional) On arm devices (like Raspberry) to support also non-arm native docker images it is recommended to install an emulation layer with 
 ```bash
 sudo docker run --privileged --rm tonistiigi/binfmt --install all
@@ -34,8 +34,8 @@ Using the following referral links, register on the apps' sites. You should also
 - Go to [TRAFFMONETIZER](https://traffmonetizer.com/?aff=366499)
 - Go to [BITPING](https://app.bitping.com?r=qm7mIuX3)
 
-### 3) Use runme.sh to complete the automatic guided setup
-- Just start runme.sh and follow the steps to configure the .env file and then start the stack.
+### 3) Use runme.sh or runme.ps1 to complete the automatic guided setup
+- Just start runme.sh (linux) or runme.ps1 (windows/linux) and follow the steps to configure the .env file and then start the stack.
 - If needed add execute permission using:
 ```bash
 sudo chmod +x runme.sh
