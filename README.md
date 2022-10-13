@@ -38,8 +38,7 @@ Using the following referral links, register on the apps' sites. You should also
 * (On linux) Just start runme.sh and follow the steps to configure the .env file and then start the stack.
   * If needed add execute permission using: sudo chmod +x runme.sh
 ```bash
-sudo chmod +x runme.sh
-sudo runme.sh
+bash ./runme.sh
 ```
 
 
