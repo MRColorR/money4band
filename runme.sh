@@ -121,7 +121,7 @@ fn_setupEnv(){
     cyanprint "Go to $PACKETSTREAM_LNK and register"
     read -n 1 -s -r -p "When done, press any key to continue"$'\n'
     echo "Enter your PacketStream CID."$'\n'
-    echo "You can find it going in your dashboard https://packetstream.io/dashboard/download?linux# then click on -> Looking for linux app -> now search for CID= in the code shown in the page (you can also use CTRL+F) you need to enter the code after -e CID= (e.g. if in the code CID=6aTk, just enter 3zSD)"$'\n'
+    echo "You can find it going in your dashboard https://packetstream.io/dashboard/download?linux# then click on -> Looking for linux app -> now search for CID= in the code shown in the page (you can also use CTRL+F) you need to enter the code after -e CID= (e.g. if in the code CID=6aTk, just enter 6aTk)"$'\n'
     read PS_CID
     sed -i "s/yourPSCID/$PS_CID/" .env
 

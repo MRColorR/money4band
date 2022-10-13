@@ -147,7 +147,7 @@ function fn_setupEnv {
         echo "Go to $PACKETSTREAM_LNK and register"
         Read-Host -prompt "When done, press enter to continue"
         echo "Enter your PacketStream CID."
-        echo "You can find it going in your dashboard https://packetstream.io/dashboard/download?linux# then click on -> Looking for linux app -> now search for CID= in the code shown in the page (you can also use CTRL+F) you need to enter the code after -e CID= (e.g. if in the code CID=3zSD, just enter 3zSD)"
+        echo "You can find it going in your dashboard https://packetstream.io/dashboard/download?linux# then click on -> Looking for linux app -> now search for CID= in the code shown in the page (you can also use CTRL+F) you need to enter the code after -e CID= (e.g. if in the code CID=6aTk, just enter 6aTk)"
         $PS_CID = Read-Host PS_CID
         (Get-Content .\.env).replace('yourPSCID', "$PS_CID") | Set-Content .\.env
 
