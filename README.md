@@ -42,7 +42,10 @@ sudo chmod +x runme.sh
 ```
 
 ### Enjoy your passive income
-Keep in mind if you have several ip, you can run a stack on each ip to increase revenue, but running several time this stack on same ip should not give you more. You can also install some of this apps on your smartphone and use also your mobile network to earn.
+
+Keep in mind if you have several ip, you can run a stack on each ip to increase revenue, but running several time this stack on same ip should not give you more. You can also install some of this apps on your smartphone and use also your mobile network to earn.  
+
+---
 
 ## (Alternative) Manual setup
 
