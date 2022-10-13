@@ -106,7 +106,7 @@ function fn_setupEnv {
         echo "Use CTRL+Click to open links or copy them:"
 
         #EarnApp app env setup
-        clear
+        
         echo "Go to $EARNAPP_LNK and register"
         Read-Host -prompt "When done, press enter to continue"
         echo "generating an UUID for earnapp"
@@ -207,6 +207,19 @@ function fn_resetEnv {
     }
     else {
         echo ".env file reset canceled. The file is left as it is.  "
+        Read-Host -prompt "Press enter to go back to the menu";
+        mainmenu;
+    }
+}
+
+function fn_resetDockerCompose{
+    echo "Now a fresh docker-compose.yml file will be downloaded"
+    $yn = Read-Host -prompt "Do you wish to proceed Y/N?  "
+    if ($yn -eq 'Y' -or $yn -eq 'y' -or $yn -eq 'Yes' -or $yn -eq 'yes' ) {
+        curl -LJO $DKCOM_SRC; echo "docker-compose.yml file resetted, remember to reconfigure it if needed";
+    }
+    else {
+        echo "docker-compose.yml file reset canceled. The file is left as it is. "
         Read-Host -prompt "Press enter to go back to the menu";
         mainmenu;
     }
