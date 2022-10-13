@@ -7,7 +7,7 @@ This Docker Stack should work on anything that may have docker installed. In par
 ### Prerequisites
 - A 64-bit operating system is strongly recommended.
 - Virtualization function in the BIOS must be active to use Docker.
-- (Optional) To run on Windows, Virtualization platform and Windows Subsystem for Linux must be active as this two functions are required by Docker.
+- (Optional) To run on Windows, Virtualization platform and Windows Subsystem for Linux must be active as this two functions are required by Docker. If they're not already enabled, please enable them or use the built-in script to turn them on and install Docker.
 - Docker must already be installed and able to run on startup. If it is not already installed you can follow the instructions for your platform at https://docs.docker.com/get-docker/ or use the built-in script to install it.
 - (Optional) On arm devices (like Raspberry) to support also non-arm native docker images it is recommended to install an emulation layer with 
 ```bash
@@ -51,7 +51,7 @@ runme.ps1
 ### Enjoy your passive income
 
 - Keep in mind if you have several ip, you can run a stack on each ip to increase revenue, but running several time this stack on same ip should not give you more. You can also install some of this apps on your smartphone and use also your mobile network to earn.  
-- While the docker stack is running you can acess the web dashboard navigating with your browser to http://localhost:8081/
+- While the docker stack is running you can access the web dashboard navigating with your browser to http://localhost:8081/
 
 ---
 
