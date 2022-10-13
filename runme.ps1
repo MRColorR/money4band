@@ -28,6 +28,9 @@ $BITPING_LNK = "BITPING | https://app.bitping.com?r=qm7mIuX3"
 ### .env File Prototype Link##
 $ENV_SRC = 'https://github.com/MRColorR/money4band/raw/main/.env'
 
+### docker-compose.yml Prototype Link##
+$DKCOM_SRC = 'https://github.com/MRColorR/money4band/raw/main/docker-compose.yml'
+
 ### Functions ##
 function fn_bye { echo "Bye bye."; exit 0; }
 function fn_fail { echo "Wrong option." exit 1; }
@@ -124,6 +127,7 @@ function fn_setupEnv {
         (Get-Content .\.env).replace('yourHGPw', "$HG_PASSWORD") | Set-Content .\.env
 
         #Pawn IPRoyal app env setup
+        clear
         echo "Go to $IPROYAL_LNK and register"
         Read-Host -prompt "When done, press enter to continue"
         $IR_EMAIL = Read-Host -prompt "Enter your Pawn IPRoyal Email"
@@ -132,12 +136,14 @@ function fn_setupEnv {
         (Get-Content .\.env).replace('yourIRPw', "$IR_PASSWORD") | Set-Content .\.env
 
         #Peer2Profit app env setup
+        clear
         echo "Go to $PEER2PROFIT_LNK and register"
         Read-Host -prompt "When done, press enter to continue"
         $P2P_EMAIL = Read-Host -prompt "Enter your Peer2Profit Email"
         (Get-Content .\.env).replace('yourP2PMail', "$P2P_EMAIL") | Set-Content .\.env
 
         #PacketStream app env setup
+        clear
         echo "Go to $PACKETSTREAM_LNK and register"
         Read-Host -prompt "When done, press enter to continue"
         echo "Enter your PacketStream CID."
@@ -146,6 +152,7 @@ function fn_setupEnv {
         (Get-Content .\.env).replace('yourPSCID', "$PS_CID") | Set-Content .\.env
 
         # TraffMonetizer app env setup
+        clear
         echo "Go to $TRAFFMONETIZER_LNK and register"
         Read-Host -prompt "When done, press enter to continue"
         echo "Enter your TraffMonetizer Token."
@@ -154,9 +161,11 @@ function fn_setupEnv {
         (Get-Content .\.env).replace('yourTMToken', "$TM_TOKEN") | Set-Content .\.env
     
         # Bitping app env setup
+        clear
         echo "Go to $BITPING_LNK and register"
         Read-Host -prompt "When done, press enter to continue"
-        echo "To configure this app we will need to start an interactive container (so Docker needs to be already installed), then wait and enter your bitping email and password in it when prompted, hit enter and then close it as we will not need it anymore"
+        echo "To configure this app we will need to start an interactive container (so Docker needs to be already installed)."
+        echo "Then wait and enter your bitping email and password in it when prompted, hit enter and then close it as we will not need it anymore"
         echo "To do that we will open a new terminal in this same folder and run bitpingSetup.sh for you"
         Read-Host -prompt "When ready to start, press enter to continue"
         Start-Process PowerShell -Verb RunAs "-noprofile -executionpolicy bypass -Command `"cd '$pwd'; & '.\bitpingSetup.ps1';`""
@@ -168,7 +177,7 @@ function fn_setupEnv {
 
     }
     else {
-        echo ".env file setup canceled. Make sure you have a valid .env file before proceeding with the stack startup.  ";
+        echo ".env file setup canceled. Make sure you have a valid .env file before proceeding with the stack startup.";
         Read-Host -prompt "Press enter to go back to the menu";
         mainmenu;
     }
