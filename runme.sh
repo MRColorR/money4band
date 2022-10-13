@@ -185,7 +185,7 @@ mainmenu() {
     clear;
     PS3="Select an option and press Enter "
 
-    items=("Show apps' links to register or go to dashboard", "Install Docker", "Setup .env file", "Start apps stack", "Reset .env File")
+    items=("Show apps' links to register or go to dashboard", "Install Docker", "Setup .env file", "Start apps stack", "Reset .env File", "Reset docker-compose.yml file")
 
     select item in "${items[@]}" Quit
     do
@@ -195,6 +195,7 @@ mainmenu() {
             3) clear; fn_setupEnv; break;;
             4) clear; fn_startStack; break;;
             5) clear; fn_resetEnv; break;;
+            6) clear; fn_resetDockerCompose; break;;
             $((${#items[@]}+1))) fn_bye;;
             *) clear; fn_unknown; break;;
         esac

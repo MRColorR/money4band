@@ -234,7 +234,8 @@ function mainmenu {
     Write-Output "3) Setup .env file"
     Write-Output "4) Start apps stack"
     Write-Output "5) Reset .env File"
-    Write-Output "6) Exit"
+    Write-Output "6) Reset docker-compose.yml file"
+    Write-Output "7) Exit"
     Do {
         $Select = Read-Host
         Switch ($Select) {
@@ -254,6 +255,9 @@ function mainmenu {
                 fn_resetEnv
             }
             6 {
+                fn_resetDockerCompose
+            }
+            7{
                 fn_bye
             }
             DEFAULT {
