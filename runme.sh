@@ -84,6 +84,7 @@ fn_setupEnv(){
     UUID="$(echo -n "$DEVICE_NAME" | md5sum | cut -c1-32)"
     sed -i "s/yourMD5sum/$UUID/" .env
     cyanprint "Save the following link somewhere to claim your earnapp node after completing the setup and after starting the apps stack: https://earnapp.com/r/sdk-node-$UUID"
+    read -p "When done, press enter to continue to the next app"
 
     #HoneyGain app env setup
     clear;
