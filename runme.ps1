@@ -159,7 +159,7 @@ function fn_setupEnv {
         echo "To configure this app we will need to start an interactive container (so Docker needs to be already installed), then wait and enter your bitping email and password in it when prompted, hit enter and then close it as we will not need it anymore"
         echo "To do that we will open a new terminal in this same folder and run bitpingSetup.sh for you"
         Read-Host -prompt "When ready to start, press enter to continue"
-        Start-Process PowerShell -Verb RunAs "-Command `"cd '$pwd'; & '.\bitpingSetup.ps1';`""
+        Start-Process PowerShell -Verb RunAs "-noprofile -executionpolicy bypass -Command `"cd '$pwd'; & '.\bitpingSetup.ps1';`""
 
         echo "env file setup complete."
         Read-Host -prompt "Press enter to go back to the menu";
