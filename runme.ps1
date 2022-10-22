@@ -177,7 +177,8 @@ function fn_startStack {
     $yn = Read-Host -prompt "Do you wish to proceed Y/N?"
     if ($yn -eq 'Y' -or $yn -eq 'y' -or $yn -eq 'Yes' -or $yn -eq 'yes' ) {
         docker compose up -d
-        Read-Host "All Apps started. If not already done use the previously generated earnapp node URL to add your device in your earnapp dashboard. Check the README file for more details.";
+        Write-Output 'All Apps started. If not already done use the previously generated earnapp node URL to add your device in your earnapp dashboard.'
+        Read-Host "Check the README file for more details. Now press enter to go back to the menu";
         mainmenu;
     }
     else {
