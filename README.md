@@ -35,15 +35,16 @@ Using the following referral links, register on the apps' sites. You should also
 - Go to [BITPING](https://app.bitping.com?r=qm7mIuX3)
 
 ### 3) Complete the automatic guided setup using runme.sh (linux) or runme.ps1 (Windows/linux)
-* (On linux) Just start runme.sh and follow the steps to configure the .env file and then start the stack.
-  * If needed add execute permission using: sudo chmod +x runme.sh
+* On linux oper a terminal in the project folder or navigate to it then use the following commands to add execute permission and run the guided script to configure the .env file and then start the stack:
 ```bash
+sudo chmod +x runme.sh
 bash ./runme.sh
 ```
 
 
-- (On Windows) Just start runme.ps1 and follow the steps to configure the .env file and then start the stack.
+* (On Windows) Open a Powershell (as Administrator) in the project folder or navigate to it then use the following comamnds to set the execution policy and run the guided script to configure the .env file and then start the stack:
 ```pwsh
+set-executionpolicy -scope CurrentUser -executionPolicy Bypass -Force
 runme.ps1
 ```
 
