@@ -21,7 +21,10 @@ sudo systemctl start docker.binfmt.service
 ```
 ## How to run
 ### 1) Get the latest version
-Using your preferred method get the latest version of this project and place it in a new folder.
+Using your preferred method get the latest version of this project and unzip it.
+```bash
+curl -o Money4Band.zip https://github.com/MRColorR/money4band/archive/refs/heads/main.zip
+```
 ### 2) Register an account on the app's sites using the following links
 Using the following referral links, register on the apps' sites. You should also receive a welcome bonus and at the same time you will effortlessly show that you appreciate my work (thank you so much).
 - Go to [Earnapp](https://earnapp.com/i/3zulx7k)
@@ -40,7 +43,7 @@ bash ./runme.sh
 ```
 
 
-* (On Windows) Open a Powershell (as Administrator) in the project folder or navigate to it then use the following comamnds to set the execution policy and run the guided script to configure the .env file and then start the stack:
+* (On Windows) Open a Powershell (as Administrator) in the project folder or navigate to it then use the following commands to set the execution policy and run the guided script to configure the .env file and then start the stack:
 ```pwsh
 set-executionpolicy -scope CurrentUser -executionPolicy Bypass -Force
 .\runme.ps1
