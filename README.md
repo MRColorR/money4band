@@ -3,7 +3,7 @@ A multiplatform self updating, lightweight docker stack that runs many passive i
 
 This Docker Stack should work on anything that may have docker installed. In particular, it has been tested on: Windows 11 and Linux Ubuntu 64 Bit on x86_64 / amd64 PC, Linux Raspbian OS 64 bit on arm64 Raspberry Pi3 and Pi4.
 
-## How to run
+
 ### Prerequisites
 - A 64-bit operating system is strongly recommended.
 - Virtualization function in the BIOS must be active to use Docker.
@@ -13,15 +13,13 @@ This Docker Stack should work on anything that may have docker installed. In par
 ```bash
 sudo docker run --privileged --rm tonistiigi/binfmt --install all
 ```
-You can also make a service to run the emulation layer at system startup (this should be needed only on arm devices): To do so open a terminal in the folder containing the docker.binfmt.service file and then copy that file in /etc/systemmd/system using
+You can also make a service to run the emulation layer at system startup (this should be needed only on arm devices): To do so open a terminal in the folder containing the docker.binfmt.service file, then copy that file in /etc/systemmd/system and finally enable its service using the following commands:
 ```bash
 sudo cp ${PWD}/docker.binfmt.service /etc/systemd/system
-```
-and finally enable its service using the following commands
-```bash
 sudo systemctl enable docker.binfmt.service
 sudo systemctl start docker.binfmt.service
 ```
+## How to run
 ### 1) Get the latest version
 Using your preferred method get the latest version of this project and place it in a new folder.
 ### 2) Register an account on the app's sites using the following links
@@ -45,7 +43,7 @@ bash ./runme.sh
 * (On Windows) Open a Powershell (as Administrator) in the project folder or navigate to it then use the following comamnds to set the execution policy and run the guided script to configure the .env file and then start the stack:
 ```pwsh
 set-executionpolicy -scope CurrentUser -executionPolicy Bypass -Force
-runme.ps1
+.\runme.ps1
 ```
 
 ### Enjoy your passive income
