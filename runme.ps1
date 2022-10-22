@@ -62,7 +62,8 @@ function fn_dockerInstall {
             2 {
                 echo "Starting Docker for Windows auto installation script"
                 Invoke-WebRequest $DKINST_WIN_SRC -o install-docker.ps1
-                Start-Process PowerShell -Verb RunAs "-noprofile -executionpolicy bypass -Command `"cd '$pwd'; & '.\install-docker.ps1';`""
+                Start-Process PowerShell -Verb RunAs "-noprofile -executionpolicy bypass -Command `"cd '$pwd'; & '.\install-docker.ps1';`"" -Wait
+                
                 echo "Script completed. Docker should be installed. Please restart your computer and the proceed to .env file config and stack startup."
                 Read-Host -Prompt "Press enter to go back to mainmenu"
                 mainmenu
