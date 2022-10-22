@@ -19,7 +19,7 @@ sudo cp ${PWD}/docker.binfmt.service /etc/systemd/system
 sudo systemctl enable docker.binfmt.service
 sudo systemctl start docker.binfmt.service
 ```
-## How to run
+## How to run (guided setup)
 ### 1) Get the latest version
 Using your preferred method get the latest version of this project and unzip it.
 ```bash
@@ -49,6 +49,14 @@ set-executionpolicy -scope CurrentUser -executionPolicy Bypass -Force
 .\runme.ps1
 ```
 
+In any case, within the script menu there are many options dedicated to:
+- Register for the various apps,
+- Automatically install docker for the less experienced who cannot perform the recommended manual installation,
+- Setup of the .env file,
+- Application stack start helper,
+- Tools to reset the configurations made in case of problems.
+
+If you already have docker installed the only mandatory items you need to use are the env file setup entry and the start app stack entry of the menu.
 ### Enjoy your passive income
 
 - Keep in mind if you have several ip, you can run a stack on each ip to increase revenue, but running several time this stack on same ip should not give you more. You can also install some of this apps on your smartphone and use also your mobile network to earn.  
@@ -61,6 +69,8 @@ set-executionpolicy -scope CurrentUser -executionPolicy Bypass -Force
 ---
 
 ## (Alternative) Manual setup
+
+If you don't want to use the automatic setup scripts you can follow these alternative steps to do the manual setup.
 
 ### 3) Edit the .env file, adding where required the data to access the accounts you just created. You can find more detailed instructions directly inside the .env file
 - Device_name : set any name you like
