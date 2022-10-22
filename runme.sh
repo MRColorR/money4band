@@ -156,7 +156,7 @@ fn_startStack(){
     yellowprint "This menu item will launch all the apps using the configured .env file and the docker-compose.yml file (Docker must be already installed and running)"
     read -p "Do you wish to proceed Y/N?  " yn
     case $yn in
-        [Yy]* ) sudo docker compose up -d; greenprint "All Apps started. If not already done use the previously generated earnapp node URL to add your device in your earnapp dashboard. Check the README file for more details."; mainmenu;;
+        [Yy]* ) sudo docker compose up -d; greenprint "All Apps started you can visit the web dashboard on http://localhost:8081/ . If not already done use the previously generated earnapp node URL to add your device in your earnapp dashboard. Check the README file for more details."; read -p "Now press enter to go back to the menu"; mainmenu;;
         [Nn]* ) blueprint "Docker stack startup canceled.";read -p "Press Enter to go back to mainmenu"; mainmenu;;
         * ) echo "Please answer yes or no.";;
     esac
