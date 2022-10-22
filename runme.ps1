@@ -154,10 +154,9 @@ function fn_setupEnv {
         Write-Output "Go to $BITPING_LNK and register"
         Read-Host -prompt "When done, press enter to continue"
         Write-Output "To configure this app we will need to start an interactive container (so Docker needs to be already installed)."
-        Write-Output "Then wait and enter your bitping email and password in it when prompted, hit enter and then close it as we will not need it anymore"
-        Write-Output "To do that we will open a new terminal in this same folder and run bitpingSetup.sh for you"
+        Write-Output "To do that now we will open a new terminal in this same folder and run bitpingSetup for you."
         Read-Host -prompt "When ready to start, press enter to continue"
-        Start-Process PowerShell -Verb RunAs "-noprofile -executionpolicy bypass -Command `"cd '$pwd'; & '.\bitpingSetup.ps1';`""
+        Start-Process PowerShell -Verb RunAs "-noprofile -executionpolicy bypass -Command `"cd '$pwd'; & '.\bitpingSetup.ps1';`"" -wait
 
         Write-Output "env file setup complete."
         Read-Host -prompt "Press enter to go back to the menu";
@@ -178,7 +177,7 @@ function fn_startStack {
     $yn = Read-Host -prompt "Do you wish to proceed Y/N?"
     if ($yn -eq 'Y' -or $yn -eq 'y' -or $yn -eq 'Yes' -or $yn -eq 'yes' ) {
         docker compose up -d
-        Write-Output "All Apps started. If not already done use the previously generated earnapp node URL to add your device in your earnapp dashboard. Check the README file for more details.";
+        Read-Host "All Apps started. If not already done use the previously generated earnapp node URL to add your device in your earnapp dashboard. Check the README file for more details.";
         mainmenu;
     }
     else {
