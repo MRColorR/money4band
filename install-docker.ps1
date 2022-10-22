@@ -18,7 +18,7 @@ function installDoker {
             Restart-Computer -Confirm 
 }
 
-$ProgressPreference = 'SilentlyContinue'
+$ProgressPreference = 'Continue'
 
     $wsl = Get-WindowsOptionalFeature -FeatureName Microsoft-Windows-Subsystem-Linux -Online
 
