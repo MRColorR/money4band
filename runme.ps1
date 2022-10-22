@@ -182,7 +182,7 @@ function fn_startStack {
         mainmenu;
     }
     else {
-        Write-Output "Docker unattended installation canceled. Make sure you have docker installed before proceeding with the other steps.  "
+        Write-Output "Docker stack startup canceled. After configuring the .env you have to start the stack to be able to earn. Proceed when you feel ready."
         Read-Host -prompt "Press enter to go back to the menu";
         mainmenu;
     }
@@ -192,7 +192,7 @@ function fn_resetEnv {
     Write-Output "Now a fresh env file will be downloaded and will need to be reconfigured to be used again"
     $yn = Read-Host -prompt "Do you wish to proceed Y/N?  "
     if ($yn -eq 'Y' -or $yn -eq 'y' -or $yn -eq 'Yes' -or $yn -eq 'yes' ) {
-        curl -o '.env' $ENV_SRC; Write-Output ".env file resetted, remember to reconfigure it";
+        Invoke-WebRequest -OutFile '.env' $ENV_SRC; Write-Output ".env file resetted, remember to reconfigure it";
         Read-Host -prompt "Press enter to go back to the menu";
         mainmenu;
     }
@@ -207,7 +207,7 @@ function fn_resetDockerCompose{
     Write-Output "Now a fresh docker-compose.yml file will be downloaded"
     $yn = Read-Host -prompt "Do you wish to proceed Y/N?  "
     if ($yn -eq 'Y' -or $yn -eq 'y' -or $yn -eq 'Yes' -or $yn -eq 'yes' ) {
-        curl -o docker-compose.yml $DKCOM_SRC; Write-Output "docker-compose.yml file resetted, remember to reconfigure it if needed";
+        Invoke-WebRequest -OutFile 'docker-compose.yml' $DKCOM_SRC; Write-Output "docker-compose.yml file resetted, remember to reconfigure it if needed";
         Read-Host -prompt "Press enter to go back to the menu";
         mainmenu;
     }
