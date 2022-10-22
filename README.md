@@ -52,6 +52,10 @@ runme.ps1
 - Keep in mind if you have several ip, you can run a stack on each ip to increase revenue, but running several time this stack on same ip should not give you more. You can also install some of this apps on your smartphone and use also your mobile network to earn.  
 - While the docker stack is running you can access the web dashboard navigating with your browser to http://localhost:8081/
 
+## Need help or Found an issue/bug ? 
+- For Info, Help and new features requesto use the [Discussion tab](https://github.com/MRColorR/money4band/discussions)
+- For issues and bug report use the [Issue tab](https://github.com/MRColorR/money4band/issues)
+
 ---
 
 ## (Alternative) Manual setup
