@@ -1,21 +1,6 @@
 #!/bin/pwsh
 set-executionpolicy -scope CurrentUser -executionPolicy Bypass -Force
 
-
-### Colors ##
-# ESC=$(printf '\033') RESET="${ESC}[0m" BLACK="${ESC}[30m" RED="${ESC}[31m"
-# $GREEN="${ESC}[32m" YELLOW="${ESC}[33m" BLUE="${ESC}[34m" MAGENTA="${ESC}[35m"
-# $CYAN="${ESC}[36m" WHITE="${ESC}[37m" DEFAULT="${ESC}[39m"
-
-### Color Functions ##
-
-# greenprint { printf  "$1"; }
-# blueprint { printf  "$1"; }
-# redprint { printf  "$1"; }
-# yellowprint { printf  "$1"; }
-# magentaprint { printf  "$1"; }
-# cyanprint { printf  "$1"; }
-
 ### Links ##
 $EARNAPP_LNK = "Earnapp | https://earnapp.com/i/3zulx7k"
 $HONEYGAIN_LNK = "HoneyGain | https://r.honeygain.me/MINDL15721"
@@ -68,7 +53,7 @@ function fn_dockerInstall {
         Switch ($Select) {
             1 {
                 echo "Starting Docker for linux auto installation script"
-                curl -fsSL https://get.docker.com -o get-docker.sh;
+                curl  https://get.docker.com -o get-docker.sh;
                 sudo sh get-docker.sh;
                 echo "Script completed. Docker should be installed"
                 Read-Host -Prompt "Press enter to go back to mainmenu"
@@ -76,7 +61,7 @@ function fn_dockerInstall {
             }
             2 {
                 echo "Starting Docker for Windows auto installation script"
-                Invoke-WebRequest -UseBasicParsing $DKINST_WIN_SRC -o install-docker.ps1
+                Invoke-WebRequest $DKINST_WIN_SRC -o install-docker.ps1
                 Start-Process PowerShell -Verb RunAs "-noprofile -executionpolicy bypass -Command `"cd '$pwd'; & '.\install-docker.ps1';`""
                 echo "Script completed. Docker should be installed. Please restart your computer and the proceed to .env file config and stack startup."
                 Read-Host -Prompt "Press enter to go back to mainmenu"
