@@ -22,6 +22,7 @@ sudo systemctl start docker.binfmt.service
 ## How to run (guided setup)
 ### 1) Get the latest version
 Using your preferred method get the latest version of this project and unzip it.
+For example you can download the zip of the project using the following command in a linux or windows terminal:
 ```bash
 curl -o Money4Band.zip https://github.com/MRColorR/money4band/archive/refs/heads/main.zip
 ```
