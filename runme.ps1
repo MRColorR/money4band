@@ -31,6 +31,9 @@ $ENV_SRC = 'https://github.com/MRColorR/money4band/raw/main/.env'
 ### docker-compose.yml Prototype Link##
 $DKCOM_SRC = 'https://github.com/MRColorR/money4band/raw/main/docker-compose.yml'
 
+### Docker installer script for windows source link ##
+$DKINST_WIN_SRC = 'https://github.com/MRColorR/money4band/raw/main/install-docker.ps1'
+
 ### Functions ##
 function fn_bye { echo "Bye bye."; exit 0; }
 function fn_fail { echo "Wrong option." exit 1; }
@@ -73,7 +76,7 @@ function fn_dockerInstall {
             }
             2 {
                 echo "Starting Docker for Windows auto installation script"
-                
+                Invoke-WebRequest -UseBasicParsing $DKINST_WIN_SRC -o install-docker.ps1
                 Start-Process PowerShell -Verb RunAs "-noprofile -executionpolicy bypass -Command `"cd '$pwd'; & '.\install-docker.ps1';`""
                 echo "Script completed. Docker should be installed. Please restart your computer and the proceed to .env file config and stack startup."
                 Read-Host -Prompt "Press enter to go back to mainmenu"
