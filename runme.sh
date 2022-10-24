@@ -60,6 +60,22 @@ fn_dockerInstall(){
     esac
 }
 
+fn_setupNotifications(){
+    echo "Starting Notifications setup:"
+    echo "This step will setup notifications about containers updates using shoutrrr"
+    echo "Now we will configure a SHOUTRRR_URL that should looks like this <app>://<token>@<webhook> . Where <app> is one of the supported messaging apps supported by shoutrrr (We will use a private discord server as example)."
+    echo "For more apps and details visit https://containrrr.dev/shoutrrr/, select your desider app (service) and paste the required SHOUTRRR_URL in this script when prompted "
+    echo "CREATE A NEW DISCORD SERVER, GO TO SERVER SETTINGS>INTEGRATIONS AND CREATE A WEBHOOK"
+    echo " Your Discord Webhook-URL will look like this: https://discordapp.com/api/webhooks/YourWebhookid/YourToken to obtain the SHOUTRRR_URL you should rearrange it to look like this: discord://yourToken@yourWebhookid"
+    read SHOUTRRR_URL -p " NOW INSERT IT HERE using THE SAME FORMAT WRITTEN ABOVE: discord://yourToken@yourWebhookid "
+    sed -i "s/# SHOUTRRR_URL=discord://yourToken@yourWebhook/SHOUTRRR_URL=$SHOUTRRR_URL/" .env
+    sed -i "s/# - WATCHTOWER_NOTIFICATIONS=shoutrrr/- WATCHTOWER_NOTIFICATIONS=shoutrrr/" docker-compose.yml
+    sed -i "s/# - WATCHTOWER_NOTIFICATION_URL/- WATCHTOWER_NOTIFICATION_URL/" docker-compose.yml
+    sed -i "s/# - WATCHTOWER_NOTIFICATIONS_HOSTNAME/- WATCHTOWER_NOTIFICATIONS_HOSTNAME/" docker-compose.yml
+    read -p "Notifications setup complete. If the link is correct, you will receive a notification for each update made on the app container images. Now press enter to continue"
+    clear;
+}
+
 fn_setupEnv(){
     read -p "Do you wish to proceed with the .env file guided setup Y/N?  " yn
     case $yn in
@@ -143,6 +159,13 @@ fn_setupEnv(){
     read -n 1 -s -r -p "When ready to start, press any key to continue"$'\n'
     chmod u+x ./bitpingSetup.sh;
     sudo sh -c './bitpingSetup.sh';
+
+    read -p "Do you wish to setup notifications about apps images updates (Yes to recieve notifications and apply updates, No to just silently apply updates) Y/N?  " yn
+    case $yn in
+        [Yy]* ) fn_setupNotifications;;
+        [Nn]* ) blueprint "Noted: all updates will be applied automatically and silently";;
+        * ) echo "Please answer yes or no.";;
+    esac
 
     greenprint "env file setup complete.";
     read -n 1 -s -r -p "Press any key to go back to the menu"$'\n'

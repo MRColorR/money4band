@@ -76,11 +76,9 @@ services:
             - /var/run/docker.sock:/var/run/docker.sock
         environment:
             - WATCHTOWER_POLL_INTERVAL=9000
-            - WATCHTOWER_NOTIFICATIONS=shoutrrr
-            - WATCHTOWER_NOTIFICATION_URL=$SHOUTRRR_URL
-            #- WATCHTOWER_NOTIFICATION_TEMPLATE=$WATCHTOWER_TEMPLATE
-            #- WATCHTOWER_NOTIFICATION_TITLE_TAG=$DEVICE_NAME preferred but bugged atm see watchtower git for updates
-            - WATCHTOWER_NOTIFICATIONS_HOSTNAME=$DEVICE_NAME
+            # - WATCHTOWER_NOTIFICATIONS=shoutrrr
+            # - WATCHTOWER_NOTIFICATION_URL=$SHOUTRRR_URL
+            # - WATCHTOWER_NOTIFICATIONS_HOSTNAME=$DEVICE_NAME
             - WATCHTOWER_ROLLING_RESTART=true
             - WATCHTOWER_NO_STARTUP_MESSAGE=true
             - WATCHTOWER_CLEANUP=true
