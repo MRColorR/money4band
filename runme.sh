@@ -61,47 +61,61 @@ fn_dockerInstall(){
 }
 
 fn_setupNotifications(){
-    echo "Starting Notifications setup:"
+    clear;
     echo "This step will setup notifications about containers updates using shoutrrr"
     echo "Now we will configure a SHOUTRRR_URL that should looks like this <app>://<token>@<webhook> . Where <app> is one of the supported messaging apps supported by shoutrrr (We will use a private discord server as example)."
     echo "For more apps and details visit https://containrrr.dev/shoutrrr/, select your desider app (service) and paste the required SHOUTRRR_URL in this script when prompted "
+    read -p "Press enter to proceed and show the discord notification setup example (Remember: you can also use a different supported app, just enter the link correctly)"
+    clear;
     echo "CREATE A NEW DISCORD SERVER, GO TO SERVER SETTINGS>INTEGRATIONS AND CREATE A WEBHOOK"
-    echo " Your Discord Webhook-URL will look like this: https://discordapp.com/api/webhooks/YourWebhookid/YourToken to obtain the SHOUTRRR_URL you should rearrange it to look like this: discord://yourToken@yourWebhookid"
-    read SHOUTRRR_URL -p " NOW INSERT IT HERE using THE SAME FORMAT WRITTEN ABOVE: discord://yourToken@yourWebhookid "
-    sed -i "s/# SHOUTRRR_URL=discord://yourToken@yourWebhook/SHOUTRRR_URL=$SHOUTRRR_URL/" .env
-    sed -i "s/# - WATCHTOWER_NOTIFICATIONS=shoutrrr/- WATCHTOWER_NOTIFICATIONS=shoutrrr/" docker-compose.yml
-    sed -i "s/# - WATCHTOWER_NOTIFICATION_URL/- WATCHTOWER_NOTIFICATION_URL/" docker-compose.yml
-    sed -i "s/# - WATCHTOWER_NOTIFICATIONS_HOSTNAME/- WATCHTOWER_NOTIFICATIONS_HOSTNAME/" docker-compose.yml
+    echo "Your Discord Webhook-URL will look like this: https://discordapp.com/api/webhooks/YourWebhookid/YourToken to obtain the SHOUTRRR_URL you should rearrange it to look like this: discord://yourToken@yourWebhookid"
+    read -p "Press enter to continue"
+    clear;
+    printf "NOW INSERT BELOW THE LINK FOR NOTIFICATIONS using THE SAME FORMAT WRITTEN ABOVE e.g.: discord://yourToken@yourWebhookid"$'\n'
+    read SHOUTRRR_URL
+    SHOUTRRR_URL_PROTO='SHOUTRRR_URL=yourApp_YourToken@YourWebHook'
+    sed -i "s^# SHOUTRRR_URL=yourApp:yourToken@yourWebHook^SHOUTRRR_URL=$SHOUTRRR_URL^" .env
+    sed -i "s/ # - WATCHTOWER_NOTIFICATIONS=shoutrrr/- WATCHTOWER_NOTIFICATIONS=shoutrrr/" docker-compose.yml
+    sed -i "s/ # - WATCHTOWER_NOTIFICATION_URL/- WATCHTOWER_NOTIFICATION_URL/" docker-compose.yml
+    sed -i "s/ # - WATCHTOWER_NOTIFICATIONS_HOSTNAME/- WATCHTOWER_NOTIFICATIONS_HOSTNAME/" docker-compose.yml
     read -p "Notifications setup complete. If the link is correct, you will receive a notification for each update made on the app container images. Now press enter to continue"
     clear;
 }
 
 fn_setupApp(){
     if [ "$2" == "email" ] ; then 
-        read APP_EMAIL -p "Enter your $1 Email"$'\n'
+        printf "Enter your $1 Email"$'\n'
+        read APP_EMAIL
         sed -i "s/your$1Mail/$APP_EMAIL/" .env
         if [ "$3" == "password" ] ; then 
-        read APP_PASSWORD -p "Now enter your $1 Password"$'\n'
+        printf "Now enter your $1 Password"$'\n'
+        read APP_PASSWORD 
         sed -i "s/your$1Pw/$APP_PASSWORD/" .env
+    fi
 
     elif [ "$2" == "uuid" ] ; then
         echo "generating an UUID for $1"$'\n'
-        UUID="$(echo -n "$3" | md5sum | cut -c1-32)"
+        SALT="$3""$RANDOM"
+        echo $SALT
+        UUID="$(echo -n "$SALT" | md5sum | cut -c1-32)"
         sed -i "s/yourMD5sum/$UUID/" .env
         cyanprint "Save the following link somewhere to claim your earnapp node after completing the setup and after starting the apps stack: https://earnapp.com/r/sdk-node-$UUID. A new file containing this link has been created for you"
-        printf "https://earnapp.com/r/sdk-node-$UUID" > ClaimEarnappNode.txt
+        printf "https://earnapp.com/r/sdk-node-$UUID" > ClaimEarnappNode.txt 
+
     elif [ "$2" == "cid" ] ; then 
         echo "Enter your $1 CID."$'\n'
         echo "You can find it going in your dashboard https://packetstream.io/dashboard/download?linux# then click on -> Looking for linux app -> now search for CID= in the code shown in the page (you can also use CTRL+F) you need to enter the code after -e CID= (e.g. if in the code CID=6aTk, just enter 6aTk)"$'\n'
         read APP_CID
-        sed -i "s/your$1CID/$APP_CID/" .env
+        sed -i "s/your$1CID/$APP_CID/" .env 
+
     elif [ "$2" == "token" ] ; then 
         echo "Enter your $1 Token."$'\n'
         echo "You can find it going in your dashboard https://app.traffmonetizer.com/dashboard then -> Look for Your application token -> just insert it here (you can also copy and then paste it)"$'\n'
         read APP_TOKEN
-        sed -i "s/your$1Token/$APP_TOKEN/" .env
+        sed -i "s/your$1Token/$APP_TOKEN/" .env 
     fi
 }
+
 
 fn_setupEnv(){
     read -p "Do you wish to proceed with the .env file guided setup Y/N?  " yn
@@ -179,6 +193,8 @@ fn_setupEnv(){
     chmod u+x ./bitpingSetup.sh;
     sudo sh -c './bitpingSetup.sh';
 
+    # Notifications setup
+    clear;
     read -p "Do you wish to setup notifications about apps images updates (Yes to recieve notifications and apply updates, No to just silently apply updates) Y/N?  " yn
     case $yn in
         [Yy]* ) fn_setupNotifications;;
