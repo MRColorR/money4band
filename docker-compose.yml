@@ -13,7 +13,10 @@ services:
         container_name: earnapp
         image: fazalfarhan01/earnapp:lite
         environment:
-            EARNAPP_UUID: $EARNAPP_DEVICE_UUID
+            - EARNAPP_UUID: $EARNAPP_DEVICE_UUID
+            #- HTTP_PROXY: $EARNAPP_HTTP_PROXY
+            #- HTTPS_PROXY: $EARNAPP_HTTPS_PROXY
+            #- NO_PROXY: 'localhost, 127.0.0.0/8'
         volumes:
             - earnapp-data:/etc/earnapp
         restart: always
@@ -22,6 +25,10 @@ services:
     honeygain:
         container_name: honeygain
         image: honeygain/honeygain
+        environment:
+            #- HTTP_PROXY: $HONEYGAIN_HTTP_PROXY
+            #- HTTPS_PROXY: $HONEYGAIN_HTTPS_PROXY
+            #- NO_PROXY: 'localhost, 127.0.0.0/8'
         command: '-tou-accept -email $HONEYGAIN_EMAIL -pass $HONEYGAIN_PASSWD -device $DEVICE_NAME'
         restart: always
 
@@ -29,6 +36,10 @@ services:
     iproyal:
         container_name: iproyal
         image: iproyal/pawns-cli:latest
+        environment:
+            #- HTTP_PROXY: $IPROYALPAWNS_HTTP_PROXY
+            #- HTTPS_PROXY: $IPROYALPAWNS_HTTPS_PROXY
+            #- NO_PROXY: 'localhost, 127.0.0.0/8'
         command: '-accept-tos -email=$IPROYALPAWNS_EMAIL -password=$IPROYALPAWNS_PASSWD -device-name=$DEVICE_NAME'
         restart: always
 
@@ -36,9 +47,13 @@ services:
     Peer2profit:
         container_name: peer2profit
         image: peer2profit/peer2profit_linux:latest
-        restart: always
         environment:
             - P2P_EMAIL=$PEER2PROFIT_EMAIL
+            #- HTTP_PROXY: $PEER2PROFIT_HTTP_PROXY
+            #- HTTPS_PROXY: $PEER2PROFIT_HTTPS_PROXY
+            #- NO_PROXY: 'localhost, 127.0.0.0/8'
+        restart: always
+
 
 # PACKETSTREAM CONTAINER
     Packetstream:
@@ -47,12 +62,19 @@ services:
         restart: always
         environment:
             - CID=$PACKETSTREAM_CID
+            #- HTTP_PROXY: $PACKETSTREAM_HTTP_PROXY
+            #- HTTPS_PROXY: $PACKETSTREAM_HTTPS_PROXY
+            #- NO_PROXY: 'localhost, 127.0.0.0/8'
 
 #TRAFFMONETIZER CONTAINER
     TraffMonetizer:
         container_name: traffmonetizer
         image: traffmonetizer/cli:latest
         command: start accept status --token ${TRAFFMONETIZER_TOKEN} --device-name $DEVICE_NAME
+        environment:
+            #- HTTP_PROXY: $TRAFFMONETIZER_HTTP_PROXY
+            #- HTTPS_PROXY: $TRAFFMONETIZER_HTTPS_PROXY
+            #- NO_PROXY: 'localhost, 127.0.0.0/8'
         restart: always
 
  #BITPING CONTAINER 
@@ -60,12 +82,16 @@ services:
     Bitping:
         container_name: bitping
         image: bitping/bitping-node:latest
-        restart: always
+        environment:
+            #- HTTP_PROXY: $BITPING_HTTP_PROXY
+            #- HTTPS_PROXY: $BITPING_HTTPS_PROXY
+            #- NO_PROXY: 'localhost, 127.0.0.0/8'
         volumes:
             # You have 2 options
             - ./.data/.bitping:/root/.bitping # Bind an host folder to the container (more insecure but simplier to port and backup) this option mount a new identity or a backed up one from the host file system
             # OR
             #- bitping-data:/root/.bitping # if you use this also uncomment the relative volume in volumes section, this  Use docker volumes (more secure harder to access, backup and restore) you'll need to do backups using 'docker cp
+        restart: always
       
       
 #WATCHTOWER AUTO-UPDATER AND NOTIFICATIONS
@@ -83,6 +109,7 @@ services:
             - WATCHTOWER_NO_STARTUP_MESSAGE=true
             - WATCHTOWER_CLEANUP=true
         restart: always
+        
 # WEB DASBOARD
     webdashboard:
         container_name: webdashboard
