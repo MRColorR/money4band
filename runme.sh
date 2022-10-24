@@ -29,6 +29,12 @@ readonly ENV_SRC='https://github.com/MRColorR/money4band/raw/main/.env';
 ### docker-compose.yml Prototype Link##
 readonly DKCOM_SRC='https://github.com/MRColorR/money4band/raw/main/docker-compose.yml';
 
+### Proxy config #
+PROXY_CONF='false' ;
+PROXY_CONF_ALL='false' ;
+STACK_HTTP_PROXY='';
+STACK_HTTPS_PROXY='';
+
 ### Functions ##
 fn_bye() { echo "Bye bye."; exit 0; }
 fn_fail() { echo "Wrong option." exit 1; }
@@ -75,9 +81,9 @@ fn_setupNotifications(){
     read SHOUTRRR_URL
     SHOUTRRR_URL_PROTO='SHOUTRRR_URL=yourApp_YourToken@YourWebHook'
     sed -i "s^# SHOUTRRR_URL=yourApp:yourToken@yourWebHook^SHOUTRRR_URL=$SHOUTRRR_URL^" .env
-    sed -i "s/ # - WATCHTOWER_NOTIFICATIONS=shoutrrr/- WATCHTOWER_NOTIFICATIONS=shoutrrr/" docker-compose.yml
-    sed -i "s/ # - WATCHTOWER_NOTIFICATION_URL/- WATCHTOWER_NOTIFICATION_URL/" docker-compose.yml
-    sed -i "s/ # - WATCHTOWER_NOTIFICATIONS_HOSTNAME/- WATCHTOWER_NOTIFICATIONS_HOSTNAME/" docker-compose.yml
+    sed -i "s/# - WATCHTOWER_NOTIFICATIONS=shoutrrr/- WATCHTOWER_NOTIFICATIONS=shoutrrr/" docker-compose.yml
+    sed -i "s/# - WATCHTOWER_NOTIFICATION_URL/- WATCHTOWER_NOTIFICATION_URL/" docker-compose.yml
+    sed -i "s/# - WATCHTOWER_NOTIFICATIONS_HOSTNAME/- WATCHTOWER_NOTIFICATIONS_HOSTNAME/" docker-compose.yml
     read -p "Notifications setup complete. If the link is correct, you will receive a notification for each update made on the app container images. Now press enter to continue"
     clear;
 }
@@ -96,7 +102,6 @@ fn_setupApp(){
     elif [ "$2" == "uuid" ] ; then
         echo "generating an UUID for $1"$'\n'
         SALT="$3""$RANDOM"
-        echo $SALT
         UUID="$(echo -n "$SALT" | md5sum | cut -c1-32)"
         sed -i "s/yourMD5sum/$UUID/" .env
         cyanprint "Save the following link somewhere to claim your earnapp node after completing the setup and after starting the apps stack: https://earnapp.com/r/sdk-node-$UUID. A new file containing this link has been created for you"
@@ -114,11 +119,63 @@ fn_setupApp(){
         read APP_TOKEN
         sed -i "s/your$1Token/$APP_TOKEN/" .env 
     fi
+    if [ "$PROXY_CONF" == 'true' ] ; then 
+        if [ "$PROXY_CONF_ALL" == 'true' ] ; then
+            sed -i "s^# $1_HTTP_PROXY=http://proxyUsername:proxyPassword@proxy_url:proxy_port^$1_HTTP_PROXY=$STACK_HTTP_PROXY^" .env ;
+            sed -i "s^# $1_HTTPS_PROXY=http://proxyUsername:proxyPassword@proxy_url:proxy_port^$1_HTTPS_PROXY=$STACK_HTTPS_PROXY^" .env ;
+        else 
+            printf "Insert the designed HTTP proxy to use with $1 (also socks5h is supported)."$'\n'
+            read -r APP_HTTP_PROXY
+            printf "Insert the designed HTTPS proxy to use with $1 (you can also use the same of the HTTP proxy and also socks5h is supported)."$'\n';
+            read -r APP_HTTPS_PROXY
+            sed -i "s^# $1_HTTP_PROXY=http://proxyUsername:proxyPassword@proxy_url:proxy_port^$1_HTTP_PROXY=$APP_HTTP_PROXY^" .env ;
+            sed -i "s^# $1_HTTPS_PROXY=http://proxyUsername:proxyPassword@proxy_url:proxy_port^$1_HTTPS_PROXY=$APP_HTTPS_PROXY^" .env ;
+
+        fi
+        sed -i "s^#- $1_HTTP_PROXY^- HTTP_PROXY^" docker-compose.yml ;
+        sed -i "s^#- $1_HTTPS_PROXY^- HTTPS_PROXY^" docker-compose.yml ;
+        sed -i "s^#- $1_NO_PROXY^- NO_PROXY^" docker-compose.yml ;
+    fi
+}
+
+fn_setupProxy(){
+    if [ "$PROXY_CONF" == 'false' ] ; then
+        read -p "Do you wish to use a proxy? Y/N? Note that if you want to run multiple instances of the same app you will need to configure different env files each in different project folders (copy the project to multiple different folders and configure them using different proxies)"$'\n' yn
+        case $yn in
+            [Yy]* ) clear;
+                printf "Proxy setup started.";
+                read -p "Do you wish to use the same proxy for all the apps in this stack? Y/N?" yn ;
+                case $yn in
+                    [Yy]* ) 
+                        printf "Insert the designed HTTP proxy to use. Eg: http://proxyUsername:proxyPassword@proxy_url:proxy_port or just http://proxy_url:proxy_port if auth is not needed, also socks5h is supported."$'\n';
+                        read -r STACK_HTTP_PROXY;
+                        printf "Ok, $STACK_HTTP_PROXY will be used as proxy for all apps in this stack"$'\n'
+                        read -p "Press enter to continue"
+                        clear
+                        printf "Insert the designed HTTPS proxy to use (you can also use the same of the HTTP proxy), also socks5h is supported."$'\n'
+                        read -r STACK_HTTPS_PROXY;
+                        printf "Ok, $STACK_HTTPS_PROXY will be used as secure proxy for all apps in this stack"$'\n'
+                        read -p "Press enter to continue"
+                        PROXY_CONF_ALL='true' ;
+                        PROXY_CONF='true' ;
+                        ;;
+                    [Nn]* ) 
+                    PROXY_CONF_ALL='false' ;
+                    PROXY_CONF='true' ;
+                    blueprint "Ok, later you will be asked for a proxy for each application";;
+                    * ) echo "Please answer yes or no.";;
+                esac
+                # An unique name for the stack is chosen so that even if multiple stacks are started with different proxies the names do not conflict
+                sed -i "s^COMPOSE_PROJECT_NAME= Money4Band^COMPOSE_PROJECT_NAME= Money4Band_$RANDOM^" .env ;;
+            [Nn]* ) blueprint "Ok, no proxy added to configuration.";;
+            * ) echo "Please answer yes or no.";;
+        esac 
+    fi
 }
 
 
 fn_setupEnv(){
-    read -p "Do you wish to proceed with the .env file guided setup Y/N?  " yn
+    read -p "Do you wish to proceed with the .env file guided setup Y/N? (This will also adapt the docker-compose.yml file accordingly)" yn
     case $yn in
         [Yy]* ) clear;;
         [Nn]* ) blueprint ".env file setup canceled. Make sure you have a valid .env file before proceeding with the stack startup."; read -p "Press Enter to go back to mainmenu"; mainmenu;;
@@ -131,6 +188,10 @@ fn_setupEnv(){
     read DEVICE_NAME
     sed -i "s/yourDeviceName/$DEVICE_NAME/" .env
 
+    clear ;
+    fn_setupProxy ;
+    clear ;
+
     yellowprint "PLEASE REGISTER ON THE PLATFORMS USING THE FOLLOWING LINKS, YOU'LL NEED TO ENTER SOME DATA BELOW:"
     greenprint "Use CTRL+Click to open links or copy them:"
 
@@ -138,7 +199,7 @@ fn_setupEnv(){
     CURRENT_APP='EARNAPP';
     cyanprint "Go to $EARNAPP_LNK and register";
     read -p "When done, press enter to continue"$'\n'
-    fn_setupApp $CURRENT_APP uuid $DEVICE_NAME;
+    fn_setupApp $CURRENT_APP uuid "$DEVICE_NAME";
     read -p "$CURRENT_APP configuration complete, press enter to continue to the next app"
 
     #HoneyGain app env setup
