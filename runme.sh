@@ -36,8 +36,8 @@ STACK_HTTP_PROXY='';
 STACK_HTTPS_PROXY='';
 
 ### Functions ##
-fn_bye() { echo "Bye bye."; exit 0; }
-fn_fail() { echo "Wrong option." exit 1; }
+fn_bye() { printf "Bye bye."; exit 0; }
+fn_fail() { printf "Wrong option."; exit 1; }
 fn_unknown() { redprint "Unknown choice $REPLY, please choose a valid option";}
 
 ### Sub-menu Functions ##
@@ -62,19 +62,19 @@ fn_dockerInstall(){
     case $yn in
         [Yy]* ) curl -fsSL https://get.docker.com -o get-docker.sh; sudo sh get-docker.sh; greenprint "Docker installed"; mainmenu;;
         [Nn]* ) blueprint "Docker unattended installation canceled. Make sure you have docker installed before proceeding with the other steps."; read -r -p "Press Enter to go back to mainmenu"; mainmenu;;
-        * ) echo "Please answer yes or no.";;
+        * ) printf "Please answer yes or no.";;
     esac
 }
 
 fn_setupNotifications(){
     clear;
-    echo "This step will setup notifications about containers updates using shoutrrr"
-    echo "Now we will configure a SHOUTRRR_URL that should looks like this <app>://<token>@<webhook> . Where <app> is one of the supported messaging apps supported by shoutrrr (We will use a private discord server as example)."
-    echo "For more apps and details visit https://containrrr.dev/shoutrrr/, select your desider app (service) and paste the required SHOUTRRR_URL in this script when prompted "
+    printf "This step will setup notifications about containers updates using shoutrrr"
+    printf "Now we will configure a SHOUTRRR_URL that should looks like this <app>://<token>@<webhook> . Where <app> is one of the supported messaging apps supported by shoutrrr (We will use a private discord server as example)."
+    printf "For more apps and details visit https://containrrr.dev/shoutrrr/, select your desider app (service) and paste the required SHOUTRRR_URL in this script when prompted "
     read -r -p "Press enter to proceed and show the discord notification setup example (Remember: you can also use a different supported app, just enter the link correctly)"
     clear;
-    echo "CREATE A NEW DISCORD SERVER, GO TO SERVER SETTINGS>INTEGRATIONS AND CREATE A WEBHOOK"
-    echo "Your Discord Webhook-URL will look like this: https://discordapp.com/api/webhooks/YourWebhookid/YourToken to obtain the SHOUTRRR_URL you should rearrange it to look like this: discord://yourToken@yourWebhookid"
+    printf "CREATE A NEW DISCORD SERVER, GO TO SERVER SETTINGS>INTEGRATIONS AND CREATE A WEBHOOK"
+    printf "Your Discord Webhook-URL will look like this: https://discordapp.com/api/webhooks/YourWebhookid/YourToken to obtain the SHOUTRRR_URL you should rearrange it to look like this: discord://yourToken@yourWebhookid"
     read -r -p "Press enter to continue"
     clear;
     printf "NOW INSERT BELOW THE LINK FOR NOTIFICATIONS using THE SAME FORMAT WRITTEN ABOVE e.g.: discord://yourToken@yourWebhookid"$'\n'
@@ -99,7 +99,7 @@ fn_setupApp(){
     fi
 
     elif [ "$2" == "uuid" ] ; then
-        echo "generating an UUID for $1"$'\n'
+        printf "generating an UUID for %s"$'\n' "$1"
         SALT="$3""$RANDOM"
         UUID="$(echo -n "$SALT" | md5sum | cut -c1-32)"
         sed -i "s/yourMD5sum/$UUID/" .env
@@ -107,14 +107,14 @@ fn_setupApp(){
         printf "https://earnapp.com/r/sdk-node-%s" "$UUID" > ClaimEarnappNode.txt 
 
     elif [ "$2" == "cid" ] ; then 
-        echo "Enter your $1 CID."$'\n'
-        echo "You can find it going in your dashboard https://packetstream.io/dashboard/download?linux# then click on -> Looking for linux app -> now search for CID= in the code shown in the page (you can also use CTRL+F) you need to enter the code after -e CID= (e.g. if in the code CID=6aTk, just enter 6aTk)"$'\n'
+        printf "Enter your %s CID."$'\n' "$1"
+        printf "You can find it going in your dashboard https://packetstream.io/dashboard/download?linux# then click on -> Looking for linux app -> now search for CID= in the code shown in the page, you need to enter the code after -e CID= (e.g. if in the code CID=6aTk, just enter 6aTk)"$'\n'
         read -r APP_CID
         sed -i "s/your$1CID/$APP_CID/" .env 
 
     elif [ "$2" == "token" ] ; then 
-        echo "Enter your $1 Token."$'\n'
-        echo "You can find it going in your dashboard https://app.traffmonetizer.com/dashboard then -> Look for Your application token -> just insert it here (you can also copy and then paste it)"$'\n'
+        printf "Enter your %s Token."$'\n' "$1"
+        printf "You can find it going in your dashboard https://app.traffmonetizer.com/dashboard then -> Look for Your application token -> just insert it here (you can also copy and then paste it)"$'\n'
         read -r APP_TOKEN
         sed -i "s/your$1Token/$APP_TOKEN/" .env 
     fi
@@ -162,12 +162,12 @@ fn_setupProxy(){
                     PROXY_CONF_ALL='false' ;
                     PROXY_CONF='true' ;
                     blueprint "Ok, later you will be asked for a proxy for each application";;
-                    * ) echo "Please answer yes or no.";;
+                    * ) printf "Please answer yes or no.";;
                 esac
                 # An unique name for the stack is chosen so that even if multiple stacks are started with different proxies the names do not conflict
                 sed -i "s^COMPOSE_PROJECT_NAME= Money4Band^COMPOSE_PROJECT_NAME= Money4Band_$RANDOM^" .env ;;
             [Nn]* ) blueprint "Ok, no proxy added to configuration.";;
-            * ) echo "Please answer yes or no.";;
+            * ) printf "Please answer yes or no.";;
         esac 
     fi
 }
@@ -178,9 +178,9 @@ fn_setupEnv(){
     case $yn in
         [Yy]* ) clear;;
         [Nn]* ) blueprint ".env file setup canceled. Make sure you have a valid .env file before proceeding with the stack startup."; read -r -p "Press Enter to go back to mainmenu"; mainmenu;;
-        * ) echo "Please answer yes or no.";;
+        * ) printf "Please answer yes or no.";;
     esac
-    echo "beginnning env file guided setup"
+    printf "beginnning env file guided setup"
     CURRENT_APP='';
     read -r -p "Press enter to continue"$'\n'
     yellowprint "PLEASE ENTER A NAME FOR YOUR DEVICE:"
@@ -247,8 +247,8 @@ fn_setupEnv(){
     clear;
     cyanprint "Go to $BITPING_LNK and register"
     read -r -p "When done, press enter to continue"$'\n'
-    echo "To configure this app we will need to start an interactive container (so Docker needs to be already installed)."
-    echo "To do that we will open a new terminal in this same folder and run bitpingSetup.sh for you"$'\n'
+    printf "To configure this app we will need to start an interactive container (so Docker needs to be already installed)."
+    printf "To do that we will open a new terminal in this same folder and run bitpingSetup.sh for you"$'\n'
     read -n 1 -s -r -p "When ready to start, press any key to continue"$'\n'
     chmod u+x ./bitpingSetup.sh;
     sudo sh -c './bitpingSetup.sh';
@@ -259,7 +259,7 @@ fn_setupEnv(){
     case $yn in
         [Yy]* ) fn_setupNotifications;;
         [Nn]* ) blueprint "Noted: all updates will be applied automatically and silently";;
-        * ) echo "Please answer yes or no.";;
+        * ) printf "Please answer yes or no.";;
     esac
 
     greenprint "env file setup complete.";
@@ -274,7 +274,7 @@ fn_startStack(){
     case $yn in
         [Yy]* ) sudo docker compose up -d; greenprint "All Apps started you can visit the web dashboard on http://localhost:8081/ . If not already done use the previously generated earnapp node URL to add your device in your earnapp dashboard. Check the README file for more details."; read -r -p "Now press enter to go back to the menu"; mainmenu;;
         [Nn]* ) blueprint "Docker stack startup canceled.";read -r -p "Press Enter to go back to mainmenu"; mainmenu;;
-        * ) echo "Please answer yes or no.";;
+        * ) printf "Please answer yes or no.";;
     esac
 }
 
@@ -284,7 +284,7 @@ fn_resetEnv(){
     case $yn in
         [Yy]* ) curl -LJO $ENV_SRC; greenprint ".env file resetted, remember to reconfigure it";;
         [Nn]* ) blueprint ".env file reset canceled. The file is left as it is"; mainmenu;;
-        * ) echo "Please answer yes or no.";;
+        * ) printf "Please answer yes or no.";;
     esac
 }
 
@@ -294,7 +294,7 @@ fn_resetDockerCompose(){
     case $yn in
         [Yy]* ) curl -LJO $DKCOM_SRC; greenprint "docker-compose.yml file resetted, remember to reconfigure it if needed";;
         [Nn]* ) blueprint "docker-compose.yml file reset canceled. The file is left as it is"; mainmenu;;
-        * ) echo "Please answer yes or no.";;
+        * ) printf "Please answer yes or no.";;
     esac
 }
 
