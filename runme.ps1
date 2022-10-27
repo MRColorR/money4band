@@ -181,7 +181,7 @@ function fn_setupProxy(){
                         Read-Host -p "Press enter to continue"
                         clear
                         Write-Output "Insert the designed HTTPS proxy to use (you can also use the same of the HTTP proxy), also socks5h is supported."
-                        Read-Host STACK_HTTPS_PROXY;
+                        $STACK_HTTPS_PROXY = Read-Host
                         Write-Output "Ok, $STACK_HTTPS_PROXY will be used as secure proxy for all apps in this stack"
                         Read-Host -p "Press enter to continue"
                         PROXY_CONF_ALL='true' ;
