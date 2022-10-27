@@ -2,9 +2,9 @@
 set-executionpolicy -scope CurrentUser -executionPolicy Bypass -Force
 
 ### Links ##
-$EARNAPP_LNK = "Earnapp | https://earnapp.com/i/3zulx7k"
-$HONEYGAIN_LNK = "HoneyGain | https://r.honeygain.me/MINDL15721"
-$IPROYAL_LNK = "IPROYAL | https://pawns.app?r=MiNe"
+$EARNAPP_LNK = "EARNAPP | https://earnapp.com/i/3zulx7k"
+$HONEYGAIN_LNK = "HONEYGAIN | https://r.honeygain.me/MINDL15721"
+$IPROYALPAWNS_LNK = "IPROYALPAWNS | https://pawns.app?r=MiNe"
 $PACKETSTREAM_LNK = "PACKETSTREAM | https://packetstream.io/?psr=3zSD"
 $PEER2PROFIT_LNK = "PEER2PROFIT | https://p2pr.me/165849012262da8d0aa13c8"
 $TRAFFMONETIZER_LNK = "TRAFFMONETIZER | https://traffmonetizer.com/?aff=366499"
@@ -36,7 +36,7 @@ function fn_showLinks {
     Write-Output "Use CTRL+Click to open links or copy them:"
     Write-Output $EARNAPP_LNK
     Write-Output $HONEYGAIN_LNK
-    Write-Output $IPROYAL_LNK
+    Write-Output $IPROYALPAWNS_LNK
     Write-Output $PACKETSTREAM_LNK
     Write-Output $PEER2PROFIT_LNK
     Write-Output $TRAFFMONETIZER_LNK
@@ -147,85 +147,133 @@ function fn_setupApp(){
     
     if  ("$PROXY_CONF" -eq 'true') {
         if ( "$PROXY_CONF_ALL" -eq 'true'){
-            sed -i "s^# $1_HTTP_PROXY=http://proxyUsername:proxyPassword@proxy_url:proxy_port^$1_HTTP_PROXY=$STACK_HTTP_PROXY^" .env ;
-            sed -i "s^# $1_HTTPS_PROXY=http://proxyUsername:proxyPassword@proxy_url:proxy_port^$1_HTTPS_PROXY=$STACK_HTTPS_PROXY^" .env ;
+            (Get-Content .\.env).replace("# $1""_HTTP_PROXY=http://proxyUsername:proxyPassword@proxy_url:proxy_port", "$1""_HTTP_PROXY=$STACK_HTTP_PROXY") | Set-Content .\.env
+            (Get-Content .\.env).replace("# $1""_HTTPS_PROXY=http://proxyUsername:proxyPassword@proxy_url:proxy_port", "$1""_HTTPS_PROXY=$STACK_HTTPS_PROXY") | Set-Content .\.env
         }
         else{
-            Write-Output "Insert the designed HTTP proxy to use with %s (also socks5h is supported)." "$1"
-            Read-Host APP_HTTP_PROXY
-            Write-Output "Insert the designed HTTPS proxy to use with %s (you can also use the same of the HTTP proxy and also socks5h is supported)." "$1";
-            Read-Host APP_HTTPS_PROXY
-            sed -i "s^# $1_HTTP_PROXY=http://proxyUsername:proxyPassword@proxy_url:proxy_port^$1_HTTP_PROXY=$APP_HTTP_PROXY^" .env ;
-            sed -i "s^# $1_HTTPS_PROXY=http://proxyUsername:proxyPassword@proxy_url:proxy_port^$1_HTTPS_PROXY=$APP_HTTPS_PROXY^" .env ;
+            Write-Output "Insert the designed HTTP proxy to use with {0} (also socks5h is supported)." -f "$1"
+            $APP_HTTP_PROXY = Read-Host 
+            Write-Output "Insert the designed HTTPS proxy to use with {0} (you can also use the same of the HTTP proxy and also socks5h is supported)." -f "$1"
+            $APP_HTTPS_PROXY = Read-Host 
+            (Get-Content .\.env).replace("# $1""_HTTP_PROXY=http://proxyUsername:proxyPassword@proxy_url:proxy_port", "$1""_HTTP_PROXY=$APP_HTTP_PROXY") | Set-Content .\.env
+            (Get-Content .\.env).replace("# $1""_HTTPS_PROXY=http://proxyUsername:proxyPassword@proxy_url:proxy_port", "$1""_HTTPS_PROXY=$APP_HTTPS_PROXY") | Set-Content .\.env
         }
 
         
-        sed -i "s^#- $1_HTTP_PROXY^- HTTP_PROXY^" docker-compose.yml ;
-        sed -i "s^#- $1_HTTPS_PROXY^- HTTPS_PROXY^" docker-compose.yml ;
-        sed -i "s^#- $1_NO_PROXY^- NO_PROXY^" docker-compose.yml ;
+        sed -i "s^^^" docker-compose.yml ;
+        (Get-Content .\docker-compose.yml).replace("#- $1""_HTTP_PROXY", "- HTTP_PROXY") | Set-Content .\docker-compose.yml
+        (Get-Content .\docker-compose.yml).replace("#- $1""_HTTPS_PROXY", "- HTTPS_PROXY") | Set-Content .\docker-compose.yml
+        (Get-Content .\docker-compose.yml).replace("#- $1""_NO_PROXY", "- NO_PROXY") | Set-Content .\docker-compose.yml
+    }
+}
+
+function fn_setupProxy(){
+    if ( "$PROXY_CONF" -eq 'false' ){
+        $yn = Read-Host -p "Do you wish to use a proxy? Y/N? Note that if you want to run multiple instances of the same app you will need to configure different env files each in different project folders (copy the project to multiple different folders and configure them using different proxies)"
+        if ($yn -eq 'Y' -or $yn -eq 'y' -or $yn -eq 'Yes' -or $yn -eq 'yes' ){
+            clear;
+                Write-Output "Proxy setup started.";
+                $yn = Read-Host -p "Do you wish to use the same proxy for all the apps in this stack? Y/N?"
+                if ($yn -eq 'Y' -or $yn -eq 'y' -or $yn -eq 'Yes' -or $yn -eq 'yes' ){
+                        Write-Output "Insert the designed HTTP proxy to use. Eg: http://proxyUsername:proxyPassword@proxy_url:proxy_port or just http://proxy_url:proxy_port if auth is not needed, also socks5h is supported."$'\n';
+                        $STACK_HTTP_PROXY = Read-Host 
+                        Write-Output "Ok, %s will be used as proxy for all apps in this stack"$'\n' "$STACK_HTTP_PROXY"
+                        Read-Host -p "Press enter to continue"
+                        clear
+                        Write-Output "Insert the designed HTTPS proxy to use (you can also use the same of the HTTP proxy), also socks5h is supported."$'\n'
+                        Read-Host STACK_HTTPS_PROXY;
+                        Write-Output "Ok, %s will be used as secure proxy for all apps in this stack"$'\n' "$STACK_HTTPS_PROXY"
+                        Read-Host -p "Press enter to continue"
+                        PROXY_CONF_ALL='true' ;
+                        PROXY_CONF='true' ;
+                    }
+        } elseif ($yn -eq 'N' -or $yn -eq 'n' -or $yn -eq 'No' -or $yn -eq 'no') {
+            $PROXY_CONF_ALL='false' ;
+                    $PROXY_CONF='true' ;
+                    Write-Output "Ok, later you will be asked for a proxy for each application"
+        }else {
+            clear;
+            Write-Output "Please answer yes or no."
+            fn_setupProxy ;
+
+        }
+                # An unique name for the stack is chosen so that even if multiple stacks are started with different proxies the names do not conflict
+                (Get-Content .\.env).replace("COMPOSE_PROJECT_NAME= Money4Band", "COMPOSE_PROJECT_NAME= Money4Band_$(Get-Random)") | Set-Content .\.env
+    }elseif ($yn -eq 'N' -or $yn -eq 'n' -or $yn -eq 'No' -or $yn -eq 'no') {
+                Write-Output "Ok, no proxy added to configuration."
+    }else {
+        clear;
+        Write-Output "Please answer yes or no."
+        fn_setupProxy ;
+
     }
 }
 
 function fn_setupEnv {
     clear;
-    $yn = Read-Host -p "Do you wish to proceed with the .env file guided setup Y/N?  "
+    $yn = Read-Host -p "Do you wish to proceed with the .env file guided setup Y/N? (This will also adapt the docker-compose.yml file accordingly)"
     if ($yn -eq 'Y' -or $yn -eq 'y' -or $yn -eq 'Yes' -or $yn -eq 'yes' ) {
         clear;
         Write-Output "Beginnning env file guided setup"
+        $CURRENT_APP='';
         $DEVICE_NAME = Read-Host -prompt "PLEASE ENTER A NAME FOR YOUR DEVICE:"
         (Get-Content .\.env).replace('yourDeviceName', "$DEVICE_NAME") | Set-Content .\.env
+
+        clear ;
+        fn_setupProxy ;
+        clear ;
 
         Write-Output "PLEASE REGISTER ON THE PLATFORMS USING THIS LINKS, YOU'LL NEED TO ENTER SOME DATA BELOW:"
         Write-Output "Use CTRL+Click to open links or copy them:"
 
         #EarnApp app env setup
-        
+        $CURRENT_APP='EARNAPP';
         Write-Output "Go to $EARNAPP_LNK and register"
         Read-Host -prompt "When done, press enter to continue"
+        fn_setupApp $CURRENT_APP uuid "$DEVICE_NAME";
+        Read-Host -p "$CURRENT_APP configuration complete, press enter to continue to the next app"
 
 
         #HoneyGain app env setup
         clear
+        $CURRENT_APP='HONEYGAIN';
         Write-Output "Go to $HONEYGAIN_LNK and register"
         Read-Host -prompt "When done, press enter to continue"
-        $HG_EMAIL = Read-Host -prompt "Enter your HoneyGain Email"
-        (Get-Content .\.env).replace('yourHGMail', "$HG_EMAIL") | Set-Content .\.env
-        $HG_PASSWORD = Read-Host -prompt "Now enter your HoneyGain Password"
-        (Get-Content .\.env).replace('yourHGPw', "$HG_PASSWORD") | Set-Content .\.env
+        fn_setupApp $CURRENT_APP email password ;
+        Read-Host -p "$CURRENT_APP configuration complete, press enter to continue to the next app"
 
-        #Pawn IPRoyal app env setup
+        #IPROYALPAWNS app env setup
         clear
-        Write-Output "Go to $IPROYAL_LNK and register"
+        $CURRENT_APP='IPROYALPAWNS';
+        Write-Output "Go to $IPROYALPAWNS_LNK and register"
         Read-Host -prompt "When done, press enter to continue"
-        $IR_EMAIL = Read-Host -prompt "Enter your Pawn IPRoyal Email"
-        (Get-Content .\.env).replace('yourIRMail', "$IR_EMAIL") | Set-Content .\.env
-        $IR_PASSWORD = Read-Host -prompt "Now enter your IPRoyal Password"
-        (Get-Content .\.env).replace('yourIRPw', "$IR_PASSWORD") | Set-Content .\.env
+        fn_setupApp $CURRENT_APP email password ;
+        Read-Host -p "$CURRENT_APP configuration complete, press enter to continue to the next app"
+
 
         #Peer2Profit app env setup
         clear
+        $CURRENT_APP='PEER2PROFIT';
         Write-Output "Go to $PEER2PROFIT_LNK and register"
         Read-Host -prompt "When done, press enter to continue"
-        $P2P_EMAIL = Read-Host -prompt "Enter your Peer2Profit Email"
-        (Get-Content .\.env).replace('yourP2PMail', "$P2P_EMAIL") | Set-Content .\.env
+        fn_setupApp $CURRENT_APP email ;
+        Read-Host -p "$CURRENT_APP configuration complete, press enter to continue to the next app"
 
         #PacketStream app env setup
         clear
+        $CURRENT_APP='PACKETSTREAM';
         Write-Output "Go to $PACKETSTREAM_LNK and register"
         Read-Host -prompt "When done, press enter to continue"
-        Write-Output "Enter your PacketStream CID."
-        Write-Output "You can find it going in your dashboard https://packetstream.io/dashboard/download?linux# then click on -> Looking for linux app -> now search for CID= in the code shown in the page (you can also use CTRL+F) you need to enter the code after -e CID= (e.g. if in the code CID=6aTk, just enter 6aTk)"
-        $PS_CID = Read-Host PS_CID
-        (Get-Content .\.env).replace('yourPSCID', "$PS_CID") | Set-Content .\.env
+        fn_setupApp $CURRENT_APP cid ;
+        Read-Host -p "$CURRENT_APP configuration complete, press enter to continue to the next app"
 
         # TraffMonetizer app env setup
         clear
+        $CURRENT_APP='TRAFFMONETIZER';
         Write-Output "Go to $TRAFFMONETIZER_LNK and register"
         Read-Host -prompt "When done, press enter to continue"
-        Write-Output "Enter your TraffMonetizer Token."
-        Write-Output "You can find it going in your dashboard https://app.traffmonetizer.com/dashboard then -> Look for Your application token -> just insert it here (you can also copy and then paste it)"
-        $TM_TOKEN = Read-Host TM_TOKEN
-        (Get-Content .\.env).replace('yourTMToken', "$TM_TOKEN") | Set-Content .\.env
+        fn_setupApp $CURRENT_APP token ;
+        Read-Host -p "$CURRENT_APP configuration complete, press enter to continue to the next app"
     
         # Bitping app env setup
         clear
@@ -235,6 +283,17 @@ function fn_setupEnv {
         Write-Output "To do that now we will open a new terminal in this same folder and run bitpingSetup for you."
         Read-Host -prompt "When ready to start, press enter to continue"
         Start-Process PowerShell -Verb RunAs "-noprofile -executionpolicy bypass -Command `"cd '$pwd'; & '.\bitpingSetup.ps1';`"" -wait
+
+        # Notifications setup
+        clear;
+        $yn = Read-Host -p "Do you wish to setup notifications about apps images updates (Yes to recieve notifications and apply updates, No to just silently apply updates) Y/N?  "
+        if ($yn -eq 'Y' -or $yn -eq 'y' -or $yn -eq 'Yes' -or $yn -eq 'yes' ) {
+          fn_setupNotifications ;
+        } elseif ($yn -eq 'N' -or $yn -eq 'n' -or $yn -eq 'No' -or $yn -eq 'no') {
+            Write-Output "Noted: all updates will be applied automatically and silently"
+        }else{
+            Write-Output "Please answer yes or no."
+        }
 
         Write-Output "env file setup complete."
         Read-Host -prompt "Press enter to go back to the menu";

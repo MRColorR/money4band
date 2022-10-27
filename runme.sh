@@ -15,9 +15,9 @@ magentaprint() { printf "${MAGENTA}%s${RESET}\n" "$1"; }
 cyanprint() { printf "${CYAN}%s${RESET}\n" "$1"; }
 
 ### Links ##
-readonly EARNAPP_LNK="Earnapp | https://earnapp.com/i/3zulx7k"
-readonly HONEYGAIN_LNK="HoneyGain | https://r.honeygain.me/MINDL15721"
-readonly IPROYALPAWNS_LNK="IPROYAL | https://pawns.app?r=MiNe"
+readonly EARNAPP_LNK="EARNAPP | https://earnapp.com/i/3zulx7k"
+readonly HONEYGAIN_LNK="HONEYGAIN | https://r.honeygain.me/MINDL15721"
+readonly IPROYALPAWNS_LNK="IPROYALPAWNS | https://pawns.app?r=MiNe"
 readonly PACKETSTREAM_LNK="PACKETSTREAM | https://packetstream.io/?psr=3zSD"
 readonly PEER2PROFIT_LNK="PEER2PROFIT | https://p2pr.me/165849012262da8d0aa13c8"
 readonly TRAFFMONETIZER_LNK="TRAFFMONETIZER | https://traffmonetizer.com/?aff=366499"
@@ -182,7 +182,6 @@ fn_setupEnv(){
     esac
     printf "beginnning env file guided setup"
     CURRENT_APP='';
-    read -r -p "Press enter to continue"$'\n'
     yellowprint "PLEASE ENTER A NAME FOR YOUR DEVICE:"
     read -r DEVICE_NAME
     sed -i "s/yourDeviceName/$DEVICE_NAME/" .env
@@ -209,7 +208,7 @@ fn_setupEnv(){
     fn_setupApp $CURRENT_APP email password
     read -r -p "$CURRENT_APP configuration complete, press enter to continue to the next app"
 
-    #Pawn IPRoyal app env setup
+    # IPROYALPAWNS app env setup
     clear;
     CURRENT_APP='IPROYALPAWNS'
     cyanprint "Go to $IPROYALPAWNS_LNK and register"
