@@ -102,7 +102,7 @@ fn_setupApp(){
         printf "generating an UUID for %s"$'\n' "$1"
         SALT="$3""$RANDOM"
         UUID="$(echo -n "$SALT" | md5sum | cut -c1-32)"
-        sed -i "s/yourMD5sum/$UUID/" .env
+        sed -i "s/your$1MD5sum/$UUID/" .env
         cyanprint "Save the following link somewhere to claim your earnapp node after completing the setup and after starting the apps stack: https://earnapp.com/r/sdk-node-$UUID. A new file containing this link has been created for you"
         printf "https://earnapp.com/r/sdk-node-%s" "$UUID" > ClaimEarnappNode.txt 
 

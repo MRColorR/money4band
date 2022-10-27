@@ -19,6 +19,12 @@ $DKCOM_SRC = 'https://github.com/MRColorR/money4band/raw/main/docker-compose.yml
 ### Docker installer script for windows source link ##
 $DKINST_WIN_SRC = 'https://github.com/MRColorR/money4band/raw/main/install-docker.ps1'
 
+### Proxy config #
+$PROXY_CONF='false' ;
+$PROXY_CONF_ALL='false' ;
+$STACK_HTTP_PROXY='';
+$STACK_HTTPS_PROXY='';
+
 ### Functions ##
 function fn_bye { Write-Output "Bye bye."; exit 0; }
 function fn_fail { Write-Output "Wrong option." exit 1; }
@@ -81,13 +87,91 @@ function fn_dockerInstall {
     }
 }
 
+function fn_setupNotifications(){
+    clear;
+    Write-Output "This step will setup notifications about containers updates using shoutrrr"
+    Write-Output "Now we will configure a SHOUTRRR_URL that should looks like this <app>://<token>@<webhook> . Where <app> is one of the supported messaging apps supported by shoutrrr (We will use a private discord server as example)."
+    Write-Output "For more apps and details visit https://containrrr.dev/shoutrrr/, select your desider app (service) and paste the required SHOUTRRR_URL in this script when prompted "
+    Read-Host -p "Press enter to proceed and show the discord notification setup example (Remember: you can also use a different supported app, just enter the link correctly)"
+    clear;
+    Write-Output "CREATE A NEW DISCORD SERVER, GO TO SERVER SETTINGS>INTEGRATIONS AND CREATE A WEBHOOK"
+    Write-Output "Your Discord Webhook-URL will look like this: https://discordapp.com/api/webhooks/YourWebhookid/YourToken to obtain the SHOUTRRR_URL you should rearrange it to look like this: discord://yourToken@yourWebhookid"
+    Read-Host -p "Press enter to continue"
+    clear;
+    Write-Output "NOW INSERT BELOW THE LINK FOR NOTIFICATIONS using THE SAME FORMAT WRITTEN ABOVE e.g.: discord://yourToken@yourWebhookid"
+    Read-Host -r SHOUTRRR_URL
+    (Get-Content .\.env).replace('# SHOUTRRR_URL=yourApp:yourToken@yourWebHook', "SHOUTRRR_URL=$SHOUTRRR_URL") | Set-Content .\.env
+    (Get-Content .\docker-compose.yml).replace('# - WATCHTOWER_NOTIFICATIONS=shoutrrr', "- WATCHTOWER_NOTIFICATIONS=shoutrrr") | Set-Content .\docker-compose.yml
+    (Get-Content .\docker-compose.yml).replace('# - WATCHTOWER_NOTIFICATION_URL', "- WATCHTOWER_NOTIFICATION_URL") | Set-Content .\docker-compose.yml
+    (Get-Content .\docker-compose.yml).replace('# - WATCHTOWER_NOTIFICATIONS_HOSTNAME', "- WATCHTOWER_NOTIFICATIONS_HOSTNAME") | Set-Content .\docker-compose.yml
+    Read-Host -p "Notifications setup complete. If the link is correct, you will receive a notification for each update made on the app container images. Now press enter to continue"
+    clear;
+}
+
+function fn_setupApp(){
+    if ( "$2" -eq "email" ){
+        Write-Output "Enter your {0} Email" -f "$1"
+        $APP_EMAIL = Read-Host 
+        (Get-Content .\.env).replace("your$1Mail", "$APP_EMAIL") | Set-Content .\.env
+    
+        if ("$3" -eq "password" ){ 
+        Write-Output "Now enter your {0} Password" -f "$1"
+        $APP_PASSWORD = Read-Host  
+        (Get-Content .\.env).replace("your$1Pw", "$APP_PASSWORD") | Set-Content .\.env
+        }
+    }
+    elseif ( "$2" -eq "uuid" ){
+        Write-Output "generating an UUID for {0}" -f "$1"
+        $SALT="$3$(Get-Random)"
+        $md5 = New-Object -TypeName System.Security.Cryptography.MD5CryptoServiceProvider
+        $utf8 = New-Object -TypeName System.Text.UTF8Encoding
+        $UUID = [System.BitConverter]::ToString($md5.ComputeHash($utf8.GetBytes($SALT))).replace("-", "").ToLower()
+        (Get-Content .\.env).replace("your$1""MD5sum", "$UUID") | Set-Content .\.env
+        Write-Output "Save the following link somewhere to claim your earnapp node after completing the setup and after starting the apps stack: https://earnapp.com/r/sdk-node-$UUID. A new file containing this link has been created for you"
+        Write-Output "https://earnapp.com/r/sdk-node-{0}" -f "$UUID" > ClaimEarnappNode.txt 
+    }
+
+    elseif ("$2" -eq "cid" ){
+        Write-Output "Enter your {0} CID." -f "$1"
+        Write-Output "You can find it going in your dashboard https://packetstream.io/dashboard/download?linux# then click on -> Looking for linux app -> now search for CID= in the code shown in the page, you need to enter the code after -e CID= (e.g. if in the code CID=6aTk, just enter 6aTk)"
+        $APP_CID = Read-Host 
+        (Get-Content .\.env).replace("your$1""CID", "$APP_CID") | Set-Content .\.env
+    }
+
+    elseif  ("$2" -eq "token"){
+        Write-Output "Enter your {0} Token." -f "$1"
+        Write-Output "You can find it going in your dashboard https://app.traffmonetizer.com/dashboard then -> Look for Your application token -> just insert it here (you can also copy and then paste it)"
+        $APP_TOKEN = Read-Host 
+        (Get-Content .\.env).replace("your$1""Token", "$APP_TOKEN") | Set-Content .\.env
+    }
+    
+    if  ("$PROXY_CONF" -eq 'true') {
+        if ( "$PROXY_CONF_ALL" -eq 'true'){
+            sed -i "s^# $1_HTTP_PROXY=http://proxyUsername:proxyPassword@proxy_url:proxy_port^$1_HTTP_PROXY=$STACK_HTTP_PROXY^" .env ;
+            sed -i "s^# $1_HTTPS_PROXY=http://proxyUsername:proxyPassword@proxy_url:proxy_port^$1_HTTPS_PROXY=$STACK_HTTPS_PROXY^" .env ;
+        }
+        else{
+            Write-Output "Insert the designed HTTP proxy to use with %s (also socks5h is supported)." "$1"
+            Read-Host APP_HTTP_PROXY
+            Write-Output "Insert the designed HTTPS proxy to use with %s (you can also use the same of the HTTP proxy and also socks5h is supported)." "$1";
+            Read-Host APP_HTTPS_PROXY
+            sed -i "s^# $1_HTTP_PROXY=http://proxyUsername:proxyPassword@proxy_url:proxy_port^$1_HTTP_PROXY=$APP_HTTP_PROXY^" .env ;
+            sed -i "s^# $1_HTTPS_PROXY=http://proxyUsername:proxyPassword@proxy_url:proxy_port^$1_HTTPS_PROXY=$APP_HTTPS_PROXY^" .env ;
+        }
+
+        
+        sed -i "s^#- $1_HTTP_PROXY^- HTTP_PROXY^" docker-compose.yml ;
+        sed -i "s^#- $1_HTTPS_PROXY^- HTTPS_PROXY^" docker-compose.yml ;
+        sed -i "s^#- $1_NO_PROXY^- NO_PROXY^" docker-compose.yml ;
+    }
+}
+
 function fn_setupEnv {
     clear;
     $yn = Read-Host -p "Do you wish to proceed with the .env file guided setup Y/N?  "
     if ($yn -eq 'Y' -or $yn -eq 'y' -or $yn -eq 'Yes' -or $yn -eq 'yes' ) {
         clear;
         Write-Output "Beginnning env file guided setup"
-        #touch .env
         $DEVICE_NAME = Read-Host -prompt "PLEASE ENTER A NAME FOR YOUR DEVICE:"
         (Get-Content .\.env).replace('yourDeviceName', "$DEVICE_NAME") | Set-Content .\.env
 
@@ -98,13 +182,7 @@ function fn_setupEnv {
         
         Write-Output "Go to $EARNAPP_LNK and register"
         Read-Host -prompt "When done, press enter to continue"
-        Write-Output "generating an UUID for earnapp"
-        $md5 = New-Object -TypeName System.Security.Cryptography.MD5CryptoServiceProvider
-        $utf8 = New-Object -TypeName System.Text.UTF8Encoding
-        $UUID = [System.BitConverter]::ToString($md5.ComputeHash($utf8.GetBytes($DEVICE_NAME))).replace("-", "").ToLower()
-        (Get-Content .\.env).replace('yourMD5sum', "$UUID") | Set-Content .\.env
-        Write-Output "!!SAVE THE FOLLOWING LINK SOMEWHERE TO CLAIM YOUR EARNAPP NODE after completing the setup and after starting the apps stack: https://earnapp.com/r/sdk-node-$UUID"
-        Read-Host -prompt "When done, press enter to continue to the next app"
+
 
         #HoneyGain app env setup
         clear
