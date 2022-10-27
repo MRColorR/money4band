@@ -110,36 +110,36 @@ function fn_setupNotifications(){
 
 function fn_setupApp(){
     if ( "$2" -eq "email" ){
-        Write-Output "Enter your {0} Email" -f "$1"
+        Write-Output "Enter your $1 Email"
         $APP_EMAIL = Read-Host 
         (Get-Content .\.env).replace("your$1Mail", "$APP_EMAIL") | Set-Content .\.env
     
         if ("$3" -eq "password" ){ 
-        Write-Output "Now enter your {0} Password" -f "$1"
+        Write-Output "Now enter your $1 Password"
         $APP_PASSWORD = Read-Host  
         (Get-Content .\.env).replace("your$1Pw", "$APP_PASSWORD") | Set-Content .\.env
         }
     }
     elseif ( "$2" -eq "uuid" ){
-        Write-Output "generating an UUID for {0}" -f "$1"
+        Write-Output "generating an UUID for $1"
         $SALT="$3$(Get-Random)"
         $md5 = New-Object -TypeName System.Security.Cryptography.MD5CryptoServiceProvider
         $utf8 = New-Object -TypeName System.Text.UTF8Encoding
         $UUID = [System.BitConverter]::ToString($md5.ComputeHash($utf8.GetBytes($SALT))).replace("-", "").ToLower()
         (Get-Content .\.env).replace("your$1""MD5sum", "$UUID") | Set-Content .\.env
         Write-Output "Save the following link somewhere to claim your earnapp node after completing the setup and after starting the apps stack: https://earnapp.com/r/sdk-node-$UUID. A new file containing this link has been created for you"
-        Write-Output "https://earnapp.com/r/sdk-node-{0}" -f "$UUID" > ClaimEarnappNode.txt 
+        Write-Output "https://earnapp.com/r/sdk-node-$UUID" > ClaimEarnappNode.txt 
     }
 
     elseif ("$2" -eq "cid" ){
-        Write-Output "Enter your {0} CID." -f "$1"
+        Write-Output "Enter your $1 CID."
         Write-Output "You can find it going in your dashboard https://packetstream.io/dashboard/download?linux# then click on -> Looking for linux app -> now search for CID= in the code shown in the page, you need to enter the code after -e CID= (e.g. if in the code CID=6aTk, just enter 6aTk)"
         $APP_CID = Read-Host 
         (Get-Content .\.env).replace("your$1""CID", "$APP_CID") | Set-Content .\.env
     }
 
     elseif  ("$2" -eq "token"){
-        Write-Output "Enter your {0} Token." -f "$1"
+        Write-Output "Enter your $1 Token."
         Write-Output "You can find it going in your dashboard https://app.traffmonetizer.com/dashboard then -> Look for Your application token -> just insert it here (you can also copy and then paste it)"
         $APP_TOKEN = Read-Host 
         (Get-Content .\.env).replace("your$1""Token", "$APP_TOKEN") | Set-Content .\.env
@@ -151,9 +151,9 @@ function fn_setupApp(){
             (Get-Content .\.env).replace("# $1""_HTTPS_PROXY=http://proxyUsername:proxyPassword@proxy_url:proxy_port", "$1""_HTTPS_PROXY=$STACK_HTTPS_PROXY") | Set-Content .\.env
         }
         else{
-            Write-Output "Insert the designed HTTP proxy to use with {0} (also socks5h is supported)." -f "$1"
+            Write-Output "Insert the designed HTTP proxy to use with $1 (also socks5h is supported)."
             $APP_HTTP_PROXY = Read-Host 
-            Write-Output "Insert the designed HTTPS proxy to use with {0} (you can also use the same of the HTTP proxy and also socks5h is supported)." -f "$1"
+            Write-Output "Insert the designed HTTPS proxy to use with $1 (you can also use the same of the HTTP proxy and also socks5h is supported)."
             $APP_HTTPS_PROXY = Read-Host 
             (Get-Content .\.env).replace("# $1""_HTTP_PROXY=http://proxyUsername:proxyPassword@proxy_url:proxy_port", "$1""_HTTP_PROXY=$APP_HTTP_PROXY") | Set-Content .\.env
             (Get-Content .\.env).replace("# $1""_HTTPS_PROXY=http://proxyUsername:proxyPassword@proxy_url:proxy_port", "$1""_HTTPS_PROXY=$APP_HTTPS_PROXY") | Set-Content .\.env
@@ -175,14 +175,14 @@ function fn_setupProxy(){
                 Write-Output "Proxy setup started.";
                 $yn = Read-Host -p "Do you wish to use the same proxy for all the apps in this stack? Y/N?"
                 if ($yn -eq 'Y' -or $yn -eq 'y' -or $yn -eq 'Yes' -or $yn -eq 'yes' ){
-                        Write-Output "Insert the designed HTTP proxy to use. Eg: http://proxyUsername:proxyPassword@proxy_url:proxy_port or just http://proxy_url:proxy_port if auth is not needed, also socks5h is supported."$'\n';
+                        Write-Output "Insert the designed HTTP proxy to use. Eg: http://proxyUsername:proxyPassword@proxy_url:proxy_port or just http://proxy_url:proxy_port if auth is not needed, also socks5h is supported.";
                         $STACK_HTTP_PROXY = Read-Host 
-                        Write-Output "Ok, %s will be used as proxy for all apps in this stack"$'\n' "$STACK_HTTP_PROXY"
+                        Write-Output "Ok, $STACK_HTTP_PROXY will be used as proxy for all apps in this stack"
                         Read-Host -p "Press enter to continue"
                         clear
-                        Write-Output "Insert the designed HTTPS proxy to use (you can also use the same of the HTTP proxy), also socks5h is supported."$'\n'
+                        Write-Output "Insert the designed HTTPS proxy to use (you can also use the same of the HTTP proxy), also socks5h is supported."
                         Read-Host STACK_HTTPS_PROXY;
-                        Write-Output "Ok, %s will be used as secure proxy for all apps in this stack"$'\n' "$STACK_HTTPS_PROXY"
+                        Write-Output "Ok, $STACK_HTTPS_PROXY will be used as secure proxy for all apps in this stack"
                         Read-Host -p "Press enter to continue"
                         PROXY_CONF_ALL='true' ;
                         PROXY_CONF='true' ;
