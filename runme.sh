@@ -117,6 +117,9 @@ fn_setupApp(){
         printf "You can find it going in your dashboard https://app.traffmonetizer.com/dashboard then -> Look for Your application token -> just insert it here (you can also copy and then paste it)"$'\n'
         read -r APP_TOKEN
         sed -i "s/your$1Token/$APP_TOKEN/" .env 
+    elif [ "$2" == "customScript" ] ; then 
+            chmod u+x $3;
+            sudo sh -c $3;
     fi
     if [ "$PROXY_CONF" == 'true' ] ; then 
         if [ "$PROXY_CONF_ALL" == 'true' ] ; then
@@ -239,13 +242,10 @@ fn_setupEnv(){
     
     # Bitping app env setup
     clear;
+    CURRENT_APP='BITPING'
     cyanprint "Go to $BITPING_LNK and register"
     read -r -p "When done, press enter to continue"$'\n'
-    printf "To configure this app we will need to start an interactive container (so Docker needs to be already installed)."
-    printf "To do that we will open a new terminal in this same folder and run bitpingSetup.sh for you"$'\n'
-    read -n 1 -s -r -p "When ready to start, press any key to continue"$'\n'
-    chmod u+x ./bitpingSetup.sh;
-    sudo sh -c './bitpingSetup.sh';
+    fn_setupApp "$CURRENT_APP" "customScript" './bitpingSetup.sh'
 
     # Notifications setup
     clear;
@@ -253,7 +253,7 @@ fn_setupEnv(){
     case $yn in
         [Yy]* ) fn_setupNotifications;;
         [Nn]* ) blueprint "Noted: all updates will be applied automatically and silently";;
-        * ) printf "Please answer yes or no.";;
+        * ) printf "Please answer yes or no."; fn_setupNotifications;;
     esac
 
     greenprint "env file setup complete.";

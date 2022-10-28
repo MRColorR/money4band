@@ -20,10 +20,10 @@ $DKCOM_SRC = 'https://github.com/MRColorR/money4band/raw/main/docker-compose.yml
 $DKINST_WIN_SRC = 'https://github.com/MRColorR/money4band/raw/main/install-docker.ps1'
 
 ### Proxy config #
-$script:PROXY_CONF='false'
-$script:PROXY_CONF_ALL='false'
-$script:STACK_HTTP_PROXY=''
-$script:STACK_HTTPS_PROXY=''
+$script:PROXY_CONF = $false
+$script:PROXY_CONF_ALL = $false
+$script:STACK_HTTP_PROXY = ''
+$script:STACK_HTTPS_PROXY = ''
 
 ### Functions ##
 function fn_bye { Write-Output "Bye bye."; exit 0; }
@@ -87,7 +87,7 @@ function fn_dockerInstall {
     }
 }
 
-function fn_setupNotifications(){
+function fn_setupNotifications() {
     Clear-Host
     Write-Output "This step will setup notifications about containers updates using shoutrrr"
     Write-Output "Now we will configure a SHOUTRRR_URL that should looks like this <app>://<token>@<webhook> . Where <app> is one of the supported messaging apps supported by shoutrrr (We will use a private discord server as example)."
@@ -99,7 +99,7 @@ function fn_setupNotifications(){
     Read-Host -p "Press enter to continue"
     Clear-Host
     Write-Output "NOW INSERT BELOW THE LINK FOR NOTIFICATIONS using THE SAME FORMAT WRITTEN ABOVE e.g.: discord://yourToken@yourWebhookid"
-    Read-Host -r SHOUTRRR_URL
+    $SHOUTRRR_URL = Read-Host
     (Get-Content .\.env).replace('# SHOUTRRR_URL=yourApp:yourToken@yourWebHook', "SHOUTRRR_URL=$SHOUTRRR_URL") | Set-Content .\.env
     (Get-Content .\docker-compose.yml).replace('# - WATCHTOWER_NOTIFICATIONS=shoutrrr', "- WATCHTOWER_NOTIFICATIONS=shoutrrr") | Set-Content .\docker-compose.yml
     (Get-Content .\docker-compose.yml).replace('# - WATCHTOWER_NOTIFICATION_URL', "- WATCHTOWER_NOTIFICATION_URL") | Set-Content .\docker-compose.yml
@@ -107,27 +107,24 @@ function fn_setupNotifications(){
     Read-Host -p "Notifications setup complete. If the link is correct, you will receive a notification for each update made on the app container images. Now press enter to continue"
     Clear-Host
 }
-function FunctionName {
 
-    
-}
-function fn_setupApp(){
+function fn_setupApp() {
     param ($CURRENT_APP, $TYPE , $SUBTYPE
     )
-    if ( "$TYPE" -eq "email" ){
+    if ( "$TYPE" -eq "email" ) {
         Write-Output "Enter your $CURRENT_APP Email"
         $APP_EMAIL = Read-Host 
         (Get-Content .\.env).replace("your${CURRENT_APP}Mail", "$APP_EMAIL") | Set-Content .\.env
     
-        if ("$SUBTYPE" -eq "password" ){ 
-        Write-Output "Now enter your $CURRENT_APP Password"
-        $APP_PASSWORD = Read-Host  
+        if ("$SUBTYPE" -eq "password" ) { 
+            Write-Output "Now enter your $CURRENT_APP Password"
+            $APP_PASSWORD = Read-Host  
         (Get-Content .\.env).replace("your${CURRENT_APP}Pw", "$APP_PASSWORD") | Set-Content .\.env
         }
     }
-    elseif ( "$TYPE" -eq "uuid" ){
+    elseif ( "$TYPE" -eq "uuid" ) {
         Write-Output "generating an UUID for $CURRENT_APP"
-        $SALT="$SUBTYPE$(Get-Random)"
+        $SALT = "$SUBTYPE$(Get-Random)"
         $md5 = New-Object -TypeName System.Security.Cryptography.MD5CryptoServiceProvider
         $utf8 = New-Object -TypeName System.Text.UTF8Encoding
         $UUID = [System.BitConverter]::ToString($md5.ComputeHash($utf8.GetBytes($SALT))).replace("-", "").ToLower()
@@ -136,26 +133,28 @@ function fn_setupApp(){
         Write-Output "https://earnapp.com/r/sdk-node-$UUID" > ClaimEarnappNode.txt 
     }
 
-    elseif ("$TYPE" -eq "cid" ){
+    elseif ("$TYPE" -eq "cid" ) {
         Write-Output "Enter your $CURRENT_APP CID."
         Write-Output "You can find it going in your dashboard https://packetstream.io/dashboard/download?linux# then click on -> Looking for linux app -> now search for CID= in the code shown in the page, you need to enter the code after -e CID= (e.g. if in the code CID=6aTk, just enter 6aTk)"
         $APP_CID = Read-Host 
         (Get-Content .\.env).replace("your${CURRENT_APP}CID", "$APP_CID") | Set-Content .\.env
     }
 
-    elseif  ("$TYPE" -eq "token"){
+    elseif ("$TYPE" -eq "token") {
         Write-Output "Enter your $CURRENT_APP Token."
         Write-Output "You can find it going in your dashboard https://app.traffmonetizer.com/dashboard then -> Look for Your application token -> just insert it here (you can also copy and then paste it)"
         $APP_TOKEN = Read-Host 
         (Get-Content .\.env).replace("your${CURRENT_APP}Token", "$APP_TOKEN") | Set-Content .\.env
+    }elseif ("$TYPE" -eq "customScript") {
+        Start-Process PowerShell -Verb RunAs "-noprofile -executionpolicy bypass -Command `"cd '$pwd'; & '$SUBTYPE';`"" -wait
     }
     
-    if  ("$script:PROXY_CONF" -eq 'true') {
-        if ( "$script:PROXY_CONF_ALL" -eq 'true'){
+    if ( $script:PROXY_CONF ) {
+        if ( $script:PROXY_CONF_ALL ) {
             (Get-Content .\.env).replace("# ${CURRENT_APP}_HTTP_PROXY=http://proxyUsername:proxyPassword@proxy_url:proxy_port", "${CURRENT_APP}_HTTP_PROXY=$script:STACK_HTTP_PROXY") | Set-Content .\.env
             (Get-Content .\.env).replace("# ${CURRENT_APP}_HTTPS_PROXY=http://proxyUsername:proxyPassword@proxy_url:proxy_port", "${CURRENT_APP}_HTTPS_PROXY=$script:STACK_HTTPS_PROXY") | Set-Content .\.env
         }
-        else{
+        else {
             Write-Output "Insert the designed HTTP proxy to use with $CURRENT_APP (also socks5h is supported)."
             $APP_HTTP_PROXY = Read-Host 
             Write-Output "Insert the designed HTTPS proxy to use with $CURRENT_APP (you can also use the same of the HTTP proxy and also socks5h is supported)."
@@ -171,46 +170,48 @@ function fn_setupApp(){
     Read-Host -p "${CURRENT_APP} configuration complete, press enter to continue to the next app"
 }
 
-function fn_setupProxy(){
-    if ( "$script:PROXY_CONF" -eq 'false' ){
+function fn_setupProxy() {
         $yn = Read-Host -p "Do you wish to use a proxy? Y/N? Note that if you want to run multiple instances of the same app you will need to configure different env files each in different project folders (copy the project to multiple different folders and configure them using different proxies)"
-        if ($yn -eq 'Y' -or $yn -eq 'y' -or $yn -eq 'Yes' -or $yn -eq 'yes' ){
+        if ($yn -eq 'Y' -or $yn -eq 'y' -or $yn -eq 'Yes' -or $yn -eq 'yes' ) {
             Clear-Host
-                Write-Output "Proxy setup started.";
-                $yn = Read-Host -p "Do you wish to use the same proxy for all the apps in this stack? Y/N?"
-                if ($yn -eq 'Y' -or $yn -eq 'y' -or $yn -eq 'Yes' -or $yn -eq 'yes' ){
-                        Write-Output "Insert the designed HTTP proxy to use. Eg: http://proxyUsername:proxyPassword@proxy_url:proxy_port or just http://proxy_url:proxy_port if auth is not needed, also socks5h is supported.";
-                        $script:STACK_HTTP_PROXY = Read-Host 
-                        Write-Output "Ok, $script:STACK_HTTP_PROXY will be used as proxy for all apps in this stack"
-                        Read-Host -p "Press enter to continue"
-                        Clear-Host
-                        Write-Output "Insert the designed HTTPS proxy to use (you can also use the same of the HTTP proxy), also socks5h is supported."
-                        $script:STACK_HTTPS_PROXY = Read-Host
-                        Write-Output "Ok, $script:STACK_HTTPS_PROXY will be used as secure proxy for all apps in this stack"
-                        Read-Host -p "Press enter to continue"
-                        $script:PROXY_CONF_ALL='true'
-                        $script:PROXY_CONF='true'
-                    }
-        } elseif ($yn -eq 'N' -or $yn -eq 'n' -or $yn -eq 'No' -or $yn -eq 'no') {
-            $script:PROXY_CONF_ALL='false'
-                    $script:PROXY_CONF='true'
-                    Write-Output "Ok, later you will be asked for a proxy for each application"
-        }else {
+            Write-Output "Proxy setup started.";
+            $yn = Read-Host -p "Do you wish to use the same proxy for all the apps in this stack? Y/N?"
+            if ($yn -eq 'Y' -or $yn -eq 'y' -or $yn -eq 'Yes' -or $yn -eq 'yes' ) {
+                Write-Output "Insert the designed HTTP proxy to use. Eg: http://proxyUsername:proxyPassword@proxy_url:proxy_port or just http://proxy_url:proxy_port if auth is not needed, also socks5h is supported.";
+                $script:STACK_HTTP_PROXY = Read-Host 
+                Write-Output "Ok, $script:STACK_HTTP_PROXY will be used as proxy for all apps in this stack"
+                Read-Host -p "Press enter to continue"
+                Clear-Host
+                Write-Output "Insert the designed HTTPS proxy to use (you can also use the same of the HTTP proxy), also socks5h is supported."
+                $script:STACK_HTTPS_PROXY = Read-Host
+                Write-Output "Ok, $script:STACK_HTTPS_PROXY will be used as secure proxy for all apps in this stack"
+                Read-Host -p "Press enter to continue"
+                $script:PROXY_CONF_ALL = $true
+                $script:PROXY_CONF = $true
+            }
+            elseif ($yn -eq 'N' -or $yn -eq 'n' -or $yn -eq 'No' -or $yn -eq 'no') {
+                $script:PROXY_CONF_ALL = $false
+                $script:PROXY_CONF = $true
+                Write-Output "Ok, later you will be asked for a proxy for each application"
+                Read-Host -p "Press enter to continue"
+            }
+            else {
+                Clear-Host
+                Write-Output "Please answer yes or no."
+                fn_setupProxy
+            }
+            # An unique name for the stack is chosen so that even if multiple stacks are started with different proxies the names do not conflict
+            (Get-Content .\.env).replace("COMPOSE_PROJECT_NAME= Money4Band", "COMPOSE_PROJECT_NAME= Money4Band_$(Get-Random)") | Set-Content .\.env
+        }
+        elseif ($yn -eq 'N' -or $yn -eq 'n' -or $yn -eq 'No' -or $yn -eq 'no') {
+            Write-Output "Ok, no proxy added to configuration."
+        }
+        else {
             Clear-Host
             Write-Output "Please answer yes or no."
             fn_setupProxy
-
         }
-                # An unique name for the stack is chosen so that even if multiple stacks are started with different proxies the names do not conflict
-                (Get-Content .\.env).replace("COMPOSE_PROJECT_NAME= Money4Band", "COMPOSE_PROJECT_NAME= Money4Band_$(Get-Random)") | Set-Content .\.env
-    }elseif ($yn -eq 'N' -or $yn -eq 'n' -or $yn -eq 'No' -or $yn -eq 'no') {
-                Write-Output "Ok, no proxy added to configuration."
-    }else {
-        Clear-Host
-        Write-Output "Please answer yes or no."
-        fn_setupProxy
-
-    }
+    
 }
 
 function fn_setupEnv {
@@ -219,7 +220,7 @@ function fn_setupEnv {
     if ($yn -eq 'Y' -or $yn -eq 'y' -or $yn -eq 'Yes' -or $yn -eq 'yes' ) {
         Clear-Host
         Write-Output "Beginnning env file guided setup"
-        $CURRENT_APP='';
+        $CURRENT_APP = '';
         $DEVICE_NAME = Read-Host -prompt "PLEASE ENTER A NAME FOR YOUR DEVICE"
         (Get-Content .\.env).replace('yourDeviceName', "$DEVICE_NAME") | Set-Content .\.env
 
@@ -231,7 +232,7 @@ function fn_setupEnv {
         Write-Output "Use CTRL+Click to open links or copy them:"
 
         #EarnApp app env setup
-        $CURRENT_APP='EARNAPP';
+        $CURRENT_APP = 'EARNAPP';
         Write-Output "Go to $EARNAPP_LNK and register"
         Read-Host -prompt "When done, press enter to continue"
         fn_setupApp "$CURRENT_APP" "uuid" "$DEVICE_NAME"
@@ -239,14 +240,14 @@ function fn_setupEnv {
 
         #HoneyGain app env setup
         Clear-Host
-        $CURRENT_APP='HONEYGAIN';
+        $CURRENT_APP = 'HONEYGAIN';
         Write-Output "Go to $HONEYGAIN_LNK and register"
         Read-Host -prompt "When done, press enter to continue"
         fn_setupApp "$CURRENT_APP" "email" "password"
 
         #IPROYALPAWNS app env setup
         Clear-Host
-        $CURRENT_APP='IPROYALPAWNS';
+        $CURRENT_APP = 'IPROYALPAWNS';
         Write-Output "Go to $IPROYALPAWNS_LNK and register"
         Read-Host -prompt "When done, press enter to continue"
         fn_setupApp "$CURRENT_APP" "email" "password"
@@ -254,43 +255,45 @@ function fn_setupEnv {
 
         #Peer2Profit app env setup
         Clear-Host
-        $CURRENT_APP='PEER2PROFIT';
+        $CURRENT_APP = 'PEER2PROFIT';
         Write-Output "Go to $PEER2PROFIT_LNK and register"
         Read-Host -prompt "When done, press enter to continue"
         fn_setupApp "$CURRENT_APP" "email"
 
         #PacketStream app env setup
         Clear-Host
-        $CURRENT_APP='PACKETSTREAM';
+        $CURRENT_APP = 'PACKETSTREAM';
         Write-Output "Go to $PACKETSTREAM_LNK and register"
         Read-Host -prompt "When done, press enter to continue"
         fn_setupApp "$CURRENT_APP" "cid"
 
         # TraffMonetizer app env setup
         Clear-Host
-        $CURRENT_APP='TRAFFMONETIZER';
+        $CURRENT_APP = 'TRAFFMONETIZER';
         Write-Output "Go to $TRAFFMONETIZER_LNK and register"
         Read-Host -prompt "When done, press enter to continue"
         fn_setupApp "$CURRENT_APP" "token"
     
         # Bitping app env setup
         Clear-Host
+        $CURRENT_APP = 'BITPING';
         Write-Output "Go to $BITPING_LNK and register"
         Read-Host -prompt "When done, press enter to continue"
-        Write-Output "To configure this app we will need to start an interactive container (so Docker needs to be already installed)."
-        Write-Output "To do that now we will open a new terminal in this same folder and run bitpingSetup for you."
-        Read-Host -prompt "When ready to start, press enter to continue"
-        Start-Process PowerShell -Verb RunAs "-noprofile -executionpolicy bypass -Command `"cd '$pwd'; & '.\bitpingSetup.ps1';`"" -wait
+        fn_setupApp "$CURRENT_APP" "customScript" '.\bitpingSetup.ps1'
+        
 
         # Notifications setup
         Clear-Host
         $yn = Read-Host -p "Do you wish to setup notifications about apps images updates (Yes to recieve notifications and apply updates, No to just silently apply updates) Y/N?  "
         if ($yn -eq 'Y' -or $yn -eq 'y' -or $yn -eq 'Yes' -or $yn -eq 'yes' ) {
-          fn_setupNotifications ;
-        } elseif ($yn -eq 'N' -or $yn -eq 'n' -or $yn -eq 'No' -or $yn -eq 'no') {
+            fn_setupNotifications 
+        }
+        elseif ($yn -eq 'N' -or $yn -eq 'n' -or $yn -eq 'No' -or $yn -eq 'no') {
             Write-Output "Noted: all updates will be applied automatically and silently"
-        }else{
+        }
+        else {
             Write-Output "Please answer yes or no."
+            fn_setupNotifications 
         }
 
         Write-Output "env file setup complete."
@@ -338,7 +341,7 @@ function fn_resetEnv {
     }
 }
 
-function fn_resetDockerCompose{
+function fn_resetDockerCompose {
     Write-Output "Now a fresh docker-compose.yml file will be downloaded"
     $yn = Read-Host -prompt "Do you wish to proceed Y/N?  "
     if ($yn -eq 'Y' -or $yn -eq 'y' -or $yn -eq 'Yes' -or $yn -eq 'yes' ) {
@@ -385,7 +388,7 @@ function mainmenu {
             6 {
                 fn_resetDockerCompose
             }
-            7{
+            7 {
                 fn_bye
             }
             DEFAULT {
