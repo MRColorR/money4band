@@ -20,10 +20,10 @@ $DKCOM_SRC = 'https://github.com/MRColorR/money4band/raw/main/docker-compose.yml
 $DKINST_WIN_SRC = 'https://github.com/MRColorR/money4band/raw/main/install-docker.ps1'
 
 ### Proxy config #
-$PROXY_CONF='false'
-$PROXY_CONF_ALL='false'
-$STACK_HTTP_PROXY=''
-$STACK_HTTPS_PROXY=''
+$script:PROXY_CONF='false'
+$script:PROXY_CONF_ALL='false'
+$script:STACK_HTTP_PROXY=''
+$script:STACK_HTTPS_PROXY=''
 
 ### Functions ##
 function fn_bye { Write-Output "Bye bye."; exit 0; }
@@ -150,10 +150,10 @@ function fn_setupApp(){
         (Get-Content .\.env).replace("your${CURRENT_APP}Token", "$APP_TOKEN") | Set-Content .\.env
     }
     
-    if  ("$PROXY_CONF" -eq 'true') {
-        if ( "$PROXY_CONF_ALL" -eq 'true'){
-            (Get-Content .\.env).replace("# ${CURRENT_APP}_HTTP_PROXY=http://proxyUsername:proxyPassword@proxy_url:proxy_port", "${CURRENT_APP}_HTTP_PROXY=$STACK_HTTP_PROXY") | Set-Content .\.env
-            (Get-Content .\.env).replace("# ${CURRENT_APP}_HTTPS_PROXY=http://proxyUsername:proxyPassword@proxy_url:proxy_port", "${CURRENT_APP}_HTTPS_PROXY=$STACK_HTTPS_PROXY") | Set-Content .\.env
+    if  ("$script:PROXY_CONF" -eq 'true') {
+        if ( "$script:PROXY_CONF_ALL" -eq 'true'){
+            (Get-Content .\.env).replace("# ${CURRENT_APP}_HTTP_PROXY=http://proxyUsername:proxyPassword@proxy_url:proxy_port", "${CURRENT_APP}_HTTP_PROXY=$script:STACK_HTTP_PROXY") | Set-Content .\.env
+            (Get-Content .\.env).replace("# ${CURRENT_APP}_HTTPS_PROXY=http://proxyUsername:proxyPassword@proxy_url:proxy_port", "${CURRENT_APP}_HTTPS_PROXY=$script:STACK_HTTPS_PROXY") | Set-Content .\.env
         }
         else{
             Write-Output "Insert the designed HTTP proxy to use with $CURRENT_APP (also socks5h is supported)."
@@ -168,10 +168,11 @@ function fn_setupApp(){
         (Get-Content .\docker-compose.yml).replace("#- ${CURRENT_APP}_HTTPS_PROXY", "- HTTPS_PROXY") | Set-Content .\docker-compose.yml
         (Get-Content .\docker-compose.yml).replace("#- ${CURRENT_APP}_NO_PROXY", "- NO_PROXY") | Set-Content .\docker-compose.yml
     }
+    Read-Host -p "${CURRENT_APP} configuration complete, press enter to continue to the next app"
 }
 
 function fn_setupProxy(){
-    if ( "$PROXY_CONF" -eq 'false' ){
+    if ( "$script:PROXY_CONF" -eq 'false' ){
         $yn = Read-Host -p "Do you wish to use a proxy? Y/N? Note that if you want to run multiple instances of the same app you will need to configure different env files each in different project folders (copy the project to multiple different folders and configure them using different proxies)"
         if ($yn -eq 'Y' -or $yn -eq 'y' -or $yn -eq 'Yes' -or $yn -eq 'yes' ){
             Clear-Host
@@ -179,20 +180,20 @@ function fn_setupProxy(){
                 $yn = Read-Host -p "Do you wish to use the same proxy for all the apps in this stack? Y/N?"
                 if ($yn -eq 'Y' -or $yn -eq 'y' -or $yn -eq 'Yes' -or $yn -eq 'yes' ){
                         Write-Output "Insert the designed HTTP proxy to use. Eg: http://proxyUsername:proxyPassword@proxy_url:proxy_port or just http://proxy_url:proxy_port if auth is not needed, also socks5h is supported.";
-                        $global:STACK_HTTP_PROXY = Read-Host 
-                        Write-Output "Ok, $global:STACK_HTTP_PROXY will be used as proxy for all apps in this stack"
+                        $script:STACK_HTTP_PROXY = Read-Host 
+                        Write-Output "Ok, $script:STACK_HTTP_PROXY will be used as proxy for all apps in this stack"
                         Read-Host -p "Press enter to continue"
                         Clear-Host
                         Write-Output "Insert the designed HTTPS proxy to use (you can also use the same of the HTTP proxy), also socks5h is supported."
-                        $global:STACK_HTTPS_PROXY = Read-Host
-                        Write-Output "Ok, $global:STACK_HTTPS_PROXY will be used as secure proxy for all apps in this stack"
+                        $script:STACK_HTTPS_PROXY = Read-Host
+                        Write-Output "Ok, $script:STACK_HTTPS_PROXY will be used as secure proxy for all apps in this stack"
                         Read-Host -p "Press enter to continue"
-                        $global:PROXY_CONF_ALL='true'
-                        $global:PROXY_CONF='true'
+                        $script:PROXY_CONF_ALL='true'
+                        $script:PROXY_CONF='true'
                     }
         } elseif ($yn -eq 'N' -or $yn -eq 'n' -or $yn -eq 'No' -or $yn -eq 'no') {
-            $PROXY_CONF_ALL='false'
-                    $PROXY_CONF='true'
+            $script:PROXY_CONF_ALL='false'
+                    $script:PROXY_CONF='true'
                     Write-Output "Ok, later you will be asked for a proxy for each application"
         }else {
             Clear-Host
@@ -219,7 +220,7 @@ function fn_setupEnv {
         Clear-Host
         Write-Output "Beginnning env file guided setup"
         $CURRENT_APP='';
-        $DEVICE_NAME = Read-Host -prompt "PLEASE ENTER A NAME FOR YOUR DEVICE:"
+        $DEVICE_NAME = Read-Host -prompt "PLEASE ENTER A NAME FOR YOUR DEVICE"
         (Get-Content .\.env).replace('yourDeviceName', "$DEVICE_NAME") | Set-Content .\.env
 
         Clear-Host
@@ -234,7 +235,6 @@ function fn_setupEnv {
         Write-Output "Go to $EARNAPP_LNK and register"
         Read-Host -prompt "When done, press enter to continue"
         fn_setupApp "$CURRENT_APP" "uuid" "$DEVICE_NAME"
-        Read-Host -p "$CURRENT_APP configuration complete, press enter to continue to the next app"
 
 
         #HoneyGain app env setup
@@ -243,7 +243,6 @@ function fn_setupEnv {
         Write-Output "Go to $HONEYGAIN_LNK and register"
         Read-Host -prompt "When done, press enter to continue"
         fn_setupApp "$CURRENT_APP" "email" "password"
-        Read-Host -p "$CURRENT_APP configuration complete, press enter to continue to the next app"
 
         #IPROYALPAWNS app env setup
         Clear-Host
@@ -251,7 +250,6 @@ function fn_setupEnv {
         Write-Output "Go to $IPROYALPAWNS_LNK and register"
         Read-Host -prompt "When done, press enter to continue"
         fn_setupApp "$CURRENT_APP" "email" "password"
-        Read-Host -p "$CURRENT_APP configuration complete, press enter to continue to the next app"
 
 
         #Peer2Profit app env setup
@@ -260,7 +258,6 @@ function fn_setupEnv {
         Write-Output "Go to $PEER2PROFIT_LNK and register"
         Read-Host -prompt "When done, press enter to continue"
         fn_setupApp "$CURRENT_APP" "email"
-        Read-Host -p "$CURRENT_APP configuration complete, press enter to continue to the next app"
 
         #PacketStream app env setup
         Clear-Host
@@ -268,7 +265,6 @@ function fn_setupEnv {
         Write-Output "Go to $PACKETSTREAM_LNK and register"
         Read-Host -prompt "When done, press enter to continue"
         fn_setupApp "$CURRENT_APP" "cid"
-        Read-Host -p "$CURRENT_APP configuration complete, press enter to continue to the next app"
 
         # TraffMonetizer app env setup
         Clear-Host
@@ -276,7 +272,6 @@ function fn_setupEnv {
         Write-Output "Go to $TRAFFMONETIZER_LNK and register"
         Read-Host -prompt "When done, press enter to continue"
         fn_setupApp "$CURRENT_APP" "token"
-        Read-Host -p "$CURRENT_APP configuration complete, press enter to continue to the next app"
     
         # Bitping app env setup
         Clear-Host

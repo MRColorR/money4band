@@ -135,6 +135,7 @@ fn_setupApp(){
         sed -i "s^#- $1_HTTPS_PROXY^- HTTPS_PROXY^" docker-compose.yml ;
         sed -i "s^#- $1_NO_PROXY^- NO_PROXY^" docker-compose.yml ;
     fi
+    read -r -p "$1 configuration complete, press enter to continue to the next app"
 }
 
 fn_setupProxy(){
@@ -180,7 +181,7 @@ fn_setupEnv(){
         [Nn]* ) blueprint ".env file setup canceled. Make sure you have a valid .env file before proceeding with the stack startup."; read -r -p "Press Enter to go back to mainmenu"; mainmenu;;
         * ) printf "Please answer yes or no.";;
     esac
-    printf "beginnning env file guided setup"
+    printf "beginnning env file guided setup"$'\n'
     CURRENT_APP='';
     yellowprint "PLEASE ENTER A NAME FOR YOUR DEVICE:"
     read -r DEVICE_NAME
@@ -195,10 +196,9 @@ fn_setupEnv(){
 
     #EarnApp app env setup
     CURRENT_APP='EARNAPP';
-    cyanprint "Go to $EARNAPP_LNK and register";
+    cyanprint "Go to $EARNAPP_LNK and register"
     read -r -p "When done, press enter to continue"$'\n'
-    fn_setupApp $CURRENT_APP uuid "$DEVICE_NAME";
-    read -r -p "$CURRENT_APP configuration complete, press enter to continue to the next app"
+    fn_setupApp $CURRENT_APP uuid "$DEVICE_NAME"
 
     #HoneyGain app env setup
     clear;
@@ -206,7 +206,6 @@ fn_setupEnv(){
     cyanprint "Go to $HONEYGAIN_LNK and register"
     read -r -p "When done, press enter to continue"$'\n'
     fn_setupApp $CURRENT_APP email password
-    read -r -p "$CURRENT_APP configuration complete, press enter to continue to the next app"
 
     # IPROYALPAWNS app env setup
     clear;
@@ -214,7 +213,6 @@ fn_setupEnv(){
     cyanprint "Go to $IPROYALPAWNS_LNK and register"
     read -r -p "When done, press enter to continue"$'\n'
     fn_setupApp $CURRENT_APP email password
-    read -r -p "$CURRENT_APP configuration complete, press enter to continue to the next app"
 
     #Peer2Profit app env setup
     clear;
@@ -222,7 +220,6 @@ fn_setupEnv(){
     cyanprint "Go to $PEER2PROFIT_LNK and register"
     read -r -p "When done, press enter to continue"$'\n'
     fn_setupApp $CURRENT_APP email
-    read -r -p "$CURRENT_APP configuration complete, press enter to continue to the next app"
 
     #PacketStream app env setup
     clear;
@@ -230,7 +227,6 @@ fn_setupEnv(){
     cyanprint "Go to $PACKETSTREAM_LNK and register"
     read -r -p "When done, press enter to continue"$'\n'
     fn_setupApp $CURRENT_APP cid
-    read -r -p "$CURRENT_APP configuration complete, press enter to continue to the next app"
 
 
     # TraffMonetizer app env setup
@@ -239,7 +235,6 @@ fn_setupEnv(){
     cyanprint "Go to $TRAFFMONETIZER_LNK and register"
     read -r -p "When done, press enter to continue"$'\n'
     fn_setupApp $CURRENT_APP token
-    read -r -p "$CURRENT_APP configuration complete, press enter to continue to the next app"
 
     
     # Bitping app env setup
