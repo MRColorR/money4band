@@ -35,6 +35,7 @@ Using the following referral links, register on the apps' sites. You should also
 - Go to [PACKETSTREAM](https://packetstream.io/?psr=3zSD)
 - Go to [PEER2PROFIT](https://p2pr.me/165849012262da8d0aa13c8)
 - Go to [TRAFFMONETIZER](https://traffmonetizer.com/?aff=366499)
+- Go to [REPOCKET](https://link.repocket.co/hr8i)
 - Go to [BITPING](https://app.bitping.com?r=qm7mIuX3)
 
 ### 3) Complete the automatic guided setup using runme.sh (linux) or runme.ps1 (Windows/linux)
