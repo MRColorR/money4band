@@ -8,6 +8,7 @@ $IPROYALPAWNS_LNK = "IPROYALPAWNS | https://pawns.app?r=MiNe"
 $PACKETSTREAM_LNK = "PACKETSTREAM | https://packetstream.io/?psr=3zSD"
 $PEER2PROFIT_LNK = "PEER2PROFIT | https://p2pr.me/165849012262da8d0aa13c8"
 $TRAFFMONETIZER_LNK = "TRAFFMONETIZER | https://traffmonetizer.com/?aff=366499"
+$REPOCKET_LNK = "REPOCKET | https://link.repocket.co/hr8i"
 $BITPING_LNK = "BITPING | https://app.bitping.com?r=qm7mIuX3"
 
 ### .env File Prototype Link##
@@ -40,6 +41,7 @@ function fn_showLinks {
     Write-Output $PACKETSTREAM_LNK
     Write-Output $PEER2PROFIT_LNK
     Write-Output $TRAFFMONETIZER_LNK
+    Write-Output $REPOCKET_LNK
     Write-Output $BITPING_LNK
     Read-Host -Prompt "Press enter to go back to mainmenu"
     mainmenu
@@ -273,6 +275,13 @@ function fn_setupEnv {
         Write-Output "Go to $TRAFFMONETIZER_LNK and register"
         Read-Host -prompt "When done, press enter to continue"
         fn_setupApp "$CURRENT_APP" "token"
+
+        # Repocket app env setup
+        Clear-Host
+        $CURRENT_APP = 'REPOCKET';
+        Write-Output "Go to $REPOCKET_LNK and register"
+        Read-Host -prompt "When done, press enter to continue"
+        fn_setupApp "$CURRENT_APP" "email" "password"
     
         # Bitping app env setup
         Clear-Host

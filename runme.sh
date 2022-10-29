@@ -21,6 +21,7 @@ readonly IPROYALPAWNS_LNK="IPROYALPAWNS | https://pawns.app?r=MiNe"
 readonly PACKETSTREAM_LNK="PACKETSTREAM | https://packetstream.io/?psr=3zSD"
 readonly PEER2PROFIT_LNK="PEER2PROFIT | https://p2pr.me/165849012262da8d0aa13c8"
 readonly TRAFFMONETIZER_LNK="TRAFFMONETIZER | https://traffmonetizer.com/?aff=366499"
+readonly REPOCKET_LNK="REPOCKET | https://link.repocket.co/hr8i"
 readonly BITPING_LNK="BITPING | https://app.bitping.com?r=qm7mIuX3"
 
 ### .env File Prototype Link##
@@ -50,7 +51,8 @@ fn_showLinks(){
                 cyanprint "4) $PACKETSTREAM_LNK";
                 cyanprint "5) $PEER2PROFIT_LNK";
                 cyanprint "6) $TRAFFMONETIZER_LNK";
-                cyanprint "7) $BITPING_LNK";
+                cyanprint "7) $REPOCKET_LNK";
+                cyanprint "8) $BITPING_LNK";
                 read -r -p "Press enter to go back to mainmenu"
     
     }
@@ -231,7 +233,6 @@ fn_setupEnv(){
     read -r -p "When done, press enter to continue"$'\n'
     fn_setupApp $CURRENT_APP cid
 
-
     # TraffMonetizer app env setup
     clear;
     CURRENT_APP='TRAFFMONETIZER'
@@ -239,7 +240,13 @@ fn_setupEnv(){
     read -r -p "When done, press enter to continue"$'\n'
     fn_setupApp $CURRENT_APP token
 
-    
+    # Repocket app env setup
+    clear;
+    CURRENT_APP='REPOCKET'
+    cyanprint "Go to $REPOCKET_LNK and register"
+    read -r -p "When done, press enter to continue"$'\n'
+    fn_setupApp $CURRENT_APP email password
+
     # Bitping app env setup
     clear;
     CURRENT_APP='BITPING'
