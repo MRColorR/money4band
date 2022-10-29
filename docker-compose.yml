@@ -13,7 +13,7 @@ services:
         container_name: earnapp
         image: fazalfarhan01/earnapp:lite
         environment:
-            - EARNAPP_UUID: $EARNAPP_DEVICE_UUID
+            - EARNAPP_UUID=$EARNAPP_DEVICE_UUID
             #- EARNAPP_HTTP_PROXY: $EARNAPP_HTTP_PROXY
             #- EARNAPP_HTTPS_PROXY: $EARNAPP_HTTPS_PROXY
             #- EARNAPP_NO_PROXY: 'localhost, 127.0.0.0/8'
@@ -26,6 +26,7 @@ services:
         container_name: honeygain
         image: honeygain/honeygain
         environment:
+            - HONEYGAIN_DUMMY=''
             #- HONEYGAIN_HTTP_PROXY: $HONEYGAIN_HTTP_PROXY
             #- HONEYGAIN_HTTPS_PROXY: $HONEYGAIN_HTTPS_PROXY
             #- HONEYGAIN_NO_PROXY: 'localhost, 127.0.0.0/8'
@@ -37,6 +38,7 @@ services:
         container_name: iproyal
         image: iproyal/pawns-cli:latest
         environment:
+            - IPROYALPAWNS_DUMMY=''
             #- IPROYALPAWNS_HTTP_PROXY: $IPROYALPAWNS_HTTP_PROXY
             #- IPROYALPAWNS_HTTPS_PROXY: $IPROYALPAWNS_HTTPS_PROXY
             #- IPROYALPAWNS_NO_PROXY: 'localhost, 127.0.0.0/8'
@@ -72,6 +74,7 @@ services:
         image: traffmonetizer/cli:latest
         command: start accept status --token ${TRAFFMONETIZER_TOKEN} --device-name $DEVICE_NAME
         environment:
+            - TRAFFMONETIZER_DUMMY=''
             #- TRAFFMONETIZER_HTTP_PROXY: $TRAFFMONETIZER_HTTP_PROXY
             #- TRAFFMONETIZER_HTTPS_PROXY: $TRAFFMONETIZER_HTTPS_PROXY
             #- TRAFFMONETIZER_NO_PROXY: 'localhost, 127.0.0.0/8'
@@ -95,6 +98,7 @@ services:
         container_name: bitping
         image: bitping/bitping-node:latest
         environment:
+            - BITPING_DUMMY=''
             #- BITPING_HTTP_PROXY: $BITPING_HTTP_PROXY
             #- BITPING_HTTPS_PROXY: $BITPING_HTTPS_PROXY
             #- BITPING_NO_PROXY: 'localhost, 127.0.0.0/8'
