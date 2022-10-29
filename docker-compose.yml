@@ -8,7 +8,7 @@
 version: "3.8"
 services:
 
-# EARNAPP CONTAINER
+## EARNAPP CONTAINER
     earnapp:
         container_name: earnapp
         image: fazalfarhan01/earnapp:lite
@@ -21,7 +21,7 @@ services:
             - earnapp-data:/etc/earnapp
         restart: always
 
-# HONEYGAIN CONTAINER
+## HONEYGAIN CONTAINER
     honeygain:
         container_name: honeygain
         image: honeygain/honeygain
@@ -32,7 +32,7 @@ services:
         command: '-tou-accept -email $HONEYGAIN_EMAIL -pass $HONEYGAIN_PASSWD -device $DEVICE_NAME'
         restart: always
 
-# IPROYAL CONTAINER
+## IPROYAL CONTAINER
     iproyal:
         container_name: iproyal
         image: iproyal/pawns-cli:latest
@@ -43,7 +43,7 @@ services:
         command: '-accept-tos -email=$IPROYALPAWNS_EMAIL -password=$IPROYALPAWNS_PASSWD -device-name=$DEVICE_NAME'
         restart: always
 
-# PEER2PROFIT CONTAINER
+## PEER2PROFIT CONTAINER
     Peer2profit:
         container_name: peer2profit
         image: peer2profit/peer2profit_linux:latest
@@ -55,18 +55,18 @@ services:
         restart: always
 
 
-# PACKETSTREAM CONTAINER
+## PACKETSTREAM CONTAINER
     Packetstream:
         container_name: packetstream
         image: packetstream/psclient:latest
-        restart: always
         environment:
             - CID=$PACKETSTREAM_CID
             #- PACKETSTREAM_HTTP_PROXY: $PACKETSTREAM_HTTP_PROXY
             #- PACKETSTREAM_HTTPS_PROXY: $PACKETSTREAM_HTTPS_PROXY
             #- PACKETSTREAM_NO_PROXY: 'localhost, 127.0.0.0/8'
+        restart: always
 
-#TRAFFMONETIZER CONTAINER
+## TRAFFMONETIZER CONTAINER
     TraffMonetizer:
         container_name: traffmonetizer
         image: traffmonetizer/cli:latest
@@ -77,7 +77,19 @@ services:
             #- TRAFFMONETIZER_NO_PROXY: 'localhost, 127.0.0.0/8'
         restart: always
 
- #BITPING CONTAINER 
+## REPOCKET CONTAINER
+    Repocket:
+        container_name: repocket
+        image: repocket/repocket:latest
+        environment:
+            - RP_EMAIL=$REPOCKET_EMAIL
+            - RP_PASSWORD=$REPOCKET_PASSWD
+            #- REPOCKET_HTTP_PROXY: $REPOCKET_HTTP_PROXY
+            #- REPOCKET_HTTPS_PROXY: $REPOCKET_HTTPS_PROXY
+            #- REPOCKET_NO_PROXY: 'localhost, 127.0.0.0/8'
+        restart: always
+
+ ## BITPING CONTAINER 
  # !!For this app you'll need a one-time operation to claim your node: the first time if you do not have a backup of your identity you will need to enter manually your credentials to initialize it use : sudo docker run --rm -it -v ${PWD}/.data/.bitping/:/root/.bitping bitping/bitping-node:latest , then enter your credential , once this is done CTRL+C to end container and then if using bind folder just use docker compose to restart it as always, if you use the docker volume mount it in the previous comamnd or copy the created credentials in the volume using ' docker cp ${PWD}/.data/.bitping bitping:/root/' or just mount the volume in the interactive temporary container
     Bitping:
         container_name: bitping
@@ -94,7 +106,7 @@ services:
         restart: always
       
       
-#WATCHTOWER AUTO-UPDATER AND NOTIFICATIONS
+## WATCHTOWER AUTO-UPDATER AND NOTIFICATIONS
     watchtower:
         container_name: watchtower
         image: containrrr/watchtower
@@ -110,7 +122,7 @@ services:
             - WATCHTOWER_CLEANUP=true
         restart: always
         
-# WEB DASBOARD
+## WEB DASBOARD
     webdashboard:
         container_name: webdashboard
         image: fnichol/uhttpd
