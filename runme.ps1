@@ -50,7 +50,7 @@ function fn_showLinks {
 function fn_dockerInstall {
     Clear-Host
     Write-Output "This menu item will launch a script that will attempt to install docker"
-    Write-Output "Use it only if you do not know how to perform the manual docker installation described at https://docs.docker.com/get-docker/ as the automatic script in some cases and depending on the OS you are using may fail to install docker correctly."
+    Write-Output "Use it if you do not know how to perform the manual docker installation described at https://docs.docker.com/get-docker/ as the automatic script in some cases and depending on the OS you are using may fail to install docker correctly."
     $yn = Read-Host -Prompt "Do you wish to proceed with the Docker automatic installation Y/N?  "
     if ($yn -eq 'Y' -or $yn -eq 'y' -or $yn -eq 'Yes' -or $yn -eq 'yes' ) {
         Clear-Host
