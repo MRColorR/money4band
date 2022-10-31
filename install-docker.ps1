@@ -62,11 +62,11 @@ $ProgressPreference = 'Continue'
     } 
     else {
         Write-Output "WSL is disabled."
-        Write-Output "Enabling WSL2 feature now"
+        Write-Output "Enabling WSL2 feature now. You will then restart your machine and execute the install docker option again to complete the docker installation"
     
         & cmd /c 'dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart'
         & cmd /c 'dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart'
         Enable-WindowsOptionalFeature -Online -FeatureName VirtualMachinePlatform
         Start-Sleep 30
-        Write-Output "WSL is enabled now reboot the system and re-run the script to continue the installation."
+        Write-Output "WSL is enabled now reboot the system and re-run the script to continue the docker installation."
     }
