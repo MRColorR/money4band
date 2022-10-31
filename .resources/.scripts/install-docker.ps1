@@ -5,7 +5,9 @@ If (-NOT ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdent
   Start-Process powershell.exe "-File",('"{0}"' -f $MyInvocation.MyCommand.Path) -Verb RunAs
   exit
 }
-
+$RESOURCES_DIR = (get-item $PWD ).parent.FullName
+$SCRIPTS_DIR = "$RESOURCES_DIR\.scripts"
+$FILES_DIR = "$RESOURCES_DIR\.files"
 function installDoker {
     Write-Output "Downloading the Docker exe"
             Invoke-WebRequest -Uri https://desktop.docker.com/win/stable/Docker%20Desktop%20Installer.exe -OutFile DockerInstaller.exe -UseBasicParsing
@@ -13,6 +15,7 @@ function installDoker {
 
             Write-Output "Installing Docker please wait..."
             start-process .\DockerInstaller.exe -Wait -NoNewWindow -ArgumentList "install --accept-license --quiet"
+            Copy-Item "$FILES_DIR\docker-default-settings.json" -Destination "$env:AppData\Docker\settings.json"
             Write-Output "Docker Installed successfully"
             Read-Host "You must reboot the sytem to continue. After reboot re-run the script and proceed with the next steps"
             Restart-Computer -Confirm 
