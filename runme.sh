@@ -30,6 +30,11 @@ readonly ENV_SRC='https://github.com/MRColorR/money4band/raw/main/.env';
 ### docker-compose.yml Prototype Link##
 readonly DKCOM_SRC='https://github.com/MRColorR/money4band/raw/main/docker-compose.yml';
 
+### Resources, Scripts and Files folders
+readonly RESOURCES_DIR="$PWD/.resources"
+readonly SCRIPTS_DIR="$RESOURCES_DIR/.scripts"
+readonly FILES_DIR="$RESOURCES_DIR/.files"
+
 ### Proxy config #
 PROXY_CONF='false' ;
 PROXY_CONF_ALL='false' ;
@@ -62,7 +67,7 @@ fn_dockerInstall(){
     yellowprint "Use it only if you do not know how to perform the manual docker installation described at https://docs.docker.com/get-docker/ as the automatic script in some rare cases and depending on the distros may fail to install docker correctly."
     read -r -p "Do you wish to proceed with the Docker automatic installation Y/N?  " yn
     case $yn in
-        [Yy]* ) curl -fsSL https://get.docker.com -o get-docker.sh; sudo sh get-docker.sh; greenprint "Docker installed"; mainmenu;;
+        [Yy]* ) curl -fsSL https://get.docker.com -o "$SCRIPTS_DIR/get-docker.sh"; sudo sh "$SCRIPTS_DIR/get-docker.sh"; greenprint "Docker installed"; mainmenu;;
         [Nn]* ) blueprint "Docker unattended installation canceled. Make sure you have docker installed before proceeding with the other steps."; read -r -p "Press Enter to go back to mainmenu"; mainmenu;;
         * ) printf "Please answer yes or no.";;
     esac
@@ -252,7 +257,7 @@ fn_setupEnv(){
     CURRENT_APP='BITPING'
     cyanprint "Go to $BITPING_LNK and register"
     read -r -p "When done, press enter to continue"$'\n'
-    fn_setupApp "$CURRENT_APP" "customScript" './bitpingSetup.sh'
+    fn_setupApp "$CURRENT_APP" "customScript" "$SCRIPTS_DIR/bitpingSetup.sh"
 
     # Notifications setup
     clear;
