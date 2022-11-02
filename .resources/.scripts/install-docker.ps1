@@ -17,7 +17,7 @@ function installDoker {
             start-process .\DockerInstaller.exe -Wait -NoNewWindow -ArgumentList "install --accept-license --quiet"
             Copy-Item "$FILES_DIR\docker-default-settings.json" -Destination "$env:AppData\Docker\settings.json"
             Write-Output "Docker Installed successfully"
-            Read-Host "You must reboot the sytem to continue. After reboot re-run the script and proceed with the next steps"
+            Read-Host "You must reboot the sytem to continue. After reboot re-run the script and proceed with the next steps (e.g. .env setup and start stack)"
             Restart-Computer -Confirm 
 }
 
@@ -58,14 +58,10 @@ $ProgressPreference = 'Continue'
             installDoker
         }
         
-            
-        
-    
-        
     } 
     else {
         Write-Output "WSL is disabled."
-        Write-Output "Enabling WSL2 feature now. You will then restart your machine and execute the install docker option again to complete the docker installation"
+        Write-Output "Enabling WSL2 feature now. You will then restart your machine and execute the install docker option of the script again to complete the docker installation"
     
         & cmd /c 'dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart'
         & cmd /c 'dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart'
