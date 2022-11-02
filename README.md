@@ -60,10 +60,15 @@ In any case, within the script menu there are many options dedicated to:
 - Tools to reset the configurations made in case of problems.
 
 If you already have docker installed the only mandatory items you need to use are the env file setup entry and the start app stack entry of the menu.
+
 ### Enjoy your passive income
 
 - Keep in mind if you have several ip, you can run a stack on each ip to increase revenue, but running several time this stack on same ip should not give you more. You can also install some of this apps on your smartphone and use also your mobile network to earn.  
 - While the docker stack is running you can access the web dashboard navigating with your browser to http://localhost:8081/
+
+## How to update
+
+Just download the updated code, overwrite the old files and run the setup again.
 
 ## Need help or Found an issue/bug ? 
 - For Info, Help and new features requesto use the [Discussion tab](https://github.com/MRColorR/money4band/discussions)
