@@ -80,6 +80,7 @@ Just download the updated code, overwrite the old files and run the setup again.
 
 If you don't want to use the automatic setup scripts you can follow the alternative manual setup whose steps are reported in the wiki [Manual Setup page](https://github.com/MRColorR/money4band/wiki/Manual-Setup).
 
+---
 
 ### Disclaimer
 Always check that the laws of your country and the contractual terms of your internet plan allow the use of such applications. In any case, I do not take any responsibility for any consequences deriving from the use of such apps. This stack proposed by me simply brings them together, allows easy configuration even for the less experienced and updates the apps' images automatically. 
