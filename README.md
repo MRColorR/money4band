@@ -61,7 +61,7 @@ In any case, within the script menu there are many options dedicated to:
 
 If you already have docker installed the only mandatory items you need to use are the env file setup entry and the start app stack entry of the menu.
 
-### Enjoy your passive income
+### 4) Enjoy your passive income
 
 - Keep in mind if you have several ip, you can run a stack on each ip to increase revenue, but running several time this stack on same ip should not give you more. You can also install some of this apps on your smartphone and use also your mobile network to earn.  
 - While the docker stack is running you can access the web dashboard navigating with your browser to http://localhost:8081/
@@ -78,38 +78,8 @@ Just download the updated code, overwrite the old files and run the setup again.
 
 ## (Alternative) Manual setup
 
-If you don't want to use the automatic setup scripts you can follow these alternative steps to do the manual setup.
+If you don't want to use the automatic setup scripts you can follow the alternative manual setup whose steps are reported in the wiki [Manual Setup page](https://github.com/MRColorR/money4band/wiki/Manual-Setup).
 
-### 3) Edit the .env file, adding where required the data to access the accounts you just created. You can find more detailed instructions directly inside the .env file
-- Device_name : set any name you like
-- Earnapp_Device_uuid: it must start with sdk-node- followed by an md5sum of a string of your choice
-- HoneyGain _email and _password: just insert your account credentials
-- Iproyalpawns _email and _password: just insert your account credentials
-- Peer2profit_email: just enter your account email
-- Packetstream_cid: enter the cid of your account. It's like a short token and you can find it in your packetstream's dashboard
-- traffmonetizer_token: enter your token you can copy it from your traffmonetizer's dashboard
-- (Optional) shoutrrr_url: you can choose to receive notifications about the updates performed on all the containers when a new version is pushed out from the app's developers. You can ignore this variable if you want to disable the notifications: to do so just comment the watchtower's notification parameters at the end of the docker-compose.yml file.
-
-### 3.a) (Optional) Edit the docker-compose.yml file
-- (Optional) If you don't want to use an app just comment or delete the corresponding section in docker-compose.yml.
-- (Optional) Some apps have multiple configurations in the compose file to choose from (like the usage of docker volumes instead of volumes binding to folder). Comment on the ones you don't want to use. Obviously all this is optional since the default configuration is already sufficient to make everything work without the need for modifications.
-### 4) First Startup
-- 4.a) (For BitPing) This step is not needed if bitping is not used. Bitping needs to be started at least once in interactive mode for the first connection: before running the entire stack with all the apps. You can configure the bitping data opening a terminal and using the following command in the folder where you have already put the .env and docker-compose.yml files: 
-```bash
-sudo docker run --rm -it -v ${PWD}/.data/.bitping/:/root/.bitping bitping/bitping-node:latest
-```
-This will create a subfolder containing all the necessary data, then enter your credential when prompted. 
-Once this is done, use CTRL+C to stop the container and then proceed to the standard startup as shown in 4.b).
-- 4.b) Start all the apps just opening a terminal in the same folder where the .env and docker-compose.yml files are placed and using the command below:
-```bash
-sudo docker compose up -d
-```
-After a few minutes you should be able to see the device in the dashboards of the various apps as active, connected and earning.
-- 4.c) (For EarnApp) This step is not needed if EarnApp is not used. For EarnApp after the first start-up phase it is necessary to claim your device in your account. To do so just go to the earnapp dashboard and then register it by copying the node_UUID previously saved in the .env file in this URL prototype (https://earnapp.com/r/<your_device_uuid>) and then copy the resulting real URL into your web browser. Your url should look like this: https://earnapp.com/r/sdk-node-dtrbf9f1437a4287947fd58b5ka4d7. Navigating to your url should register your node in your dashboard. 
-
-### Enjoy your passive income
-- Keep in mind if you have several ip, you can run a stack on each ip to increase revenue, but running several time this stack on same ip should not give you more. You can also install some of this apps on your smartphone and use also your mobile network to earn.  
-- While the docker stack is running you can acess the web dashboard navigating with your browser to http://localhost:8081/
 
 ### Disclaimer
 Always check that the laws of your country and the contractual terms of your internet plan allow the use of such applications. In any case, I do not take any responsibility for any consequences deriving from the use of such apps. This stack proposed by me simply brings them together, allows easy configuration even for the less experienced and updates the apps' images automatically. 
