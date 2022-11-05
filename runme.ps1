@@ -152,7 +152,8 @@ function fn_setupApp() {
         Write-Output "You can find it going in your dashboard https://app.traffmonetizer.com/dashboard then -> Look for Your application token -> just insert it here (you can also copy and then paste it)"
         $APP_TOKEN = Read-Host 
         (Get-Content .\.env).replace("your${CURRENT_APP}Token", "$APP_TOKEN") | Set-Content .\.env
-    }elseif ("$TYPE" -eq "customScript") {
+    }
+    elseif ("$TYPE" -eq "customScript") {
         Start-Process PowerShell -Verb RunAs "-noprofile -executionpolicy bypass -Command `"cd '$pwd'; & '$SUBTYPE';`"" -wait
     }
     
@@ -178,46 +179,46 @@ function fn_setupApp() {
 }
 
 function fn_setupProxy() {
-        $yn = Read-Host -p "Do you wish to use a proxy? Y/N? Note that if you want to run multiple instances of the same app you will need to configure different env files each in different project folders (copy the project to multiple different folders and configure them using different proxies)"
+    $yn = Read-Host -p "Do you wish to use a proxy? Y/N? Note that if you want to run multiple instances of the same app you will need to configure different env files each in different project folders (copy the project to multiple different folders and configure them using different proxies)"
+    if ($yn -eq 'Y' -or $yn -eq 'y' -or $yn -eq 'Yes' -or $yn -eq 'yes' ) {
+        Clear-Host
+        Write-Output "Proxy setup started.";
+        $yn = Read-Host -p "Do you wish to use the same proxy for all the apps in this stack? Y/N?"
         if ($yn -eq 'Y' -or $yn -eq 'y' -or $yn -eq 'Yes' -or $yn -eq 'yes' ) {
+            Write-Output "Insert the designed HTTP proxy to use. Eg: http://proxyUsername:proxyPassword@proxy_url:proxy_port or just http://proxy_url:proxy_port if auth is not needed, also socks5h is supported.";
+            $script:STACK_HTTP_PROXY = Read-Host 
+            Write-Output "Ok, $script:STACK_HTTP_PROXY will be used as proxy for all apps in this stack"
+            Read-Host -p "Press enter to continue"
             Clear-Host
-            Write-Output "Proxy setup started.";
-            $yn = Read-Host -p "Do you wish to use the same proxy for all the apps in this stack? Y/N?"
-            if ($yn -eq 'Y' -or $yn -eq 'y' -or $yn -eq 'Yes' -or $yn -eq 'yes' ) {
-                Write-Output "Insert the designed HTTP proxy to use. Eg: http://proxyUsername:proxyPassword@proxy_url:proxy_port or just http://proxy_url:proxy_port if auth is not needed, also socks5h is supported.";
-                $script:STACK_HTTP_PROXY = Read-Host 
-                Write-Output "Ok, $script:STACK_HTTP_PROXY will be used as proxy for all apps in this stack"
-                Read-Host -p "Press enter to continue"
-                Clear-Host
-                Write-Output "Insert the designed HTTPS proxy to use (you can also use the same of the HTTP proxy), also socks5h is supported."
-                $script:STACK_HTTPS_PROXY = Read-Host
-                Write-Output "Ok, $script:STACK_HTTPS_PROXY will be used as secure proxy for all apps in this stack"
-                Read-Host -p "Press enter to continue"
-                $script:PROXY_CONF_ALL = $true
-                $script:PROXY_CONF = $true
-            }
-            elseif ($yn -eq 'N' -or $yn -eq 'n' -or $yn -eq 'No' -or $yn -eq 'no') {
-                $script:PROXY_CONF_ALL = $false
-                $script:PROXY_CONF = $true
-                Write-Output "Ok, later you will be asked for a proxy for each application"
-                Read-Host -p "Press enter to continue"
-            }
-            else {
-                Clear-Host
-                Write-Output "Please answer yes or no."
-                fn_setupProxy
-            }
-            # An unique name for the stack is chosen so that even if multiple stacks are started with different proxies the names do not conflict
-            (Get-Content .\.env).replace("COMPOSE_PROJECT_NAME=Money4Band", "COMPOSE_PROJECT_NAME=Money4Band_$(Get-Random)") | Set-Content .\.env
+            Write-Output "Insert the designed HTTPS proxy to use (you can also use the same of the HTTP proxy), also socks5h is supported."
+            $script:STACK_HTTPS_PROXY = Read-Host
+            Write-Output "Ok, $script:STACK_HTTPS_PROXY will be used as secure proxy for all apps in this stack"
+            Read-Host -p "Press enter to continue"
+            $script:PROXY_CONF_ALL = $true
+            $script:PROXY_CONF = $true
         }
         elseif ($yn -eq 'N' -or $yn -eq 'n' -or $yn -eq 'No' -or $yn -eq 'no') {
-            Write-Output "Ok, no proxy added to configuration."
+            $script:PROXY_CONF_ALL = $false
+            $script:PROXY_CONF = $true
+            Write-Output "Ok, later you will be asked for a proxy for each application"
+            Read-Host -p "Press enter to continue"
         }
         else {
             Clear-Host
             Write-Output "Please answer yes or no."
             fn_setupProxy
         }
+        # An unique name for the stack is chosen so that even if multiple stacks are started with different proxies the names do not conflict
+            (Get-Content .\.env).replace("COMPOSE_PROJECT_NAME=Money4Band", "COMPOSE_PROJECT_NAME=Money4Band_$(Get-Random)") | Set-Content .\.env
+    }
+    elseif ($yn -eq 'N' -or $yn -eq 'n' -or $yn -eq 'No' -or $yn -eq 'no') {
+        Write-Output "Ok, no proxy added to configuration."
+    }
+    else {
+        Clear-Host
+        Write-Output "Please answer yes or no."
+        fn_setupProxy
+    }
     
 }
 
@@ -226,6 +227,11 @@ function fn_setupEnv {
     $yn = Read-Host -p "Do you wish to proceed with the .env file guided setup Y/N? (This will also adapt the docker-compose.yml file accordingly)"
     if ($yn -eq 'Y' -or $yn -eq 'y' -or $yn -eq 'Yes' -or $yn -eq 'yes' ) {
         Clear-Host
+        if ( -Not (Select-String -Path .\.env -Pattern "DEVICE_NAME=yourDeviceName" -Quiet) ) {
+            Write-Output "The current .env file appears to have already been modified. A fresh version will be downloaded and used."
+            Invoke-WebRequest -OutFile '.env' $ENV_SRC;
+            Invoke-WebRequest -OutFile 'docker-compose.yml' $DKCOM_SRC;
+        }
         Write-Output "Beginnning env file guided setup"
         $CURRENT_APP = '';
         $DEVICE_NAME = Read-Host -prompt "PLEASE ENTER A NAME FOR YOUR DEVICE"
@@ -341,7 +347,7 @@ function fn_startStack {
 }
 
 function fn_resetEnv {
-    Write-Output "Now a fresh env file will be downloaded and will need to be reconfigured to be used again"
+    Write-Output "Now a fresh env file will be downloaded and will need to be configured to be used again"
     $yn = Read-Host -prompt "Do you wish to proceed Y/N?  "
     if ($yn -eq 'Y' -or $yn -eq 'y' -or $yn -eq 'Yes' -or $yn -eq 'yes' ) {
         Invoke-WebRequest -OutFile '.env' $ENV_SRC; Write-Output ".env file resetted, remember to reconfigure it";
