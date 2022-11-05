@@ -26,7 +26,7 @@ sudo systemctl start docker.binfmt.service
 ## How to run (guided setup)
 ### 1) Get the latest version
 Using your preferred method get the latest version of this project and unzip it.
-For example you can click the [Releases](https://github.com/MRColorR/money4band/releases) tab at the top to download the latest version.
+For example you can go to the [Releases](https://github.com/MRColorR/money4band/releases) to download the latest version.
 ### 2) Register an account on the app's sites using the following links
 Using the following referral links, register on the apps' sites. You should also receive a welcome bonus and at the same time you will effortlessly show that you appreciate my work (thank you so much).
 - Go to [Earnapp](https://earnapp.com/i/3zulx7k)
