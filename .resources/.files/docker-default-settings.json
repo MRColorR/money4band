@@ -6,7 +6,7 @@
   "autoDownloadUpdates": true,
   "autoStart": true,
   "containerTerminal": "integrated",
-  "cpus": 3,
+  "cpus": 4,
   "credentialHelper": "docker-credential-wincred.exe",
   "customWslDistroDir": "",
   "dataFolder": "C:\\ProgramData\\DockerDesktop\\vm-data",
