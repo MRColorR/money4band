@@ -191,6 +191,11 @@ fn_setupEnv(){
         [Nn]* ) blueprint ".env file setup canceled. Make sure you have a valid .env file before proceeding with the stack startup."; read -r -p "Press Enter to go back to mainmenu"; mainmenu;;
         * ) printf "Please answer yes or no.";;
     esac
+    if ! grep -q "DEVICE_NAME=yourDeviceName" .env  ; then 
+        echo "The current .env file appears to have already been modified. A fresh version will be downloaded and used.";
+        curl -fsSL $ENV_SRC -o ".env"
+        curl -fsSL $DKCOM_SRC -o "docker-compose.yml"
+    fi
     printf "beginnning env file guided setup"$'\n'
     CURRENT_APP='';
     yellowprint "PLEASE ENTER A NAME FOR YOUR DEVICE:"
@@ -285,10 +290,10 @@ fn_startStack(){
 }
 
 fn_resetEnv(){
-    redprint "Now a fresh env file will be downloaded and will need to be reconfigured to be used again"
+    redprint "Now a fresh env file will be downloaded and will need to be configured to be used again"
     read -r -p "Do you wish to proceed Y/N?  " yn
     case $yn in
-        [Yy]* ) curl -LJO $ENV_SRC; greenprint ".env file resetted, remember to reconfigure it";;
+        [Yy]* ) curl -fsSL $ENV_SRC -o ".env"; greenprint ".env file resetted, remember to reconfigure it";;
         [Nn]* ) blueprint ".env file reset canceled. The file is left as it is"; mainmenu;;
         * ) printf "Please answer yes or no.";;
     esac
@@ -298,7 +303,7 @@ fn_resetDockerCompose(){
     redprint "Now a fresh docker-compose.yml file will be downloaded"
     read -r -p "Do you wish to proceed Y/N?  " yn
     case $yn in
-        [Yy]* ) curl -LJO $DKCOM_SRC; greenprint "docker-compose.yml file resetted, remember to reconfigure it if needed";;
+        [Yy]* ) curl -fsSL $DKCOM_SRC -o "docker-compose.yml"; greenprint "docker-compose.yml file resetted, remember to reconfigure it if needed";;
         [Nn]* ) blueprint "docker-compose.yml file reset canceled. The file is left as it is"; mainmenu;;
         * ) printf "Please answer yes or no.";;
     esac
