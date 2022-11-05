@@ -289,6 +289,17 @@ fn_startStack(){
     esac
 }
 
+fn_stopStack(){
+    yellowprint "This menu item will stop all the apps and delete the docker stack previously created using the configured .env file and the docker-compose.yml file."
+    yellowprint "You don't need to use this command to temporarily pause apps or to update the stack. Use it only in case of uninstallation!"
+    read -r -p "Do you wish to proceed Y/N?  " yn
+    case $yn in
+        [Yy]* ) sudo docker compose down; greenprint "All Apps stopped and stack deleted."; read -r -p "Now press enter to go back to the menu"; mainmenu;;
+        [Nn]* ) blueprint "Docker stack removal canceled.";read -r -p "Press Enter to go back to mainmenu"; mainmenu;;
+        * ) printf "Please answer yes or no.";;
+    esac
+}
+
 fn_resetEnv(){
     redprint "Now a fresh env file will be downloaded and will need to be configured to be used again"
     read -r -p "Do you wish to proceed Y/N?  " yn
@@ -314,7 +325,7 @@ mainmenu() {
     clear;
     PS3="Select an option and press Enter "
 
-    items=("Show apps' links to register or go to dashboard" "Install Docker" "Setup .env file" "Start apps stack" "Reset .env File" "Reset docker-compose.yml file")
+    items=("Show apps' links to register or go to dashboard" "Install Docker" "Setup .env file" "Start apps stack" "Stop apps stack" "Reset .env File" "Reset docker-compose.yml file")
 
     select item in "${items[@]}" Quit
     do
@@ -323,8 +334,9 @@ mainmenu() {
             2) clear; fn_dockerInstall; break;;
             3) clear; fn_setupEnv; break;;
             4) clear; fn_startStack; break;;
-            5) clear; fn_resetEnv; break;;
-            6) clear; fn_resetDockerCompose; break;;
+            5) clear; fn_stopStack; break;;
+            6) clear; fn_resetEnv; break;;
+            7) clear; fn_resetDockerCompose; break;;
             $((${#items[@]}+1))) fn_bye;;
             *) clear; fn_unknown; break;;
         esac

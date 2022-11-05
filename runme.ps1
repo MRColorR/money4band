@@ -331,6 +331,7 @@ function fn_setupEnv {
 }
 
 function fn_startStack {
+    Clear-Host
     Write-Output "This menu item will launch all the apps using the configured .env file and the docker-compose.yml file (Docker must be already installed and running)"
     $yn = Read-Host -prompt "Do you wish to proceed Y/N?"
     if ($yn -eq 'Y' -or $yn -eq 'y' -or $yn -eq 'Yes' -or $yn -eq 'yes' ) {
@@ -344,6 +345,25 @@ function fn_startStack {
         Read-Host -prompt "Press enter to go back to the menu";
         mainmenu;
     }
+}
+
+function fn_stopStack() {
+    Clear-Host
+    Write-Output "This menu item will stop all the apps and delete the docker stack previously created using the configured .env file and the docker-compose.yml file."
+    Write-Output "You don't need to use this command to temporarily pause apps or to update the stack. Use it only in case of uninstallation!"
+    $yn = Read-Host -prompt "Do you wish to proceed Y/N?"
+    if ($yn -eq 'Y' -or $yn -eq 'y' -or $yn -eq 'Yes' -or $yn -eq 'yes' ) {
+        docker compose down
+        Write-Output "All Apps stopped and stack deleted.";
+        Read-Host "Now press enter to go back to the menu";
+        mainmenu;
+    }
+    else {
+        Write-Output "Docker stack removal canceled.";
+        Read-Host -prompt "Press Enter to go back to mainmenu";
+        mainmenu; ;
+    }
+
 }
 
 function fn_resetEnv {
@@ -384,9 +404,10 @@ function mainmenu {
     Write-Output "2) Install Docker"
     Write-Output "3) Setup .env file"
     Write-Output "4) Start apps stack"
-    Write-Output "5) Reset .env File"
-    Write-Output "6) Reset docker-compose.yml file"
-    Write-Output "7) Exit"
+    Write-Output "5) Stop apps stack"
+    Write-Output "6) Reset .env File"
+    Write-Output "7) Reset docker-compose.yml file"
+    Write-Output "8) Exit"
     Do {
         $Select = Read-Host
         Switch ($Select) {
@@ -403,12 +424,15 @@ function mainmenu {
                 fn_startStack
             }
             5 {
-                fn_resetEnv
+                fn_stopStack
             }
             6 {
-                fn_resetDockerCompose
+                fn_resetEnv
             }
             7 {
+                fn_resetDockerCompose
+            }
+            8 {
                 fn_bye
             }
             DEFAULT {
@@ -416,7 +440,7 @@ function mainmenu {
             }
         }
     }
-    While ($Select -ne 6)
+    While ($Select -ne 8)
 }
 
 ### Startup ##
