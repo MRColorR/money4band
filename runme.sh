@@ -176,7 +176,7 @@ fn_setupProxy(){
                     * ) printf "Please answer yes or no.";;
                 esac
                 # An unique name for the stack is chosen so that even if multiple stacks are started with different proxies the names do not conflict
-                sed -i "s^COMPOSE_PROJECT_NAME= Money4Band^COMPOSE_PROJECT_NAME= Money4Band_$RANDOM^" .env ;;
+                sed -i "s^COMPOSE_PROJECT_NAME=Money4Band^COMPOSE_PROJECT_NAME=Money4Band_$RANDOM^" .env ;;
             [Nn]* ) blueprint "Ok, no proxy added to configuration.";;
             * ) printf "Please answer yes or no.";;
         esac 

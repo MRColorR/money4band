@@ -208,7 +208,7 @@ function fn_setupProxy() {
                 fn_setupProxy
             }
             # An unique name for the stack is chosen so that even if multiple stacks are started with different proxies the names do not conflict
-            (Get-Content .\.env).replace("COMPOSE_PROJECT_NAME= Money4Band", "COMPOSE_PROJECT_NAME= Money4Band_$(Get-Random)") | Set-Content .\.env
+            (Get-Content .\.env).replace("COMPOSE_PROJECT_NAME=Money4Band", "COMPOSE_PROJECT_NAME=Money4Band_$(Get-Random)") | Set-Content .\.env
         }
         elseif ($yn -eq 'N' -or $yn -eq 'n' -or $yn -eq 'No' -or $yn -eq 'no') {
             Write-Output "Ok, no proxy added to configuration."
