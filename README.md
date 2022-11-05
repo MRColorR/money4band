@@ -68,7 +68,7 @@ If you already have docker installed the only mandatory items you need to use ar
 
 ## How to update
 
-Just download the updated code, overwrite the old files and run the setup again.
+Just download the new release, unzip it and copy the new files in the old folder overwriting the old files. Then using the runme scripts menu run the .env setup and start stack again.
 
 ## Need help or Found an issue/bug ? 
 - For Info, Help and new features requesto use the [Discussion tab](https://github.com/MRColorR/money4band/discussions)
