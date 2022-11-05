@@ -56,7 +56,7 @@ In any case, within the script menu there are many options dedicated to:
 - Register for the various apps,
 - Automatically install docker for the less experienced who cannot perform the recommended manual installation,
 - Setup of the .env file,
-- Application stack start helper,
+- Application stack start/stop helper,
 - Tools to reset the configurations made in case of problems.
 
 If you already have docker installed the only mandatory items you need to use are the env file setup entry and the start app stack entry of the menu.
@@ -68,7 +68,8 @@ If you already have docker installed the only mandatory items you need to use ar
 
 ## How to update
 
-Just download the new release, unzip it and copy the new files in the old folder overwriting the old files. Then using the runme scripts menu run the .env setup and start stack again.
+* Download the new release, unzip it and copy the new files in the old folder overwriting the old files.
+* Then using the runme scripts menu run the .env setup and start stack again.
 
 ## Need help or Found an issue/bug ? 
 - For Info, Help and new features requesto use the [Discussion tab](https://github.com/MRColorR/money4band/discussions)
