@@ -27,7 +27,7 @@ sudo systemctl start docker.binfmt.service
 ### 1) Get the latest version
 Using your preferred method get the latest version of this project and unzip it.
 For example you can go to the [Releases](https://github.com/MRColorR/money4band/releases) to download the latest version.
-### 2) Register an account on the app's sites using the following links
+### 2) Register an account on the app's sites using the following links. If you're using login with google remember to set also a password for your account!
 Using the following referral links, register on the apps' sites. You should also receive a welcome bonus and at the same time you will effortlessly show that you appreciate my work (thank you so much).
 - Go to [Earnapp](https://earnapp.com/i/3zulx7k)
 - Go to [HoneyGain](https://r.honeygain.me/MINDL15721)
@@ -56,7 +56,7 @@ In any case, within the script menu there are many options dedicated to:
 - Register for the various apps,
 - Automatically install docker for the less experienced who cannot perform the recommended manual installation,
 - Setup of the .env file,
-- Application stack start helper,
+- Application stack start/stop helper,
 - Tools to reset the configurations made in case of problems.
 
 If you already have docker installed the only mandatory items you need to use are the env file setup entry and the start app stack entry of the menu.
@@ -68,7 +68,8 @@ If you already have docker installed the only mandatory items you need to use ar
 
 ## How to update
 
-Just download the updated code, overwrite the old files and run the setup again.
+* Download the new release, unzip it and copy the new files in the old folder overwriting the old files.
+* Then using the runme scripts menu run the .env setup and start stack again.
 
 ## Need help or Found an issue/bug ? 
 - For Info, Help and new features requesto use the [Discussion tab](https://github.com/MRColorR/money4band/discussions)
