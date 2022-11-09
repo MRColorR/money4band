@@ -119,6 +119,7 @@ function fn_setupApp() {
     param ($CURRENT_APP, $TYPE , $SUBTYPE
     )
     if ( "$TYPE" -eq "email" ) {
+        Write-Output "Note: If you are using login with google, remember to set also a password for your app account!"
         Write-Output "Enter your $CURRENT_APP Email"
         $APP_EMAIL = Read-Host 
         (Get-Content .\.env).replace("your${CURRENT_APP}Mail", "$APP_EMAIL") | Set-Content .\.env

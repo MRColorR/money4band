@@ -96,6 +96,7 @@ fn_setupNotifications(){
 
 fn_setupApp(){
     if [ "$2" == "email" ] ; then 
+        printf "Note: If you are using login with google, remember to set also a password for your app account!"
         printf "Enter your %s Email"$'\n' "$1"
         read -r APP_EMAIL
         sed -i "s/your$1Mail/$APP_EMAIL/" .env
