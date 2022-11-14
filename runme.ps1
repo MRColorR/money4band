@@ -18,7 +18,7 @@ $ENV_SRC = 'https://github.com/MRColorR/money4band/raw/main/.env'
 $DKCOM_SRC = 'https://github.com/MRColorR/money4band/raw/main/docker-compose.yml'
 
 ### Docker installer script for windows source link ##
-$DKINST_WIN_SRC = 'https://github.com/MRColorR/money4band/raw/main/install-docker.ps1'
+$DKINST_WIN_SRC = 'https://github.com/MRColorR/money4band/raw/main/.resources/.scripts/install-docker.ps1'
 
 ### Resources, Scripts and Files folders
 $RESOURCES_DIR = "$pwd\.resources"
