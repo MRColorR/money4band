@@ -6,23 +6,12 @@ A multiplatform self updating, lightweight docker stack that runs many passive i
 This Docker Stack should work on anything that may have docker installed. In particular, it has been tested on: Windows 11 and Linux Ubuntu 64 Bit on x86_64 / amd64 PC, Linux Raspbian OS 64 bit on arm64 Raspberry Pi3 and Pi4.
 
 
-
-
 ### Prerequisites
 - A 64-bit operating system is strongly recommended.
 - Virtualization function in the BIOS must be active to use Docker.
 - (Optional) To run on Windows, Virtualization platform and Windows Subsystem for Linux must be active as this two functions are required by Docker. If they're not already enabled, please enable them or use the built-in script to turn them on and install Docker.
 - Docker must already be installed and able to run on startup. If it is not already installed you can follow the instructions for your platform at https://docs.docker.com/get-docker/ or use the built-in script to install it.
-- (Optional) On arm devices (like Raspberry) to support also non-arm native docker images it is recommended to install an emulation layer with 
-```bash
-sudo docker run --privileged --rm tonistiigi/binfmt --install all
-```
-You can also make a service to run the emulation layer at system startup (this should be needed only on arm devices): To do so open a terminal in the folder containing the docker.binfmt.service file, then copy that file in /etc/systemmd/system and finally enable its service using the following commands:
-```bash
-sudo cp ${PWD}/docker.binfmt.service /etc/systemd/system
-sudo systemctl enable docker.binfmt.service
-sudo systemctl start docker.binfmt.service
-```
+- (Optional) On arm devices (such as Raspberry) to support non-arm native docker images it is strongly recommended to install an emulation layer and set it as a service to start automatically: to do this, follow the steps explained in the [Wiki](https://github.com/MRColorR/money4band/wiki) prerequisites page.
 ## How to run (guided setup)
 ### 1) Get the latest version
 Using your preferred method get the latest version of this project and unzip it.
