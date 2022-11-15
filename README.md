@@ -46,16 +46,15 @@ sudo chmod +x runme.sh
 bash ./runme.sh
 ```
 
-
 * (On Windows) Open a Powershell (as Administrator) in the project folder or navigate to it then use the following commands to set the execution policy and run the guided script to configure the .env file and then start the stack:
 ```pwsh
 set-executionpolicy -scope CurrentUser -executionPolicy Bypass -Force
 .\runme.ps1
 ```
 
-In any case, within the script menu there are many options dedicated to:
+Within the script menu there are many options dedicated to:
 - Register for the various apps,
-- Automatically install docker for the less experienced who cannot perform the recommended manual installation,
+- Automatically install docker for the less experienced who cannot perform the manual installation,
 - Setup of the .env file,
 - Application stack start/stop helper,
 - Tools to reset the configurations made in case of problems.
@@ -67,20 +66,15 @@ If you already have docker installed the only mandatory items you need to use ar
 - Keep in mind if you have several ip, you can run a stack on each ip to increase revenue, but running several time this stack on same ip should not give you more. You can also install some of this apps on your smartphone and use also your mobile network to earn.  
 - While the docker stack is running you can access the web dashboard navigating with your browser to http://localhost:8081/
 
-## How to update
+## Wiki (F.A.Q., Alternatve Manual Setup, How To Update,...)
 
-* Download the new release, unzip it and copy the new files in the old folder overwriting the old files.
-* Then using the runme scripts menu run the .env setup and start stack again.
+* Go to the [Wiki](https://github.com/MRColorR/money4band/wiki) to find F.A.Q., Alternatve Manual Setup, How To Update, other useful guides and more details.
+
+
 
 ## Need help or Found an issue/bug ? 
 - For Info, Help and new features requesto use the [Discussion tab](https://github.com/MRColorR/money4band/discussions)
 - For issues and bug report use the [Issue tab](https://github.com/MRColorR/money4band/issues)
-
----
-
-## (Alternative) Manual setup
-
-If you don't want to use the automatic setup scripts you can follow the alternative manual setup whose steps are reported in the wiki [Manual Setup page](https://github.com/MRColorR/money4band/wiki/Manual-Setup).
 
 ---
 
