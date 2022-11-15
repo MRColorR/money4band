@@ -11,7 +11,7 @@ This Docker Stack should work on anything that may have docker installed. In par
 - Virtualization function in the BIOS must be active to use Docker.
 - (Optional) To run on Windows, Virtualization platform and Windows Subsystem for Linux must be active as this two functions are required by Docker. If they're not already enabled, please enable them or use the built-in script to turn them on and install Docker.
 - Docker must already be installed and able to run on startup. If it is not already installed you can follow the instructions for your platform at https://docs.docker.com/get-docker/ or use the built-in script to install it.
-- (Optional) On arm devices (such as Raspberry) to support non-arm native docker images it is strongly recommended to install an emulation layer and set it as a service to start automatically: to do this, follow the steps explained in the [Wiki](https://github.com/MRColorR/money4band/wiki) prerequisites page.
+- (Optional) On arm devices (such as Raspberry) to support non-arm native docker images it is strongly recommended to install an emulation layer and set it as a service to start automatically: to do this, you can follow the steps explained in the [Wiki](https://github.com/MRColorR/money4band/wiki) prerequisites page.
 ## How to run (guided setup)
 ### 1) Get the latest version
 Using your preferred method get the latest version of this project and unzip it.
