@@ -63,7 +63,7 @@ function fn_dockerInstall {
         Write-Output "1) Install Docker for Linux"
         Write-Output "2) Install Docker for Windows"
         $yn = Read-Host
-        Switch ($Select) {
+        Switch ($yn) {
             1 {
                 Write-Output "Starting Docker for linux auto installation script"
                 Invoke-WebRequest https://get.docker.com -o "$SCRIPTS_DIR/get-docker.sh"  ;
