@@ -1,9 +1,13 @@
 # Money4Band
 <img src="./.resources/.assets/M4B_logo_small.png?raw=true" width="96"> - Leave a star ⭐ if you like this project 🙂 thank you.
 
-A multiplatform self updating, lightweight docker stack that runs many passive income applications like Honeygain, EarnApp, IPRoyal Pawns, PacketStream, Peer2Profit, Bitping etc. that pay you in USD or in crypto to share your unused internet bandwidth. This docker stack makes it easier to set up and use those apps and it also includes an auto updater and web dasboard. You can also choose to use only some of the offered applications if that's what you want. All of them use a very small percentage of your unused internet bandwidth to perform searches such as Price Comparison, Brand Protection, Web Scraping, Ad Verification, QA Testing.  According to the creators of the various apps used here, all of these activities are safe and carried out only on behalf of verified customers who have passed their security standards such as companies and brands that have business relationships with them; So their use should be safe and risk-free.
+Money4Band Leverages unused internet bandwidth allowing you to make money with something you have and would otherwise be wasted. It use containerized version of apps like EarnApp, Honeygain, IPRoyal Pawns, PacketStream, Peer2Profit, Repocket, Bitping and so on but it's safer than installing and using these native apps on your host system. More info and FAQ in the [Wiki](https://github.com/MRColorR/money4band/wiki).
 
-This Docker Stack should work on anything that may have docker installed. In particular, it has been tested on: Windows 11 and Linux Ubuntu 64 Bit on x86_64 / amd64 PC, Linux Raspbian OS 64 bit on arm64 Raspberry Pi3 and Pi4.
+- This is a multiplatform self updating, lightweight docker stack that runs many passive income applications that pay you in USD or in crypto to share your unused internet bandwidth. This docker stack makes it easier to set up and use those apps and it also includes an auto updater, notification system and web dasboard.
+
+- This is a set and forget project, just follow the automatic setup steps and start earning something doing nothing.
+
+This Docker Stack should work on anything that may have docker installed [Windows, Linux, Mac, Raspberry and so on]. In particular, it has been tested on: Windows 11 and Linux Ubuntu 64 Bit on x86_64 / amd64 PC, Linux Raspbian OS 64 bit on arm64 Raspberry Pi3 and Pi4.
 
 
 ### Prerequisites
