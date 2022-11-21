@@ -6,137 +6,133 @@
 
 
 services:
+# EARNAPP CONTAINER
+  earnapp:
+    container_name: earnapp
+    image: fazalfarhan01/earnapp:lite
+    environment:
+      - EARNAPP_UUID=$EARNAPP_DEVICE_UUID
+      #- EARNAPP_HTTP_PROXY: $EARNAPP_HTTP_PROXY
+      #- EARNAPP_HTTPS_PROXY: $EARNAPP_HTTPS_PROXY
+      #- EARNAPP_NO_PROXY: 'localhost, 127.0.0.0/8'
+    volumes:
+      - earnapp-data:/etc/earnapp
+    restart: always
 
-## EARNAPP CONTAINER
-    earnapp:
-        container_name: earnapp
-        image: fazalfarhan01/earnapp:lite
-        environment:
-            - EARNAPP_UUID=$EARNAPP_DEVICE_UUID
-            #- EARNAPP_HTTP_PROXY: $EARNAPP_HTTP_PROXY
-            #- EARNAPP_HTTPS_PROXY: $EARNAPP_HTTPS_PROXY
-            #- EARNAPP_NO_PROXY: 'localhost, 127.0.0.0/8'
-        volumes:
-            - earnapp-data:/etc/earnapp
-        restart: always
+# HONEYGAIN CONTAINER
+  honeygain:
+    container_name: honeygain
+    image: honeygain/honeygain
+    environment:
+      - HONEYGAIN_DUMMY=''
+      #- HONEYGAIN_HTTP_PROXY: $HONEYGAIN_HTTP_PROXY
+      #- HONEYGAIN_HTTPS_PROXY: $HONEYGAIN_HTTPS_PROXY
+      #- HONEYGAIN_NO_PROXY: 'localhost, 127.0.0.0/8'
+    command: -tou-accept -email $HONEYGAIN_EMAIL -pass $HONEYGAIN_PASSWD -device $DEVICE_NAME
+    restart: always
 
-## HONEYGAIN CONTAINER
-    honeygain:
-        container_name: honeygain
-        image: honeygain/honeygain
-        environment:
-            - HONEYGAIN_DUMMY=''
-            #- HONEYGAIN_HTTP_PROXY: $HONEYGAIN_HTTP_PROXY
-            #- HONEYGAIN_HTTPS_PROXY: $HONEYGAIN_HTTPS_PROXY
-            #- HONEYGAIN_NO_PROXY: 'localhost, 127.0.0.0/8'
-        command: -tou-accept -email $HONEYGAIN_EMAIL -pass $HONEYGAIN_PASSWD -device $DEVICE_NAME
-        restart: always
+# IPROYAL CONTAINER
+  iproyal:
+    container_name: iproyal
+    image: iproyal/pawns-cli:latest
+    environment:
+      - IPROYALPAWNS_DUMMY=''
+      #- IPROYALPAWNS_HTTP_PROXY: $IPROYALPAWNS_HTTP_PROXY
+      #- IPROYALPAWNS_HTTPS_PROXY: $IPROYALPAWNS_HTTPS_PROXY
+      #- IPROYALPAWNS_NO_PROXY: 'localhost, 127.0.0.0/8'
+    command: -accept-tos -email=$IPROYALPAWNS_EMAIL -password=$IPROYALPAWNS_PASSWD -device-name=$DEVICE_NAME
+    restart: always
 
-## IPROYAL CONTAINER
-    iproyal:
-        container_name: iproyal
-        image: iproyal/pawns-cli:latest
-        environment:
-            - IPROYALPAWNS_DUMMY=''
-            #- IPROYALPAWNS_HTTP_PROXY: $IPROYALPAWNS_HTTP_PROXY
-            #- IPROYALPAWNS_HTTPS_PROXY: $IPROYALPAWNS_HTTPS_PROXY
-            #- IPROYALPAWNS_NO_PROXY: 'localhost, 127.0.0.0/8'
-        command: -accept-tos -email=$IPROYALPAWNS_EMAIL -password=$IPROYALPAWNS_PASSWD -device-name=$DEVICE_NAME
-        restart: always
+# PEER2PROFIT CONTAINER
+  Peer2profit:
+    container_name: peer2profit
+    image: peer2profit/peer2profit_linux:latest
+    environment:
+      - P2P_EMAIL=$PEER2PROFIT_EMAIL
+      #- PEER2PROFIT_HTTP_PROXY: $PEER2PROFIT_HTTP_PROXY
+      #- PEER2PROFIT_HTTPS_PROXY: $PEER2PROFIT_HTTPS_PROXY
+      #- PEER2PROFIT_NO_PROXY: 'localhost, 127.0.0.0/8'
+    restart: always
 
-## PEER2PROFIT CONTAINER
-    Peer2profit:
-        container_name: peer2profit
-        image: peer2profit/peer2profit_linux:latest
-        environment:
-            - P2P_EMAIL=$PEER2PROFIT_EMAIL
-            #- PEER2PROFIT_HTTP_PROXY: $PEER2PROFIT_HTTP_PROXY
-            #- PEER2PROFIT_HTTPS_PROXY: $PEER2PROFIT_HTTPS_PROXY
-            #- PEER2PROFIT_NO_PROXY: 'localhost, 127.0.0.0/8'
-        restart: always
+# PACKETSTREAM CONTAINER
+  Packetstream:
+    container_name: packetstream
+    image: packetstream/psclient:latest
+    environment:
+      - CID=$PACKETSTREAM_CID
+      #- PACKETSTREAM_HTTP_PROXY: $PACKETSTREAM_HTTP_PROXY
+      #- PACKETSTREAM_HTTPS_PROXY: $PACKETSTREAM_HTTPS_PROXY
+      #- PACKETSTREAM_NO_PROXY: 'localhost, 127.0.0.0/8'
+    restart: always
 
+# TRAFFMONETIZER CONTAINER
+  TraffMonetizer:
+    container_name: traffmonetizer
+    image: traffmonetizer/cli:latest
+    environment:
+      - TRAFFMONETIZER_DUMMY=''
+      #- TRAFFMONETIZER_HTTP_PROXY: $TRAFFMONETIZER_HTTP_PROXY
+      #- TRAFFMONETIZER_HTTPS_PROXY: $TRAFFMONETIZER_HTTPS_PROXY
+      #- TRAFFMONETIZER_NO_PROXY: 'localhost, 127.0.0.0/8'
+    command: start accept status --token $TRAFFMONETIZER_TOKEN --device-name $DEVICE_NAME
+    restart: always
 
-## PACKETSTREAM CONTAINER
-    Packetstream:
-        container_name: packetstream
-        image: packetstream/psclient:latest
-        environment:
-            - CID=$PACKETSTREAM_CID
-            #- PACKETSTREAM_HTTP_PROXY: $PACKETSTREAM_HTTP_PROXY
-            #- PACKETSTREAM_HTTPS_PROXY: $PACKETSTREAM_HTTPS_PROXY
-            #- PACKETSTREAM_NO_PROXY: 'localhost, 127.0.0.0/8'
-        restart: always
+# REPOCKET CONTAINER
+  Repocket:
+    container_name: repocket
+    image: repocket/repocket:latest
+    environment:
+        - RP_EMAIL=$REPOCKET_EMAIL
+        - RP_PASSWORD=$REPOCKET_PASSWD
+        #- REPOCKET_HTTP_PROXY: $REPOCKET_HTTP_PROXY
+        #- REPOCKET_HTTPS_PROXY: $REPOCKET_HTTPS_PROXY
+        #- REPOCKET_NO_PROXY: 'localhost, 127.0.0.0/8'
+    restart: always
 
-## TRAFFMONETIZER CONTAINER
-    TraffMonetizer:
-        container_name: traffmonetizer
-        image: traffmonetizer/cli:latest
-        command: start accept status --token $TRAFFMONETIZER_TOKEN --device-name $DEVICE_NAME
-        environment:
-            - TRAFFMONETIZER_DUMMY=''
-            #- TRAFFMONETIZER_HTTP_PROXY: $TRAFFMONETIZER_HTTP_PROXY
-            #- TRAFFMONETIZER_HTTPS_PROXY: $TRAFFMONETIZER_HTTPS_PROXY
-            #- TRAFFMONETIZER_NO_PROXY: 'localhost, 127.0.0.0/8'
-        restart: always
-
-## REPOCKET CONTAINER
-    Repocket:
-        container_name: repocket
-        image: repocket/repocket:latest
-        environment:
-            - RP_EMAIL=$REPOCKET_EMAIL
-            - RP_PASSWORD=$REPOCKET_PASSWD
-            #- REPOCKET_HTTP_PROXY: $REPOCKET_HTTP_PROXY
-            #- REPOCKET_HTTPS_PROXY: $REPOCKET_HTTPS_PROXY
-            #- REPOCKET_NO_PROXY: 'localhost, 127.0.0.0/8'
-        restart: always
-
- ## BITPING CONTAINER 
+# BITPING CONTAINER 
  # !!For this app you'll need a one-time operation to claim your node: the first time if you do not have a backup of your identity you will need to enter manually your credentials to initialize it use : sudo docker run --rm -it -v ${PWD}/.data/.bitping/:/root/.bitping bitping/bitping-node:latest , then enter your credential , once this is done CTRL+C to end container and then if using bind folder just use docker compose to restart it as always, if you use the docker volume mount it in the previous comamnd or copy the created credentials in the volume using ' docker cp ${PWD}/.data/.bitping bitping:/root/' or just mount the volume in the interactive temporary container
-    Bitping:
-        container_name: bitping
-        image: bitping/bitping-node:latest
-        environment:
-            - BITPING_DUMMY=''
-            #- BITPING_HTTP_PROXY: $BITPING_HTTP_PROXY
-            #- BITPING_HTTPS_PROXY: $BITPING_HTTPS_PROXY
-            #- BITPING_NO_PROXY: 'localhost, 127.0.0.0/8'
-        volumes:
-            # You have 2 options
-            - ./.data/.bitping:/root/.bitping # Bind an host folder to the container (more insecure but simplier to port and backup) this option mount a new identity or a backed up one from the host file system
-            # OR
-            #- bitping-data:/root/.bitping # if you use this also uncomment the relative volume in volumes section, this  Use docker volumes (more secure harder to access, backup and restore) you'll need to do backups using 'docker cp
-        restart: always
+  Bitping:
+    container_name: bitping
+    image: bitping/bitping-node:latest
+    environment:
+      - BITPING_DUMMY=''
+      #- BITPING_HTTP_PROXY: $BITPING_HTTP_PROXY
+      #- BITPING_HTTPS_PROXY: $BITPING_HTTPS_PROXY
+      #- BITPING_NO_PROXY: 'localhost, 127.0.0.0/8'
+    volumes:
+      # You have 2 options
+      - ./.data/.bitping:/root/.bitping # Bind an host folder to the container (more insecure but simplier to port and backup) this option mount a new identity or a backed up one from the host file system
+      # OR
+      #- bitping-data:/root/.bitping # if you use this also uncomment the relative volume in volumes section, this  Use docker volumes (more secure harder to access, backup and restore) you'll need to do backups using 'docker cp
+    restart: always
       
       
-## WATCHTOWER AUTO-UPDATER AND NOTIFICATIONS
-    watchtower:
-        container_name: watchtower
-        image: containrrr/watchtower
-        volumes:
-            - /var/run/docker.sock:/var/run/docker.sock
-        environment:
-            - WATCHTOWER_POLL_INTERVAL=9000
-            # - WATCHTOWER_NOTIFICATIONS=shoutrrr
-            # - WATCHTOWER_NOTIFICATION_URL=$SHOUTRRR_URL
-            # - WATCHTOWER_NOTIFICATIONS_HOSTNAME=$DEVICE_NAME
-            - WATCHTOWER_ROLLING_RESTART=true
-            - WATCHTOWER_NO_STARTUP_MESSAGE=true
-            - WATCHTOWER_CLEANUP=true
-        restart: always
+# WATCHTOWER AUTO-UPDATER AND NOTIFICATIONS
+  watchtower:
+    container_name: watchtower
+    image: containrrr/watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - WATCHTOWER_POLL_INTERVAL=9000
+      # - WATCHTOWER_NOTIFICATIONS=shoutrrr
+      # - WATCHTOWER_NOTIFICATION_URL=$SHOUTRRR_URL
+      # - WATCHTOWER_NOTIFICATIONS_HOSTNAME=$DEVICE_NAME
+      - WATCHTOWER_ROLLING_RESTART=true
+      - WATCHTOWER_NO_STARTUP_MESSAGE=true
+      - WATCHTOWER_CLEANUP=true
+    restart: always
         
-## WEB DASBOARD
-    webdashboard:
-        container_name: webdashboard
-        image: fnichol/uhttpd
-        volumes:
-            - ./www/Money4Band:/www
-        ports:
-            - 8081:80
-        restart: always
+# WEB DASBOARD
+  webdashboard:
+    container_name: webdashboard
+    image: fnichol/uhttpd
+    volumes:
+      - ./www/Money4Band:/www
+    ports:
+      - 8081:80
+    restart: always
         
 volumes:
     earnapp-data:
     #bitping-data: # uncomment this if in bitping volumes you choose to use docker volumes instead of binding an host folder
-
-
