@@ -27,8 +27,9 @@ readonly BITPING_LNK="BITPING | https://app.bitping.com?r=qm7mIuX3"
 ### .env File Prototype Link##
 readonly ENV_SRC='https://github.com/MRColorR/money4band/raw/main/.env';
 
-### docker-compose.yml Prototype Link##
-readonly DKCOM_SRC='https://github.com/MRColorR/money4band/raw/main/docker-compose.yml';
+### docker compose.yaml Prototype Link##
+readonly DKCOM_FILENAME="docker-compose.yaml"
+readonly DKCOM_SRC="https://github.com/MRColorR/money4band/raw/main/$DKCOM_FILENAME";
 
 ### Resources, Scripts and Files folders
 readonly RESOURCES_DIR="$PWD/.resources"
@@ -87,16 +88,16 @@ fn_setupNotifications(){
     printf "NOW INSERT BELOW THE LINK FOR NOTIFICATIONS using THE SAME FORMAT WRITTEN ABOVE e.g.: discord://yourToken@yourWebhookid"$'\n'
     read -r SHOUTRRR_URL
     sed -i "s^# SHOUTRRR_URL=yourApp:yourToken@yourWebHook^SHOUTRRR_URL=$SHOUTRRR_URL^" .env
-    sed -i "s/# - WATCHTOWER_NOTIFICATIONS=shoutrrr/- WATCHTOWER_NOTIFICATIONS=shoutrrr/" docker-compose.yml
-    sed -i "s/# - WATCHTOWER_NOTIFICATION_URL/- WATCHTOWER_NOTIFICATION_URL/" docker-compose.yml
-    sed -i "s/# - WATCHTOWER_NOTIFICATIONS_HOSTNAME/- WATCHTOWER_NOTIFICATIONS_HOSTNAME/" docker-compose.yml
+    sed -i "s/# - WATCHTOWER_NOTIFICATIONS=shoutrrr/- WATCHTOWER_NOTIFICATIONS=shoutrrr/" $DKCOM_FILENAME
+    sed -i "s/# - WATCHTOWER_NOTIFICATION_URL/- WATCHTOWER_NOTIFICATION_URL/" $DKCOM_FILENAME
+    sed -i "s/# - WATCHTOWER_NOTIFICATIONS_HOSTNAME/- WATCHTOWER_NOTIFICATIONS_HOSTNAME/" $DKCOM_FILENAME
     read -r -p "Notifications setup complete. If the link is correct, you will receive a notification for each update made on the app container images. Now press enter to continue"
     clear;
 }
 
 fn_setupApp(){
     if [ "$2" == "email" ] ; then 
-        printf "Note: If you are using login with google, remember to set also a password for your app account!"
+        printf "Note: If you are using login with google, remember to set also a password for your app account!"$'\n'
         printf "Enter your %s Email"$'\n' "$1"
         read -r APP_EMAIL
         sed -i "s/your$1Mail/$APP_EMAIL/" .env
@@ -142,9 +143,9 @@ fn_setupApp(){
             sed -i "s^# $1_HTTPS_PROXY=http://proxyUsername:proxyPassword@proxy_url:proxy_port^$1_HTTPS_PROXY=$APP_HTTPS_PROXY^" .env ;
 
         fi
-        sed -i "s^#- $1_HTTP_PROXY^- HTTP_PROXY^" docker-compose.yml ;
-        sed -i "s^#- $1_HTTPS_PROXY^- HTTPS_PROXY^" docker-compose.yml ;
-        sed -i "s^#- $1_NO_PROXY^- NO_PROXY^" docker-compose.yml ;
+        sed -i "s^#- $1_HTTP_PROXY^- HTTP_PROXY^" $DKCOM_FILENAME ;
+        sed -i "s^#- $1_HTTPS_PROXY^- HTTPS_PROXY^" $DKCOM_FILENAME ;
+        sed -i "s^#- $1_NO_PROXY^- NO_PROXY^" $DKCOM_FILENAME ;
     fi
     read -r -p "$1 configuration complete, press enter to continue to the next app"
 }
@@ -186,7 +187,7 @@ fn_setupProxy(){
 
 
 fn_setupEnv(){
-    read -r -p "Do you wish to proceed with the .env file guided setup Y/N? (This will also adapt the docker-compose.yml file accordingly)" yn
+    read -r -p "Do you wish to proceed with the .env file guided setup Y/N? (This will also adapt the $DKCOM_FILENAME file accordingly)" yn
     case $yn in
         [Yy]* ) clear;;
         [Nn]* ) blueprint ".env file setup canceled. Make sure you have a valid .env file before proceeding with the stack startup."; read -r -p "Press Enter to go back to mainmenu"; mainmenu;;
@@ -195,7 +196,7 @@ fn_setupEnv(){
     if ! grep -q "DEVICE_NAME=yourDeviceName" .env  ; then 
         echo "The current .env file appears to have already been modified. A fresh version will be downloaded and used.";
         curl -fsSL $ENV_SRC -o ".env"
-        curl -fsSL $DKCOM_SRC -o "docker-compose.yml"
+        curl -fsSL $DKCOM_SRC -o "$DKCOM_FILENAME"
     fi
     printf "beginnning env file guided setup"$'\n'
     CURRENT_APP='';
@@ -281,7 +282,7 @@ fn_setupEnv(){
     }
 
 fn_startStack(){
-    yellowprint "This menu item will launch all the apps using the configured .env file and the docker-compose.yml file (Docker must be already installed and running)"
+    yellowprint "This menu item will launch all the apps using the configured .env file and the $DKCOM_FILENAME file (Docker must be already installed and running)"
     read -r -p "Do you wish to proceed Y/N?  " yn
     case $yn in
         [Yy]* ) sudo docker compose up -d; greenprint "All Apps started you can visit the web dashboard on http://localhost:8081/ . If not already done use the previously generated earnapp node URL to add your device in your earnapp dashboard. Check the README file for more details."; read -r -p "Now press enter to go back to the menu"; mainmenu;;
@@ -291,7 +292,7 @@ fn_startStack(){
 }
 
 fn_stopStack(){
-    yellowprint "This menu item will stop all the apps and delete the docker stack previously created using the configured .env file and the docker-compose.yml file."
+    yellowprint "This menu item will stop all the apps and delete the docker stack previously created using the configured .env file and the $DKCOM_FILENAME file."
     yellowprint "You don't need to use this command to temporarily pause apps or to update the stack. Use it only in case of uninstallation!"
     read -r -p "Do you wish to proceed Y/N?  " yn
     case $yn in
@@ -312,11 +313,11 @@ fn_resetEnv(){
 }
 
 fn_resetDockerCompose(){
-    redprint "Now a fresh docker-compose.yml file will be downloaded"
+    redprint "Now a fresh $DKCOM_FILENAME file will be downloaded"
     read -r -p "Do you wish to proceed Y/N?  " yn
     case $yn in
-        [Yy]* ) curl -fsSL $DKCOM_SRC -o "docker-compose.yml"; greenprint "docker-compose.yml file resetted, remember to reconfigure it if needed";;
-        [Nn]* ) blueprint "docker-compose.yml file reset canceled. The file is left as it is"; mainmenu;;
+        [Yy]* ) curl -fsSL $DKCOM_SRC -o "$DKCOM_FILENAME"; greenprint "$DKCOM_FILENAME file resetted, remember to reconfigure it if needed";;
+        [Nn]* ) blueprint "$DKCOM_FILENAME file reset canceled. The file is left as it is"; mainmenu;;
         * ) printf "Please answer yes or no.";;
     esac
 }
@@ -325,8 +326,7 @@ fn_resetDockerCompose(){
 mainmenu() {
     clear;
     PS3="Select an option and press Enter "
-
-    items=("Show apps' links to register or go to dashboard" "Install Docker" "Setup .env file" "Start apps stack" "Stop apps stack" "Reset .env File" "Reset docker-compose.yml file")
+    items=("Show apps' links to register or go to dashboard" "Install Docker" "Setup .env file" "Start apps stack" "Stop apps stack" "Reset .env File" "Reset $DKCOM_FILENAME file")
 
     select item in "${items[@]}" Quit
     do

@@ -14,8 +14,9 @@ $BITPING_LNK = "BITPING | https://app.bitping.com?r=qm7mIuX3"
 ### .env File Prototype Link##
 $ENV_SRC = 'https://github.com/MRColorR/money4band/raw/main/.env'
 
-### docker-compose.yml Prototype Link##
-$DKCOM_SRC = 'https://github.com/MRColorR/money4band/raw/main/docker-compose.yml'
+### docker compose.yaml Prototype Link##
+$DKCOM_FILENAME = "docker-compose.yaml"
+$DKCOM_SRC = "https://github.com/MRColorR/money4band/raw/main/$DKCOM_FILENAME"
 
 ### Docker installer script for windows source link ##
 $DKINST_WIN_SRC = 'https://github.com/MRColorR/money4band/raw/main/.resources/.scripts/install-docker.ps1'
@@ -108,9 +109,9 @@ function fn_setupNotifications() {
     Write-Output "NOW INSERT BELOW THE LINK FOR NOTIFICATIONS using THE SAME FORMAT WRITTEN ABOVE e.g.: discord://yourToken@yourWebhookid"
     $SHOUTRRR_URL = Read-Host
     (Get-Content .\.env).replace('# SHOUTRRR_URL=yourApp:yourToken@yourWebHook', "SHOUTRRR_URL=$SHOUTRRR_URL") | Set-Content .\.env
-    (Get-Content .\docker-compose.yml).replace('# - WATCHTOWER_NOTIFICATIONS=shoutrrr', "- WATCHTOWER_NOTIFICATIONS=shoutrrr") | Set-Content .\docker-compose.yml
-    (Get-Content .\docker-compose.yml).replace('# - WATCHTOWER_NOTIFICATION_URL', "- WATCHTOWER_NOTIFICATION_URL") | Set-Content .\docker-compose.yml
-    (Get-Content .\docker-compose.yml).replace('# - WATCHTOWER_NOTIFICATIONS_HOSTNAME', "- WATCHTOWER_NOTIFICATIONS_HOSTNAME") | Set-Content .\docker-compose.yml
+    (Get-Content .\$DKCOM_FILENAME).replace('# - WATCHTOWER_NOTIFICATIONS=shoutrrr', "- WATCHTOWER_NOTIFICATIONS=shoutrrr") | Set-Content .\$DKCOM_FILENAME
+    (Get-Content .\$DKCOM_FILENAME).replace('# - WATCHTOWER_NOTIFICATION_URL', "- WATCHTOWER_NOTIFICATION_URL") | Set-Content .\$DKCOM_FILENAME
+    (Get-Content .\$DKCOM_FILENAME).replace('# - WATCHTOWER_NOTIFICATIONS_HOSTNAME', "- WATCHTOWER_NOTIFICATIONS_HOSTNAME") | Set-Content .\$DKCOM_FILENAME
     Read-Host -p "Notifications setup complete. If the link is correct, you will receive a notification for each update made on the app container images. Now press enter to continue"
     Clear-Host
 }
@@ -172,9 +173,9 @@ function fn_setupApp() {
             (Get-Content .\.env).replace("# ${CURRENT_APP}_HTTPS_PROXY=http://proxyUsername:proxyPassword@proxy_url:proxy_port", "${CURRENT_APP}_HTTPS_PROXY=$APP_HTTPS_PROXY") | Set-Content .\.env
         }
 
-        (Get-Content .\docker-compose.yml).replace("#- ${CURRENT_APP}_HTTP_PROXY", "- HTTP_PROXY") | Set-Content .\docker-compose.yml
-        (Get-Content .\docker-compose.yml).replace("#- ${CURRENT_APP}_HTTPS_PROXY", "- HTTPS_PROXY") | Set-Content .\docker-compose.yml
-        (Get-Content .\docker-compose.yml).replace("#- ${CURRENT_APP}_NO_PROXY", "- NO_PROXY") | Set-Content .\docker-compose.yml
+        (Get-Content .\$DKCOM_FILENAME).replace("#- ${CURRENT_APP}_HTTP_PROXY", "- HTTP_PROXY") | Set-Content .\$DKCOM_FILENAME
+        (Get-Content .\$DKCOM_FILENAME).replace("#- ${CURRENT_APP}_HTTPS_PROXY", "- HTTPS_PROXY") | Set-Content .\$DKCOM_FILENAME
+        (Get-Content .\$DKCOM_FILENAME).replace("#- ${CURRENT_APP}_NO_PROXY", "- NO_PROXY") | Set-Content .\$DKCOM_FILENAME
     }
     Read-Host -p "${CURRENT_APP} configuration complete, press enter to continue to the next app"
 }
@@ -225,13 +226,13 @@ function fn_setupProxy() {
 
 function fn_setupEnv {
     Clear-Host
-    $yn = Read-Host -p "Do you wish to proceed with the .env file guided setup Y/N? (This will also adapt the docker-compose.yml file accordingly)"
+    $yn = Read-Host -p "Do you wish to proceed with the .env file guided setup Y/N? (This will also adapt the $DKCOM_FILENAME file accordingly)"
     if ($yn -eq 'Y' -or $yn -eq 'y' -or $yn -eq 'Yes' -or $yn -eq 'yes' ) {
         Clear-Host
         if ( -Not (Select-String -Path .\.env -Pattern "DEVICE_NAME=yourDeviceName" -Quiet) ) {
             Write-Output "The current .env file appears to have already been modified. A fresh version will be downloaded and used."
             Invoke-WebRequest -OutFile '.env' $ENV_SRC;
-            Invoke-WebRequest -OutFile 'docker-compose.yml' $DKCOM_SRC;
+            Invoke-WebRequest -OutFile "$DKCOM_FILENAME" $DKCOM_SRC;
         }
         Write-Output "Beginnning env file guided setup"
         $CURRENT_APP = '';
@@ -333,7 +334,7 @@ function fn_setupEnv {
 
 function fn_startStack {
     Clear-Host
-    Write-Output "This menu item will launch all the apps using the configured .env file and the docker-compose.yml file (Docker must be already installed and running)"
+    Write-Output "This menu item will launch all the apps using the configured .env file and the $DKCOM_FILENAME file (Docker must be already installed and running)"
     $yn = Read-Host -prompt "Do you wish to proceed Y/N?"
     if ($yn -eq 'Y' -or $yn -eq 'y' -or $yn -eq 'Yes' -or $yn -eq 'yes' ) {
         docker compose up -d
@@ -350,7 +351,7 @@ function fn_startStack {
 
 function fn_stopStack() {
     Clear-Host
-    Write-Output "This menu item will stop all the apps and delete the docker stack previously created using the configured .env file and the docker-compose.yml file."
+    Write-Output "This menu item will stop all the apps and delete the docker stack previously created using the configured .env file and the $DKCOM_FILENAME file."
     Write-Output "You don't need to use this command to temporarily pause apps or to update the stack. Use it only in case of uninstallation!"
     $yn = Read-Host -prompt "Do you wish to proceed Y/N?"
     if ($yn -eq 'Y' -or $yn -eq 'y' -or $yn -eq 'Yes' -or $yn -eq 'yes' ) {
@@ -383,15 +384,15 @@ function fn_resetEnv {
 }
 
 function fn_resetDockerCompose {
-    Write-Output "Now a fresh docker-compose.yml file will be downloaded"
+    Write-Output "Now a fresh $DKCOM_FILENAME file will be downloaded"
     $yn = Read-Host -prompt "Do you wish to proceed Y/N?  "
     if ($yn -eq 'Y' -or $yn -eq 'y' -or $yn -eq 'Yes' -or $yn -eq 'yes' ) {
-        Invoke-WebRequest -OutFile 'docker-compose.yml' $DKCOM_SRC; Write-Output "docker-compose.yml file resetted, remember to reconfigure it if needed";
+        Invoke-WebRequest -OutFile "$DKCOM_FILENAME" $DKCOM_SRC; Write-Output "$DKCOM_FILENAME file resetted, remember to reconfigure it if needed";
         Read-Host -prompt "Press enter to go back to the menu";
         mainmenu;
     }
     else {
-        Write-Output "docker-compose.yml file reset canceled. The file is left as it is. "
+        Write-Output "$DKCOM_FILENAME file reset canceled. The file is left as it is. "
         Read-Host -prompt "Press enter to go back to the menu";
         mainmenu;
     }
@@ -407,7 +408,7 @@ function mainmenu {
     Write-Output "4) Start apps stack"
     Write-Output "5) Stop apps stack"
     Write-Output "6) Reset .env File"
-    Write-Output "7) Reset docker-compose.yml file"
+    Write-Output "7) Reset $DKCOM_FILENAME file"
     Write-Output "8) Exit"
     Do {
         $Select = Read-Host
