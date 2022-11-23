@@ -114,7 +114,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
-      - WATCHTOWER_POLL_INTERVAL=9000
+      - WATCHTOWER_POLL_INTERVAL=7200
       # - WATCHTOWER_NOTIFICATIONS=shoutrrr
       # - WATCHTOWER_NOTIFICATION_URL=$SHOUTRRR_URL
       # - WATCHTOWER_NOTIFICATIONS_HOSTNAME=$DEVICE_NAME
