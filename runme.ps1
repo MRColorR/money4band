@@ -76,7 +76,7 @@ function fn_dockerInstall {
             2 {
                 Write-Output "Starting Docker for Windows auto installation script"
                 Invoke-WebRequest $DKINST_WIN_SRC -o "$SCRIPTS_DIR\install-docker.ps1"
-                Start-Process PowerShell -Verb RunAs "-noprofile -executionpolicy bypass -Command `"cd '$SCRIPTS_DIR'; & '.\install-docker.ps1';`"" -Wait
+                Start-Process PowerShell -Verb RunAs "-noprofile -executionpolicy bypass -command `"cd '$SCRIPTS_DIR'; & '.\install-docker.ps1';`"" -Wait
                 
                 Write-Output "Script completed. Docker should be installed. Please restart your computer and the proceed to .env file config and stack startup."
                 Read-Host -Prompt "Press enter to go back to mainmenu"
@@ -156,7 +156,7 @@ function fn_setupApp() {
         (Get-Content .\.env).replace("your${CURRENT_APP}Token", "$APP_TOKEN") | Set-Content .\.env
     }
     elseif ("$TYPE" -eq "customScript") {
-        Start-Process PowerShell -Verb RunAs "-noprofile -executionpolicy bypass -Command `"cd '$pwd'; & '$SUBTYPE';`"" -wait
+        Start-Process PowerShell -Verb RunAs "-noprofile -executionpolicy bypass -command `"cd '$pwd'; & '$SUBTYPE';`"" -wait
     }
     
     if ( $script:PROXY_CONF ) {
