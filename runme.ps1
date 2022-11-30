@@ -35,7 +35,10 @@ $script:STACK_HTTPS_PROXY = ''
 ### Functions ##
 function fn_bye { Write-Output "Bye bye."; exit 0; }
 function fn_fail { Write-Output "Wrong option." exit 1; }
-function fn_unknown { Write-Output "Unknown choice $REPLY, please choose a valid option"; }
+function fn_unknown {
+    param ($REPLY) 
+    Write-Output "Unknown choice $REPLY, please choose a valid option";
+}
 
 ### Sub-menu Functions ##
 function fn_showLinks {
@@ -63,29 +66,61 @@ function fn_dockerInstall {
         Write-Output "Which version of Docker do you want to install?"
         Write-Output "1) Install Docker for Linux"
         Write-Output "2) Install Docker for Windows"
-        $yn = Read-Host
-        Switch ($yn) {
+        Write-Output "3) Install Docker for MacOS"
+        $InstallStatus = 0;
+        $OSSel = Read-Host
+        Switch ($OSSel) {
             1 {
+                Clear-Host
                 Write-Output "Starting Docker for linux auto installation script"
                 Invoke-WebRequest https://get.docker.com -o "$SCRIPTS_DIR/get-docker.sh"  ;
                 sudo sh get-docker.sh;
-                Write-Output "Script completed. Docker should be installed"
-                Read-Host -Prompt "Press enter to go back to mainmenu"
-                mainmenu
+                $InstallStatus = 1;
             }
             2 {
+                Clear-Host
                 Write-Output "Starting Docker for Windows auto installation script"
                 Invoke-WebRequest $DKINST_WIN_SRC -o "$SCRIPTS_DIR\install-docker.ps1"
                 Start-Process PowerShell -Verb RunAs "-noprofile -executionpolicy bypass -command `"cd '$SCRIPTS_DIR'; & '.\install-docker.ps1';`"" -Wait
-                
-                Write-Output "Script completed. Docker should be installed. Please restart your computer and the proceed to .env file config and stack startup."
-                Read-Host -Prompt "Press enter to go back to mainmenu"
-                mainmenu
+                $InstallStatus = 1;
+            }
+            3 {
+                Clear-Host
+                Write-Output "Starting Docker for MacOS auto installation script" 
+                Write-Output "Select your CPU type"
+                Write-Output "1) Intel i5, i7...CPUs"
+                Write-Output "2) Apple silicon M1, M2...CPUs"
+                $cpuSel = Read-Host
+                switch ($cpuSel) {
+                    1 {
+                        Invoke-WebRequest https://desktop.docker.com/mac/main/amd64/Docker.dmg -o "$FILES_DIR/Docker.dmg";
+                        sudo hdiutil attach "$FILES_DIR/Docker.dmg"
+                        sudo /Volumes/Docker/Docker.app/Contents/MacOS/install --accept-license
+                        sudo hdiutil detach /Volumes/Docker
+                        $InstallStatus = 1;
+                    }
+                    2 {
+                        Invoke-WebRequest https://desktop.docker.com/mac/main/arm64/Docker.dmg -o "$FILES_DIR/Docker.dmg"
+                        sudo hdiutil attach "$FILES_DIR/Docker.dmg"
+                        sudo /Volumes/Docker/Docker.app/Contents/MacOS/install --accept-license
+                        sudo hdiutil detach /Volumes/Docker
+                        $InstallStatus = 1;
+                    }
+                    Default { fn_unknown "$cpuSel"; }
+                }
             }
             DEFAULT {
-                fn_unknown
+                fn_unknown "$OSSel"
             }
         }
+        if ($InstallStatus) {
+            Write-Output "Script completed. Docker should be installed. Please restart your machine and then proceed to .env file config and stack startup."
+        }
+        else {
+            Write-Output "Something went wrong (maybe bad choice or incomplete installation). Please retry"
+        }
+        Read-Host -Prompt "Press enter to go back to mainmenu"
+        mainmenu
     }
     else {
         Clear-Host
@@ -438,7 +473,7 @@ function mainmenu {
                 fn_bye
             }
             DEFAULT {
-                fn_unknown
+                fn_unknown $Select
             }
         }
     }
