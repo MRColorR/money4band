@@ -22,7 +22,7 @@ $DKCOM_SRC = "https://github.com/MRColorR/money4band/raw/main/$DKCOM_FILENAME"
 $DKINST_WIN_SRC = 'https://github.com/MRColorR/money4band/raw/main/.resources/.scripts/install-docker-win.ps1'
 
 ### Docker installer script for Mac source link ##
-$DKINST_MAC_SRC = 'https://github.com/MRColorR/money4band/raw/dev/.resources/.scripts/install-docker-mac.ps1'
+$DKINST_MAC_SRC = 'https://github.com/MRColorR/money4band/raw/main/.resources/.scripts/install-docker-mac.ps1'
 
 
 ### Resources, Scripts and Files folders
@@ -85,8 +85,8 @@ function fn_dockerInstall {
                 Clear-Host
                 Write-Output "Starting Docker for Windows auto installation script"
                 Invoke-WebRequest $DKINST_WIN_SRC -o "$SCRIPTS_DIR\install-docker-win.ps1"
-                Start-Process PowerShell -Verb RunAs "-noprofile -executionpolicy bypass -command `"$SCRIPTS_DIR\install-docker-win.ps1`"" -Wait
-                $InstallStatus = 1;                
+                Start-Process PowerShell -Verb RunAs "-noprofile -executionpolicy bypass -command `"$SCRIPTS_DIR\install-docker-win.ps1 -filesPath $FILES_DIR`"" -Wait
+                $InstallStatus = 1;              
             }
             3 {
                 Clear-Host
@@ -98,11 +98,11 @@ function fn_dockerInstall {
                 $cpuSel = Read-Host
                 switch ($cpuSel) {
                     1 {
-                        Start-Process PowerShell -Verb RunAs "-noprofile -executionpolicy bypass -command `"$SCRIPTS_DIR\install-docker-mac.ps1 -filePath $FILES_DIR`"" -Wait
+                        Start-Process PowerShell -Verb RunAs "-noprofile -executionpolicy bypass -command `"$SCRIPTS_DIR\install-docker-mac.ps1 -filesPath $FILES_DIR`"" -Wait
                         $InstallStatus = 1;
                     }
                     2 {
-                        Start-Process PowerShell -Verb RunAs "-noprofile -executionpolicy bypass -command `"$SCRIPTS_DIR\install-docker-mac.ps1 -filePath $FILES_DIR -IntelCPU `"" -Wait
+                        Start-Process PowerShell -Verb RunAs "-noprofile -executionpolicy bypass -command `"$SCRIPTS_DIR\install-docker-mac.ps1 -filesPath $FILES_DIR -IntelCPU `"" -Wait
                         $InstallStatus = 1;
                     }
                     Default { fn_unknown "$cpuSel"}
