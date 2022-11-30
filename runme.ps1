@@ -22,7 +22,7 @@ $DKCOM_SRC = "https://github.com/MRColorR/money4band/raw/main/$DKCOM_FILENAME"
 $DKINST_WIN_SRC = 'https://github.com/MRColorR/money4band/raw/main/.resources/.scripts/install-docker-win.ps1'
 
 ### Docker installer script for Mac source link ##
-$DKINST_MAC_SRC = 'https://github.com/MRColorR/money4band/raw/main/.resources/.scripts/install-docker-mac.ps1'
+$DKINST_MAC_SRC = 'https://github.com/MRColorR/money4band/raw/dev/.resources/.scripts/install-docker-mac.ps1'
 
 
 ### Resources, Scripts and Files folders
@@ -90,10 +90,23 @@ function fn_dockerInstall {
             }
             3 {
                 Clear-Host
-                Write-Output "Starting Docker for MacOS auto installation script" 
+                Write-Output "Starting Docker for MacOS auto installation script"  
                 Invoke-WebRequest $DKINST_MAC_SRC -o "$SCRIPTS_DIR\install-docker-mac.ps1"
-                Start-Process PowerShell -Verb RunAs "-noprofile -executionpolicy bypass -command `"$SCRIPTS_DIR\install-docker-mac.ps1`"" -Wait
-                $InstallStatus = 1;
+                Write-Output "Select your CPU type"
+                Write-Output "1) Apple silicon M1, M2...CPUs"
+                Write-Output "2) Intel i5, i7...CPUs"
+                $cpuSel = Read-Host
+                switch ($cpuSel) {
+                    1 {
+                        Start-Process PowerShell -Verb RunAs "-noprofile -executionpolicy bypass -command `"$SCRIPTS_DIR\install-docker-mac.ps1 -filePath $FILES_DIR`"" -Wait
+                        $InstallStatus = 1;
+                    }
+                    2 {
+                        Start-Process PowerShell -Verb RunAs "-noprofile -executionpolicy bypass -command `"$SCRIPTS_DIR\install-docker-mac.ps1 -filePath $FILES_DIR -IntelCPU `"" -Wait
+                        $InstallStatus = 1;
+                    }
+                    Default { fn_unknown "$cpuSel"}
+                }
                 
             }
             DEFAULT {

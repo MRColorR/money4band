@@ -1,11 +1,18 @@
-set-executionpolicy -scope CurrentUser -executionPolicy Bypass -Force
+# if a flag is provided it will install Docker for mac with intelCPU
+param(
+    [string(Mandatory)]$filePath,
+    [switch]$IntelCPU
+    )
 
-# Check if brew is installed and install it if it's not 
-$BrewInstall=`which brew`
-if ($BrewInstall -ne 0) {
-    Write-Output "It seems brew is not installed. Intalling it now"
-    NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+if ($IntelCPU) {
+    Write-Output "Selected Intel CPU"
+    #Invoke-WebRequest https://desktop.docker.com/mac/main/amd64/Docker.dmg -o "$filePath/Docker.dmg";
+}else {
+    Write-Output "Selected Appla silicon arm CPU"
+    #Invoke-WebRequest https://desktop.docker.com/mac/main/arm64/Docker.dmg -o "$filePath/Docker.dmg";
 }
-
-brew install --cask docker
+sudo hdiutil attach "$filePath"
+sudo /Volumes/Docker/Docker.app/Contents/MacOS/install --accept-license
+sudo hdiutil detach /Volumes/Docker
 open /Applications/Docker.app
+
