@@ -19,7 +19,7 @@ $DKCOM_FILENAME = "docker-compose.yaml"
 $DKCOM_SRC = "https://github.com/MRColorR/money4band/raw/main/$DKCOM_FILENAME"
 
 ### Docker installer script for windows source link ##
-$DKINST_WIN_SRC = 'https://github.com/MRColorR/money4band/raw/main/.resources/.scripts/install-docker.ps1'
+$DKINST_WIN_SRC = 'https://github.com/MRColorR/money4band/raw/main/.resources/.scripts/install-docker-win.ps1'
 
 ### Resources, Scripts and Files folders
 $RESOURCES_DIR = "$pwd\.resources"
@@ -80,8 +80,8 @@ function fn_dockerInstall {
             2 {
                 Clear-Host
                 Write-Output "Starting Docker for Windows auto installation script"
-                Invoke-WebRequest $DKINST_WIN_SRC -o "$SCRIPTS_DIR\install-docker.ps1"
-                Start-Process PowerShell -Verb RunAs "-noprofile -executionpolicy bypass -command `"cd '$SCRIPTS_DIR'; & '.\install-docker.ps1';`"" -Wait
+                Invoke-WebRequest $DKINST_WIN_SRC -o "$SCRIPTS_DIR\install-docker-win.ps1"
+                Start-Process PowerShell -Verb RunAs "-noprofile -executionpolicy bypass -command `"cd '$SCRIPTS_DIR'; & '.\install-docker-win.ps1';`"" -Wait
                 $InstallStatus = 1;
             }
             3 {
