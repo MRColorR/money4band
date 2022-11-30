@@ -101,7 +101,7 @@ function fn_dockerInstall {
             }
         }
         if ($InstallStatus) {
-            Write-Output "Script completed. Docker should be installed. Please restart your machine and then proceed to .env file config and stack startup."
+            Write-Output "Script completed. If no errors appeared Docker should be installed. Please restart your machine and then proceed to .env file config and stack startup."
         }
         else {
             Write-Output "Something went wrong (maybe bad choice or incomplete installation). Please retry"
