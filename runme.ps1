@@ -81,33 +81,14 @@ function fn_dockerInstall {
                 Clear-Host
                 Write-Output "Starting Docker for Windows auto installation script"
                 Invoke-WebRequest $DKINST_WIN_SRC -o "$SCRIPTS_DIR\install-docker-win.ps1"
-                Start-Process PowerShell -Verb RunAs "-noprofile -executionpolicy bypass -command `"cd '$SCRIPTS_DIR'; & '.\install-docker-win.ps1';`"" -Wait
+                Start-Process PowerShell -Verb RunAs "-noprofile -executionpolicy bypass -command `"$SCRIPTS_DIR\install-docker-win.ps1`"" -Wait
                 $InstallStatus = 1;
             }
             3 {
                 Clear-Host
                 Write-Output "Starting Docker for MacOS auto installation script" 
                 Write-Output "Select your CPU type"
-                Write-Output "1) Intel i5, i7...CPUs"
-                Write-Output "2) Apple silicon M1, M2...CPUs"
-                $cpuSel = Read-Host
-                switch ($cpuSel) {
-                    1 {
-                        Invoke-WebRequest https://desktop.docker.com/mac/main/amd64/Docker.dmg -o "$FILES_DIR/Docker.dmg";
-                        sudo hdiutil attach "$FILES_DIR/Docker.dmg"
-                        sudo /Volumes/Docker/Docker.app/Contents/MacOS/install --accept-license
-                        sudo hdiutil detach /Volumes/Docker
-                        $InstallStatus = 1;
-                    }
-                    2 {
-                        Invoke-WebRequest https://desktop.docker.com/mac/main/arm64/Docker.dmg -o "$FILES_DIR/Docker.dmg"
-                        sudo hdiutil attach "$FILES_DIR/Docker.dmg"
-                        sudo /Volumes/Docker/Docker.app/Contents/MacOS/install --accept-license
-                        sudo hdiutil detach /Volumes/Docker
-                        $InstallStatus = 1;
-                    }
-                    Default { fn_unknown "$cpuSel"; }
-                }
+                
             }
             DEFAULT {
                 fn_unknown "$OSSel"
