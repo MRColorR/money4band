@@ -12,9 +12,9 @@ services:
     image: fazalfarhan01/earnapp:lite
     environment:
       - EARNAPP_UUID=$EARNAPP_DEVICE_UUID
-      #- EARNAPP_HTTP_PROXY: $EARNAPP_HTTP_PROXY
-      #- EARNAPP_HTTPS_PROXY: $EARNAPP_HTTPS_PROXY
-      #- EARNAPP_NO_PROXY: 'localhost, 127.0.0.0/8'
+      #- EARNAPP_HTTP_PROXY= $EARNAPP_HTTP_PROXY
+      #- EARNAPP_HTTPS_PROXY= $EARNAPP_HTTPS_PROXY
+      #- EARNAPP_NO_PROXY= 'localhost, 127.0.0.0/8'
     volumes:
       - earnapp-data:/etc/earnapp
     restart: always
@@ -25,9 +25,9 @@ services:
     image: honeygain/honeygain
     environment:
       - HONEYGAIN_DUMMY=''
-      #- HONEYGAIN_HTTP_PROXY: $HONEYGAIN_HTTP_PROXY
-      #- HONEYGAIN_HTTPS_PROXY: $HONEYGAIN_HTTPS_PROXY
-      #- HONEYGAIN_NO_PROXY: 'localhost, 127.0.0.0/8'
+      #- HONEYGAIN_HTTP_PROXY= $HONEYGAIN_HTTP_PROXY
+      #- HONEYGAIN_HTTPS_PROXY= $HONEYGAIN_HTTPS_PROXY
+      #- HONEYGAIN_NO_PROXY= 'localhost, 127.0.0.0/8'
     command: -tou-accept -email $HONEYGAIN_EMAIL -pass $HONEYGAIN_PASSWD -device $DEVICE_NAME
     restart: always
 
@@ -37,9 +37,9 @@ services:
     image: iproyal/pawns-cli:latest
     environment:
       - IPROYALPAWNS_DUMMY=''
-      #- IPROYALPAWNS_HTTP_PROXY: $IPROYALPAWNS_HTTP_PROXY
-      #- IPROYALPAWNS_HTTPS_PROXY: $IPROYALPAWNS_HTTPS_PROXY
-      #- IPROYALPAWNS_NO_PROXY: 'localhost, 127.0.0.0/8'
+      #- IPROYALPAWNS_HTTP_PROXY= $IPROYALPAWNS_HTTP_PROXY
+      #- IPROYALPAWNS_HTTPS_PROXY= $IPROYALPAWNS_HTTPS_PROXY
+      #- IPROYALPAWNS_NO_PROXY= 'localhost, 127.0.0.0/8'
     command: -accept-tos -email=$IPROYALPAWNS_EMAIL -password=$IPROYALPAWNS_PASSWD -device-name=$DEVICE_NAME
     restart: always
 
@@ -49,9 +49,9 @@ services:
     image: peer2profit/peer2profit_linux:latest
     environment:
       - P2P_EMAIL=$PEER2PROFIT_EMAIL
-      #- PEER2PROFIT_HTTP_PROXY: $PEER2PROFIT_HTTP_PROXY
-      #- PEER2PROFIT_HTTPS_PROXY: $PEER2PROFIT_HTTPS_PROXY
-      #- PEER2PROFIT_NO_PROXY: 'localhost, 127.0.0.0/8'
+      #- PEER2PROFIT_HTTP_PROXY= $PEER2PROFIT_HTTP_PROXY
+      #- PEER2PROFIT_HTTPS_PROXY= $PEER2PROFIT_HTTPS_PROXY
+      #- PEER2PROFIT_NO_PROXY= 'localhost, 127.0.0.0/8'
     restart: always
 
 # PACKETSTREAM CONTAINER
@@ -60,9 +60,9 @@ services:
     image: packetstream/psclient:latest
     environment:
       - CID=$PACKETSTREAM_CID
-      #- PACKETSTREAM_HTTP_PROXY: $PACKETSTREAM_HTTP_PROXY
-      #- PACKETSTREAM_HTTPS_PROXY: $PACKETSTREAM_HTTPS_PROXY
-      #- PACKETSTREAM_NO_PROXY: 'localhost, 127.0.0.0/8'
+      #- PACKETSTREAM_HTTP_PROXY= $PACKETSTREAM_HTTP_PROXY
+      #- PACKETSTREAM_HTTPS_PROXY= $PACKETSTREAM_HTTPS_PROXY
+      #- PACKETSTREAM_NO_PROXY= 'localhost, 127.0.0.0/8'
     restart: always
 
 # TRAFFMONETIZER CONTAINER
@@ -71,9 +71,9 @@ services:
     image: traffmonetizer/cli:latest
     environment:
       - TRAFFMONETIZER_DUMMY=''
-      #- TRAFFMONETIZER_HTTP_PROXY: $TRAFFMONETIZER_HTTP_PROXY
-      #- TRAFFMONETIZER_HTTPS_PROXY: $TRAFFMONETIZER_HTTPS_PROXY
-      #- TRAFFMONETIZER_NO_PROXY: 'localhost, 127.0.0.0/8'
+      #- TRAFFMONETIZER_HTTP_PROXY= $TRAFFMONETIZER_HTTP_PROXY
+      #- TRAFFMONETIZER_HTTPS_PROXY= $TRAFFMONETIZER_HTTPS_PROXY
+      #- TRAFFMONETIZER_NO_PROXY= 'localhost, 127.0.0.0/8'
     command: start accept status --token $TRAFFMONETIZER_TOKEN --device-name $DEVICE_NAME
     restart: always
 
@@ -84,9 +84,9 @@ services:
     environment:
         - RP_EMAIL=$REPOCKET_EMAIL
         - RP_PASSWORD=$REPOCKET_PASSWD
-        #- REPOCKET_HTTP_PROXY: $REPOCKET_HTTP_PROXY
-        #- REPOCKET_HTTPS_PROXY: $REPOCKET_HTTPS_PROXY
-        #- REPOCKET_NO_PROXY: 'localhost, 127.0.0.0/8'
+        #- REPOCKET_HTTP_PROXY= $REPOCKET_HTTP_PROXY
+        #- REPOCKET_HTTPS_PROXY= $REPOCKET_HTTPS_PROXY
+        #- REPOCKET_NO_PROXY= 'localhost, 127.0.0.0/8'
     restart: always
 
 # BITPING CONTAINER 
@@ -96,9 +96,9 @@ services:
     image: bitping/bitping-node:latest
     environment:
       - BITPING_DUMMY=''
-      #- BITPING_HTTP_PROXY: $BITPING_HTTP_PROXY
-      #- BITPING_HTTPS_PROXY: $BITPING_HTTPS_PROXY
-      #- BITPING_NO_PROXY: 'localhost, 127.0.0.0/8'
+      #- BITPING_HTTP_PROXY= $BITPING_HTTP_PROXY
+      #- BITPING_HTTPS_PROXY= $BITPING_HTTPS_PROXY
+      #- BITPING_NO_PROXY= 'localhost, 127.0.0.0/8'
     volumes:
       # You have 2 options
       - ./.data/.bitping:/root/.bitping # Bind an host folder to the container (more insecure but simplier to port and backup) this option mount a new identity or a backed up one from the host file system
