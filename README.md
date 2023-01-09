@@ -9,6 +9,9 @@ Money4Band Leverages unused internet bandwidth allowing you to make money with s
 
 This Docker Stack should work on anything that may have docker installed [Windows, Linux, Mac, Raspberry and so on]. In particular, it has been tested on: Windows 11 and Linux Ubuntu 64 Bit on x86_64 / amd64 PC, Linux Raspbian OS 64 bit on arm64 Raspberry Pi3 and Pi4.
 
+<a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=5UBNL97MGGNFN">
+  <img src="https://raw.githubusercontent.com/andreostrovsky/donate-with-paypal/master/blue.svg" alt="Donate with PayPal" style="width: 10vw; min-width: 128px;" />
+</a>
 
 ### Prerequisites
 - A 64-bit operating system is strongly recommended.
