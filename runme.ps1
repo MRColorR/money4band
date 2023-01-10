@@ -3,13 +3,28 @@ set-executionpolicy -scope CurrentUser -executionPolicy Bypass -Force
 
 ### Links ##
 $EARNAPP_LNK = "EARNAPP | https://earnapp.com/i/3zulx7k"
+$EARNAPP_IMG='fazalfarhan01/earnapp'
+
 $HONEYGAIN_LNK = "HONEYGAIN | https://r.honeygain.me/MINDL15721"
+$HONEYGAIN_IMG='honeygain/honeygain'
+
 $IPROYALPAWNS_LNK = "IPROYALPAWNS | https://pawns.app?r=MiNe"
+$IPROYALPAWNS_IMG='iproyal/pawns-cli'
+
 $PACKETSTREAM_LNK = "PACKETSTREAM | https://packetstream.io/?psr=3zSD"
+$PACKETSTREAM_IMG='packetstream/psclient'
+
 $PEER2PROFIT_LNK = "PEER2PROFIT | https://p2pr.me/165849012262da8d0aa13c8"
+$PEER2PROFIT_IMG='peer2profit/peer2profit_linux'
+
 $TRAFFMONETIZER_LNK = "TRAFFMONETIZER | https://traffmonetizer.com/?aff=366499"
+$TRAFFMONETIZER_IMG='traffmonetizer/cli'
+
 $REPOCKET_LNK = "REPOCKET | https://link.repocket.co/hr8i"
+$REPOCKET_IMG='repocket/repocket'
+
 $BITPING_LNK = "BITPING | https://app.bitping.com?r=qm7mIuX3"
+$BITPING_IMG='bitping/bitping-node'
 
 ### .env File Prototype Link##
 $ENV_SRC = 'https://github.com/MRColorR/money4band/raw/main/.env'
@@ -29,6 +44,10 @@ $DKINST_MAC_SRC = 'https://github.com/MRColorR/money4band/raw/main/.resources/.s
 $RESOURCES_DIR = "$pwd\.resources"
 $SCRIPTS_DIR = "$RESOURCES_DIR\.scripts"
 $FILES_DIR = "$RESOURCES_DIR\.files"
+
+## Achitecture default
+$script:ARCH='unknown'
+$script:DKARCH='unknown'
 
 ### Proxy config #
 $script:PROXY_CONF = $false
@@ -436,6 +455,20 @@ function fn_resetDockerCompose {
 ### Main Menu ##
 function mainmenu {
     Clear-Host
+    Write-Output "MONEY4BAND AUTOMATIC GUIDED SETUP"
+    Write-Output "--------------------------------- "
+    ## architecture detection
+    $script:ARCH = $env:PROCESSOR_ARCHITECTURE.ToLower()
+    if ($script:ARCH -eq "x86_64") {
+        $script:DKARCH = 'amd64'
+    }elseif ($script:ARCH -eq "aarch64") {
+        $script:DKARCH = 'arm64'
+    }else {
+        $script:DKARCH = $script:ARCH
+    }
+    Write-Output "Detected OS architecture $script:ARCH"
+    Write-Output "Docker $script:DKARCH image architecture will be used if the app's image permits it"
+    Write-Output "--------------------------------- "
     Write-Output "Select an option and press Enter: "
     Write-Output "1) Show apps' links to register or go to dashboard"
     Write-Output "2) Install Docker"

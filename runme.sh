@@ -16,13 +16,28 @@ cyanprint() { printf "${CYAN}%s${RESET}\n" "$1"; }
 
 ### Links ##
 readonly EARNAPP_LNK="EARNAPP | https://earnapp.com/i/3zulx7k"
+readonly EARNAPP_IMG='fazalfarhan01/earnapp'
+
 readonly HONEYGAIN_LNK="HONEYGAIN | https://r.honeygain.me/MINDL15721"
+readonly HONEYGAIN_IMG='honeygain/honeygain'
+
 readonly IPROYALPAWNS_LNK="IPROYALPAWNS | https://pawns.app?r=MiNe"
+readonly IPROYALPAWNS_IMG='iproyal/pawns-cli'
+
 readonly PACKETSTREAM_LNK="PACKETSTREAM | https://packetstream.io/?psr=3zSD"
+readonly PACKETSTREAM_IMG='packetstream/psclient'
+
 readonly PEER2PROFIT_LNK="PEER2PROFIT | https://p2pr.me/165849012262da8d0aa13c8"
+readonly PEER2PROFIT_IMG='peer2profit/peer2profit_linux'
+
 readonly TRAFFMONETIZER_LNK="TRAFFMONETIZER | https://traffmonetizer.com/?aff=366499"
+readonly TRAFFMONETIZER_IMG='traffmonetizer/cli'
+
 readonly REPOCKET_LNK="REPOCKET | https://link.repocket.co/hr8i"
+readonly REPOCKET_IMG='repocket/repocket'
+
 readonly BITPING_LNK="BITPING | https://app.bitping.com?r=qm7mIuX3"
+readonly BITPING_IMG='bitping/bitping-node'
 
 ### .env File Prototype Link##
 readonly ENV_SRC='https://github.com/MRColorR/money4band/raw/main/.env';
@@ -36,6 +51,10 @@ readonly RESOURCES_DIR="$PWD/.resources"
 readonly SCRIPTS_DIR="$RESOURCES_DIR/.scripts"
 readonly FILES_DIR="$RESOURCES_DIR/.files"
 
+## Achitecture default
+ARCH='unknown'
+DKARCH='unknown'
+
 ### Proxy config #
 PROXY_CONF='false' ;
 PROXY_CONF_ALL='false' ;
@@ -43,7 +62,7 @@ STACK_HTTP_PROXY='';
 STACK_HTTPS_PROXY='';
 
 ### Functions ##
-fn_bye() { printf "Bye bye."; exit 0; }
+fn_bye() { printf "Bye bye."$'\n'; exit 0; }
 fn_fail() { printf "Wrong option."; exit 1; }
 fn_unknown() { redprint "Unknown choice $REPLY, please choose a valid option";}
 
@@ -96,40 +115,41 @@ fn_setupNotifications(){
 }
 
 fn_setupApp(){
-    if [ "$2" == "email" ] ; then 
+    if [ "$3" == "email" ] ; then 
         printf "Note: If you are using login with google, remember to set also a password for your app account!"$'\n'
         printf "Enter your %s Email"$'\n' "$1"
         read -r APP_EMAIL
         sed -i "s/your$1Mail/$APP_EMAIL/" .env
-        if [ "$3" == "password" ] ; then 
+        if [ "$4" == "password" ] ; then 
         printf "Now enter your %s Password"$'\n' "$1"
         read -r APP_PASSWORD 
         sed -i "s/your$1Pw/$APP_PASSWORD/" .env
     fi
 
-    elif [ "$2" == "uuid" ] ; then
+    elif [ "$3" == "uuid" ] ; then
         printf "generating an UUID for %s"$'\n' "$1"
-        SALT="$3""$RANDOM"
+        SALT="$4""$RANDOM"
         UUID="$(echo -n "$SALT" | md5sum | cut -c1-32)"
         sed -i "s/your$1MD5sum/$UUID/" .env
         cyanprint "Save the following link somewhere to claim your earnapp node after completing the setup and after starting the apps stack: https://earnapp.com/r/sdk-node-$UUID. A new file containing this link has been created for you"
         printf "https://earnapp.com/r/sdk-node-%s" "$UUID" > ClaimEarnappNode.txt 
 
-    elif [ "$2" == "cid" ] ; then 
+    elif [ "$3" == "cid" ] ; then 
         printf "Enter your %s CID."$'\n' "$1"
         printf "You can find it going in your dashboard https://packetstream.io/dashboard/download?linux# then click on -> Looking for linux app -> now search for CID= in the code shown in the page, you need to enter the code after -e CID= (e.g. if in the code CID=6aTk, just enter 6aTk)"$'\n'
         read -r APP_CID
         sed -i "s/your$1CID/$APP_CID/" .env 
 
-    elif [ "$2" == "token" ] ; then 
+    elif [ "$3" == "token" ] ; then 
         printf "Enter your %s Token."$'\n' "$1"
         printf "You can find it going in your dashboard https://app.traffmonetizer.com/dashboard then -> Look for Your application token -> just insert it here (you can also copy and then paste it)"$'\n'
         read -r APP_TOKEN
         sed -i "s/your$1Token/$APP_TOKEN/" .env 
-    elif [ "$2" == "customScript" ] ; then 
-            chmod u+x $3;
-            sudo sh -c $3;
+    elif [ "$3" == "customScript" ] ; then 
+            chmod u+x $4;
+            sudo sh -c $4;
     fi
+    # global and per app proxy config trigger
     if [ "$PROXY_CONF" == 'true' ] ; then 
         if [ "$PROXY_CONF_ALL" == 'true' ] ; then
             sed -i "s^# $1_HTTP_PROXY=http://proxyUsername:proxyPassword@proxy_url:proxy_port^$1_HTTP_PROXY=$STACK_HTTP_PROXY^" .env ;
@@ -147,6 +167,26 @@ fn_setupApp(){
         sed -i "s^#- $1_HTTPS_PROXY^- HTTPS_PROXY^" $DKCOM_FILENAME ;
         sed -i "s^#- $1_NO_PROXY^- NO_PROXY^" $DKCOM_FILENAME ;
     fi
+    # image architecture adjustments
+    TAG='latest'
+    DKHUBRES=`curl -L -s "https://registry.hub.docker.com/v2/repositories/$2/tags?page=\$page_index&page_size=\$page_size" | jq --arg DKARCH "$DKARCH" '[.results[] | select(.images[].architecture == $DKARCH) | .name]'`
+    TAGSNUMBER=`echo $DKHUBRES | jq '. | length'`
+    if [ $TAGSNUMBER -gt 0 ]; then 
+        echo "there are $TAGSNUMBER tags supporting $DKARCH arch for this image";
+        echo "Let's see if $TAG tag is in there"
+        LATESTPRESENT=`echo $DKHUBRES | jq --arg TAG "$TAG" '[.[] | contains($TAG)] | any'`
+        if [ $LATESTPRESENT == "true" ]; then 
+            echo "ok, $TAG tag present and it supports $DKARCH arch, nothing to do"; 
+        else 
+            echo "$TAG tag does not support $DKARCH arch but other tags do, the newer tag supporting $DKARCH will be selected";
+            NEWTAG=`echo $DKHUBRES | jq -r '.[0]'`;
+            sed -i "s^$2:latest^$2:$NEWTAG^" $DKCOM_FILENAME ;
+
+        fi
+    else 
+        echo "no native image tag found for $DKARCH arch, nothing to do, emulation layer will try to run this app image anyway (make sure it has been installed)"; 
+    fi
+
     read -r -p "$1 configuration complete, press enter to continue to the next app"
 }
 
@@ -207,64 +247,69 @@ fn_setupEnv(){
     clear ;
     fn_setupProxy ;
     clear ;
+    # if not installed, install JQ as it will be used during app config
+    printf "Now a small useful package named JQ used to manage JSON files will be installed if not already present"$'\n'
+    printf "Please, if prompted, enter your sudo password to proceed"$'\n'
+    sudo apt install jq -y
+    clear;
 
     yellowprint "PLEASE REGISTER ON THE PLATFORMS USING THE FOLLOWING LINKS, YOU'LL NEED TO ENTER SOME DATA BELOW:"
     greenprint "Use CTRL+Click to open links or copy them:"
 
-    #EarnApp app env setup
+    # EarnApp app env setup
     CURRENT_APP='EARNAPP';
     cyanprint "Go to $EARNAPP_LNK and register"
     read -r -p "When done, press enter to continue"$'\n'
-    fn_setupApp $CURRENT_APP uuid "$DEVICE_NAME"
+    fn_setupApp $CURRENT_APP $EARNAPP_IMG uuid "$DEVICE_NAME"
 
-    #HoneyGain app env setup
+    # HoneyGain app env setup
     clear;
     CURRENT_APP='HONEYGAIN';
     cyanprint "Go to $HONEYGAIN_LNK and register"
     read -r -p "When done, press enter to continue"$'\n'
-    fn_setupApp $CURRENT_APP email password
+    fn_setupApp $CURRENT_APP $HONEYGAIN_IMG email password
 
     # IPROYALPAWNS app env setup
     clear;
     CURRENT_APP='IPROYALPAWNS'
     cyanprint "Go to $IPROYALPAWNS_LNK and register"
     read -r -p "When done, press enter to continue"$'\n'
-    fn_setupApp $CURRENT_APP email password
+    fn_setupApp $CURRENT_APP $IPROYALPAWNS_IMG email password
 
-    #Peer2Profit app env setup
+    # Peer2Profit app env setup
     clear;
     CURRENT_APP='PEER2PROFIT'
     cyanprint "Go to $PEER2PROFIT_LNK and register"
     read -r -p "When done, press enter to continue"$'\n'
-    fn_setupApp $CURRENT_APP email
+    fn_setupApp $CURRENT_APP $PEER2PROFIT_IMG email
 
-    #PacketStream app env setup
+    # PacketStream app env setup
     clear;
     CURRENT_APP='PACKETSTREAM'
     cyanprint "Go to $PACKETSTREAM_LNK and register"
     read -r -p "When done, press enter to continue"$'\n'
-    fn_setupApp $CURRENT_APP cid
+    fn_setupApp $CURRENT_APP $PACKETSTREAM_IMG cid
 
     # TraffMonetizer app env setup
     clear;
     CURRENT_APP='TRAFFMONETIZER'
     cyanprint "Go to $TRAFFMONETIZER_LNK and register"
     read -r -p "When done, press enter to continue"$'\n'
-    fn_setupApp $CURRENT_APP token
+    fn_setupApp $CURRENT_APP $TRAFFMONETIZER_IMG token
 
     # Repocket app env setup
     clear;
     CURRENT_APP='REPOCKET'
     cyanprint "Go to $REPOCKET_LNK and register"
     read -r -p "When done, press enter to continue"$'\n'
-    fn_setupApp $CURRENT_APP email password
+    fn_setupApp $CURRENT_APP $REPOCKET_IMG email password
 
     # Bitping app env setup
     clear;
     CURRENT_APP='BITPING'
     cyanprint "Go to $BITPING_LNK and register"
     read -r -p "When done, press enter to continue"$'\n'
-    fn_setupApp "$CURRENT_APP" "customScript" "$SCRIPTS_DIR/bitpingSetup.sh"
+    fn_setupApp "$CURRENT_APP" $BITPING_IMG "customScript" "$SCRIPTS_DIR/bitpingSetup.sh"
 
     # Notifications setup
     clear;
@@ -325,6 +370,18 @@ fn_resetDockerCompose(){
 ### Main Menu ##
 mainmenu() {
     clear;
+    printf "MONEY4BAND AUTOMATIC GUIDED SETUP"$'\n'"--------------------------------- "$'\n'
+    ## architecture detection
+    ARCH=`uname -m`
+    if [ "$ARCH" == "x86_64" ]; then 
+        DKARCH='amd64'
+    elif [ "$ARCH" == "aarch64" ]; then
+        DKARCH='arm64'
+    else 
+        DKARCH=$ARCH
+    fi
+    printf "Detected OS architecture $ARCH"$'\n'"Docker $DKARCH image architecture will be used if the app's image permits it"$'\n'"--------------------------------- "$'\n'
+    
     PS3="Select an option and press Enter "
     items=("Show apps' links to register or go to dashboard" "Install Docker" "Setup .env file" "Start apps stack" "Stop apps stack" "Reset .env File" "Reset $DKCOM_FILENAME file")
 
