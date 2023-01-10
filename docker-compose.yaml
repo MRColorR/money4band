@@ -22,7 +22,7 @@ services:
 # HONEYGAIN CONTAINER
   honeygain:
     container_name: honeygain
-    image: honeygain/honeygain
+    image: honeygain/honeygain:latest
     environment:
       - HONEYGAIN_DUMMY=''
       #- HONEYGAIN_HTTP_PROXY= $HONEYGAIN_HTTP_PROXY
@@ -110,7 +110,7 @@ services:
 # WATCHTOWER AUTO-UPDATER AND NOTIFICATIONS
   watchtower:
     container_name: watchtower
-    image: containrrr/watchtower
+    image: containrrr/watchtower:latest
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
@@ -126,7 +126,7 @@ services:
 # WEB DASBOARD
   webdashboard:
     container_name: webdashboard
-    image: fnichol/uhttpd
+    image: fnichol/uhttpd:latest
     volumes:
       - ./www/Money4Band:/www
     ports:
