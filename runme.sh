@@ -36,6 +36,10 @@ readonly RESOURCES_DIR="$PWD/.resources"
 readonly SCRIPTS_DIR="$RESOURCES_DIR/.scripts"
 readonly FILES_DIR="$RESOURCES_DIR/.files"
 
+## Achitecture default
+ARCH='unknown'
+DKARCH='unknown'
+
 ### Proxy config #
 PROXY_CONF='false' ;
 PROXY_CONF_ALL='false' ;
@@ -43,7 +47,7 @@ STACK_HTTP_PROXY='';
 STACK_HTTPS_PROXY='';
 
 ### Functions ##
-fn_bye() { printf "Bye bye."; exit 0; }
+fn_bye() { printf "Bye bye."$'\n'; exit 0; }
 fn_fail() { printf "Wrong option."; exit 1; }
 fn_unknown() { redprint "Unknown choice $REPLY, please choose a valid option";}
 
@@ -325,6 +329,18 @@ fn_resetDockerCompose(){
 ### Main Menu ##
 mainmenu() {
     clear;
+    printf "MONEY4BAND AUTOMATIC GUIDED SETUP"$'\n'"--------------------------------- "$'\n'
+    ## architecture detection
+    ARCH=`uname -m`
+    if [ "$ARCH" == "x86_64" ]; then 
+        DKARCH='amd64'
+    elif ["$ARCH" == "aarch64" ]; then
+        DKARCH='arm64'
+    else 
+        DKARCH=$ARCH
+    fi
+    printf "Detected OS architecture $ARCH"$'\n'"Docker $DKARCH image architecture will be used if the app's image permits it"$'\n'"--------------------------------- "$'\n'
+    
     PS3="Select an option and press Enter "
     items=("Show apps' links to register or go to dashboard" "Install Docker" "Setup .env file" "Start apps stack" "Stop apps stack" "Reset .env File" "Reset $DKCOM_FILENAME file")
 

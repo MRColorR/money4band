@@ -30,6 +30,10 @@ $RESOURCES_DIR = "$pwd\.resources"
 $SCRIPTS_DIR = "$RESOURCES_DIR\.scripts"
 $FILES_DIR = "$RESOURCES_DIR\.files"
 
+## Achitecture default
+$script:ARCH='unknown'
+$script:DKARCH='unknown'
+
 ### Proxy config #
 $script:PROXY_CONF = $false
 $script:PROXY_CONF_ALL = $false
@@ -436,6 +440,20 @@ function fn_resetDockerCompose {
 ### Main Menu ##
 function mainmenu {
     Clear-Host
+    Write-Output "MONEY4BAND AUTOMATIC GUIDED SETUP"
+    Write-Output "--------------------------------- "
+    ## architecture detection
+    $script:ARCH = $env:PROCESSOR_ARCHITECTURE.ToLower()
+    if ($script:ARCH -eq "x86_64") {
+        $script:DKARCH = 'amd64'
+    }elseif ($script:ARCH -eq "aarch64") {
+        $script:DKARCH = 'arm64'
+    }else {
+        $script:DKARCH = $script:ARCH
+    }
+    Write-Output "Detected OS architecture $script:ARCH"
+    Write-Output "Docker $script:DKARCH image architecture will be used if the app's image permits it"
+    Write-Output "--------------------------------- "
     Write-Output "Select an option and press Enter: "
     Write-Output "1) Show apps' links to register or go to dashboard"
     Write-Output "2) Install Docker"
