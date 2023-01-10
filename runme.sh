@@ -183,10 +183,11 @@ fn_setupApp(){
             sed -i "s^$2:latest^$2:$NEWTAG" $DKCOM_FILENAME ;
 
         fi
-        
     else 
         echo "no native image tag found for $DKARCH arch, nothing to do, emulation layer will try to run this app image anyway (make sure it has been installed)"; 
-    fi 
+    fi
+    #every time this image architecture adjustemnt is ran an eplty file named 0 appears, the following line removes it 
+    touch '0' && rm '0'
 
     read -r -p "$1 configuration complete, press enter to continue to the next app"
 }
@@ -249,7 +250,8 @@ fn_setupEnv(){
     fn_setupProxy ;
     clear ;
     # if not installed, install JQ as it will be used during app config
-    printf "Now a small useful package named JQ used to manage JSON files will be installed if not already present"
+    printf "Now a small useful package named JQ used to manage JSON files will be installed if not already present"$'\n'
+    printf "Please, if prompted, enter your sudo password to proceed"$'\n'
     sudo apt install jq -y
     clear;
 
