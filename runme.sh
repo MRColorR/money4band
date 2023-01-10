@@ -171,7 +171,7 @@ fn_setupApp(){
     TAG='latest'
     DKHUBRES=`curl -L -s "https://registry.hub.docker.com/v2/repositories/$2/tags?page=\$page_index&page_size=\$page_size" | jq --arg DKARCH "$DKARCH" '[.results[] | select(.images[].architecture == $DKARCH) | .name]'`
     TAGSNUMBER=`echo $DKHUBRES | jq '. | length'`
-    if [ $TAGSNUMBER > 0 ]; then 
+    if [ $TAGSNUMBER -gt 0 ]; then 
         echo "there are $TAGSNUMBER tags supporting $DKARCH arch for this image";
         echo "Let's see if $TAG tag is in there"
         LATESTPRESENT=`echo $DKHUBRES | jq --arg TAG "$TAG" '[.[] | contains($TAG)] | any'`
@@ -180,14 +180,12 @@ fn_setupApp(){
         else 
             echo "$TAG tag does not support $DKARCH arch but other tags do, the newer tag supporting $DKARCH will be selected";
             NEWTAG=`echo $DKHUBRES | jq -r '.[0]'`;
-            sed -i "s^$2:latest^$2:$NEWTAG" $DKCOM_FILENAME ;
+            sed -i "s^$2:latest^$2:$NEWTAG^" $DKCOM_FILENAME ;
 
         fi
     else 
         echo "no native image tag found for $DKARCH arch, nothing to do, emulation layer will try to run this app image anyway (make sure it has been installed)"; 
     fi
-    #every time this image architecture adjustemnt is ran an eplty file named 0 appears, the following line removes it 
-    touch '0' && rm '0'
 
     read -r -p "$1 configuration complete, press enter to continue to the next app"
 }
