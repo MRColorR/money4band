@@ -16,13 +16,28 @@ cyanprint() { printf "${CYAN}%s${RESET}\n" "$1"; }
 
 ### Links ##
 readonly EARNAPP_LNK="EARNAPP | https://earnapp.com/i/3zulx7k"
+readonly EARNAPP_IMG='fazalfarhan01/earnapp'
+
 readonly HONEYGAIN_LNK="HONEYGAIN | https://r.honeygain.me/MINDL15721"
+readonly HONEYGAIN_IMG='honeygain/honeygain'
+
 readonly IPROYALPAWNS_LNK="IPROYALPAWNS | https://pawns.app?r=MiNe"
+readonly IPROYALPAWNS_IMG='iproyal/pawns-cli'
+
 readonly PACKETSTREAM_LNK="PACKETSTREAM | https://packetstream.io/?psr=3zSD"
+readonly PACKETSTREAM_IMG='packetstream/psclient'
+
 readonly PEER2PROFIT_LNK="PEER2PROFIT | https://p2pr.me/165849012262da8d0aa13c8"
+readonly PEER2PROFIT_IMG='peer2profit/peer2profit_linux'
+
 readonly TRAFFMONETIZER_LNK="TRAFFMONETIZER | https://traffmonetizer.com/?aff=366499"
+readonly TRAFFMONETIZER_IMG='traffmonetizer/cli'
+
 readonly REPOCKET_LNK="REPOCKET | https://link.repocket.co/hr8i"
+readonly REPOCKET_IMG='repocket/repocket'
+
 readonly BITPING_LNK="BITPING | https://app.bitping.com?r=qm7mIuX3"
+readonly BITPING_IMG='bitping/bitping-node'
 
 ### .env File Prototype Link##
 readonly ENV_SRC='https://github.com/MRColorR/money4band/raw/main/.env';
