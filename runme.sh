@@ -144,7 +144,7 @@ fn_setupApp(){
         printf "Enter your %s Token."$'\n' "$1"
         printf "You can find it going in your dashboard https://app.traffmonetizer.com/dashboard then -> Look for Your application token -> just insert it here (you can also copy and then paste it)"$'\n'
         read -r APP_TOKEN
-        sed -i "s/your$1Token/$APP_TOKEN/" .env 
+        sed -i "s^your$1Token^$APP_TOKEN^" .env 
     elif [ "$3" == "customScript" ] ; then 
             chmod u+x $4;
             sudo sh -c $4;
