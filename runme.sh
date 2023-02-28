@@ -146,8 +146,8 @@ fn_setupApp(){
         read -r APP_TOKEN
         sed -i "s^your$1Token^$APP_TOKEN^" .env 
     elif [ "$3" == "customScript" ] ; then 
-            chmod u+x $4;
-            sudo sh -c $4;
+            chmod u+x "$4";
+            eval "sudo sh -c \"$(echo "$4" | sed 's/"/\\"/g' | sed 's/ /\\ /g')\"";
     fi
     # global and per app proxy config trigger
     if [ "$PROXY_CONF" == 'true' ] ; then 
@@ -215,23 +215,23 @@ fn_setupProxy(){
                     PROXY_CONF_ALL='false' ;
                     PROXY_CONF='true' ;
                     blueprint "Ok, later you will be asked for a proxy for each application";;
-                    * ) printf "Please answer yes or no.";;
+                    * ) printf "Please answer yes or no."; fn_setupProxy;;
                 esac
                 # An unique name for the stack is chosen so that even if multiple stacks are started with different proxies the names do not conflict
                 sed -i "s^COMPOSE_PROJECT_NAME=Money4Band^COMPOSE_PROJECT_NAME=Money4Band_$RANDOM^" .env ;;
             [Nn]* ) blueprint "Ok, no proxy added to configuration.";;
-            * ) printf "Please answer yes or no.";;
+            * ) printf "Please answer yes or no."; fn_setupProxy ;;
         esac 
     fi
 }
 
 
 fn_setupEnv(){
-    read -r -p "Do you wish to proceed with the .env file guided setup Y/N? (This will also adapt the $DKCOM_FILENAME file accordingly)" yn
+    read -r -p "Do you wish to proceed with the .env file guided setup Y/N? (This will also adapt the $DKCOM_FILENAME file accordingly)"$'\n' yn
     case $yn in
         [Yy]* ) clear;;
         [Nn]* ) blueprint ".env file setup canceled. Make sure you have a valid .env file before proceeding with the stack startup."; read -r -p "Press Enter to go back to mainmenu"; mainmenu;;
-        * ) printf "Please answer yes or no.";;
+        * ) printf "Please answer yes or no."; fn_setupEnv ;;
     esac
     if ! grep -q "DEVICE_NAME=yourDeviceName" .env  ; then 
         echo "The current .env file appears to have already been modified. A fresh version will be downloaded and used.";
