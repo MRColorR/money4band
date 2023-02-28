@@ -146,9 +146,13 @@ fn_setupApp(){
         read -r APP_TOKEN
         sed -i "s^your$1Token^$APP_TOKEN^" .env 
     elif [ "$3" == "customScript" ] ; then 
-            chmod u+x "$4";
-            eval "sudo sh -c \"$(echo "$4" | sed 's/"/\\"/g' | sed 's/ /\\ /g')\"";
+        #echo "Running script: $4"
+        ESCAPED_PATH="$(echo "$4" | sed 's/"/\\"/g')"
+        #echo "Escaped path: $ESCAPED_PATH"
+        chmod u+x "$ESCAPED_PATH"
+        source "$ESCAPED_PATH"
     fi
+
     # global and per app proxy config trigger
     if [ "$PROXY_CONF" == 'true' ] ; then 
         if [ "$PROXY_CONF_ALL" == 'true' ] ; then
