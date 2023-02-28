@@ -6,3 +6,4 @@ echo "Then when prompted enter your bitping email and password in it. Hit enter 
 read -n 1 -s -r -p "When ready to start, press any key to continue"$'\n'
 sudo docker run --rm -it -v "${PWD}"/.data/.bitping/:/root/.bitping bitping/bitping-node:latest && echo "ok"
 echo "Bitping interactive container closed. Bitping config should be complete now."
+sleep 3
