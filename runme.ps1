@@ -152,7 +152,7 @@ function fn_dockerInstall {
 function fn_setupNotifications() {
     Clear-Host
     Write-Output "This step will setup notifications about containers updates using shoutrrr"
-    Write-Output "Now we will configure a SHOUTRRR_URL that should looks like this <app>://<token>@<webhook> . Where <app> is one of the supported messaging apps supported by shoutrrr (We will use a private discord server as example)."
+    Write-Output "The resulting configured SHOUTRRR_URL should looks like this <app>://<token>@<webhook> . Where <app> is one of the supported messaging apps supported by shoutrrr (E.g. a private Discord server)."
     Write-Output "For more apps and details visit https://containrrr.dev/shoutrrr/, select your desider app (service) and paste the required SHOUTRRR_URL in this script when prompted "
     Read-Host -p "Press enter to proceed and show the discord notification setup example (Remember: you can also use a different supported app, just enter the link correctly)"
     Clear-Host
