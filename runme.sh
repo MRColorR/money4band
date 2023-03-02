@@ -121,13 +121,14 @@ fn_setupApp(){
         read -r APP_EMAIL
         sed -i "s/your$1Mail/$APP_EMAIL/" .env
         if [ "$4" == "password" ] ; then 
-        printf "Now enter your %s Password"$'\n' "$1"
-        read -r APP_PASSWORD 
-        sed -i "s/your$1Pw/$APP_PASSWORD/" .env
+            printf "Now enter your %s Password"$'\n' "$1"
+            read -r APP_PASSWORD 
+            sed -i "s/your$1Pw/$APP_PASSWORD/" .env
+        fi
         if [ "$4" == "apikey" ] ; then 
-        printf "Now enter your %s APIKey"$'\n' "$1"
-        read -r APP_APIKEY 
-        sed -i "s/your$1APIKey/$APP_APIKEY/" .env
+            printf "Now enter your %s APIKey"$'\n' "$1"
+            read -r APP_APIKEY 
+            sed -i "s/your$1APIKey/$APP_APIKEY/" .env
     fi
 
     elif [ "$3" == "uuid" ] ; then
