@@ -416,7 +416,7 @@ mainmenu() {
     fi
     printf "Detected OS architecture $ARCH"$'\n'"Docker $DKARCH image architecture will be used if the app's image permits it"$'\n'"--------------------------------- "$'\n'
     
-    PS3="Select an option and press Enter "
+    PS3="Select an option and press Enter "$'\n'
     items=("Show apps' links to register or go to dashboard" "Install Docker" "Setup .env file" "Start apps stack" "Stop apps stack" "Reset .env File" "Reset $DKCOM_FILENAME file")
 
     select item in "${items[@]}" Quit
