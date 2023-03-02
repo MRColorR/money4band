@@ -132,12 +132,37 @@ fn_setupApp(){
     fi
 
     elif [ "$3" == "uuid" ] ; then
-        printf "generating an UUID for %s"$'\n' "$1"
+        printf "Starting UUID generation/import for %s\n" "$1"
         SALT="$4""$RANDOM"
         UUID="$(echo -n "$SALT" | md5sum | cut -c1-32)"
-        sed -i "s/your$1MD5sum/$UUID/" .env
-        cyanprint "Save the following link somewhere to claim your earnapp node after completing the setup and after starting the apps stack: https://earnapp.com/r/sdk-node-$UUID. A new file containing this link has been created for you"
-        printf "https://earnapp.com/r/sdk-node-%s" "$UUID" > ClaimEarnappNode.txt 
+        printf "(Enter y to import an existing UUID OR Enter n to let the script auto generate a new one) \n"
+        printf "Do you want to use a previously registered sdk-node-uuid for %s? (Y/N)\n" "$1"
+        read -r USE_EXISTING_UUID
+        if [ "$USE_EXISTING_UUID" == "Y" ] || [ "$USE_EXISTING_UUID" == "y" ]; then
+            while true; do
+                printf "Please enter the 32 char long alphanumeric part of the existing sdk-node-uuid for %s:\n" "$1"
+                printf "E.g. if existing registered node is sdk-node-b86301656baefekba8917349bdf0f3g4 then enter just b86301656baefekba8917349bdf0f3g4 \n"
+                read -r EXISTING_UUID
+                if [[ ! "$EXISTING_UUID" =~ ^[a-f0-9]{32}$ ]]; then
+                    redprint "Invalid UUID entered, it should be an md5 hash and 32 characters long."
+                    printf "(Enter y to try again OR Enter n to let the script auto generate a new UUID) \n"
+                    printf "Do you want to try again? (Y/N)\n"
+                    read -r TRY_AGAIN
+                    if [ "$TRY_AGAIN" == "N" ] || [ "$TRY_AGAIN" == "n" ]; then
+                        break
+                    fi
+                else
+                    UUID="$EXISTING_UUID"
+                    break
+                fi
+            done
+        fi
+    sed -i "s/your$1MD5sum/$UUID/" .env
+    printf "%s UUID setup: done\n" "$1"
+    cyanprint "Save the following link somewhere to claim your earnapp node after completing the setup and after starting the apps stack: https://earnapp.com/r/sdk-node-$UUID. A new file containing this link has been created for you"
+    printf "https://earnapp.com/r/sdk-node-%s\n" "$UUID" > ClaimEarnappNode.txt
+
+
 
     elif [ "$3" == "cid" ] ; then 
         printf "Enter your %s CID."$'\n' "$1"
