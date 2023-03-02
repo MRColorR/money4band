@@ -184,6 +184,11 @@ function fn_setupApp() {
             $APP_PASSWORD = Read-Host  
         (Get-Content .\.env).replace("your${CURRENT_APP}Pw", "$APP_PASSWORD") | Set-Content .\.env
         }
+        if ("$SUBTYPE" -eq "apikey" ) { 
+            Write-Output "Now enter your $CURRENT_APP APIKey"
+            $APP_APIKEY = Read-Host  
+        (Get-Content .\.env).replace("your${CURRENT_APP}APIKey", "$APP_APIKEY") | Set-Content .\.env
+        }
     }
     elseif ( "$TYPE" -eq "uuid" ) {
         Write-Output "generating an UUID for $CURRENT_APP"
@@ -348,7 +353,7 @@ function fn_setupEnv {
         $CURRENT_APP = 'REPOCKET';
         Write-Output "Go to $REPOCKET_LNK and register"
         Read-Host -prompt "When done, press enter to continue"
-        fn_setupApp "$CURRENT_APP" "email" "password"
+        fn_setupApp "$CURRENT_APP" "email" "apikey"
     
         # Bitping app env setup
         Clear-Host

@@ -83,7 +83,7 @@ services:
     image: repocket/repocket:latest
     environment:
         - RP_EMAIL=$REPOCKET_EMAIL
-        - RP_PASSWORD=$REPOCKET_PASSWD
+        - RP_API_KEY=$REPOCKET_APIKEY
         #- REPOCKET_HTTP_PROXY= $REPOCKET_HTTP_PROXY
         #- REPOCKET_HTTPS_PROXY= $REPOCKET_HTTPS_PROXY
         #- REPOCKET_NO_PROXY= 'localhost, 127.0.0.0/8'

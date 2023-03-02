@@ -124,6 +124,10 @@ fn_setupApp(){
         printf "Now enter your %s Password"$'\n' "$1"
         read -r APP_PASSWORD 
         sed -i "s/your$1Pw/$APP_PASSWORD/" .env
+        if [ "$4" == "apikey" ] ; then 
+        printf "Now enter your %s APIKey"$'\n' "$1"
+        read -r APP_APIKEY 
+        sed -i "s/your$1APIKey/$APP_APIKEY/" .env
     fi
 
     elif [ "$3" == "uuid" ] ; then
@@ -306,7 +310,7 @@ fn_setupEnv(){
     CURRENT_APP='REPOCKET'
     cyanprint "Go to $REPOCKET_LNK and register"
     read -r -p "When done, press enter to continue"$'\n'
-    fn_setupApp $CURRENT_APP $REPOCKET_IMG email password
+    fn_setupApp $CURRENT_APP $REPOCKET_IMG email apikey
 
     # Bitping app env setup
     clear;
