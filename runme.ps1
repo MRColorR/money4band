@@ -191,15 +191,36 @@ function fn_setupApp() {
         }
     }
     elseif ( "$TYPE" -eq "uuid" ) {
-        Write-Output "generating an UUID for $CURRENT_APP"
+        Write-Output "Starting UUID generation/import for $CURRENT_APP"
         $SALT = "$SUBTYPE$(Get-Random)"
         $md5 = New-Object -TypeName System.Security.Cryptography.MD5CryptoServiceProvider
         $utf8 = New-Object -TypeName System.Text.UTF8Encoding
         $UUID = [System.BitConverter]::ToString($md5.ComputeHash($utf8.GetBytes($SALT))).replace("-", "").ToLower()
+        Write-Output "(Enter y to import an existing UUID OR Enter n to let the script auto generate a new one)"
+        $USE_EXISTING_UUID = Read-Host "Do you want to use a previously registered sdk-node-uuid for $CURRENT_APP? (Y/N)"
+        if ($USE_EXISTING_UUID -eq "Y" -or $USE_EXISTING_UUID -eq "y") {
+            while ($true) {
+                $EXISTING_UUID = Read-Host "Please enter the 32 char long alphanumeric part of the existing sdk-node-uuid for $CURRENT_APP`n(E.g. if existing registered node is sdk-node-b86301656baefekba8917349bdf0f3g4 then enter just b86301656baefekba8917349bdf0f3g4)"
+                if ($EXISTING_UUID -notmatch "^[a-f0-9]{32}$") {
+                    Write-Host "Invalid UUID entered, it should be an md5 hash and 32 characters long." -ForegroundColor Red
+                    Write-Output "(Enter y to try again OR Enter n to let the script auto generate a new UUID)"
+                    $TRY_AGAIN = Read-Host "Do you want to try again? (Y/N)"
+                    if ($TRY_AGAIN -eq "N" -or $TRY_AGAIN -eq "n") {
+                        break
+                    }
+                }
+                else {
+                    $UUID = $EXISTING_UUID
+                    break
+                }
+            }
+        }
         (Get-Content .\.env).replace("your${CURRENT_APP}MD5sum", "$UUID") | Set-Content .\.env
+        Write-Output "$CURRENT_APP UUID setup: done"
         Write-Output "Save the following link somewhere to claim your earnapp node after completing the setup and after starting the apps stack: https://earnapp.com/r/sdk-node-$UUID. A new file containing this link has been created for you"
         Write-Output "https://earnapp.com/r/sdk-node-$UUID" > ClaimEarnappNode.txt 
     }
+    
 
     elseif ("$TYPE" -eq "cid" ) {
         Write-Output "Enter your $CURRENT_APP CID."
