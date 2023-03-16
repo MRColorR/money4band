@@ -36,6 +36,9 @@ readonly TRAFFMONETIZER_IMG='traffmonetizer/cli'
 readonly REPOCKET_LNK="REPOCKET | https://link.repocket.co/hr8i"
 readonly REPOCKET_IMG='repocket/repocket'
 
+readonly PROXYRACK_LNK="PROXYRACK | https://peer.proxyrack.com/ref/myoas6qttvhuvkzh8ffx90ns1ouhwgilfgamo5ex"
+readonly PROXYRACK_IMG='proxyrack/pop'
+
 readonly BITPING_LNK="BITPING | https://app.bitping.com?r=qm7mIuX3"
 readonly BITPING_IMG='bitping/bitping-node'
 
@@ -126,7 +129,7 @@ fn_setupApp(){
             sed -i "s/your$1Pw/$APP_PASSWORD/" .env
         fi
         if [ "$4" == "apikey" ] ; then 
-            printf "Now enter your %s APIKey"$'\n' "$1"
+            printf "Now enter your %s APIKey. You can find/generate it inside your %s dashboard."$'\n' "$1"
             read -r APP_APIKEY 
             sed -i "s/your$1APIKey/$APP_APIKEY/" .env
     fi
@@ -337,6 +340,13 @@ fn_setupEnv(){
     cyanprint "Go to $REPOCKET_LNK and register"
     read -r -p "When done, press enter to continue"$'\n'
     fn_setupApp $CURRENT_APP $REPOCKET_IMG email apikey
+
+    # Proxyrack/pop app env setup
+    clear;
+    CURRENT_APP='PROXYRACK'
+    cyanprint "Go to $PROXYRACK_LNK and register"
+    read -r -p "When done, press enter to continue"$'\n'
+    fn_setupApp $CURRENT_APP $PROXYRACK_IMG email apikey
 
     # Bitping app env setup
     clear;

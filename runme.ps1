@@ -23,6 +23,9 @@ $TRAFFMONETIZER_IMG='traffmonetizer/cli'
 $REPOCKET_LNK = "REPOCKET | https://link.repocket.co/hr8i"
 $REPOCKET_IMG='repocket/repocket'
 
+$PROXYRACK_LNK= "PROXYRACK | https://peer.proxyrack.com/ref/myoas6qttvhuvkzh8ffx90ns1ouhwgilfgamo5ex"
+$PROXYRACK_IMG='proxyrack/pop'
+
 $BITPING_LNK = "BITPING | https://app.bitping.com?r=qm7mIuX3"
 $BITPING_IMG='bitping/bitping-node'
 
@@ -185,7 +188,7 @@ function fn_setupApp() {
         (Get-Content .\.env).replace("your${CURRENT_APP}Pw", "$APP_PASSWORD") | Set-Content .\.env
         }
         if ("$SUBTYPE" -eq "apikey" ) { 
-            Write-Output "Now enter your $CURRENT_APP APIKey"
+            Write-Output "Now enter your $CURRENT_APP APIKey. You can find/generate it inside your $CURRENT_APP dashboard."
             $APP_APIKEY = Read-Host  
         (Get-Content .\.env).replace("your${CURRENT_APP}APIKey", "$APP_APIKEY") | Set-Content .\.env
         }
@@ -373,6 +376,13 @@ function fn_setupEnv {
         Clear-Host
         $CURRENT_APP = 'REPOCKET';
         Write-Output "Go to $REPOCKET_LNK and register"
+        Read-Host -prompt "When done, press enter to continue"
+        fn_setupApp "$CURRENT_APP" "email" "apikey"
+
+        # Proxyrack/pop app env setup
+        Clear-Host
+        $CURRENT_APP = 'PROXYRACK';
+        Write-Output "Go to $PROXYRACK_LNK and register"
         Read-Host -prompt "When done, press enter to continue"
         fn_setupApp "$CURRENT_APP" "email" "apikey"
     
