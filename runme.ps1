@@ -188,7 +188,7 @@ function fn_setupApp() {
         (Get-Content .\.env).replace("your${CURRENT_APP}Pw", "$APP_PASSWORD") | Set-Content .\.env
         }
         if ("$SUBTYPE" -eq "apikey" ) { 
-            Write-Output "Now enter your $CURRENT_APP APIKey. You can find/generate it inside your $CURRENT_APP dashboard."
+            Write-Output "Now enter your $CURRENT_APP APIKey. You can find/generate it inside your $CURRENT_APP dashboard/profile."
             $APP_APIKEY = Read-Host  
         (Get-Content .\.env).replace("your${CURRENT_APP}APIKey", "$APP_APIKEY") | Set-Content .\.env
         }

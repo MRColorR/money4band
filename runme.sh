@@ -129,7 +129,7 @@ fn_setupApp(){
             sed -i "s/your$1Pw/$APP_PASSWORD/" .env
         fi
         if [ "$4" == "apikey" ] ; then 
-            printf "Now enter your %s APIKey. You can find/generate it inside your %s dashboard."$'\n' "$1"
+            printf "Now enter your %s APIKey. You can find/generate it inside your %s dashboard/profile."$'\n' "$1"
             read -r APP_APIKEY 
             sed -i "s/your$1APIKey/$APP_APIKEY/" .env
     fi
