@@ -117,96 +117,112 @@ fn_setupNotifications(){
     clear;
 }
 
-fn_setupApp(){
-    if [ "$3" == "email" ] ; then 
-        printf "Note: If you are using login with google, remember to set also a password for your app account!"$'\n'
-        printf "Enter your %s Email"$'\n' "$1"
-        read -r APP_EMAIL
-        sed -i "s/your$1Mail/$APP_EMAIL/" .env
-        if [ "$4" == "password" ] ; then 
-            printf "Now enter your %s Password"$'\n' "$1"
-            read -r APP_PASSWORD 
-            sed -i "s/your$1Pw/$APP_PASSWORD/" .env
-        fi
-        if [ "$4" == "apikey" ] ; then 
-            printf "Now enter your %s APIKey. You can find/generate it inside your %s dashboard/profile."$'\n' "$1"
-            read -r APP_APIKEY 
-            sed -i "s/your$1APIKey/$APP_APIKEY/" .env
-    fi
-
-    elif [ "$3" == "uuid" ] ; then
-        printf "Starting UUID generation/import for %s\n" "$1"
-        SALT="$4""$RANDOM"
-        UUID="$(echo -n "$SALT" | md5sum | cut -c1-32)"
-        printf "(Enter y to import an existing UUID OR Enter n to let the script auto generate a new one) \n"
-        printf "Do you want to use a previously registered sdk-node-uuid for %s? (Y/N)\n" "$1"
-        read -r USE_EXISTING_UUID
-        if [ "$USE_EXISTING_UUID" == "Y" ] || [ "$USE_EXISTING_UUID" == "y" ]; then
-            while true; do
-                printf "Please enter the 32 char long alphanumeric part of the existing sdk-node-uuid for %s:\n" "$1"
-                printf "E.g. if existing registered node is sdk-node-b86301656baefekba8917349bdf0f3g4 then enter just b86301656baefekba8917349bdf0f3g4 \n"
-                read -r EXISTING_UUID
-                if [[ ! "$EXISTING_UUID" =~ ^[a-f0-9]{32}$ ]]; then
-                    redprint "Invalid UUID entered, it should be an md5 hash and 32 characters long."
-                    printf "(Enter y to try again OR Enter n to let the script auto generate a new UUID) \n"
-                    printf "Do you want to try again? (Y/N)\n"
-                    read -r TRY_AGAIN
-                    if [ "$TRY_AGAIN" == "N" ] || [ "$TRY_AGAIN" == "n" ]; then
-                        break
-                    fi
-                else
-                    UUID="$EXISTING_UUID"
-                    break
+fn_setupApp() {
+    while [[ "$#" -gt 0 ]]; do
+        case $1 in
+            --app)
+                CURRENT_APP="$2"
+                shift
+                ;;
+            --image)
+                APP_IMAGE="$2"
+                shift
+                ;;
+            --email)
+                printf "Note: If you are using login with google, remember to set also a password for your app account!"$'\n'
+                printf "Enter your %s Email"$'\n' "$CURRENT_APP"
+                read -r APP_EMAIL
+                sed -i "s/your$CURRENT_APPMail/$APP_EMAIL/" .env
+                ;;
+            --password)
+                printf "Now enter your %s Password"$'\n' "$CURRENT_APP"
+                read -r APP_PASSWORD
+                sed -i "s/your$CURRENT_APPPw/$APP_PASSWORD/" .env
+                ;;
+            --apikey)
+                printf "Now enter your %s APIKey. You can find/generate it inside your %s dashboard/profile."$'\n' "$CURRENT_APP" "$CURRENT_APP"
+                read -r APP_APIKEY
+                sed -i "s/your$CURRENT_APPAPIKey/$APP_APIKEY/" .env
+                ;;
+            --uuid)
+                printf "Starting UUID generation/import for %s\n" "$CURRENT_APP"
+                SALT="$2""$RANDOM"
+                UUID="$(echo -n "$SALT" | md5sum | cut -c1-32)"
+                printf "(Enter y to import an existing UUID OR Enter n to let the script auto generate a new one) \n"
+                printf "Do you want to use a previously registered sdk-node-uuid for %s? (Y/N)\n" "$CURRENT_APP"
+                read -r USE_EXISTING_UUID
+                if [ "$USE_EXISTING_UUID" == "Y" ] || [ "$USE_EXISTING_UUID" == "y" ]; then
+                    while true; do
+                        printf "Please enter the 32 char long alphanumeric part of the existing sdk-node-uuid for %s:\n" "$CURRENT_APP"
+                        printf "E.g. if existing registered node is sdk-node-b86301656baefekba8917349bdf0f3g4 then enter just b86301656baefekba8917349bdf0f3g4 \n"
+                        read -r EXISTING_UUID
+                        if [[ ! "$EXISTING_UUID" =~ ^[a-f0-9]{32}$ ]]; then
+                            redprint "Invalid UUID entered, it should be an md5 hash and 32 characters long."
+                            printf "(Enter y to try again OR Enter n to let the script auto generate a new UUID) \n"
+                            printf "Do you want to try again? (Y/N)\n"
+                            read -r TRY_AGAIN
+                            if [ "$TRY_AGAIN" == "N" ] || [ "$TRY_AGAIN" == "n" ]; then
+                                break
+                            fi
+                        else
+                            UUID="$EXISTING_UUID"
+                            break
+                        fi
+                    done
                 fi
-            done
-        fi
-    sed -i "s/your$1MD5sum/$UUID/" .env
-    printf "%s UUID setup: done\n" "$1"
-    cyanprint "Save the following link somewhere to claim your earnapp node after completing the setup and after starting the apps stack: https://earnapp.com/r/sdk-node-$UUID. A new file containing this link has been created for you"
-    printf "https://earnapp.com/r/sdk-node-%s\n" "$UUID" > ClaimEarnappNode.txt
+                sed -i "s/your$CURRENT_APPMD5sum/$UUID/" .env
+                printf "%s UUID setup: done\n" "$CURRENT_APP"
+                cyanprint "Save the following link somewhere to claim your earnapp node after completing the setup and after starting the apps stack: https://earnapp.com/r/sdk-node-$UUID. A new file containing this link has been created for you"
+                printf "https://earnapp.com/r/sdk-node-%s\n" "$UUID" > ClaimEarnappNode.txt
+                ;;
+            --cid)
+                printf "Enter your %s CID."$'\n' "$CURRENT_APP"
+                printf "You can find it going in your dashboard https://packetstream.io/dashboard/download?linux# then click on -> Looking for linux app -> now search for CID= in the code shown in the page, you need to enter the code after -e CID= (e.g. if in the code CID=6aTk, just enter 6aTk)"$'\n'
+                read -r APP_CID
+                sed -i "s/your$CURRENT_APPCID/$APP_CID/" .env
+                ;;
+            --token)
+                printf "Enter your %s Token."$'\n' "$CURRENT_APP"
+                printf "You can find it going in your dashboard https://app.traffmonetizer.com/dashboard then -> Look for Your application token -> just insert it here (you can also copy and then paste it)"$'\n'
+                read -r APP_TOKEN
+                sed -i "s^your$CURRENT_APPToken^$APP_TOKEN^" .env
+                ;;
+            --customScript)
+                ESCAPED_PATH="$(echo "$2" | sed 's/"/\\"/g')"
+                chmod u+x "$ESCAPED_PATH"
+                source "$ESCAPED_PATH"
+                shift
+                ;;
+            *)
+                printf "Unknown flag: %s\n" "$1"
+                exit 1
+                ;;
+        esac
+        shift
+    done
 
-
-
-    elif [ "$3" == "cid" ] ; then 
-        printf "Enter your %s CID."$'\n' "$1"
-        printf "You can find it going in your dashboard https://packetstream.io/dashboard/download?linux# then click on -> Looking for linux app -> now search for CID= in the code shown in the page, you need to enter the code after -e CID= (e.g. if in the code CID=6aTk, just enter 6aTk)"$'\n'
-        read -r APP_CID
-        sed -i "s/your$1CID/$APP_CID/" .env 
-
-    elif [ "$3" == "token" ] ; then 
-        printf "Enter your %s Token."$'\n' "$1"
-        printf "You can find it going in your dashboard https://app.traffmonetizer.com/dashboard then -> Look for Your application token -> just insert it here (you can also copy and then paste it)"$'\n'
-        read -r APP_TOKEN
-        sed -i "s^your$1Token^$APP_TOKEN^" .env 
-    elif [ "$3" == "customScript" ] ; then 
-        #echo "Running script: $4"
-        ESCAPED_PATH="$(echo "$4" | sed 's/"/\\"/g')"
-        #echo "Escaped path: $ESCAPED_PATH"
-        chmod u+x "$ESCAPED_PATH"
-        source "$ESCAPED_PATH"
-    fi
-
-    # global and per app proxy config trigger
+    # Global and per app proxy config trigger
     if [ "$PROXY_CONF" == 'true' ] ; then 
         if [ "$PROXY_CONF_ALL" == 'true' ] ; then
-            sed -i "s^# $1_HTTP_PROXY=http://proxyUsername:proxyPassword@proxy_url:proxy_port^$1_HTTP_PROXY=$STACK_HTTP_PROXY^" .env ;
-            sed -i "s^# $1_HTTPS_PROXY=http://proxyUsername:proxyPassword@proxy_url:proxy_port^$1_HTTPS_PROXY=$STACK_HTTPS_PROXY^" .env ;
+            sed -i "s^# $CURRENT_APP_HTTP_PROXY=http://proxyUsername:proxyPassword@proxy_url:proxy_port^$CURRENT_APP_HTTP_PROXY=$STACK_HTTP_PROXY^" .env ;
+            sed -i "s^# $CURRENT_APP_HTTPS_PROXY=http://proxyUsername:proxyPassword@proxy_url:proxy_port^$CURRENT_APP_HTTPS_PROXY=$STACK_HTTPS_PROXY^" .env ;
         else 
-            printf "Insert the designed HTTP proxy to use with %s (also socks5h is supported)."$'\n' "$1"
+            printf "Insert the designed HTTP proxy to use with %s (also socks5h is supported)."$'\n' "$CURRENT_APP"
             read -r APP_HTTP_PROXY
-            printf "Insert the designed HTTPS proxy to use with %s (you can also use the same of the HTTP proxy and also socks5h is supported)."$'\n' "$1";
+            printf "Insert the designed HTTPS proxy to use with %s (you can also use the same of the HTTP proxy and also socks5h is supported)."$'\n' "$CURRENT_APP";
             read -r APP_HTTPS_PROXY
-            sed -i "s^# $1_HTTP_PROXY=http://proxyUsername:proxyPassword@proxy_url:proxy_port^$1_HTTP_PROXY=$APP_HTTP_PROXY^" .env ;
-            sed -i "s^# $1_HTTPS_PROXY=http://proxyUsername:proxyPassword@proxy_url:proxy_port^$1_HTTPS_PROXY=$APP_HTTPS_PROXY^" .env ;
+            sed -i "s^# $CURRENT_APP_HTTP_PROXY=http://proxyUsername:proxyPassword@proxy_url:proxy_port^$CURRENT_APP_HTTP_PROXY=$APP_HTTP_PROXY^" .env ;
+            sed -i "s^# $CURRENT_APP_HTTPS_PROXY=http://proxyUsername:proxyPassword@proxy_url:proxy_port^$CURRENT_APP_HTTPS_PROXY=$APP_HTTPS_PROXY^" .env ;
 
         fi
-        sed -i "s^#- $1_HTTP_PROXY^- HTTP_PROXY^" $DKCOM_FILENAME ;
-        sed -i "s^#- $1_HTTPS_PROXY^- HTTPS_PROXY^" $DKCOM_FILENAME ;
-        sed -i "s^#- $1_NO_PROXY^- NO_PROXY^" $DKCOM_FILENAME ;
+        sed -i "s^#- $CURRENT_APP_HTTP_PROXY^- HTTP_PROXY^" $DKCOM_FILENAME ;
+        sed -i "s^#- $CURRENT_APP_HTTPS_PROXY^- HTTPS_PROXY^" $DKCOM_FILENAME ;
+        sed -i "s^#- $CURRENT_APP_NO_PROXY^- NO_PROXY^" $DKCOM_FILENAME ;
     fi
-    # image architecture adjustments
+
+    # App Docker image architecture adjustments
     TAG='latest'
-    DKHUBRES=`curl -L -s "https://registry.hub.docker.com/v2/repositories/$2/tags?page=\$page_index&page_size=\$page_size" | jq --arg DKARCH "$DKARCH" '[.results[] | select(.images[].architecture == $DKARCH) | .name]'`
+    DKHUBRES=`curl -L -s "https://registry.hub.docker.com/v2/repositories/$APP_IMAGE/tags?page=\$page_index&page_size=\$page_size" | jq --arg DKARCH "$DKARCH" '[.results[] | select(.images[].architecture == $DKARCH) | .name]'`
     TAGSNUMBER=`echo $DKHUBRES | jq '. | length'`
     if [ $TAGSNUMBER -gt 0 ]; then 
         echo "there are $TAGSNUMBER tags supporting $DKARCH arch for this image";
@@ -217,15 +233,16 @@ fn_setupApp(){
         else 
             echo "$TAG tag does not support $DKARCH arch but other tags do, the newer tag supporting $DKARCH will be selected";
             NEWTAG=`echo $DKHUBRES | jq -r '.[0]'`;
-            sed -i "s^$2:latest^$2:$NEWTAG^" $DKCOM_FILENAME ;
+            sed -i "s^$APP_IMAGE:latest^$APP_IMAGE:$NEWTAG^" $DKCOM_FILENAME ;
 
         fi
     else 
         echo "no native image tag found for $DKARCH arch, nothing to do, emulation layer will try to run this app image anyway (make sure it has been installed)"; 
     fi
 
-    read -r -p "$1 configuration complete, press enter to continue to the next app"
+    read -r -p "$CURRENT_APP configuration complete, press enter to continue to the next app"
 }
+
 
 fn_setupProxy(){
     if [ "$PROXY_CONF" == 'false' ] ; then
@@ -262,7 +279,6 @@ fn_setupProxy(){
     fi
 }
 
-
 fn_setupEnv(){
     read -r -p "Do you wish to proceed with the .env file guided setup Y/N? (This will also adapt the $DKCOM_FILENAME file accordingly)"$'\n' yn
     case $yn in
@@ -280,10 +296,10 @@ fn_setupEnv(){
     yellowprint "PLEASE ENTER A NAME FOR YOUR DEVICE:"
     read -r DEVICE_NAME
     sed -i "s/yourDeviceName/$DEVICE_NAME/" .env
-
     clear ;
     fn_setupProxy ;
     clear ;
+
     # if not installed, install JQ as it will be used during app config
     printf "Now a small useful package named JQ used to manage JSON files will be installed if not already present"$'\n'
     printf "Please, if prompted, enter your sudo password to proceed"$'\n'
@@ -297,63 +313,63 @@ fn_setupEnv(){
     CURRENT_APP='EARNAPP';
     cyanprint "Go to $EARNAPP_LNK and register"
     read -r -p "When done, press enter to continue"$'\n'
-    fn_setupApp $CURRENT_APP $EARNAPP_IMG uuid "$DEVICE_NAME"
+    fn_setupApp --app "$CURRENT_APP" --image "$EARNAPP_IMG" --uuid "$DEVICE_NAME"
 
     # HoneyGain app env setup
     clear;
     CURRENT_APP='HONEYGAIN';
     cyanprint "Go to $HONEYGAIN_LNK and register"
     read -r -p "When done, press enter to continue"$'\n'
-    fn_setupApp $CURRENT_APP $HONEYGAIN_IMG email password
+    fn_setupApp --app "$CURRENT_APP" --image "$HONEYGAIN_IMG" --email --password
 
-    # IPROYALPAWNS app env setup
+    # IProyalPawns app env setup
     clear;
     CURRENT_APP='IPROYALPAWNS'
     cyanprint "Go to $IPROYALPAWNS_LNK and register"
     read -r -p "When done, press enter to continue"$'\n'
-    fn_setupApp $CURRENT_APP $IPROYALPAWNS_IMG email password
+    fn_setupApp --app "$CURRENT_APP" --image "$IPROYALPAWNS_IMG" --email --password
 
     # Peer2Profit app env setup
     clear;
     CURRENT_APP='PEER2PROFIT'
     cyanprint "Go to $PEER2PROFIT_LNK and register"
     read -r -p "When done, press enter to continue"$'\n'
-    fn_setupApp $CURRENT_APP $PEER2PROFIT_IMG email
+    fn_setupApp --app "$CURRENT_APP" --image "$PEER2PROFIT_IMG" --email
 
     # PacketStream app env setup
     clear;
     CURRENT_APP='PACKETSTREAM'
     cyanprint "Go to $PACKETSTREAM_LNK and register"
     read -r -p "When done, press enter to continue"$'\n'
-    fn_setupApp $CURRENT_APP $PACKETSTREAM_IMG cid
+    fn_setupApp --app "$CURRENT_APP" --image "$PACKETSTREAM_IMG" --cid
 
     # TraffMonetizer app env setup
     clear;
     CURRENT_APP='TRAFFMONETIZER'
     cyanprint "Go to $TRAFFMONETIZER_LNK and register"
     read -r -p "When done, press enter to continue"$'\n'
-    fn_setupApp $CURRENT_APP $TRAFFMONETIZER_IMG token
+    fn_setupApp --app "$CURRENT_APP" --image "$TRAFFMONETIZER_IMG" --token
 
     # Repocket app env setup
     clear;
     CURRENT_APP='REPOCKET'
     cyanprint "Go to $REPOCKET_LNK and register"
     read -r -p "When done, press enter to continue"$'\n'
-    fn_setupApp $CURRENT_APP $REPOCKET_IMG email apikey
+    fn_setupApp --app "$CURRENT_APP" --image "$REPOCKET_IMG" --email --apikey
 
     # Proxyrack/pop app env setup
     clear;
     CURRENT_APP='PROXYRACK'
     cyanprint "Go to $PROXYRACK_LNK and register"
     read -r -p "When done, press enter to continue"$'\n'
-    fn_setupApp $CURRENT_APP $PROXYRACK_IMG email apikey
+    fn_setupApp --app "$CURRENT_APP" --image "$PROXYRACK_IMG" --email --apikey
 
     # Bitping app env setup
     clear;
     CURRENT_APP='BITPING'
     cyanprint "Go to $BITPING_LNK and register"
     read -r -p "When done, press enter to continue"$'\n'
-    fn_setupApp "$CURRENT_APP" $BITPING_IMG "customScript" "$SCRIPTS_DIR/bitpingSetup.sh"
+    fn_setupApp --app "$CURRENT_APP" --image "$BITPING_IMG" --customScript "$SCRIPTS_DIR/bitpingSetup.sh"
 
     # Notifications setup
     clear;
@@ -446,8 +462,6 @@ mainmenu() {
 }
 
 ### Startup ##
-
-
 while true; do
     mainmenu
 done
