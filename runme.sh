@@ -130,18 +130,19 @@ fn_setupApp() {
                 shift
                 ;;
             --email)
-                printf "Note: If you are using login with google, remember to set also a password for your app account!"$'\n'
-                printf "Enter your %s Email"$'\n' "$CURRENT_APP"
+                printf "Enter your %s Email:"$'\n' "$CURRENT_APP"
                 read -r APP_EMAIL
                 sed -i "s/your$CURRENT_APPMail/$APP_EMAIL/" .env
                 ;;
             --password)
-                printf "Now enter your %s Password"$'\n' "$CURRENT_APP"
+                printf "Note: If you are using login with google, remember to set also a password for your %s account!"$'\n' "$CURRENT_APP"
+                printf "Enter your %s Password:"$'\n' "$CURRENT_APP"
                 read -r APP_PASSWORD
                 sed -i "s/your$CURRENT_APPPw/$APP_PASSWORD/" .env
                 ;;
             --apikey)
-                printf "Now enter your %s APIKey. You can find/generate it inside your %s dashboard/profile."$'\n' "$CURRENT_APP" "$CURRENT_APP"
+                printf "Find/Generate your APIKey inside your %s dashboard/profile."$'\n' "$CURRENT_APP"
+                printf "Enter your %s APIKey:"$'\n' "$CURRENT_APP"
                 read -r APP_APIKEY
                 sed -i "s/your$CURRENT_APPAPIKey/$APP_APIKEY/" .env
                 ;;
@@ -149,33 +150,44 @@ fn_setupApp() {
                 printf "Starting UUID generation/import for %s\n" "$CURRENT_APP"
                 SALT="$2""$RANDOM"
                 UUID="$(echo -n "$SALT" | md5sum | cut -c1-32)"
-                printf "(Enter y to import an existing UUID OR Enter n to let the script auto generate a new one) \n"
-                printf "Do you want to use a previously registered sdk-node-uuid for %s? (Y/N)\n" "$CURRENT_APP"
-                read -r USE_EXISTING_UUID
-                if [ "$USE_EXISTING_UUID" == "Y" ] || [ "$USE_EXISTING_UUID" == "y" ]; then
-                    while true; do
-                        printf "Please enter the 32 char long alphanumeric part of the existing sdk-node-uuid for %s:\n" "$CURRENT_APP"
-                        printf "E.g. if existing registered node is sdk-node-b86301656baefekba8917349bdf0f3g4 then enter just b86301656baefekba8917349bdf0f3g4 \n"
-                        read -r EXISTING_UUID
-                        if [[ ! "$EXISTING_UUID" =~ ^[a-f0-9]{32}$ ]]; then
-                            redprint "Invalid UUID entered, it should be an md5 hash and 32 characters long."
-                            printf "(Enter y to try again OR Enter n to let the script auto generate a new UUID) \n"
-                            printf "Do you want to try again? (Y/N)\n"
-                            read -r TRY_AGAIN
-                            if [ "$TRY_AGAIN" == "N" ] || [ "$TRY_AGAIN" == "n" ]; then
-                                break
-                            fi
-                        else
-                            UUID="$EXISTING_UUID"
+                while true; do
+                    printf "Do you want to use a previously registered sdk-node-uuid for %s? (Y/N)\n" "$CURRENT_APP"
+                    read -r USE_EXISTING_UUID
+                    case $USE_EXISTING_UUID in
+                        [Yy]* )
+                            while true; do
+                                printf "Please enter the 32 char long alphanumeric part of the existing sdk-node-uuid for %s:\n" "$CURRENT_APP"
+                                printf "E.g. if existing registered node is sdk-node-b86301656baefekba8917349bdf0f3g4 then enter just b86301656baefekba8917349bdf0f3g4 \n"
+                                read -r EXISTING_UUID
+                                if [[ ! "$EXISTING_UUID" =~ ^[a-f0-9]{32}$ ]]; then
+                                    redprint "Invalid UUID entered, it should be an md5 hash and 32 characters long."
+                                    printf "Do you want to try again? (Y/N)\n"
+                                    read -r TRY_AGAIN
+                                    case $TRY_AGAIN in
+                                        [Nn]* ) break ;;
+                                        * ) continue ;;
+                                    esac
+                                else
+                                    UUID="$EXISTING_UUID"
+                                    break
+                                fi
+                            done
                             break
-                        fi
-                    done
-                fi
+                            ;;
+                        [Nn]* )
+                            break
+                            ;;
+                        * )
+                            printf "Please answer yes or no.\n"
+                            ;;
+                    esac
+                done
                 sed -i "s/your$CURRENT_APPMD5sum/$UUID/" .env
                 printf "%s UUID setup: done\n" "$CURRENT_APP"
                 cyanprint "Save the following link somewhere to claim your earnapp node after completing the setup and after starting the apps stack: https://earnapp.com/r/sdk-node-$UUID. A new file containing this link has been created for you"
                 printf "https://earnapp.com/r/sdk-node-%s\n" "$UUID" > ClaimEarnappNode.txt
                 ;;
+
             --cid)
                 printf "Enter your %s CID."$'\n' "$CURRENT_APP"
                 printf "You can find it going in your dashboard https://packetstream.io/dashboard/download?linux# then click on -> Looking for linux app -> now search for CID= in the code shown in the page, you need to enter the code after -e CID= (e.g. if in the code CID=6aTk, just enter 6aTk)"$'\n'
