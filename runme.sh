@@ -80,7 +80,8 @@ fn_showLinks(){
                 cyanprint "5) $PEER2PROFIT_LNK";
                 cyanprint "6) $TRAFFMONETIZER_LNK";
                 cyanprint "7) $REPOCKET_LNK";
-                cyanprint "8) $BITPING_LNK";
+                cyanprint "8) $PROXYRACK_LNK";
+                cyanprint "9) $BITPING_LNK";
                 read -r -p "Press enter to go back to mainmenu"
     
     }
