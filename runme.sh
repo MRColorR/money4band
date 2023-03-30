@@ -148,7 +148,8 @@ fn_setupApp() {
                 ;;
             --uuid)
                 printf "Starting UUID generation/import for %s\n" "$CURRENT_APP"
-                SALT="$2""$RANDOM"
+                shift #a shift could be needed here
+                SALT="$1""$RANDOM" # previously it was $2
                 UUID="$(echo -n "$SALT" | md5sum | cut -c1-32)"
                 while true; do
                     printf "Do you want to use a previously registered sdk-node-uuid for %s? (Y/N)\n" "$CURRENT_APP"
@@ -201,10 +202,10 @@ fn_setupApp() {
                 sed -i "s^your$CURRENT_APPToken^$APP_TOKEN^" .env
                 ;;
             --customScript)
-                ESCAPED_PATH="$(echo "$2" | sed 's/"/\\"/g')"
+                shift #a shift should be needed
+                ESCAPED_PATH="$(echo "$1" | sed 's/"/\\"/g')" # previously it was $2
                 chmod u+x "$ESCAPED_PATH"
                 source "$ESCAPED_PATH"
-                shift
                 ;;
             *)
                 printf "Unknown flag: %s\n" "$1"
