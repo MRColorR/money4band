@@ -1,101 +1,86 @@
 #!/bin/bash
 
-### Colors ##
-ESC=$(printf '\033') RESET="${ESC}[0m" RED="${ESC}[31m"
-GREEN="${ESC}[32m" YELLOW="${ESC}[33m" BLUE="${ESC}[34m" MAGENTA="${ESC}[35m"
-CYAN="${ESC}[36m"
+### Colors ###
+ESC=$(printf '\033') RESET="${ESC}[0m"
+declare -A colors=( [GREEN]="${ESC}[32m" [BLUE]="${ESC}[34m" [RED]="${ESC}[31m" [YELLOW]="${ESC}[33m" [MAGENTA]="${ESC}[35m" [CYAN]="${ESC}[36m" )
 
-### Color Functions ##
+### Color Functions ###
+colorprint() { printf "${colors[$1]}%s${RESET}\n" "$2"; }
 
-greenprint() { printf "${GREEN}%s${RESET}\n" "$1"; }
-blueprint() { printf "${BLUE}%s${RESET}\n" "$1"; }
-redprint() { printf "${RED}%s${RESET}\n" "$1"; }
-yellowprint() { printf "${YELLOW}%s${RESET}\n" "$1"; }
-magentaprint() { printf "${MAGENTA}%s${RESET}\n" "$1"; }
-cyanprint() { printf "${CYAN}%s${RESET}\n" "$1"; }
+### Links ###
+declare -A links=(
+    [EARNAPP]="EARNAPP | https://earnapp.com/i/3zulx7k" [EARNAPP_IMG]='fazalfarhan01/earnapp'
+    [HONEYGAIN]="HONEYGAIN | https://r.honeygain.me/MINDL15721" [HONEYGAIN_IMG]='honeygain/honeygain'
+    [IPROYALPAWNS]="IPROYALPAWNS | https://pawns.app?r=MiNe" [IPROYALPAWNS_IMG]='iproyal/pawns-cli'
+    [PACKETSTREAM]="PACKETSTREAM | https://packetstream.io/?psr=3zSD" [PACKETSTREAM_IMG]='packetstream/psclient'
+    [PEER2PROFIT]="PEER2PROFIT | https://p2pr.me/165849012262da8d0aa13c8" [PEER2PROFIT_IMG]='peer2profit/peer2profit_linux'
+    [TRAFFMONETIZER]="TRAFFMONETIZER | https://traffmonetizer.com/?aff=366499" [TRAFFMONETIZER_IMG]='traffmonetizer/cli'
+    [REPOCKET]="REPOCKET | https://link.repocket.co/hr8i" [REPOCKET_IMG]='repocket/repocket'
+    [PROXYRACK]="PROXYRACK | https://peer.proxyrack.com/ref/myoas6qttvhuvkzh8ffx90ns1ouhwgilfgamo5ex" [PROXYRACK_IMG]='proxyrack/pop'
+    [BITPING]="BITPING | https://app.bitping.com?r=qm7mIuX3" [BITPING_IMG]='bitping/bitping-node'
+)
 
-### Links ##
-readonly EARNAPP_LNK="EARNAPP | https://earnapp.com/i/3zulx7k"
-readonly EARNAPP_IMG='fazalfarhan01/earnapp'
+### .env File Prototype Link ###
+readonly ENV_SRC='https://github.com/MRColorR/money4band/raw/main/.env'
 
-readonly HONEYGAIN_LNK="HONEYGAIN | https://r.honeygain.me/MINDL15721"
-readonly HONEYGAIN_IMG='honeygain/honeygain'
-
-readonly IPROYALPAWNS_LNK="IPROYALPAWNS | https://pawns.app?r=MiNe"
-readonly IPROYALPAWNS_IMG='iproyal/pawns-cli'
-
-readonly PACKETSTREAM_LNK="PACKETSTREAM | https://packetstream.io/?psr=3zSD"
-readonly PACKETSTREAM_IMG='packetstream/psclient'
-
-readonly PEER2PROFIT_LNK="PEER2PROFIT | https://p2pr.me/165849012262da8d0aa13c8"
-readonly PEER2PROFIT_IMG='peer2profit/peer2profit_linux'
-
-readonly TRAFFMONETIZER_LNK="TRAFFMONETIZER | https://traffmonetizer.com/?aff=366499"
-readonly TRAFFMONETIZER_IMG='traffmonetizer/cli'
-
-readonly REPOCKET_LNK="REPOCKET | https://link.repocket.co/hr8i"
-readonly REPOCKET_IMG='repocket/repocket'
-
-readonly PROXYRACK_LNK="PROXYRACK | https://peer.proxyrack.com/ref/myoas6qttvhuvkzh8ffx90ns1ouhwgilfgamo5ex"
-readonly PROXYRACK_IMG='proxyrack/pop'
-
-readonly BITPING_LNK="BITPING | https://app.bitping.com?r=qm7mIuX3"
-readonly BITPING_IMG='bitping/bitping-node'
-
-### .env File Prototype Link##
-readonly ENV_SRC='https://github.com/MRColorR/money4band/raw/main/.env';
-
-### docker compose.yaml Prototype Link##
+### docker compose.yaml Prototype Link ###
 readonly DKCOM_FILENAME="docker-compose.yaml"
-readonly DKCOM_SRC="https://github.com/MRColorR/money4band/raw/main/$DKCOM_FILENAME";
+readonly DKCOM_SRC="https://github.com/MRColorR/money4band/raw/main/$DKCOM_FILENAME"
 
-### Resources, Scripts and Files folders
+### Resources, Scripts and Files folders ###
 readonly RESOURCES_DIR="$PWD/.resources"
 readonly SCRIPTS_DIR="$RESOURCES_DIR/.scripts"
 readonly FILES_DIR="$RESOURCES_DIR/.files"
 
-## Achitecture default
+### Architecture default ###
 ARCH='unknown'
 DKARCH='unknown'
 
-### Proxy config #
-PROXY_CONF='false' ;
-PROXY_CONF_ALL='false' ;
-STACK_HTTP_PROXY='';
-STACK_HTTPS_PROXY='';
+### Proxy config ###
+PROXY_CONF='false'
+PROXY_CONF_ALL='false'
+STACK_HTTP_PROXY=''
+STACK_HTTPS_PROXY=''
 
-### Functions ##
-fn_bye() { printf "Bye bye."$'\n'; exit 0; }
+### Functions ###
+fn_bye() { printf "Bye bye.\n"; exit 0; }
 fn_fail() { printf "Wrong option."; exit 1; }
-fn_unknown() { redprint "Unknown choice $REPLY, please choose a valid option";}
+fn_unknown() { colorprint "RED" "Unknown choice $REPLY, please choose a valid option"; }
 
-### Sub-menu Functions ##
-fn_showLinks(){
-    clear;
-    greenprint "Use CTRL+Click to open links or copy them:";
-                cyanprint "1) $EARNAPP_LNK";
-                cyanprint "2) $HONEYGAIN_LNK";
-                cyanprint "3) $IPROYALPAWNS_LNK";
-                cyanprint "4) $PACKETSTREAM_LNK";
-                cyanprint "5) $PEER2PROFIT_LNK";
-                cyanprint "6) $TRAFFMONETIZER_LNK";
-                cyanprint "7) $REPOCKET_LNK";
-                cyanprint "8) $PROXYRACK_LNK";
-                cyanprint "9) $BITPING_LNK";
-                read -r -p "Press enter to go back to mainmenu"
-    
-    }
+### Sub-menu Functions ###
+fn_showLinks() {
+    clear
+    colorprint "GREEN" "Use CTRL+Click to open links or copy them:"
+    for i in {1..9}; do
+        colorprint "CYAN" "$i) ${links[${!links[$i]}]}"
+   
+}
 
-fn_dockerInstall(){
-    yellowprint "This menu item will launch a script that will attempt to install docker"
-    yellowprint "Use it only if you do not know how to perform the manual docker installation described at https://docs.docker.com/get-docker/ as the automatic script in some rare cases and depending on the distros may fail to install docker correctly."
+fn_dockerInstall() {
+    colorprint "YELLOW" "This menu item will launch a script that will attempt to install docker"
+    colorprint "YELLOW" "Use it only if you do not know how to perform the manual docker installation described at https://docs.docker.com/get-docker/ as the automatic script in some rare cases and depending on the distros may fail to install docker correctly."
     read -r -p "Do you wish to proceed with the Docker automatic installation Y/N?  " yn
     case $yn in
-        [Yy]* ) curl -fsSL https://get.docker.com -o "$SCRIPTS_DIR/get-docker.sh"; sudo sh "$SCRIPTS_DIR/get-docker.sh"; greenprint "Docker installed"; mainmenu;;
-        [Nn]* ) blueprint "Docker unattended installation canceled. Make sure you have docker installed before proceeding with the other steps."; read -r -p "Press Enter to go back to mainmenu"; mainmenu;;
-        * ) printf "Please answer yes or no.";;
+        [Yy]* )
+            curl -fsSL https://get.docker.com -o "$SCRIPTS_DIR/get-docker.sh"
+            sudo sh "$SCRIPTS_DIR/get-docker.sh"
+            if [ $? -eq 0 ]; then
+                colorprint "GREEN" "Docker installed"
+                mainmenu
+            else
+                colorprint "RED" "Failed to install Docker automatically. Please try to install Docker manually by following the instructions on Docker website."
+            fi
+            ;;
+        [Nn]* )
+            colorprint "BLUE" "Docker unattended installation canceled. Make sure you have Docker installed before proceeding with the other steps."
+            read -r -p "Press Enter to go back to mainmenu"
+            mainmenu
+            ;;
+        * ) colorprint "RED" "Please answer yes or no."
+            ;;
     esac
 }
+
 
 fn_setupNotifications(){
     clear;
