@@ -46,44 +46,56 @@ STACK_HTTPS_PROXY=''
 ### Functions ###
 fn_bye() { printf "Bye bye.\n"; exit 0; }
 fn_fail() { errorprint "Wrong option."; exit 1; }
-fn_unknown() { errorprint "Unknown choice $REPLY, please choose a valid option"; }
+fn_unknown() { colorprint "RED" "Unknown choice $REPLY, please choose a valid option"; }
 
 
 ### Sub-menu Functions ###
 fn_showLinks() {
     clear
     colorprint "GREEN" "Use CTRL+Click to open links or copy them:"
-    for i in {1..9}; do
-        colorprint "CYAN" "$i) ${links[${!links[$i]}]}"
+    
+    local count=1
+    for key in "${!links[@]}"; do
+        if [[ ! $key =~ .*_IMG$ ]]; then
+            colorprint "CYAN" "$count) ${links[$key]}"
+            count=$((count + 1))
+        fi
     done
+
     read -r -p "Press enter to go back to mainmenu"
 }
+
 
 fn_dockerInstall() {
     colorprint "YELLOW" "This menu item will launch a script that will attempt to install Docker"
     colorprint "YELLOW" "Use it only if you do not know how to perform the manual Docker installation described at https://docs.docker.com/get-docker/ as the automatic script in some rare cases and depending on the distros may fail to install Docker correctly."
-    read -r -p "Do you wish to proceed with the Docker automatic installation Y/N? " yn
-    case $yn in
-        [Yy]* )
-            if curl -fsSL https://get.docker.com -o "$SCRIPTS_DIR/get-docker.sh"; then
-                if sudo sh "$SCRIPTS_DIR/get-docker.sh"; then
-                    colorprint "GREEN" "Docker installed"
-                    mainmenu
+    
+    while true; do
+        read -r -p "Do you wish to proceed with the Docker automatic installation Y/N? " yn
+        case $yn in
+            [Yy]* )
+                if curl -fsSL https://get.docker.com -o "$SCRIPTS_DIR/get-docker.sh"; then
+                    if sudo sh "$SCRIPTS_DIR/get-docker.sh"; then
+                        colorprint "GREEN" "Docker installed"
+                        read -r -p "Press Enter to go back to mainmenu"
+                    else
+                        errorprint "Failed to install Docker automatically. Please try to install Docker manually by following the instructions on Docker website."
+                    fi
                 else
-                    errorprint "Failed to install Docker automatically. Please try to install Docker manually by following the instructions on Docker website."
+                    errorprint "Failed to download the Docker installation script."
                 fi
-            else
-                errorprint "Failed to download the Docker installation script."
-            fi
-            ;;
-        [Nn]* )
-            colorprint "BLUE" "Docker unattended installation canceled. Make sure you have Docker installed before proceeding with the other steps."
-            read -r -p "Press Enter to go back to mainmenu"
-            mainmenu
-            ;;
-        * ) errorprint "Please answer yes or no."
-            ;;
-    esac
+                break
+                ;;
+            [Nn]* )
+                colorprint "BLUE" "Docker unattended installation canceled. Make sure you have Docker installed before proceeding with the other steps."
+                read -r -p "Press Enter to go back to mainmenu"
+                break
+                ;;
+            * )
+                colorprint "RED" "Please answer yes or no."
+                ;;
+        esac
+    done
 }
 
 fn_setupNotifications() {
@@ -101,7 +113,7 @@ fn_setupNotifications() {
     colorprint "PURPLE" "To obtain the SHOUTRRR_URL, rearrange it to look like this: discord://YourToken@YourWebhookid."
     read -r -p "Press enter to proceed."
     clear
-    printf "NOW INSERT BELOW THE LINK FOR NOTIFICATIONS using THE SAME FORMAT WRITTEN ABOVE e.g.: discord://yourToken@yourWebhookid\n"
+    colorprint "YELLOW" "NOW INSERT BELOW THE LINK FOR NOTIFICATIONS using THE SAME FORMAT WRITTEN ABOVE e.g.: discord://yourToken@yourWebhookid"
     read -r SHOUTRRR_URL
     if [[ "$SHOUTRRR_URL" =~ ^[a-zA-Z]+:// ]]; then
         sed -i "s~# SHOUTRRR_URL=yourApp:yourToken@yourWebHook~SHOUTRRR_URL=$SHOUTRRR_URL~" .env
@@ -110,7 +122,7 @@ fn_setupNotifications() {
         sed -i "s~# - WATCHTOWER_NOTIFICATIONS_HOSTNAME~  - WATCHTOWER_NOTIFICATIONS_HOSTNAME~" "$DKCOM_FILENAME"
         read -r -p "Notifications setup complete. If the link is correct, you will receive a notification for each update made on the app container images. Press enter to continue."
     else
-        errorprint "Invalid link format. Please make sure to use the correct format."
+        colorprint "RED" "Invalid link format. Please make sure to use the correct format."
     fi
     clear
 }
@@ -176,7 +188,7 @@ fn_setupApp() {
                             break
                             ;;
                         * )
-                            printf "Please answer yes or no.\n"
+                            colorprint "RED" "Please answer yes or no."
                             ;;
                     esac
                 done
@@ -204,7 +216,7 @@ fn_setupApp() {
                 source "$ESCAPED_PATH"
                 ;;
             *)
-                printf "Unknown flag: %s\n" "$1"
+                colorprint "RED" "Unknown flag: $1"
                 exit 1
                 ;;
         esac
@@ -251,51 +263,65 @@ fi
 read -r -p "$CURRENT_APP configuration complete, press enter to continue to the next app"
 }
 
-
-fn_setupProxy(){
-    if [ "$PROXY_CONF" == 'false' ] ; then
-        read -r -p "Do you wish to use a proxy? Y/N? Note that if you want to run multiple instances of the same app you will need to configure different env files each in different project folders (copy the project to multiple different folders and configure them using different proxies)"$'\n' yn
-        case $yn in
-            [Yy]* ) clear;
-                colorprint "DEFAULT" "Proxy setup started.";
-                read -r -p "Do you wish to use the same proxy for all the apps in this stack? Y/N?" yn ;
-                case $yn in
-                    [Yy]* ) 
-                        colorprint "DEFAULT" "Insert the designed HTTP proxy to use. Eg: http://proxyUsername:proxyPassword@proxy_url:proxy_port or just http://proxy_url:proxy_port if auth is not needed, also socks5h is supported."$'\n';
-                        read -r STACK_HTTP_PROXY;
-                        colorprint "DEFAULT" "Ok, %s will be used as proxy for all apps in this stack" "$STACK_HTTP_PROXY"
-                        read -r -p "Press enter to continue"
-                        clear
-                        colorprint "DEFAULT" "Insert the designed HTTPS proxy to use (you can also use the same of the HTTP proxy), also socks5h is supported."$'\n'
-                        read -r STACK_HTTPS_PROXY;
-                        colorprint "DEFAULT" "Ok, %s will be used as secure proxy for all apps in this stack" "$STACK_HTTPS_PROXY"
-                        read -r -p "Press enter to continue"
-                        PROXY_CONF_ALL='true' ;
-                        PROXY_CONF='true' ;
-                        ;;
-                    [Nn]* ) 
-                    PROXY_CONF_ALL='false' ;
-                    PROXY_CONF='true' ;
-                    colorprint "BLUE" "Ok, later you will be asked for a proxy for each application";;
-                    * ) colorprint "DEFAULT" "Please answer yes or no."; fn_setupProxy;;
-                esac
-                # An unique name for the stack is chosen so that even if multiple stacks are started with different proxies the names do not conflict
-                sed -i "s^COMPOSE_PROJECT_NAME=money4band^COMPOSE_PROJECT_NAME=money4band_$RANDOM^" .env ;;
-            [Nn]* ) colorprint "BLUE" "Ok, no proxy added to configuration.";;
-            * ) colorprint "DEFAULT" "Please answer yes or no."; fn_setupProxy ;;
-        esac 
+fn_setupProxy() {
+    if [ "$PROXY_CONF" == 'false' ]; then
+        while true; do
+            colorprint "YELLOW" "Do you wish to setup a proxy for the apps in this stack Y/N?"
+            read -r -p "Note that if you want to run multiple instances of the same app you will need to configure different env files each in different project folders (copy the project to multiple different folders and configure them using different proxies)"$'\n' yn
+            case $yn in
+                [Yy]* )
+                    clear
+                    colorprint "YELLOW" "Proxy setup started."
+                    while true; do
+                        read -r -p "Do you wish to use the same proxy for all the apps in this stack? Y/N?" yn
+                        case $yn in
+                            [Yy]* )
+                                colorprint "DEFAULT" "Insert the designed HTTP proxy to use. Eg: http://proxyUsername:proxyPassword@proxy_url:proxy_port or just http://proxy_url:proxy_port if auth is not needed, also socks5h is supported."$'\n'
+                                read -r STACK_HTTP_PROXY
+                                colorprint "DEFAULT" "Ok, %s will be used as proxy for all apps in this stack" "$STACK_HTTP_PROXY"
+                                read -r -p "Press enter to continue"
+                                clear
+                                colorprint "DEFAULT" "Insert the designed HTTPS proxy to use (you can also use the same of the HTTP proxy), also socks5h is supported."$'\n'
+                                read -r STACK_HTTPS_PROXY
+                                colorprint "DEFAULT" "Ok, %s will be used as secure proxy for all apps in this stack" "$STACK_HTTPS_PROXY"
+                                read -r -p "Press enter to continue"
+                                PROXY_CONF_ALL='true'
+                                PROXY_CONF='true'
+                                break
+                                ;;
+                            [Nn]* )
+                                PROXY_CONF_ALL='false'
+                                PROXY_CONF='true'
+                                colorprint "BLUE" "Ok, later you will be asked for a proxy for each application"
+                                break
+                                ;;
+                            * ) colorprint "RED" "Please answer yes or no." ;;
+                        esac
+                    done
+                    # An unique name for the stack is chosen so that even if multiple stacks are started with different proxies the names do not conflict
+                    sed -i "s^COMPOSE_PROJECT_NAME=money4band^COMPOSE_PROJECT_NAME=money4band_$RANDOM^" .env
+                    break
+                    ;;
+                [Nn]* )
+                    colorprint "BLUE" "Ok, no proxy added to configuration."
+                    break
+                    ;;
+                * ) colorprint "RED" "Please answer yes or no." ;;
+            esac
+        done
     fi
 }
 
 fn_setupEnv(){
-    read -r -p "Do you wish to proceed with the .env file guided setup Y/N? (This will also adapt the $DKCOM_FILENAME file accordingly)"$'\n' yn
+    colorprint "YELLOW" "Do you wish to proceed with the .env file guided setup Y/N? (This will also adapt the $DKCOM_FILENAME file accordingly)"
+    read -r yn
     case $yn in
         [Yy]* ) clear;;
-        [Nn]* ) colorprint "YELLOW" ".env file setup canceled. Make sure you have a valid .env file before proceeding with the stack startup."; read -r -p "Press Enter to go back to mainmenu"; mainmenu;;
-        * ) printf "Please answer yes or no."; fn_setupEnv ;;
+        [Nn]* ) colorprint "BLUE" ".env file setup canceled. Make sure you have a valid .env file before proceeding with the stack startup."; read -r -p "Press Enter to go back to mainmenu"; mainmenu;;
+        * ) colorprint "RED" "Please answer yes or no."; fn_setupEnv ;;
     esac
     if ! grep -q "DEVICE_NAME=yourDeviceName" .env  ; then 
-        echo "The current .env file appears to have already been modified. A fresh version will be downloaded and used.";
+        colorprint "DEFAULT" "The current .env file appears to have already been modified. A fresh version will be downloaded and used.";
         curl -fsSL $ENV_SRC -o ".env"
         curl -fsSL $DKCOM_SRC -o "$DKCOM_FILENAME"
     fi
