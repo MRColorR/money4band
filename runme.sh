@@ -44,8 +44,13 @@ STACK_HTTP_PROXY=''
 STACK_HTTPS_PROXY=''
 
 ### Functions ###
-fn_bye() { printf "Bye bye.\n"; exit 0; }
+fn_bye(){
+    colorprint "GREEN" "Bye! Share this app with your friends thank you!\n Exiting the application."
+    exit 0
+}
+
 fn_fail() { errorprint "Wrong option."; exit 1; }
+
 fn_unknown() { colorprint "RED" "Unknown choice $REPLY, please choose a valid option"; }
 
 
@@ -139,39 +144,53 @@ fn_setupApp() {
                 shift
                 ;;
             --email)
-                printf "Enter your %s Email:"$'\n' "$CURRENT_APP"
-                read -r APP_EMAIL
-                sed -i "s/your$CURRENT_APPMail/$APP_EMAIL/" .env
+                while true; do
+                    colorprint "DEFAULT" "Enter your %s Email:" "$CURRENT_APP"
+                    read -r APP_EMAIL
+                    if [[ "$APP_EMAIL" =~ ^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z]{2,}$ ]]; then
+                        sed -i "s/your$CURRENT_APPMail/$APP_EMAIL/" .env
+                        break
+                    else
+                        colorprint "RED" "Invalid email address. Please try again."
+                    fi
+                done
                 ;;
             --password)
-                printf "Note: If you are using login with google, remember to set also a password for your %s account!"$'\n' "$CURRENT_APP"
-                printf "Enter your %s Password:"$'\n' "$CURRENT_APP"
-                read -r APP_PASSWORD
-                sed -i "s/your$CURRENT_APPPw/$APP_PASSWORD/" .env
+                while true; do
+                    colorprint "DEFAULT" "Note: If you are using login with Google, remember to set also a password for your %s account!" "$CURRENT_APP"
+                    colorprint "DEFAULT" "Enter your %s Password:" "$CURRENT_APP"
+                    read -r APP_PASSWORD
+                    if [[ -z "$APP_PASSWORD" ]]; then
+                        colorprint "RED" "Password cannot be empty. Please try again."
+                    else
+                        sed -i "s/your$CURRENT_APPPw/$APP_PASSWORD/" .env
+                        break
+                    fi
+                done
                 ;;
             --apikey)
-                printf "Find/Generate your APIKey inside your %s dashboard/profile."$'\n' "$CURRENT_APP"
-                printf "Enter your %s APIKey:"$'\n' "$CURRENT_APP"
+                colorprint "DEFAULT" "Find/Generate your APIKey inside your %s dashboard/profile." "$CURRENT_APP"
+                colorprint "DEFAULT" "Enter your %s APIKey:" "$CURRENT_APP"
                 read -r APP_APIKEY
                 sed -i "s/your$CURRENT_APPAPIKey/$APP_APIKEY/" .env
                 ;;
             --uuid)
-                printf "Starting UUID generation/import for %s\n" "$CURRENT_APP"
-                shift #a shift could be needed here
-                SALT="$1""$RANDOM" # previously it was $2
+                colorprint "DEFAULT" "Starting UUID generation/import for %s" "$CURRENT_APP"
+                shift
+                SALT="$1""$RANDOM"
                 UUID="$(echo -n "$SALT" | md5sum | cut -c1-32)"
                 while true; do
-                    printf "Do you want to use a previously registered sdk-node-uuid for %s? (Y/N)\n" "$CURRENT_APP"
+                    colorprint "DEFAULT" "Do you want to use a previously registered sdk-node-uuid for %s? (Y/N)" "$CURRENT_APP"
                     read -r USE_EXISTING_UUID
                     case $USE_EXISTING_UUID in
                         [Yy]* )
                             while true; do
-                                printf "Please enter the 32 char long alphanumeric part of the existing sdk-node-uuid for %s:\n" "$CURRENT_APP"
-                                printf "E.g. if existing registered node is sdk-node-b86301656baefekba8917349bdf0f3g4 then enter just b86301656baefekba8917349bdf0f3g4 \n"
+                                colorprint "DEFAULT" "Please enter the 32 char long alphanumeric part of the existing sdk-node-uuid for %s:" "$CURRENT_APP"
+                                colorprint "DEFAULT" "E.g. if existing registered node is sdk-node-b86301656baefekba8917349bdf0f3g4 then enter just b86301656baefekba8917349bdf0f3g4"
                                 read -r EXISTING_UUID
                                 if [[ ! "$EXISTING_UUID" =~ ^[a-f0-9]{32}$ ]]; then
-                                    redprint "Invalid UUID entered, it should be an md5 hash and 32 characters long."
-                                    printf "Do you want to try again? (Y/N)\n"
+                                    colorprint "RED" "Invalid UUID entered, it should be an md5 hash and 32 characters long."
+                                    colorprint "DEFAULT" "Do you want to try again? (Y/N)"
                                     read -r TRY_AGAIN
                                     case $TRY_AGAIN in
                                         [Nn]* ) break ;;
@@ -193,25 +212,26 @@ fn_setupApp() {
                     esac
                 done
                 sed -i "s/your$CURRENT_APPMD5sum/$UUID/" .env
-                printf "%s UUID setup: done\n" "$CURRENT_APP"
-                colorprint "CYAN" "Save the following link somewhere to claim your earnapp node after completing the setup and after starting the apps stack: https://earnapp.com/r/sdk-node-$UUID. A new file containing this link has been created for you"                printf "https://earnapp.com/r/sdk-node-%s\n" "$UUID" > ClaimEarnappNode.txt
+                colorprint "DEFAULT" "%s UUID setup: done" "$CURRENT_APP"
+                colorprint "CYAN" "Save the following link somewhere to claim your earnapp node after completing the setup and after starting the apps stack: https://earnapp.com/r/sdk-node-$UUID. A new file containing this link has been created for you"
+                printf "https://earnapp.com/r/sdk-node-%s\n" "$UUID" > ClaimEarnappNode.txt
                 ;;
 
             --cid)
-                printf "Enter your %s CID."$'\n' "$CURRENT_APP"
-                printf "You can find it going in your dashboard https://packetstream.io/dashboard/download?linux# then click on -> Looking for linux app -> now search for CID= in the code shown in the page, you need to enter the code after -e CID= (e.g. if in the code CID=6aTk, just enter 6aTk)"$'\n'
+                colorprint "DEFAULT" "Enter your %s CID." "$CURRENT_APP"
+                colorprint "DEFAULT" "You can find it going in your dashboard https://packetstream.io/dashboard/download?linux# then click on -> Looking for linux app -> now search for CID= in the code shown in the page, you need to enter the code after -e CID= (e.g. if in the code CID=6aTk, just enter 6aTk)"
                 read -r APP_CID
                 sed -i "s/your$CURRENT_APPCID/$APP_CID/" .env
                 ;;
             --token)
-                printf "Enter your %s Token."$'\n' "$CURRENT_APP"
-                printf "You can find it going in your dashboard https://app.traffmonetizer.com/dashboard then -> Look for Your application token -> just insert it here (you can also copy and then paste it)"$'\n'
+                colorprint "DEFAULT" "Enter your %s Token." "$CURRENT_APP"
+                colorprint "DEFAULT" "You can find it going in your dashboard https://app.traffmonetizer.com/dashboard then -> Look for Your application token -> just insert it here (you can also copy and then paste it)"
                 read -r APP_TOKEN
                 sed -i "s^your$CURRENT_APPToken^$APP_TOKEN^" .env
                 ;;
             --customScript)
-                shift #a shift should be needed
-                ESCAPED_PATH="$(echo "$1" | sed 's/"/\\"/g')" # previously it was $2
+                shift
+                ESCAPED_PATH="$(echo "$1" | sed 's/"/\\"/g')"
                 chmod u+x "$ESCAPED_PATH"
                 source "$ESCAPED_PATH"
                 ;;
@@ -223,44 +243,44 @@ fn_setupApp() {
         shift
     done
 
-# Global and per app proxy config trigger
-if [ "$PROXY_CONF" == 'true' ] ; then 
-    if [ "$PROXY_CONF_ALL" == 'true' ] ; then
-        sed -i "s^# $CURRENT_APP_HTTP_PROXY=http://proxyUsername:proxyPassword@proxy_url:proxy_port^$CURRENT_APP_HTTP_PROXY=$STACK_HTTP_PROXY^" .env
-        sed -i "s^# $CURRENT_APP_HTTPS_PROXY=http://proxyUsername:proxyPassword@proxy_url:proxy_port^$CURRENT_APP_HTTPS_PROXY=$STACK_HTTPS_PROXY^" .env
-    else 
-        colorprint "DEFAULT" "Insert the designed HTTP proxy to use with $CURRENT_APP (also socks5h is supported)."
-        read -r APP_HTTP_PROXY
-        colorprint "DEFAULT" "Insert the designed HTTPS proxy to use with $CURRENT_APP (you can also use the same of the HTTP proxy and also socks5h is supported)."
-        read -r APP_HTTPS_PROXY
-        sed -i "s^# $CURRENT_APP_HTTP_PROXY=http://proxyUsername:proxyPassword@proxy_url:proxy_port^$CURRENT_APP_HTTP_PROXY=$APP_HTTP_PROXY^" .env
-        sed -i "s^# $CURRENT_APP_HTTPS_PROXY=http://proxyUsername:proxyPassword@proxy_url:proxy_port^$CURRENT_APP_HTTPS_PROXY=$APP_HTTPS_PROXY^" .env
+    # Global and per app proxy config trigger
+    if [ "$PROXY_CONF" == 'true' ] ; then 
+        if [ "$PROXY_CONF_ALL" == 'true' ] ; then
+            sed -i "s^# $CURRENT_APP_HTTP_PROXY=http://proxyUsername:proxyPassword@proxy_url:proxy_port^$CURRENT_APP_HTTP_PROXY=$STACK_HTTP_PROXY^" .env
+            sed -i "s^# $CURRENT_APP_HTTPS_PROXY=http://proxyUsername:proxyPassword@proxy_url:proxy_port^$CURRENT_APP_HTTPS_PROXY=$STACK_HTTPS_PROXY^" .env
+        else 
+            colorprint "DEFAULT" "Insert the designed HTTP proxy to use with $CURRENT_APP (also socks5h is supported)."
+            read -r APP_HTTP_PROXY
+            colorprint "DEFAULT" "Insert the designed HTTPS proxy to use with $CURRENT_APP (you can also use the same of the HTTP proxy and also socks5h is supported)."
+            read -r APP_HTTPS_PROXY
+            sed -i "s^# $CURRENT_APP_HTTP_PROXY=http://proxyUsername:proxyPassword@proxy_url:proxy_port^$CURRENT_APP_HTTP_PROXY=$APP_HTTP_PROXY^" .env
+            sed -i "s^# $CURRENT_APP_HTTPS_PROXY=http://proxyUsername:proxyPassword@proxy_url:proxy_port^$CURRENT_APP_HTTPS_PROXY=$APP_HTTPS_PROXY^" .env
+        fi
+        sed -i "s^#- $CURRENT_APP_HTTP_PROXY^- HTTP_PROXY^" $DKCOM_FILENAME
+        sed -i "s^#- $CURRENT_APP_HTTPS_PROXY^- HTTPS_PROXY^" $DKCOM_FILENAME
+        sed -i "s^#- $CURRENT_APP_NO_PROXY^- NO_PROXY^" $DKCOM_FILENAME
     fi
-    sed -i "s^#- $CURRENT_APP_HTTP_PROXY^- HTTP_PROXY^" $DKCOM_FILENAME
-    sed -i "s^#- $CURRENT_APP_HTTPS_PROXY^- HTTPS_PROXY^" $DKCOM_FILENAME
-    sed -i "s^#- $CURRENT_APP_NO_PROXY^- NO_PROXY^" $DKCOM_FILENAME
-fi
 
-# App Docker image architecture adjustments
-TAG='latest'
-DKHUBRES=$(curl -L -s "https://registry.hub.docker.com/v2/repositories/$APP_IMAGE/tags?page=\$page_index&page_size=\$page_size" | jq --arg DKARCH "$DKARCH" '[.results[] | select(.images[].architecture == $DKARCH) | .name]')
-TAGSNUMBER=$(echo $DKHUBRES | jq '. | length')
-if [ $TAGSNUMBER -gt 0 ]; then 
-    colorprint "DEFAULT" "There are $TAGSNUMBER tags supporting $DKARCH arch for this image"
-    colorprint "DEFAULT" "Let's see if $TAG tag is in there"
-    LATESTPRESENT=$(echo $DKHUBRES | jq --arg TAG "$TAG" '[.[] | contains($TAG)] | any')
-    if [ $LATESTPRESENT == "true" ]; then 
-        colorprint "DEFAULT" "OK, $TAG tag present and it supports $DKARCH arch, nothing to do"
+    # App Docker image architecture adjustments
+    TAG='latest'
+    DKHUBRES=$(curl -L -s "https://registry.hub.docker.com/v2/repositories/$APP_IMAGE/tags?page=\$page_index&page_size=\$page_size" | jq --arg DKARCH "$DKARCH" '[.results[] | select(.images[].architecture == $DKARCH) | .name]')
+    TAGSNUMBER=$(echo $DKHUBRES | jq '. | length')
+    if [ $TAGSNUMBER -gt 0 ]; then 
+        colorprint "DEFAULT" "There are $TAGSNUMBER tags supporting $DKARCH arch for this image"
+        colorprint "DEFAULT" "Let's see if $TAG tag is in there"
+        LATESTPRESENT=$(echo $DKHUBRES | jq --arg TAG "$TAG" '[.[] | contains($TAG)] | any')
+        if [ $LATESTPRESENT == "true" ]; then 
+            colorprint "DEFAULT" "OK, $TAG tag present and it supports $DKARCH arch, nothing to do"
+        else 
+            colorprint "DEFAULT" "$TAG tag does not support $DKARCH arch but other tags do, the newer tag supporting $DKARCH will be selected"
+            NEWTAG=$(echo $DKHUBRES | jq -r '.[0]')
+            sed -i "s^$APP_IMAGE:latest^$APP_IMAGE:$NEWTAG^" $DKCOM_FILENAME
+        fi
     else 
-        colorprint "DEFAULT" "$TAG tag does not support $DKARCH arch but other tags do, the newer tag supporting $DKARCH will be selected"
-        NEWTAG=$(echo $DKHUBRES | jq -r '.[0]')
-        sed -i "s^$APP_IMAGE:latest^$APP_IMAGE:$NEWTAG^" $DKCOM_FILENAME
+        colorprint "DEFAULT" "No native image tag found for $DKARCH arch, nothing to do, emulation layer will try to run this app image anyway (make sure it has been installed)"
     fi
-else 
-    colorprint "DEFAULT" "No native image tag found for $DKARCH arch, nothing to do, emulation layer will try to run this app image anyway (make sure it has been installed)"
-fi
 
-read -r -p "$CURRENT_APP configuration complete, press enter to continue to the next app"
+    read -r -p "$CURRENT_APP configuration complete, press enter to continue to the next app"
 }
 
 fn_setupProxy() {
@@ -421,50 +441,110 @@ fn_setupEnv(){
 }
 
 fn_startStack(){
-    colorprint "YELLOW" "This menu item will launch all the apps using the configured .env file and the $DKCOM_FILENAME file (Docker must be already installed and running)"
-    read -r -p "Do you wish to proceed Y/N?  " yn
-    case $yn in
-        [Yy]* ) sudo docker compose up -d; colorprint "GREEN" "All Apps started you can visit the web dashboard on http://localhost:8081/ . If not already done use the previously generated earnapp node URL to add your device in your earnapp dashboard. Check the README file for more details."; read -r -p "Now press enter to go back to the menu"; mainmenu;;
-        [Nn]* ) colorprint "BLUE" "Docker stack startup canceled.";read -r -p "Press Enter to go back to mainmenu"; mainmenu;;
-        * ) printf "Please answer yes or no.";;
-    esac
+    while true; do
+        colorprint "YELLOW" "This menu item will launch all the apps using the configured .env file and the $DKCOM_FILENAME file (Docker must be already installed and running)"
+        read -r -p "Do you wish to proceed Y/N?  " yn
+        case $yn in
+            [Yy]* ) 
+                if sudo docker compose up -d; then
+                    colorprint "GREEN" "All Apps started. You can visit the web dashboard on http://localhost:8081/. If not already done, use the previously generated earnapp node URL to add your device in your earnapp dashboard. Check the README file for more details."
+                else
+                    colorprint "RED" "Error starting Docker stack. Please check the configuration and try again."
+                fi
+                read -r -p "Now press enter to go back to the menu"
+                break
+                ;;
+            [Nn]* ) 
+                colorprint "BLUE" "Docker stack startup canceled."
+                read -r -p "Press Enter to go back to mainmenu"
+                break
+                ;;
+            * ) colorprint "RED" "Please answer yes or no.";;
+        esac
+    done
 }
+
 
 fn_stopStack(){
-    colorprint "YELLOW" "This menu item will stop all the apps and delete the docker stack previously created using the configured .env file and the $DKCOM_FILENAME file."
-    colorprint "YELLOW" "You don't need to use this command to temporarily pause apps or to update the stack. Use it only in case of uninstallation!"
-    read -r -p "Do you wish to proceed Y/N?  " yn
-    case $yn in
-        [Yy]* ) sudo docker compose down; colorprint "GREEN" "All Apps stopped and stack deleted."; read -r -p "Now press enter to go back to the menu"; mainmenu;;
-        [Nn]* ) colorprint "BLUE" "Docker stack removal canceled.";read -r -p "Press Enter to go back to mainmenu"; mainmenu;;
-        * ) printf "Please answer yes or no.";;
-    esac
+    while true; do
+        colorprint "YELLOW" "This menu item will stop all the apps and delete the docker stack previously created using the configured .env file and the $DKCOM_FILENAME file."
+        read -r -p "Do you wish to proceed Y/N?  " yn
+        case $yn in
+            [Yy]* ) 
+                if sudo docker compose down; then
+                    colorprint "GREEN" "All Apps stopped and stack deleted."
+                else
+                    colorprint "RED" "Error stopping and deleting Docker stack. Please check the configuration and try again."
+                fi
+                read -r -p "Now press enter to go back to the menu"
+                break
+                ;;
+            [Nn]* ) 
+                colorprint "BLUE" "Docker stack removal canceled."
+                read -r -p "Press Enter to go back to mainmenu"
+                break
+                ;;
+            * ) 
+                colorprint "RED" "Please answer yes or no.";;
+        esac
+    done
 }
 
+
 fn_resetEnv(){
-    colorprint "RED" "Now a fresh env file will be downloaded and will need to be configured to be used again"
-    read -r -p "Do you wish to proceed Y/N?  " yn
-    case $yn in
-        [Yy]* ) curl -fsSL $ENV_SRC -o ".env"; colorprint "GREEN" ".env file resetted, remember to reconfigure it";;
-        [Nn]* ) colorprint "BLUE" ".env file reset canceled. The file is left as it is"; mainmenu;;
-        * ) printf "Please answer yes or no.";;
-    esac
+    while true; do
+        colorprint "RED" "Now a fresh env file will be downloaded and will need to be configured to be used again"
+        read -r -p "Do you wish to proceed Y/N?  " yn
+        case $yn in
+            [Yy]* ) 
+                if curl -fsSL $ENV_SRC -o ".env"; then
+                    colorprint "GREEN" ".env file resetted, remember to reconfigure it"
+                else
+                    colorprint "RED" "Error resetting .env file. Please check your internet connection and try again."
+                fi
+                read -r -p "Press Enter to go back to mainmenu"
+                break
+                ;;
+            [Nn]* ) 
+                colorprint "BLUE" ".env file reset canceled. The file is left as it is"
+                read -r -p "Press Enter to go back to mainmenu"
+                break
+                ;;
+            * ) colorprint "RED" "Please answer yes or no.";;
+        esac
+    done
 }
 
 fn_resetDockerCompose(){
-    colorprint "RED" "Now a fresh $DKCOM_FILENAME file will be downloaded"
-    read -r -p "Do you wish to proceed Y/N?  " yn
-    case $yn in
-        [Yy]* ) curl -fsSL $DKCOM_SRC -o "$DKCOM_FILENAME"; colorprint "GREEN" "$DKCOM_FILENAME file resetted, remember to reconfigure it if needed";;
-        [Nn]* ) colorprint "BLUE" "$DKCOM_FILENAME file reset canceled. The file is left as it is"; mainmenu;;
-        * ) printf "Please answer yes or no.";;
-    esac
+    while true; do
+        colorprint "RED" "Now a fresh $DKCOM_FILENAME file will be downloaded"
+        read -r -p "Do you wish to proceed Y/N?  " yn
+        case $yn in
+            [Yy]* ) 
+                if curl -fsSL $DKCOM_SRC -o "$DKCOM_FILENAME"; then
+                    colorprint "GREEN" "$DKCOM_FILENAME file resetted, remember to reconfigure it if needed"
+                else
+                    colorprint "RED" "Error resetting $DKCOM_FILENAME file. Please check your internet connection and try again."
+                fi
+                read -r -p "Press Enter to go back to mainmenu"
+                break
+                ;;
+            [Nn]* ) 
+                colorprint "BLUE" "$DKCOM_FILENAME file reset canceled. The file is left as it is"
+                read -r -p "Press Enter to go back to mainmenu"
+                break
+                ;;
+            * ) colorprint "RED" "Please answer yes or no.";;
+        esac
+    done
 }
+
+
 
 ### Main Menu ##
 mainmenu() {
     clear
-    colorprint "YELLOW" "MONEY4BAND AUTOMATIC GUIDED SETUP"$'\n'"--------------------------------- "$'\n'
+    colorprint "GREEN" "MONEY4BAND AUTOMATIC GUIDED SETUP"$'\n'"--------------------------------- "$'\n'
     
     # Detect OS architecture
     ARCH=$(uname -m)
@@ -490,7 +570,7 @@ mainmenu() {
             5) clear; fn_stopStack; break;;
             6) clear; fn_resetEnv; break;;
             7) clear; fn_resetDockerCompose; break;;
-            $((${#options[@]}+1))) fn_bye;;
+            $((${#options[@]}+1))) clear; fn_bye;;
             *) clear; fn_unknown; break;;
         esac
     done
