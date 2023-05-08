@@ -45,7 +45,8 @@ STACK_HTTPS_PROXY=''
 
 ### Functions ###
 fn_bye(){
-    colorprint "GREEN" "Bye! Share this app with your friends thank you!\n Exiting the application."
+    colorprint "GREEN" "Share this app with your friends thank you!"
+    colorprint "GREEN" "Exiting the application...Bye!Bye!"
     exit 0
 }
 
@@ -570,7 +571,7 @@ mainmenu() {
             5) clear; fn_stopStack; break;;
             6) clear; fn_resetEnv; break;;
             7) clear; fn_resetDockerCompose; break;;
-            $((${#options[@]}+1))) clear; fn_bye;;
+            ${#options[@]}) clear; fn_bye; break;;
             *) clear; fn_unknown; break;;
         esac
     done
