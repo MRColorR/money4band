@@ -9,17 +9,32 @@ colorprint() { printf "${colors[$1]}%s${DEFAULT}\n" "$2"; }
 errorprint() { printf "%s\n" "$1" >&2; }
 
 ### Links ###
-declare -A links=(
-    [EARNAPP]="EARNAPP | https://earnapp.com/i/3zulx7k" [EARNAPP_IMG]='fazalfarhan01/earnapp'
-    [HONEYGAIN]="HONEYGAIN | https://r.honeygain.me/MINDL15721" [HONEYGAIN_IMG]='honeygain/honeygain'
-    [IPROYALPAWNS]="IPROYALPAWNS | https://pawns.app?r=MiNe" [IPROYALPAWNS_IMG]='iproyal/pawns-cli'
-    [PACKETSTREAM]="PACKETSTREAM | https://packetstream.io/?psr=3zSD" [PACKETSTREAM_IMG]='packetstream/psclient'
-    [PEER2PROFIT]="PEER2PROFIT | https://p2pr.me/165849012262da8d0aa13c8" [PEER2PROFIT_IMG]='peer2profit/peer2profit_linux'
-    [TRAFFMONETIZER]="TRAFFMONETIZER | https://traffmonetizer.com/?aff=366499" [TRAFFMONETIZER_IMG]='traffmonetizer/cli'
-    [REPOCKET]="REPOCKET | https://link.repocket.co/hr8i" [REPOCKET_IMG]='repocket/repocket'
-    [PROXYRACK]="PROXYRACK | https://peer.proxyrack.com/ref/myoas6qttvhuvkzh8ffx90ns1ouhwgilfgamo5ex" [PROXYRACK_IMG]='proxyrack/pop'
-    [BITPING]="BITPING | https://app.bitping.com?r=qm7mIuX3" [BITPING_IMG]='bitping/bitping-node'
-)
+readonly EARNAPP_LNK="EARNAPP | https://earnapp.com/i/3zulx7k"
+readonly EARNAPP_IMG='fazalfarhan01/earnapp'
+
+readonly HONEYGAIN_LNK="HONEYGAIN | https://r.honeygain.me/MINDL15721"
+readonly HONEYGAIN_IMG='honeygain/honeygain'
+
+readonly IPROYALPAWNS_LNK="IPROYALPAWNS | https://pawns.app?r=MiNe"
+readonly IPROYALPAWNS_IMG='iproyal/pawns-cli'
+
+readonly PACKETSTREAM_LNK="PACKETSTREAM | https://packetstream.io/?psr=3zSD"
+readonly PACKETSTREAM_IMG='packetstream/psclient'
+
+readonly PEER2PROFIT_LNK="PEER2PROFIT | https://p2pr.me/165849012262da8d0aa13c8"
+readonly PEER2PROFIT_IMG='peer2profit/peer2profit_linux'
+
+readonly TRAFFMONETIZER_LNK="TRAFFMONETIZER | https://traffmonetizer.com/?aff=366499"
+readonly TRAFFMONETIZER_IMG='traffmonetizer/cli'
+
+readonly REPOCKET_LNK="REPOCKET | https://link.repocket.co/hr8i"
+readonly REPOCKET_IMG='repocket/repocket'
+
+readonly PROXYRACK_LNK="PROXYRACK | https://peer.proxyrack.com/ref/myoas6qttvhuvkzh8ffx90ns1ouhwgilfgamo5ex"
+readonly PROXYRACK_IMG='proxyrack/pop'
+
+readonly BITPING_LNK="BITPING | https://app.bitping.com?r=qm7mIuX3"
+readonly BITPING_IMG='bitping/bitping-node'
 
 ### .env File Prototype Link ###
 readonly ENV_SRC='https://github.com/MRColorR/money4band/raw/main/.env'
@@ -54,19 +69,18 @@ fn_unknown() { colorprint "RED" "Unknown choice $REPLY, please choose a valid op
 
 
 ### Sub-menu Functions ###
-fn_showLinks() {
-    clear
-    colorprint "GREEN" "Use CTRL+Click to open links or copy them:"
-    
-    local count=1
-    for key in "${!links[@]}"; do
-        if [[ ! $key =~ .*_IMG$ ]]; then
-            colorprint "CYAN" "$count) ${links[$key]}"
-            count=$((count + 1))
-        fi
-    done
-
-    read -r -p "Press enter to go back to mainmenu"
+fn_showLinks(){
+    clear;
+    colorprint "GREEN" "Use CTRL+Click to open links or copy them:";
+                colorprint "CYAN" "1) $EARNAPP_LNK";
+                colorprint "CYAN" "2) $HONEYGAIN_LNK";
+                colorprint "CYAN" "3) $IPROYALPAWNS_LNK";
+                colorprint "CYAN" "4) $PACKETSTREAM_LNK";
+                colorprint "CYAN" "5) $PEER2PROFIT_LNK";
+                colorprint "CYAN" "6) $TRAFFMONETIZER_LNK";
+                colorprint "CYAN" "7) $REPOCKET_LNK";
+                colorprint "CYAN" "8) $BITPING_LNK";
+                read -r -p "Press enter to go back to mainmenu"
 }
 
 
@@ -144,9 +158,9 @@ fn_setupApp() {
                 ;;
             --email)
                 while true; do
-                    colorprint "DEFAULT" "Enter your %s Email:" "$CURRENT_APP"
+                    colorprint "DEFAULT" "Enter your $CURRENT_APP Email:"
                     read -r APP_EMAIL
-                    if [[ "$APP_EMAIL" =~ ^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z]{2,}$ ]]; then
+                    if [[ "$APP_EMAIL" =~ ^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[a-zA-Z]{2,}$ ]]; then
                         sed -i "s/your$CURRENT_APPMail/$APP_EMAIL/" .env
                         break
                     else
@@ -156,8 +170,8 @@ fn_setupApp() {
                 ;;
             --password)
                 while true; do
-                    colorprint "DEFAULT" "Note: If you are using login with Google, remember to set also a password for your %s account!" "$CURRENT_APP"
-                    colorprint "DEFAULT" "Enter your %s Password:" "$CURRENT_APP"
+                    colorprint "DEFAULT" "Note: If you are using login with Google, remember to set also a password for your $CURRENT_APP account!"
+                    colorprint "DEFAULT" "Enter your $CURRENT_APP Password:"
                     read -r APP_PASSWORD
                     if [[ -z "$APP_PASSWORD" ]]; then
                         colorprint "RED" "Password cannot be empty. Please try again."
@@ -168,23 +182,23 @@ fn_setupApp() {
                 done
                 ;;
             --apikey)
-                colorprint "DEFAULT" "Find/Generate your APIKey inside your %s dashboard/profile." "$CURRENT_APP"
-                colorprint "DEFAULT" "Enter your %s APIKey:" "$CURRENT_APP"
+                colorprint "DEFAULT" "Find/Generate your APIKey inside your $CURRENT_APP dashboard/profile."
+                colorprint "DEFAULT" "Enter your $CURRENT_APP APIKey:"
                 read -r APP_APIKEY
                 sed -i "s/your$CURRENT_APPAPIKey/$APP_APIKEY/" .env
                 ;;
             --uuid)
-                colorprint "DEFAULT" "Starting UUID generation/import for %s" "$CURRENT_APP"
+                colorprint "DEFAULT" "Starting UUID generation/import for $CURRENT_APP"
                 shift
                 SALT="$1""$RANDOM"
                 UUID="$(echo -n "$SALT" | md5sum | cut -c1-32)"
                 while true; do
-                    colorprint "DEFAULT" "Do you want to use a previously registered sdk-node-uuid for %s? (Y/N)" "$CURRENT_APP"
+                    colorprint "DEFAULT" "Do you want to use a previously registered sdk-node-uuid for $CURRENT_APP? (Y/N)"
                     read -r USE_EXISTING_UUID
                     case $USE_EXISTING_UUID in
                         [Yy]* )
                             while true; do
-                                colorprint "DEFAULT" "Please enter the 32 char long alphanumeric part of the existing sdk-node-uuid for %s:" "$CURRENT_APP"
+                                colorprint "DEFAULT" "Please enter the 32 char long alphanumeric part of the existing sdk-node-uuid for $CURRENT_APP:"
                                 colorprint "DEFAULT" "E.g. if existing registered node is sdk-node-b86301656baefekba8917349bdf0f3g4 then enter just b86301656baefekba8917349bdf0f3g4"
                                 read -r EXISTING_UUID
                                 if [[ ! "$EXISTING_UUID" =~ ^[a-f0-9]{32}$ ]]; then
@@ -211,19 +225,19 @@ fn_setupApp() {
                     esac
                 done
                 sed -i "s/your$CURRENT_APPMD5sum/$UUID/" .env
-                colorprint "DEFAULT" "%s UUID setup: done" "$CURRENT_APP"
+                colorprint "DEFAULT" "$CURRENT_APP UUID setup: done"
                 colorprint "CYAN" "Save the following link somewhere to claim your earnapp node after completing the setup and after starting the apps stack: https://earnapp.com/r/sdk-node-$UUID. A new file containing this link has been created for you"
                 printf "https://earnapp.com/r/sdk-node-%s\n" "$UUID" > ClaimEarnappNode.txt
                 ;;
 
             --cid)
-                colorprint "DEFAULT" "Enter your %s CID." "$CURRENT_APP"
+                colorprint "DEFAULT" "Enter your $CURRENT_APP CID."
                 colorprint "DEFAULT" "You can find it going in your dashboard https://packetstream.io/dashboard/download?linux# then click on -> Looking for linux app -> now search for CID= in the code shown in the page, you need to enter the code after -e CID= (e.g. if in the code CID=6aTk, just enter 6aTk)"
                 read -r APP_CID
                 sed -i "s/your$CURRENT_APPCID/$APP_CID/" .env
                 ;;
             --token)
-                colorprint "DEFAULT" "Enter your %s Token." "$CURRENT_APP"
+                colorprint "DEFAULT" "Enter your $CURRENT_APP Token."
                 colorprint "DEFAULT" "You can find it going in your dashboard https://app.traffmonetizer.com/dashboard then -> Look for Your application token -> just insert it here (you can also copy and then paste it)"
                 read -r APP_TOKEN
                 sed -i "s^your$CURRENT_APPToken^$APP_TOKEN^" .env
@@ -242,18 +256,9 @@ fn_setupApp() {
         shift
     done
 
-    # Global and per app proxy config trigger
-    if [ "$PROXY_CONF" == 'true' ] ; then
-        sed -i "s^# PROXY_STACK=^PROXY_STACK=$PROXY_STACK^" .env
-        sed -i "s^#PROXY_ENABLE^^" $DKCOM_FILENAME
-        sed -i "s^#PROXY_ENABLE^^" $DKCOM_FILENAME
-        sed -i "s^# network_mode^network_mode^" $DKCOM_FILENAME
-
-    fi
-
     # App Docker image architecture adjustments
     TAG='latest'
-    DKHUBRES=$(curl -L -s "https://registry.hub.docker.com/v2/repositories/$APP_IMAGE/tags?page=\$page_index&page_size=\$page_size" | jq --arg DKARCH "$DKARCH" '[.results[] | select(.images[].architecture == $DKARCH) | .name]')
+    DKHUBRES=$(curl -L -s "https://registry.hub.docker.com/v2/repositories/$APP_IMAGE/tags" | jq --arg DKARCH "$DKARCH" '[.results[] | select(.images[].architecture == $DKARCH) | .name]')
     TAGSNUMBER=$(echo $DKHUBRES | jq '. | length')
     if [ $TAGSNUMBER -gt 0 ]; then 
         colorprint "DEFAULT" "There are $TAGSNUMBER tags supporting $DKARCH arch for this image"
@@ -284,13 +289,18 @@ fn_setupProxy() {
                     colorprint "YELLOW" "Proxy setup started."
                     colorprint "DEFAULT" "Insert the designed proxy to use. Eg: protocol://proxyUsername:proxyPassword@proxy_url:proxy_port or just protocol://proxy_url:proxy_port if auth is not needed"
                     read -r STACK_PROXY
-                    colorprint "DEFAULT" "Ok, %s will be used as proxy for all apps in this stack" "$STACK_PROXY"
+                    colorprint "DEFAULT" "Ok, $STACK_PROXY will be used as proxy for all apps in this stack"
                     read -r -p "Press enter to continue"
                     clear
                     PROXY_CONF='true'
                     # An unique name for the stack is chosen so that even if multiple stacks are started with different proxies the names do not conflict
                     sed -i "s^COMPOSE_PROJECT_NAME=money4band^COMPOSE_PROJECT_NAME=money4band_$RANDOM^" .env
                     sed -i "s^DEVICE_NAME=$DEVICE_NAME^DEVICE_NAME=$DEVICE_NAME_$RANDOM^" .env
+                    # uncomment .env and compose file
+                    sed -i "s^# PROXY_STACK=^PROXY_STACK=$PROXY_STACK^" .env
+                    sed -i "s^#PROXY_ENABLE^^" $DKCOM_FILENAME
+                    sed -i "s^#PROXY_ENABLE^^" $DKCOM_FILENAME
+                    sed -i "s^# network_mode^network_mode^" $DKCOM_FILENAME
                     break
                     ;;
                 [Nn]* )
