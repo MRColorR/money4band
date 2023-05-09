@@ -39,9 +39,7 @@ DKARCH='unknown'
 
 ### Proxy config ###
 PROXY_CONF='false'
-PROXY_CONF_ALL='false'
-STACK_HTTP_PROXY=''
-STACK_HTTPS_PROXY=''
+STACK_PROXY=''
 
 ### Functions ###
 fn_bye(){
@@ -245,21 +243,12 @@ fn_setupApp() {
     done
 
     # Global and per app proxy config trigger
-    if [ "$PROXY_CONF" == 'true' ] ; then 
-        if [ "$PROXY_CONF_ALL" == 'true' ] ; then
-            sed -i "s^# $CURRENT_APP_HTTP_PROXY=http://proxyUsername:proxyPassword@proxy_url:proxy_port^$CURRENT_APP_HTTP_PROXY=$STACK_HTTP_PROXY^" .env
-            sed -i "s^# $CURRENT_APP_HTTPS_PROXY=http://proxyUsername:proxyPassword@proxy_url:proxy_port^$CURRENT_APP_HTTPS_PROXY=$STACK_HTTPS_PROXY^" .env
-        else 
-            colorprint "DEFAULT" "Insert the designed HTTP proxy to use with $CURRENT_APP (also socks5h is supported)."
-            read -r APP_HTTP_PROXY
-            colorprint "DEFAULT" "Insert the designed HTTPS proxy to use with $CURRENT_APP (you can also use the same of the HTTP proxy and also socks5h is supported)."
-            read -r APP_HTTPS_PROXY
-            sed -i "s^# $CURRENT_APP_HTTP_PROXY=http://proxyUsername:proxyPassword@proxy_url:proxy_port^$CURRENT_APP_HTTP_PROXY=$APP_HTTP_PROXY^" .env
-            sed -i "s^# $CURRENT_APP_HTTPS_PROXY=http://proxyUsername:proxyPassword@proxy_url:proxy_port^$CURRENT_APP_HTTPS_PROXY=$APP_HTTPS_PROXY^" .env
-        fi
-        sed -i "s^#- $CURRENT_APP_HTTP_PROXY^- HTTP_PROXY^" $DKCOM_FILENAME
-        sed -i "s^#- $CURRENT_APP_HTTPS_PROXY^- HTTPS_PROXY^" $DKCOM_FILENAME
-        sed -i "s^#- $CURRENT_APP_NO_PROXY^- NO_PROXY^" $DKCOM_FILENAME
+    if [ "$PROXY_CONF" == 'true' ] ; then
+        sed -i "s^# PROXY_STACK=^PROXY_STACK=$PROXY_STACK^" .env
+        sed -i "s^#PROXY_ENABLE^^" $DKCOM_FILENAME
+        sed -i "s^#PROXY_ENABLE^^" $DKCOM_FILENAME
+        sed -i "s^# network_mode^network_mode^" $DKCOM_FILENAME
+
     fi
 
     # App Docker image architecture adjustments
@@ -293,34 +282,15 @@ fn_setupProxy() {
                 [Yy]* )
                     clear
                     colorprint "YELLOW" "Proxy setup started."
-                    while true; do
-                        read -r -p "Do you wish to use the same proxy for all the apps in this stack? Y/N?" yn
-                        case $yn in
-                            [Yy]* )
-                                colorprint "DEFAULT" "Insert the designed HTTP proxy to use. Eg: http://proxyUsername:proxyPassword@proxy_url:proxy_port or just http://proxy_url:proxy_port if auth is not needed, also socks5h is supported."$'\n'
-                                read -r STACK_HTTP_PROXY
-                                colorprint "DEFAULT" "Ok, %s will be used as proxy for all apps in this stack" "$STACK_HTTP_PROXY"
-                                read -r -p "Press enter to continue"
-                                clear
-                                colorprint "DEFAULT" "Insert the designed HTTPS proxy to use (you can also use the same of the HTTP proxy), also socks5h is supported."$'\n'
-                                read -r STACK_HTTPS_PROXY
-                                colorprint "DEFAULT" "Ok, %s will be used as secure proxy for all apps in this stack" "$STACK_HTTPS_PROXY"
-                                read -r -p "Press enter to continue"
-                                PROXY_CONF_ALL='true'
-                                PROXY_CONF='true'
-                                break
-                                ;;
-                            [Nn]* )
-                                PROXY_CONF_ALL='false'
-                                PROXY_CONF='true'
-                                colorprint "BLUE" "Ok, later you will be asked for a proxy for each application"
-                                break
-                                ;;
-                            * ) colorprint "RED" "Please answer yes or no." ;;
-                        esac
-                    done
+                    colorprint "DEFAULT" "Insert the designed proxy to use. Eg: protocol://proxyUsername:proxyPassword@proxy_url:proxy_port or just protocol://proxy_url:proxy_port if auth is not needed"
+                    read -r STACK_PROXY
+                    colorprint "DEFAULT" "Ok, %s will be used as proxy for all apps in this stack" "$STACK_PROXY"
+                    read -r -p "Press enter to continue"
+                    clear
+                    PROXY_CONF='true'
                     # An unique name for the stack is chosen so that even if multiple stacks are started with different proxies the names do not conflict
                     sed -i "s^COMPOSE_PROJECT_NAME=money4band^COMPOSE_PROJECT_NAME=money4band_$RANDOM^" .env
+                    sed -i "s^DEVICE_NAME=$DEVICE_NAME^DEVICE_NAME=$DEVICE_NAME_$RANDOM^" .env
                     break
                     ;;
                 [Nn]* )

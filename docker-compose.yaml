@@ -6,28 +6,25 @@
 
 
 services:
+
 # EARNAPP CONTAINER
   earnapp:
     container_name: earnapp
     image: fazalfarhan01/earnapp:lite
     environment:
       - EARNAPP_UUID=$EARNAPP_DEVICE_UUID
-      #- EARNAPP_HTTP_PROXY= $EARNAPP_HTTP_PROXY
-      #- EARNAPP_HTTPS_PROXY= $EARNAPP_HTTPS_PROXY
-      #- EARNAPP_NO_PROXY= 'localhost, 127.0.0.0/8'
     volumes:
       - earnapp-data:/etc/earnapp
+    # network_mode: service:tun2socks
     restart: always
 
 # HONEYGAIN CONTAINER
   honeygain:
     container_name: honeygain
     image: honeygain/honeygain:latest
+    # network_mode: service:tun2socks
     environment:
       - HONEYGAIN_DUMMY=''
-      #- HONEYGAIN_HTTP_PROXY= $HONEYGAIN_HTTP_PROXY
-      #- HONEYGAIN_HTTPS_PROXY= $HONEYGAIN_HTTPS_PROXY
-      #- HONEYGAIN_NO_PROXY= 'localhost, 127.0.0.0/8'
     command: -tou-accept -email $HONEYGAIN_EMAIL -pass $HONEYGAIN_PASSWD -device $DEVICE_NAME
     restart: always
 
@@ -37,10 +34,8 @@ services:
     image: iproyal/pawns-cli:latest
     environment:
       - IPROYALPAWNS_DUMMY=''
-      #- IPROYALPAWNS_HTTP_PROXY= $IPROYALPAWNS_HTTP_PROXY
-      #- IPROYALPAWNS_HTTPS_PROXY= $IPROYALPAWNS_HTTPS_PROXY
-      #- IPROYALPAWNS_NO_PROXY= 'localhost, 127.0.0.0/8'
     command: -accept-tos -email=$IPROYALPAWNS_EMAIL -password=$IPROYALPAWNS_PASSWD -device-name=$DEVICE_NAME
+    # network_mode: service:tun2socks
     restart: always
 
 # PEER2PROFIT CONTAINER
@@ -49,9 +44,7 @@ services:
     image: peer2profit/peer2profit_linux:latest
     environment:
       - P2P_EMAIL=$PEER2PROFIT_EMAIL
-      #- PEER2PROFIT_HTTP_PROXY= $PEER2PROFIT_HTTP_PROXY
-      #- PEER2PROFIT_HTTPS_PROXY= $PEER2PROFIT_HTTPS_PROXY
-      #- PEER2PROFIT_NO_PROXY= 'localhost, 127.0.0.0/8'
+    # network_mode: service:tun2socks
     restart: always
 
 # PACKETSTREAM CONTAINER
@@ -60,9 +53,7 @@ services:
     image: packetstream/psclient:latest
     environment:
       - CID=$PACKETSTREAM_CID
-      #- PACKETSTREAM_HTTP_PROXY= $PACKETSTREAM_HTTP_PROXY
-      #- PACKETSTREAM_HTTPS_PROXY= $PACKETSTREAM_HTTPS_PROXY
-      #- PACKETSTREAM_NO_PROXY= 'localhost, 127.0.0.0/8'
+    # network_mode: service:tun2socks
     restart: always
 
 # TRAFFMONETIZER CONTAINER
@@ -71,10 +62,8 @@ services:
     image: traffmonetizer/cli:latest
     environment:
       - TRAFFMONETIZER_DUMMY=''
-      #- TRAFFMONETIZER_HTTP_PROXY= $TRAFFMONETIZER_HTTP_PROXY
-      #- TRAFFMONETIZER_HTTPS_PROXY= $TRAFFMONETIZER_HTTPS_PROXY
-      #- TRAFFMONETIZER_NO_PROXY= 'localhost, 127.0.0.0/8'
     command: start accept status --token $TRAFFMONETIZER_TOKEN --device-name $DEVICE_NAME
+    # network_mode: service:tun2socks
     restart: always
 
 # REPOCKET CONTAINER
@@ -84,9 +73,7 @@ services:
     environment:
         - RP_EMAIL=$REPOCKET_EMAIL
         - RP_API_KEY=$REPOCKET_APIKEY
-        #- REPOCKET_HTTP_PROXY= $REPOCKET_HTTP_PROXY
-        #- REPOCKET_HTTPS_PROXY= $REPOCKET_HTTPS_PROXY
-        #- REPOCKET_NO_PROXY= 'localhost, 127.0.0.0/8'
+    # network_mode: service:tun2socks
     restart: always
 
 # PROXYRACK CONTAINER
@@ -97,9 +84,7 @@ services:
         - pr_email=$PROXYRACK_EMAIL
         - api_key=$PROXYRACK_APIKEY
         - device_name=$DEVICE_NAME
-        #- PROXYRACK_HTTP_PROXY= $PROXYRACK_HTTP_PROXY
-        #- PROXYRACK_HTTPS_PROXY= $PROXYRACK_HTTPS_PROXY
-        #- PROXYRACK_NO_PROXY= 'localhost, 127.0.0.0/8'
+    # network_mode: service:tun2socks
     restart: always
 
 # BITPING CONTAINER 
@@ -109,17 +94,29 @@ services:
     image: bitping/bitping-node:latest
     environment:
       - BITPING_DUMMY=''
-      #- BITPING_HTTP_PROXY= $BITPING_HTTP_PROXY
-      #- BITPING_HTTPS_PROXY= $BITPING_HTTPS_PROXY
-      #- BITPING_NO_PROXY= 'localhost, 127.0.0.0/8'
     volumes:
       # You have 2 options
       - ./.data/.bitping:/root/.bitping # Bind an host folder to the container (more insecure but simplier to port and backup) this option mount a new identity or a backed up one from the host file system
       # OR
       #- bitping-data:/root/.bitping # if you use this also uncomment the relative volume in volumes section, this  Use docker volumes (more secure harder to access, backup and restore) you'll need to do backups using 'docker cp
+    # network_mode: service:tun2socks
     restart: always
-      
-      
+
+# TUN2SOCKS CONTAINER
+  #PROXY_ENABLE tun2socks:
+  #PROXY_ENABLE   image: xjasonlyu/tun2socks
+  #PROXY_ENABLE   container_name: tun2socks
+  #PROXY_ENABLE   restart: always
+  #PROXY_ENABLE   command: ["/bin/sh", "-c", "echo 'nameserver 1.1.1.1\nnameserver 8.8.8.8' > /etc/resolv.conf"]
+  #PROXY_ENABLE   environment:
+  #PROXY_ENABLE     - LOGLEVEL=info
+  #PROXY_ENABLE     - PROXY=$PROXY_STACK
+  #PROXY_ENABLE     - TUN_EXCLUDED_ROUTES=1.1.1.1,1.0.0.1,208.67.222.222,208.67.220.220,8.8.8.8,8.8.4.4,169.254.169.254,4.2.2.4
+  #PROXY_ENABLE   volumes:
+  #PROXY_ENABLE     - '/dev/net/tun:/dev/net/tun'
+  #PROXY_ENABLE   cap_add:
+  #PROXY_ENABLE     - NET_ADMIN
+
 # WATCHTOWER AUTO-UPDATER AND NOTIFICATIONS
   watchtower:
     container_name: watchtower
@@ -147,5 +144,5 @@ services:
     restart: always
         
 volumes:
-    earnapp-data:
-    #bitping-data: # uncomment this if in bitping volumes you choose to use docker volumes instead of binding an host folder
+  earnapp-data:
+  #bitping-data: # uncomment this if in bitping volumes you choose to use docker volumes instead of binding an host folder
