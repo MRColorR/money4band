@@ -158,10 +158,10 @@ fn_setupApp() {
                 ;;
             --email)
                 while true; do
-                    colorprint "DEFAULT" "Enter your $CURRENT_APP Email:"
+                    colorprint "DEFAULT" "Enter your ${CURRENT_APP} Email:"
                     read -r APP_EMAIL
                     if [[ "$APP_EMAIL" =~ ^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[a-zA-Z]{2,}$ ]]; then
-                        sed -i "s/your$CURRENT_APPMail/$APP_EMAIL/" .env
+                        sed -i "s/your${CURRENT_APP}Mail/$APP_EMAIL/" .env
                         break
                     else
                         colorprint "RED" "Invalid email address. Please try again."
@@ -170,35 +170,35 @@ fn_setupApp() {
                 ;;
             --password)
                 while true; do
-                    colorprint "DEFAULT" "Note: If you are using login with Google, remember to set also a password for your $CURRENT_APP account!"
-                    colorprint "DEFAULT" "Enter your $CURRENT_APP Password:"
+                    colorprint "DEFAULT" "Note: If you are using login with Google, remember to set also a password for your ${CURRENT_APP} account!"
+                    colorprint "DEFAULT" "Enter your ${CURRENT_APP} Password:"
                     read -r APP_PASSWORD
                     if [[ -z "$APP_PASSWORD" ]]; then
                         colorprint "RED" "Password cannot be empty. Please try again."
                     else
-                        sed -i "s/your$CURRENT_APPPw/$APP_PASSWORD/" .env
+                        sed -i "s/your${CURRENT_APP}Pw/$APP_PASSWORD/" .env
                         break
                     fi
                 done
                 ;;
             --apikey)
-                colorprint "DEFAULT" "Find/Generate your APIKey inside your $CURRENT_APP dashboard/profile."
-                colorprint "DEFAULT" "Enter your $CURRENT_APP APIKey:"
+                colorprint "DEFAULT" "Find/Generate your APIKey inside your ${CURRENT_APP} dashboard/profile."
+                colorprint "DEFAULT" "Enter your ${CURRENT_APP} APIKey:"
                 read -r APP_APIKEY
-                sed -i "s/your$CURRENT_APPAPIKey/$APP_APIKEY/" .env
+                sed -i "s/your${CURRENT_APP}APIKey/$APP_APIKEY/" .env
                 ;;
             --uuid)
-                colorprint "DEFAULT" "Starting UUID generation/import for $CURRENT_APP"
+                colorprint "DEFAULT" "Starting UUID generation/import for ${CURRENT_APP}"
                 shift
                 SALT="$1""$RANDOM"
                 UUID="$(echo -n "$SALT" | md5sum | cut -c1-32)"
                 while true; do
-                    colorprint "DEFAULT" "Do you want to use a previously registered sdk-node-uuid for $CURRENT_APP? (Y/N)"
+                    colorprint "DEFAULT" "Do you want to use a previously registered sdk-node-uuid for ${CURRENT_APP}? (Y/N)"
                     read -r USE_EXISTING_UUID
                     case $USE_EXISTING_UUID in
                         [Yy]* )
                             while true; do
-                                colorprint "DEFAULT" "Please enter the 32 char long alphanumeric part of the existing sdk-node-uuid for $CURRENT_APP:"
+                                colorprint "DEFAULT" "Please enter the 32 char long alphanumeric part of the existing sdk-node-uuid for ${CURRENT_APP}:"
                                 colorprint "DEFAULT" "E.g. if existing registered node is sdk-node-b86301656baefekba8917349bdf0f3g4 then enter just b86301656baefekba8917349bdf0f3g4"
                                 read -r EXISTING_UUID
                                 if [[ ! "$EXISTING_UUID" =~ ^[a-f0-9]{32}$ ]]; then
@@ -224,23 +224,23 @@ fn_setupApp() {
                             ;;
                     esac
                 done
-                sed -i "s/your$CURRENT_APPMD5sum/$UUID/" .env
-                colorprint "DEFAULT" "$CURRENT_APP UUID setup: done"
+                sed -i "s/your${CURRENT_APP}MD5sum/$UUID/" .env
+                colorprint "DEFAULT" "${CURRENT_APP} UUID setup: done"
                 colorprint "CYAN" "Save the following link somewhere to claim your earnapp node after completing the setup and after starting the apps stack: https://earnapp.com/r/sdk-node-$UUID. A new file containing this link has been created for you"
                 printf "https://earnapp.com/r/sdk-node-%s\n" "$UUID" > ClaimEarnappNode.txt
                 ;;
 
             --cid)
-                colorprint "DEFAULT" "Enter your $CURRENT_APP CID."
+                colorprint "DEFAULT" "Enter your ${CURRENT_APP} CID."
                 colorprint "DEFAULT" "You can find it going in your dashboard https://packetstream.io/dashboard/download?linux# then click on -> Looking for linux app -> now search for CID= in the code shown in the page, you need to enter the code after -e CID= (e.g. if in the code CID=6aTk, just enter 6aTk)"
                 read -r APP_CID
-                sed -i "s/your$CURRENT_APPCID/$APP_CID/" .env
+                sed -i "s/your${CURRENT_APP}CID/$APP_CID/" .env
                 ;;
             --token)
-                colorprint "DEFAULT" "Enter your $CURRENT_APP Token."
+                colorprint "DEFAULT" "Enter your ${CURRENT_APP} Token."
                 colorprint "DEFAULT" "You can find it going in your dashboard https://app.traffmonetizer.com/dashboard then -> Look for Your application token -> just insert it here (you can also copy and then paste it)"
                 read -r APP_TOKEN
-                sed -i "s^your$CURRENT_APPToken^$APP_TOKEN^" .env
+                sed -i "s^your${CURRENT_APP}Token^$APP_TOKEN^" .env
                 ;;
             --customScript)
                 shift
@@ -275,7 +275,7 @@ fn_setupApp() {
         colorprint "DEFAULT" "No native image tag found for $DKARCH arch, nothing to do, emulation layer will try to run this app image anyway (make sure it has been installed)"
     fi
 
-    read -r -p "$CURRENT_APP configuration complete, press enter to continue to the next app"
+    read -r -p "${CURRENT_APP} configuration complete, press enter to continue to the next app"
 }
 
 fn_setupProxy() {
@@ -287,15 +287,15 @@ fn_setupProxy() {
                 [Yy]* )
                     clear
                     colorprint "YELLOW" "Proxy setup started."
+                    readonly RANDOM_VALUE=$RANDOM
                     colorprint "DEFAULT" "Insert the designed proxy to use. Eg: protocol://proxyUsername:proxyPassword@proxy_url:proxy_port or just protocol://proxy_url:proxy_port if auth is not needed"
                     read -r STACK_PROXY
                     colorprint "DEFAULT" "Ok, $STACK_PROXY will be used as proxy for all apps in this stack"
                     read -r -p "Press enter to continue"
-                    clear
                     PROXY_CONF='true'
                     # An unique name for the stack is chosen so that even if multiple stacks are started with different proxies the names do not conflict
-                    sed -i "s^COMPOSE_PROJECT_NAME=money4band^COMPOSE_PROJECT_NAME=money4band_$RANDOM^" .env
-                    sed -i "s^DEVICE_NAME=$DEVICE_NAME^DEVICE_NAME=$DEVICE_NAME_$RANDOM^" .env
+                    sed -i "s^COMPOSE_PROJECT_NAME=money4band^COMPOSE_PROJECT_NAME=money4band_$RANDOM_VALUE^" .env
+                    sed -i "s^DEVICE_NAME=$DEVICE_NAME^DEVICE_NAME=$DEVICE_NAME$RANDOM_VALUE^" .env
                     # uncomment .env and compose file
                     sed -i "s^# PROXY_STACK=^PROXY_STACK=$PROXY_STACK^" .env
                     sed -i "s^#PROXY_ENABLE^^" $DKCOM_FILENAME
@@ -314,13 +314,22 @@ fn_setupProxy() {
 }
 
 fn_setupEnv(){
-    colorprint "YELLOW" "Do you wish to proceed with the .env file guided setup Y/N? (This will also adapt the $DKCOM_FILENAME file accordingly)"
-    read -r yn
-    case $yn in
-        [Yy]* ) clear;;
-        [Nn]* ) colorprint "BLUE" ".env file setup canceled. Make sure you have a valid .env file before proceeding with the stack startup."; read -r -p "Press Enter to go back to mainmenu"; mainmenu;;
-        * ) colorprint "RED" "Please answer yes or no."; fn_setupEnv ;;
-    esac
+    while true; do
+        colorprint "YELLOW" "Do you wish to proceed with the .env file guided setup Y/N? (This will also adapt the $DKCOM_FILENAME file accordingly)"
+        read -r yn
+        case $yn in
+            [Yy]* ) 
+                clear
+                break
+                ;;
+            [Nn]* ) 
+                colorprint "BLUE" ".env file setup canceled. Make sure you have a valid .env file before proceeding with the stack startup."
+                read -r -p "Press Enter to go back to mainmenu"
+                break
+                ;;
+            * ) colorprint "RED" "Please answer yes or no."
+        esac
+    done
     if ! grep -q "DEVICE_NAME=yourDeviceName" .env  ; then 
         colorprint "DEFAULT" "The current .env file appears to have already been modified. A fresh version will be downloaded and used.";
         curl -fsSL $ENV_SRC -o ".env"
@@ -348,63 +357,63 @@ fn_setupEnv(){
     CURRENT_APP='EARNAPP';
     colorprint "CYAN" "Go to $EARNAPP_LNK and register"
     read -r -p "When done, press enter to continue"$'\n'
-    fn_setupApp --app "$CURRENT_APP" --image "$EARNAPP_IMG" --uuid "$DEVICE_NAME"
+    fn_setupApp --app "${CURRENT_APP}" --image "$EARNAPP_IMG" --uuid "$DEVICE_NAME"
 
     # HoneyGain app env setup
     clear;
     CURRENT_APP='HONEYGAIN';
     colorprint "CYAN" "Go to $HONEYGAIN_LNK and register"
     read -r -p "When done, press enter to continue"$'\n'
-    fn_setupApp --app "$CURRENT_APP" --image "$HONEYGAIN_IMG" --email --password
+    fn_setupApp --app "${CURRENT_APP}" --image "$HONEYGAIN_IMG" --email --password
 
     # IProyalPawns app env setup
     clear;
     CURRENT_APP='IPROYALPAWNS'
     colorprint "CYAN" "Go to $IPROYALPAWNS_LNK and register"
     read -r -p "When done, press enter to continue"$'\n'
-    fn_setupApp --app "$CURRENT_APP" --image "$IPROYALPAWNS_IMG" --email --password
+    fn_setupApp --app "${CURRENT_APP}" --image "$IPROYALPAWNS_IMG" --email --password
 
     # Peer2Profit app env setup
     clear;
     CURRENT_APP='PEER2PROFIT'
     colorprint "CYAN" "Go to $PEER2PROFIT_LNK and register"
     read -r -p "When done, press enter to continue"$'\n'
-    fn_setupApp --app "$CURRENT_APP" --image "$PEER2PROFIT_IMG" --email
+    fn_setupApp --app "${CURRENT_APP}" --image "$PEER2PROFIT_IMG" --email
 
     # PacketStream app env setup
     clear;
     CURRENT_APP='PACKETSTREAM'
     colorprint "CYAN" "Go to $PACKETSTREAM_LNK and register"
     read -r -p "When done, press enter to continue"$'\n'
-    fn_setupApp --app "$CURRENT_APP" --image "$PACKETSTREAM_IMG" --cid
+    fn_setupApp --app "${CURRENT_APP}" --image "$PACKETSTREAM_IMG" --cid
 
     # TraffMonetizer app env setup
     clear;
     CURRENT_APP='TRAFFMONETIZER'
     colorprint "CYAN" "Go to $TRAFFMONETIZER_LNK and register"
     read -r -p "When done, press enter to continue"$'\n'
-    fn_setupApp --app "$CURRENT_APP" --image "$TRAFFMONETIZER_IMG" --token
+    fn_setupApp --app "${CURRENT_APP}" --image "$TRAFFMONETIZER_IMG" --token
 
     # Repocket app env setup
     clear;
     CURRENT_APP='REPOCKET'
     colorprint "CYAN" "Go to $REPOCKET_LNK and register"
     read -r -p "When done, press enter to continue"$'\n'
-    fn_setupApp --app "$CURRENT_APP" --image "$REPOCKET_IMG" --email --apikey
+    fn_setupApp --app "${CURRENT_APP}" --image "$REPOCKET_IMG" --email --apikey
 
     # Proxyrack/pop app env setup
     clear;
     CURRENT_APP='PROXYRACK'
     colorprint "CYAN" "Go to $PROXYRACK_LNK and register"
     read -r -p "When done, press enter to continue"$'\n'
-    fn_setupApp --app "$CURRENT_APP" --image "$PROXYRACK_IMG" --email --apikey
+    fn_setupApp --app "${CURRENT_APP}" --image "$PROXYRACK_IMG" --email --apikey
 
     # Bitping app env setup
     clear;
     CURRENT_APP='BITPING'
     colorprint "CYAN" "Go to $BITPING_LNK and register"
     read -r -p "When done, press enter to continue"$'\n'
-    fn_setupApp --app "$CURRENT_APP" --image "$BITPING_IMG" --customScript "$SCRIPTS_DIR/bitpingSetup.sh"
+    fn_setupApp --app "${CURRENT_APP}" --image "$BITPING_IMG" --customScript "$SCRIPTS_DIR/bitpingSetup.sh"
 
     # Notifications setup
     clear;
