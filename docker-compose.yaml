@@ -103,18 +103,18 @@ services:
     restart: always
 
 # TUN2SOCKS CONTAINER
-  tun2socks:
-    image: xjasonlyu/tun2socks
-    container_name: tun2socks
-    restart: always
-    command: ["/bin/sh", "-c", "echo 'nameserver 1.1.1.1\nnameserver 8.8.8.8' > /etc/resolv.conf && ip rule add iif lo proto 17 dport 53 lookup main && ip rule add iif lo proto 17 dport 3478 lookup main"]
-    environment:
-      - LOGLEVEL=info
-      - PROXY=$PROXY_STACK
-    volumes:
-      - '/dev/net/tun:/dev/net/tun'
-    cap_add:
-      - NET_ADMIN
+ #PROXY_ENABLE tun2socks:
+ #PROXY_ENABLE   image: xjasonlyu/tun2socks
+ #PROXY_ENABLE   container_name: tun2socks
+ #PROXY_ENABLE   restart: always
+ #PROXY_ENABLE   command: ["/bin/sh", "-c", "echo 'nameserver 1.1.1.1\nnameserver 8.8.8.8' > /etc/resolv.conf && ip rule add iif lo proto 17 dport 53 lookup main && ip rule add iif lo proto 17 dport 3478 lookup main"]
+ #PROXY_ENABLE   environment:
+ #PROXY_ENABLE     - LOGLEVEL=info
+ #PROXY_ENABLE     - PROXY=$PROXY_STACK
+ #PROXY_ENABLE   volumes:
+ #PROXY_ENABLE     - '/dev/net/tun:/dev/net/tun'
+ #PROXY_ENABLE   cap_add:
+ #PROXY_ENABLE     - NET_ADMIN
 
 # WATCHTOWER AUTO-UPDATER AND NOTIFICATIONS
   watchtower:
