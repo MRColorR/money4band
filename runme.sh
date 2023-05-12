@@ -8,7 +8,7 @@ declare -A colors=( [GREEN]="${ESC}[32m" [BLUE]="${ESC}[34m" [RED]="${ESC}[31m" 
 colorprint() { printf "${colors[$1]}%s${DEFAULT}\n" "$2"; }
 errorprint() { printf "%s\n" "$1" >&2; }
 
-### Links ###
+### Links and apps images ###
 readonly EARNAPP_LNK="EARNAPP | https://earnapp.com/i/3zulx7k"
 readonly EARNAPP_IMG='fazalfarhan01/earnapp'
 
@@ -48,6 +48,7 @@ readonly DKCOM_SRC="https://github.com/MRColorR/money4band/raw/main/$DKCOM_FILEN
 
 ### Resources, Scripts and Files folders ###
 readonly RESOURCES_DIR="$PWD/.resources"
+readonly CONFIG_DIR="$RESOURCES_DIR/.configs"
 readonly SCRIPTS_DIR="$RESOURCES_DIR/.scripts"
 readonly FILES_DIR="$RESOURCES_DIR/.files"
 
@@ -74,18 +75,91 @@ fn_unknown() { colorprint "RED" "Unknown choice $REPLY, please choose a valid op
 ### Sub-menu Functions ###
 fn_showLinks(){
     clear;
-    colorprint "GREEN" "Use CTRL+Click to open links or copy them:";
-                colorprint "CYAN" "1) $EARNAPP_LNK";
-                colorprint "CYAN" "2) $HONEYGAIN_LNK";
-                colorprint "CYAN" "3) $IPROYALPAWNS_LNK";
-                colorprint "CYAN" "4) $PACKETSTREAM_LNK";
-                colorprint "CYAN" "5) $PEER2PROFIT_LNK";
-                colorprint "CYAN" "6) $TRAFFMONETIZER_LNK";
-                colorprint "CYAN" "7) $REPOCKET_LNK";
-                colorprint "CYAN" "8) $BITPING_LNK";
-                read -r -p "Press enter to go back to mainmenu"
+    colorprint "GREEN" "Use CTRL+Click to open links or copy them:"
+    apps=$(jq -c '.apps[]' "$CONFIG_DIR/config.json")
+    index=1
+    for app in $apps; do
+        name=$(echo "$app" | jq -r '.name')
+        link=$(echo "$app" | jq -r '.link')
+        colorprint "CYAN" "$index) $name | $link"
+        ((index++))
+    done
+    read -r -p "Press enter to go back to mainmenu"
 }
 
+fn_install_packages() {
+    REQUIRED_PACKAGES=("$@")
+
+    # Debian, Ubuntu and their derivatives use 'apt' package manager
+    if command -v apt &> /dev/null ; then
+        for package in "${REQUIRED_PACKAGES[@]}"
+        do
+            if ! dpkg -l | grep -q "^ii  $package"; then
+                echo "$package is not installed. Trying to install now..."
+                if ! sudo apt install -y $package; then
+                    echo "Failed to install $package. Please install it manually."
+                fi
+            else
+                echo "$package is already installed."
+            fi
+        done
+    # Red Hat, CentOS and their derivatives use 'yum' or 'dnf' package manager
+    elif command -v yum &> /dev/null || command -v dnf &> /dev/null ; then
+        PKG_MANAGER=$(command -v yum || command -v dnf)
+        for package in "${REQUIRED_PACKAGES[@]}"
+        do
+            if ! rpm -q $package &> /dev/null; then
+                echo "$package is not installed. Trying to install now..."
+                if ! sudo $PKG_MANAGER install -y $package; then
+                    echo "Failed to install $package. Please install it manually."
+                fi
+            else
+                echo "$package is already installed."
+            fi
+        done
+    # Arch Linux and its derivatives use 'pacman' package manager
+    elif command -v pacman &> /dev/null ; then
+        for package in "${REQUIRED_PACKAGES[@]}"
+        do
+            if ! pacman -Q $package &> /dev/null; then
+                echo "$package is not installed. Trying to install now..."
+                if ! sudo pacman -S --noconfirm $package; then
+                    echo "Failed to install $package. Please install it manually."
+                fi
+            else
+                echo "$package is already installed."
+            fi
+        done
+    # openSUSE and its derivatives use 'zypper' package manager
+    elif command -v zypper &> /dev/null ; then
+        for package in "${REQUIRED_PACKAGES[@]}"
+        do
+            if ! rpm -q $package &> /dev/null; then
+                echo "$package is not installed. Trying to install now..."
+                if ! sudo zypper install -y $package; then
+                    echo "Failed to install $package. Please install it manually."
+                fi
+            else
+                echo "$package is already installed."
+            fi
+        done
+    # Gentoo and its derivatives use 'emerge' package manager
+    elif command -v emerge &> /dev/null ; then
+        for package in "${REQUIRED_PACKAGES[@]}"
+        do
+            if ! qlist -I "$package" &> /dev/null; then
+                echo "$package is not installed. Trying to install now..."
+                if ! sudo emerge --ask n $package; then
+                    echo "Failed to install $package. Please install it manually."
+                fi
+            else
+                echo "$package is already installed."
+            fi
+        done
+    else
+        echo "Unsupported package manager. Please install the required packages manually."
+    fi
+}
 
 fn_dockerInstall() {
     colorprint "YELLOW" "This menu item will launch a script that will attempt to install Docker"
@@ -281,7 +355,9 @@ fn_setupApp() {
             sed -i "s^$APP_IMAGE:latest^$APP_IMAGE:$NEWTAG^" $DKCOM_FILENAME
         fi
     else 
-        colorprint "DEFAULT" "No native image tag found for $DKARCH arch, nothing to do, emulation layer will try to run this app image anyway (make sure it has been installed)"
+        colorprint "DEFAULT" "No native image tag found for $DKARCH arch, emulation layer will try to run this app image anyway."
+        colorprint "DEFAULT" "If an emulation layer is not already installed, the script will try to install it now. Please privide your sudo password if prompted."
+        fn_install_packages qemu binfmt-support qemu-user-static
     fi
 
     read -r -p "${CURRENT_APP} configuration complete, press enter to continue to the next app"
@@ -352,12 +428,6 @@ fn_setupEnv(){
     clear ;
     fn_setupProxy ;
     clear ;
-
-    # if not installed, install JQ as it will be used during app config
-    colorprint "YELLOW" "Now a small useful package named JQ used to manage JSON files will be installed if not already present"$'\n'
-    colorprint "YELLOW" "Please, if prompted, enter your sudo password to proceed"$'\n'
-    sudo apt install jq -y
-    clear;
 
     colorprint "YELLOW" "PLEASE REGISTER ON THE PLATFORMS USING THE FOLLOWING LINKS, YOU'LL NEED TO ENTER SOME DATA BELOW:"
     colorprint "GREEN" "Use CTRL+Click to open links or copy them:"
@@ -550,7 +620,21 @@ fn_resetDockerCompose(){
 ### Main Menu ##
 mainmenu() {
     clear
-    colorprint "GREEN" "MONEY4BAND AUTOMATIC GUIDED SETUP"$'\n'"--------------------------------- "$'\n'
+    colorprint "GREEN" "MONEY4BAND AUTOMATIC GUIDED SETUP"$'\n'"--------------------------------- "
+    colorprint "YELLOW" "Checking dependencies..."
+
+    # Check if jq is installed
+    if ! command -v jq &> /dev/null; then
+        colorprint "YELLOW" "Now a small useful package named JQ used to manage JSON files will be installed if not already present"
+        colorprint "YELLOW" "Please, if prompted, enter your sudo password to proceed"$'\n'
+        
+        fn_install_packages jq
+    else
+        colorprint "BLUE" "Done, script ready to go"
+    fi
+
+    clear
+    colorprint "GREEN" "MONEY4BAND AUTOMATIC GUIDED SETUP"$'\n'"--------------------------------- "
     
     # Detect OS architecture
     ARCH=$(uname -m)
@@ -564,7 +648,7 @@ mainmenu() {
     colorprint "DEFAULT" "Detected OS architecture $ARCH"$'\n'"Docker $DKARCH image architecture will be used if the app's image permits it"$'\n'"--------------------------------- "$'\n'
     
     PS3="Select an option and press Enter "$'\n'
-    options=("Show apps' links to register or go to dashboard" "Install Docker" "Setup .env file" "Start apps stack" "Stop apps stack" "Reset .env File" "Reset $DKCOM_FILENAME file" "Quit")
+    options=("Show supported apps' links" "Install Docker" "Setup .env file" "Start apps stack" "Stop apps stack" "Reset .env File" "Reset $DKCOM_FILENAME file" "Quit")
 
     select option in "${options[@]}"
     do
