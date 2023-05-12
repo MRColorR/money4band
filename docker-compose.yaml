@@ -87,6 +87,15 @@ services:
     # network_mode: service:tun2socks
     restart: always
 
+# PROXYLITE CONTAINER
+  proxylite:
+    container_name: proxylite
+    image: proxylite/proxyservice:latest
+    environment:
+      - USER_ID=$PROXYLITE_USER_ID
+    # network_mode: service:tun2socks
+    restart: always
+
 # BITPING CONTAINER 
  # !!For this app you'll need a one-time operation to claim your node: the first time if you do not have a backup of your identity you will need to enter manually your credentials to initialize it use : sudo docker run --rm -it -v ${PWD}/.data/.bitping/:/root/.bitping bitping/bitping-node:latest , then enter your credential , once this is done CTRL+C to end container and then if using bind folder just use docker compose to restart it as always, if you use the docker volume mount it in the previous comamnd or copy the created credentials in the volume using ' docker cp ${PWD}/.data/.bitping bitping:/root/' or just mount the volume in the interactive temporary container
   bitping:
@@ -107,7 +116,7 @@ services:
  #PROXY_ENABLE   image: xjasonlyu/tun2socks
  #PROXY_ENABLE   container_name: tun2socks
  #PROXY_ENABLE   restart: always
- #PROXY_ENABLE   command: ["/bin/sh", "-c", "echo 'nameserver 1.1.1.1\nnameserver 8.8.8.8' > /etc/resolv.conf && ip rule add iif lo proto 17 dport 53 lookup main && ip rule add iif lo proto 17 dport 3478 lookup main"]
+ #PROXY_ENABLE   command: ["/bin/sh", "-c", "echo 'nameserver 1.1.1.1\nnameserver 8.8.8.8' > /etc/resolv.conf && ip rule add iif lo ipproto udp dport 53 lookup main && ip rule add iif lo ipproto udp dport 3478 lookup main"]
  #PROXY_ENABLE   environment:
  #PROXY_ENABLE     - LOGLEVEL=info
  #PROXY_ENABLE     - PROXY=$PROXY_STACK

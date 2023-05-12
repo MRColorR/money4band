@@ -36,6 +36,9 @@ readonly PROXYRACK_IMG='proxyrack/pop'
 readonly BITPING_LNK="BITPING | https://app.bitping.com?r=qm7mIuX3"
 readonly BITPING_IMG='bitping/bitping-node'
 
+readonly PROXYLITE_LNK="PROXYLITE | https://proxylite.ru/?r=PJTKXWN3"
+readonly PROXYLITE_IMG='proxylite/proxyservice'
+
 ### .env File Prototype Link ###
 readonly ENV_SRC='https://github.com/MRColorR/money4band/raw/main/.env'
 
@@ -186,6 +189,12 @@ fn_setupApp() {
                 colorprint "DEFAULT" "Enter your ${CURRENT_APP} APIKey:"
                 read -r APP_APIKEY
                 sed -i "s/your${CURRENT_APP}APIKey/$APP_APIKEY/" .env
+                ;;
+            --userid)
+                colorprint "DEFAULT" "Find your UserID inside your ${CURRENT_APP} dashboard/profile/dowload page near your account name."
+                colorprint "DEFAULT" "Enter your ${CURRENT_APP} UserID:"
+                read -r APP_USERID
+                sed -i "s/your${CURRENT_APP}UserID/$APP_USERID/" .env
                 ;;
             --uuid)
                 colorprint "DEFAULT" "Starting UUID generation/import for ${CURRENT_APP}"
@@ -406,7 +415,14 @@ fn_setupEnv(){
     CURRENT_APP='PROXYRACK'
     colorprint "CYAN" "Go to $PROXYRACK_LNK and register"
     read -r -p "When done, press enter to continue"$'\n'
-    fn_setupApp --app "${CURRENT_APP}" --image "$PROXYRACK_IMG" --email --apikey
+    fn_setupApp --app "${CURRENT_APP}" --image "$PROXYRACK_IMG" --apikey
+
+    # Proxylite app env setup
+    clear;
+    CURRENT_APP='PROXYLITE'
+    colorprint "CYAN" "Go to $PROXYLITE_LNK and register"
+    read -r -p "When done, press enter to continue"$'\n'
+    fn_setupApp --app "${CURRENT_APP}" --image "$PROXYLITE_IMG" --userid
 
     # Bitping app env setup
     clear;
