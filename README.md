@@ -31,6 +31,7 @@ Using the following referral links, register on the apps' sites. You should also
 - Go to [REPOCKET](https://link.repocket.co/hr8i)
 - Go to [PROXYRACK](https://peer.proxyrack.com/ref/myoas6qttvhuvkzh8ffx90ns1ouhwgilfgamo5ex)
 - Go to [BITPING](https://app.bitping.com?r=qm7mIuX3)
+- Go to [PROXYLITE](https://proxylite.ru/?r=PJTKXWN3)
 
 ### 3) Complete the automatic guided setup using runme.sh (linux) or runme.ps1 (Windows/linux)
 * (On linux) open a terminal in the project folder or navigate to it then use the following commands to add execute permission and run the guided script to configure the .env file and then start the stack:
