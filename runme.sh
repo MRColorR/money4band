@@ -264,7 +264,7 @@ fn_setupApp() {
                 colorprint "DEFAULT" "Find/Generate your APIKey inside your ${CURRENT_APP} dashboard/profile."
                 colorprint "DEFAULT" "Enter your ${CURRENT_APP} APIKey:"
                 read -r APP_APIKEY
-                sed -i "s/your${CURRENT_APP}APIKey/$APP_APIKEY/" .env
+                sed -i "s^your${CURRENT_APP}APIKey^$APP_APIKEY^" .env
                 ;;
             --userid)
                 colorprint "DEFAULT" "Find your UserID inside your ${CURRENT_APP} dashboard/profile/dowload page near your account name."
@@ -311,7 +311,8 @@ fn_setupApp() {
                 done
                 sed -i "s/your${CURRENT_APP}MD5sum/$UUID/" .env
                 colorprint "DEFAULT" "${CURRENT_APP} UUID setup: done"
-                colorprint "CYAN" "Save the following link somewhere to claim your earnapp node after completing the setup and after starting the apps stack: https://earnapp.com/r/sdk-node-$UUID. A new file containing this link has been created for you"
+                colorprint "CYAN" "Save the following link somewhere to claim your ${CURRENT_APP} node after completing the setup and starting the apps stack: https://earnapp.com/r/sdk-node-$UUID."
+                colorprint "CYAN" "A new file containing this link has been created for you in the current directory"
                 printf "https://earnapp.com/r/sdk-node-%s\n" "$UUID" > ClaimEarnappNode.txt
                 ;;
 
@@ -443,22 +444,18 @@ fn_setupEnv(){
     for app in $apps; do
         colorprint "YELLOW" "PLEASE REGISTER ON THE PLATFORMS USING THE FOLLOWING LINKS, YOU'LL NEED TO ENTER SOME DATA BELOW:"
         colorprint "GREEN" "Use CTRL+Click to open links or copy them:"
-        name=$(echo "$app" | jq -r '.name')
-        link=$(echo "$app" | jq -r '.link')
-        image=$(echo "$app" | jq -r '.image')
-        flags=$(echo "$app" | jq -r '.flags')
+        name=$(jq -r '.name' <<< "$app")
+        link=$(jq -r '.link' <<< "$app")
+        image=$(jq -r '.image' <<< "$app")
+        flags=$(jq -r '.flags[]' <<< "$app")
+        #flags=$(jq -r '.flags | join(" ")' <<< "$app")
+        #printf "$name | $link | $image | $flags \n"
 
         CURRENT_APP=$(echo "$name" | tr '[:lower:]' '[:upper:]')
         colorprint "CYAN" "Go to ${name} ${link} and register"
         read -r -p "When done, press enter to continue"$'\n'
-        # Split the flags into an array based on spaces
-        IFS=' ' read -r -a flags_array <<< "$flags"
-
-        # Join the flags array back into a single string with spaces as delimiter
-        flags_string="${flags_array[*]}"
-
         # Pass the flags string to the function
-        fn_setupApp --app "${CURRENT_APP}" --image "$image" "$flags_string"
+        fn_setupApp --app "${CURRENT_APP}" --image "$image" ${flags}
         clear
     done
 
