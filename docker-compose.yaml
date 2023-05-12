@@ -81,7 +81,6 @@ services:
     container_name: proxyrack
     image: proxyrack/pop:latest
     environment:
-        - pr_email=$PROXYRACK_EMAIL
         - api_key=$PROXYRACK_APIKEY
         - device_name=$DEVICE_NAME
     # network_mode: service:tun2socks
