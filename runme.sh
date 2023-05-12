@@ -56,6 +56,9 @@ readonly FILES_DIR="$RESOURCES_DIR/.files"
 ARCH='unknown'
 DKARCH='unknown'
 
+### Env file default ###
+DEVICE_NAME='yourDeviceName'
+
 ### Proxy config ###
 PROXY_CONF='false'
 STACK_PROXY=''
@@ -73,19 +76,18 @@ fn_unknown() { colorprint "RED" "Unknown choice $REPLY, please choose a valid op
 
 
 ### Sub-menu Functions ###
-fn_showLinks(){
-    clear;
+fn_showLinks() {
+    clear
     colorprint "GREEN" "Use CTRL+Click to open links or copy them:"
-    apps=$(jq -c '.apps[]' "$CONFIG_DIR/config.json")
-    index=1
-    for app in $apps; do
-        name=$(echo "$app" | jq -r '.name')
-        link=$(echo "$app" | jq -r '.link')
-        colorprint "CYAN" "$index) $name | $link"
-        ((index++))
+
+    jq -r '.apps | to_entries[] | "\(.key+1) \(.value.name) | \(.value.link)"' "$CONFIG_DIR/config.json" |
+    while read -r line; do
+        colorprint "CYAN" "$line"
     done
-    read -r -p "Press enter to go back to mainmenu"
+
+    read -r -p "Press Enter to go back to mainmenu"
 }
+
 
 fn_install_packages() {
     REQUIRED_PACKAGES=("$@")
@@ -273,7 +275,7 @@ fn_setupApp() {
             --uuid)
                 colorprint "DEFAULT" "Starting UUID generation/import for ${CURRENT_APP}"
                 shift
-                SALT="$1""$RANDOM"
+                SALT="${DEVICE_NAME}""${RANDOM}"
                 UUID="$(echo -n "$SALT" | md5sum | cut -c1-32)"
                 while true; do
                     colorprint "DEFAULT" "Do you want to use a previously registered sdk-node-uuid for ${CURRENT_APP}? (Y/N)"
@@ -327,9 +329,16 @@ fn_setupApp() {
                 ;;
             --customScript)
                 shift
-                ESCAPED_PATH="$(echo "$1" | sed 's/"/\\"/g')"
-                chmod u+x "$ESCAPED_PATH"
-                source "$ESCAPED_PATH"
+                SCRIPT_NAME="$1"
+                SCRIPT_PATH="$SCRIPTS_DIR/$SCRIPT_NAME"
+                ESCAPED_PATH="$(echo "$SCRIPT_PATH" | sed 's/"/\\"/g')"
+                if [[ -f "$SCRIPT_PATH" ]]; then
+                    chmod +x "$ESCAPED_PATH"
+                    colorprint "DEFAULT" "Executing custom script: $SCRIPT_NAME"
+                    source "$ESCAPED_PATH"
+                else
+                    colorprint "RED" "Custom script '$SCRIPT_NAME' not found in the scripts directory."
+                fi
                 ;;
             *)
                 colorprint "RED" "Unknown flag: $1"
@@ -380,7 +389,7 @@ fn_setupProxy() {
                     PROXY_CONF='true'
                     # An unique name for the stack is chosen so that even if multiple stacks are started with different proxies the names do not conflict
                     sed -i "s^COMPOSE_PROJECT_NAME=money4band^COMPOSE_PROJECT_NAME=money4band_$RANDOM_VALUE^" .env
-                    sed -i "s^DEVICE_NAME=$DEVICE_NAME^DEVICE_NAME=$DEVICE_NAME$RANDOM_VALUE^" .env
+                    sed -i "s^DEVICE_NAME=${DEVICE_NAME}^DEVICE_NAME=${DEVICE_NAME}$RANDOM_VALUE^" .env
                     # uncomment .env and compose file
                     sed -i "s^# PROXY_STACK=^PROXY_STACK=$PROXY_STACK^" .env
                     sed -i "s^#PROXY_ENABLE^^" $DKCOM_FILENAME
@@ -415,7 +424,7 @@ fn_setupEnv(){
             * ) colorprint "RED" "Please answer yes or no."
         esac
     done
-    if ! grep -q "DEVICE_NAME=yourDeviceName" .env  ; then 
+    if ! grep -q "DEVICE_NAME=${DEVICE_NAME}" .env  ; then 
         colorprint "DEFAULT" "The current .env file appears to have already been modified. A fresh version will be downloaded and used.";
         curl -fsSL $ENV_SRC -o ".env"
         curl -fsSL $DKCOM_SRC -o "$DKCOM_FILENAME"
@@ -424,82 +433,35 @@ fn_setupEnv(){
     CURRENT_APP='';
     colorprint "YELLOW" "PLEASE ENTER A NAME FOR YOUR DEVICE:"
     read -r DEVICE_NAME
-    sed -i "s/yourDeviceName/$DEVICE_NAME/" .env
+    sed -i "s/yourDeviceName/${DEVICE_NAME}/" .env
     clear ;
     fn_setupProxy ;
     clear ;
 
-    colorprint "YELLOW" "PLEASE REGISTER ON THE PLATFORMS USING THE FOLLOWING LINKS, YOU'LL NEED TO ENTER SOME DATA BELOW:"
-    colorprint "GREEN" "Use CTRL+Click to open links or copy them:"
+    apps=$(jq -c '.apps[]' "$CONFIG_DIR/config.json")
 
-    # EarnApp app env setup
-    CURRENT_APP='EARNAPP';
-    colorprint "CYAN" "Go to $EARNAPP_LNK and register"
-    read -r -p "When done, press enter to continue"$'\n'
-    fn_setupApp --app "${CURRENT_APP}" --image "$EARNAPP_IMG" --uuid "$DEVICE_NAME"
+    for app in $apps; do
+        colorprint "YELLOW" "PLEASE REGISTER ON THE PLATFORMS USING THE FOLLOWING LINKS, YOU'LL NEED TO ENTER SOME DATA BELOW:"
+        colorprint "GREEN" "Use CTRL+Click to open links or copy them:"
+        name=$(echo "$app" | jq -r '.name')
+        link=$(echo "$app" | jq -r '.link')
+        image=$(echo "$app" | jq -r '.image')
+        flags=$(echo "$app" | jq -r '.flags')
 
-    # HoneyGain app env setup
-    clear;
-    CURRENT_APP='HONEYGAIN';
-    colorprint "CYAN" "Go to $HONEYGAIN_LNK and register"
-    read -r -p "When done, press enter to continue"$'\n'
-    fn_setupApp --app "${CURRENT_APP}" --image "$HONEYGAIN_IMG" --email --password
+        CURRENT_APP=$(echo "$name" | tr '[:lower:]' '[:upper:]')
+        colorprint "CYAN" "Go to ${name} ${link} and register"
+        read -r -p "When done, press enter to continue"$'\n'
+        # Split the flags into an array based on spaces
+        IFS=' ' read -r -a flags_array <<< "$flags"
 
-    # IProyalPawns app env setup
-    clear;
-    CURRENT_APP='IPROYALPAWNS'
-    colorprint "CYAN" "Go to $IPROYALPAWNS_LNK and register"
-    read -r -p "When done, press enter to continue"$'\n'
-    fn_setupApp --app "${CURRENT_APP}" --image "$IPROYALPAWNS_IMG" --email --password
+        # Join the flags array back into a single string with spaces as delimiter
+        flags_string="${flags_array[*]}"
 
-    # Peer2Profit app env setup
-    clear;
-    CURRENT_APP='PEER2PROFIT'
-    colorprint "CYAN" "Go to $PEER2PROFIT_LNK and register"
-    read -r -p "When done, press enter to continue"$'\n'
-    fn_setupApp --app "${CURRENT_APP}" --image "$PEER2PROFIT_IMG" --email
+        # Pass the flags string to the function
+        fn_setupApp --app "${CURRENT_APP}" --image "$image" "$flags_string"
+        clear
+    done
 
-    # PacketStream app env setup
-    clear;
-    CURRENT_APP='PACKETSTREAM'
-    colorprint "CYAN" "Go to $PACKETSTREAM_LNK and register"
-    read -r -p "When done, press enter to continue"$'\n'
-    fn_setupApp --app "${CURRENT_APP}" --image "$PACKETSTREAM_IMG" --cid
-
-    # TraffMonetizer app env setup
-    clear;
-    CURRENT_APP='TRAFFMONETIZER'
-    colorprint "CYAN" "Go to $TRAFFMONETIZER_LNK and register"
-    read -r -p "When done, press enter to continue"$'\n'
-    fn_setupApp --app "${CURRENT_APP}" --image "$TRAFFMONETIZER_IMG" --token
-
-    # Repocket app env setup
-    clear;
-    CURRENT_APP='REPOCKET'
-    colorprint "CYAN" "Go to $REPOCKET_LNK and register"
-    read -r -p "When done, press enter to continue"$'\n'
-    fn_setupApp --app "${CURRENT_APP}" --image "$REPOCKET_IMG" --email --apikey
-
-    # Proxyrack/pop app env setup
-    clear;
-    CURRENT_APP='PROXYRACK'
-    colorprint "CYAN" "Go to $PROXYRACK_LNK and register"
-    read -r -p "When done, press enter to continue"$'\n'
-    fn_setupApp --app "${CURRENT_APP}" --image "$PROXYRACK_IMG" --apikey
-
-    # Proxylite app env setup
-    clear;
-    CURRENT_APP='PROXYLITE'
-    colorprint "CYAN" "Go to $PROXYLITE_LNK and register"
-    read -r -p "When done, press enter to continue"$'\n'
-    fn_setupApp --app "${CURRENT_APP}" --image "$PROXYLITE_IMG" --userid
-
-    # Bitping app env setup
-    clear;
-    CURRENT_APP='BITPING'
-    colorprint "CYAN" "Go to $BITPING_LNK and register"
-    read -r -p "When done, press enter to continue"$'\n'
-    fn_setupApp --app "${CURRENT_APP}" --image "$BITPING_IMG" --customScript "$SCRIPTS_DIR/bitpingSetup.sh"
 
     # Notifications setup
     clear;
