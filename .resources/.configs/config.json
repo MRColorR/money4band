@@ -1,64 +1,64 @@
 {
-    "apps": [
-      {
-        "name": "EARNAPP",
-        "link": "https://earnapp.com/i/3zulx7k",
-        "image": "fazalfarhan01/earnapp",
-        "flags": "--uuid"
-      },
-      {
-        "name": "HONEYGAIN",
-        "link": "https://r.honeygain.me/MINDL15721",
-        "image": "honeygain/honeygain",
-        "flags": "--email --password"
-      },
-      {
-        "name": "IPROYALPAWNS",
-        "link": "https://pawns.app?r=MiNe",
-        "image": "iproyal/pawns-cli",
-        "flags": "--email --password"
-      },
-      {
-        "name": "PEER2PROFIT",
-        "link": "https://p2pr.me/165849012262da8d0aa13c8",
-        "image": "peer2profit/peer2profit_linux",
-        "flags": "--email"
-      },
-      {
-        "name": "PACKETSTREAM",
-        "link": "https://packetstream.io/?psr=3zSD",
-        "image": "packetstream/psclient",
-        "flags": "--cid"
-      },
-      {
-        "name": "TRAFFMONETIZER",
-        "link": "https://traffmonetizer.com/?aff=366499",
-        "image": "traffmonetizer/cli",
-        "flags": "--token"
-      },
-      {
-        "name": "REPOCKET",
-        "link": "https://link.repocket.co/hr8i",
-        "image": "repocket/repocket",
-        "flags": "--email --apikey"
-      },
-      {
-        "name": "PROXYRACK",
-        "link": "https://peer.proxyrack.com/ref/myoas6qttvhuvkzh8ffx90ns1ouhwgilfgamo5ex",
-        "image": "proxyrack/pop",
-        "flags": "--apikey"
-      },
-      {
-        "name": "PROXYLITE",
-        "link": "https://proxylite.ru/?r=PJTKXWN3",
-        "image": "proxylite/proxyservice",
-        "flags": "--userid"
-      },
-      {
-        "name": "BITPING",
-        "link": "https://app.bitping.com?r=qm7mIuX3",
-        "image": "bitping/bitping-node",
-        "flags": "--customScript bitpingSetup.sh"
-      }
-    ]
-  }
+  "apps": [
+    {
+      "name": "EARNAPP",
+      "link": "https://earnapp.com/i/3zulx7k",
+      "image": "fazalfarhan01/earnapp",
+      "flags": ["--uuid"]
+    },
+    {
+      "name": "HONEYGAIN",
+      "link": "https://r.honeygain.me/MINDL15721",
+      "image": "honeygain/honeygain",
+      "flags": ["--email", "--password"]
+    },
+    {
+      "name": "IPROYALPAWNS",
+      "link": "https://pawns.app?r=MiNe",
+      "image": "iproyal/pawns-cli",
+      "flags": ["--email", "--password"]
+    },
+    {
+      "name": "PEER2PROFIT",
+      "link": "https://p2pr.me/165849012262da8d0aa13c8",
+      "image": "peer2profit/peer2profit_linux",
+      "flags": ["--email"]
+    },
+    {
+      "name": "PACKETSTREAM",
+      "link": "https://packetstream.io/?psr=3zSD",
+      "image": "packetstream/psclient",
+      "flags": ["--cid"]
+    },
+    {
+      "name": "TRAFFMONETIZER",
+      "link": "https://traffmonetizer.com/?aff=366499",
+      "image": "traffmonetizer/cli",
+      "flags": ["--token"]
+    },
+    {
+      "name": "REPOCKET",
+      "link": "https://link.repocket.co/hr8i",
+      "image": "repocket/repocket",
+      "flags": ["--email", "--apikey"]
+    },
+    {
+      "name": "PROXYRACK",
+      "link": "https://peer.proxyrack.com/ref/myoas6qttvhuvkzh8ffx90ns1ouhwgilfgamo5ex",
+      "image": "proxyrack/pop",
+      "flags": ["--apikey"]
+    },
+    {
+      "name": "PROXYLITE",
+      "link": "https://proxylite.ru/?r=PJTKXWN3",
+      "image": "proxylite/proxyservice",
+      "flags": ["--userid"]
+    },
+    {
+      "name": "BITPING",
+      "link": "https://app.bitping.com?r=qm7mIuX3",
+      "image": "bitping/bitping-node",
+      "flags": ["--customScript", "bitpingSetup.sh"]
+    }
+  ]
+}
