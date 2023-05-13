@@ -40,7 +40,12 @@ fn_bye(){
     exit 0
 }
 
-fn_fail() { errorprint "Error: $1"; exit 1; }
+fn_fail() {
+    errorprint "$1"
+    read -p "Press Enter to exit..."
+    exit 1
+}
+
 
 fn_unknown() { colorprint "RED" "Unknown choice $REPLY, please choose a valid option"; }
 
@@ -149,7 +154,9 @@ fn_addDockerBinfmtSVC() {
             # Systemd-based distributions
             if ! systemctl is-enabled --quiet docker.binfmt.service; then
                 # Enable the service
-                sudo systemctl enable docker.binfmt.service
+                if ! sudo systemctl enable docker.binfmt.service; then
+                    fn_fail "Failed to enable docker.binfmt.service. Please check your system config and try to enable the exixting service manually. Then run the script again."
+                fi
             fi
         fi
     elif [ -f "/etc/init.d/docker.binfmt" ]; then
@@ -188,10 +195,14 @@ fn_addDockerBinfmtSVC() {
     # Start the service
     if [ -d "/etc/systemd/system" ]; then
         # Systemd-based distributions
-        sudo systemctl start docker.binfmt.service
+        if ! sudo systemctl start docker.binfmt.service; then
+            fn_fail "Failed to start docker.binfmt.service. Please check your system config and try to start the exixting service manually. Then run the script again."
+        fi
     elif [ -d "/etc/init.d" ]; then
         # SysV init-based distributions
-        sudo service docker.binfmt start
+        if ! sudo service docker.binfmt start; then
+            fn_fail "Failed to start docker.binfmt.service. Please check your system config and try to start the exixting service manually. Then run the script again."
+        fi
     fi
 }
 
