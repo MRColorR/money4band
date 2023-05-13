@@ -145,7 +145,7 @@ services:
     container_name: webdashboard
     image: fnichol/uhttpd:latest
     volumes:
-      - ./www/Money4Band:/www
+      - ./.resources/.www:/www
     ports:
       - 8081:80
     restart: always
