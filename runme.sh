@@ -409,7 +409,7 @@ fn_setupApp() {
         fi
     else 
         colorprint "DEFAULT" "No native image tag found for $DKARCH arch, emulation layer will try to run this app image anyway."
-        colorprint "DEFAULT" "If an emulation layer is not already installed, the script will try to install it now. Please privide your sudo password if prompted."
+        colorprint "DEFAULT" "If an emulation layer is not already installed, the script will try to install it now. Please provide your sudo password if prompted."
         #fn_install_packages qemu binfmt-support qemu-user-static
         fn_addDockerBinfmtSVC
     fi
