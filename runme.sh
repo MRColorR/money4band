@@ -268,7 +268,7 @@ fn_setupApp() {
                 sed -i "s^your${CURRENT_APP}APIKey^$APP_APIKEY^" .env
                 ;;
             --userid)
-                colorprint "DEFAULT" "Find your UserID inside your ${CURRENT_APP} dashboard/profile/dowload page near your account name."
+                colorprint "DEFAULT" "Find your UserID inside your ${CURRENT_APP} dashboard/profile/download page near your account name."
                 colorprint "DEFAULT" "Enter your ${CURRENT_APP} UserID:"
                 read -r APP_USERID
                 sed -i "s/your${CURRENT_APP}UserID/$APP_USERID/" .env
