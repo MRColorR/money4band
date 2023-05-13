@@ -442,6 +442,7 @@ fn_setupEnv(){
     apps=$(jq -c '.apps[]' "$CONFIG_DIR/config.json")
 
     for app in $apps; do
+        clear
         colorprint "YELLOW" "PLEASE REGISTER ON THE PLATFORMS USING THE FOLLOWING LINKS, YOU'LL NEED TO ENTER SOME DATA BELOW:"
         colorprint "GREEN" "Use CTRL+Click to open links or copy them:"
         name=$(jq -r '.name' <<< "$app")
@@ -465,6 +466,7 @@ fn_setupEnv(){
                     ;;
                 [Nn]* )
                     colorprint "BLUE" "${CURRENT_APP} setup will be skipped."
+                    read -r -p "Press enter to continue to the next app"
                     break
                     ;;
                 * ) colorprint "RED" "Please answer yes or no." ;;
@@ -474,12 +476,15 @@ fn_setupEnv(){
 
     # Notifications setup
     clear;
-    read -r -p "Do you wish to setup notifications about apps images updates (Yes to receive notifications and apply updates, No to just silently apply updates) Y/N?  " yn
-    case $yn in
-        [Yy]* ) fn_setupNotifications;;
-        [Nn]* ) colorprint "YELLOW" "Noted: all updates will be applied automatically and silently";;
-        * ) colorprint "RED" "Please answer yes or no."; fn_setupNotifications;;
-    esac
+    while true; do
+        colorprint "YELLOW" "Do you wish to setup notifications about apps images updates (Yes to receive notifications and apply updates, No to just silently apply updates) Y/N?"
+        read -r yn
+        case $yn in
+            [Yy]* ) fn_setupNotifications; break;;
+            [Nn]* ) colorprint "YELLOW" "Noted: all updates will be applied automatically and silently"; break;;
+            * ) colorprint "RED" "Invalid input. Please answer yes or no.";;
+        esac
+    done
 
     colorprint "GREEN" "env file setup complete.";
     read -n 1 -s -r -p "Press any key to go back to the menu"$'\n'
