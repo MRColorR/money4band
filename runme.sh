@@ -1,5 +1,4 @@
 #!/bin/bash
-set -euo pipefail
 
 ### Colors ###
 ESC=$(printf '\033') DEFAULT="${ESC}[0m"
