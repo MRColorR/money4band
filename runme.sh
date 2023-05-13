@@ -48,7 +48,7 @@ readonly DKCOM_SRC="https://github.com/MRColorR/money4band/raw/main/$DKCOM_FILEN
 
 ### Resources, Scripts and Files folders ###
 readonly RESOURCES_DIR="$PWD/.resources"
-readonly CONFIG_DIR="$RESOURCES_DIR/.configs"
+readonly CONFIG_DIR="$RESOURCES_DIR/.www/.configs"
 readonly SCRIPTS_DIR="$RESOURCES_DIR/.scripts"
 readonly FILES_DIR="$RESOURCES_DIR/.files"
 
