@@ -3,7 +3,7 @@ set -euo pipefail
 
 ### Colors ###
 ESC=$(printf '\033') DEFAULT="${ESC}[0m"
-declare -A colors=( [GREEN]="${ESC}[32m" [BLUE]="${ESC}[34m" [RED]="${ESC}[31m" [YELLOW]="${ESC}[33m" [MAGENTA]="${ESC}[35m" [CYAN]="${ESC}[36m" [PURPLE]="${ESC}[35;1m")
+declare -A colors=( [GREEN]="${ESC}[32m" [BLUE]="${ESC}[34m" [RED]="${ESC}[31m" [YELLOW]="${ESC}[33m" [MAGENTA]="${ESC}[35m" [CYAN]="${ESC}[36m" [PURPLE]="${ESC}[35;1m" [DEFAULT]="${ESC}[0m")
 
 ### Color Functions ###
 colorprint() { printf "${colors[$1]}%s${DEFAULT}\n" "$2"; }
