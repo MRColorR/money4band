@@ -1,5 +1,7 @@
-# Money4Band
-<img src="./.resources/.assets/M4B_logo_small.png?raw=true" width="96"> - Leave a star ⭐ if you like this project 🙂 thank you.
+# Money4Band 
+<img src="./.resources/.assets/M4B_logo_small.png?raw=true" width="96"> - **Leave a star ⭐ if you like this project 🙂 thank you.**
+
+**|An easy to use automatic multi app passive income docker stack with Webdasboard, Auto Updater and Proxy Support:dollar::satisfied::+1:|**
 
 Money4Band Leverages unused internet bandwidth allowing you to make money with something you have and would otherwise be wasted. It use containerized version of apps like EarnApp, Honeygain, IPRoyal Pawns, PacketStream, Peer2Profit, Repocket, Proxyrack, Bitping and so on but it's safer than installing and using these native apps on your host system. More info and FAQ in the [Wiki](https://github.com/MRColorR/money4band/wiki).
 
