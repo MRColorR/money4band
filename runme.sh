@@ -411,9 +411,7 @@ fn_setupApp() {
         colorprint "DEFAULT" "No native image tag found for $DKARCH arch, emulation layer will try to run this app image anyway."
         colorprint "DEFAULT" "If an emulation layer is not already installed, the script will try to install it now. Please privide your sudo password if prompted."
         #fn_install_packages qemu binfmt-support qemu-user-static
-        sudo cp "$PWD/.resources/.files/docker.binfmt.service" /etc/systemd/system
-        sudo systemctl enable docker.binfmt.service
-        sudo systemctl start docker.binfmt.service
+        fn_addDockerBinfmtSVC
     fi
 
     read -r -p "${CURRENT_APP} configuration complete, press enter to continue to the next app"
