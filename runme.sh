@@ -280,7 +280,7 @@ fn_setupApp() {
                 ;;
             --email)
                 while true; do
-                    colorprint "DEFAULT" "Enter your ${CURRENT_APP} Email:"
+                    colorprint "GREEN" "Enter your ${CURRENT_APP} Email:"
                     read -r APP_EMAIL
                     if [[ "$APP_EMAIL" =~ ^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[a-zA-Z]{2,}$ ]]; then
                         sed -i "s/your${CURRENT_APP}Mail/$APP_EMAIL/" .env
@@ -293,7 +293,7 @@ fn_setupApp() {
             --password)
                 while true; do
                     colorprint "DEFAULT" "Note: If you are using login with Google, remember to set also a password for your ${CURRENT_APP} account!"
-                    colorprint "DEFAULT" "Enter your ${CURRENT_APP} Password:"
+                    colorprint "GREEN" "Enter your ${CURRENT_APP} Password:"
                     read -r APP_PASSWORD
                     if [[ -z "$APP_PASSWORD" ]]; then
                         colorprint "RED" "Password cannot be empty. Please try again."
@@ -305,13 +305,13 @@ fn_setupApp() {
                 ;;
             --apikey)
                 colorprint "DEFAULT" "Find/Generate your APIKey inside your ${CURRENT_APP} dashboard/profile."
-                colorprint "DEFAULT" "Enter your ${CURRENT_APP} APIKey:"
+                colorprint "GREEN" "Enter your ${CURRENT_APP} APIKey:"
                 read -r APP_APIKEY
                 sed -i "s^your${CURRENT_APP}APIKey^$APP_APIKEY^" .env
                 ;;
             --userid)
                 colorprint "DEFAULT" "Find your UserID inside your ${CURRENT_APP} dashboard/profile/download page near your account name."
-                colorprint "DEFAULT" "Enter your ${CURRENT_APP} UserID:"
+                colorprint "GREEN" "Enter your ${CURRENT_APP} UserID:"
                 read -r APP_USERID
                 sed -i "s/your${CURRENT_APP}UserID/$APP_USERID/" .env
                 ;;
@@ -321,12 +321,12 @@ fn_setupApp() {
                 SALT="${DEVICE_NAME}""${RANDOM}"
                 UUID="$(echo -n "$SALT" | md5sum | cut -c1-32)"
                 while true; do
-                    colorprint "DEFAULT" "Do you want to use a previously registered sdk-node-uuid for ${CURRENT_APP}? (Y/N)"
+                    colorprint "YELLOW" "Do you want to use a previously registered sdk-node-uuid for ${CURRENT_APP}? (Y/N)"
                     read -r USE_EXISTING_UUID
                     case $USE_EXISTING_UUID in
                         [Yy]* )
                             while true; do
-                                colorprint "DEFAULT" "Please enter the 32 char long alphanumeric part of the existing sdk-node-uuid for ${CURRENT_APP}:"
+                                colorprint "GREEN" "Please enter the 32 char long alphanumeric part of the existing sdk-node-uuid for ${CURRENT_APP}:"
                                 colorprint "DEFAULT" "E.g. if existing registered node is sdk-node-b86301656baefekba8917349bdf0f3g4 then enter just b86301656baefekba8917349bdf0f3g4"
                                 read -r EXISTING_UUID
                                 if [[ ! "$EXISTING_UUID" =~ ^[a-f0-9]{32}$ ]]; then
@@ -354,20 +354,20 @@ fn_setupApp() {
                 done
                 sed -i "s/your${CURRENT_APP}MD5sum/$UUID/" .env
                 colorprint "DEFAULT" "${CURRENT_APP} UUID setup: done"
-                colorprint "CYAN" "Save the following link somewhere to claim your ${CURRENT_APP} node after completing the setup and starting the apps stack: https://earnapp.com/r/sdk-node-$UUID."
-                colorprint "CYAN" "A new file containing this link has been created for you in the current directory"
+                colorprint "BLUE" "Save the following link somewhere to claim your ${CURRENT_APP} node after completing the setup and starting the apps stack: https://earnapp.com/r/sdk-node-$UUID."
+                colorprint "DEFAULT" "A new file containing this link has been created for you in the current directory"
                 printf "https://earnapp.com/r/sdk-node-%s\n" "$UUID" > ClaimEarnappNode.txt
                 ;;
 
             --cid)
-                colorprint "DEFAULT" "Enter your ${CURRENT_APP} CID."
-                colorprint "DEFAULT" "You can find it going in your dashboard https://packetstream.io/dashboard/download?linux# then click on -> Looking for linux app -> now search for CID= in the code shown in the page, you need to enter the code after -e CID= (e.g. if in the code CID=6aTk, just enter 6aTk)"
+                colorprint "DEFAULT" "Find your CID, you can fetch it from your dashboard https://packetstream.io/dashboard/download?linux# then click on -> Looking for linux app -> now search for CID= in the code shown in the page, you need to enter the code after -e CID= (e.g. if in the code CID=6aTk, just enter 6aTk)"
+                colorprint "GREEN" "Enter your ${CURRENT_APP} CID."
                 read -r APP_CID
                 sed -i "s/your${CURRENT_APP}CID/$APP_CID/" .env
                 ;;
             --token)
-                colorprint "DEFAULT" "Enter your ${CURRENT_APP} Token."
-                colorprint "DEFAULT" "You can find it going in your dashboard https://app.traffmonetizer.com/dashboard then -> Look for Your application token -> just insert it here (you can also copy and then paste it)"
+                colorprint "DEFAULT" "Find your token, you can fetch it from your dashboard https://app.traffmonetizer.com/dashboard then -> Look for Your application token -> just insert it here (you can also copy and then paste it)"
+                colorprint "GREEN" "Enter your ${CURRENT_APP} Token."
                 read -r APP_TOKEN
                 sed -i "s^your${CURRENT_APP}Token^$APP_TOKEN^" .env
                 ;;
@@ -401,14 +401,14 @@ fn_setupApp() {
         colorprint "DEFAULT" "Let's see if $TAG tag is in there"
         LATESTPRESENT=$(echo $DKHUBRES | jq --arg TAG "$TAG" '[.[] | contains($TAG)] | any')
         if [ $LATESTPRESENT == "true" ]; then 
-            colorprint "DEFAULT" "OK, $TAG tag present and it supports $DKARCH arch, nothing to do"
+            colorprint "GREEN" "OK, $TAG tag present and it supports $DKARCH arch, nothing to do"
         else 
-            colorprint "DEFAULT" "$TAG tag does not support $DKARCH arch but other tags do, the newer tag supporting $DKARCH will be selected"
+            colorprint "YELLOW" "$TAG tag does not support $DKARCH arch but other tags do, the newer tag supporting $DKARCH will be selected"
             NEWTAG=$(echo $DKHUBRES | jq -r '.[0]')
             sed -i "s^$APP_IMAGE:latest^$APP_IMAGE:$NEWTAG^" $DKCOM_FILENAME
         fi
     else 
-        colorprint "DEFAULT" "No native image tag found for $DKARCH arch, emulation layer will try to run this app image anyway."
+        colorprint "YELLOW" "No native image tag found for $DKARCH arch, emulation layer will try to run this app image anyway."
         colorprint "DEFAULT" "If an emulation layer is not already installed, the script will try to install it now. Please provide your sudo password if prompted."
         #fn_install_packages qemu binfmt-support qemu-user-static
         fn_addDockerBinfmtSVC
@@ -427,7 +427,7 @@ fn_setupProxy() {
                     clear
                     colorprint "YELLOW" "Proxy setup started."
                     readonly RANDOM_VALUE=$RANDOM
-                    colorprint "DEFAULT" "Insert the designed proxy to use. Eg: protocol://proxyUsername:proxyPassword@proxy_url:proxy_port or just protocol://proxy_url:proxy_port if auth is not needed"
+                    colorprint "GREEN" "Insert the designed proxy to use. Eg: protocol://proxyUsername:proxyPassword@proxy_url:proxy_port or just protocol://proxy_url:proxy_port if auth is not needed"
                     read -r STACK_PROXY
                     colorprint "DEFAULT" "Ok, $STACK_PROXY will be used as proxy for all apps in this stack"
                     read -r -p "Press enter to continue"
@@ -514,7 +514,7 @@ fn_setupEnv(){
         read -r yn
         case $yn in
             [Yy]* ) fn_setupNotifications; break;;
-            [Nn]* ) colorprint "YELLOW" "Noted: all updates will be applied automatically and silently"; break;;
+            [Nn]* ) colorprint "BLUE" "Noted: all updates will be applied automatically and silently"; break;;
             * ) colorprint "RED" "Invalid input. Please answer yes or no.";;
         esac
     done
