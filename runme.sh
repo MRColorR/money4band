@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 ### Colors ###
 ESC=$(printf '\033') DEFAULT="${ESC}[0m"
@@ -7,37 +8,6 @@ declare -A colors=( [GREEN]="${ESC}[32m" [BLUE]="${ESC}[34m" [RED]="${ESC}[31m" 
 ### Color Functions ###
 colorprint() { printf "${colors[$1]}%s${DEFAULT}\n" "$2"; }
 errorprint() { printf "%s\n" "$1" >&2; }
-
-### Links and apps images ###
-readonly EARNAPP_LNK="EARNAPP | https://earnapp.com/i/3zulx7k"
-readonly EARNAPP_IMG='fazalfarhan01/earnapp'
-
-readonly HONEYGAIN_LNK="HONEYGAIN | https://r.honeygain.me/MINDL15721"
-readonly HONEYGAIN_IMG='honeygain/honeygain'
-
-readonly IPROYALPAWNS_LNK="IPROYALPAWNS | https://pawns.app?r=MiNe"
-readonly IPROYALPAWNS_IMG='iproyal/pawns-cli'
-
-readonly PACKETSTREAM_LNK="PACKETSTREAM | https://packetstream.io/?psr=3zSD"
-readonly PACKETSTREAM_IMG='packetstream/psclient'
-
-readonly PEER2PROFIT_LNK="PEER2PROFIT | https://p2pr.me/165849012262da8d0aa13c8"
-readonly PEER2PROFIT_IMG='peer2profit/peer2profit_linux'
-
-readonly TRAFFMONETIZER_LNK="TRAFFMONETIZER | https://traffmonetizer.com/?aff=366499"
-readonly TRAFFMONETIZER_IMG='traffmonetizer/cli'
-
-readonly REPOCKET_LNK="REPOCKET | https://link.repocket.co/hr8i"
-readonly REPOCKET_IMG='repocket/repocket'
-
-readonly PROXYRACK_LNK="PROXYRACK | https://peer.proxyrack.com/ref/myoas6qttvhuvkzh8ffx90ns1ouhwgilfgamo5ex"
-readonly PROXYRACK_IMG='proxyrack/pop'
-
-readonly BITPING_LNK="BITPING | https://app.bitping.com?r=qm7mIuX3"
-readonly BITPING_IMG='bitping/bitping-node'
-
-readonly PROXYLITE_LNK="PROXYLITE | https://proxylite.ru/?r=PJTKXWN3"
-readonly PROXYLITE_IMG='proxylite/proxyservice'
 
 ### .env File Prototype Link ###
 readonly ENV_SRC='https://github.com/MRColorR/money4band/raw/main/.env'
@@ -70,7 +40,7 @@ fn_bye(){
     exit 0
 }
 
-fn_fail() { errorprint "Wrong option."; exit 1; }
+fn_fail() { errorprint "Error: $1"; exit 1; }
 
 fn_unknown() { colorprint "RED" "Unknown choice $REPLY, please choose a valid option"; }
 
@@ -99,7 +69,7 @@ fn_install_packages() {
             if ! dpkg -l | grep -q "^ii  $package"; then
                 echo "$package is not installed. Trying to install now..."
                 if ! sudo apt install -y $package; then
-                    echo "Failed to install $package. Please install it manually."
+                    fn_fail "Failed to install $package. Please install it manually then restart the script."
                 fi
             else
                 echo "$package is already installed."
@@ -160,6 +130,68 @@ fn_install_packages() {
         done
     else
         echo "Unsupported package manager. Please install the required packages manually."
+    fi
+}
+
+fn_addDockerBinfmtSVC() {
+    # Check if the service file exists
+    if [ -f "/etc/systemd/system/docker.binfmt.service" ]; then
+        # Compare the contents of the existing service file with the one in $FILES_DIR
+        if ! cmp -s "/etc/systemd/system/docker.binfmt.service" "$FILES_DIR/docker.binfmt.service"; then
+            # The contents are different, overwrite the existing service file
+            if ! sudo cp "$FILES_DIR/docker.binfmt.service" /etc/systemd/system; then
+                fn_fail "Failed to copy service file. Please check your permissions and the file path."
+            fi
+        fi
+
+        # Check if the service is enabled
+        if [ -d "/etc/systemd/system" ]; then
+            # Systemd-based distributions
+            if ! systemctl is-enabled --quiet docker.binfmt.service; then
+                # Enable the service
+                sudo systemctl enable docker.binfmt.service
+            fi
+        fi
+    elif [ -f "/etc/init.d/docker.binfmt" ]; then
+        # Compare the contents of the existing service file with the one in $FILES_DIR
+        if ! cmp -s "/etc/init.d/docker.binfmt" "$FILES_DIR/docker.binfmt.service"; then
+            # The contents are different, overwrite the existing service file
+            sudo cp "$FILES_DIR/docker.binfmt.service" /etc/init.d/docker.binfmt
+            sudo chmod +x /etc/init.d/docker.binfmt
+        fi
+
+        # Check if the service is enabled
+        if [ -d "/etc/init.d" ]; then
+            # SysV init-based distributions
+            if ! grep -q "docker.binfmt" /etc/rc.local; then
+                # Enable the service
+                sudo update-rc.d docker.binfmt defaults
+            fi
+        fi
+    else
+        # The service file does not exist, copy it to the appropriate location
+        if [ -d "/etc/systemd/system" ]; then
+            # Systemd-based distributions
+            sudo cp "$FILES_DIR/docker.binfmt.service" /etc/systemd/system
+            sudo systemctl enable docker.binfmt.service
+        elif [ -d "/etc/init.d" ]; then
+            # SysV init-based distributions
+            sudo cp "$FILES_DIR/docker.binfmt.service" /etc/init.d/docker.binfmt
+            sudo chmod +x /etc/init.d/docker.binfmt
+            sudo update-rc.d docker.binfmt defaults
+        else
+            # Fallback option (handle unsupported systems)
+            fn_fail "Warning: I can not find a supported init system. You will have to manually enable the binfmt service. Then restart the script."
+        fi
+    fi
+
+    # Start the service
+    if [ -d "/etc/systemd/system" ]; then
+        # Systemd-based distributions
+        sudo systemctl start docker.binfmt.service
+    elif [ -d "/etc/init.d" ]; then
+        # SysV init-based distributions
+        sudo service docker.binfmt start
     fi
 }
 
@@ -368,7 +400,10 @@ fn_setupApp() {
     else 
         colorprint "DEFAULT" "No native image tag found for $DKARCH arch, emulation layer will try to run this app image anyway."
         colorprint "DEFAULT" "If an emulation layer is not already installed, the script will try to install it now. Please privide your sudo password if prompted."
-        fn_install_packages qemu binfmt-support qemu-user-static
+        #fn_install_packages qemu binfmt-support qemu-user-static
+        sudo cp "$PWD/.resources/.files/docker.binfmt.service" /etc/systemd/system
+        sudo systemctl enable docker.binfmt.service
+        sudo systemctl start docker.binfmt.service
     fi
 
     read -r -p "${CURRENT_APP} configuration complete, press enter to continue to the next app"
