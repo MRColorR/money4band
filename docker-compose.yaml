@@ -8,121 +8,121 @@
 services:
 
 # EARNAPP CONTAINER
-  earnapp:
-    container_name: earnapp
-    image: fazalfarhan01/earnapp:lite
-    environment:
-      - EARNAPP_UUID=$EARNAPP_DEVICE_UUID
-    volumes:
-      - earnapp-data:/etc/earnapp
-    # network_mode: service:tun2socks
-    restart: always
+#EARNAPP_ENABLE  earnapp:
+#EARNAPP_ENABLE    container_name: earnapp
+#EARNAPP_ENABLE    image: fazalfarhan01/earnapp:lite
+#EARNAPP_ENABLE    environment:
+#EARNAPP_ENABLE      - EARNAPP_UUID=$EARNAPP_DEVICE_UUID
+#EARNAPP_ENABLE    volumes:
+#EARNAPP_ENABLE      - earnapp-data:/etc/earnapp
+#EARNAPP_ENABLE    # network_mode: service:tun2socks
+#EARNAPP_ENABLE    restart: always
 
 # HONEYGAIN CONTAINER
-  honeygain:
-    container_name: honeygain
-    image: honeygain/honeygain:latest
-    # network_mode: service:tun2socks
-    environment:
-      - HONEYGAIN_DUMMY=''
-    command: -tou-accept -email $HONEYGAIN_EMAIL -pass $HONEYGAIN_PASSWD -device $DEVICE_NAME
-    restart: always
+#HONEYGAIN_ENABLE  honeygain:
+#HONEYGAIN_ENABLE    container_name: honeygain
+#HONEYGAIN_ENABLE    image: honeygain/honeygain:latest
+#HONEYGAIN_ENABLE    # network_mode: service:tun2socks
+#HONEYGAIN_ENABLE    environment:
+#HONEYGAIN_ENABLE      - HONEYGAIN_DUMMY=''
+#HONEYGAIN_ENABLE    command: -tou-accept -email $HONEYGAIN_EMAIL -pass $HONEYGAIN_PASSWD -device $DEVICE_NAME
+#HONEYGAIN_ENABLE    restart: always
 
-# IPROYAL CONTAINER
-  iproyal:
-    container_name: iproyal
-    image: iproyal/pawns-cli:latest
-    environment:
-      - IPROYALPAWNS_DUMMY=''
-    command: -accept-tos -email=$IPROYALPAWNS_EMAIL -password=$IPROYALPAWNS_PASSWD -device-name=$DEVICE_NAME
-    # network_mode: service:tun2socks
-    restart: always
+# IPROYALPAWNS CONTAINER
+#IPROYALPAWNS_ENABLE  iproyal:
+#IPROYALPAWNS_ENABLE    container_name: iproyal
+#IPROYALPAWNS_ENABLE    image: iproyal/pawns-cli:latest
+#IPROYALPAWNS_ENABLE    environment:
+#IPROYALPAWNS_ENABLE      - IPROYALPAWNS_DUMMY=''
+#IPROYALPAWNS_ENABLE    command: -accept-tos -email=$IPROYALPAWNS_EMAIL -password=$IPROYALPAWNS_PASSWD -device-name=$DEVICE_NAME
+#IPROYALPAWNS_ENABLE    # network_mode: service:tun2socks
+#IPROYALPAWNS_ENABLE    restart: always
 
 # PEER2PROFIT CONTAINER
-  peer2profit:
-    container_name: peer2profit
-    image: peer2profit/peer2profit_linux:latest
-    environment:
-      - P2P_EMAIL=$PEER2PROFIT_EMAIL
-    # network_mode: service:tun2socks
-    restart: always
+#PEER2PROFIT_ENABLE  peer2profit:
+#PEER2PROFIT_ENABLE    container_name: peer2profit
+#PEER2PROFIT_ENABLE    image: peer2profit/peer2profit_linux:latest
+#PEER2PROFIT_ENABLE    environment:
+#PEER2PROFIT_ENABLE      - P2P_EMAIL=$PEER2PROFIT_EMAIL
+#PEER2PROFIT_ENABLE    # network_mode: service:tun2socks
+#PEER2PROFIT_ENABLE    restart: always
 
 # PACKETSTREAM CONTAINER
-  packetstream:
-    container_name: packetstream
-    image: packetstream/psclient:latest
-    environment:
-      - CID=$PACKETSTREAM_CID
-    # network_mode: service:tun2socks
-    restart: always
+#PACKETSTREAM_ENABLE  packetstream:
+#PACKETSTREAM_ENABLE    container_name: packetstream
+#PACKETSTREAM_ENABLE    image: packetstream/psclient:latest
+#PACKETSTREAM_ENABLE    environment:
+#PACKETSTREAM_ENABLE      - CID=$PACKETSTREAM_CID
+#PACKETSTREAM_ENABLE    # network_mode: service:tun2socks
+#PACKETSTREAM_ENABLE    restart: always
 
 # TRAFFMONETIZER CONTAINER
-  traffMonetizer:
-    container_name: traffmonetizer
-    image: traffmonetizer/cli:latest
-    environment:
-      - TRAFFMONETIZER_DUMMY=''
-    command: start accept status --token $TRAFFMONETIZER_TOKEN --device-name $DEVICE_NAME
-    # network_mode: service:tun2socks
-    restart: always
+#TRAFFMONETIZER_ENABLE  traffMonetizer:
+#TRAFFMONETIZER_ENABLE    container_name: traffmonetizer
+#TRAFFMONETIZER_ENABLE    image: traffmonetizer/cli:latest
+#TRAFFMONETIZER_ENABLE    environment:
+#TRAFFMONETIZER_ENABLE      - TRAFFMONETIZER_DUMMY=''
+#TRAFFMONETIZER_ENABLE    command: start accept status --token $TRAFFMONETIZER_TOKEN --device-name $DEVICE_NAME
+#TRAFFMONETIZER_ENABLE    # network_mode: service:tun2socks
+#TRAFFMONETIZER_ENABLE    restart: always
 
 # REPOCKET CONTAINER
-  repocket:
-    container_name: repocket
-    image: repocket/repocket:latest
-    environment:
-        - RP_EMAIL=$REPOCKET_EMAIL
-        - RP_API_KEY=$REPOCKET_APIKEY
-    # network_mode: service:tun2socks
-    restart: always
+#REPOCKET_ENABLE  repocket:
+#REPOCKET_ENABLE    container_name: repocket
+#REPOCKET_ENABLE    image: repocket/repocket:latest
+#REPOCKET_ENABLE    environment:
+#REPOCKET_ENABLE        - RP_EMAIL=$REPOCKET_EMAIL
+#REPOCKET_ENABLE        - RP_API_KEY=$REPOCKET_APIKEY
+#REPOCKET_ENABLE    # network_mode: service:tun2socks
+#REPOCKET_ENABLE    restart: always
 
 # PROXYRACK CONTAINER
-  proxyrack:
-    container_name: proxyrack
-    image: proxyrack/pop:latest
-    environment:
-        - api_key=$PROXYRACK_APIKEY
-        - device_name=$DEVICE_NAME
-    # network_mode: service:tun2socks
-    restart: always
+#PROXYRACK_ENABLE  proxyrack:
+#PROXYRACK_ENABLE    container_name: proxyrack
+#PROXYRACK_ENABLE    image: proxyrack/pop:latest
+#PROXYRACK_ENABLE    environment:
+#PROXYRACK_ENABLE        - api_key=$PROXYRACK_APIKEY
+#PROXYRACK_ENABLE        - device_name=$DEVICE_NAME
+#PROXYRACK_ENABLE    # network_mode: service:tun2socks
+#PROXYRACK_ENABLE    restart: always
 
 # PROXYLITE CONTAINER
-  proxylite:
-    container_name: proxylite
-    image: proxylite/proxyservice:latest
-    environment:
-      - USER_ID=$PROXYLITE_USER_ID
-    # network_mode: service:tun2socks
-    restart: always
+#PROXYLITE_ENABLE  proxylite:
+#PROXYLITE_ENABLE    container_name: proxylite
+#PROXYLITE_ENABLE    image: proxylite/proxyservice:latest
+#PROXYLITE_ENABLE    environment:
+#PROXYLITE_ENABLE      - USER_ID=$PROXYLITE_USER_ID
+#PROXYLITE_ENABLE    # network_mode: service:tun2socks
+#PROXYLITE_ENABLE    restart: always
 
 # BITPING CONTAINER 
- # !!For this app you'll need a one-time operation to claim your node: the first time if you do not have a backup of your identity you will need to enter manually your credentials to initialize it use : sudo docker run --rm -it -v ${PWD}/.data/.bitping/:/root/.bitping bitping/bitping-node:latest , then enter your credential , once this is done CTRL+C to end container and then if using bind folder just use docker compose to restart it as always, if you use the docker volume mount it in the previous comamnd or copy the created credentials in the volume using ' docker cp ${PWD}/.data/.bitping bitping:/root/' or just mount the volume in the interactive temporary container
-  bitping:
-    container_name: bitping
-    image: bitping/bitping-node:latest
-    environment:
-      - BITPING_DUMMY=''
-    volumes:
-      # You have 2 options
-      - ./.data/.bitping:/root/.bitping # Bind an host folder to the container (more insecure but simplier to port and backup) this option mount a new identity or a backed up one from the host file system
-      # OR
-      #- bitping-data:/root/.bitping # if you use this also uncomment the relative volume in volumes section, this  Use docker volumes (more secure harder to access, backup and restore) you'll need to do backups using 'docker cp
-    # network_mode: service:tun2socks
-    restart: always
+# !!For this app you'll need a one-time operation to claim your node: the first time if you do not have a backup of your identity you will need to enter manually your credentials to initialize it use : sudo docker run --rm -it -v ${PWD}/.data/.bitping/:/root/.bitping bitping/bitping-node:latest , then enter your credential , once this is done CTRL+C to end container and then if using bind folder just use docker compose to restart it as always, if you use the docker volume mount it in the previous comamnd or copy the created credentials in the volume using ' docker cp ${PWD}/.data/.bitping bitping:/root/' or just mount the volume in the interactive temporary container
+#BITPING_ENABLE  bitping:
+#BITPING_ENABLE    container_name: bitping
+#BITPING_ENABLE    image: bitping/bitping-node:latest
+#BITPING_ENABLE    environment:
+#BITPING_ENABLE      - BITPING_DUMMY=''
+#BITPING_ENABLE    volumes:
+#BITPING_ENABLE      # You have 2 options
+#BITPING_ENABLE      - ./.data/.bitping:/root/.bitping # Bind an host folder to the container (more insecure but simplier to port and backup) this option mount a new identity or a backed up one from the host file system
+#BITPING_ENABLE      # OR
+#BITPING_ENABLE      #- bitping-data:/root/.bitping # if you use this also uncomment the relative volume in volumes section, this  Use docker volumes (more secure harder to access, backup and restore) you'll need to do backups using 'docker cp
+#BITPING_ENABLE    # network_mode: service:tun2socks
+#BITPING_ENABLE    restart: always
 
 # TUN2SOCKS CONTAINER
- #PROXY_ENABLE tun2socks:
- #PROXY_ENABLE   image: xjasonlyu/tun2socks
- #PROXY_ENABLE   container_name: tun2socks
- #PROXY_ENABLE   restart: always
- #PROXY_ENABLE   command: ["/bin/sh", "-c", "echo 'nameserver 1.1.1.1\nnameserver 8.8.8.8' > /etc/resolv.conf && ip rule add iif lo ipproto udp dport 53 lookup main && ip rule add iif lo ipproto udp dport 3478 lookup main"]
- #PROXY_ENABLE   environment:
- #PROXY_ENABLE     - LOGLEVEL=info
- #PROXY_ENABLE     - PROXY=$PROXY_STACK
- #PROXY_ENABLE   volumes:
- #PROXY_ENABLE     - '/dev/net/tun:/dev/net/tun'
- #PROXY_ENABLE   cap_add:
- #PROXY_ENABLE     - NET_ADMIN
+#PROXY_ENABLE  tun2socks:
+#PROXY_ENABLE    image: xjasonlyu/tun2socks
+#PROXY_ENABLE    container_name: tun2socks
+#PROXY_ENABLE    restart: always
+#PROXY_ENABLE    command: ["/bin/sh", "-c", "echo 'nameserver 1.1.1.1\nnameserver 8.8.8.8' > /etc/resolv.conf && ip rule add iif lo ipproto udp dport 53 lookup main && ip rule add iif lo ipproto udp dport 3478 lookup main"]
+#PROXY_ENABLE    environment:
+#PROXY_ENABLE      - LOGLEVEL=info
+#PROXY_ENABLE      - PROXY=$PROXY_STACK
+#PROXY_ENABLE    volumes:
+#PROXY_ENABLE      - '/dev/net/tun:/dev/net/tun'
+#PROXY_ENABLE    cap_add:
+#PROXY_ENABLE      - NET_ADMIN
 
 # WATCHTOWER AUTO-UPDATER AND NOTIFICATIONS
   watchtower:

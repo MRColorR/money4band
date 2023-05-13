@@ -229,6 +229,7 @@ fn_setupApp() {
         case $1 in
             --app)
                 CURRENT_APP="$2"
+                sed -i "s^#${CURRENT_APP}_ENABLE^^" $DKCOM_FILENAME
                 shift
                 ;;
             --image)
@@ -392,8 +393,7 @@ fn_setupProxy() {
                     sed -i "s^COMPOSE_PROJECT_NAME=money4band^COMPOSE_PROJECT_NAME=money4band_$RANDOM_VALUE^" .env
                     sed -i "s^DEVICE_NAME=${DEVICE_NAME}^DEVICE_NAME=${DEVICE_NAME}$RANDOM_VALUE^" .env
                     # uncomment .env and compose file
-                    sed -i "s^# PROXY_STACK=^PROXY_STACK=$PROXY_STACK^" .env
-                    sed -i "s^#PROXY_ENABLE^^" $DKCOM_FILENAME
+                    sed -i "s^# STACK_PROXY=^STACK_PROXY=$STACK_PROXY^" .env
                     sed -i "s^#PROXY_ENABLE^^" $DKCOM_FILENAME
                     sed -i "s^# network_mode^network_mode^" $DKCOM_FILENAME
                     break
@@ -448,17 +448,29 @@ fn_setupEnv(){
         link=$(jq -r '.link' <<< "$app")
         image=$(jq -r '.image' <<< "$app")
         flags=$(jq -r '.flags[]' <<< "$app")
-        #flags=$(jq -r '.flags | join(" ")' <<< "$app")
-        #printf "$name | $link | $image | $flags \n"
 
         CURRENT_APP=$(echo "$name" | tr '[:lower:]' '[:upper:]')
-        colorprint "CYAN" "Go to ${name} ${link} and register"
-        read -r -p "When done, press enter to continue"$'\n'
-        # Pass the flags string to the function
-        fn_setupApp --app "${CURRENT_APP}" --image "$image" ${flags}
-        clear
+        
+        while true; do
+            colorprint "YELLOW" "Do you wish to enable and use ${CURRENT_APP}? (Y/N)"
+            read -r yn
+            case $yn in
+                [Yy]* )
+                    colorprint "CYAN" "Go to ${name} ${link} and register"
+                    read -r -p "When done, press enter to continue"$'\n'
+                    # Pass the flags string to the function
+                    fn_setupApp --app "${CURRENT_APP}" --image "$image" ${flags}
+                    clear
+                    break
+                    ;;
+                [Nn]* )
+                    colorprint "BLUE" "${CURRENT_APP} setup will be skipped."
+                    break
+                    ;;
+                * ) colorprint "RED" "Please answer yes or no." ;;
+            esac
+        done
     done
-
 
     # Notifications setup
     clear;
