@@ -415,17 +415,7 @@ fn_setupEnv(){
         case $yn in
             [Yy]* ) 
                 clear
-                break
-                ;;
-            [Nn]* ) 
-                colorprint "BLUE" ".env file setup canceled. Make sure you have a valid .env file before proceeding with the stack startup."
-                read -r -p "Press Enter to go back to mainmenu"
-                break
-                ;;
-            * ) colorprint "RED" "Please answer yes or no."
-        esac
-    done
-    if ! grep -q "DEVICE_NAME=${DEVICE_NAME}" .env  ; then 
+                    if ! grep -q "DEVICE_NAME=${DEVICE_NAME}" .env  ; then 
         colorprint "DEFAULT" "The current .env file appears to have already been modified. A fresh version will be downloaded and used.";
         curl -fsSL $ENV_SRC -o ".env"
         curl -fsSL $DKCOM_SRC -o "$DKCOM_FILENAME"
@@ -488,8 +478,16 @@ fn_setupEnv(){
 
     colorprint "GREEN" "env file setup complete.";
     read -n 1 -s -r -p "Press any key to go back to the menu"$'\n'
-
-    mainmenu;
+                break
+                ;;
+            [Nn]* ) 
+                colorprint "BLUE" ".env file setup canceled. Make sure you have a valid .env file before proceeding with the stack startup."
+                read -r -p "Press Enter to go back to mainmenu"
+                break
+                ;;
+            * ) colorprint "RED" "Please answer yes or no."
+        esac
+    done
 }
 
 fn_startStack(){
