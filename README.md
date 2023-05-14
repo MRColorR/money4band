@@ -1,5 +1,7 @@
-# Money4Band
-<img src="./.resources/.assets/M4B_logo_small.png?raw=true" width="96"> - Leave a star ⭐ if you like this project 🙂 thank you.
+# Money4Band 
+<img src="./.resources/.assets/M4B_logo_small.png?raw=true" width="96"> - **Leave a star ⭐ if you like this project 🙂 thank you.**
+
+**|Easy to use automatic multi app passive income docker stack with Webdasboard, Auto Updater and Proxy Support:dollar::satisfied::+1:|**
 
 Money4Band Leverages unused internet bandwidth allowing you to make money with something you have and would otherwise be wasted. It use containerized version of apps like EarnApp, Honeygain, IPRoyal Pawns, PacketStream, Peer2Profit, Repocket, Proxyrack, Bitping and so on but it's safer than installing and using these native apps on your host system. More info and FAQ in the [Wiki](https://github.com/MRColorR/money4band/wiki).
 
@@ -12,25 +14,31 @@ This Docker Stack should work on anything that may have docker installed [Window
 ### Prerequisites
 - A 64-bit operating system is strongly recommended.
 - Virtualization function in the BIOS must be active to use Docker.
-- (Optional) To run on Windows, Virtualization platform and Windows Subsystem for Linux must be active as this two functions are required by Docker. If they're not already enabled, please enable them or use the built-in script to turn them on and install Docker.
-- Docker must already be installed and able to run on startup. If it is not already installed you can follow the instructions for your platform at https://docs.docker.com/get-docker/ or use the built-in script to install it.
-- (Optional) On arm devices (such as Raspberry) to support non-arm native docker images it is strongly recommended to install an emulation layer and set it as a service to start automatically: to do this, you can follow the steps explained in the [Wiki](https://github.com/MRColorR/money4band/wiki) prerequisites page.
+- (Optional) To run on Windows, Virtualization platform and Windows Subsystem for Linux should be active as this two functions are required by Docker. If they're not already enabled, please enable them or use the built-in script to turn them on and install Docker.
+- Docker should already be installed and able to run on startup. If it is not already installed you can follow the instructions for your platform at https://docs.docker.com/get-docker/ or use the built-in script to install it.
+- (Optional) On arm devices (such as Raspberry) to support non-arm native docker images it is strongly recommended to install an emulation layer and set it as a service to start automatically: the automatic rumne.sh guided setup will try to install it for you or you can do it manually following the steps explained in the [Wiki](https://github.com/MRColorR/money4band/wiki) prerequisites page.
 ## How to run (guided setup)
 ### 1) Get the latest version
 Using your preferred method get the latest version of this project and unzip it.
 For example you can go to the [Releases](https://github.com/MRColorR/money4band/releases) to download the latest version.
-### 2) Register an account on the app's sites using the following links.
-Using the following referral links, register on the apps' sites. You should also receive a welcome bonus and at the same time you will effortlessly show that you appreciate my work (thank you so much).
-- [x] If you are using login with google, remember to set also a password for your app account!
-- Go to [Earnapp](https://earnapp.com/i/3zulx7k)
-- Go to [HoneyGain](https://r.honeygain.me/MINDL15721)
-- Go to [IPROYAL](https://pawns.app?r=MiNe)
-- Go to [PACKETSTREAM](https://packetstream.io/?psr=3zSD)
-- Go to [PEER2PROFIT](https://p2pr.me/165849012262da8d0aa13c8)
-- Go to [TRAFFMONETIZER](https://traffmonetizer.com/?aff=366499)
-- Go to [REPOCKET](https://link.repocket.co/hr8i)
-- Go to [PROXYRACK](https://peer.proxyrack.com/ref/myoas6qttvhuvkzh8ffx90ns1ouhwgilfgamo5ex)
-- Go to [BITPING](https://app.bitping.com?r=qm7mIuX3)
+### 2) Register an account on the app's sites clicking each apps' names in the following compatibility matrix
+
+:moneybag: Registering trough these links on the apps' sites, you should also receive a welcome bonus and at the same time you will effortlessly show that you appreciate my work (thank you so much).
+
+:information_source: If you are using login with google, remember to set also a password for your app account!
+
+| App Name & Link | Residential/Home/Mobile IP or equivalent Proxy's IP | Datacenter/Hosting/VPS/Cloud IP or equivalent Proxy's IP | Max devices per Account | Max Devices per IP | 
+|  :--- |  :---: |  :---: | :---: | :---: |
+| Go to [Earnapp](https://earnapp.com/i/3zulx7k)  | :white_check_mark:	  | :x: | 15|1|
+| Go to [HoneyGain](https://r.honeygain.me/MINDL15721) | :white_check_mark:	  | :x: |10|1|
+| Go to [IPROYAL](https://pawns.app?r=MiNe)  | :white_check_mark:	  | :x: |Unlimited|1|
+| Go to [PEER2PROFIT](https://p2pr.me/165849012262da8d0aa13c8)  | :white_check_mark:	  | :white_check_mark:	 | Unlimited|Unlimited|
+| Go to [PACKETSTREAM](https://packetstream.io/?psr=3zSD)  | :white_check_mark:	  | :x: |Unlimited|1|
+| Go to [TRAFFMONETIZER](https://traffmonetizer.com/?aff=366499) | :white_check_mark:	  | :white_check_mark: |Unlimited|Unlimited|
+| Go to [REPOCKET](https://link.repocket.co/hr8i)  | :white_check_mark:	  | :white_check_mark: |Unlimited|2|
+| Go to [PROXYRACK](https://peer.proxyrack.com/ref/myoas6qttvhuvkzh8ffx90ns1ouhwgilfgamo5ex)  | :white_check_mark:	  | :white_check_mark: |500|1|
+| Go to [PROXYLITE](https://proxylite.ru/?r=PJTKXWN3) | :white_check_mark:	  | :white_check_mark: |Unlimited|1|
+| Go to [BITPING](https://app.bitping.com?r=qm7mIuX3) | :white_check_mark:	  | :white_check_mark: |Unlimited|1|
 
 ### 3) Complete the automatic guided setup using runme.sh (linux) or runme.ps1 (Windows/linux)
 * (On linux) open a terminal in the project folder or navigate to it then use the following commands to add execute permission and run the guided script to configure the .env file and then start the stack:
