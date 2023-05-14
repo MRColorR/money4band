@@ -19,7 +19,7 @@ set -e
 #
 # Git commit from https://github.com/docker/docker-install when
 # the script was uploaded (Should only be modified by upload job):
-SCRIPT_COMMIT_SHA="4f282167c425347a931ccfd95cc91fab041d414f"
+SCRIPT_COMMIT_SHA="a8a6b338bdfedd7ddefb96fe3e7fe7d4036d945a"
 
 # strip "v" prefix if present
 VERSION="${VERSION#v}"
@@ -244,6 +244,9 @@ check_forked() {
 				fi
 				dist_version="$(sed 's/\/.*//' /etc/debian_version | sed 's/\..*//')"
 				case "$dist_version" in
+					12)
+						dist_version="bookworm"
+					;;
 					11)
 						dist_version="bullseye"
 					;;
@@ -332,6 +335,9 @@ do_install() {
 		debian|raspbian)
 			dist_version="$(sed 's/\/.*//' /etc/debian_version | sed 's/\..*//')"
 			case "$dist_version" in
+				12)
+					dist_version="bookworm"
+				;;
 				11)
 					dist_version="bullseye"
 				;;
@@ -380,7 +386,7 @@ do_install() {
 			deprecation_notice "$lsb_dist" "$dist_version"
 			;;
 		fedora.*)
-			if [ "$dist_version" -lt 33 ]; then
+			if [ "$dist_version" -lt 36 ]; then
 				deprecation_notice "$lsb_dist" "$dist_version"
 			fi
 			;;
@@ -412,7 +418,7 @@ do_install() {
 					echo "# WARNING: VERSION pinning is not supported in DRY_RUN"
 				else
 					# Will work for incomplete versions IE (17.12), but may not actually grab the "latest" if in the test channel
-					pkg_pattern="$(echo "$VERSION" | sed "s/-ce-/~ce~.*/g" | sed "s/-/.*/g").*-0~$lsb_dist"
+					pkg_pattern="$(echo "$VERSION" | sed "s/-ce-/~ce~.*/g" | sed "s/-/.*/g")"
 					search_command="apt-cache madison 'docker-ce' | grep '$pkg_pattern' | head -1 | awk '{\$1=\$1};1' | cut -d' ' -f 3"
 					pkg_version="$($sh_c "$search_command")"
 					echo "INFO: Searching repository for VERSION '$VERSION'"
@@ -438,24 +444,15 @@ do_install() {
 						pkgs="$pkgs docker-ce-cli${cli_pkg_version%=} containerd.io"
 				fi
 				if version_gte "20.10"; then
-						pkgs="$pkgs docker-compose-plugin"
+						pkgs="$pkgs docker-compose-plugin docker-ce-rootless-extras$pkg_version"
 				fi
-				if version_gte "20.10" && [ "$(uname -m)" = "x86_64" ]; then
-						# also install the latest version of the "docker scan" cli-plugin (only supported on x86 currently)
-						pkgs="$pkgs docker-scan-plugin"
-				fi
-				# TODO(thaJeztah) remove the $CHANNEL check once 22.06 and docker-buildx-plugin is published to the "stable" channel
-				if [ "$CHANNEL" = "test" ] && version_gte "22.06"; then
+				if version_gte "23.0"; then
 						pkgs="$pkgs docker-buildx-plugin"
 				fi
 				if ! is_dry_run; then
 					set -x
 				fi
-				$sh_c "DEBIAN_FRONTEND=noninteractive apt-get install -y -qq --no-install-recommends $pkgs >/dev/null"
-				if version_gte "20.10"; then
-					# Install docker-ce-rootless-extras without "--no-install-recommends", so as to install slirp4netns when available
-					$sh_c "DEBIAN_FRONTEND=noninteractive apt-get install -y -qq docker-ce-rootless-extras${pkg_version%=} >/dev/null"
-				fi
+				$sh_c "DEBIAN_FRONTEND=noninteractive apt-get install -y -qq $pkgs >/dev/null"
 			)
 			echo_docker_as_nonroot
 			exit 0
@@ -529,15 +526,10 @@ do_install() {
 						pkgs="$pkgs docker-ce-cli containerd.io"
 					fi
 				fi
-				if version_gte "20.10" && [ "$(uname -m)" = "x86_64" ]; then
-						# also install the latest version of the "docker scan" cli-plugin (only supported on x86 currently)
-						pkgs="$pkgs docker-scan-plugin"
-				fi
 				if version_gte "20.10"; then
 					pkgs="$pkgs docker-compose-plugin docker-ce-rootless-extras$pkg_version"
 				fi
-				# TODO(thaJeztah) remove the $CHANNEL check once 22.06 and docker-buildx-plugin is published to the "stable" channel
-				if [ "$CHANNEL" = "test" ] && version_gte "22.06"; then
+				if version_gte "23.0"; then
 						pkgs="$pkgs docker-buildx-plugin"
 				fi
 				if ! is_dry_run; then
@@ -601,10 +593,6 @@ do_install() {
 					# It's okay for cli_pkg_version to be blank, since older versions don't support a cli package
 					cli_pkg_version="$($sh_c "$search_command")"
 					pkg_version="-$pkg_version"
-
-					search_command="zypper search -s --match-exact 'docker-ce-rootless-extras' | grep '$pkg_pattern' | tail -1 | awk '{print \$6}'"
-					rootless_pkg_version="$($sh_c "$search_command")"
-					rootless_pkg_version="-$rootless_pkg_version"
 				fi
 			fi
 			(
@@ -620,8 +608,7 @@ do_install() {
 				if version_gte "20.10"; then
 					pkgs="$pkgs docker-compose-plugin docker-ce-rootless-extras$pkg_version"
 				fi
-				# TODO(thaJeztah) remove the $CHANNEL check once 22.06 and docker-buildx-plugin is published to the "stable" channel
-				if [ "$CHANNEL" = "test" ] && version_gte "22.06"; then
+				if version_gte "23.0"; then
 						pkgs="$pkgs docker-buildx-plugin"
 				fi
 				if ! is_dry_run; then
