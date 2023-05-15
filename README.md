@@ -91,10 +91,10 @@ Using your preferred method get the latest version of this project and unzip it.
 ---
 
 ### :warning: Disclaimer
-Always check that the laws of your country and the contractual terms of your internet plan allow the use of such applications. In any case, I do not take any responsibility for any consequences deriving from the use of such apps. This stack proposed by me simply brings them together, allows easy configuration even for the less experienced and updates the apps' images automatically. 
+Always check that the laws of your country and the contractual terms of your internet plan allow the use of such applications. In any case, I do not take any responsibility for any consequences deriving from the use of such apps. This stack proposed by me simply brings these apps together, allows easy configuration even for the less experienced and updates the apps' images automatically. 
 This script is provided "as is" and without warranty of any kind.  
 The author makes no warranties, express or implied, that this script is free of errors, defects, or suitable for any particular purpose.  
 The author shall not be retained liable for any damages suffered by any user of this script, whether direct, indirect, incidental, consequential, or special, arising from the use of or inability to use this script or its documentation, even if the author has been advised of the possibility of such damages.  
 
 ## :hash: License
-[GNU](https://www.gnu.org/licenses/gpl-3.0.html)
+[GPL 3.0](https://www.gnu.org/licenses/gpl-3.0.html)
