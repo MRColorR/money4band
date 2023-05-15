@@ -1852,14 +1852,15 @@ img.u-opacity-70,
   }
   to {
     transform-origin: center center;
-    transform: translate3d(-50% !important, -50% !important, 0);
+    transform: translate3d(-50%, -50%, 0);
     opacity: 1;
   }
 }
+
 @keyframes customAnimationOut {
   from {
     transform-origin: center center;
-    transform: translate3d(-50% !important, -50% !important, 0);
+    transform: translate3d(-50%, -50%, 0);
     opacity: 1;
   }
   to {
@@ -1868,6 +1869,7 @@ img.u-opacity-70,
     opacity: var(--animation-custom_in-opacity);
   }
 }
+
 
 .u-table table {
   width: 100%;
