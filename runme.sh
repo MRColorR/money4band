@@ -216,7 +216,7 @@ fn_dockerInstall() {
             [Yy]* )
                 if docker --version >/dev/null 2>&1; then
                     while true; do
-                        colorprint "YELLOW" "Docker is already installed. Do you want to continue with the installation anyway? (Y/N)"
+                        colorprint "YELLOW" "It seems that Docker is already installed. Do you want to continue with the installation anyway? (Y/N)"
                         read -r yn
                         case $yn in
                             [Yy]* ) break;;
