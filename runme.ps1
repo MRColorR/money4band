@@ -1,38 +1,34 @@
 #!/bin/pwsh
 set-executionpolicy -scope CurrentUser -executionPolicy Bypass -Force
 
-### Links ##
-$EARNAPP_LNK = "EARNAPP | https://earnapp.com/i/3zulx7k"
-$EARNAPP_IMG='fazalfarhan01/earnapp'
+### Colors ###
+Add-Type -TypeDefinition @"
+   public enum ConsoleColor {
+      Green = 10,
+      Blue = 9,
+      Red = 12,
+      Yellow = 14,
+      Magenta = 13,
+      Cyan = 11
+   }
+"@
 
-$HONEYGAIN_LNK = "HONEYGAIN | https://r.honeygain.me/MINDL15721"
-$HONEYGAIN_IMG='honeygain/honeygain'
+### Color Functions ###
+function colorprint($color, $text) {
+    $prevColor = [System.Console]::ForegroundColor
+    [System.Console]::ForegroundColor = [ConsoleColor]::$color
+    Write-Output $text
+    [System.Console]::ForegroundColor = $prevColor
+}
 
-$IPROYALPAWNS_LNK = "IPROYALPAWNS | https://pawns.app?r=MiNe"
-$IPROYALPAWNS_IMG='iproyal/pawns-cli'
+function errorprint($text) {
+    Write-Error $text
+}
 
-$PACKETSTREAM_LNK = "PACKETSTREAM | https://packetstream.io/?psr=3zSD"
-$PACKETSTREAM_IMG='packetstream/psclient'
-
-$PEER2PROFIT_LNK = "PEER2PROFIT | https://p2pr.me/165849012262da8d0aa13c8"
-$PEER2PROFIT_IMG='peer2profit/peer2profit_linux'
-
-$TRAFFMONETIZER_LNK = "TRAFFMONETIZER | https://traffmonetizer.com/?aff=366499"
-$TRAFFMONETIZER_IMG='traffmonetizer/cli'
-
-$REPOCKET_LNK = "REPOCKET | https://link.repocket.co/hr8i"
-$REPOCKET_IMG='repocket/repocket'
-
-$PROXYRACK_LNK= "PROXYRACK | https://peer.proxyrack.com/ref/myoas6qttvhuvkzh8ffx90ns1ouhwgilfgamo5ex"
-$PROXYRACK_IMG='proxyrack/pop'
-
-$BITPING_LNK = "BITPING | https://app.bitping.com?r=qm7mIuX3"
-$BITPING_IMG='bitping/bitping-node'
-
-### .env File Prototype Link##
+### .env File Prototype Link ###
 $ENV_SRC = 'https://github.com/MRColorR/money4band/raw/main/.env'
 
-### docker compose.yaml Prototype Link##
+### docker compose.yaml Prototype Link ###
 $DKCOM_FILENAME = "docker-compose.yaml"
 $DKCOM_SRC = "https://github.com/MRColorR/money4band/raw/main/$DKCOM_FILENAME"
 
@@ -42,45 +38,98 @@ $DKINST_WIN_SRC = 'https://github.com/MRColorR/money4band/raw/main/.resources/.s
 ### Docker installer script for Mac source link ##
 $DKINST_MAC_SRC = 'https://github.com/MRColorR/money4band/raw/main/.resources/.scripts/install-docker-mac.ps1'
 
+### Resources, Scripts and Files folders ###
+$script:RESOURCES_DIR = "$PWD\.resources"
+$script:CONFIG_DIR = "$RESOURCES_DIR\.www\.configs"
+$script:SCRIPTS_DIR = "$RESOURCES_DIR\.scripts"
+$script:FILES_DIR = "$RESOURCES_DIR\.files"
 
-### Resources, Scripts and Files folders
-$RESOURCES_DIR = "$pwd\.resources"
-$SCRIPTS_DIR = "$RESOURCES_DIR\.scripts"
-$FILES_DIR = "$RESOURCES_DIR\.files"
+### Architecture default ###
+$script:ARCH = 'unknown'
+$script:DKARCH = 'unknown'
 
-## Achitecture default
-$script:ARCH='unknown'
-$script:DKARCH='unknown'
+### Env file default ###
+$script:DEVICE_NAME = 'yourDeviceName'
 
-### Proxy config #
+### Proxy config ###
 $script:PROXY_CONF = $false
-$script:PROXY_CONF_ALL = $false
-$script:STACK_HTTP_PROXY = ''
-$script:STACK_HTTPS_PROXY = ''
+$script:STACK_PROXY = ''
 
-### Functions ##
-function fn_bye { Write-Output "Bye bye."; exit 0; }
-function fn_fail { Write-Output "Wrong option." exit 1; }
-function fn_unknown {
-    param ($REPLY) 
-    Write-Output "Unknown choice $REPLY, please choose a valid option";
+### Functions ###
+function fn_bye {
+    colorprint "Green" "Share this app with your friends thank you!"
+    colorprint "Green" "Exiting the application...Bye!Bye!"
+    exit 0
 }
 
-### Sub-menu Functions ##
+function fn_fail($text) {
+    errorprint $text
+    Read-Host -Prompt "Press Enter to continue"
+    exit 1
+}
+
+function fn_unknown($REPLY) {
+    colorprint "Red" "Unknown choice $REPLY, please choose a valid option"
+}
+
+### Sub-menu Functions
 function fn_showLinks {
     Clear-Host
-    Write-Output "Use CTRL+Click to open links or copy them:"
-    Write-Output $EARNAPP_LNK
-    Write-Output $HONEYGAIN_LNK
-    Write-Output $IPROYALPAWNS_LNK
-    Write-Output $PACKETSTREAM_LNK
-    Write-Output $PEER2PROFIT_LNK
-    Write-Output $TRAFFMONETIZER_LNK
-    Write-Output $REPOCKET_LNK
-    Write-Output $BITPING_LNK
-    Read-Host -Prompt "Press enter to go back to mainmenu"
-    mainmenu
+    colorprint "Green" "Use CTRL+Click to open links or copy them:"
+
+    $configPath = Join-Path -Path $CONFIG_DIR -ChildPath 'config.json'
+    $configData = Get-Content -Path $configPath -Raw | ConvertFrom-Json
+
+    foreach ($app in $configData.apps) {
+        $displayString = "$($app.name) | $($app.link)"
+        colorprint "Cyan" $displayString
+    }
+
+    Read-Host -Prompt "Press Enter to go back to mainmenu"
 }
+<#
+.SYNOPSIS
+An experimanetal function that provide support for installing packages using Chocolatey
+
+.DESCRIPTION
+An experimanetal function that provide support for installing packages using Chocolatey. If chocolatey is not installed it will be installed automatically.
+
+.PARAMETER REQUIRED_PACKAGES
+A list of packages to install using Chocolatey
+
+.EXAMPLE
+fn_install_packages -REQUIRED_PACKAGES "git","curl"
+
+.NOTES
+This function has not been tested yes and is not used in the script yet but could be used in the future
+#>
+function fn_install_packages {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string[]] $REQUIRED_PACKAGES
+    )
+
+    # Check if Chocolatey is installed
+    if (-Not (Get-Command choco -ErrorAction SilentlyContinue)) {
+        Write-Output "Chocolatey is not installed. Trying to install now..."
+        $installChocoScript = @"
+        Set-ExecutionPolicy Bypass -Scope Process -Force;
+        [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072;
+        iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+"@
+        Start-Process -FilePath "powershell.exe" -ArgumentList "-NoProfile -ExecutionPolicy Bypass -Command `"$installChocoScript`"" -Verb RunAs
+    }
+
+    foreach ($package in $REQUIRED_PACKAGES) {
+        if (-Not (choco list --localonly $package -r)) {
+            Write-Output "$package is not installed. Trying to install now..."
+            Start-Process -FilePath "powershell.exe" -ArgumentList "-NoProfile -ExecutionPolicy Bypass -Command `"choco install $package -y`"" -Verb RunAs
+        } else {
+            Write-Output "$package is already installed."
+        }
+    }
+}
+
 
 function fn_dockerInstall {
     Clear-Host
