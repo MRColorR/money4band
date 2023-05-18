@@ -136,7 +136,7 @@ fn_install_packages() {
         echo "Unsupported package manager. Please install the required packages manually."
     fi
 }
-
+## Multiarch emulation service installer function ##
 fn_addDockerBinfmtSVC() {
     # Check if the service file exists
     if [ -f "/etc/systemd/system/docker.binfmt.service" ]; then
@@ -204,7 +204,8 @@ fn_addDockerBinfmtSVC() {
         fi
     fi
 }
-
+## Docker checker and installer function ##
+# Check if docker is installed and if not then it tries to install it automatically
 fn_dockerInstall() {
     colorprint "YELLOW" "This menu item will launch a script that will attempt to install Docker"
     colorprint "YELLOW" "Use it only if you do not know how to perform the manual Docker installation described at https://docs.docker.com/get-docker/ as the automatic script in some rare cases and depending on the distros may fail to install Docker correctly."
@@ -213,6 +214,24 @@ fn_dockerInstall() {
         read -r -p "Do you wish to proceed with the Docker automatic installation Y/N? " yn
         case $yn in
             [Yy]* )
+                if docker --version >/dev/null 2>&1; then
+                    while true; do
+                        colorprint "YELLOW" "Docker is already installed. Do you want to continue with the installation anyway? (Y/N)"
+                        read -r yn
+                        case $yn in
+                            [Yy]* ) break;;
+                            [Nn]* )
+                                read -r -p "Press Enter to go back to mainmenu"
+                                return
+                                ;;
+                            * ) 
+                                colorprint "RED" "Please answer yes or no."
+                                continue
+                                ;;
+                        esac
+                    done
+                fi
+
                 if curl -fsSL https://get.docker.com -o "$SCRIPTS_DIR/get-docker.sh"; then
                     if sudo sh "$SCRIPTS_DIR/get-docker.sh"; then
                         colorprint "GREEN" "Docker installed"
@@ -236,6 +255,8 @@ fn_dockerInstall() {
         esac
     done
 }
+
+
 
 fn_setupNotifications() {
     clear
