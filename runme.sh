@@ -478,6 +478,7 @@ fn_setupProxy() {
                     ;;
                 [Nn]* )
                     colorprint "BLUE" "Ok, no proxy added to configuration."
+                    sleep 1
                     break
                     ;;
                 * ) colorprint "RED" "Please answer yes or no." ;;
@@ -712,7 +713,7 @@ mainmenu() {
             5) clear; fn_stopStack; break;;
             6) clear; fn_resetEnv; break;;
             7) clear; fn_resetDockerCompose; break;;
-            ${#options[@]}) clear; fn_bye; break;;
+            ${#options[@]}) fn_bye; break;;
             *) clear; fn_unknown; break;;
         esac
     done
