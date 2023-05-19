@@ -675,7 +675,7 @@ mainmenu() {
     clear
     colorprint "GREEN" "MONEY4BAND AUTOMATIC GUIDED SETUP"$'\n'"--------------------------------- "
     colorprint "YELLOW" "Checking dependencies..."
-
+    # this need to be changed to dinamically read depenedncies for any platform and select and install all the dependencies for the current platform
     # Check if jq is installed
     if ! command -v jq &> /dev/null; then
         colorprint "YELLOW" "Now a small useful package named JQ used to manage JSON files will be installed if not already present"
