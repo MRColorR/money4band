@@ -2,24 +2,30 @@
 set-executionpolicy -scope CurrentUser -executionPolicy Bypass -Force
 
 ### Colors ###
-Add-Type -TypeDefinition @"
-   public enum ConsoleColor {
-      Green = 10,
-      Blue = 9,
-      Red = 12,
-      Yellow = 14,
-      Magenta = 13,
-      Cyan = 11
-   }
-"@
+$colors = @{
+    "default" = [System.ConsoleColor]::White
+    "green"   = [System.ConsoleColor]::Green
+    "blue"    = [System.ConsoleColor]::Blue
+    "red"     = [System.ConsoleColor]::Red
+    "yellow"  = [System.ConsoleColor]::Yellow
+    "magenta" = [System.ConsoleColor]::Magenta
+    "cyan"    = [System.ConsoleColor]::Cyan
+}
 
 ### Color Functions ###
 function colorprint($color, $text) {
+    $color = $color.ToLower()
     $prevColor = [System.Console]::ForegroundColor
-    [System.Console]::ForegroundColor = [ConsoleColor]::$color
-    Write-Output $text
-    [System.Console]::ForegroundColor = $prevColor
+
+    if ($colors.ContainsKey($color)) {
+        [System.Console]::ForegroundColor = $colors[$color]
+        Write-Output $text
+        [System.Console]::ForegroundColor = $prevColor
+    } else {
+        Write-Output "Unknown color: $color. Available colors are: $($colors.Keys -join ', ')"
+    }
 }
+
 
 function errorprint($text) {
     Write-Error $text
@@ -130,473 +136,761 @@ function fn_install_packages {
     }
 }
 
+<#
+.SYNOPSIS
+Function that will attempt to install Docker on different OSs
 
+.DESCRIPTION
+This function will attempt to install Docker on different OSs. It will ask the user to choose the OS and then it will launch the appropriate script to install Docker on the selected OS. If Docker is already installed it will ask the user if he wants to proceed with the installation anyway.
+
+.EXAMPLE
+Just call fn_dockerInstall
+
+.NOTES
+This function has been tested until v 2.0.0 on windows and mac but not on linux yet. The new version has not been tested as its assume that the logic is the same as the previous one just more refined. 
+#>
 function fn_dockerInstall {
     Clear-Host
-    Write-Output "This menu item will launch a script that will attempt to install docker"
-    Write-Output "Use it if you do not know how to perform the manual docker installation described at https://docs.docker.com/get-docker/ as the automatic script in some cases and depending on the OS you are using may fail to install docker correctly."
-    $yn = Read-Host -Prompt "Do you wish to proceed with the Docker automatic installation Y/N?  "
-    if ($yn -eq 'Y' -or $yn -eq 'y' -or $yn -eq 'Yes' -or $yn -eq 'yes' ) {
-        Clear-Host
-        Write-Output "Which version of Docker do you want to install?"
-        Write-Output "1) Install Docker for Linux"
-        Write-Output "2) Install Docker for Windows"
-        Write-Output "3) Install Docker for MacOS"
-        $InstallStatus = 0;
-        $OSSel = Read-Host
-        Switch ($OSSel) {
-            1 {
-                Clear-Host
-                Write-Output "Starting Docker for linux auto installation script"
-                Invoke-WebRequest https://get.docker.com -o "$SCRIPTS_DIR/get-docker.sh"  ;
-                sudo sh get-docker.sh;
-                $InstallStatus = 1;
-            }
-            2 {
-                Clear-Host
-                Write-Output "Starting Docker for Windows auto installation script"
-                Invoke-WebRequest $DKINST_WIN_SRC -o "$SCRIPTS_DIR\install-docker-win.ps1"
-                Start-Process PowerShell -Verb RunAs "-noprofile -executionpolicy bypass -command `"$SCRIPTS_DIR\install-docker-win.ps1 -filesPath $FILES_DIR`"" -Wait
-                $InstallStatus = 1;              
-            }
-            3 {
-                Clear-Host
-                Write-Output "Starting Docker for MacOS auto installation script"  
-                Invoke-WebRequest $DKINST_MAC_SRC -o "$SCRIPTS_DIR\install-docker-mac.ps1"
-                Write-Output "Select your CPU type"
-                Write-Output "1) Apple silicon M1, M2...CPUs"
-                Write-Output "2) Intel i5, i7...CPUs"
-                $cpuSel = Read-Host
-                switch ($cpuSel) {
-                    1 {
-                        Start-Process PowerShell -Verb RunAs "-noprofile -executionpolicy bypass -command `"$SCRIPTS_DIR\install-docker-mac.ps1 -filesPath $FILES_DIR`"" -Wait
-                        $InstallStatus = 1;
+    colorprint "Yellow" "This menu item will launch a script that will attempt to install Docker"
+    colorprint "Yellow" "Use it only if you do not know how to perform the manual Docker installation described at https://docs.docker.com/get-docker/ as the automatic script in some cases and depending on the OS you are using may fail to install Docker correctly."
+    
+    while ($true) {
+        $yn = (Read-Host -Prompt "Do you wish to proceed with the Docker automatic installation Y/N?").ToLower()
+        if ($yn -eq 'y' -or $yn -eq 'yes') {
+            try {
+                $dockerVersion = docker --version
+                if ($dockerVersion) {
+                    while ($true) {
+                        colorprint "Yellow" "Docker seems to be installed already. Do you want to continue with the installation anyway? (Y/N)"
+                        $yn = (Read-Host -Prompt "").ToLower()
+                        if ($yn -eq 'n' -or $yn -eq 'no') {
+                            colorprint "Blue" "Returning to main menu..."
+                            return
+                        } elseif ($yn -eq 'y' -or $yn -eq 'yes' ) {
+                            break
+                        } else {
+                            colorprint "Red" "Please answer yes or no."
+                        }
                     }
-                    2 {
-                        Start-Process PowerShell -Verb RunAs "-noprofile -executionpolicy bypass -command `"$SCRIPTS_DIR\install-docker-mac.ps1 -filesPath $FILES_DIR -IntelCPU `"" -Wait
-                        $InstallStatus = 1;
-                    }
-                    Default { fn_unknown "$cpuSel"}
                 }
-                
             }
-            DEFAULT {
-                fn_unknown "$OSSel"
+            catch {
+                Write-Output "Proceeding with the Docker installation..."
             }
+
+            Clear-Host
+            colorprint "Yellow" "Which version of Docker do you want to install?"
+            colorprint "Yellow" "1) Install Docker for Linux"
+            colorprint "Yellow" "2) Install Docker for Windows"
+            colorprint "Yellow" "3) Install Docker for MacOS"
+            $InstallStatus = $false;
+            $OSSel = Read-Host
+            Switch ($OSSel) {
+                1 {
+                    Clear-Host
+                    colorprint "Yellow" "Starting Docker for linux auto installation script"
+                    Invoke-WebRequest https://get.docker.com -o "$SCRIPTS_DIR/get-docker.sh"
+                    sudo sh get-docker.sh;
+                    $InstallStatus = $true;
+                }
+                2 {
+                    Clear-Host
+                    colorprint "Yellow" "Starting Docker for Windows auto installation script"
+                    Invoke-WebRequest $DKINST_WIN_SRC -o "$SCRIPTS_DIR\install-docker-win.ps1"
+                    Start-Process PowerShell -Verb RunAs "-noprofile -executionpolicy bypass -command `"$SCRIPTS_DIR\install-docker-win.ps1 -filesPath $FILES_DIR`"" -Wait
+                    $InstallStatus = $true;              
+                }
+                3 {
+                    Clear-Host
+                    colorprint "Yellow" "Starting Docker for MacOS auto installation script"  
+                    Invoke-WebRequest $DKINST_MAC_SRC -o "$SCRIPTS_DIR\install-docker-mac.ps1"
+                    colorprint "Yellow" "Select your CPU type"
+                    colorprint "Yellow" "1) Apple silicon M1, M2...CPUs"
+                    colorprint "Yellow" "2) Intel i5, i7...CPUs"
+                    $cpuSel = Read-Host
+                    switch ($cpuSel) {
+                        1 {
+                            Start-Process PowerShell -Verb RunAs "-noprofile -executionpolicy bypass -command `"$SCRIPTS_DIR\install-docker-mac.ps1 -filesPath $FILES_DIR`"" -Wait
+                            $InstallStatus = $true;
+                        }
+                        2 {
+                            Start-Process PowerShell -Verb RunAs "-noprofile -executionpolicy bypass -command `"$SCRIPTS_DIR\install-docker-mac.ps1 -filesPath $FILES_DIR -IntelCPU `"" -Wait
+                            $InstallStatus = $true;
+                        }
+                        Default { fn_unknown "$cpuSel"}
+                    }
+                    
+                }
+                DEFAULT {
+                    fn_unknown "$OSSel"
+                }
+            }
+            if ($InstallStatus) {
+                colorprint "Green" "Script completed. If no errors appeared Docker should be installed. Please restart your machine and then proceed to .env file config and stack startup."
+            }
+            else {
+                colorprint "Red" "Something went wrong (maybe bad choice or incomplete installation), failed to install Docker automatically. Please try to install Docker manually by following the instructions on Docker website."
+            }
+            Read-Host -Prompt "Press enter to go back to mainmenu"
+            break
         }
-        if ($InstallStatus) {
-            Write-Output "Script completed. If no errors appeared Docker should be installed. Please restart your machine and then proceed to .env file config and stack startup."
+        elseif ($yn -eq 'n' -or $yn -eq 'no') {
+            Clear-Host
+            colorprint "Blue" "Docker unattended installation canceled. Make sure you have Docker installed before proceeding with the other steps."
+            Read-Host -prompt "Press enter to go back to the menu"
+            return
         }
         else {
-            Write-Output "Something went wrong (maybe bad choice or incomplete installation). Please retry"
+            colorprint "Red" "Please answer yes or no."
         }
-        Read-Host -Prompt "Press enter to go back to mainmenu"
-        mainmenu
-    }
-    else {
-        Clear-Host
-        Write-Output "Docker unattended installation canceled. Make sure you have docker installed before proceeding with the other steps.  ";
-        Read-Host -prompt "Press enter to go back to the menu";
-        mainmenu;
     }
 }
 
+
+<#
+.SYNOPSIS
+Function that will setup notifications about containers updates using shoutrrr
+
+.DESCRIPTION
+This function will setup notifications about containers updates using shoutrrr. It will ask the user to enter a link for notifications and then it will update the .env file and the docker-compose.yaml file accordingly.
+
+.EXAMPLE
+Just call fn_setupNotifications
+
+.NOTES
+This function has been tested until v 2.0.0. The new version has not been tested as its assume that the logic is the same as the previous one just more refined.
+#>
 function fn_setupNotifications() {
     Clear-Host
-    Write-Output "This step will setup notifications about containers updates using shoutrrr"
-    Write-Output "The resulting configured SHOUTRRR_URL should looks like this <app>://<token>@<webhook> . Where <app> is one of the supported messaging apps supported by shoutrrr (E.g. a private Discord server)."
-    Write-Output "For more apps and details visit https://containrrr.dev/shoutrrr/, select your desider app (service) and paste the required SHOUTRRR_URL in this script when prompted "
-    Read-Host -p "Press enter to proceed and show the discord notification setup example (Remember: you can also use a different supported app, just enter the link correctly)"
+    colorprint "Yellow" "This step will setup notifications about containers updates using shoutrrr"
+    colorprint "Default" "The resulting SHOUTRRR_URL should have the format: <app>://<token>@<webhook>. Where <app> is one of the supported messaging apps on Shoutrrr (e.g. Discord), and <token> and <webhook> are specific to your messaging app."
+    colorprint "Default" "To obtain the SHOUTRRR_URL, create a new webhook for your messaging app and rearrange its URL to match the format above."
+    colorprint "Default" "For more details, visit https://containrrr.dev/shoutrrr/ and select your messaging app."
+    colorprint "Default" "Now a Discord notification setup example will be shown (Remember: you can also use a different supported app)."
+    Read-Host -Prompt "Press enter to continue"
     Clear-Host
-    Write-Output "CREATE A NEW DISCORD SERVER, GO TO SERVER SETTINGS>INTEGRATIONS AND CREATE A WEBHOOK"
-    Write-Output "Your Discord Webhook-URL will look like this: https://discordapp.com/api/webhooks/YourWebhookid/YourToken to obtain the SHOUTRRR_URL you should rearrange it to look like this: discord://yourToken@yourWebhookid"
-    Read-Host -p "Press enter to continue"
+    colorprint "Magenta" "Create a new Discord server, go to server settings > integrations, and create a webhook."
+    colorprint "Magenta" "Your Discord Webhook-URL will look like this: https://discordapp.com/api/webhooks/YourWebhookid/YourToken."
+    colorprint "Magenta" "To obtain the SHOUTRRR_URL, rearrange it to look like this: discord://YourToken@YourWebhookid."
+    Read-Host -Prompt "Press enter to proceed."
     Clear-Host
-    Write-Output "NOW INSERT BELOW THE LINK FOR NOTIFICATIONS using THE SAME FORMAT WRITTEN ABOVE e.g.: discord://yourToken@yourWebhookid"
-    $SHOUTRRR_URL = Read-Host
-    (Get-Content .\.env).replace('# SHOUTRRR_URL=yourApp:yourToken@yourWebHook', "SHOUTRRR_URL=$SHOUTRRR_URL") | Set-Content .\.env
-    (Get-Content .\$DKCOM_FILENAME).replace('# - WATCHTOWER_NOTIFICATIONS=shoutrrr', "- WATCHTOWER_NOTIFICATIONS=shoutrrr") | Set-Content .\$DKCOM_FILENAME
-    (Get-Content .\$DKCOM_FILENAME).replace('# - WATCHTOWER_NOTIFICATION_URL', "- WATCHTOWER_NOTIFICATION_URL") | Set-Content .\$DKCOM_FILENAME
-    (Get-Content .\$DKCOM_FILENAME).replace('# - WATCHTOWER_NOTIFICATIONS_HOSTNAME', "- WATCHTOWER_NOTIFICATIONS_HOSTNAME") | Set-Content .\$DKCOM_FILENAME
-    Read-Host -p "Notifications setup complete. If the link is correct, you will receive a notification for each update made on the app container images. Now press enter to continue"
+    while ($true) {
+        colorprint "Yellow" "NOW INSERT BELOW THE LINK FOR NOTIFICATIONS using THE SAME FORMAT WRITTEN ABOVE e.g.: discord://yourToken@yourWebhookid"
+        $SHOUTRRR_URL = Read-Host
+        if ($SHOUTRRR_URL -match '^[a-zA-Z]+://') {
+            (Get-Content .\.env).replace('# SHOUTRRR_URL=yourApp:yourToken@yourWebHook', "SHOUTRRR_URL=$SHOUTRRR_URL") | Set-Content .\.env
+            (Get-Content .\$DKCOM_FILENAME).replace('# - WATCHTOWER_NOTIFICATIONS=shoutrrr', "  - WATCHTOWER_NOTIFICATIONS=shoutrrr") | Set-Content .\$DKCOM_FILENAME
+            (Get-Content .\$DKCOM_FILENAME).replace('# - WATCHTOWER_NOTIFICATION_URL', "  - WATCHTOWER_NOTIFICATION_URL") | Set-Content .\$DKCOM_FILENAME
+            (Get-Content .\$DKCOM_FILENAME).replace('# - WATCHTOWER_NOTIFICATIONS_HOSTNAME', "  - WATCHTOWER_NOTIFICATIONS_HOSTNAME") | Set-Content .\$DKCOM_FILENAME
+            Read-Host -Prompt "Notifications setup complete. If the link is correct, you will receive a notification for each update made on the app container images. Press enter to continue."
+            break
+        } else {
+            colorprint "Red" "Invalid link format. Please make sure to use the correct format."
+            while ($true) {
+                colorprint "Yellow" "Do you wish to try again or leave the notifications disabled and continue with the setup script? (Yes to try again, No to continue without notifications) Y/N?"
+                $yn = Read-Host
+                $yn = $yn.ToLower()
+                if ($yn -eq 'y' -or $yn -eq 'yes') {
+                    break
+                } elseif ($yn -eq 'n' -or $yn -eq 'no') {
+                    return
+                } else {
+                    colorprint "Red" "Please answer yes or no."
+                }
+            }
+        }
+    }
     Clear-Host
 }
 
-function fn_setupApp() {
-    param ($CURRENT_APP, $TYPE , $SUBTYPE
+<#
+.SYNOPSIS
+This function will manage the setup of each app in the stack
+
+.DESCRIPTION
+This function will manage the setup of each app in the stack. It will ask the user to enter the required data for each app and then it will update the .env file and the docker-compose.yaml file accordingly.
+
+.PARAMETER app
+App name and image are required parameters. The app name is used to identify the app in the setup process.
+
+.PARAMETER image
+the image is used to feryfy if the image supports the current architecture and to update the docker-compose.yaml file accordingly.
+
+.PARAMETER email
+Optional parameter. If the app requires an email to be setup, this parameter will be used to update the .env file.
+
+.PARAMETER password
+Optional parameter. If the app requires a password to be setup, this parameter will be used to update the .env file.
+
+.PARAMETER apikey
+Optional parameter. If the app requires an apikey to be setup, this parameter will be used to update the .env file.
+
+.PARAMETER userid
+Optional parameter. If the app requires an userid to be setup, this parameter will be used to update the .env file.
+
+.PARAMETER uuid
+Optional parameter. If the app requires an uuid to be setup, this parameter will be used to update the .env file.
+
+.PARAMETER cid
+Optional parameter. If the app requires an cid to be setup, this parameter will be used to update the .env file.
+
+.PARAMETER token
+Optional parameter. If the app requires an token to be setup, this parameter will be used to update the .env file.
+
+.PARAMETER customScript
+Optional parameter. If the app requires a custom script to be executed, this parameter will be used to execute the script.
+
+.EXAMPLE
+fn_setupApp -app "HONEYGAIN" -image "honeygain/honeygain" -email "email" -password "password"
+
+.NOTES
+This function has been tested until v 2.0.0. The new version has not been tested as its assume that the logic is the same as the previous one just more refined.
+#>
+function fn_setupApp {
+    param (
+        [Parameter(Mandatory=$true)]
+        [string]$app,
+        [Parameter(Mandatory=$false)]
+        [string]$image,
+        [Parameter(Mandatory=$false)]
+        [string]$email,
+        [Parameter(Mandatory=$false)]
+        [string]$password,
+        [Parameter(Mandatory=$false)]
+        [string]$apikey,
+        [Parameter(Mandatory=$false)]
+        [string]$userid,
+        [Parameter(Mandatory=$false)]
+        [string]$uuid,
+        [Parameter(Mandatory=$false)]
+        [string]$cid,
+        [Parameter(Mandatory=$false)]
+        [string]$token,
+        [Parameter(Mandatory=$false)]
+        [string]$customScript
     )
-    if ( "$TYPE" -eq "email" ) {
-        Write-Output "Note: If you are using login with google, remember to set also a password for your app account!"
-        Write-Output "Enter your $CURRENT_APP Email"
-        $APP_EMAIL = Read-Host 
-        (Get-Content .\.env).replace("your${CURRENT_APP}Mail", "$APP_EMAIL") | Set-Content .\.env
     
-        if ("$SUBTYPE" -eq "password" ) { 
-            Write-Output "Now enter your $CURRENT_APP Password"
-            $APP_PASSWORD = Read-Host  
-        (Get-Content .\.env).replace("your${CURRENT_APP}Pw", "$APP_PASSWORD") | Set-Content .\.env
-        }
-        if ("$SUBTYPE" -eq "apikey" ) { 
-            Write-Output "Now enter your $CURRENT_APP APIKey. You can find/generate it inside your $CURRENT_APP dashboard/profile."
-            $APP_APIKEY = Read-Host  
-        (Get-Content .\.env).replace("your${CURRENT_APP}APIKey", "$APP_APIKEY") | Set-Content .\.env
+    $CURRENT_APP = if($app){$app} else {$null}
+    $DKCOM_FILENAME = if($app){$DKCOM_FILENAME -replace "#${CURRENT_APP}_ENABLE", ""}
+
+    $APP_IMAGE = if($image){$image}
+
+    if ($email) {
+        while($true) {
+            colorprint "GREEN" "Enter your ${CURRENT_APP} Email:"
+            $APP_EMAIL = Read-Host
+            if ($APP_EMAIL -match '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[a-zA-Z]{2,}$') {
+                (Get-Content .env) -replace "your${CURRENT_APP}Mail", $APP_EMAIL | Set-Content .env
+                break
+            } else {
+                colorprint "RED" "Invalid email address. Please try again."
+            }
         }
     }
-    elseif ( "$TYPE" -eq "uuid" ) {
-        Write-Output "Starting UUID generation/import for $CURRENT_APP"
-        $SALT = "$SUBTYPE$(Get-Random)"
-        $md5 = New-Object -TypeName System.Security.Cryptography.MD5CryptoServiceProvider
-        $utf8 = New-Object -TypeName System.Text.UTF8Encoding
-        $UUID = [System.BitConverter]::ToString($md5.ComputeHash($utf8.GetBytes($SALT))).replace("-", "").ToLower()
-        Write-Output "(Enter y to import an existing UUID OR Enter n to let the script auto generate a new one)"
-        $USE_EXISTING_UUID = Read-Host "Do you want to use a previously registered sdk-node-uuid for $CURRENT_APP? (Y/N)"
-        if ($USE_EXISTING_UUID -eq "Y" -or $USE_EXISTING_UUID -eq "y") {
-            while ($true) {
-                $EXISTING_UUID = Read-Host "Please enter the 32 char long alphanumeric part of the existing sdk-node-uuid for $CURRENT_APP`n(E.g. if existing registered node is sdk-node-b86301656baefekba8917349bdf0f3g4 then enter just b86301656baefekba8917349bdf0f3g4)"
-                if ($EXISTING_UUID -notmatch "^[a-f0-9]{32}$") {
-                    Write-Host "Invalid UUID entered, it should be an md5 hash and 32 characters long." -ForegroundColor Red
-                    Write-Output "(Enter y to try again OR Enter n to let the script auto generate a new UUID)"
-                    $TRY_AGAIN = Read-Host "Do you want to try again? (Y/N)"
-                    if ($TRY_AGAIN -eq "N" -or $TRY_AGAIN -eq "n") {
+
+    if ($password) {
+        while($true) {
+            colorprint "DEFAULT" "Note: If you are using login with Google, remember to set also a password for your ${CURRENT_APP} account!"
+            colorprint "GREEN" "Enter your ${CURRENT_APP} Password:"
+            $APP_PASSWORD = Read-Host
+            if ($APP_PASSWORD) {
+                (Get-Content .env) -replace "your${CURRENT_APP}Pw", $APP_PASSWORD | Set-Content .env
+                break
+            } else {
+                colorprint "RED" "Password cannot be empty. Please try again."
+            }
+        }
+    }
+
+    if ($apikey) {
+        colorprint "DEFAULT" "Find/Generate your APIKey inside your ${CURRENT_APP} dashboard/profile."
+        colorprint "GREEN" "Enter your ${CURRENT_APP} APIKey:"
+        $APP_APIKEY = Read-Host
+        (Get-Content .env) -replace "your${CURRENT_APP}APIKey", $APP_APIKEY | Set-Content .env
+    }
+
+    if ($userid) {
+        colorprint "DEFAULT" "Find your UserID inside your ${CURRENT_APP} dashboard/profile."
+        colorprint "GREEN" "Enter your ${CURRENT_APP} UserID:"
+        $APP_USERID = Read-Host
+        (Get-Content .env) -replace "your${CURRENT_APP}UserID", $APP_USERID | Set-Content .env
+    }
+
+    if ($uuid) {
+        colorprint "DEFAULT" "Starting UUID generation/import for ${CURRENT_APP}"
+        $SALT = "$script:DEVICE_NAME$((Get-Random))"
+        $UUID = New-Object System.Security.Cryptography.MD5CryptoServiceProvider
+        $hash = $UUID.ComputeHash([System.Text.Encoding]::ASCII.GetBytes($SALT))
+        $UUID = ([System.BitConverter]::ToString($hash) -replace '-','')
+        while($true) {
+            colorprint "YELLOW" "Do you want to use a previously registered sdk-node-uuid for ${CURRENT_APP}? (yes/no)"
+            $USE_EXISTING_UUID = Read-Host
+            $USE_EXISTING_UUID = $USE_EXISTING_UUID.ToLower()
+        
+            if ($USE_EXISTING_UUID -eq "yes" -or $USE_EXISTING_UUID -eq "y") {
+                while($true) {
+                    colorprint "GREEN" "Please enter the 32 char long alphanumeric part of the existing sdk-node-uuid for ${CURRENT_APP}:"
+                    colorprint "DEFAULT" "E.g. if existing registered node is sdk-node-b86301656baefekba8917349bdf0f3g4 then enter just b86301656baefekba8917349bdf0f3g4"
+                    $EXISTING_UUID = Read-Host
+                    if ($EXISTING_UUID -notmatch '^[a-f0-9]{32}$') {
+                        colorprint "RED" "Invalid UUID entered, it should be an md5 hash and 32 characters long."
+                        colorprint "DEFAULT" "Do you want to try again? (yes/no)"
+                        $TRY_AGAIN = Read-Host
+                        $TRY_AGAIN = $TRY_AGAIN.ToLower()
+                        if ($TRY_AGAIN -eq "no" -or $TRY_AGAIN -eq "n") { break }
+                    } else {
+                        $UUID = $EXISTING_UUID
                         break
                     }
                 }
-                else {
-                    $UUID = $EXISTING_UUID
+            } elseif ($USE_EXISTING_UUID -eq "no" -or $USE_EXISTING_UUID -eq "n") {
+                break
+            } else {
+                colorprint "RED" "Please answer yes or no."
+            }
+        }    
+        (Get-Content .env) -replace "your${CURRENT_APP}MD5sum", $UUID | Set-Content .env
+        colorprint "DEFAULT" "${CURRENT_APP} UUID setup: done"
+        colorprint "BLUE" "Save the following link somewhere to claim your ${CURRENT_APP} node after completing the setup and starting the apps stack: https://earnapp.com/r/sdk-node-$UUID."
+        colorprint "DEFAULT" "A new file containing this link has been created for you in the current directory"
+        "https://earnapp.com/r/sdk-node-$UUID" | Out-File -FilePath 'ClaimEarnappNode.txt'
+    }
+
+    if ($cid) {
+        colorprint "DEFAULT" "Find your CID, you can fetch it from your dashboard https://packetstream.io/dashboard/download?linux# then click on ->View your configuration file<-."
+        colorprint "GREEN" "Enter your ${CURRENT_APP} CID:"
+        $APP_CID = Read-Host
+        (Get-Content .env) -replace "your${CURRENT_APP}CID", $APP_CID | Set-Content .env
+    }
+
+    if ($token) {
+        colorprint "DEFAULT" "Find your Token inside your ${CURRENT_APP} dashboard/profile."
+        colorprint "GREEN" "Enter your ${CURRENT_APP} Token:"
+        $APP_TOKEN = Read-Host
+        (Get-Content .env) -replace "your${CURRENT_APP}Token", $APP_TOKEN | Set-Content .env
+    }
+
+    if ($customScript) {
+        $SCRIPT_NAME = $customScript
+        $SCRIPT_PATH = Join-Path -Path $script:SCRIPTS_DIR -ChildPath $SCRIPT_NAME
+        if (Test-Path -Path $SCRIPT_PATH) {
+            Set-Content $SCRIPT_PATH -Value (Get-Content $SCRIPT_PATH) -Encoding UTF8
+            colorprint "DEFAULT" "Executing custom script: $SCRIPT_NAME"
+            Start-Process PowerShell -Verb RunAs "-noprofile -executionpolicy bypass -command `"cd '$pwd'; & '$SCRIPT_PATH';`"" -wait
+        } else {
+            colorprint "RED" "Custom script '$SCRIPT_NAME' not found in the scripts directory."
+        }
+    }
+    # App Docker image architecture adjustments
+    $TAG = 'latest'
+    $DKHUBRES = Invoke-WebRequest -Uri "https://registry.hub.docker.com/v2/repositories/$image/tags" -UseBasicParsing | ConvertFrom-Json | Where-Object { $_.images.architecture -eq $DKARCH } | Select-Object -ExpandProperty name
+    $TAGSNUMBER = $DKHUBRES.Length
+    if ($TAGSNUMBER -gt 0) { 
+        Write-Host "There are $TAGSNUMBER tags supporting $DKARCH arch for this image"
+        Write-Host "Let's see if $TAG tag is in there"
+        $LATESTPRESENT = $DKHUBRES -contains $TAG
+        if ($LATESTPRESENT) { 
+            Write-Host "OK, $TAG tag present and it supports $DKARCH arch, nothing to do"
+        }
+        else { 
+            Write-Host "$TAG tag does not support $DKARCH arch but other tags do, the newer tag supporting $DKARCH will be selected"
+            $NEWTAG = $DKHUBRES[0]
+            #sed equivalent in PowerShell
+            (Get-Content $DKCOM_FILENAME) -replace "${image}:latest","${image}:${NEWTAG}" | Set-Content $DKCOM_FILENAME
+        }
+    }
+    else { 
+        Write-Host "No native image tag found for $DKARCH arch, emulation layer will try to run this app image anyway."
+        #Write-Host "If an emulation layer is not already installed, the script will try to install it now. Please provide your sudo password if prompted."
+        #fn_install_packages qemu binfmt-support qemu-user-static
+        #fn_addDockerBinfmtSVC
+    }
+    
+    Write-Host "$app configuration complete, press enter to continue to the next app"
+    Read-Host
+}
+
+<#
+.SYNOPSIS
+Function that will setup the proxy for the apps in the stack
+
+.DESCRIPTION
+This function will setup the proxy for the apps in the stack. It will ask the user to enter the proxy to use and then it will update the .env file and the docker-compose.yaml file accordingly.
+
+.EXAMPLE
+Just call fn_setupProxy
+
+.NOTES
+This function has been tested until v 2.0.0. The new version has not been tested as its assume that the logic is the same as the previous one just more refined.
+#>
+function fn_setupProxy() {
+    if ($script:PROXY_CONF -eq $false) {
+        while ($true) {
+            colorprint "YELLOW" "Do you wish to setup a proxy for the apps in this stack Y/N?"
+            $note = "Note that if you want to run multiple instances of the same app you will need to configure different env files each in different project folders (copy the project to multiple different folders and configure them using different proxies)"
+            $yn = Read-Host -p "$note`n"
+
+            switch ($yn.ToLower()) {
+                ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') {
+                    Clear-Host
+                    colorprint "YELLOW" "Proxy setup started."
+                    $script:RANDOM_VALUE = Get-Random
+                    $proxyNote = "Insert the designed proxy to use. Eg: protocol://proxyUsername:proxyPassword@proxy_url:proxy_port or just protocol://proxy_url:proxy_port if auth is not needed"
+                    $script:STACK_PROXY = Read-Host -p "$proxyNote"
+                    colorprint "DEFAULT" "Ok, $script:STACK_PROXY will be used as proxy for all apps in this stack"
+                    Read-Host -p "Press enter to continue"
+                    $script:PROXY_CONF = $true
+                    # An unique name for the stack is chosen so that even if multiple stacks are started with different proxies the names do not conflict
+                    (Get-Content .\.env).replace("COMPOSE_PROJECT_NAME=money4band", "COMPOSE_PROJECT_NAME=money4band_$($script:RANDOM_VALUE)") | Set-Content .\.env
+                    (Get-Content .\.env).replace("DEVICE_NAME=$($script:DEVICE_NAME)", "DEVICE_NAME=$($script:DEVICE_NAME)$($script:RANDOM_VALUE)") | Set-Content .\.env
+                    # uncomment .env and compose file
+                    (Get-Content .\.env).replace("# STACK_PROXY=", "STACK_PROXY=$($script:STACK_PROXY)") | Set-Content .\.env
+                    (Get-Content "$script:DKCOM_FILENAME").replace("#PROXY_ENABLE", "") | Set-Content "$script:DKCOM_FILENAME"
+                    (Get-Content "$script:DKCOM_FILENAME").replace("# network_mode", "network_mode") | Set-Content "$script:DKCOM_FILENAME"
                     break
+                }
+                ($yn.ToLower() -eq 'n' -or $yn.ToLower() -eq 'no') {
+                    colorprint "BLUE" "Ok, no proxy added to configuration."
+                    Start-Sleep -Seconds 1
+                    break
+                }
+                default {
+                    colorprint "RED" "Please answer yes or no."
                 }
             }
         }
-        (Get-Content .\.env).replace("your${CURRENT_APP}MD5sum", "$UUID") | Set-Content .\.env
-        Write-Output "$CURRENT_APP UUID setup: done"
-        Write-Output "Save the following link somewhere to claim your earnapp node after completing the setup and after starting the apps stack: https://earnapp.com/r/sdk-node-$UUID. A new file containing this link has been created for you"
-        Write-Output "https://earnapp.com/r/sdk-node-$UUID" > ClaimEarnappNode.txt 
-    }
-    
-
-    elseif ("$TYPE" -eq "cid" ) {
-        Write-Output "Enter your $CURRENT_APP CID."
-        Write-Output "You can find it going in your dashboard https://packetstream.io/dashboard/download?linux# then click on -> Looking for linux app -> now search for CID= in the code shown in the page, you need to enter the code after -e CID= (e.g. if in the code CID=6aTk, just enter 6aTk)"
-        $APP_CID = Read-Host 
-        (Get-Content .\.env).replace("your${CURRENT_APP}CID", "$APP_CID") | Set-Content .\.env
-    }
-
-    elseif ("$TYPE" -eq "token") {
-        Write-Output "Enter your $CURRENT_APP Token."
-        Write-Output "You can find it going in your dashboard https://app.traffmonetizer.com/dashboard then -> Look for Your application token -> just insert it here (you can also copy and then paste it)"
-        $APP_TOKEN = Read-Host 
-        (Get-Content .\.env).replace("your${CURRENT_APP}Token", "$APP_TOKEN") | Set-Content .\.env
-    }
-    elseif ("$TYPE" -eq "customScript") {
-        Start-Process PowerShell -Verb RunAs "-noprofile -executionpolicy bypass -command `"cd '$pwd'; & '$SUBTYPE';`"" -wait
-    }
-    
-    if ( $script:PROXY_CONF ) {
-        if ( $script:PROXY_CONF_ALL ) {
-            (Get-Content .\.env).replace("# ${CURRENT_APP}_HTTP_PROXY=http://proxyUsername:proxyPassword@proxy_url:proxy_port", "${CURRENT_APP}_HTTP_PROXY=$script:STACK_HTTP_PROXY") | Set-Content .\.env
-            (Get-Content .\.env).replace("# ${CURRENT_APP}_HTTPS_PROXY=http://proxyUsername:proxyPassword@proxy_url:proxy_port", "${CURRENT_APP}_HTTPS_PROXY=$script:STACK_HTTPS_PROXY") | Set-Content .\.env
-        }
-        else {
-            Write-Output "Insert the designed HTTP proxy to use with $CURRENT_APP (also socks5h is supported)."
-            $APP_HTTP_PROXY = Read-Host 
-            Write-Output "Insert the designed HTTPS proxy to use with $CURRENT_APP (you can also use the same of the HTTP proxy and also socks5h is supported)."
-            $APP_HTTPS_PROXY = Read-Host 
-            (Get-Content .\.env).replace("# ${CURRENT_APP}_HTTP_PROXY=http://proxyUsername:proxyPassword@proxy_url:proxy_port", "${CURRENT_APP}_HTTP_PROXY=$APP_HTTP_PROXY") | Set-Content .\.env
-            (Get-Content .\.env).replace("# ${CURRENT_APP}_HTTPS_PROXY=http://proxyUsername:proxyPassword@proxy_url:proxy_port", "${CURRENT_APP}_HTTPS_PROXY=$APP_HTTPS_PROXY") | Set-Content .\.env
-        }
-
-        (Get-Content .\$DKCOM_FILENAME).replace("#- ${CURRENT_APP}_HTTP_PROXY", "- HTTP_PROXY") | Set-Content .\$DKCOM_FILENAME
-        (Get-Content .\$DKCOM_FILENAME).replace("#- ${CURRENT_APP}_HTTPS_PROXY", "- HTTPS_PROXY") | Set-Content .\$DKCOM_FILENAME
-        (Get-Content .\$DKCOM_FILENAME).replace("#- ${CURRENT_APP}_NO_PROXY", "- NO_PROXY") | Set-Content .\$DKCOM_FILENAME
-    }
-    Read-Host -p "${CURRENT_APP} configuration complete, press enter to continue to the next app"
-}
-
-function fn_setupProxy() {
-    $yn = Read-Host -p "Do you wish to use a proxy? Y/N? Note that if you want to run multiple instances of the same app you will need to configure different env files each in different project folders (copy the project to multiple different folders and configure them using different proxies)"
-    if ($yn -eq 'Y' -or $yn -eq 'y' -or $yn -eq 'Yes' -or $yn -eq 'yes' ) {
-        Clear-Host
-        Write-Output "Proxy setup started.";
-        $yn = Read-Host -p "Do you wish to use the same proxy for all the apps in this stack? Y/N?"
-        if ($yn -eq 'Y' -or $yn -eq 'y' -or $yn -eq 'Yes' -or $yn -eq 'yes' ) {
-            Write-Output "Insert the designed HTTP proxy to use. Eg: http://proxyUsername:proxyPassword@proxy_url:proxy_port or just http://proxy_url:proxy_port if auth is not needed, also socks5h is supported.";
-            $script:STACK_HTTP_PROXY = Read-Host 
-            Write-Output "Ok, $script:STACK_HTTP_PROXY will be used as proxy for all apps in this stack"
-            Read-Host -p "Press enter to continue"
-            Clear-Host
-            Write-Output "Insert the designed HTTPS proxy to use (you can also use the same of the HTTP proxy), also socks5h is supported."
-            $script:STACK_HTTPS_PROXY = Read-Host
-            Write-Output "Ok, $script:STACK_HTTPS_PROXY will be used as secure proxy for all apps in this stack"
-            Read-Host -p "Press enter to continue"
-            $script:PROXY_CONF_ALL = $true
-            $script:PROXY_CONF = $true
-        }
-        elseif ($yn -eq 'N' -or $yn -eq 'n' -or $yn -eq 'No' -or $yn -eq 'no') {
-            $script:PROXY_CONF_ALL = $false
-            $script:PROXY_CONF = $true
-            Write-Output "Ok, later you will be asked for a proxy for each application"
-            Read-Host -p "Press enter to continue"
-        }
-        else {
-            Clear-Host
-            Write-Output "Please answer yes or no."
-            fn_setupProxy
-        }
-        # An unique name for the stack is chosen so that even if multiple stacks are started with different proxies the names do not conflict
-            (Get-Content .\.env).replace("COMPOSE_PROJECT_NAME=money4band", "COMPOSE_PROJECT_NAME=money4band_$(Get-Random)") | Set-Content .\.env
-    }
-    elseif ($yn -eq 'N' -or $yn -eq 'n' -or $yn -eq 'No' -or $yn -eq 'no') {
-        Write-Output "Ok, no proxy added to configuration."
-    }
-    else {
-        Clear-Host
-        Write-Output "Please answer yes or no."
-        fn_setupProxy
-    }
-    
-}
-
-function fn_setupEnv {
-    Clear-Host
-    $yn = Read-Host -p "Do you wish to proceed with the .env file guided setup Y/N? (This will also adapt the $DKCOM_FILENAME file accordingly)"
-    if ($yn -eq 'Y' -or $yn -eq 'y' -or $yn -eq 'Yes' -or $yn -eq 'yes' ) {
-        Clear-Host
-        if ( -Not (Select-String -Path .\.env -Pattern "DEVICE_NAME=yourDeviceName" -Quiet) ) {
-            Write-Output "The current .env file appears to have already been modified. A fresh version will be downloaded and used."
-            Invoke-WebRequest -OutFile '.env' $ENV_SRC;
-            Invoke-WebRequest -OutFile "$DKCOM_FILENAME" $DKCOM_SRC;
-        }
-        Write-Output "Beginnning env file guided setup"
-        $CURRENT_APP = '';
-        $DEVICE_NAME = Read-Host -prompt "PLEASE ENTER A NAME FOR YOUR DEVICE"
-        (Get-Content .\.env).replace('yourDeviceName', "$DEVICE_NAME") | Set-Content .\.env
-
-        Clear-Host
-        fn_setupProxy
-        Clear-Host
-
-        Write-Output "PLEASE REGISTER ON THE PLATFORMS USING THIS LINKS, YOU'LL NEED TO ENTER SOME DATA BELOW:"
-        Write-Output "Use CTRL+Click to open links or copy them:"
-
-        #EarnApp app env setup
-        $CURRENT_APP = 'EARNAPP';
-        Write-Output "Go to $EARNAPP_LNK and register"
-        Read-Host -prompt "When done, press enter to continue"
-        fn_setupApp "$CURRENT_APP" "uuid" "$DEVICE_NAME"
-
-
-        #HoneyGain app env setup
-        Clear-Host
-        $CURRENT_APP = 'HONEYGAIN';
-        Write-Output "Go to $HONEYGAIN_LNK and register"
-        Read-Host -prompt "When done, press enter to continue"
-        fn_setupApp "$CURRENT_APP" "email" "password"
-
-        #IPROYALPAWNS app env setup
-        Clear-Host
-        $CURRENT_APP = 'IPROYALPAWNS';
-        Write-Output "Go to $IPROYALPAWNS_LNK and register"
-        Read-Host -prompt "When done, press enter to continue"
-        fn_setupApp "$CURRENT_APP" "email" "password"
-
-
-        #Peer2Profit app env setup
-        Clear-Host
-        $CURRENT_APP = 'PEER2PROFIT';
-        Write-Output "Go to $PEER2PROFIT_LNK and register"
-        Read-Host -prompt "When done, press enter to continue"
-        fn_setupApp "$CURRENT_APP" "email"
-
-        #PacketStream app env setup
-        Clear-Host
-        $CURRENT_APP = 'PACKETSTREAM';
-        Write-Output "Go to $PACKETSTREAM_LNK and register"
-        Read-Host -prompt "When done, press enter to continue"
-        fn_setupApp "$CURRENT_APP" "cid"
-
-        # TraffMonetizer app env setup
-        Clear-Host
-        $CURRENT_APP = 'TRAFFMONETIZER';
-        Write-Output "Go to $TRAFFMONETIZER_LNK and register"
-        Read-Host -prompt "When done, press enter to continue"
-        fn_setupApp "$CURRENT_APP" "token"
-
-        # Repocket app env setup
-        Clear-Host
-        $CURRENT_APP = 'REPOCKET';
-        Write-Output "Go to $REPOCKET_LNK and register"
-        Read-Host -prompt "When done, press enter to continue"
-        fn_setupApp "$CURRENT_APP" "email" "apikey"
-
-        # Proxyrack/pop app env setup
-        Clear-Host
-        $CURRENT_APP = 'PROXYRACK';
-        Write-Output "Go to $PROXYRACK_LNK and register"
-        Read-Host -prompt "When done, press enter to continue"
-        fn_setupApp "$CURRENT_APP" "email" "apikey"
-    
-        # Bitping app env setup
-        Clear-Host
-        $CURRENT_APP = 'BITPING';
-        Write-Output "Go to $BITPING_LNK and register"
-        Read-Host -prompt "When done, press enter to continue"
-        fn_setupApp "$CURRENT_APP" "customScript" "$SCRIPTS_DIR\bitpingSetup.ps1"
-        
-
-        # Notifications setup
-        Clear-Host
-        $yn = Read-Host -p "Do you wish to setup notifications about apps images updates (Yes to recieve notifications and apply updates, No to just silently apply updates) Y/N?  "
-        if ($yn -eq 'Y' -or $yn -eq 'y' -or $yn -eq 'Yes' -or $yn -eq 'yes' ) {
-            fn_setupNotifications 
-        }
-        elseif ($yn -eq 'N' -or $yn -eq 'n' -or $yn -eq 'No' -or $yn -eq 'no') {
-            Write-Output "Noted: all updates will be applied automatically and silently"
-        }
-        else {
-            Write-Output "Please answer yes or no."
-            fn_setupNotifications 
-        }
-
-        Write-Output "env file setup complete."
-        Read-Host -prompt "Press enter to go back to the menu";
-
-        mainmenu;
-
-    }
-    else {
-        Write-Output ".env file setup canceled. Make sure you have a valid .env file before proceeding with the stack startup.";
-        Read-Host -prompt "Press enter to go back to the menu";
-        mainmenu;
-    }
-    
-}
-
-function fn_startStack {
-    Clear-Host
-    Write-Output "This menu item will launch all the apps using the configured .env file and the $DKCOM_FILENAME file (Docker must be already installed and running)"
-    $yn = Read-Host -prompt "Do you wish to proceed Y/N?"
-    if ($yn -eq 'Y' -or $yn -eq 'y' -or $yn -eq 'Yes' -or $yn -eq 'yes' ) {
-        docker compose up -d
-        Write-Output 'All Apps started you can visit the web dashboard on http://localhost:8081/ . If not already done use the previously generated earnapp node URL to add your device in your earnapp dashboard.'
-        Read-Host "Check the README file for more details. Now press enter to go back to the menu";
-        mainmenu;
-    }
-    else {
-        Write-Output "Docker stack startup canceled. After configuring the .env you have to start the stack to be able to earn. Proceed when you feel ready."
-        Read-Host -prompt "Press enter to go back to the menu";
-        mainmenu;
     }
 }
 
+<#
+.SYNOPSIS
+Function that will setup the .env file and the docker compose file
+
+.DESCRIPTION
+This function will setup the .env file and the docker compose file. It will ask the user to enter the required data for each app and then it will update the .env file and the docker-compose.yaml file accordingly.
+
+.EXAMPLE
+Just call fn_setupEnv
+
+.NOTES
+This function has been tested until v 2.0.0. The new version has not been tested as its assume that the logic is the same as the previous one just more refined.
+#>
+function fn_setupEnv() {
+    while ($true) {
+        colorprint "YELLOW" "Do you wish to proceed with the .env file guided setup Y/N? (This will also adapt the $($script:DKCOM_FILENAME) file accordingly)"
+        $yn = Read-Host
+        switch ($yn.ToLower()) {
+            ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') {
+                Clear-Host
+                if ((Get-Content .\.env) -notmatch "DEVICE_NAME=$($script:DEVICE_NAME)") {
+                    colorprint "DEFAULT" "The current .env file appears to have already been modified. A fresh version will be downloaded and used."
+                    Invoke-WebRequest -Uri $script:ENV_SRC -OutFile ".env"
+                    Invoke-WebRequest -Uri $script:DKCOM_SRC -OutFile "$($script:DKCOM_FILENAME)"
+                }
+                colorprint "YELLOW" "beginnning env file guided setup"
+                $script:CURRENT_APP = ''
+                colorprint "YELLOW" "PLEASE ENTER A NAME FOR YOUR DEVICE:"
+                $script:DEVICE_NAME = Read-Host
+                (Get-Content .\.env).replace("yourDeviceName", $script:DEVICE_NAME) | Set-Content .\.env
+                Clear-Host
+                fn_setupProxy
+                Clear-Host
+
+                $apps = Get-Content "$script:CONFIG_DIR/config.json" | ConvertFrom-Json | Select-Object -ExpandProperty apps
+
+                foreach ($app in $apps) {
+                    Clear-Host
+                    colorprint "YELLOW" "PLEASE REGISTER ON THE PLATFORMS USING THE FOLLOWING LINKS, YOU'LL NEED TO ENTER SOME DATA BELOW:"
+                    colorprint "GREEN" "Use CTRL+Click to open links or copy them:"
+                    $name = $app.name
+                    $link = $app.link
+                    $image = $app.image
+                    $flags = $app.flags
+
+                    $script:CURRENT_APP = $name.ToUpper()
+
+                    while ($true) {
+                        colorprint "YELLOW" "Do you wish to enable and use $($script:CURRENT_APP)? (Y/N)"
+                        $yn = Read-Host
+                        switch ($yn.ToLower()) {
+                            ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') {
+                                colorprint "CYAN" "Go to ${name} ${link} and register"
+                                Read-Host -p "When done, press enter to continue"
+                                # Pass the flags string to the function
+                                fn_setupApp --app "$($script:CURRENT_APP)" --image "$image" --flags $flags
+                                Clear-Host
+                                break
+                            }
+                            ($yn.ToLower() -eq 'n' -or $yn.ToLower() -eq 'no') {
+                                colorprint "BLUE" "$($script:CURRENT_APP) setup will be skipped."
+                                Read-Host -p "Press enter to continue to the next app"
+                                break
+                            }
+                            default { colorprint "RED" "Please answer yes or no." }
+                        }
+                    }
+                }
+
+                # Notifications setup
+                Clear-Host
+                while ($true) {
+                    colorprint "YELLOW" "Do you wish to setup notifications about apps images updates (Yes to receive notifications and apply updates, No to just silently apply updates) Y/N?"
+                    $yn = Read-Host
+                    switch ($yn.ToLower()) {
+                        ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') { fn_setupNotifications; break }
+                        ($yn.ToLower() -eq 'n' -or $yn.ToLower() -eq 'no') { colorprint "BLUE" "Noted: all updates will be applied automatically and silently"; break }
+                        default { colorprint "RED" "Invalid input. Please answer yes or no." }
+                    }
+                }
+
+                colorprint "GREEN" "env file setup complete."
+                Read-Host -p "Press any key to go back to the menu"
+                break
+            }
+            ($yn.ToLower() -eq 'n' -or $yn.ToLower() -eq 'no') {
+                colorprint "BLUE" ".env file setup canceled. Make sure you have a valid .env file before proceeding with the stack startup."
+                Read-Host -p "Press Enter to go back to mainmenu"
+                return
+            }
+            default { colorprint "RED" "Please answer yes or no." }
+        }
+    }
+}
+
+<#
+.SYNOPSIS
+Function that will start the apps stack using the configured .env file and the docker compose file.
+
+.DESCRIPTION
+This function will start the apps stack using the configured .env file and the docker compose file.
+
+.EXAMPLE
+Just call fn_startStack
+
+.NOTES
+This function has been tested until v 2.0.0. The new version has not been tested as its assume that the logic is the same as the previous one just more refined.
+#>
+function fn_startStack() {
+    while ($true) {
+        colorprint "YELLOW" "This menu item will launch all the apps using the configured .env file and the $($script:DKCOM_FILENAME) file (Docker must be already installed and running)"
+        $yn = Read-Host "Do you wish to proceed Y/N?"
+        switch ($yn.ToLower()) {
+            ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') {
+                if (docker compose up -d) {
+                    colorprint "GREEN" "All Apps started. You can visit the web dashboard on http://localhost:8081/. If not already done, use the previously generated earnapp node URL to add your device in your earnapp dashboard. Check the README file for more details."
+                }
+                else {
+                    colorprint "RED" "Error starting Docker stack. Please check the configuration and try again."
+                }
+                Read-Host "Now press enter to go back to the menu"
+                break
+            }
+            ($yn.ToLower() -eq 'n' -or $yn.ToLower() -eq 'no') {
+                colorprint "BLUE" "Docker stack startup canceled."
+                Read-Host "Press Enter to go back to mainmenu"
+                break
+            }
+            default { colorprint "RED" "Please answer yes or no." }
+        }
+    }
+}
+
+<#
+.SYNOPSIS
+Function that will stop all the apps and delete the docker stack previously created using the configured .env file and the docker compose file.
+
+.DESCRIPTION
+This function will stop all the apps and delete the docker stack previously created using the configured .env file and the docker compose file.
+
+.EXAMPLE
+Just call fn_stopStack
+
+.NOTES
+This function has been tested until v 2.0.0. The new version has not been tested as its assume that the logic is the same as the previous one just more refined.
+#>
 function fn_stopStack() {
-    Clear-Host
-    Write-Output "This menu item will stop all the apps and delete the docker stack previously created using the configured .env file and the $DKCOM_FILENAME file."
-    Write-Output "You don't need to use this command to temporarily pause apps or to update the stack. Use it only in case of uninstallation!"
-    $yn = Read-Host -prompt "Do you wish to proceed Y/N?"
-    if ($yn -eq 'Y' -or $yn -eq 'y' -or $yn -eq 'Yes' -or $yn -eq 'yes' ) {
-        docker compose down
-        Write-Output "All Apps stopped and stack deleted.";
-        Read-Host "Now press enter to go back to the menu";
-        mainmenu;
-    }
-    else {
-        Write-Output "Docker stack removal canceled.";
-        Read-Host -prompt "Press Enter to go back to mainmenu";
-        mainmenu; ;
-    }
-
-}
-
-function fn_resetEnv {
-    Write-Output "Now a fresh env file will be downloaded and will need to be configured to be used again"
-    $yn = Read-Host -prompt "Do you wish to proceed Y/N?  "
-    if ($yn -eq 'Y' -or $yn -eq 'y' -or $yn -eq 'Yes' -or $yn -eq 'yes' ) {
-        Invoke-WebRequest -OutFile '.env' $ENV_SRC; Write-Output ".env file resetted, remember to reconfigure it";
-        Read-Host -prompt "Press enter to go back to the menu";
-        mainmenu;
-    }
-    else {
-        Write-Output ".env file reset canceled. The file is left as it is.  "
-        Read-Host -prompt "Press enter to go back to the menu";
-        mainmenu;
+    while ($true) {
+        colorprint "YELLOW" "This menu item will stop all the apps and delete the docker stack previously created using the configured .env file and the $($script:DKCOM_FILENAME) file."
+        $yn = Read-Host "Do you wish to proceed Y/N?"
+        switch ($yn.ToLower()) {
+            ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') {
+                if (docker compose down) {
+                    colorprint "GREEN" "All Apps stopped and stack deleted."
+                }
+                else {
+                    colorprint "RED" "Error stopping and deleting Docker stack. Please check the configuration and try again."
+                }
+                Read-Host "Now press enter to go back to the menu"
+                break
+            }
+            ($yn.ToLower() -eq 'n' -or $yn.ToLower() -eq 'no') {
+                colorprint "BLUE" "Docker stack removal canceled."
+                Read-Host "Press Enter to go back to mainmenu"
+                break
+            }
+            default { colorprint "RED" "Please answer yes or no." }
+        }
     }
 }
+<#
+.SYNOPSIS
+Function that will reset the .env file
 
-function fn_resetDockerCompose {
-    Write-Output "Now a fresh $DKCOM_FILENAME file will be downloaded"
-    $yn = Read-Host -prompt "Do you wish to proceed Y/N?  "
-    if ($yn -eq 'Y' -or $yn -eq 'y' -or $yn -eq 'Yes' -or $yn -eq 'yes' ) {
-        Invoke-WebRequest -OutFile "$DKCOM_FILENAME" $DKCOM_SRC; Write-Output "$DKCOM_FILENAME file resetted, remember to reconfigure it if needed";
-        Read-Host -prompt "Press enter to go back to the menu";
-        mainmenu;
-    }
-    else {
-        Write-Output "$DKCOM_FILENAME file reset canceled. The file is left as it is. "
-        Read-Host -prompt "Press enter to go back to the menu";
-        mainmenu;
+.DESCRIPTION
+This function will reset the .env file to the original version downloading a fresh copy from the repository.
+
+.EXAMPLE
+Just call fn_resetEnv
+
+.NOTES
+This function has been tested until v 2.0.0. The new version has not been tested as its assume that the logic is the same as the previous one just more refined.
+#>
+function fn_resetEnv() {
+    while ($true) {
+        colorprint "RED" "Now a fresh env file will be downloaded and will need to be configured to be used again"
+        $yn = Read-Host "Do you wish to proceed Y/N?"
+        switch ($yn.ToLower()) {
+            ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') {
+                if (Invoke-WebRequest -Uri $script:ENV_SRC -OutFile ".env") {
+                    colorprint "GREEN" ".env file resetted, remember to reconfigure it"
+                }
+                else {
+                    colorprint "RED" "Error resetting .env file. Please check your internet connection and try again."
+                }
+                Read-Host "Press Enter to go back to mainmenu"
+                break
+            }
+            ($yn.ToLower() -eq 'n' -or $yn.ToLower() -eq 'no') {
+                colorprint "BLUE" ".env file reset canceled. The file is left as it is"
+                Read-Host "Press Enter to go back to mainmenu"
+                break
+            }
+            default { colorprint "RED" "Please answer yes or no." }
+        }
     }
 }
 
-### Main Menu ##
+<#
+.SYNOPSIS
+Function that will reset the docker-compose.yaml file
+
+.DESCRIPTION
+This function will reset the docker-compose.yaml file to the original version downloading a fresh copy from the repository.
+
+.EXAMPLE
+Just call fn_resetDockerCompose
+
+.NOTES
+This function has been tested until v 2.0.0. The new version has not been tested as its assume that the logic is the same as the previous one just more refined.
+#>
+function fn_resetDockerCompose() {
+    while ($true) {
+        colorprint "RED" "Now a fresh $($script:DKCOM_FILENAME) file will be downloaded"
+        $yn = Read-Host "Do you wish to proceed Y/N?"
+        switch ($yn.ToLower()) {
+            ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') {
+                if (Invoke-WebRequest -Uri $script:DKCOM_SRC -OutFile "$($script:DKCOM_FILENAME)") {
+                    colorprint "GREEN" "$($script:DKCOM_FILENAME) file resetted, remember to reconfigure it if needed"
+                }
+                else {
+                    colorprint "RED" "Error resetting $($script:DKCOM_FILENAME) file. Please check your internet connection and try again."
+                }
+                Read-Host "Press Enter to go back to mainmenu"
+                break
+            }
+            ($yn.ToLower() -eq 'n' -or $yn.ToLower() -eq 'no') {
+                colorprint "BLUE" "$($script:DKCOM_FILENAME) file reset canceled. The file is left as it is"
+                Read-Host "Press Enter to go back to mainmenu"
+                break
+            }
+            default { colorprint "RED" "Please answer yes or no." }
+        }
+    }
+}
+
+<#
+.SYNOPSIS
+Function that will check the necerrary dependencies for the script to run
+.DESCRIPTION
+This function will check the necerrary dependencies for the script to run
+.EXAMPLE
+Just call fn_checkDependencies
+.NOTES
+This is a new function that has not been tested yet and currently is not really used in the script 
+#>
+function fn_checkDependencies() {
+    colorprint "GREEN" "MONEY4BAND AUTOMATIC GUIDED SETUP"
+    colorprint "GREEN" "--------------------------------- "
+    colorprint "YELLOW" "Checking dependencies..."
+    Read-Host "Checking test...press to continue"
+    # this need to be changed to dinamically read depenedncies for any platform and select and install all the dependencies for the current platform
+    # Check if dependencies are installed
+    if (!(Get-Command "jq" -ErrorAction SilentlyContinue)) { 
+        #colorprint "YELLOW" "Now a small useful package named JQ used to manage JSON files will be installed if not already present"
+        #colorprint "YELLOW" "Please, if prompted, enter your sudo password to proceed"
+        #fn_install_packages "jq"
+    } else {
+        colorprint "BLUE" "Done, script ready to go"
+    }
+}
+
+<#
+.SYNOPSIS
+Main menu function
+
+.DESCRIPTION
+This function will show the main menu and will call the other functions based on the user's choice.
+
+.EXAMPLE
+Just call mainmenu
+
+.NOTES
+This function has been tested until v 2.0.0. The new version has not been tested as its assume that the logic is the same as the previous one just more refined.
+#>
 function mainmenu {
-    Clear-Host
-    Write-Output "MONEY4BAND AUTOMATIC GUIDED SETUP"
-    Write-Output "--------------------------------- "
-    ## architecture detection
+    
+    # Detect OS architecture
     $script:ARCH = $env:PROCESSOR_ARCHITECTURE.ToLower()
     if ($script:ARCH -eq "x86_64") {
         $script:DKARCH = 'amd64'
-    }elseif ($script:ARCH -eq "aarch64") {
+    } elseif ($script:ARCH -eq "aarch64") {
         $script:DKARCH = 'arm64'
-    }else {
+    } else {
         $script:DKARCH = $script:ARCH
     }
-    Write-Output "Detected OS architecture $script:ARCH"
-    Write-Output "Docker $script:DKARCH image architecture will be used if the app's image permits it"
-    Write-Output "--------------------------------- "
-    Write-Output "Select an option and press Enter: "
-    Write-Output "1) Show apps' links to register or go to dashboard"
-    Write-Output "2) Install Docker"
-    Write-Output "3) Setup .env file"
-    Write-Output "4) Start apps stack"
-    Write-Output "5) Stop apps stack"
-    Write-Output "6) Reset .env File"
-    Write-Output "7) Reset $DKCOM_FILENAME file"
-    Write-Output "8) Exit"
+
+    
+    $options = @("Show supported apps' links", "Install Docker", "Setup .env file", "Start apps stack", "Stop apps stack", "Reset .env File", "Reset $($script:DKCOM_FILENAME) file", "Quit")
+    
     Do {
-        $Select = Read-Host
+        Clear-Host
+        colorprint "GREEN" "MONEY4BAND AUTOMATIC GUIDED SETUP"
+        colorprint "GREEN" "--------------------------------- "
+        colorprint "DEFAULT" "Detected OS architecture $($script:ARCH)"
+        colorprint "DEFAULT" "Docker $($script:DKARCH) image architecture will be used if the app's image permits it"
+        colorprint "DEFAULT" "--------------------------------- "
+        for ($i = 0; $i -lt $options.Length; $i++) {
+            Write-Output "$($i + 1)) $($options[$i])"
+        }
+
+        $Select = Read-Host "Select an option and press Enter"
+
         Switch ($Select) {
-            1 {
-                fn_showLinks
-            }
-            2 {
-                fn_dockerInstall
-            }
-            3 {
-                fn_setupEnv
-            }
-            4 {
-                fn_startStack
-            }
-            5 {
-                fn_stopStack
-            }
-            6 {
-                fn_resetEnv
-            }
-            7 {
-                fn_resetDockerCompose
-            }
-            8 {
-                fn_bye
-            }
-            DEFAULT {
-                fn_unknown $Select
-            }
+            1 { Clear-Host; fn_showLinks }
+            2 { Clear-Host; fn_dockerInstall }
+            3 { Clear-Host; fn_setupEnv }
+            4 { Clear-Host; fn_startStack }
+            5 { Clear-Host; fn_stopStack }
+            6 { Clear-Host; fn_resetEnv }
+            7 { Clear-Host; fn_resetDockerCompose }
+            $options.Length { fn_bye; break }
+            DEFAULT { Clear-Host; fn_unknown; }
         }
     }
-    While ($Select -ne 8)
+    While ($Select -ne $options.Length)
 }
 
-### Startup ##
+# Startup
+Clear-Host
+fn_checkDependencies
 mainmenu
