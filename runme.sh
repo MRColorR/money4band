@@ -231,7 +231,7 @@ fn_dockerInstall() {
                         esac
                     done
                 fi
-
+                colorprint "DEFAULT" "Proceeding with Docker installation. Please provide your sudo password if prompted."
                 if curl -fsSL https://get.docker.com -o "$SCRIPTS_DIR/get-docker.sh"; then
                     if sudo sh "$SCRIPTS_DIR/get-docker.sh"; then
                         colorprint "GREEN" "Docker installed"
