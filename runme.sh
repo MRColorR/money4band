@@ -256,8 +256,8 @@ fn_dockerInstall() {
     done
 }
 
-
-
+## Notifications setup function ##
+# This function will setup notifications about containers updates using shoutrrr
 fn_setupNotifications() {
     clear
     colorprint "YELLOW" "This step will setup notifications about containers updates using shoutrrr"
@@ -273,19 +273,32 @@ fn_setupNotifications() {
     colorprint "PURPLE" "To obtain the SHOUTRRR_URL, rearrange it to look like this: discord://YourToken@YourWebhookid."
     read -r -p "Press enter to proceed."
     clear
-    colorprint "YELLOW" "NOW INSERT BELOW THE LINK FOR NOTIFICATIONS using THE SAME FORMAT WRITTEN ABOVE e.g.: discord://yourToken@yourWebhookid"
-    read -r SHOUTRRR_URL
-    if [[ "$SHOUTRRR_URL" =~ ^[a-zA-Z]+:// ]]; then
-        sed -i "s~# SHOUTRRR_URL=yourApp:yourToken@yourWebHook~SHOUTRRR_URL=$SHOUTRRR_URL~" .env
-        sed -i "s~# - WATCHTOWER_NOTIFICATIONS=shoutrrr~  - WATCHTOWER_NOTIFICATIONS=shoutrrr~" "$DKCOM_FILENAME"
-        sed -i "s~# - WATCHTOWER_NOTIFICATION_URL~  - WATCHTOWER_NOTIFICATION_URL~" "$DKCOM_FILENAME"
-        sed -i "s~# - WATCHTOWER_NOTIFICATIONS_HOSTNAME~  - WATCHTOWER_NOTIFICATIONS_HOSTNAME~" "$DKCOM_FILENAME"
-        read -r -p "Notifications setup complete. If the link is correct, you will receive a notification for each update made on the app container images. Press enter to continue."
-    else
-        colorprint "RED" "Invalid link format. Please make sure to use the correct format."
-    fi
+    while true; do
+        colorprint "YELLOW" "NOW INSERT BELOW THE LINK FOR NOTIFICATIONS using THE SAME FORMAT WRITTEN ABOVE e.g.: discord://yourToken@yourWebhookid"
+        read -r SHOUTRRR_URL
+        if [[ "$SHOUTRRR_URL" =~ ^[a-zA-Z]+:// ]]; then
+            sed -i "s~# SHOUTRRR_URL=yourApp:yourToken@yourWebHook~SHOUTRRR_URL=$SHOUTRRR_URL~" .env
+            sed -i "s~# - WATCHTOWER_NOTIFICATIONS=shoutrrr~  - WATCHTOWER_NOTIFICATIONS=shoutrrr~" "$DKCOM_FILENAME"
+            sed -i "s~# - WATCHTOWER_NOTIFICATION_URL~  - WATCHTOWER_NOTIFICATION_URL~" "$DKCOM_FILENAME"
+            sed -i "s~# - WATCHTOWER_NOTIFICATIONS_HOSTNAME~  - WATCHTOWER_NOTIFICATIONS_HOSTNAME~" "$DKCOM_FILENAME"
+            read -r -p "Notifications setup complete. If the link is correct, you will receive a notification for each update made on the app container images. Press enter to continue."
+            break
+        else
+            colorprint "RED" "Invalid link format. Please make sure to use the correct format."
+            while true; do
+                colorprint "YELLOW" "Do you wish to try again or leave the notifications disabled and continue with the setup script? (Yes to try again, No to continue without notifications) Y/N?"
+                read -r yn
+                case $yn in
+                    [Yy]* ) break;;
+                    [Nn]* ) return;;
+                    * ) colorprint "RED" "Please answer yes or no.";;
+                esac
+            done
+        fi
+    done
     clear
 }
+
 
 fn_setupApp() {
     while [[ "$#" -gt 0 ]]; do
