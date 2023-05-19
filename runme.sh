@@ -238,6 +238,7 @@ fn_dockerInstall() {
                         read -r -p "Press Enter to go back to mainmenu"
                     else
                         errorprint "Failed to install Docker automatically. Please try to install Docker manually by following the instructions on Docker website."
+                        read -r -p "Press Enter to go back to mainmenu"
                     fi
                 else
                     errorprint "Failed to download the Docker installation script."
