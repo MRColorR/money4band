@@ -822,7 +822,6 @@ function fn_checkDependencies() {
     colorprint "GREEN" "MONEY4BAND AUTOMATIC GUIDED SETUP"
     colorprint "GREEN" "--------------------------------- "
     colorprint "YELLOW" "Checking dependencies..."
-    Read-Host "Checking test...press to continue"
     # this need to be changed to dinamically read depenedncies for any platform and select and install all the dependencies for the current platform
     # Check if dependencies are installed
     if (!(Get-Command "jq" -ErrorAction SilentlyContinue)) { 
