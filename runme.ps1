@@ -749,26 +749,27 @@ function fn_resetEnv() {
     while ($true) {
         colorprint "RED" "Now a fresh env file will be downloaded and will need to be configured to be used again"
         $yn = Read-Host "Do you wish to proceed Y/N?"
-        switch ($yn.ToLower()) {
-            ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') {
-                if (Invoke-WebRequest -Uri $script:ENV_SRC -OutFile ".env") {
-                    colorprint "GREEN" ".env file resetted, remember to reconfigure it"
-                }
-                else {
-                    colorprint "RED" "Error resetting .env file. Please check your internet connection and try again."
-                }
-                Read-Host "Press Enter to go back to mainmenu"
-                break
+        if ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') {
+            if (Invoke-WebRequest -Uri $script:ENV_SRC -OutFile ".env") {
+                colorprint "GREEN" ".env file resetted, remember to reconfigure it"
             }
-            ($yn.ToLower() -eq 'n' -or $yn.ToLower() -eq 'no') {
-                colorprint "BLUE" ".env file reset canceled. The file is left as it is"
-                Read-Host "Press Enter to go back to mainmenu"
-                break
+            else {
+                colorprint "RED" "Error resetting .env file. Please check your internet connection and try again."
             }
-            default { colorprint "RED" "Please answer yes or no." }
+            Read-Host "Press Enter to go back to mainmenu"
+            break
+        }
+        elseif ($yn.ToLower() -eq 'n' -or $yn.ToLower() -eq 'no') {
+            colorprint "BLUE" ".env file reset canceled. The file is left as it is"
+            Read-Host "Press Enter to go back to mainmenu"
+            break
+        }
+        else {
+            colorprint "RED" "Please answer yes or no."
         }
     }
 }
+
 
 <#
 .SYNOPSIS
@@ -787,26 +788,28 @@ function fn_resetDockerCompose() {
     while ($true) {
         colorprint "RED" "Now a fresh $($script:DKCOM_FILENAME) file will be downloaded"
         $yn = Read-Host "Do you wish to proceed Y/N?"
-        switch ($yn.ToLower()) {
-            ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') {
-                if (Invoke-WebRequest -Uri $script:DKCOM_SRC -OutFile "$($script:DKCOM_FILENAME)") {
-                    colorprint "GREEN" "$($script:DKCOM_FILENAME) file resetted, remember to reconfigure it if needed"
-                }
-                else {
-                    colorprint "RED" "Error resetting $($script:DKCOM_FILENAME) file. Please check your internet connection and try again."
-                }
-                Read-Host "Press Enter to go back to mainmenu"
-                break
+
+        if ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') {
+            if (Invoke-WebRequest -Uri $script:DKCOM_SRC -OutFile "$($script:DKCOM_FILENAME)") {
+                colorprint "GREEN" "$($script:DKCOM_FILENAME) file resetted, remember to reconfigure it if needed"
             }
-            ($yn.ToLower() -eq 'n' -or $yn.ToLower() -eq 'no') {
-                colorprint "BLUE" "$($script:DKCOM_FILENAME) file reset canceled. The file is left as it is"
-                Read-Host "Press Enter to go back to mainmenu"
-                break
+            else {
+                colorprint "RED" "Error resetting $($script:DKCOM_FILENAME) file. Please check your internet connection and try again."
             }
-            default { colorprint "RED" "Please answer yes or no." }
+            Read-Host "Press Enter to go back to mainmenu"
+            break
+        }
+        elseif ($yn.ToLower() -eq 'n' -or $yn.ToLower() -eq 'no') {
+            colorprint "BLUE" "$($script:DKCOM_FILENAME) file reset canceled. The file is left as it is"
+            Read-Host "Press Enter to go back to mainmenu"
+            break
+        }
+        else {
+            colorprint "RED" "Please answer yes or no."
         }
     }
 }
+
 
 <#
 .SYNOPSIS
