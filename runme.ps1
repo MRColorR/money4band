@@ -747,13 +747,14 @@ This function has been tested until v 2.0.0. The new version has not been tested
 #>
 function fn_resetEnv() {
     while ($true) {
-        colorprint "RED" "Now a fresh env file will be downloaded and will need to be configured to be used again"
+        colorprint "YELLOW" "Now a fresh env file will be downloaded and will need to be configured to be used again"
         $yn = Read-Host "Do you wish to proceed Y/N?"
         if ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') {
-            if (Invoke-WebRequest -Uri $script:ENV_SRC -OutFile ".env") {
+            try {
+                Invoke-WebRequest -Uri $script:ENV_SRC -OutFile ".env"
                 colorprint "GREEN" ".env file resetted, remember to reconfigure it"
             }
-            else {
+            catch {
                 colorprint "RED" "Error resetting .env file. Please check your internet connection and try again."
             }
             Read-Host "Press Enter to go back to mainmenu"
@@ -786,14 +787,15 @@ This function has been tested until v 2.0.0. The new version has not been tested
 #>
 function fn_resetDockerCompose() {
     while ($true) {
-        colorprint "RED" "Now a fresh $($script:DKCOM_FILENAME) file will be downloaded"
+        colorprint "YELLOW" "Now a fresh $($script:DKCOM_FILENAME) file will be downloaded"
         $yn = Read-Host "Do you wish to proceed Y/N?"
 
         if ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') {
-            if (Invoke-WebRequest -Uri $script:DKCOM_SRC -OutFile "$($script:DKCOM_FILENAME)") {
+            try {
+                Invoke-WebRequest -Uri $script:DKCOM_SRC -OutFile "$($script:DKCOM_FILENAME)"
                 colorprint "GREEN" "$($script:DKCOM_FILENAME) file resetted, remember to reconfigure it if needed"
             }
-            else {
+            catch {
                 colorprint "RED" "Error resetting $($script:DKCOM_FILENAME) file. Please check your internet connection and try again."
             }
             Read-Host "Press Enter to go back to mainmenu"
@@ -850,7 +852,7 @@ Just call mainmenu
 This function has been tested until v 2.0.0. The new version has not been tested as its assume that the logic is the same as the previous one just more refined.
 #>
 function mainmenu {
-    
+    Clear-Host
     # Detect OS architecture
     $script:ARCH = $env:PROCESSOR_ARCHITECTURE.ToLower()
     if ($script:ARCH -eq "x86_64") {
