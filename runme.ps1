@@ -350,32 +350,18 @@ function fn_setupApp {
     param (
         [Parameter(Mandatory=$true)]
         [string]$app,
-        [Parameter(Mandatory=$false)]
+        [Parameter(Mandatory=$true)]
         [string]$image,
         [Parameter(Mandatory=$false)]
-        [string]$email,
-        [Parameter(Mandatory=$false)]
-        [string]$password,
-        [Parameter(Mandatory=$false)]
-        [string]$apikey,
-        [Parameter(Mandatory=$false)]
-        [string]$userid,
-        [Parameter(Mandatory=$false)]
-        [string]$uuid,
-        [Parameter(Mandatory=$false)]
-        [string]$cid,
-        [Parameter(Mandatory=$false)]
-        [string]$token,
-        [Parameter(Mandatory=$false)]
-        [string]$customScript
+        [string[]]$flags
     )
-    
+    Write-Output "passed parameters: APP: $app, IMG: $image, FLAGS: $flags"
+    Read-Host -Prompt "This is for debug Press enter to continue"
     $CURRENT_APP = if($app){$app} else {$null}
     $DKCOM_FILENAME = if($app){$DKCOM_FILENAME -replace "#${CURRENT_APP}_ENABLE", ""}
-
     $APP_IMAGE = if($image){$image}
 
-    if ($email) {
+    if ($flags -contains "--email") {
         while($true) {
             colorprint "GREEN" "Enter your ${CURRENT_APP} Email:"
             $APP_EMAIL = Read-Host
@@ -388,7 +374,7 @@ function fn_setupApp {
         }
     }
 
-    if ($password) {
+    if ($flags -contains "--password") {
         while($true) {
             colorprint "DEFAULT" "Note: If you are using login with Google, remember to set also a password for your ${CURRENT_APP} account!"
             colorprint "GREEN" "Enter your ${CURRENT_APP} Password:"
@@ -402,21 +388,21 @@ function fn_setupApp {
         }
     }
 
-    if ($apikey) {
+    if ($flags -contains "--apikey") {
         colorprint "DEFAULT" "Find/Generate your APIKey inside your ${CURRENT_APP} dashboard/profile."
         colorprint "GREEN" "Enter your ${CURRENT_APP} APIKey:"
         $APP_APIKEY = Read-Host
         (Get-Content .env) -replace "your${CURRENT_APP}APIKey", $APP_APIKEY | Set-Content .env
     }
 
-    if ($userid) {
+    if ($flags -contains "--userid") {
         colorprint "DEFAULT" "Find your UserID inside your ${CURRENT_APP} dashboard/profile."
         colorprint "GREEN" "Enter your ${CURRENT_APP} UserID:"
         $APP_USERID = Read-Host
         (Get-Content .env) -replace "your${CURRENT_APP}UserID", $APP_USERID | Set-Content .env
     }
 
-    if ($uuid) {
+    if ($flags -contains "--uuid") {
         colorprint "DEFAULT" "Starting UUID generation/import for ${CURRENT_APP}"
         $SALT = "$script:DEVICE_NAME$((Get-Random))"
         $UUID = New-Object System.Security.Cryptography.MD5CryptoServiceProvider
@@ -449,28 +435,28 @@ function fn_setupApp {
                 colorprint "RED" "Please answer yes or no."
             }
         }    
-        (Get-Content .env) -replace "your${CURRENT_APP}MD5sum", $UUID | Set-Content .env
+        (Get-Content .env) -replace "your${CURRENT_APP}MD5sum", $UUID.ToLower() | Set-Content .env
         colorprint "DEFAULT" "${CURRENT_APP} UUID setup: done"
         colorprint "BLUE" "Save the following link somewhere to claim your ${CURRENT_APP} node after completing the setup and starting the apps stack: https://earnapp.com/r/sdk-node-$UUID."
         colorprint "DEFAULT" "A new file containing this link has been created for you in the current directory"
         "https://earnapp.com/r/sdk-node-$UUID" | Out-File -FilePath 'ClaimEarnappNode.txt'
     }
 
-    if ($cid) {
+    if ($flags -contains "--cid") {
         colorprint "DEFAULT" "Find your CID, you can fetch it from your dashboard https://packetstream.io/dashboard/download?linux# then click on ->View your configuration file<-."
         colorprint "GREEN" "Enter your ${CURRENT_APP} CID:"
         $APP_CID = Read-Host
         (Get-Content .env) -replace "your${CURRENT_APP}CID", $APP_CID | Set-Content .env
     }
 
-    if ($token) {
+    if ($flags -contains "--token") {
         colorprint "DEFAULT" "Find your Token inside your ${CURRENT_APP} dashboard/profile."
         colorprint "GREEN" "Enter your ${CURRENT_APP} Token:"
         $APP_TOKEN = Read-Host
         (Get-Content .env) -replace "your${CURRENT_APP}Token", $APP_TOKEN | Set-Content .env
     }
 
-    if ($customScript) {
+    if ($flags -contains "--customScript") {
         $SCRIPT_NAME = $customScript
         $SCRIPT_PATH = Join-Path -Path $script:SCRIPTS_DIR -ChildPath $SCRIPT_NAME
         if (Test-Path -Path $SCRIPT_PATH) {
@@ -483,7 +469,7 @@ function fn_setupApp {
     }
     # App Docker image architecture adjustments
     $TAG = 'latest'
-    $DKHUBRES = Invoke-WebRequest -Uri "https://registry.hub.docker.com/v2/repositories/$image/tags" -UseBasicParsing | ConvertFrom-Json | Where-Object { $_.images.architecture -eq $DKARCH } | Select-Object -ExpandProperty name
+    $DKHUBRES = Invoke-WebRequest -Uri "https://registry.hub.docker.com/v2/repositories/${image}/tags" -UseBasicParsing | ConvertFrom-Json | Where-Object { $_.images.architecture -eq $DKARCH } | Select-Object -ExpandProperty name
     $TAGSNUMBER = $DKHUBRES.Length
     if ($TAGSNUMBER -gt 0) { 
         Write-Host "There are $TAGSNUMBER tags supporting $DKARCH arch for this image"
@@ -527,40 +513,39 @@ function fn_setupProxy() {
     if ($script:PROXY_CONF -eq $false) {
         while ($true) {
             colorprint "YELLOW" "Do you wish to setup a proxy for the apps in this stack Y/N?"
-            $note = "Note that if you want to run multiple instances of the same app you will need to configure different env files each in different project folders (copy the project to multiple different folders and configure them using different proxies)"
+            $note = "Note that if you want to run multiple instances of the same app, you will need to configure different env files in different project folders (copy the project to multiple different folders and configure them using different proxies)."
             $yn = Read-Host -p "$note`n"
 
-            switch ($yn.ToLower()) {
-                ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') {
-                    Clear-Host
-                    colorprint "YELLOW" "Proxy setup started."
-                    $script:RANDOM_VALUE = Get-Random
-                    $proxyNote = "Insert the designed proxy to use. Eg: protocol://proxyUsername:proxyPassword@proxy_url:proxy_port or just protocol://proxy_url:proxy_port if auth is not needed"
-                    $script:STACK_PROXY = Read-Host -p "$proxyNote"
-                    colorprint "DEFAULT" "Ok, $script:STACK_PROXY will be used as proxy for all apps in this stack"
-                    Read-Host -p "Press enter to continue"
-                    $script:PROXY_CONF = $true
-                    # An unique name for the stack is chosen so that even if multiple stacks are started with different proxies the names do not conflict
-                    (Get-Content .\.env).replace("COMPOSE_PROJECT_NAME=money4band", "COMPOSE_PROJECT_NAME=money4band_$($script:RANDOM_VALUE)") | Set-Content .\.env
-                    (Get-Content .\.env).replace("DEVICE_NAME=$($script:DEVICE_NAME)", "DEVICE_NAME=$($script:DEVICE_NAME)$($script:RANDOM_VALUE)") | Set-Content .\.env
-                    # uncomment .env and compose file
-                    (Get-Content .\.env).replace("# STACK_PROXY=", "STACK_PROXY=$($script:STACK_PROXY)") | Set-Content .\.env
-                    (Get-Content "$script:DKCOM_FILENAME").replace("#PROXY_ENABLE", "") | Set-Content "$script:DKCOM_FILENAME"
-                    (Get-Content "$script:DKCOM_FILENAME").replace("# network_mode", "network_mode") | Set-Content "$script:DKCOM_FILENAME"
-                    break
-                }
-                ($yn.ToLower() -eq 'n' -or $yn.ToLower() -eq 'no') {
-                    colorprint "BLUE" "Ok, no proxy added to configuration."
-                    Start-Sleep -Seconds 1
-                    break
-                }
-                default {
-                    colorprint "RED" "Please answer yes or no."
-                }
+            if ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') {
+                Clear-Host
+                colorprint "YELLOW" "Proxy setup started."
+                $script:RANDOM_VALUE = Get-Random
+                $proxyNote = "Insert the designed proxy to use. Eg: protocol://proxyUsername:proxyPassword@proxy_url:proxy_port or just protocol://proxy_url:proxy_port if auth is not needed"
+                $script:STACK_PROXY = Read-Host -p "$proxyNote"
+                colorprint "DEFAULT" "Ok, $script:STACK_PROXY will be used as proxy for all apps in this stack"
+                Read-Host -p "Press enter to continue"
+                $script:PROXY_CONF = $true
+                # An unique name for the stack is chosen so that even if multiple stacks are started with different proxies the names do not conflict
+                (Get-Content .\.env).replace("COMPOSE_PROJECT_NAME=money4band", "COMPOSE_PROJECT_NAME=money4band_$($script:RANDOM_VALUE)") | Set-Content .\.env
+                (Get-Content .\.env).replace("DEVICE_NAME=$($script:DEVICE_NAME)", "DEVICE_NAME=$($script:DEVICE_NAME)$($script:RANDOM_VALUE)") | Set-Content .\.env
+                # uncomment .env and compose file
+                (Get-Content .\.env).replace("# STACK_PROXY=", "STACK_PROXY=$($script:STACK_PROXY)") | Set-Content .\.env
+                (Get-Content "$script:DKCOM_FILENAME").replace("#PROXY_ENABLE", "") | Set-Content "$script:DKCOM_FILENAME"
+                (Get-Content "$script:DKCOM_FILENAME").replace("# network_mode", "network_mode") | Set-Content "$script:DKCOM_FILENAME"
+                break
+            }
+            elseif ($yn.ToLower() -eq 'n' -or $yn.ToLower() -eq 'no') {
+                colorprint "BLUE" "Ok, no proxy added to configuration."
+                Start-Sleep -Seconds 1
+                break
+            }
+            else {
+                colorprint "RED" "Please answer yes or no."
             }
         }
     }
 }
+
 
 <#
 .SYNOPSIS
@@ -579,80 +564,98 @@ function fn_setupEnv() {
     while ($true) {
         colorprint "YELLOW" "Do you wish to proceed with the .env file guided setup Y/N? (This will also adapt the $($script:DKCOM_FILENAME) file accordingly)"
         $yn = Read-Host
-        switch ($yn.ToLower()) {
-            ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') {
+
+        if ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') {
+            Clear-Host
+            if ((Get-Content .\.env) -notmatch "DEVICE_NAME=$($script:DEVICE_NAME)") {
+                colorprint "DEFAULT" "The current .env file appears to have already been modified. A fresh version will be downloaded and used."
+                Invoke-WebRequest -Uri $script:ENV_SRC -OutFile ".env"
+                Invoke-WebRequest -Uri $script:DKCOM_SRC -OutFile "$($script:DKCOM_FILENAME)"
                 Clear-Host
-                if ((Get-Content .\.env) -notmatch "DEVICE_NAME=$($script:DEVICE_NAME)") {
-                    colorprint "DEFAULT" "The current .env file appears to have already been modified. A fresh version will be downloaded and used."
-                    Invoke-WebRequest -Uri $script:ENV_SRC -OutFile ".env"
-                    Invoke-WebRequest -Uri $script:DKCOM_SRC -OutFile "$($script:DKCOM_FILENAME)"
-                }
-                colorprint "YELLOW" "beginnning env file guided setup"
-                $script:CURRENT_APP = ''
-                colorprint "YELLOW" "PLEASE ENTER A NAME FOR YOUR DEVICE:"
-                $script:DEVICE_NAME = Read-Host
-                (Get-Content .\.env).replace("yourDeviceName", $script:DEVICE_NAME) | Set-Content .\.env
+            }
+            colorprint "YELLOW" "beginning env file guided setup"
+            $script:CURRENT_APP = ''
+            colorprint "YELLOW" "PLEASE ENTER A NAME FOR YOUR DEVICE:"
+            $script:DEVICE_NAME = Read-Host
+            (Get-Content .\.env).replace("yourDeviceName", $script:DEVICE_NAME) | Set-Content .\.env
+            Clear-Host
+            fn_setupProxy
+            Clear-Host
+
+            $apps = Get-Content "$script:CONFIG_DIR/config.json" | ConvertFrom-Json | Select-Object -ExpandProperty apps
+
+            foreach ($app in $apps) {
                 Clear-Host
-                fn_setupProxy
-                Clear-Host
+                colorprint "YELLOW" "PLEASE REGISTER ON THE PLATFORMS USING THE FOLLOWING LINKS, YOU'LL NEED TO ENTER SOME DATA BELOW:"
+                colorprint "GREEN" "Use CTRL+Click to open links or copy them:"
+                $name = $app.name
+                $link = $app.link
+                $image = $app.image
+                $flags = $app.flags
 
-                $apps = Get-Content "$script:CONFIG_DIR/config.json" | ConvertFrom-Json | Select-Object -ExpandProperty apps
+                $script:CURRENT_APP = $name.ToUpper()
 
-                foreach ($app in $apps) {
-                    Clear-Host
-                    colorprint "YELLOW" "PLEASE REGISTER ON THE PLATFORMS USING THE FOLLOWING LINKS, YOU'LL NEED TO ENTER SOME DATA BELOW:"
-                    colorprint "GREEN" "Use CTRL+Click to open links or copy them:"
-                    $name = $app.name
-                    $link = $app.link
-                    $image = $app.image
-                    $flags = $app.flags
+                while ($true) {
+                    colorprint "YELLOW" "Do you wish to enable and use $($script:CURRENT_APP)? (Y/N)"
+                    $yn = Read-Host
 
-                    $script:CURRENT_APP = $name.ToUpper()
-
-                    while ($true) {
-                        colorprint "YELLOW" "Do you wish to enable and use $($script:CURRENT_APP)? (Y/N)"
-                        $yn = Read-Host
-                        switch ($yn.ToLower()) {
-                            ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') {
-                                colorprint "CYAN" "Go to ${name} ${link} and register"
-                                Read-Host -p "When done, press enter to continue"
-                                # Pass the flags string to the function
-                                fn_setupApp --app "$($script:CURRENT_APP)" --image "$image" --flags $flags
-                                Clear-Host
-                                break
-                            }
-                            ($yn.ToLower() -eq 'n' -or $yn.ToLower() -eq 'no') {
-                                colorprint "BLUE" "$($script:CURRENT_APP) setup will be skipped."
-                                Read-Host -p "Press enter to continue to the next app"
-                                break
-                            }
-                            default { colorprint "RED" "Please answer yes or no." }
+                    if ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') {
+                        try {
+                            colorprint "CYAN" "Go to ${name} ${link} and register"
+                            write-host "Current flags are: @($flags)"
+                            Read-Host -p "When done, press enter to continue"
+                            # Pass the flags string to the function
+                            fn_setupApp "$($script:CURRENT_APP)" "$image" $flags
+                            Clear-Host
+                            break
+                        }
+                        catch {
+                            colorprint "RED" "An error occurred while setting up $($script:CURRENT_APP). Please try again."
+                            Read-Host -p "Press enter to continue to the next app"
+                            break
                         }
                     }
-                }
-
-                # Notifications setup
-                Clear-Host
-                while ($true) {
-                    colorprint "YELLOW" "Do you wish to setup notifications about apps images updates (Yes to receive notifications and apply updates, No to just silently apply updates) Y/N?"
-                    $yn = Read-Host
-                    switch ($yn.ToLower()) {
-                        ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') { fn_setupNotifications; break }
-                        ($yn.ToLower() -eq 'n' -or $yn.ToLower() -eq 'no') { colorprint "BLUE" "Noted: all updates will be applied automatically and silently"; break }
-                        default { colorprint "RED" "Invalid input. Please answer yes or no." }
+                    elseif ($yn.ToLower() -eq 'n' -or $yn.ToLower() -eq 'no') {
+                        colorprint "BLUE" "$($script:CURRENT_APP) setup will be skipped."
+                        Read-Host -p "Press enter to continue to the next app"
+                        break
+                    }
+                    else {
+                        colorprint "RED" "Please answer yes or no."
                     }
                 }
+            }
 
-                colorprint "GREEN" "env file setup complete."
-                Read-Host -p "Press any key to go back to the menu"
-                break
+            # Notifications setup
+            Clear-Host
+            while ($true) {
+                colorprint "YELLOW" "Do you wish to setup notifications about apps images updates (Yes to receive notifications and apply updates, No to just silently apply updates) Y/N?"
+                $yn = Read-Host
+
+                if ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') {
+                    fn_setupNotifications
+                    break
+                }
+                elseif ($yn.ToLower() -eq 'n' -or $yn.ToLower() -eq 'no') {
+                    colorprint "BLUE" "Noted: all updates will be applied automatically and silently"
+                    break
+                }
+                else {
+                    colorprint "RED" "Invalid input. Please answer yes or no."
+                }
             }
-            ($yn.ToLower() -eq 'n' -or $yn.ToLower() -eq 'no') {
-                colorprint "BLUE" ".env file setup canceled. Make sure you have a valid .env file before proceeding with the stack startup."
-                Read-Host -p "Press Enter to go back to mainmenu"
-                return
-            }
-            default { colorprint "RED" "Please answer yes or no." }
+
+            colorprint "GREEN" "env file setup complete."
+            Read-Host -p "Press any key to go back to the menu"
+            break
+        }
+        elseif ($yn.ToLower() -eq 'n' -or $yn.ToLower() -eq 'no') {
+            colorprint "BLUE" ".env file setup canceled. Make sure you have a valid .env file before proceeding with the stack startup."
+            Read-Host -p "Press Enter to go back to mainmenu"
+            return
+        }
+        else {
+            colorprint "RED" "Please answer yes or no."
         }
     }
 }
@@ -674,23 +677,24 @@ function fn_startStack() {
     while ($true) {
         colorprint "YELLOW" "This menu item will launch all the apps using the configured .env file and the $($script:DKCOM_FILENAME) file (Docker must be already installed and running)"
         $yn = Read-Host "Do you wish to proceed Y/N?"
-        switch ($yn.ToLower()) {
-            ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') {
-                if (docker compose up -d) {
-                    colorprint "GREEN" "All Apps started. You can visit the web dashboard on http://localhost:8081/. If not already done, use the previously generated earnapp node URL to add your device in your earnapp dashboard. Check the README file for more details."
-                }
-                else {
-                    colorprint "RED" "Error starting Docker stack. Please check the configuration and try again."
-                }
-                Read-Host "Now press enter to go back to the menu"
-                break
+
+        if ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') {
+            if (docker compose up -d) {
+                colorprint "GREEN" "All Apps started. You can visit the web dashboard on http://localhost:8081/. If not already done, use the previously generated earnapp node URL to add your device in your earnapp dashboard. Check the README file for more details."
             }
-            ($yn.ToLower() -eq 'n' -or $yn.ToLower() -eq 'no') {
-                colorprint "BLUE" "Docker stack startup canceled."
-                Read-Host "Press Enter to go back to mainmenu"
-                break
+            else {
+                colorprint "RED" "Error starting Docker stack. Please check the configuration and try again."
             }
-            default { colorprint "RED" "Please answer yes or no." }
+            Read-Host "Now press enter to go back to the menu"
+            break
+        }
+        elseif ($yn.ToLower() -eq 'n' -or $yn.ToLower() -eq 'no') {
+            colorprint "BLUE" "Docker stack startup canceled."
+            Read-Host "Press Enter to go back to mainmenu"
+            break
+        }
+        else {
+            colorprint "RED" "Please answer yes or no."
         }
     }
 }
@@ -712,26 +716,28 @@ function fn_stopStack() {
     while ($true) {
         colorprint "YELLOW" "This menu item will stop all the apps and delete the docker stack previously created using the configured .env file and the $($script:DKCOM_FILENAME) file."
         $yn = Read-Host "Do you wish to proceed Y/N?"
-        switch ($yn.ToLower()) {
-            ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') {
-                if (docker compose down) {
-                    colorprint "GREEN" "All Apps stopped and stack deleted."
-                }
-                else {
-                    colorprint "RED" "Error stopping and deleting Docker stack. Please check the configuration and try again."
-                }
-                Read-Host "Now press enter to go back to the menu"
-                break
+
+        if ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') {
+            if (docker compose down) {
+                colorprint "GREEN" "All Apps stopped and stack deleted."
             }
-            ($yn.ToLower() -eq 'n' -or $yn.ToLower() -eq 'no') {
-                colorprint "BLUE" "Docker stack removal canceled."
-                Read-Host "Press Enter to go back to mainmenu"
-                break
+            else {
+                colorprint "RED" "Error stopping and deleting Docker stack. Please check the configuration and try again."
             }
-            default { colorprint "RED" "Please answer yes or no." }
+            Read-Host "Now press enter to go back to the menu"
+            break
+        }
+        elseif ($yn.ToLower() -eq 'n' -or $yn.ToLower() -eq 'no') {
+            colorprint "BLUE" "Docker stack removal canceled."
+            Read-Host "Press Enter to go back to mainmenu"
+            break
+        }
+        else {
+            colorprint "RED" "Please answer yes or no."
         }
     }
 }
+
 <#
 .SYNOPSIS
 Function that will reset the .env file
