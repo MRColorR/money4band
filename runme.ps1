@@ -316,29 +316,8 @@ App name and image are required parameters. The app name is used to identify the
 .PARAMETER image
 the image is used to feryfy if the image supports the current architecture and to update the docker-compose.yaml file accordingly.
 
-.PARAMETER email
+.PARAMETER flags
 Optional parameter. If the app requires an email to be setup, this parameter will be used to update the .env file.
-
-.PARAMETER password
-Optional parameter. If the app requires a password to be setup, this parameter will be used to update the .env file.
-
-.PARAMETER apikey
-Optional parameter. If the app requires an apikey to be setup, this parameter will be used to update the .env file.
-
-.PARAMETER userid
-Optional parameter. If the app requires an userid to be setup, this parameter will be used to update the .env file.
-
-.PARAMETER uuid
-Optional parameter. If the app requires an uuid to be setup, this parameter will be used to update the .env file.
-
-.PARAMETER cid
-Optional parameter. If the app requires an cid to be setup, this parameter will be used to update the .env file.
-
-.PARAMETER token
-Optional parameter. If the app requires an token to be setup, this parameter will be used to update the .env file.
-
-.PARAMETER customScript
-Optional parameter. If the app requires a custom script to be executed, this parameter will be used to execute the script.
 
 .EXAMPLE
 fn_setupApp -app "HONEYGAIN" -image "honeygain/honeygain" -email "email" -password "password"
@@ -355,13 +334,41 @@ function fn_setupApp {
         [Parameter(Mandatory=$false)]
         [string[]]$flags
     )
+    $APP_NAME = $app
+    $APP_IMAGE = $image
+    $uuid = $false
+    $email = $false
+    $password = $false
+    $apikey = $false
+    $userid = $false
+    $uuid = $false
+    $cid = $false
+    $token = $false
+    $customScript = $null
+
     Write-Output "passed parameters: APP: $app, IMG: $image, FLAGS: $flags"
     Read-Host -Prompt "This is for debug Press enter to continue"
-    $CURRENT_APP = if($app){$app} else {$null}
-    $DKCOM_FILENAME = if($app){$DKCOM_FILENAME -replace "#${CURRENT_APP}_ENABLE", ""}
-    $APP_IMAGE = if($image){$image}
+    $CURRENT_APP = $APP_NAME
+    $DKCOM_FILENAME = if($app){ (Get-content $DKCOM_FILENAME) -replace "#${CURRENT_APP}_ENABLE", "" | Set-Content $DKCOM_FILENAME }
 
-    if ($flags -contains "--email") {
+    for($i = 0; $i -lt $flags.Count; $i++) {
+        switch($flags[$i]){
+            "--email" {$email = $true}
+            "--password" {$password = $true}
+            "--apikey" {$apikey = $true}
+            "--userid" {$userid = $true}
+            "--uuid" {$uuid = $true}
+            "--cid" {$cid = $true}
+            "--token" {$token = $true}
+            "--customScript" {
+                $customScript = $flags[$i+1] # consider the element after --customScript as the script name
+                $i++ # increment the index to skip the next element
+            }
+            default {colorprint "RED" "Unknown flag: $($flags[$i])"}
+        }
+    }
+    
+    if ($email) {
         while($true) {
             colorprint "GREEN" "Enter your ${CURRENT_APP} Email:"
             $APP_EMAIL = Read-Host
@@ -374,7 +381,7 @@ function fn_setupApp {
         }
     }
 
-    if ($flags -contains "--password") {
+    if ($password) {
         while($true) {
             colorprint "DEFAULT" "Note: If you are using login with Google, remember to set also a password for your ${CURRENT_APP} account!"
             colorprint "GREEN" "Enter your ${CURRENT_APP} Password:"
@@ -388,21 +395,21 @@ function fn_setupApp {
         }
     }
 
-    if ($flags -contains "--apikey") {
+    if ($apikey) {
         colorprint "DEFAULT" "Find/Generate your APIKey inside your ${CURRENT_APP} dashboard/profile."
         colorprint "GREEN" "Enter your ${CURRENT_APP} APIKey:"
         $APP_APIKEY = Read-Host
         (Get-Content .env) -replace "your${CURRENT_APP}APIKey", $APP_APIKEY | Set-Content .env
     }
 
-    if ($flags -contains "--userid") {
+    if ($userid) {
         colorprint "DEFAULT" "Find your UserID inside your ${CURRENT_APP} dashboard/profile."
         colorprint "GREEN" "Enter your ${CURRENT_APP} UserID:"
         $APP_USERID = Read-Host
         (Get-Content .env) -replace "your${CURRENT_APP}UserID", $APP_USERID | Set-Content .env
     }
 
-    if ($flags -contains "--uuid") {
+    if ($uuid) {
         colorprint "DEFAULT" "Starting UUID generation/import for ${CURRENT_APP}"
         $SALT = "$script:DEVICE_NAME$((Get-Random))"
         $UUID = New-Object System.Security.Cryptography.MD5CryptoServiceProvider
@@ -442,21 +449,21 @@ function fn_setupApp {
         "https://earnapp.com/r/sdk-node-$UUID" | Out-File -FilePath 'ClaimEarnappNode.txt'
     }
 
-    if ($flags -contains "--cid") {
+    if ($cid) {
         colorprint "DEFAULT" "Find your CID, you can fetch it from your dashboard https://packetstream.io/dashboard/download?linux# then click on ->View your configuration file<-."
         colorprint "GREEN" "Enter your ${CURRENT_APP} CID:"
         $APP_CID = Read-Host
         (Get-Content .env) -replace "your${CURRENT_APP}CID", $APP_CID | Set-Content .env
     }
 
-    if ($flags -contains "--token") {
+    if ($token) {
         colorprint "DEFAULT" "Find your Token inside your ${CURRENT_APP} dashboard/profile."
         colorprint "GREEN" "Enter your ${CURRENT_APP} Token:"
         $APP_TOKEN = Read-Host
         (Get-Content .env) -replace "your${CURRENT_APP}Token", $APP_TOKEN | Set-Content .env
     }
 
-    if ($flags -contains "--customScript") {
+    if ($customScript) {
         $SCRIPT_NAME = $customScript
         $SCRIPT_PATH = Join-Path -Path $script:SCRIPTS_DIR -ChildPath $SCRIPT_NAME
         if (Test-Path -Path $SCRIPT_PATH) {
