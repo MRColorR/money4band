@@ -464,7 +464,7 @@ function fn_setupApp {
     }
 
     if ($customScript) {
-        $SCRIPT_NAME = $customScript
+        $SCRIPT_NAME = "${customScript}.ps1"
         $SCRIPT_PATH = Join-Path -Path $script:SCRIPTS_DIR -ChildPath $SCRIPT_NAME
         if (Test-Path -Path $SCRIPT_PATH) {
             Set-Content $SCRIPT_PATH -Value (Get-Content $SCRIPT_PATH) -Encoding UTF8

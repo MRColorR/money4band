@@ -408,7 +408,7 @@ fn_setupApp() {
                 ;;
             --customScript)
                 shift
-                SCRIPT_NAME="$1"
+                SCRIPT_NAME="$1.sh"
                 SCRIPT_PATH="$SCRIPTS_DIR/$SCRIPT_NAME"
                 ESCAPED_PATH="$(echo "$SCRIPT_PATH" | sed 's/"/\\"/g')"
                 if [[ -f "$SCRIPT_PATH" ]]; then
