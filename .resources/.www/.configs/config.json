@@ -68,7 +68,7 @@
       "dashboard": "https://app.bitping.com/earnings",
       "link": "https://app.bitping.com?r=qm7mIuX3",
       "image": "bitping/bitping-node",
-      "flags": ["--customScript", "bitpingSetup.sh"]
+      "flags": ["--customScript", "bitpingSetup"]
     }
   ]
 }

@@ -136,7 +136,7 @@ fn_install_packages() {
         echo "Unsupported package manager. Please install the required packages manually."
     fi
 }
-
+## Multiarch emulation service installer function ##
 fn_addDockerBinfmtSVC() {
     # Check if the service file exists
     if [ -f "/etc/systemd/system/docker.binfmt.service" ]; then
@@ -204,8 +204,10 @@ fn_addDockerBinfmtSVC() {
         fi
     fi
 }
-
+## Docker checker and installer function ##
+# Check if docker is installed and if not then it tries to install it automatically
 fn_dockerInstall() {
+    clear
     colorprint "YELLOW" "This menu item will launch a script that will attempt to install Docker"
     colorprint "YELLOW" "Use it only if you do not know how to perform the manual Docker installation described at https://docs.docker.com/get-docker/ as the automatic script in some rare cases and depending on the distros may fail to install Docker correctly."
     
@@ -213,12 +215,31 @@ fn_dockerInstall() {
         read -r -p "Do you wish to proceed with the Docker automatic installation Y/N? " yn
         case $yn in
             [Yy]* )
+                if docker --version >/dev/null 2>&1; then
+                    while true; do
+                        colorprint "YELLOW" "It seems that Docker is already installed. Do you want to continue with the installation anyway? (Y/N)"
+                        read -r yn
+                        case $yn in
+                            [Yy]* ) break;;
+                            [Nn]* )
+                                read -r -p "Press Enter to go back to mainmenu"
+                                return
+                                ;;
+                            * ) 
+                                colorprint "RED" "Please answer yes or no."
+                                continue
+                                ;;
+                        esac
+                    done
+                fi
+                colorprint "DEFAULT" "Proceeding with Docker installation. Please provide your sudo password if prompted."
                 if curl -fsSL https://get.docker.com -o "$SCRIPTS_DIR/get-docker.sh"; then
                     if sudo sh "$SCRIPTS_DIR/get-docker.sh"; then
                         colorprint "GREEN" "Docker installed"
                         read -r -p "Press Enter to go back to mainmenu"
                     else
                         errorprint "Failed to install Docker automatically. Please try to install Docker manually by following the instructions on Docker website."
+                        read -r -p "Press Enter to go back to mainmenu"
                     fi
                 else
                     errorprint "Failed to download the Docker installation script."
@@ -237,6 +258,8 @@ fn_dockerInstall() {
     done
 }
 
+## Notifications setup function ##
+# This function will setup notifications about containers updates using shoutrrr
 fn_setupNotifications() {
     clear
     colorprint "YELLOW" "This step will setup notifications about containers updates using shoutrrr"
@@ -252,19 +275,33 @@ fn_setupNotifications() {
     colorprint "PURPLE" "To obtain the SHOUTRRR_URL, rearrange it to look like this: discord://YourToken@YourWebhookid."
     read -r -p "Press enter to proceed."
     clear
-    colorprint "YELLOW" "NOW INSERT BELOW THE LINK FOR NOTIFICATIONS using THE SAME FORMAT WRITTEN ABOVE e.g.: discord://yourToken@yourWebhookid"
-    read -r SHOUTRRR_URL
-    if [[ "$SHOUTRRR_URL" =~ ^[a-zA-Z]+:// ]]; then
-        sed -i "s~# SHOUTRRR_URL=yourApp:yourToken@yourWebHook~SHOUTRRR_URL=$SHOUTRRR_URL~" .env
-        sed -i "s~# - WATCHTOWER_NOTIFICATIONS=shoutrrr~  - WATCHTOWER_NOTIFICATIONS=shoutrrr~" "$DKCOM_FILENAME"
-        sed -i "s~# - WATCHTOWER_NOTIFICATION_URL~  - WATCHTOWER_NOTIFICATION_URL~" "$DKCOM_FILENAME"
-        sed -i "s~# - WATCHTOWER_NOTIFICATIONS_HOSTNAME~  - WATCHTOWER_NOTIFICATIONS_HOSTNAME~" "$DKCOM_FILENAME"
-        read -r -p "Notifications setup complete. If the link is correct, you will receive a notification for each update made on the app container images. Press enter to continue."
-    else
-        colorprint "RED" "Invalid link format. Please make sure to use the correct format."
-    fi
+    while true; do
+        colorprint "YELLOW" "NOW INSERT BELOW THE LINK FOR NOTIFICATIONS using THE SAME FORMAT WRITTEN ABOVE e.g.: discord://yourToken@yourWebhookid"
+        read -r SHOUTRRR_URL
+        if [[ "$SHOUTRRR_URL" =~ ^[a-zA-Z]+:// ]]; then
+            sed -i "s~# SHOUTRRR_URL=yourApp:yourToken@yourWebHook~SHOUTRRR_URL=$SHOUTRRR_URL~" .env
+            sed -i "s~# - WATCHTOWER_NOTIFICATIONS=shoutrrr~  - WATCHTOWER_NOTIFICATIONS=shoutrrr~" "$DKCOM_FILENAME"
+            sed -i "s~# - WATCHTOWER_NOTIFICATION_URL~  - WATCHTOWER_NOTIFICATION_URL~" "$DKCOM_FILENAME"
+            sed -i "s~# - WATCHTOWER_NOTIFICATIONS_HOSTNAME~  - WATCHTOWER_NOTIFICATIONS_HOSTNAME~" "$DKCOM_FILENAME"
+            colorprint "DEFAULT" "Notifications setup complete. If the link is correct, you will receive a notification for each update made on the app container images."
+            read -r -p "Press enter to continue."
+            break
+        else
+            colorprint "RED" "Invalid link format. Please make sure to use the correct format."
+            while true; do
+                colorprint "YELLOW" "Do you wish to try again or leave the notifications disabled and continue with the setup script? (Yes to try again, No to continue without notifications) Y/N?"
+                read -r yn
+                case $yn in
+                    [Yy]* ) break;;
+                    [Nn]* ) return;;
+                    * ) colorprint "RED" "Please answer yes or no.";;
+                esac
+            done
+        fi
+    done
     clear
 }
+
 
 fn_setupApp() {
     while [[ "$#" -gt 0 ]]; do
@@ -373,7 +410,7 @@ fn_setupApp() {
                 ;;
             --customScript)
                 shift
-                SCRIPT_NAME="$1"
+                SCRIPT_NAME="$1.sh"
                 SCRIPT_PATH="$SCRIPTS_DIR/$SCRIPT_NAME"
                 ESCAPED_PATH="$(echo "$SCRIPT_PATH" | sed 's/"/\\"/g')"
                 if [[ -f "$SCRIPT_PATH" ]]; then
@@ -421,7 +458,8 @@ fn_setupProxy() {
     if [ "$PROXY_CONF" == 'false' ]; then
         while true; do
             colorprint "YELLOW" "Do you wish to setup a proxy for the apps in this stack Y/N?"
-            read -r -p "Note that if you want to run multiple instances of the same app you will need to configure different env files each in different project folders (copy the project to multiple different folders and configure them using different proxies)"$'\n' yn
+            colorprint "DEFAULT" "Note that if you want to run multiple instances of the same app you will need to configure different env files each in different project folders (copy the project to multiple different folders and configure them using different proxies)"$'\n'
+            read -r yn
             case $yn in
                 [Yy]* )
                     clear
@@ -443,6 +481,7 @@ fn_setupProxy() {
                     ;;
                 [Nn]* )
                     colorprint "BLUE" "Ok, no proxy added to configuration."
+                    sleep 1
                     break
                     ;;
                 * ) colorprint "RED" "Please answer yes or no." ;;
@@ -458,69 +497,70 @@ fn_setupEnv(){
         case $yn in
             [Yy]* ) 
                 clear
-                    if ! grep -q "DEVICE_NAME=${DEVICE_NAME}" .env  ; then 
-        colorprint "DEFAULT" "The current .env file appears to have already been modified. A fresh version will be downloaded and used.";
-        curl -fsSL $ENV_SRC -o ".env"
-        curl -fsSL $DKCOM_SRC -o "$DKCOM_FILENAME"
-    fi
-    colorprint "YELLOW" "beginnning env file guided setup"$'\n'
-    CURRENT_APP='';
-    colorprint "YELLOW" "PLEASE ENTER A NAME FOR YOUR DEVICE:"
-    read -r DEVICE_NAME
-    sed -i "s/yourDeviceName/${DEVICE_NAME}/" .env
-    clear ;
-    fn_setupProxy ;
-    clear ;
-
-    apps=$(jq -c '.apps[]' "$CONFIG_DIR/config.json")
-
-    for app in $apps; do
-        clear
-        colorprint "YELLOW" "PLEASE REGISTER ON THE PLATFORMS USING THE FOLLOWING LINKS, YOU'LL NEED TO ENTER SOME DATA BELOW:"
-        colorprint "GREEN" "Use CTRL+Click to open links or copy them:"
-        name=$(jq -r '.name' <<< "$app")
-        link=$(jq -r '.link' <<< "$app")
-        image=$(jq -r '.image' <<< "$app")
-        flags=$(jq -r '.flags[]' <<< "$app")
-
-        CURRENT_APP=$(echo "$name" | tr '[:lower:]' '[:upper:]')
-        
-        while true; do
-            colorprint "YELLOW" "Do you wish to enable and use ${CURRENT_APP}? (Y/N)"
-            read -r yn
-            case $yn in
-                [Yy]* )
-                    colorprint "CYAN" "Go to ${name} ${link} and register"
-                    read -r -p "When done, press enter to continue"$'\n'
-                    # Pass the flags string to the function
-                    fn_setupApp --app "${CURRENT_APP}" --image "$image" ${flags}
+                if ! grep -q "DEVICE_NAME=${DEVICE_NAME}" .env  ; then 
+                    colorprint "DEFAULT" "The current .env file appears to have already been modified. A fresh version will be downloaded and used.";
+                    curl -fsSL $ENV_SRC -o ".env"
+                    curl -fsSL $DKCOM_SRC -o "$DKCOM_FILENAME"
                     clear
-                    break
-                    ;;
-                [Nn]* )
-                    colorprint "BLUE" "${CURRENT_APP} setup will be skipped."
-                    read -r -p "Press enter to continue to the next app"
-                    break
-                    ;;
-                * ) colorprint "RED" "Please answer yes or no." ;;
-            esac
-        done
-    done
+                fi
+                colorprint "YELLOW" "beginnning env file guided setup"$'\n'
+                CURRENT_APP='';
+                colorprint "YELLOW" "PLEASE ENTER A NAME FOR YOUR DEVICE:"
+                read -r DEVICE_NAME
+                sed -i "s/yourDeviceName/${DEVICE_NAME}/" .env
+                clear ;
+                fn_setupProxy ;
+                clear ;
 
-    # Notifications setup
-    clear;
-    while true; do
-        colorprint "YELLOW" "Do you wish to setup notifications about apps images updates (Yes to receive notifications and apply updates, No to just silently apply updates) Y/N?"
-        read -r yn
-        case $yn in
-            [Yy]* ) fn_setupNotifications; break;;
-            [Nn]* ) colorprint "BLUE" "Noted: all updates will be applied automatically and silently"; break;;
-            * ) colorprint "RED" "Invalid input. Please answer yes or no.";;
-        esac
-    done
+                apps=$(jq -c '.apps[]' "$CONFIG_DIR/config.json")
 
-    colorprint "GREEN" "env file setup complete.";
-    read -n 1 -s -r -p "Press any key to go back to the menu"$'\n'
+                for app in $apps; do
+                    clear
+                    colorprint "YELLOW" "PLEASE REGISTER ON THE PLATFORMS USING THE FOLLOWING LINKS, YOU'LL NEED TO ENTER SOME DATA BELOW:"
+                    colorprint "GREEN" "Use CTRL+Click to open links or copy them:"
+                    name=$(jq -r '.name' <<< "$app")
+                    link=$(jq -r '.link' <<< "$app")
+                    image=$(jq -r '.image' <<< "$app")
+                    flags=$(jq -r '.flags[]' <<< "$app")
+
+                    CURRENT_APP=$(echo "$name" | tr '[:lower:]' '[:upper:]')
+                    
+                    while true; do
+                        colorprint "YELLOW" "Do you wish to enable and use ${CURRENT_APP}? (Y/N)"
+                        read -r yn
+                        case $yn in
+                            [Yy]* )
+                                colorprint "CYAN" "Go to ${name} ${link} and register"
+                                read -r -p "When done, press enter to continue"$'\n'
+                                # Pass the flags string to the function
+                                fn_setupApp --app "${CURRENT_APP}" --image "$image" ${flags}
+                                clear
+                                break
+                                ;;
+                            [Nn]* )
+                                colorprint "BLUE" "${CURRENT_APP} setup will be skipped."
+                                read -r -p "Press enter to continue to the next app"
+                                break
+                                ;;
+                            * ) colorprint "RED" "Please answer yes or no." ;;
+                        esac
+                    done
+                done
+
+                # Notifications setup
+                clear;
+                while true; do
+                    colorprint "YELLOW" "Do you wish to setup notifications about apps images updates (Yes to receive notifications and apply updates, No to just silently apply updates) Y/N?"
+                    read -r yn
+                    case $yn in
+                        [Yy]* ) fn_setupNotifications; break;;
+                        [Nn]* ) colorprint "BLUE" "Noted: all updates will be applied automatically and silently"; break;;
+                        * ) colorprint "RED" "Invalid input. Please answer yes or no.";;
+                    esac
+                done
+
+                colorprint "GREEN" "env file setup complete.";
+                read -n 1 -s -r -p "Press any key to go back to the menu"$'\n'
                 break
                 ;;
             [Nn]* ) 
@@ -534,6 +574,7 @@ fn_setupEnv(){
 }
 
 fn_startStack(){
+    clear
     while true; do
         colorprint "YELLOW" "This menu item will launch all the apps using the configured .env file and the $DKCOM_FILENAME file (Docker must be already installed and running)"
         read -r -p "Do you wish to proceed Y/N?  " yn
@@ -559,6 +600,7 @@ fn_startStack(){
 
 
 fn_stopStack(){
+    clear
     while true; do
         colorprint "YELLOW" "This menu item will stop all the apps and delete the docker stack previously created using the configured .env file and the $DKCOM_FILENAME file."
         read -r -p "Do you wish to proceed Y/N?  " yn
@@ -585,6 +627,7 @@ fn_stopStack(){
 
 
 fn_resetEnv(){
+    clear
     while true; do
         colorprint "RED" "Now a fresh env file will be downloaded and will need to be configured to be used again"
         read -r -p "Do you wish to proceed Y/N?  " yn
@@ -609,6 +652,7 @@ fn_resetEnv(){
 }
 
 fn_resetDockerCompose(){
+    clear
     while true; do
         colorprint "RED" "Now a fresh $DKCOM_FILENAME file will be downloaded"
         read -r -p "Do you wish to proceed Y/N?  " yn
@@ -632,14 +676,12 @@ fn_resetDockerCompose(){
     done
 }
 
-
-
-### Main Menu ##
-mainmenu() {
+# Function that will check the necerrary dependencies for the script to run
+fn_checkDependencies(){
     clear
     colorprint "GREEN" "MONEY4BAND AUTOMATIC GUIDED SETUP"$'\n'"--------------------------------- "
     colorprint "YELLOW" "Checking dependencies..."
-
+    # this need to be changed to dinamically read depenedncies for any platform and select and install all the dependencies for the current platform
     # Check if jq is installed
     if ! command -v jq &> /dev/null; then
         colorprint "YELLOW" "Now a small useful package named JQ used to manage JSON files will be installed if not already present"
@@ -649,7 +691,10 @@ mainmenu() {
     else
         colorprint "BLUE" "Done, script ready to go"
     fi
+}
 
+### Main Menu ##
+mainmenu() {
     clear
     colorprint "GREEN" "MONEY4BAND AUTOMATIC GUIDED SETUP"$'\n'"--------------------------------- "
     
@@ -677,13 +722,15 @@ mainmenu() {
             5) clear; fn_stopStack; break;;
             6) clear; fn_resetEnv; break;;
             7) clear; fn_resetDockerCompose; break;;
-            ${#options[@]}) clear; fn_bye; break;;
+            ${#options[@]}) fn_bye; break;;
             *) clear; fn_unknown; break;;
         esac
     done
 }
 
 ### Startup ##
+clear
+fn_checkDependencies
 while true; do
     mainmenu
 done
