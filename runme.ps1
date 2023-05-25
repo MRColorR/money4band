@@ -346,8 +346,8 @@ function fn_setupApp {
     $token = $false
     $customScript = $null
 
-    Write-Output "passed parameters: APP: $app, IMG: $image, FLAGS: $flags"
-    Read-Host -Prompt "This is for debug Press enter to continue"
+    #Write-Output "passed parameters: APP: $app, IMG: $image, FLAGS: $flags"
+    #Read-Host -Prompt "This is for debug Press enter to continue"
     $CURRENT_APP = $APP_NAME
     $DKCOM_FILENAME = if($app){ (Get-content $DKCOM_FILENAME) -replace "#${CURRENT_APP}_ENABLE", "" | Set-Content $DKCOM_FILENAME }
 
@@ -506,7 +506,7 @@ if ($supported_tags) {
     }
 } else {
     colorprint "yellow" "No native image tag found for $DKARCH arch, emulation layer will try to run this app image anyway."
-    colorprint "default" "If an emulation layer is not already installed, the script will try to install it now. Please provide your sudo password if prompted."
+    #colorprint "default" "If an emulation layer is not already installed, the script will try to install it now. Please provide your sudo password if prompted."
     #fn_addDockerBinfmtSVC
 }
     
