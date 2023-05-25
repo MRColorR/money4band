@@ -70,7 +70,7 @@ function fn_bye {
 
 function fn_fail($text) {
     errorprint $text
-    Read-Host -Prompt "Press Enter to continue"
+    Read-Host -Prompt "Press Enter to exit..."
     exit 1
 }
 
@@ -263,7 +263,8 @@ This function has been tested until v 2.0.0. The new version has not been tested
 function fn_setupNotifications() {
     Clear-Host
     colorprint "Yellow" "This step will setup notifications about containers updates using shoutrrr"
-    colorprint "Default" "The resulting SHOUTRRR_URL should have the format: <app>://<token>@<webhook>. Where <app> is one of the supported messaging apps on Shoutrrr (e.g. Discord), and <token> and <webhook> are specific to your messaging app."
+    colorprint "Default" "The resulting SHOUTRRR_URL should have the format: <app>://<token>@<webhook>."
+    colorprint "Default" "Where <app> is one of the supported messaging apps on Shoutrrr (e.g. Discord), and <token> and <webhook> are specific to your messaging app."
     colorprint "Default" "To obtain the SHOUTRRR_URL, create a new webhook for your messaging app and rearrange its URL to match the format above."
     colorprint "Default" "For more details, visit https://containrrr.dev/shoutrrr/ and select your messaging app."
     colorprint "Default" "Now a Discord notification setup example will be shown (Remember: you can also use a different supported app)."
@@ -543,7 +544,7 @@ function fn_setupProxy() {
                 Clear-Host
                 colorprint "YELLOW" "Proxy setup started."
                 $script:RANDOM_VALUE = Get-Random
-                colorprint "DEFAULT" "Insert the designed proxy to use. Eg: protocol://proxyUsername:proxyPassword@proxy_url:proxy_port or just protocol://proxy_url:proxy_port if auth is not needed:"
+                colorprint "GREEN" "Insert the designed proxy to use. Eg: protocol://proxyUsername:proxyPassword@proxy_url:proxy_port or just protocol://proxy_url:proxy_port if auth is not needed:"
                 $script:STACK_PROXY = Read-Host 
                 colorprint "DEFAULT" "Ok, $script:STACK_PROXY will be used as proxy for all apps in this stack"
                 Read-Host -p "Press enter to continue"
@@ -625,7 +626,6 @@ function fn_setupEnv() {
                     if ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') {
                         try {
                             colorprint "CYAN" "Go to ${name} ${link} and register"
-                            #write-host "Current flags are: @($flags)"
                             Read-Host -p "When done, press enter to continue"
                             # Pass the flags string to the function
                             fn_setupApp "$($script:CURRENT_APP)" "$image" $flags
@@ -654,7 +654,6 @@ function fn_setupEnv() {
             while ($true) {
                 colorprint "YELLOW" "Do you wish to setup notifications about apps images updates (Yes to receive notifications and apply updates, No to just silently apply updates) Y/N?"
                 $yn = Read-Host
-
                 if ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') {
                     fn_setupNotifications
                     break
@@ -697,10 +696,10 @@ Just call fn_startStack
 This function has been tested until v 2.0.0. The new version has not been tested as its assume that the logic is the same as the previous one just more refined.
 #>
 function fn_startStack() {
+    Clear-Host
     while ($true) {
         colorprint "YELLOW" "This menu item will launch all the apps using the configured .env file and the $($script:DKCOM_FILENAME) file (Docker must be already installed and running)"
         $yn = Read-Host "Do you wish to proceed Y/N?"
-
         if ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') {
             if (docker compose up -d) {
                 colorprint "GREEN" "All Apps started. You can visit the web dashboard on http://localhost:8081/. If not already done, use the previously generated earnapp node URL to add your device in your earnapp dashboard. Check the README file for more details."
@@ -736,6 +735,7 @@ Just call fn_stopStack
 This function has been tested until v 2.0.0. The new version has not been tested as its assume that the logic is the same as the previous one just more refined.
 #>
 function fn_stopStack() {
+    Clear-Host
     while ($true) {
         colorprint "YELLOW" "This menu item will stop all the apps and delete the docker stack previously created using the configured .env file and the $($script:DKCOM_FILENAME) file."
         $yn = Read-Host "Do you wish to proceed Y/N?"
@@ -775,6 +775,7 @@ Just call fn_resetEnv
 This function has been tested until v 2.0.0. The new version has not been tested as its assume that the logic is the same as the previous one just more refined.
 #>
 function fn_resetEnv() {
+    Clear-Host
     while ($true) {
         colorprint "YELLOW" "Now a fresh env file will be downloaded and will need to be configured to be used again"
         $yn = Read-Host "Do you wish to proceed Y/N?"
@@ -815,10 +816,10 @@ Just call fn_resetDockerCompose
 This function has been tested until v 2.0.0. The new version has not been tested as its assume that the logic is the same as the previous one just more refined.
 #>
 function fn_resetDockerCompose() {
+    Clear-Host
     while ($true) {
         colorprint "YELLOW" "Now a fresh $($script:DKCOM_FILENAME) file will be downloaded"
         $yn = Read-Host "Do you wish to proceed Y/N?"
-
         if ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') {
             try {
                 Invoke-WebRequest -Uri $script:DKCOM_SRC -OutFile "$($script:DKCOM_FILENAME)"
