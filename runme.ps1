@@ -282,7 +282,8 @@ function fn_setupNotifications() {
             (Get-Content .\$DKCOM_FILENAME).replace('# - WATCHTOWER_NOTIFICATIONS=shoutrrr', "  - WATCHTOWER_NOTIFICATIONS=shoutrrr") | Set-Content .\$DKCOM_FILENAME
             (Get-Content .\$DKCOM_FILENAME).replace('# - WATCHTOWER_NOTIFICATION_URL', "  - WATCHTOWER_NOTIFICATION_URL") | Set-Content .\$DKCOM_FILENAME
             (Get-Content .\$DKCOM_FILENAME).replace('# - WATCHTOWER_NOTIFICATIONS_HOSTNAME', "  - WATCHTOWER_NOTIFICATIONS_HOSTNAME") | Set-Content .\$DKCOM_FILENAME
-            Read-Host -Prompt "Notifications setup complete. If the link is correct, you will receive a notification for each update made on the app container images. Press enter to continue."
+            colorprint "DEFAULT" "Notifications setup complete. If the link is correct, you will receive a notification for each update made on the app container images."
+            Read-Host -p "Press enter to continue"
             break
         } else {
             colorprint "Red" "Invalid link format. Please make sure to use the correct format."
@@ -349,7 +350,7 @@ function fn_setupApp {
     #Write-Output "passed parameters: APP: $app, IMG: $image, FLAGS: $flags"
     #Read-Host -Prompt "This is for debug Press enter to continue"
     $CURRENT_APP = $APP_NAME
-    $DKCOM_FILENAME = if($app){ (Get-content $DKCOM_FILENAME) -replace "#${CURRENT_APP}_ENABLE", "" | Set-Content $DKCOM_FILENAME }
+    if($app){ (Get-content $script:DKCOM_FILENAME) -replace "#${CURRENT_APP}_ENABLE", "" | Set-Content $script:DKCOM_FILENAME }
 
     for($i = 0; $i -lt $flags.Count; $i++) {
         switch($flags[$i]){
@@ -436,13 +437,15 @@ function fn_setupApp {
                         break
                     }
                 }
+                break
             } elseif ($USE_EXISTING_UUID -eq "no" -or $USE_EXISTING_UUID -eq "n") {
                 break
             } else {
                 colorprint "RED" "Please answer yes or no."
             }
-        }    
-        (Get-Content .env) -replace "your${CURRENT_APP}MD5sum", $UUID.ToLower() | Set-Content .env
+        }   
+        $UUID = $UUID.ToLower() 
+        (Get-Content .env) -replace "your${CURRENT_APP}MD5sum", $UUID | Set-Content .env
         colorprint "DEFAULT" "${CURRENT_APP} UUID setup: done"
         colorprint "BLUE" "Save the following link somewhere to claim your ${CURRENT_APP} node after completing the setup and starting the apps stack: https://earnapp.com/r/sdk-node-$UUID."
         colorprint "DEFAULT" "A new file containing this link has been created for you in the current directory"
@@ -477,16 +480,19 @@ function fn_setupApp {
     # App Docker image architecture adjustments
     $TAG = 'latest'
 
+# Ensure $supported_tags is an array
+$supported_tags = @()
+
 # Send a request to DockerHub for a list of tags
 $page_index = 1
 $page_size = 500
 $json = Invoke-WebRequest -Uri "https://registry.hub.docker.com/v2/repositories/${APP_IMAGE}/tags?page=${page_index}&page_size=${page_size}" -UseBasicParsing | ConvertFrom-Json
 
 # Filter out the tags that do not support the specified architecture
-$supported_tags = $json.results | ForEach-Object {
-    $tag = $_.name
+$json.results | ForEach-Object {
+    $ntag = $_.name
     if (($_.images | Where-Object { $_.architecture -eq $DKARCH })) {
-        $tag
+        $supported_tags += $ntag
     }
 }
 
@@ -494,7 +500,7 @@ $supported_tags = $json.results | ForEach-Object {
 if ($supported_tags) {
     colorprint "default" "There are $($supported_tags.Count) tags supporting $DKARCH arch for this image"
     colorprint "default" "Let's see if $TAG tag is in there"
-    
+        
     # Check if 'latest' tag is among them
     if ($supported_tags -contains $TAG) {
         colorprint "green" "OK, $TAG tag present and it supports $DKARCH arch, nothing to do"
@@ -502,12 +508,11 @@ if ($supported_tags) {
         colorprint "yellow" "$TAG tag does not support $DKARCH arch but other tags do, the newer tag supporting $DKARCH will be selected"
         # Replace 'latest' tag with the first one that supports the given architecture in your Docker compose file
         $newTag = $supported_tags[0]
-        (Get-Content $DKCOM_FILENAME).replace("${APP_IMAGE}:$TAG", "${APP_IMAGE}:$newTag") | Set-Content $DKCOM_FILENAME
+        (Get-Content $script:DKCOM_FILENAME).replace("${APP_IMAGE}:$TAG", "${APP_IMAGE}:$newTag") | Set-Content $DKCOM_FILENAME
     }
 } else {
     colorprint "yellow" "No native image tag found for $DKARCH arch, emulation layer will try to run this app image anyway."
     #colorprint "default" "If an emulation layer is not already installed, the script will try to install it now. Please provide your sudo password if prompted."
-    #fn_addDockerBinfmtSVC
 }
     
     Write-Host "$app configuration complete, press enter to continue to the next app"
@@ -531,15 +536,15 @@ function fn_setupProxy() {
     if ($script:PROXY_CONF -eq $false) {
         while ($true) {
             colorprint "YELLOW" "Do you wish to setup a proxy for the apps in this stack Y/N?"
-            $note = "Note that if you want to run multiple instances of the same app, you will need to configure different env files in different project folders (copy the project to multiple different folders and configure them using different proxies)."
-            $yn = Read-Host -p "$note`n"
+            colorprint "DEFAULT" "Note that if you want to run multiple instances of the same app, you will need to configure different env files in different project folders (copy the project to multiple different folders and configure them using different proxies)."
+            $yn = Read-Host
 
             if ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') {
                 Clear-Host
                 colorprint "YELLOW" "Proxy setup started."
                 $script:RANDOM_VALUE = Get-Random
-                $proxyNote = "Insert the designed proxy to use. Eg: protocol://proxyUsername:proxyPassword@proxy_url:proxy_port or just protocol://proxy_url:proxy_port if auth is not needed"
-                $script:STACK_PROXY = Read-Host -p "$proxyNote"
+                colorprint "DEFAULT" "Insert the designed proxy to use. Eg: protocol://proxyUsername:proxyPassword@proxy_url:proxy_port or just protocol://proxy_url:proxy_port if auth is not needed:"
+                $script:STACK_PROXY = Read-Host 
                 colorprint "DEFAULT" "Ok, $script:STACK_PROXY will be used as proxy for all apps in this stack"
                 Read-Host -p "Press enter to continue"
                 $script:PROXY_CONF = $true
@@ -585,7 +590,7 @@ function fn_setupEnv() {
 
         if ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') {
             Clear-Host
-            if ((Get-Content .\.env) -notmatch "DEVICE_NAME=$($script:DEVICE_NAME)") {
+            if ((Get-Content .\.env) -NotContains "DEVICE_NAME=$($script:DEVICE_NAME)") {
                 colorprint "DEFAULT" "The current .env file appears to have already been modified. A fresh version will be downloaded and used."
                 Invoke-WebRequest -Uri $script:ENV_SRC -OutFile ".env"
                 Invoke-WebRequest -Uri $script:DKCOM_SRC -OutFile "$($script:DKCOM_FILENAME)"
@@ -620,7 +625,7 @@ function fn_setupEnv() {
                     if ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') {
                         try {
                             colorprint "CYAN" "Go to ${name} ${link} and register"
-                            write-host "Current flags are: @($flags)"
+                            #write-host "Current flags are: @($flags)"
                             Read-Host -p "When done, press enter to continue"
                             # Pass the flags string to the function
                             fn_setupApp "$($script:CURRENT_APP)" "$image" $flags
@@ -920,5 +925,6 @@ function mainmenu {
 
 # Startup
 Clear-Host
+$ProgressPreference = 'SilentlyContinue' # disable Invoke-WebRequest progressbar
 fn_checkDependencies
 mainmenu
