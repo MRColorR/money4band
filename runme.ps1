@@ -476,28 +476,39 @@ function fn_setupApp {
     }
     # App Docker image architecture adjustments
     $TAG = 'latest'
-    $DKHUBRES = Invoke-WebRequest -Uri "https://registry.hub.docker.com/v2/repositories/${image}/tags" -UseBasicParsing | ConvertFrom-Json | Where-Object { $_.images.architecture -eq $DKARCH } | Select-Object -ExpandProperty name
-    $TAGSNUMBER = $DKHUBRES.Length
-    if ($TAGSNUMBER -gt 0) { 
-        Write-Host "There are $TAGSNUMBER tags supporting $DKARCH arch for this image"
-        Write-Host "Let's see if $TAG tag is in there"
-        $LATESTPRESENT = $DKHUBRES -contains $TAG
-        if ($LATESTPRESENT) { 
-            Write-Host "OK, $TAG tag present and it supports $DKARCH arch, nothing to do"
-        }
-        else { 
-            Write-Host "$TAG tag does not support $DKARCH arch but other tags do, the newer tag supporting $DKARCH will be selected"
-            $NEWTAG = $DKHUBRES[0]
-            #sed equivalent in PowerShell
-            (Get-Content $DKCOM_FILENAME) -replace "${image}:latest","${image}:${NEWTAG}" | Set-Content $DKCOM_FILENAME
-        }
+
+# Send a request to DockerHub for a list of tags
+$page_index = 1
+$page_size = 500
+$json = Invoke-WebRequest -Uri "https://registry.hub.docker.com/v2/repositories/${APP_IMAGE}/tags?page=${page_index}&page_size=${page_size}" -UseBasicParsing | ConvertFrom-Json
+
+# Filter out the tags that do not support the specified architecture
+$supported_tags = $json.results | ForEach-Object {
+    $tag = $_.name
+    if (($_.images | Where-Object { $_.architecture -eq $DKARCH })) {
+        $tag
     }
-    else { 
-        Write-Host "No native image tag found for $DKARCH arch, emulation layer will try to run this app image anyway."
-        #Write-Host "If an emulation layer is not already installed, the script will try to install it now. Please provide your sudo password if prompted."
-        #fn_install_packages qemu binfmt-support qemu-user-static
-        #fn_addDockerBinfmtSVC
+}
+
+# Check if there are any tags that support the given architecture
+if ($supported_tags) {
+    colorprint "default" "There are $($supported_tags.Count) tags supporting $DKARCH arch for this image"
+    colorprint "default" "Let's see if $TAG tag is in there"
+    
+    # Check if 'latest' tag is among them
+    if ($supported_tags -contains $TAG) {
+        colorprint "green" "OK, $TAG tag present and it supports $DKARCH arch, nothing to do"
+    } else {
+        colorprint "yellow" "$TAG tag does not support $DKARCH arch but other tags do, the newer tag supporting $DKARCH will be selected"
+        # Replace 'latest' tag with the first one that supports the given architecture in your Docker compose file
+        $newTag = $supported_tags[0]
+        (Get-Content $DKCOM_FILENAME).replace("${APP_IMAGE}:$TAG", "${APP_IMAGE}:$newTag") | Set-Content $DKCOM_FILENAME
     }
+} else {
+    colorprint "yellow" "No native image tag found for $DKARCH arch, emulation layer will try to run this app image anyway."
+    colorprint "default" "If an emulation layer is not already installed, the script will try to install it now. Please provide your sudo password if prompted."
+    #fn_addDockerBinfmtSVC
+}
     
     Write-Host "$app configuration complete, press enter to continue to the next app"
     Read-Host
