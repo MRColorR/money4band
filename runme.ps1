@@ -189,21 +189,27 @@ function fn_dockerInstall {
                 1 {
                     Clear-Host
                     colorprint "Yellow" "Starting Docker for linux auto installation script"
+                    $ProgressPreference = 'SilentlyContinue'
                     Invoke-WebRequest https://get.docker.com -o "$SCRIPTS_DIR/get-docker.sh"
+                    $ProgressPreference = 'Continue'
                     sudo sh get-docker.sh;
                     $InstallStatus = $true;
                 }
                 2 {
                     Clear-Host
                     colorprint "Yellow" "Starting Docker for Windows auto installation script"
+                    $ProgressPreference = 'SilentlyContinue'
                     Invoke-WebRequest $DKINST_WIN_SRC -o "$SCRIPTS_DIR\install-docker-win.ps1"
+                    $ProgressPreference = 'Continue'
                     Start-Process PowerShell -Verb RunAs "-noprofile -executionpolicy bypass -command `"$SCRIPTS_DIR\install-docker-win.ps1 -filesPath $FILES_DIR`"" -Wait
                     $InstallStatus = $true;              
                 }
                 3 {
                     Clear-Host
                     colorprint "Yellow" "Starting Docker for MacOS auto installation script"  
+                    $ProgressPreference = 'SilentlyContinue'
                     Invoke-WebRequest $DKINST_MAC_SRC -o "$SCRIPTS_DIR\install-docker-mac.ps1"
+                    $ProgressPreference = 'Continue'
                     colorprint "Yellow" "Select your CPU type"
                     colorprint "Yellow" "1) Apple silicon M1, M2...CPUs"
                     colorprint "Yellow" "2) Intel i5, i7...CPUs"
@@ -487,7 +493,9 @@ $supported_tags = @()
 # Send a request to DockerHub for a list of tags
 $page_index = 1
 $page_size = 500
+$ProgressPreference = 'SilentlyContinue'
 $json = Invoke-WebRequest -Uri "https://registry.hub.docker.com/v2/repositories/${APP_IMAGE}/tags?page=${page_index}&page_size=${page_size}" -UseBasicParsing | ConvertFrom-Json
+$ProgressPreference = 'Continue'
 
 # Filter out the tags that do not support the specified architecture
 $json.results | ForEach-Object {
@@ -593,8 +601,10 @@ function fn_setupEnv() {
             Clear-Host
             if ((Get-Content .\.env) -NotContains "DEVICE_NAME=$($script:DEVICE_NAME)") {
                 colorprint "DEFAULT" "The current .env file appears to have already been modified. A fresh version will be downloaded and used."
+                $ProgressPreference = 'SilentlyContinue'
                 Invoke-WebRequest -Uri $script:ENV_SRC -OutFile ".env"
                 Invoke-WebRequest -Uri $script:DKCOM_SRC -OutFile "$($script:DKCOM_FILENAME)"
+                $ProgressPreference = 'Continue'
                 Clear-Host
             }
             colorprint "YELLOW" "beginning env file guided setup"
@@ -781,7 +791,9 @@ function fn_resetEnv() {
         $yn = Read-Host "Do you wish to proceed Y/N?"
         if ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') {
             try {
+                $ProgressPreference = 'SilentlyContinue'
                 Invoke-WebRequest -Uri $script:ENV_SRC -OutFile ".env"
+                $ProgressPreference = 'Continue'
                 colorprint "GREEN" ".env file resetted, remember to reconfigure it"
             }
             catch {
@@ -822,7 +834,9 @@ function fn_resetDockerCompose() {
         $yn = Read-Host "Do you wish to proceed Y/N?"
         if ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') {
             try {
+                $ProgressPreference = 'SilentlyContinue'
                 Invoke-WebRequest -Uri $script:DKCOM_SRC -OutFile "$($script:DKCOM_FILENAME)"
+                $ProgressPreference = 'Continue'
                 colorprint "GREEN" "$($script:DKCOM_FILENAME) file resetted, remember to reconfigure it if needed"
             }
             catch {
@@ -926,6 +940,5 @@ function mainmenu {
 
 # Startup
 Clear-Host
-$ProgressPreference = 'SilentlyContinue' # disable Invoke-WebRequest progressbar
 fn_checkDependencies
 mainmenu
