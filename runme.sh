@@ -48,84 +48,82 @@ fn_fail() {
 
 fn_unknown() { colorprint "RED" "Unknown choice $REPLY, please choose a valid option"; }
 
-
-### Sub-menu Functions ###
-fn_showLinks() {
-    clear
-    colorprint "GREEN" "Use CTRL+Click to open links or copy them:"
-
-    jq -r '.apps | to_entries[] | "\(.key+1) \(.value.name) | \(.value.link)"' "$CONFIG_DIR/config.json" |
-    while read -r line; do
-        colorprint "CYAN" "$line"
-    done
-
-    read -r -p "Press Enter to go back to mainmenu"
+# use OSTYPE variable to check the OS type
+get_os_type() {
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        echo "Linux"
+    elif [[ "$OSTYPE" == "darwin"* ]]; then
+        echo "macOS"
+    elif [[ "$OSTYPE" == "cygwin" ]]; then
+        echo "Windows/Cygwin"
+    elif [[ "$OSTYPE" == "msys" ]]; then
+        echo "Windows/msys"
+    elif [[ "$OSTYPE" == "win32" ]]; then
+        echo "Windows"
+    elif [[ "$OSTYPE" == "freebsd"* ]]; then
+        echo "FreeBSD"
+    else
+        echo "Unknown"
+    fi
 }
 
 
 fn_install_packages() {
     REQUIRED_PACKAGES=("$@")
 
-    # Debian, Ubuntu and their derivatives use 'apt' package manager
-    if command -v apt &> /dev/null ; then
+    # Check the operating system
+    OS_TYPE=$(get_os_type)
+
+    if [[ "$OS_TYPE" == "Linux" ]]; then
+        if command -v apt &> /dev/null ; then
+            PKG_MANAGER="apt"
+            PKG_CHECK="dpkg -l"
+            PKG_INSTALL="sudo apt install -y"
+        elif command -v yum &> /dev/null ; then
+            PKG_MANAGER="yum"
+            PKG_CHECK="rpm -q"
+            PKG_INSTALL="sudo yum install -y"
+        elif command -v dnf &> /dev/null ; then
+            PKG_MANAGER="dnf"
+            PKG_CHECK="rpm -q"
+            PKG_INSTALL="sudo dnf install -y"
+        elif command -v pacman &> /dev/null ; then
+            PKG_MANAGER="pacman"
+            PKG_CHECK="pacman -Q"
+            PKG_INSTALL="sudo pacman -S --noconfirm"
+        elif command -v zypper &> /dev/null ; then
+            PKG_MANAGER="zypper"
+            PKG_CHECK="rpm -q"
+            PKG_INSTALL="sudo zypper install -y"
+        elif command -v emerge &> /dev/null ; then
+            PKG_MANAGER="emerge"
+            PKG_CHECK="qlist -I"
+            PKG_INSTALL="sudo emerge --ask n"
+        else
+            echo "Unsupported package manager. Please install the required packages manually."
+            return
+        fi
         for package in "${REQUIRED_PACKAGES[@]}"
         do
-            if ! dpkg -l | grep -q "^ii  $package"; then
+            if ! $PKG_CHECK | grep -q "^ii  $package"; then
                 echo "$package is not installed. Trying to install now..."
-                if ! sudo apt install -y $package; then
-                    fn_fail "Failed to install $package. Please install it manually then restart the script."
-                fi
-            else
-                echo "$package is already installed."
-            fi
-        done
-    # Red Hat, CentOS and their derivatives use 'yum' or 'dnf' package manager
-    elif command -v yum &> /dev/null || command -v dnf &> /dev/null ; then
-        PKG_MANAGER=$(command -v yum || command -v dnf)
-        for package in "${REQUIRED_PACKAGES[@]}"
-        do
-            if ! rpm -q $package &> /dev/null; then
-                echo "$package is not installed. Trying to install now..."
-                if ! sudo $PKG_MANAGER install -y $package; then
+                if ! $PKG_INSTALL $package; then
                     echo "Failed to install $package. Please install it manually."
                 fi
             else
                 echo "$package is already installed."
             fi
         done
-    # Arch Linux and its derivatives use 'pacman' package manager
-    elif command -v pacman &> /dev/null ; then
+    elif [[ "$OS_TYPE" == "macOS" ]]; then
+        if ! command -v brew &> /dev/null; then
+            echo "Homebrew is not installed. Installing now..."
+            /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+        fi
         for package in "${REQUIRED_PACKAGES[@]}"
         do
-            if ! pacman -Q $package &> /dev/null; then
+            if ! brew list --versions $package > /dev/null; then
                 echo "$package is not installed. Trying to install now..."
-                if ! sudo pacman -S --noconfirm $package; then
-                    echo "Failed to install $package. Please install it manually."
-                fi
-            else
-                echo "$package is already installed."
-            fi
-        done
-    # openSUSE and its derivatives use 'zypper' package manager
-    elif command -v zypper &> /dev/null ; then
-        for package in "${REQUIRED_PACKAGES[@]}"
-        do
-            if ! rpm -q $package &> /dev/null; then
-                echo "$package is not installed. Trying to install now..."
-                if ! sudo zypper install -y $package; then
-                    echo "Failed to install $package. Please install it manually."
-                fi
-            else
-                echo "$package is already installed."
-            fi
-        done
-    # Gentoo and its derivatives use 'emerge' package manager
-    elif command -v emerge &> /dev/null ; then
-        for package in "${REQUIRED_PACKAGES[@]}"
-        do
-            if ! qlist -I "$package" &> /dev/null; then
-                echo "$package is not installed. Trying to install now..."
-                if ! sudo emerge --ask n $package; then
+                if ! brew install $package; then
                     echo "Failed to install $package. Please install it manually."
                 fi
             else
@@ -133,9 +131,10 @@ fn_install_packages() {
             fi
         done
     else
-        echo "Unsupported package manager. Please install the required packages manually."
+        echo "Unsupported operating system. Please install the required packages manually."
     fi
 }
+
 ## Multiarch emulation service installer function ##
 fn_addDockerBinfmtSVC() {
     # Check if the service file exists
@@ -204,6 +203,20 @@ fn_addDockerBinfmtSVC() {
         fi
     fi
 }
+
+### Sub-menu Functions ###
+fn_showLinks() {
+    clear
+    colorprint "GREEN" "Use CTRL+Click to open links or copy them:"
+
+    jq -r '.apps | to_entries[] | "\(.key+1) \(.value.name) | \(.value.link)"' "$CONFIG_DIR/config.json" |
+    while read -r line; do
+        colorprint "CYAN" "$line"
+    done
+
+    read -r -p "Press Enter to go back to mainmenu"
+}
+
 ## Docker checker and installer function ##
 # Check if docker is installed and if not then it tries to install it automatically
 fn_dockerInstall() {
