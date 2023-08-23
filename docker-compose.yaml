@@ -59,7 +59,7 @@ services:
 # TRAFFMONETIZER CONTAINER
 #TRAFFMONETIZER_ENABLE  traffMonetizer:
 #TRAFFMONETIZER_ENABLE    container_name: traffmonetizer
-#TRAFFMONETIZER_ENABLE    image: traffmonetizer/cli:latest
+#TRAFFMONETIZER_ENABLE    image: traffmonetizer/cli_v2:latest
 #TRAFFMONETIZER_ENABLE    environment:
 #TRAFFMONETIZER_ENABLE      - TRAFFMONETIZER_DUMMY=''
 #TRAFFMONETIZER_ENABLE    command: start accept status --token $TRAFFMONETIZER_TOKEN --device-name $DEVICE_NAME
