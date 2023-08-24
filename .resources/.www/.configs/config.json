@@ -39,7 +39,7 @@
       "name": "TRAFFMONETIZER",
       "dashboard": "https://app.traffmonetizer.com/dashboard",
       "link": "https://traffmonetizer.com/?aff=366499",
-      "image": "traffmonetizer/cli",
+      "image": "traffmonetizer/cli_v2",
       "flags": ["--token"]
     },
     {
