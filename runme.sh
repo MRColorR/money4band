@@ -519,6 +519,10 @@ fn_setupApp() {
                     colorprint "RED" "Custom script '$SCRIPT_NAME' not found in the scripts directory."
                 fi
                 ;;
+            --manual)
+                colorprint "DEFAULT" "${CURRENT_APP} requires further manual configuration."
+                colorprint "DEFAULT" "Please after completing this automated setup follow the manual steps described on the app's website."
+                ;;
             *)
                 colorprint "RED" "Unknown flag: $1"
                 exit 1
@@ -597,7 +601,15 @@ fn_setupProxy() {
 }
 
 fn_setupEnv(){
-    debug "Starting setupEnv function"
+    local app_type="$1"  # Accept the type of apps as an argument
+    debug "Starting setupEnv function for $app_type"
+
+    # Check if .env file is already configured
+    ENV_CONFIGURATION_STATUS=$(grep -oP 'ENV_CONFIGURATION_STATUS=\K[^#]+' .env)
+    debug "Current ENV_CONFIGURATION_STATUS: $ENV_CONFIGURATION_STATUS"
+    NOTIFICATIONS_CONFIGURATION_STATUS=$(grep -oP 'NOTIFICATIONS_CONFIGURATION_STATUS=\K[^#]+' .env)
+    debug "Current NOTIFICATIONS_CONFIGURATION_STATUS: $NOTIFICATIONS_CONFIGURATION_STATUS"
+
     while true; do
         colorprint "YELLOW" "Do you wish to proceed with the .env file guided setup Y/N? (This will also adapt the $DKCOM_FILENAME file accordingly)"
         read -r yn
@@ -605,12 +617,30 @@ fn_setupEnv(){
             [Yy]* ) 
                 clear
                 debug "User chose to proceed with the .env file guided setup"
-                if ! grep -q "DEVICE_NAME=${DEVICE_NAME}" .env  ; then 
-                    print_and_log "DEFAULT" "The current .env file appears to have already been modified. A fresh version will be downloaded and used.";
-                    curl -fsSL $ENV_SRC -o ".env"
-                    curl -fsSL $DKCOM_SRC -o "$DKCOM_FILENAME"
-                    clear
+
+                if [ "$ENV_CONFIGURATION_STATUS" == "1" ] && [ "$app_type" == "apps" ]; then
+                    colorprint "YELLOW" "The current .env file appears to have already been configured. Do you want to reset it? (Y/N)"
+                    read -r yn
+                    case $yn in
+                        [Yy]* )
+                            print_and_log "DEFAULT" "Downloading a fresh .env file.";
+                            curl -fsSL $ENV_SRC -o ".env"
+                            curl -fsSL $DKCOM_SRC -o "$DKCOM_FILENAME"
+                            sed -i 's/ENV_CONFIGURATION_STATUS=1/ENV_CONFIGURATION_STATUS=0/' .env
+                            clear
+                            ;;
+                        [Nn]* )
+                            print_and_log "BLUE" "Keeping the existing .env file."
+                            ;;
+                        * )
+                            colorprint "RED" "Invalid input. Please answer yes or no."
+                            return 1
+                            ;;
+                    esac
+                elif [ "$app_type" == "extra-apps" ]; then
+                    print_and_log "BLUE" "Proceeding with extra-apps setup without resetting .env file."
                 fi
+
                 colorprint "YELLOW" "beginnning env file guided setup"$'\n'
                 CURRENT_APP='';
                 colorprint "YELLOW" "PLEASE ENTER A NAME FOR YOUR DEVICE:"
@@ -619,9 +649,9 @@ fn_setupEnv(){
                 clear ;
                 fn_setupProxy ;
                 clear ;
-                debug " Loading apps from config.json..."
-                apps=$(jq -c '.apps[]' "$CONFIG_DIR/config.json")
-                debug " Apps loaded from config.json"
+                debug " Loading $app_type from config.json..."
+                apps=$(jq -c ".${app_type}[]" "$CONFIG_DIR/config.json")
+                debug " $app_type loaded from config.json"
 
                 for app in $apps; do
                     clear
@@ -658,23 +688,28 @@ fn_setupEnv(){
 
                 # Notifications setup
                 clear;
-                debug "Asking user if they want to setup notifications"
-                while true; do
-                    colorprint "YELLOW" "Do you wish to setup notifications about apps images updates (Yes to receive notifications and apply updates, No to just silently apply updates) Y/N?"
-                    read -r yn
-                    case $yn in
-                        [Yy]* )
-                            debug "User chose to setup notifications"
-                            fn_setupNotifications;
-                            break;;
-                        [Nn]* )
-                            debug "User chose not to setup notifications"
-                            colorprint "BLUE" "Noted: all updates will be applied automatically and silently";
-                            break;;
-                        * ) colorprint "RED" "Invalid input. Please answer yes or no.";;
-                    esac
-                done
+                if [ "$NOTIFICATIONS_CONFIGURATION_STATUS" == "1" ]; then
+                    print_and_log "BLUE" "Notifications are already set up. Skipping notifications setup. Reset the .env file and do a new complete setup to set up different notification settings."
+                else
+                    debug "Asking user if they want to setup notifications"
+                    while true; do
+                        colorprint "YELLOW" "Do you wish to setup notifications about apps images updates (Yes to receive notifications and apply updates, No to just silently apply updates) Y/N?"
+                        read -r yn
+                        case $yn in
+                            [Yy]* )
+                                debug "User chose to setup notifications"
+                                fn_setupNotifications;
+                                break;;
+                            [Nn]* )
+                                debug "User chose not to setup notifications"
+                                colorprint "BLUE" "Noted: all updates will be applied automatically and silently";
+                                break;;
+                            * ) colorprint "RED" "Invalid input. Please answer yes or no.";;
+                        esac
+                    done
+                fi
 
+                sed -i 's/ENV_CONFIGURATION_STATUS=0/ENV_CONFIGURATION_STATUS=1/' .env
                 print_and_log "GREEN" "env file setup complete.";
                 read -n 1 -s -r -p "Press any key to go back to the menu"$'\n'
                 break
@@ -688,6 +723,14 @@ fn_setupEnv(){
             * ) colorprint "RED" "Please answer yes or no."
         esac
     done
+}
+
+fn_setupApps(){
+    fn_setupEnv "apps"  # Call fn_setupEnv with "apps"
+}
+
+fn_setupExtraApps(){
+    fn_setupEnv "extra-apps"  # Call fn_setupEnv with "extra_apps"
 }
 
 fn_startStack(){
@@ -829,7 +872,7 @@ mainmenu() {
     
     PS3="Select an option and press Enter "$'\n'
     debug "Loading menu options"
-    options=("Show supported apps' links" "Install Docker" "Setup .env file" "Start apps stack" "Stop apps stack" "Reset .env File" "Reset $DKCOM_FILENAME file" "Quit")
+    options=("Show supported apps' links" "Install Docker" "Setup Apps" "Setup Extra Apps" "Start apps stack" "Stop apps stack" "Reset .env File" "Reset $DKCOM_FILENAME file" "Quit")
     debug "Menu options loaded. Showing menu options, ready to select"
 
     select option in "${options[@]}"
@@ -837,11 +880,12 @@ mainmenu() {
         case $REPLY in
             1) clear; fn_showLinks; break;;
             2) clear; fn_dockerInstall; break;;
-            3) clear; fn_setupEnv; break;;
-            4) clear; fn_startStack; break;;
-            5) clear; fn_stopStack; break;;
-            6) clear; fn_resetEnv; break;;
-            7) clear; fn_resetDockerCompose; break;;
+            3) clear; fn_setupApps; break;;
+            4) clear; fn_setupExtraApps; break;;
+            5) clear; fn_startStack; break;;
+            6) clear; fn_stopStack; break;;
+            7) clear; fn_resetEnv; break;;
+            8) clear; fn_resetDockerCompose; break;;
             ${#options[@]}) fn_bye; break;;
             *) clear; fn_unknown; break;;
         esac

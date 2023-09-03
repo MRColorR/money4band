@@ -353,6 +353,7 @@ function fn_setupApp {
     $cid = $false
     $token = $false
     $customScript = $null
+    $manual = $false
 
     #Write-Output "passed parameters: APP: $app, IMG: $image, FLAGS: $flags"
     #Read-Host -Prompt "This is for debug Press enter to continue"
@@ -372,6 +373,7 @@ function fn_setupApp {
                 $customScript = $flags[$i+1] # consider the element after --customScript as the script name
                 $i++ # increment the index to skip the next element
             }
+            "--manual" {$manual = $true}
             default {colorprint "RED" "Unknown flag: $($flags[$i])"}
         }
     }
@@ -483,6 +485,10 @@ function fn_setupApp {
         } else {
             colorprint "RED" "Custom script '$SCRIPT_NAME' not found in the scripts directory."
         }
+    }
+    if($manual){
+        colorprint "DEFAULT" "${CURRENT_APP} requires further manual configuration."
+        colorprint "DEFAULT" "Please after completing this automated setup follow the manual steps described on the app's website."
     }
     # App Docker image architecture adjustments
     $TAG = 'latest'

@@ -6,6 +6,7 @@
 
 
 services:
+### APPS ###
 
 # EARNAPP CONTAINER
 #EARNAPP_ENABLE  earnapp:
@@ -37,15 +38,6 @@ services:
 #IPROYALPAWNS_ENABLE    command: -accept-tos -email=$IPROYALPAWNS_EMAIL -password=$IPROYALPAWNS_PASSWD -device-name=$DEVICE_NAME
 #IPROYALPAWNS_ENABLE    # network_mode: service:tun2socks
 #IPROYALPAWNS_ENABLE    restart: always
-
-# PEER2PROFIT CONTAINER
-#PEER2PROFIT_ENABLE  peer2profit:
-#PEER2PROFIT_ENABLE    container_name: peer2profit
-#PEER2PROFIT_ENABLE    image: peer2profit/peer2profit_linux:latest
-#PEER2PROFIT_ENABLE    environment:
-#PEER2PROFIT_ENABLE      - P2P_EMAIL=$PEER2PROFIT_EMAIL
-#PEER2PROFIT_ENABLE    # network_mode: service:tun2socks
-#PEER2PROFIT_ENABLE    restart: always
 
 # PACKETSTREAM CONTAINER
 #PACKETSTREAM_ENABLE  packetstream:
@@ -110,6 +102,38 @@ services:
 #BITPING_ENABLE    # network_mode: service:tun2socks
 #BITPING_ENABLE    restart: always
 
+### EXTRA APPS ###
+
+# MYSTERIUM CONTAINER
+#MYSTNODE_ENABLE  mysterium:
+#MYSTNODE_ENABLE    container_name: mystnode
+#MYSTNODE_ENABLE    image: mysteriumnetwork/myst:latest
+#MYSTNODE_ENABLE    environment:
+#MYSTNODE_ENABLE      - MYSTNODE_DUMMY=''
+#MYSTNODE_ENABLE    command: service --agreed-terms-and-conditions
+#MYSTNODE_ENABLE    cap_add:
+#MYSTNODE_ENABLE          - NET_ADMIN
+#MYSTNODE_ENABLE    ports:
+#MYSTNODE_ENABLE          - 4449:4449
+#MYSTNODE_ENABLE    volumes:
+#MYSTNODE_ENABLE          # You have 2 options
+#MYSTNODE_ENABLE          - ./.data/mysterium-node:/var/lib/mysterium-node # Bind an host folder to the container (more insecure but simplier to port and backup) this option mount a new identity or a backed up one from the host file system
+#MYSTNODE_ENABLE          # OR
+#MYSTNODE_ENABLE          #- myst-data:/var/lib/mysterium-node # if you use this also uncomment the relative volume in volumes section, this  Use docker volumes (more secure harder to access, backup and restore) you'll need to do backups using 'docker cp myst:/var/lib/mysterium-node .' and then when you need to restore the identity first delete the automatically created and not needed identities using 'sudo docker exec -it myst sh' and then in the container shell use 'sudo rm -rf /var/lib/mysterium-node/*' then stop the container and use docker cp to copy the backed-up identity in the container, ther restart the container.
+#MYSTNODE_ENABLE    # network_mode: service:tun2socks
+#MYSTNODE_ENABLE    restart: always
+
+# PEER2PROFIT CONTAINER
+#PEER2PROFIT_ENABLE  peer2profit:
+#PEER2PROFIT_ENABLE    container_name: peer2profit
+#PEER2PROFIT_ENABLE    image: peer2profit/peer2profit_linux:latest
+#PEER2PROFIT_ENABLE    environment:
+#PEER2PROFIT_ENABLE      - P2P_EMAIL=$PEER2PROFIT_EMAIL
+#PEER2PROFIT_ENABLE    # network_mode: service:tun2socks
+#PEER2PROFIT_ENABLE    restart: always
+
+### TOOLS AND SERVICES ###
+
 # TUN2SOCKS CONTAINER
 #PROXY_ENABLE  tun2socks:
 #PROXY_ENABLE    image: xjasonlyu/tun2socks
@@ -123,6 +147,7 @@ services:
 #PROXY_ENABLE      - '/dev/net/tun:/dev/net/tun'
 #PROXY_ENABLE    cap_add:
 #PROXY_ENABLE      - NET_ADMIN
+
 
 # WATCHTOWER AUTO-UPDATER AND NOTIFICATIONS
   watchtower:
@@ -153,3 +178,4 @@ services:
 volumes:
   earnapp-data:
   #bitping-data: # uncomment this if in bitping volumes you choose to use docker volumes instead of binding an host folder
+  #myst-data: # uncomment this if in myst volumes you choose to use docker volumes instead of binding an host folder

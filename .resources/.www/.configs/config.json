@@ -22,13 +22,6 @@
       "flags": ["--email", "--password"]
     },
     {
-      "name": "PEER2PROFIT",
-      "dashboard": "https://dashboard.peer2profit.app/dashboard",
-      "link": "https://p2pr.me/165849012262da8d0aa13c8",
-      "image": "peer2profit/peer2profit_linux",
-      "flags": ["--email"]
-    },
-    {
       "name": "PACKETSTREAM",
       "dashboard": "https://packetstream.io/dashboard",
       "link": "https://packetstream.io/?psr=3zSD",
@@ -69,6 +62,24 @@
       "link": "https://app.bitping.com?r=qm7mIuX3",
       "image": "bitping/bitping-node",
       "flags": ["--customScript", "bitpingSetup"]
+    }
+  ],
+  "extra-apps":[
+    {
+      "name": "MYSTNODE",
+      "dashboard": "https://mystnodes.com/nodes",
+      "link": "https://mystnodes.com/onboarding",
+      "image": "mysteriumnetwork/myst",
+      "flags": ["--manual"]
+    }
+  ],
+  "removed-apps":[
+    {
+      "name": "PEER2PROFIT",
+      "dashboard": "https://dashboard.peer2profit.app/dashboard",
+      "link": "https://p2pr.me/165849012262da8d0aa13c8",
+      "image": "peer2profit/peer2profit_linux",
+      "flags": ["--email"]
     }
   ]
 }
