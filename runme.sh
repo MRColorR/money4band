@@ -42,6 +42,7 @@ fn_bye(){
 # .env file prototype link #
 readonly ENV_SRC='https://github.com/MRColorR/money4band/raw/main/.env'
 # Env file default #
+DEVICE_NAME_PLACEHOLDER='yourDeviceName'
 DEVICE_NAME='yourDeviceName'
 # Proxy config #
 PROXY_CONF='false'
@@ -388,7 +389,7 @@ fn_setupNotifications() {
                     read -r SHOUTRRR_URL
                     if [[ "$SHOUTRRR_URL" =~ ^[a-zA-Z]+:// ]]; then
                         sed -i "s~# SHOUTRRR_URL=~SHOUTRRR_URL=~" .env
-                        CURRENT_LINE=$(grep -oP 'SHOUTRRR_URL==\K[^#]+' .env)
+                        CURRENT_LINE=$(grep -oP 'SHOUTRRR_URL=\K[^#]+' .env)
                         sed -i "s~SHOUTRRR_URL=${CURRENT_LINE}~SHOUTRRR_URL=$SHOUTRRR_URL~" .env
                         sed -i "s~# - WATCHTOWER_NOTIFICATIONS=shoutrrr~  - WATCHTOWER_NOTIFICATIONS=shoutrrr~" "$DKCOM_FILENAME"
                         sed -i "s~# - WATCHTOWER_NOTIFICATION_URL~  - WATCHTOWER_NOTIFICATION_URL~" "$DKCOM_FILENAME"
@@ -687,7 +688,7 @@ fn_setupEnv(){
 
                 colorprint "YELLOW" "beginnning env file guided setup"
                 CURRENT_APP='';
-                if grep -q "DEVICE_NAME=${DEVICE_NAME}" .env  ; then
+                if grep -q "DEVICE_NAME=${DEVICE_NAME_PLACEHOLDER}" .env  ; then
                     debug "Device name is still the default one, asking user to change it"
                     colorprint "YELLOW" "PLEASE ENTER A NAME FOR YOUR DEVICE:"
                     read -r DEVICE_NAME
