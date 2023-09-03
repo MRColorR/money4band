@@ -544,15 +544,15 @@ fn_setupApp() {
             --customScript)
                 debug "Starting custom script execution for $CURRENT_APP app"
                 shift
-                SCRIPT_NAME="$1.sh"
-                SCRIPT_PATH="$SCRIPTS_DIR/$SCRIPT_NAME"
+                CUSTOM_SCRIPT_NAME="$1.sh"
+                SCRIPT_PATH="$SCRIPTS_DIR/$CUSTOM_SCRIPT_NAME"
                 ESCAPED_PATH="$(echo "$SCRIPT_PATH" | sed 's/"/\\"/g')"
                 if [[ -f "$SCRIPT_PATH" ]]; then
                     chmod +x "$ESCAPED_PATH"
-                    colorprint "DEFAULT" "Executing custom script: $SCRIPT_NAME"
+                    colorprint "DEFAULT" "Executing custom script: $CUSTOM_SCRIPT_NAME"
                     source "$ESCAPED_PATH"
                 else
-                    colorprint "RED" "Custom script '$SCRIPT_NAME' not found in the scripts directory."
+                    colorprint "RED" "Custom script '$CUSTOM_SCRIPT_NAME' not found in the scripts directory."
                 fi
                 ;;
             --manual)
