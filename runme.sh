@@ -3,7 +3,7 @@
 ### Variables and constants ###
 ## Script variables ##
 # Script version #
-readonly SCRIPT_VERSION="2.1.0" # used for checking updates
+readonly SCRIPT_VERSION="2.2.0" # used for checking updates
 # Script name #
 readonly SCRIPT_NAME=$(basename "$0") # save the script name in a variable not the full path
 # Script url for update #
