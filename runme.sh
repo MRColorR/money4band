@@ -637,8 +637,8 @@ fn_setupEnv(){
                             return 1
                             ;;
                     esac
-                elif [ "$app_type" == "extra-apps" ]; then
-                    print_and_log "BLUE" "Proceeding with extra-apps setup without resetting .env file."
+                elif [ "$ENV_CONFIGURATION_STATUS" == "1" ] && [ "$app_type" != "apps" ]; then
+                    print_and_log "BLUE" "Proceeding with $app_type setup without resetting .env file."
                 fi
 
                 colorprint "YELLOW" "beginnning env file guided setup"$'\n'
