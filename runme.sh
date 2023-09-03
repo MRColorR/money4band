@@ -45,7 +45,8 @@ readonly ENV_SRC='https://github.com/MRColorR/money4band/raw/main/.env'
 DEVICE_NAME='yourDeviceName'
 # Proxy config #
 PROXY_CONF='false'
-STACK_PROXY=''
+CURRENT_PROXY=''
+NEW_STACK_PROXY=''
 
 ## Docker compose related constants and variables ##
 # docker compose yaml file name #
@@ -284,9 +285,14 @@ fn_showLinks() {
     debug "Showing apps links"
     clear
     colorprint "GREEN" "Use CTRL+Click to open links or copy them:"
-    jq -r '.apps | to_entries[] | "\(.key+1) \(.value.name) | \(.value.link)"' "$CONFIG_DIR/config.json" |
-    while read -r line; do
-        colorprint "CYAN" "$line"
+    # reading from config.json show all the apps type that are the dictionary keys and then show the name and the link of each app in the dictionary
+    for app_type in $(jq -r 'keys[]' "$CONFIG_DIR/config.json"); do
+        colorprint "YELLOW" "---$app_type---"
+        for app in $(jq -r ".[\"$app_type\"][].name" "$CONFIG_DIR/config.json"); do
+            colorprint "DEFAULT" "$app"
+            colorprint "BLUE" "$(jq -r ".[\"$app_type\"][] | select(.name==\"$app\") | .link" "$CONFIG_DIR/config.json")"
+            
+        done
     done
     read -r -p "Press Enter to go back to mainmenu"
     debug "Links shown, going back to mainmenu"
@@ -358,43 +364,63 @@ fn_dockerInstall() {
 fn_setupNotifications() {
     debug "SetupNotifications function started"
     clear
-    colorprint "YELLOW" "This step will setup notifications about containers updates using shoutrrr"
-    colorprint "DEFAULT" "The resulting SHOUTRRR_URL should have the format: <app>://<token>@<webhook>."
-    colorprint "DEFAULT" "Where <app> is one of the supported messaging apps on Shoutrrr (e.g. Discord), and <token> and <webhook> are specific to your messaging app."
-    colorprint "DEFAULT" "To obtain the SHOUTRRR_URL, create a new webhook for your messaging app and rearrange its URL to match the format above."
-    colorprint "DEFAULT" "For more details, visit https://containrrr.dev/shoutrrr/ and select your messaging app."
-    colorprint "DEFAULT" "Now a Discord notification setup example will be shown (Remember: you can also use a different supported app)."
-    read -r -p "Press enter to continue"
-    clear
-    colorprint "PURPLE" "Create a new Discord server, go to server settings > integrations, and create a webhook."
-    colorprint "PURPLE" "Your Discord Webhook-URL will look like this: https://discordapp.com/api/webhooks/YourWebhookid/YourToken."
-    colorprint "PURPLE" "To obtain the SHOUTRRR_URL, rearrange it to look like this: discord://YourToken@YourWebhookid."
-    read -r -p "Press enter to proceed."
-    clear
     while true; do
-        colorprint "YELLOW" "NOW INSERT BELOW THE LINK FOR NOTIFICATIONS using THE SAME FORMAT WRITTEN ABOVE e.g.: discord://yourToken@yourWebhookid"
-        read -r SHOUTRRR_URL
-        if [[ "$SHOUTRRR_URL" =~ ^[a-zA-Z]+:// ]]; then
-            sed -i "s~# SHOUTRRR_URL=yourApp:yourToken@yourWebHook~SHOUTRRR_URL=$SHOUTRRR_URL~" .env
-            sed -i "s~# - WATCHTOWER_NOTIFICATIONS=shoutrrr~  - WATCHTOWER_NOTIFICATIONS=shoutrrr~" "$DKCOM_FILENAME"
-            sed -i "s~# - WATCHTOWER_NOTIFICATION_URL~  - WATCHTOWER_NOTIFICATION_URL~" "$DKCOM_FILENAME"
-            sed -i "s~# - WATCHTOWER_NOTIFICATIONS_HOSTNAME~  - WATCHTOWER_NOTIFICATIONS_HOSTNAME~" "$DKCOM_FILENAME"
-            colorprint "DEFAULT" "Notifications setup complete. If the link is correct, you will receive a notification for each update made on the app container images."
-            read -r -p "Press enter to continue."
-            break
-        else
-            colorprint "RED" "Invalid link format. Please make sure to use the correct format."
-            while true; do
-                colorprint "YELLOW" "Do you wish to try again or leave the notifications disabled and continue with the setup script? (Yes to try again, No to continue without notifications) Y/N?"
-                read -r yn
-                case $yn in
-                    [Yy]* ) break;;
-                    [Nn]* ) return;;
-                    * ) colorprint "RED" "Please answer yes or no.";;
-                esac
-            done
-        fi
+        colorprint "YELLOW" "Do you wish to setup notifications about apps images updates (Yes to receive notifications and apply updates, No to just silently apply updates) Y/N?"
+        read -r yn
+        case $yn in
+            [Yy]* )
+                debug "User chose to setup notifications"
+                colorprint "YELLOW" "This step will setup notifications about containers updates using shoutrrr"
+                colorprint "DEFAULT" "The resulting SHOUTRRR_URL should have the format: <app>://<token>@<webhook>."
+                colorprint "DEFAULT" "Where <app> is one of the supported messaging apps on Shoutrrr (e.g. Discord), and <token> and <webhook> are specific to your messaging app."
+                colorprint "DEFAULT" "To obtain the SHOUTRRR_URL, create a new webhook for your messaging app and rearrange its URL to match the format above."
+                colorprint "DEFAULT" "For more details, visit https://containrrr.dev/shoutrrr/ and select your messaging app."
+                colorprint "DEFAULT" "Now a Discord notification setup example will be shown (Remember: you can also use a different supported app)."
+                read -r -p "Press enter to continue"
+                clear
+                colorprint "PURPLE" "Create a new Discord server, go to server settings > integrations, and create a webhook."
+                colorprint "PURPLE" "Your Discord Webhook-URL will look like this: https://discordapp.com/api/webhooks/YourWebhookid/YourToken."
+                colorprint "PURPLE" "To obtain the SHOUTRRR_URL, rearrange it to look like this: discord://YourToken@YourWebhookid."
+                read -r -p "Press enter to proceed."
+                clear
+                while true; do
+                    colorprint "YELLOW" "NOW INSERT BELOW THE LINK FOR NOTIFICATIONS using THE SAME FORMAT WRITTEN ABOVE e.g.: discord://yourToken@yourWebhookid"
+                    read -r SHOUTRRR_URL
+                    if [[ "$SHOUTRRR_URL" =~ ^[a-zA-Z]+:// ]]; then
+                        sed -i "s~# SHOUTRRR_URL=~SHOUTRRR_URL=~" .env
+                        CURRENT_LINE=$(grep -oP 'SHOUTRRR_URL==\K[^#]+' .env)
+                        sed -i "s~SHOUTRRR_URL=${CURRENT_LINE}~SHOUTRRR_URL=$SHOUTRRR_URL~" .env
+                        sed -i "s~# - WATCHTOWER_NOTIFICATIONS=shoutrrr~  - WATCHTOWER_NOTIFICATIONS=shoutrrr~" "$DKCOM_FILENAME"
+                        sed -i "s~# - WATCHTOWER_NOTIFICATION_URL~  - WATCHTOWER_NOTIFICATION_URL~" "$DKCOM_FILENAME"
+                        sed -i "s~# - WATCHTOWER_NOTIFICATIONS_HOSTNAME~  - WATCHTOWER_NOTIFICATIONS_HOSTNAME~" "$DKCOM_FILENAME"
+                        sed -i 's/NOTIFICATIONS_CONFIGURATION_STATUS=0/NOTIFICATIONS_CONFIGURATION_STATUS=1/' .env
+                        colorprint "DEFAULT" "Notifications setup complete. If the link is correct, you will receive a notification for each update made on the app container images."
+                        read -r -p "Press enter to continue."
+                        break
+                    else
+                        colorprint "RED" "Invalid link format. Please make sure to use the correct format."
+                        while true; do
+                            colorprint "YELLOW" "Do you wish to try again or leave the notifications disabled and continue with the setup script? (Yes to try again, No to continue without notifications) Y/N?"
+                            read -r yn
+                            case $yn in
+                                [Yy]* ) break;;
+                                [Nn]* ) return;;
+                                * ) colorprint "RED" "Please answer yes or no.";;
+                            esac
+                        done
+                    fi
+                done
+                break;;
+            [Nn]* )
+                debug "User chose to skip notifications setup"
+                colorprint "BLUE" "Noted: all updates will be applied automatically and silently";
+                read -r -p "Press enter to continue."
+                break;;
+            * )
+                colorprint "RED" "Please answer yes or no.";;
+        esac
     done
+
     clear
     debug "SetupNotifications function ended"
 }
@@ -407,13 +433,16 @@ fn_setupApp() {
             --app)
                 CURRENT_APP="$2"
                 sed -i "s^#${CURRENT_APP}_ENABLE^^" $DKCOM_FILENAME
+                debug "Enabled $CURRENT_APP app in $DKCOM_FILENAME"
                 shift
                 ;;
             --image)
                 APP_IMAGE="$2"
+                debug "Defaulting $CURRENT_APP image to $APP_IMAGE, then the check for the architecture will be performed"
                 shift
                 ;;
             --email)
+                debug "Starting email setup for $CURRENT_APP app"
                 while true; do
                     colorprint "GREEN" "Enter your ${CURRENT_APP} Email:"
                     read -r APP_EMAIL
@@ -426,6 +455,7 @@ fn_setupApp() {
                 done
                 ;;
             --password)
+                debug "Starting password setup for $CURRENT_APP app"
                 while true; do
                     colorprint "DEFAULT" "Note: If you are using login with Google, remember to set also a password for your ${CURRENT_APP} account!"
                     colorprint "GREEN" "Enter your ${CURRENT_APP} Password:"
@@ -439,18 +469,21 @@ fn_setupApp() {
                 done
                 ;;
             --apikey)
+                debug "Starting APIKey setup for $CURRENT_APP app"
                 colorprint "DEFAULT" "Find/Generate your APIKey inside your ${CURRENT_APP} dashboard/profile."
                 colorprint "GREEN" "Enter your ${CURRENT_APP} APIKey:"
                 read -r APP_APIKEY
                 sed -i "s^your${CURRENT_APP}APIKey^$APP_APIKEY^" .env
                 ;;
             --userid)
+                debug "Starting UserID setup for $CURRENT_APP app"
                 colorprint "DEFAULT" "Find your UserID inside your ${CURRENT_APP} dashboard/profile."
                 colorprint "GREEN" "Enter your ${CURRENT_APP} UserID:"
                 read -r APP_USERID
                 sed -i "s/your${CURRENT_APP}UserID/$APP_USERID/" .env
                 ;;
             --uuid)
+                debug "Starting UUID setup for $CURRENT_APP app"
                 colorprint "DEFAULT" "Starting UUID generation/import for ${CURRENT_APP}"
                 shift
                 SALT="${DEVICE_NAME}""${RANDOM}"
@@ -495,18 +528,21 @@ fn_setupApp() {
                 ;;
 
             --cid)
+                debug "Starting CID setup for $CURRENT_APP app"
                 colorprint "DEFAULT" "Find your CID, you can fetch it from your dashboard https://packetstream.io/dashboard/download?linux# then click on -> Looking for linux app -> now search for CID= in the code shown in the page, you need to enter the code after -e CID= (e.g. if in the code CID=6aTk, just enter 6aTk)"
                 colorprint "GREEN" "Enter your ${CURRENT_APP} CID."
                 read -r APP_CID
                 sed -i "s/your${CURRENT_APP}CID/$APP_CID/" .env
                 ;;
             --token)
+                debug "Starting Token setup for $CURRENT_APP app"
                 colorprint "DEFAULT" "Find your token, you can fetch it from your dashboard https://app.traffmonetizer.com/dashboard then -> Look for Your application token -> just insert it here (you can also copy and then paste it)"
                 colorprint "GREEN" "Enter your ${CURRENT_APP} Token."
                 read -r APP_TOKEN
                 sed -i "s^your${CURRENT_APP}Token^$APP_TOKEN^" .env
                 ;;
             --customScript)
+                debug "Starting custom script execution for $CURRENT_APP app"
                 shift
                 SCRIPT_NAME="$1.sh"
                 SCRIPT_PATH="$SCRIPTS_DIR/$SCRIPT_NAME"
@@ -520,8 +556,9 @@ fn_setupApp() {
                 fi
                 ;;
             --manual)
-                colorprint "DEFAULT" "${CURRENT_APP} requires further manual configuration."
-                colorprint "DEFAULT" "Please after completing this automated setup follow the manual steps described on the app's website."
+                debug "Starting manual setup for $CURRENT_APP app"
+                colorprint "YELLOW" "${CURRENT_APP} requires further manual configuration."
+                colorprint "YELLOW" "Please after completing this automated setup follow the manual steps described on the app's website."
                 ;;
             *)
                 colorprint "RED" "Unknown flag: $1"
@@ -574,17 +611,21 @@ fn_setupProxy() {
                     colorprint "YELLOW" "Proxy setup started."
                     readonly RANDOM_VALUE=$RANDOM
                     colorprint "GREEN" "Insert the designed proxy to use. Eg: protocol://proxyUsername:proxyPassword@proxy_url:proxy_port or just protocol://proxy_url:proxy_port if auth is not needed"
-                    read -r STACK_PROXY
-                    colorprint "DEFAULT" "Ok, $STACK_PROXY will be used as proxy for all apps in this stack"
-                    read -r -p "Press enter to continue"
-                    PROXY_CONF='true'
+                    read -r NEW_STACK_PROXY
                     # An unique name for the stack is chosen so that even if multiple stacks are started with different proxies the names do not conflict
-                    sed -i "s^COMPOSE_PROJECT_NAME=money4band^COMPOSE_PROJECT_NAME=money4band_$RANDOM_VALUE^" .env
+                    # ATTENTION: if a random value has been already added to the project and devicename during a previous setup it should remain the same to mantain consistency withthe devices name registered on the apps sites but the proxy url could be changed
+                    sed -i "s^COMPOSE_PROJECT_NAME=money4band^COMPOSE_PROJECT_NAME=money4band_$RANDOM_VALUE^" .env 
                     sed -i "s^DEVICE_NAME=${DEVICE_NAME}^DEVICE_NAME=${DEVICE_NAME}$RANDOM_VALUE^" .env
-                    # uncomment .env and compose file
-                    sed -i "s^# STACK_PROXY=^STACK_PROXY=$STACK_PROXY^" .env
+                    #using grep obtain the line of STACK_PROXY= in the .env file and then replace the line with the new proxy also uncomment the line if it was commented
+                    sed -i "s^# STACK_PROXY=^STACK_PROXY=^" .env #if it was already uncommented it does nothing
+                    CURRENT_LINE=$(grep -oP 'STACK_PROXY=\K[^#]+' .env)
+                    sed -i "s^$CURRENT_LINE^$NEW_STACK_PROXY^" .env
                     sed -i "s^#PROXY_ENABLE^^" $DKCOM_FILENAME
                     sed -i "s^# network_mode^network_mode^" $DKCOM_FILENAME
+                    PROXY_CONF='true'
+                    sed -i 's/PROXY_CONFIGURATION_STATUS=0/PROXY_CONFIGURATION_STATUS=1/' .env
+                    colorprint "DEFAULT" "Ok, $NEW_STACK_PROXY will be used as proxy for all apps in this stack"
+                    read -r -p "Press enter to continue"
                     debug "Proxy setup finished"
                     break
                     ;;
@@ -602,12 +643,16 @@ fn_setupProxy() {
 
 fn_setupEnv(){
     local app_type="$1"  # Accept the type of apps as an argument
-    debug "Starting setupEnv function for $app_type"
+    print_and_log "BLUE" "Starting setupEnv function for $app_type"
 
-    # Check if .env file is already configured
-    ENV_CONFIGURATION_STATUS=$(grep -oP 'ENV_CONFIGURATION_STATUS=\K[^#]+' .env)
+    # Check if .env file is already configured if 1 then it is already configured, if 0 then it is not configured
+    ENV_CONFIGURATION_STATUS=$(grep -oP '# ENV_CONFIGURATION_STATUS=\K[^#]+' .env)
     debug "Current ENV_CONFIGURATION_STATUS: $ENV_CONFIGURATION_STATUS"
-    NOTIFICATIONS_CONFIGURATION_STATUS=$(grep -oP 'NOTIFICATIONS_CONFIGURATION_STATUS=\K[^#]+' .env)
+
+    PROXY_CONFIGURATION_STATUS=$(grep -oP '# PROXY_CONFIGURATION_STATUS=\K[^#]+' .env)
+    debug "Current PROXY_CONFIGURATION_STATUS: $PROXY_CONFIGURATION_STATUS"
+
+    NOTIFICATIONS_CONFIGURATION_STATUS=$(grep -oP '# NOTIFICATIONS_CONFIGURATION_STATUS=\K[^#]+' .env)
     debug "Current NOTIFICATIONS_CONFIGURATION_STATUS: $NOTIFICATIONS_CONFIGURATION_STATUS"
 
     while true; do
@@ -626,7 +671,6 @@ fn_setupEnv(){
                             print_and_log "DEFAULT" "Downloading a fresh .env file.";
                             curl -fsSL $ENV_SRC -o ".env"
                             curl -fsSL $DKCOM_SRC -o "$DKCOM_FILENAME"
-                            sed -i 's/ENV_CONFIGURATION_STATUS=1/ENV_CONFIGURATION_STATUS=0/' .env
                             clear
                             ;;
                         [Nn]* )
@@ -638,19 +682,45 @@ fn_setupEnv(){
                             ;;
                     esac
                 elif [ "$ENV_CONFIGURATION_STATUS" == "1" ] && [ "$app_type" != "apps" ]; then
-                    print_and_log "BLUE" "Proceeding with $app_type setup without resetting .env file."
+                    print_and_log "BLUE" "Proceeding with $app_type setup without resetting .env file as it should be already configured by the main apps setup."
                 fi
 
-                colorprint "YELLOW" "beginnning env file guided setup"$'\n'
+                colorprint "YELLOW" "beginnning env file guided setup"
                 CURRENT_APP='';
-                colorprint "YELLOW" "PLEASE ENTER A NAME FOR YOUR DEVICE:"
-                read -r DEVICE_NAME
-                sed -i "s/yourDeviceName/${DEVICE_NAME}/" .env
+                if grep -q "DEVICE_NAME=${DEVICE_NAME}" .env  ; then
+                    debug "Device name is still the default one, asking user to change it"
+                    colorprint "YELLOW" "PLEASE ENTER A NAME FOR YOUR DEVICE:"
+                    read -r DEVICE_NAME
+                    sed -i "s/yourDeviceName/${DEVICE_NAME}/" .env
+                fi
                 clear ;
-                fn_setupProxy ;
+                if [ "$PROXY_CONFIGURATION_STATUS" == "1" ]; then
+                    CURRENT_PROXY=$(grep -oP 'STACK_PROXY=\K[^#]+' .env)
+                    print_and_log "BLUE" "Proxy is already set up."
+                    while true; do
+                        colorprint "YELLOW" "The current proxy is: ${CURRENT_PROXY} . Do you want to change the proxy? (Y/N)"
+                        read -r yn
+                        case $yn in
+                            [Yy]* )
+                                PROXY_CONF='false'
+                                debug "User chose to change the proxy that was already configured"
+                                fn_setupProxy;
+                                break;;
+                            [Nn]* )
+                                debug "User chose not to change the proxy that was already configured"
+                                print_and_log "BLUE" "Keeping the existing proxy."
+                                break;;
+                            * )
+                                colorprint "RED" "Invalid input. Please answer yes or no.";;
+                        esac
+                    done                        
+                else
+                    debug "Asking user if they want to setup a proxy as it is not already configured"
+                    fn_setupProxy;
+                fi
                 clear ;
                 debug " Loading $app_type from config.json..."
-                apps=$(jq -c ".${app_type}[]" "$CONFIG_DIR/config.json")
+                apps=$(jq -c ".[\"$app_type\"][]" "$CONFIG_DIR/config.json")
                 debug " $app_type loaded from config.json"
 
                 for app in $apps; do
@@ -689,26 +759,28 @@ fn_setupEnv(){
                 # Notifications setup
                 clear;
                 if [ "$NOTIFICATIONS_CONFIGURATION_STATUS" == "1" ]; then
-                    print_and_log "BLUE" "Notifications are already set up. Skipping notifications setup. Reset the .env file and do a new complete setup to set up different notification settings."
-                else
-                    debug "Asking user if they want to setup notifications"
+                    print_and_log "BLUE" "Notifications are already set up."
                     while true; do
-                        colorprint "YELLOW" "Do you wish to setup notifications about apps images updates (Yes to receive notifications and apply updates, No to just silently apply updates) Y/N?"
+                        colorprint "YELLOW" "The current notifications setup uses: $(grep -oP 'SHOUTRRR_URL=\K[^#]+' .env) . Do you want to change the notifications setup? (Y/N)"
                         read -r yn
                         case $yn in
                             [Yy]* )
-                                debug "User chose to setup notifications"
+                                debug "User chose to change the notifications setup that was already configured"
                                 fn_setupNotifications;
                                 break;;
                             [Nn]* )
-                                debug "User chose not to setup notifications"
-                                colorprint "BLUE" "Noted: all updates will be applied automatically and silently";
+                                debug "User chose not to change the notifications setup that was already configured"
+                                print_and_log "BLUE" "Keeping the existing notifications setup."
                                 break;;
-                            * ) colorprint "RED" "Invalid input. Please answer yes or no.";;
+                            * )
+                                colorprint "RED" "Invalid input. Please answer yes or no.";;
                         esac
                     done
+                else
+                    debug "Asking user if they want to setup notifications as they are not already configured"
+                    fn_setupNotifications;
                 fi
-
+                
                 sed -i 's/ENV_CONFIGURATION_STATUS=0/ENV_CONFIGURATION_STATUS=1/' .env
                 print_and_log "GREEN" "env file setup complete.";
                 read -n 1 -s -r -p "Press any key to go back to the menu"$'\n'
