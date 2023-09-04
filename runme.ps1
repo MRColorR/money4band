@@ -1,7 +1,60 @@
 #!/bin/pwsh
 set-executionpolicy -scope CurrentUser -executionPolicy Bypass -Force
 
-### Colors ###
+### Variables and constants ###
+## Script variables ##
+# Script version #
+$SCRIPT_VERSION = "2.2.0" # used for checking updates
+
+# Script name #
+$SCRIPT_NAME = $MyInvocation.MyCommand.Name # save the script name in a variable, not the full path
+
+# Script URL for update #
+$UPDATE_SCRIPT_URL = "https://raw.githubusercontent.com/MRColorR/money4band/main/$SCRIPT_NAME"
+
+# Script debug log file #
+$DEBUG_LOG = "debug_$SCRIPT_NAME.log"
+
+## Env file related constants and variables ##
+# .env file prototype link #
+$ENV_SRC = 'https://github.com/MRColorR/money4band/raw/main/.env'
+# Env file default #
+$DEVICE_NAME_PLACEHOLDER = 'yourDeviceName'
+$DEVICE_NAME = 'yourDeviceName'
+# Proxy config #
+$PROXY_CONF = 'false'
+$CURRENT_PROXY = ''
+$NEW_STACK_PROXY = ''
+
+## Config file related constants and variables ##
+$CONFIG_JSON_FILE = "config.json"
+
+## Docker compose related constants and variables ##
+# docker compose yaml file name #
+$DKCOM_FILENAME = "docker-compose.yaml"
+# docker compose yaml prototype file link #
+$DKCOM_SRC = "https://github.com/MRColorR/money4band/raw/main/$DKCOM_FILENAME"
+
+### Docker installer script for Windows source link ##
+$DKINST_WIN_SRC = 'https://github.com/MRColorR/money4band/raw/main/.resources/.scripts/install-docker-win.ps1'
+### Docker installer script for Mac source link ##
+$DKINST_MAC_SRC = 'https://github.com/MRColorR/money4band/raw/main/.resources/.scripts/install-docker-mac.ps1'
+
+### Resources, Scripts and Files folders ###
+$script:RESOURCES_DIR = "$PWD\.resources"
+$script:CONFIG_DIR = "$RESOURCES_DIR\.www\.configs"
+$script:SCRIPTS_DIR = "$RESOURCES_DIR\.scripts"
+$script:FILES_DIR = "$RESOURCES_DIR\.files"
+
+## Architecture and OS related constants and variables ##
+# Architecture default #
+$script:ARCH = 'unknown'
+$script:DKARCH = 'unknown'
+# OS default #
+$script:OS_TYPE = 'unknown'
+
+## Colors ##
+# Colors used inside the script #
 $colors = @{
     "default" = [System.ConsoleColor]::White
     "green"   = [System.ConsoleColor]::Green
@@ -12,7 +65,7 @@ $colors = @{
     "cyan"    = [System.ConsoleColor]::Cyan
 }
 
-### Color Functions ###
+# Color functions #
 function colorprint($color, $text) {
     $color = $color.ToLower()
     $prevColor = [System.Console]::ForegroundColor
@@ -26,33 +79,15 @@ function colorprint($color, $text) {
     }
 }
 
-
-function errorprint($text) {
+# Function to print an error message and write it to the debug log file #
+function errorprint_and_log($text) {
     Write-Error $text
+    debug [DateTime]::Now.ToString("yyyy-MM-dd HH:mm:ss") + " - [ERROR]: $text"
 }
 
-### .env File Prototype Link ###
-$ENV_SRC = 'https://github.com/MRColorR/money4band/raw/main/.env'
 
-### docker compose.yaml Prototype Link ###
-$DKCOM_FILENAME = "docker-compose.yaml"
-$DKCOM_SRC = "https://github.com/MRColorR/money4band/raw/main/$DKCOM_FILENAME"
 
-### Docker installer script for Windows source link ##
-$DKINST_WIN_SRC = 'https://github.com/MRColorR/money4band/raw/main/.resources/.scripts/install-docker-win.ps1'
 
-### Docker installer script for Mac source link ##
-$DKINST_MAC_SRC = 'https://github.com/MRColorR/money4band/raw/main/.resources/.scripts/install-docker-mac.ps1'
-
-### Resources, Scripts and Files folders ###
-$script:RESOURCES_DIR = "$PWD\.resources"
-$script:CONFIG_DIR = "$RESOURCES_DIR\.www\.configs"
-$script:SCRIPTS_DIR = "$RESOURCES_DIR\.scripts"
-$script:FILES_DIR = "$RESOURCES_DIR\.files"
-
-### Architecture default ###
-$script:ARCH = 'unknown'
-$script:DKARCH = 'unknown'
 
 ### Env file default ###
 $script:DEVICE_NAME = 'yourDeviceName'
@@ -69,7 +104,7 @@ function fn_bye {
 }
 
 function fn_fail($text) {
-    errorprint $text
+    errorprint_and_log $text
     Read-Host -Prompt "Press Enter to exit..."
     exit 1
 }
