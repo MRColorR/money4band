@@ -392,7 +392,7 @@ fn_setupNotifications() {
                     read -r SHOUTRRR_URL
                     if [[ "$SHOUTRRR_URL" =~ ^[a-zA-Z]+:// ]]; then
                         sed -i "s~# SHOUTRRR_URL=~SHOUTRRR_URL=~" .env
-                        CURRENT_LINE=$(grep -oP 'SHOUTRRR_URL=\K[^#]+' .env)
+                        CURRENT_LINE=$(grep -oP 'SHOUTRRR_URL=\K[^#\r]+' .env)
                         sed -i "s~SHOUTRRR_URL=${CURRENT_LINE}~SHOUTRRR_URL=$SHOUTRRR_URL~" .env
                         sed -i "s~# - WATCHTOWER_NOTIFICATIONS=shoutrrr~  - WATCHTOWER_NOTIFICATIONS=shoutrrr~" "$DKCOM_FILENAME"
                         sed -i "s~# - WATCHTOWER_NOTIFICATION_URL~  - WATCHTOWER_NOTIFICATION_URL~" "$DKCOM_FILENAME"
@@ -622,7 +622,7 @@ fn_setupProxy() {
                     sed -i "s^DEVICE_NAME=${DEVICE_NAME}^DEVICE_NAME=${DEVICE_NAME}$RANDOM_VALUE^" .env
                     #using grep obtain the line of STACK_PROXY= in the .env file and then replace the line with the new proxy also uncomment the line if it was commented
                     sed -i "s^# STACK_PROXY=^STACK_PROXY=^" .env #if it was already uncommented it does nothing
-                    CURRENT_LINE=$(grep -oP 'STACK_PROXY=\K[^#]+' .env)
+                    CURRENT_LINE=$(grep -oP 'STACK_PROXY=\K[^#\r]+' .env)
                     sed -i "s^$CURRENT_LINE^$NEW_STACK_PROXY^" .env
                     sed -i "s^#ENABLE_PROXY^^" $DKCOM_FILENAME
                     sed -i "s^# network_mode^network_mode^" $DKCOM_FILENAME
@@ -650,13 +650,13 @@ fn_setupEnv(){
     print_and_log "BLUE" "Starting setupEnv function for $app_type"
 
     # Check if .env file is already configured if 1 then it is already configured, if 0 then it is not configured
-    ENV_CONFIGURATION_STATUS=$(grep -oP '# ENV_CONFIGURATION_STATUS=\K[^#]+' .env)
+    ENV_CONFIGURATION_STATUS=$(grep -oP '# ENV_CONFIGURATION_STATUS=\K[^#\r]+' .env)
     debug "Current ENV_CONFIGURATION_STATUS: $ENV_CONFIGURATION_STATUS"
 
-    PROXY_CONFIGURATION_STATUS=$(grep -oP '# PROXY_CONFIGURATION_STATUS=\K[^#]+' .env)
+    PROXY_CONFIGURATION_STATUS=$(grep -oP '# PROXY_CONFIGURATION_STATUS=\K[^#\r]+' .env)
     debug "Current PROXY_CONFIGURATION_STATUS: $PROXY_CONFIGURATION_STATUS"
 
-    NOTIFICATIONS_CONFIGURATION_STATUS=$(grep -oP '# NOTIFICATIONS_CONFIGURATION_STATUS=\K[^#]+' .env)
+    NOTIFICATIONS_CONFIGURATION_STATUS=$(grep -oP '# NOTIFICATIONS_CONFIGURATION_STATUS=\K[^#\r]+' .env)
     debug "Current NOTIFICATIONS_CONFIGURATION_STATUS: $NOTIFICATIONS_CONFIGURATION_STATUS"
 
     while true; do
@@ -699,7 +699,7 @@ fn_setupEnv(){
                 fi
                 clear ;
                 if [ "$PROXY_CONFIGURATION_STATUS" == "1" ]; then
-                    CURRENT_PROXY=$(grep -oP 'STACK_PROXY=\K[^#]+' .env)
+                    CURRENT_PROXY=$(grep -oP 'STACK_PROXY=\K[^#\r]+' .env)
                     print_and_log "BLUE" "Proxy is already set up."
                     while true; do
                         colorprint "YELLOW" "The current proxy is: ${CURRENT_PROXY} . Do you want to change the proxy? (Y/N)"
@@ -772,7 +772,7 @@ fn_setupEnv(){
                 if [ "$NOTIFICATIONS_CONFIGURATION_STATUS" == "1" ]; then
                     print_and_log "BLUE" "Notifications are already set up."
                     while true; do
-                        colorprint "YELLOW" "The current notifications setup uses: $(grep -oP 'SHOUTRRR_URL=\K[^#]+' .env) . Do you want to change the notifications setup? (Y/N)"
+                        colorprint "YELLOW" "The current notifications setup uses: $(grep -oP 'SHOUTRRR_URL=\K[^#\r]+' .env) . Do you want to change the notifications setup? (Y/N)"
                         read -r yn
                         case $yn in
                             [Yy]* )
