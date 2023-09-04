@@ -606,7 +606,7 @@ fn_setupProxy() {
     if [ "$PROXY_CONF" == 'false' ]; then
         while true; do
             colorprint "YELLOW" "Do you wish to setup a proxy for the apps in this stack Y/N?"
-            colorprint "DEFAULT" "Note that if you want to run multiple instances of the same app you will need to configure different env files each in different project folders (copy the project to multiple different folders and configure them using different proxies)"$'\n'
+            colorprint "DEFAULT" "Note that if you want to run multiple instances of the same app you will need to configure different env files each in different project folders (copy the project to multiple different folders and configure them using different proxies)"
             read -r yn
             case $yn in
                 [Yy]* )
