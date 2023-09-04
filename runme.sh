@@ -436,7 +436,7 @@ fn_setupApp() {
         case $1 in
             --app)
                 CURRENT_APP="$2"
-                sed -i "s^#${CURRENT_APP}_ENABLE^^" $DKCOM_FILENAME
+                sed -i "s^#ENABLE_${CURRENT_APP}^^" $DKCOM_FILENAME
                 debug "Enabled $CURRENT_APP app in $DKCOM_FILENAME"
                 shift
                 ;;
@@ -624,7 +624,7 @@ fn_setupProxy() {
                     sed -i "s^# STACK_PROXY=^STACK_PROXY=^" .env #if it was already uncommented it does nothing
                     CURRENT_LINE=$(grep -oP 'STACK_PROXY=\K[^#]+' .env)
                     sed -i "s^$CURRENT_LINE^$NEW_STACK_PROXY^" .env
-                    sed -i "s^#PROXY_ENABLE^^" $DKCOM_FILENAME
+                    sed -i "s^#ENABLE_PROXY^^" $DKCOM_FILENAME
                     sed -i "s^# network_mode^network_mode^" $DKCOM_FILENAME
                     PROXY_CONF='true'
                     sed -i 's/PROXY_CONFIGURATION_STATUS=0/PROXY_CONFIGURATION_STATUS=1/' .env
@@ -739,24 +739,31 @@ fn_setupEnv(){
                     CURRENT_APP=$(echo "$name" | tr '[:lower:]' '[:upper:]')
                     
                     while true; do
-                        colorprint "YELLOW" "Do you wish to enable and use ${CURRENT_APP}? (Y/N)"
-                        read -r yn
-                        case $yn in
-                            [Yy]* )
-                                colorprint "CYAN" "Go to ${name} ${link} and register"
-                                read -r -p "When done, press enter to continue"$'\n'
-                                # Pass the flags string to the function
-                                fn_setupApp --app "${CURRENT_APP}" --image "$image" ${flags}
-                                clear
-                                break
-                                ;;
-                            [Nn]* )
-                                colorprint "BLUE" "${CURRENT_APP} setup will be skipped."
-                                read -r -p "Press enter to continue to the next app"
-                                break
-                                ;;
-                            * ) colorprint "RED" "Please answer yes or no." ;;
-                        esac
+                        # check if the $CURRENT_APP is already enabled in the $DKCOM_FILENAME file and if it is not (if there is a #ENABLE_$CURRENTAPP) then ask the user if they want to enable it
+                        if grep -q "#ENABLE_${CURRENT_APP}" "$DKCOM_FILENAME"; then
+                            colorprint "YELLOW" "Do you wish to enable and use ${CURRENT_APP}? (Y/N)"
+                            read -r yn
+                            case $yn in
+                                [Yy]* )
+                                    colorprint "CYAN" "Go to ${name} ${link} and register"
+                                    read -r -p "When done, press enter to continue"$'\n'
+                                    # Pass the flags string to the function
+                                    fn_setupApp --app "${CURRENT_APP}" --image "$image" ${flags}
+                                    clear
+                                    break
+                                    ;;
+                                [Nn]* )
+                                    colorprint "BLUE" "${CURRENT_APP} setup will be skipped."
+                                    read -r -p "Press enter to continue to the next app"
+                                    break
+                                    ;;
+                                * ) colorprint "RED" "Please answer yes or no." ;;
+                            esac
+                        else
+                            colorprint "BLUE" "${CURRENT_APP} is already enabled."
+                            read -r -p "Press enter to continue to the next app"
+                            break
+                        fi
                     done
                 done
 

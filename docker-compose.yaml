@@ -9,144 +9,144 @@ services:
 ### APPS ###
 
 # EARNAPP CONTAINER
-#EARNAPP_ENABLE  earnapp:
-#EARNAPP_ENABLE    container_name: earnapp
-#EARNAPP_ENABLE    image: fazalfarhan01/earnapp:lite
-#EARNAPP_ENABLE    environment:
-#EARNAPP_ENABLE      - EARNAPP_UUID=$EARNAPP_DEVICE_UUID
-#EARNAPP_ENABLE    volumes:
-#EARNAPP_ENABLE      - earnapp-data:/etc/earnapp
-#EARNAPP_ENABLE    # network_mode: service:tun2socks
-#EARNAPP_ENABLE    restart: always
+#ENABLE_EARNAPP  earnapp:
+#ENABLE_EARNAPP    container_name: earnapp
+#ENABLE_EARNAPP    image: fazalfarhan01/earnapp:lite
+#ENABLE_EARNAPP    environment:
+#ENABLE_EARNAPP      - EARNAPP_UUID=$EARNAPP_DEVICE_UUID
+#ENABLE_EARNAPP    volumes:
+#ENABLE_EARNAPP      - earnapp-data:/etc/earnapp
+#ENABLE_EARNAPP    # network_mode: service:tun2socks
+#ENABLE_EARNAPP    restart: always
 
 # HONEYGAIN CONTAINER
-#HONEYGAIN_ENABLE  honeygain:
-#HONEYGAIN_ENABLE    container_name: honeygain
-#HONEYGAIN_ENABLE    image: honeygain/honeygain:latest
-#HONEYGAIN_ENABLE    # network_mode: service:tun2socks
-#HONEYGAIN_ENABLE    environment:
-#HONEYGAIN_ENABLE      - HONEYGAIN_DUMMY=''
-#HONEYGAIN_ENABLE    command: -tou-accept -email $HONEYGAIN_EMAIL -pass $HONEYGAIN_PASSWD -device $DEVICE_NAME
-#HONEYGAIN_ENABLE    restart: always
+#ENABLE_HONEYGAIN  honeygain:
+#ENABLE_HONEYGAIN    container_name: honeygain
+#ENABLE_HONEYGAIN    image: honeygain/honeygain:latest
+#ENABLE_HONEYGAIN    # network_mode: service:tun2socks
+#ENABLE_HONEYGAIN    environment:
+#ENABLE_HONEYGAIN      - HONEYGAIN_DUMMY=''
+#ENABLE_HONEYGAIN    command: -tou-accept -email $HONEYGAIN_EMAIL -pass $HONEYGAIN_PASSWD -device $DEVICE_NAME
+#ENABLE_HONEYGAIN    restart: always
 
 # IPROYALPAWNS CONTAINER
-#IPROYALPAWNS_ENABLE  iproyal:
-#IPROYALPAWNS_ENABLE    container_name: iproyal
-#IPROYALPAWNS_ENABLE    image: iproyal/pawns-cli:latest
-#IPROYALPAWNS_ENABLE    environment:
-#IPROYALPAWNS_ENABLE      - IPROYALPAWNS_DUMMY=''
-#IPROYALPAWNS_ENABLE    command: -accept-tos -email=$IPROYALPAWNS_EMAIL -password=$IPROYALPAWNS_PASSWD -device-name=$DEVICE_NAME
-#IPROYALPAWNS_ENABLE    # network_mode: service:tun2socks
-#IPROYALPAWNS_ENABLE    restart: always
+#ENABLE_IPROYALPAWNS  iproyal:
+#ENABLE_IPROYALPAWNS    container_name: iproyal
+#ENABLE_IPROYALPAWNS    image: iproyal/pawns-cli:latest
+#ENABLE_IPROYALPAWNS    environment:
+#ENABLE_IPROYALPAWNS      - IPROYALPAWNS_DUMMY=''
+#ENABLE_IPROYALPAWNS    command: -accept-tos -email=$IPROYALPAWNS_EMAIL -password=$IPROYALPAWNS_PASSWD -device-name=$DEVICE_NAME
+#ENABLE_IPROYALPAWNS    # network_mode: service:tun2socks
+#ENABLE_IPROYALPAWNS    restart: always
 
 # PACKETSTREAM CONTAINER
-#PACKETSTREAM_ENABLE  packetstream:
-#PACKETSTREAM_ENABLE    container_name: packetstream
-#PACKETSTREAM_ENABLE    image: packetstream/psclient:latest
-#PACKETSTREAM_ENABLE    environment:
-#PACKETSTREAM_ENABLE      - CID=$PACKETSTREAM_CID
-#PACKETSTREAM_ENABLE    # network_mode: service:tun2socks
-#PACKETSTREAM_ENABLE    restart: always
+#ENABLE_PACKETSTREAM  packetstream:
+#ENABLE_PACKETSTREAM    container_name: packetstream
+#ENABLE_PACKETSTREAM    image: packetstream/psclient:latest
+#ENABLE_PACKETSTREAM    environment:
+#ENABLE_PACKETSTREAM      - CID=$PACKETSTREAM_CID
+#ENABLE_PACKETSTREAM    # network_mode: service:tun2socks
+#ENABLE_PACKETSTREAM    restart: always
 
 # TRAFFMONETIZER CONTAINER
-#TRAFFMONETIZER_ENABLE  traffMonetizer:
-#TRAFFMONETIZER_ENABLE    container_name: traffmonetizer
-#TRAFFMONETIZER_ENABLE    image: traffmonetizer/cli_v2:latest
-#TRAFFMONETIZER_ENABLE    environment:
-#TRAFFMONETIZER_ENABLE      - TRAFFMONETIZER_DUMMY=''
-#TRAFFMONETIZER_ENABLE    command: start accept status --token $TRAFFMONETIZER_TOKEN --device-name $DEVICE_NAME
-#TRAFFMONETIZER_ENABLE    # network_mode: service:tun2socks
-#TRAFFMONETIZER_ENABLE    restart: always
+#ENABLE_TRAFFMONETIZER  traffMonetizer:
+#ENABLE_TRAFFMONETIZER    container_name: traffmonetizer
+#ENABLE_TRAFFMONETIZER    image: traffmonetizer/cli_v2:latest
+#ENABLE_TRAFFMONETIZER    environment:
+#ENABLE_TRAFFMONETIZER      - TRAFFMONETIZER_DUMMY=''
+#ENABLE_TRAFFMONETIZER    command: start accept status --token $TRAFFMONETIZER_TOKEN --device-name $DEVICE_NAME
+#ENABLE_TRAFFMONETIZER    # network_mode: service:tun2socks
+#ENABLE_TRAFFMONETIZER    restart: always
 
 # REPOCKET CONTAINER
-#REPOCKET_ENABLE  repocket:
-#REPOCKET_ENABLE    container_name: repocket
-#REPOCKET_ENABLE    image: repocket/repocket:latest
-#REPOCKET_ENABLE    environment:
-#REPOCKET_ENABLE        - RP_EMAIL=$REPOCKET_EMAIL
-#REPOCKET_ENABLE        - RP_API_KEY=$REPOCKET_APIKEY
-#REPOCKET_ENABLE    # network_mode: service:tun2socks
-#REPOCKET_ENABLE    restart: always
+#ENABLE_REPOCKET  repocket:
+#ENABLE_REPOCKET    container_name: repocket
+#ENABLE_REPOCKET    image: repocket/repocket:latest
+#ENABLE_REPOCKET    environment:
+#ENABLE_REPOCKET        - RP_EMAIL=$REPOCKET_EMAIL
+#ENABLE_REPOCKET        - RP_API_KEY=$REPOCKET_APIKEY
+#ENABLE_REPOCKET    # network_mode: service:tun2socks
+#ENABLE_REPOCKET    restart: always
 
 # PROXYRACK CONTAINER
-#PROXYRACK_ENABLE  proxyrack:
-#PROXYRACK_ENABLE    container_name: proxyrack
-#PROXYRACK_ENABLE    image: proxyrack/pop:latest
-#PROXYRACK_ENABLE    environment:
-#PROXYRACK_ENABLE        - api_key=$PROXYRACK_APIKEY
-#PROXYRACK_ENABLE        - device_name=$DEVICE_NAME
-#PROXYRACK_ENABLE    # network_mode: service:tun2socks
-#PROXYRACK_ENABLE    restart: always
+#ENABLE_PROXYRACK  proxyrack:
+#ENABLE_PROXYRACK    container_name: proxyrack
+#ENABLE_PROXYRACK    image: proxyrack/pop:latest
+#ENABLE_PROXYRACK    environment:
+#ENABLE_PROXYRACK        - api_key=$PROXYRACK_APIKEY
+#ENABLE_PROXYRACK        - device_name=$DEVICE_NAME
+#ENABLE_PROXYRACK    # network_mode: service:tun2socks
+#ENABLE_PROXYRACK    restart: always
 
 # PROXYLITE CONTAINER
-#PROXYLITE_ENABLE  proxylite:
-#PROXYLITE_ENABLE    container_name: proxylite
-#PROXYLITE_ENABLE    image: proxylite/proxyservice:latest
-#PROXYLITE_ENABLE    environment:
-#PROXYLITE_ENABLE      - USER_ID=$PROXYLITE_USER_ID
-#PROXYLITE_ENABLE    # network_mode: service:tun2socks
-#PROXYLITE_ENABLE    restart: always
+#ENABLE_PROXYLITE  proxylite:
+#ENABLE_PROXYLITE    container_name: proxylite
+#ENABLE_PROXYLITE    image: proxylite/proxyservice:latest
+#ENABLE_PROXYLITE    environment:
+#ENABLE_PROXYLITE      - USER_ID=$PROXYLITE_USER_ID
+#ENABLE_PROXYLITE    # network_mode: service:tun2socks
+#ENABLE_PROXYLITE    restart: always
 
 # BITPING CONTAINER 
 # !!For this app you'll need a one-time operation to claim your node: the first time if you do not have a backup of your identity you will need to enter manually your credentials to initialize it use : sudo docker run --rm -it -v ${PWD}/.data/.bitping/:/root/.bitping bitping/bitping-node:latest , then enter your credential , once this is done CTRL+C to end container and then if using bind folder just use docker compose to restart it as always, if you use the docker volume mount it in the previous comamnd or copy the created credentials in the volume using ' docker cp ${PWD}/.data/.bitping bitping:/root/' or just mount the volume in the interactive temporary container
-#BITPING_ENABLE  bitping:
-#BITPING_ENABLE    container_name: bitping
-#BITPING_ENABLE    image: bitping/bitping-node:latest
-#BITPING_ENABLE    environment:
-#BITPING_ENABLE      - BITPING_DUMMY=''
-#BITPING_ENABLE    volumes:
-#BITPING_ENABLE      # You have 2 options
-#BITPING_ENABLE      - ./.data/.bitping:/root/.bitping # Bind an host folder to the container (more insecure but simplier to port and backup) this option mount a new identity or a backed up one from the host file system
-#BITPING_ENABLE      # OR
-#BITPING_ENABLE      #- bitping-data:/root/.bitping # if you use this also uncomment the relative volume in volumes section, this  Use docker volumes (more secure harder to access, backup and restore) you'll need to do backups using 'docker cp
-#BITPING_ENABLE    # network_mode: service:tun2socks
-#BITPING_ENABLE    restart: always
+#ENABLE_BITPING  bitping:
+#ENABLE_BITPING    container_name: bitping
+#ENABLE_BITPING    image: bitping/bitping-node:latest
+#ENABLE_BITPING    environment:
+#ENABLE_BITPING      - BITPING_DUMMY=''
+#ENABLE_BITPING    volumes:
+#ENABLE_BITPING      # You have 2 options
+#ENABLE_BITPING      - ./.data/.bitping:/root/.bitping # Bind an host folder to the container (more insecure but simplier to port and backup) this option mount a new identity or a backed up one from the host file system
+#ENABLE_BITPING      # OR
+#ENABLE_BITPING      #- bitping-data:/root/.bitping # if you use this also uncomment the relative volume in volumes section, this  Use docker volumes (more secure harder to access, backup and restore) you'll need to do backups using 'docker cp
+#ENABLE_BITPING    # network_mode: service:tun2socks
+#ENABLE_BITPING    restart: always
 
 ### EXTRA APPS ###
 
 # MYSTERIUM CONTAINER
-#MYSTNODE_ENABLE  mysterium:
-#MYSTNODE_ENABLE    container_name: mystnode
-#MYSTNODE_ENABLE    image: mysteriumnetwork/myst:latest
-#MYSTNODE_ENABLE    environment:
-#MYSTNODE_ENABLE      - MYSTNODE_DUMMY=''
-#MYSTNODE_ENABLE    command: service --agreed-terms-and-conditions
-#MYSTNODE_ENABLE    cap_add:
-#MYSTNODE_ENABLE          - NET_ADMIN
-#MYSTNODE_ENABLE    ports:
-#MYSTNODE_ENABLE          - 4449:4449
-#MYSTNODE_ENABLE    volumes:
-#MYSTNODE_ENABLE          # You have 2 options
-#MYSTNODE_ENABLE          - ./.data/mysterium-node:/var/lib/mysterium-node # Bind an host folder to the container (more insecure but simplier to port and backup) this option mount a new identity or a backed up one from the host file system
-#MYSTNODE_ENABLE          # OR
-#MYSTNODE_ENABLE          #- myst-data:/var/lib/mysterium-node # if you use this also uncomment the relative volume in volumes section, this  Use docker volumes (more secure harder to access, backup and restore) you'll need to do backups using 'docker cp myst:/var/lib/mysterium-node .' and then when you need to restore the identity first delete the automatically created and not needed identities using 'sudo docker exec -it myst sh' and then in the container shell use 'sudo rm -rf /var/lib/mysterium-node/*' then stop the container and use docker cp to copy the backed-up identity in the container, ther restart the container.
-#MYSTNODE_ENABLE    # network_mode: service:tun2socks
-#MYSTNODE_ENABLE    restart: always
+#ENABLE_MYSTNODE  mysterium:
+#ENABLE_MYSTNODE    container_name: mystnode
+#ENABLE_MYSTNODE    image: mysteriumnetwork/myst:latest
+#ENABLE_MYSTNODE    environment:
+#ENABLE_MYSTNODE      - MYSTNODE_DUMMY=''
+#ENABLE_MYSTNODE    command: service --agreed-terms-and-conditions
+#ENABLE_MYSTNODE    cap_add:
+#ENABLE_MYSTNODE          - NET_ADMIN
+#ENABLE_MYSTNODE    ports:
+#ENABLE_MYSTNODE          - 4449:4449
+#ENABLE_MYSTNODE    volumes:
+#ENABLE_MYSTNODE          # You have 2 options
+#ENABLE_MYSTNODE          - ./.data/mysterium-node:/var/lib/mysterium-node # Bind an host folder to the container (more insecure but simplier to port and backup) this option mount a new identity or a backed up one from the host file system
+#ENABLE_MYSTNODE          # OR
+#ENABLE_MYSTNODE          #- myst-data:/var/lib/mysterium-node # if you use this also uncomment the relative volume in volumes section, this  Use docker volumes (more secure harder to access, backup and restore) you'll need to do backups using 'docker cp myst:/var/lib/mysterium-node .' and then when you need to restore the identity first delete the automatically created and not needed identities using 'sudo docker exec -it myst sh' and then in the container shell use 'sudo rm -rf /var/lib/mysterium-node/*' then stop the container and use docker cp to copy the backed-up identity in the container, ther restart the container.
+#ENABLE_MYSTNODE    # network_mode: service:tun2socks
+#ENABLE_MYSTNODE    restart: always
 
 # PEER2PROFIT CONTAINER
-#PEER2PROFIT_ENABLE  peer2profit:
-#PEER2PROFIT_ENABLE    container_name: peer2profit
-#PEER2PROFIT_ENABLE    image: peer2profit/peer2profit_linux:latest
-#PEER2PROFIT_ENABLE    environment:
-#PEER2PROFIT_ENABLE      - P2P_EMAIL=$PEER2PROFIT_EMAIL
-#PEER2PROFIT_ENABLE    # network_mode: service:tun2socks
-#PEER2PROFIT_ENABLE    restart: always
+#ENABLE_PEER2PROFIT  peer2profit:
+#ENABLE_PEER2PROFIT    container_name: peer2profit
+#ENABLE_PEER2PROFIT    image: peer2profit/peer2profit_linux:latest
+#ENABLE_PEER2PROFIT    environment:
+#ENABLE_PEER2PROFIT      - P2P_EMAIL=$PEER2PROFIT_EMAIL
+#ENABLE_PEER2PROFIT    # network_mode: service:tun2socks
+#ENABLE_PEER2PROFIT    restart: always
 
 ### TOOLS AND SERVICES ###
 
 # TUN2SOCKS CONTAINER
-#PROXY_ENABLE  tun2socks:
-#PROXY_ENABLE    image: xjasonlyu/tun2socks
-#PROXY_ENABLE    container_name: tun2socks
-#PROXY_ENABLE    restart: always
-#PROXY_ENABLE    command: ["/bin/sh", "-c", "echo 'nameserver 1.1.1.1\nnameserver 8.8.8.8' > /etc/resolv.conf && ip rule add iif lo ipproto udp dport 53 lookup main && ip rule add iif lo ipproto udp dport 3478 lookup main"]
-#PROXY_ENABLE    environment:
-#PROXY_ENABLE      - LOGLEVEL=info
-#PROXY_ENABLE      - PROXY=$PROXY_STACK
-#PROXY_ENABLE    volumes:
-#PROXY_ENABLE      - '/dev/net/tun:/dev/net/tun'
-#PROXY_ENABLE    cap_add:
-#PROXY_ENABLE      - NET_ADMIN
+#ENABLE_PROXY  tun2socks:
+#ENABLE_PROXY    image: xjasonlyu/tun2socks
+#ENABLE_PROXY    container_name: tun2socks
+#ENABLE_PROXY    restart: always
+#ENABLE_PROXY    command: ["/bin/sh", "-c", "echo 'nameserver 1.1.1.1\nnameserver 8.8.8.8' > /etc/resolv.conf && ip rule add iif lo ipproto udp dport 53 lookup main && ip rule add iif lo ipproto udp dport 3478 lookup main"]
+#ENABLE_PROXY    environment:
+#ENABLE_PROXY      - LOGLEVEL=info
+#ENABLE_PROXY      - PROXY=$PROXY_STACK
+#ENABLE_PROXY    volumes:
+#ENABLE_PROXY      - '/dev/net/tun:/dev/net/tun'
+#ENABLE_PROXY    cap_add:
+#ENABLE_PROXY      - NET_ADMIN
 
 
 # WATCHTOWER AUTO-UPDATER AND NOTIFICATIONS
