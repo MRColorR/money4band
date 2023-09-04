@@ -49,6 +49,9 @@ PROXY_CONF='false'
 CURRENT_PROXY=''
 NEW_STACK_PROXY=''
 
+## Config file related constants and variables ##
+readonly CONFIG_JSON_FILE="config.json"
+
 ## Docker compose related constants and variables ##
 # docker compose yaml file name #
 readonly DKCOM_FILENAME="docker-compose.yaml"
@@ -286,12 +289,12 @@ fn_showLinks() {
     debug "Showing apps links"
     clear
     colorprint "GREEN" "Use CTRL+Click to open links or copy them:"
-    # reading from config.json show all the apps type that are the dictionary keys and then show the name and the link of each app in the dictionary
-    for app_type in $(jq -r 'keys[]' "$CONFIG_DIR/config.json"); do
+    # reading from $CONFIG_JSON_FILE show all the apps type that are the dictionary keys and then show the name and the link of each app in the dictionary
+    for app_type in $(jq -r 'keys[]' "$CONFIG_DIR/$CONFIG_JSON_FILE"); do
         colorprint "YELLOW" "---$app_type---"
-        for app in $(jq -r ".[\"$app_type\"][].name" "$CONFIG_DIR/config.json"); do
+        for app in $(jq -r ".[\"$app_type\"][].name" "$CONFIG_DIR/$CONFIG_JSON_FILE"); do
             colorprint "DEFAULT" "$app"
-            colorprint "BLUE" "$(jq -r ".[\"$app_type\"][] | select(.name==\"$app\") | .link" "$CONFIG_DIR/config.json")"
+            colorprint "BLUE" "$(jq -r ".[\"$app_type\"][] | select(.name==\"$app\") | .link" "$CONFIG_DIR/$CONFIG_JSON_FILE")"
             
         done
     done
@@ -720,9 +723,9 @@ fn_setupEnv(){
                     fn_setupProxy;
                 fi
                 clear ;
-                debug " Loading $app_type from config.json..."
-                apps=$(jq -c ".[\"$app_type\"][]" "$CONFIG_DIR/config.json")
-                debug " $app_type loaded from config.json"
+                debug " Loading $app_type from $CONFIG_JSON_FILE..."
+                apps=$(jq -c ".[\"$app_type\"][]" "$CONFIG_DIR/$CONFIG_JSON_FILE")
+                debug " $app_type loaded from $CONFIG_JSON_FILE"
 
                 for app in $apps; do
                     clear
