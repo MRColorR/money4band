@@ -6,37 +6,10 @@
 readonly SCRIPT_VERSION="2.2.0" # used for checking updates
 # Script name #
 readonly SCRIPT_NAME=$(basename "$0") # save the script name in a variable not the full path
-# Script url for update #
+# Script URL for update #
 readonly UPDATE_SCRIPT_URL="https://raw.githubusercontent.com/MRColorR/money4band/main/${SCRIPT_NAME}"
 # Script debug log file #
 readonly DEBUG_LOG="debug_${SCRIPT_NAME}.log"
-
-## Colors ##
-# Colors used inside the script #
-ESC=$(printf '\033') DEFAULT="${ESC}[0m"
-declare -A colors=( [GREEN]="${ESC}[32m" [BLUE]="${ESC}[34m" [RED]="${ESC}[31m" [YELLOW]="${ESC}[33m" [MAGENTA]="${ESC}[35m" [CYAN]="${ESC}[36m" [PURPLE]="${ESC}[35;1m" [DEFAULT]="${ESC}[0m")
-# Color functions #
-colorprint() { printf "${colors[$1]}%s${DEFAULT}\n" "$2"; }
-# Function to print an error message and write it to the debug log file #
-errorprint_and_log() {
-    printf "%s\n" "$1" >&2
-    debug "[ERROR]: $1"
-}
-# Function to print criticals errors that will stop the script and make it exit with error code 1 #
-fn_fail() {
-    errorprint_and_log "$1"
-    read -p "Press Enter to exit..."
-    exit 1
-}
-# Function to manage unexpected choices of flags #
-fn_unknown() { colorprint "RED" "Unknown choice $REPLY, please choose a valid option"; }
-# Function to exit the script gracefully #
-fn_bye(){
-    colorprint "GREEN" "Share this app with your friends thank you!"
-    colorprint "GREEN" "Exiting the application...Bye!Bye!"
-    debug "Exiting the application...Bye!Bye!"
-    exit 0
-}
 
 ## Env file related constants and variables ##
 # .env file prototype link #
@@ -57,17 +30,46 @@ readonly CONFIG_JSON_FILE="config.json"
 readonly DKCOM_FILENAME="docker-compose.yaml"
 # docker compose yaml prototype file link #
 readonly DKCOM_SRC="https://github.com/MRColorR/money4band/raw/main/$DKCOM_FILENAME"
-# Architecture default #
-ARCH='unknown'
-DKARCH='unknown'
-# OS default #
-OS_TYPE='unknown'
 
 ### Resources, Scripts and Files folders ###
 readonly RESOURCES_DIR="$PWD/.resources"
 readonly CONFIG_DIR="$RESOURCES_DIR/.www/.configs"
 readonly SCRIPTS_DIR="$RESOURCES_DIR/.scripts"
 readonly FILES_DIR="$RESOURCES_DIR/.files"
+
+## Architecture and OS related constants and variables ##
+# Architecture default #
+ARCH='unknown'
+DKARCH='unknown'
+# OS default #
+OS_TYPE='unknown'
+
+## Colors ##
+# Colors used inside the script #
+ESC=$(printf '\033') DEFAULT="${ESC}[0m"
+declare -A colors=( [GREEN]="${ESC}[32m" [BLUE]="${ESC}[34m" [RED]="${ESC}[31m" [YELLOW]="${ESC}[33m" [MAGENTA]="${ESC}[35m" [CYAN]="${ESC}[36m" [PURPLE]="${ESC}[35;1m" [DEFAULT]="${ESC}[0m")
+# Color functions #
+colorprint() { printf "${colors[$1]}%s${DEFAULT}\n" "$2"; }
+# Function to print an error message and write it to the debug log file #
+errorprint_and_log() {
+    printf "%s\n" "$1" >&2
+    debug "$(date +'%Y-%m-%d %H:%M:%S') - [ERROR]: $1"
+}
+# Function to print criticals errors that will stop the script and make it exit with error code 1 #
+fn_fail() {
+    errorprint_and_log "$1"
+    read -p "Press Enter to exit..."
+    exit 1
+}
+# Function to manage unexpected choices of flags #
+fn_unknown() { colorprint "RED" "Unknown choice $REPLY, please choose a valid option"; }
+# Function to exit the script gracefully #
+fn_bye(){
+    colorprint "GREEN" "Share this app with your friends thank you!"
+    colorprint "GREEN" "Exiting the application...Bye!Bye!"
+    debug "Exiting the application...Bye!Bye!"
+    exit 0
+}
 
 ### Log, Update and Utility functions ###
 ## Enable or disable logging using debug mode ##
