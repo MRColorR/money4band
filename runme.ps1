@@ -348,7 +348,7 @@ function fn_install_packages {
         }
     }
     else {
-        print_and_log "Red" "Your operating system has not been recognized by this script. Please install the following packages manually: $($REQUIRED_PACKAGES -join ', ')"
+        print_and_log "Red" "Your operating system has not been recognized or is not supported by this function. Please install the following packages manually: $($REQUIRED_PACKAGES -join ', ')"
         Read-Input -Prompt "Press enter to continue"
         return
     }

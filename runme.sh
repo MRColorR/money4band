@@ -275,7 +275,7 @@ fn_install_packages() {
             fi
         done
     else
-        print_and_log "RED" "Your operating system has not been recognized by this script. Please install the following packages manually: ${REQUIRED_PACKAGES[*]}"
+        print_and_log "RED" "Your operating system has not been recognized or is not supported by this function. Please install the following packages manually: ${REQUIRED_PACKAGES[*]}"
         read -r -p "Press Enter to continue"
         return
     fi
