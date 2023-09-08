@@ -193,6 +193,7 @@ fn_install_packages() {
     REQUIRED_PACKAGES=("$@")
 
     if [[ "$OS_TYPE" == "Linux" ]]; then
+        # Check which package manager is installed
         if command -v apt &> /dev/null ; then
             PKG_MANAGER="apt"
             PKG_CHECK="dpkg -l"
@@ -213,15 +214,21 @@ fn_install_packages() {
             PKG_MANAGER="zypper"
             PKG_CHECK="rpm -q"
             PKG_INSTALL="sudo zypper install -y"
+        elif command -v apk &> /dev/null ; then
+            PKG_MANAGER="apk"
+            PKG_CHECK="apk info"
+            PKG_INSTALL="sudo apk add"
         elif command -v emerge &> /dev/null ; then
             PKG_MANAGER="emerge"
             PKG_CHECK="qlist -I"
             PKG_INSTALL="sudo emerge --ask n"
         else
-            print_and_log "RED" "Your package manager has not been recognized. Please install the following packages manually: ${REQUIRED_PACKAGES[*]}"
+            print_and_log "RED" "Your package manager has not been recognized by this script. Please install the following packages manually: ${REQUIRED_PACKAGES[*]}"
+            read -r -p "Press Enter to continue"
             return
         fi
         debug "Detected package manager: $PKG_MANAGER"
+        # Install required packages
         for package in "${REQUIRED_PACKAGES[@]}"
         do
             if ! $PKG_CHECK | grep -q "^ii  $package"; then
@@ -249,10 +256,30 @@ fn_install_packages() {
                 print_and_log "DEFAULT" "$package is already installed."
             fi
         done
+    elif [[ "$OS_TYPE" == "Windows" ]]; then
+        if ! command -v choco &> /dev/null; then
+            print_and_log "DEFAULT" "Chocolatey is not installed. Trying to install now..."
+            if ! powershell -Command "Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))"; then
+                print_and_log "RED" "Failed to install Chocolatey. Please install it manually."
+            fi
+        fi
+        for package in "${REQUIRED_PACKAGES[@]}"
+        do
+            if ! choco list --local-only --exact $package > /dev/null; then
+                print_and_log "DEFAULT" "$package is not installed. Trying to install now..."
+                if ! choco install $package -y; then
+                    print_and_log "RED" "Failed to install $package. Please install it manually."
+                fi
+            else
+                print_and_log "DEFAULT" "$package is already installed."
+            fi
+        done
     else
-        print_and_log "RED" "Your operating system has not been recognized. Please install the required packages manually."
+        print_and_log "RED" "Your operating system has not been recognized by this script. Please install the following packages manually: ${REQUIRED_PACKAGES[*]}"
+        read -r -p "Press Enter to continue"
+        return
     fi
-    debug "Required packages installed."
+    debug "Required packages installation completed."
 }
 
 ## Multiarch emulation service installer function ##
@@ -352,8 +379,8 @@ fn_addDockerBinfmtSVC() {
 ### Sub-menu Functions ###
 # Shows the liks of the apps
 fn_showLinks() {
-    debug "Showing apps links"
     clear
+    debug "Showing apps links"
     colorprint "GREEN" "Use CTRL+Click to open links or copy them:"
     # reading from $CONFIG_JSON_FILE show all the apps type that are the dictionary keys and then show the name and the link of each app in the dictionary
     for app_type in $(jq -r 'keys[]' "$CONFIG_DIR/$CONFIG_JSON_FILE"); do

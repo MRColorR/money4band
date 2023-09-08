@@ -63,15 +63,18 @@ $arch_map = @{
 $script:OS_TYPE = 'unknown'
 # Define the OS type map
 $os_map = @{
-    "win32nt" = "Windows"
+    "win32nt"    = "Windows"
     "windows_nt" = "Windows"
-    "windows" = "Windows"
-    "linux"   = "Linux";
-    "darwin"  = "Mac";
-    "cygwin"  = "Cygwin";
-    "mingw"   = "MinGw";
-    "msys"    = "Msys";
-    "freebsd" = "FreeBSD";
+    "windows"    = "Windows"
+    "linux"      = "Linux";
+    "darwin"     = "MacOS";
+    "macos"      = "MacOS";
+    "macosx"     = "MacOS";
+    "osx"        = "MacOS";
+    "cygwin"     = "Cygwin";
+    "mingw"      = "MinGw";
+    "msys"       = "Msys";
+    "freebsd"    = "FreeBSD";
 }
 
 ## Colors ##
@@ -95,7 +98,8 @@ function colorprint($color, $text) {
         [System.Console]::ForegroundColor = $colors[$color]
         Write-Output $text
         [System.Console]::ForegroundColor = $prevColor
-    } else {
+    }
+    else {
         Write-Output "Unknown color: $color. Available colors are: $($colors.Keys -join ', ')"
     }
 }
@@ -120,7 +124,8 @@ if ($args[0] -eq '-d' -or $args[0] -eq '--debug') {
     # shift the arguments array to remove the debug flag consumed
     $args = $args[1..$args.Length]
     debug "[DEBUG]: Debug mode enabled."
-} else {
+}
+else {
     $script:DEBUG = $false
 }
 
@@ -157,14 +162,17 @@ function detect_os {
     try {
         if ($PSVersionTable.Platform) {
             $OSStr = $PSVersionTable.Platform.ToString().ToLower()
-        } elseif ($env:OS) {
+        }
+        elseif ($env:OS) {
             $OSStr = $env:OS.ToString().ToLower()
-        } else {
+        }
+        else {
             $OSStr = (uname -s).ToLower()
         }
         # check if OSStr contains any known OS substring
         $script:OS_TYPE = $os_map.Keys | Where-Object { $OSStr.Contains($_) } | Select-Object -First 1
-    } catch {
+    }
+    catch {
         debug "Neither PS OS detection commands nor uname were found, OS detection failed. OS type will be set to 'unknown'."
         $script:OS_TYPE = 'unknown'        
     }
@@ -193,7 +201,8 @@ function detect_architecture {
         if ($null -eq $script:DKARCH) {
             $script:DKARCH = "unknown"
         }
-    } catch {
+    }
+    catch {
         debug "Neither PS arch detection commands nor uname were found, architecture detection failed. Architecture will be set to 'unknown'."
         $script:ARCH = 'unknown'
         $script:DKARCH = 'unknown'
@@ -206,29 +215,144 @@ function detect_architecture {
 # experimanetal function that provide support for installing packages using Chocolatey
 function fn_install_packages {
     param(
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [string[]] $REQUIRED_PACKAGES
     )
-
-    # Check if Chocolatey is installed
-    if (-Not (Get-Command choco -ErrorAction SilentlyContinue)) {
-        Write-Output "Chocolatey is not installed. Trying to install now..."
-        $installChocoScript = @"
-        Set-ExecutionPolicy Bypass -Scope Process -Force;
-        [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072;
-        iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
-"@
-        Start-Process -FilePath "powershell.exe" -ArgumentList "-NoProfile -ExecutionPolicy Bypass -Command `"$installChocoScript`"" -Verb RunAs
-    }
-
-    foreach ($package in $REQUIRED_PACKAGES) {
-        if (-Not (choco list --localonly $package -r)) {
-            Write-Output "$package is not installed. Trying to install now..."
-            Start-Process -FilePath "powershell.exe" -ArgumentList "-NoProfile -ExecutionPolicy Bypass -Command `"choco install $package -y`"" -Verb RunAs
-        } else {
-            Write-Output "$package is already installed."
+    if ($script:OS_TYPE -eq "Windows") {
+        # Check if Chocolatey is installed
+        if (-not(Get-Command 'choco' -ErrorAction SilentlyContinue)) {
+            colorprint "Yellow" "Chocolatey is not installed, this script will now attempt to install it for you."
+            colorprint "Yellow" "Installing Chocolatey..."
+            $ProgressPreference = 'SilentlyContinue'
+            Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+            $ProgressPreference = 'Continue'
+            # check if the installation was successful
+            if (-not(Get-Command 'choco' -ErrorAction SilentlyContinue)) {
+                fn_fail "Chocolatey installation failed. Please install Chocolatey manually and then try again."
+            }
+            colorprint "Green" "Chocolatey installed successfully."
+        }
+        # Install required packages
+        foreach ($package in $REQUIRED_PACKAGES) {
+            if (-not(choco list --local-only --exact $package)) {
+                colorprint "Yellow" "$package not installed, Trying to install it now..."
+                $ProgressPreference = 'SilentlyContinue'
+                if (-not (choco install $package -y)) {
+                    colorprint "Red" "Failed to install $package. Please install it manually and then try again."
+                }
+                $ProgressPreference = 'Continue'
+                else {
+                    colorprint "Green" "$package installed successfully."
+                }
+            }
+            else {
+                colorprint "Green" "$package already installed."
+            }
         }
     }
+    elseif ($script:OS_TYPE -eq "MacOS") {
+        # Check if Homebrew is installed
+        if (-not(Get-Command 'brew' -ErrorAction SilentlyContinue)) {
+            colorprint "Yellow" "Homebrew is not installed, this script will now attempt to install it for you."
+            colorprint "Yellow" "Installing Homebrew..."
+            $ProgressPreference = 'SilentlyContinue'
+            /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+            $ProgressPreference = 'Continue'
+            # check if the installation was successful
+            if (-not(Get-Command 'brew' -ErrorAction SilentlyContinue)) {
+                fn_fail "Homebrew installation failed. Please install Homebrew manually and then try again."
+            }
+            else {
+                colorprint "Green" "Homebrew installed successfully."
+            }
+        }
+        # Install required packages
+        foreach ($package in $REQUIRED_PACKAGES) {
+            if (-not(brew list --versions $package)) {
+                print_and_log "Default" "$package not installed, Trying to install it now..."
+                $ProgressPreference = 'SilentlyContinue'
+                if (-not (brew install $package)) {
+                    print_and_log "Failed to install $package. Please install it manually and then try again."
+                }
+                $ProgressPreference = 'Continue'
+                else {
+                    colorprint "Green" "$package installed successfully."
+                }
+            }
+            else {
+                colorprint "Green" "$package already installed."
+            }
+        }
+    }
+    elseif ($script:OS_TYPE -eq "Linux") {
+        # Check which package manager is installed
+        if (Get-Command apt -ErrorAction SilentlyContinue) {
+            PKG_MANAGER = "apt"
+            PKG_CHECK="dpkg -l"
+            PKG_INSTALL="sudo apt install -y"
+        }
+        elseif (Get-Command yum -ErrorAction SilentlyContinue) {
+            PKG_MANAGER = "yum"
+            PKG_CHECK="rpm -qa"
+            PKG_INSTALL="sudo yum install -y"
+        }
+        elseif (Get-Command dnf -ErrorAction SilentlyContinue) {
+            PKG_MANAGER = "dnf"
+            PKG_CHECK="rpm -q"
+            PKG_INSTALL="sudo dnf install -y"
+        }
+        elseif (Get-Command pacman -ErrorAction SilentlyContinue) {
+            PKG_MANAGER = "pacman"
+            PKG_CHECK="pacman -Q"
+            PKG_INSTALL="sudo pacman -S --noconfirm"
+        }
+        elseif (Get-Command zypper -ErrorAction SilentlyContinue) {
+            PKG_MANAGER = "zypper"
+            PKG_CHECK="rpm -q"
+            PKG_INSTALL="sudo zypper install -y"
+        }
+        elseif (Get-Command apk -ErrorAction SilentlyContinue) {
+            PKG_MANAGER = "apk"
+            PKG_CHECK="apk info"
+            PKG_INSTALL="sudo apk add"
+        }
+        elseif (Get-Command emerge -ErrorAction SilentlyContinue) {
+            PKG_MANAGER = "emerge"
+            PKG_CHECK="qlist -I"
+            PKG_INSTALL="sudo emerge --ask n"
+        }
+        else {
+            print_and_log "Red" "Your package manager has not been recognized by this script. Please install the following packages manually: $($REQUIRED_PACKAGES -join ', ')"
+            Read-Input -Prompt "Press enter to continue"
+            return
+        }
+        debug "Package manager detected: $PKG_MANAGER"
+        # Install required packages
+        foreach ($package in $REQUIRED_PACKAGES) {
+            # Using Invoke-Expression to execute the package check command
+            if (-not (Invoke-Expression "$PKG_CHECK $package")) {
+                print_and_log "Default" "$package not installed, Trying to install it now..."
+                $ProgressPreference = 'SilentlyContinue'
+                # Using Invoke-Expression to execute the package install command
+                if (-not (Invoke-Expression "$PKG_INSTALL $package")) {
+                    print_and_log "Red" "Failed to install $package. Please install it manually and then try again."
+                }
+                else {
+                    colorprint "Green" "$package installed successfully."
+                }
+                $ProgressPreference = 'Continue'
+            }
+            else {
+                colorprint "Green" "$package already installed."
+            }
+        }
+    }
+    else {
+        print_and_log "Red" "Your operating system has not been recognized by this script. Please install the following packages manually: $($REQUIRED_PACKAGES -join ', ')"
+        Read-Input -Prompt "Press enter to continue"
+        return
+    }
+    debug "Required packages installation completed."
 }
 
 ### Sub-menu Functions ###
@@ -236,17 +360,20 @@ function fn_install_packages {
 function fn_showLinks {
     Clear-Host
     colorprint "Green" "Use CTRL+Click to open links or copy them:"
-
-    $configPath = Join-Path -Path $CONFIG_DIR -ChildPath 'config.json'
+    $configPath = Join-Path -Path $CONFIG_DIR -ChildPath $CONFIG_JSON_FILE
     $configData = Get-Content -Path $configPath -Raw | ConvertFrom-Json
-
-    foreach ($app in $configData.apps) {
-        $displayString = "$($app.name) | $($app.link)"
-        colorprint "Cyan" $displayString
+    # Iterate over the top-level keys (app types) in the JSON
+    foreach ($appType in $configData.PSObject.Properties.Name) {
+        colorprint "Yellow" "---$appType---"
+        # Iterate over the apps in each type
+        foreach ($app in $configData.$appType) {
+            colorprint "Default" $app.name
+            colorprint "Blue" $app.link
+        }
     }
-
     Read-Host -Prompt "Press Enter to go back to mainmenu"
 }
+
 <#
 .SYNOPSIS
 Function that will attempt to install Docker on different OSs
@@ -262,42 +389,46 @@ This function has been tested until v 2.0.0 on windows and mac but not on linux 
 #>
 function fn_dockerInstall {
     Clear-Host
+    debug "DockerInstall function started"
     colorprint "Yellow" "This menu item will launch a script that will attempt to install Docker"
     colorprint "Yellow" "Use it only if you do not know how to perform the manual Docker installation described at https://docs.docker.com/get-docker/ as the automatic script in some cases and depending on the OS you are using may fail to install Docker correctly."
     
     while ($true) {
         $yn = (Read-Host -Prompt "Do you wish to proceed with the Docker automatic installation Y/N?").ToLower()
         if ($yn -eq 'y' -or $yn -eq 'yes') {
+            debug "User decided to install Docker through the script. Checking if Docker is already installed."
             try {
                 $dockerVersion = docker --version
                 if ($dockerVersion) {
+                    debug "Docker is already installed. Asking user if he wants to continue with the installation anyway."
                     while ($true) {
                         colorprint "Yellow" "Docker seems to be installed already. Do you want to continue with the installation anyway? (Y/N)"
                         $yn = (Read-Host -Prompt "").ToLower()
                         if ($yn -eq 'n' -or $yn -eq 'no') {
+                            debug "User decided to abort the Docker re-install."
                             colorprint "Blue" "Returning to main menu..."
                             return
-                        } elseif ($yn -eq 'y' -or $yn -eq 'yes' ) {
+                        }
+                        elseif ($yn -eq 'y' -or $yn -eq 'yes' ) {
+                            debug "User decided to continue with the Docker re-install anyway."
                             break
-                        } else {
+                        }
+                        else {
                             colorprint "Red" "Please answer yes or no."
                         }
                     }
                 }
             }
             catch {
-                Write-Output "Proceeding with the Docker installation..."
+                print_and_log "DEFAULT" "Proceeding with Docker installation."
             }
 
             Clear-Host
-            colorprint "Yellow" "Which version of Docker do you want to install?"
-            colorprint "Yellow" "1) Install Docker for Linux"
-            colorprint "Yellow" "2) Install Docker for Windows"
-            colorprint "Yellow" "3) Install Docker for MacOS"
+            print_and_log "Yellow" "Installing Docker for $script:OS_TYPE"
             $InstallStatus = $false;
-            $OSSel = Read-Host
-            Switch ($OSSel) {
-                1 {
+            
+            Switch ($OSTYPE) {
+                "Linux" {
                     Clear-Host
                     colorprint "Yellow" "Starting Docker for linux auto installation script"
                     $ProgressPreference = 'SilentlyContinue'
@@ -306,7 +437,7 @@ function fn_dockerInstall {
                     sudo sh get-docker.sh;
                     $InstallStatus = $true;
                 }
-                2 {
+                "Windows" {
                     Clear-Host
                     colorprint "Yellow" "Starting Docker for Windows auto installation script"
                     $ProgressPreference = 'SilentlyContinue'
@@ -315,7 +446,7 @@ function fn_dockerInstall {
                     Start-Process PowerShell -Verb RunAs "-noprofile -executionpolicy bypass -command `"$SCRIPTS_DIR\install-docker-win.ps1 -filesPath $FILES_DIR`"" -Wait
                     $InstallStatus = $true;              
                 }
-                3 {
+                "MacOS" {
                     Clear-Host
                     colorprint "Yellow" "Starting Docker for MacOS auto installation script"  
                     $ProgressPreference = 'SilentlyContinue'
@@ -334,7 +465,7 @@ function fn_dockerInstall {
                             Start-Process PowerShell -Verb RunAs "-noprofile -executionpolicy bypass -command `"$SCRIPTS_DIR\install-docker-mac.ps1 -filesPath $FILES_DIR -IntelCPU `"" -Wait
                             $InstallStatus = $true;
                         }
-                        Default { fn_unknown "$cpuSel"}
+                        Default { fn_unknown "$cpuSel" }
                     }
                     
                 }
@@ -403,7 +534,8 @@ function fn_setupNotifications() {
             colorprint "DEFAULT" "Notifications setup complete. If the link is correct, you will receive a notification for each update made on the app container images."
             Read-Host -p "Press enter to continue"
             break
-        } else {
+        }
+        else {
             colorprint "Red" "Invalid link format. Please make sure to use the correct format."
             while ($true) {
                 colorprint "Yellow" "Do you wish to try again or leave the notifications disabled and continue with the setup script? (Yes to try again, No to continue without notifications) Y/N?"
@@ -411,9 +543,11 @@ function fn_setupNotifications() {
                 $yn = $yn.ToLower()
                 if ($yn -eq 'y' -or $yn -eq 'yes') {
                     break
-                } elseif ($yn -eq 'n' -or $yn -eq 'no') {
+                }
+                elseif ($yn -eq 'n' -or $yn -eq 'no') {
                     return
-                } else {
+                }
+                else {
                     colorprint "Red" "Please answer yes or no."
                 }
             }
@@ -446,11 +580,11 @@ This function has been tested until v 2.0.0. The new version has not been tested
 #>
 function fn_setupApp {
     param (
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [string]$app,
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [string]$image,
-        [Parameter(Mandatory=$false)]
+        [Parameter(Mandatory = $false)]
         [string[]]$flags
     )
     $APP_NAME = $app
@@ -469,48 +603,50 @@ function fn_setupApp {
     #Write-Output "passed parameters: APP: $app, IMG: $image, FLAGS: $flags"
     #Read-Host -Prompt "This is for debug Press enter to continue"
     $CURRENT_APP = $APP_NAME
-    if($app){ (Get-content $script:DKCOM_FILENAME) -replace "#${CURRENT_APP}_ENABLE", "" | Set-Content $script:DKCOM_FILENAME }
+    if ($app) { (Get-content $script:DKCOM_FILENAME) -replace "#${CURRENT_APP}_ENABLE", "" | Set-Content $script:DKCOM_FILENAME }
 
-    for($i = 0; $i -lt $flags.Count; $i++) {
-        switch($flags[$i]){
-            "--email" {$email = $true}
-            "--password" {$password = $true}
-            "--apikey" {$apikey = $true}
-            "--userid" {$userid = $true}
-            "--uuid" {$uuid = $true}
-            "--cid" {$cid = $true}
-            "--token" {$token = $true}
+    for ($i = 0; $i -lt $flags.Count; $i++) {
+        switch ($flags[$i]) {
+            "--email" { $email = $true }
+            "--password" { $password = $true }
+            "--apikey" { $apikey = $true }
+            "--userid" { $userid = $true }
+            "--uuid" { $uuid = $true }
+            "--cid" { $cid = $true }
+            "--token" { $token = $true }
             "--customScript" {
-                $customScript = $flags[$i+1] # consider the element after --customScript as the script name
+                $customScript = $flags[$i + 1] # consider the element after --customScript as the script name
                 $i++ # increment the index to skip the next element
             }
-            "--manual" {$manual = $true}
-            default {colorprint "RED" "Unknown flag: $($flags[$i])"}
+            "--manual" { $manual = $true }
+            default { colorprint "RED" "Unknown flag: $($flags[$i])" }
         }
     }
     
     if ($email) {
-        while($true) {
+        while ($true) {
             colorprint "GREEN" "Enter your ${CURRENT_APP} Email:"
             $APP_EMAIL = Read-Host
             if ($APP_EMAIL -match '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[a-zA-Z]{2,}$') {
                 (Get-Content .env) -replace "your${CURRENT_APP}Mail", $APP_EMAIL | Set-Content .env
                 break
-            } else {
+            }
+            else {
                 colorprint "RED" "Invalid email address. Please try again."
             }
         }
     }
 
     if ($password) {
-        while($true) {
+        while ($true) {
             colorprint "DEFAULT" "Note: If you are using login with Google, remember to set also a password for your ${CURRENT_APP} account!"
             colorprint "GREEN" "Enter your ${CURRENT_APP} Password:"
             $APP_PASSWORD = Read-Host
             if ($APP_PASSWORD) {
                 (Get-Content .env) -replace "your${CURRENT_APP}Pw", $APP_PASSWORD | Set-Content .env
                 break
-            } else {
+            }
+            else {
                 colorprint "RED" "Password cannot be empty. Please try again."
             }
         }
@@ -535,14 +671,14 @@ function fn_setupApp {
         $SALT = "$script:DEVICE_NAME$((Get-Random))"
         $UUID = New-Object System.Security.Cryptography.MD5CryptoServiceProvider
         $hash = $UUID.ComputeHash([System.Text.Encoding]::ASCII.GetBytes($SALT))
-        $UUID = ([System.BitConverter]::ToString($hash) -replace '-','')
-        while($true) {
+        $UUID = ([System.BitConverter]::ToString($hash) -replace '-', '')
+        while ($true) {
             colorprint "YELLOW" "Do you want to use a previously registered sdk-node-uuid for ${CURRENT_APP}? (yes/no)"
             $USE_EXISTING_UUID = Read-Host
             $USE_EXISTING_UUID = $USE_EXISTING_UUID.ToLower()
         
             if ($USE_EXISTING_UUID -eq "yes" -or $USE_EXISTING_UUID -eq "y") {
-                while($true) {
+                while ($true) {
                     colorprint "GREEN" "Please enter the 32 char long alphanumeric part of the existing sdk-node-uuid for ${CURRENT_APP}:"
                     colorprint "DEFAULT" "E.g. if existing registered node is sdk-node-b86301656baefekba8917349bdf0f3g4 then enter just b86301656baefekba8917349bdf0f3g4"
                     $EXISTING_UUID = Read-Host
@@ -552,15 +688,18 @@ function fn_setupApp {
                         $TRY_AGAIN = Read-Host
                         $TRY_AGAIN = $TRY_AGAIN.ToLower()
                         if ($TRY_AGAIN -eq "no" -or $TRY_AGAIN -eq "n") { break }
-                    } else {
+                    }
+                    else {
                         $UUID = $EXISTING_UUID
                         break
                     }
                 }
                 break
-            } elseif ($USE_EXISTING_UUID -eq "no" -or $USE_EXISTING_UUID -eq "n") {
+            }
+            elseif ($USE_EXISTING_UUID -eq "no" -or $USE_EXISTING_UUID -eq "n") {
                 break
-            } else {
+            }
+            else {
                 colorprint "RED" "Please answer yes or no."
             }
         }   
@@ -593,53 +732,56 @@ function fn_setupApp {
             Set-Content $SCRIPT_PATH -Value (Get-Content $SCRIPT_PATH) -Encoding UTF8
             colorprint "DEFAULT" "Executing custom script: $SCRIPT_NAME"
             Start-Process PowerShell -Verb RunAs "-noprofile -executionpolicy bypass -command `"cd '$pwd'; & '$SCRIPT_PATH';`"" -wait
-        } else {
+        }
+        else {
             colorprint "RED" "Custom script '$SCRIPT_NAME' not found in the scripts directory."
         }
     }
-    if($manual){
+    if ($manual) {
         colorprint "DEFAULT" "${CURRENT_APP} requires further manual configuration."
         colorprint "DEFAULT" "Please after completing this automated setup follow the manual steps described on the app's website."
     }
     # App Docker image architecture adjustments
     $TAG = 'latest'
 
-# Ensure $supported_tags is an array
-$supported_tags = @()
+    # Ensure $supported_tags is an array
+    $supported_tags = @()
 
-# Send a request to DockerHub for a list of tags
-$page_index = 1
-$page_size = 500
-$ProgressPreference = 'SilentlyContinue'
-$json = Invoke-WebRequest -Uri "https://registry.hub.docker.com/v2/repositories/${APP_IMAGE}/tags?page=${page_index}&page_size=${page_size}" -UseBasicParsing | ConvertFrom-Json
-$ProgressPreference = 'Continue'
+    # Send a request to DockerHub for a list of tags
+    $page_index = 1
+    $page_size = 500
+    $ProgressPreference = 'SilentlyContinue'
+    $json = Invoke-WebRequest -Uri "https://registry.hub.docker.com/v2/repositories/${APP_IMAGE}/tags?page=${page_index}&page_size=${page_size}" -UseBasicParsing | ConvertFrom-Json
+    $ProgressPreference = 'Continue'
 
-# Filter out the tags that do not support the specified architecture
-$json.results | ForEach-Object {
-    $ntag = $_.name
-    if (($_.images | Where-Object { $_.architecture -eq $DKARCH })) {
-        $supported_tags += $ntag
+    # Filter out the tags that do not support the specified architecture
+    $json.results | ForEach-Object {
+        $ntag = $_.name
+        if (($_.images | Where-Object { $_.architecture -eq $DKARCH })) {
+            $supported_tags += $ntag
+        }
     }
-}
 
-# Check if there are any tags that support the given architecture
-if ($supported_tags) {
-    colorprint "default" "There are $($supported_tags.Count) tags supporting $DKARCH arch for this image"
-    colorprint "default" "Let's see if $TAG tag is in there"
+    # Check if there are any tags that support the given architecture
+    if ($supported_tags) {
+        colorprint "default" "There are $($supported_tags.Count) tags supporting $DKARCH arch for this image"
+        colorprint "default" "Let's see if $TAG tag is in there"
         
-    # Check if 'latest' tag is among them
-    if ($supported_tags -contains $TAG) {
-        colorprint "green" "OK, $TAG tag present and it supports $DKARCH arch, nothing to do"
-    } else {
-        colorprint "yellow" "$TAG tag does not support $DKARCH arch but other tags do, the newer tag supporting $DKARCH will be selected"
-        # Replace 'latest' tag with the first one that supports the given architecture in your Docker compose file
-        $newTag = $supported_tags[0]
+        # Check if 'latest' tag is among them
+        if ($supported_tags -contains $TAG) {
+            colorprint "green" "OK, $TAG tag present and it supports $DKARCH arch, nothing to do"
+        }
+        else {
+            colorprint "yellow" "$TAG tag does not support $DKARCH arch but other tags do, the newer tag supporting $DKARCH will be selected"
+            # Replace 'latest' tag with the first one that supports the given architecture in your Docker compose file
+            $newTag = $supported_tags[0]
         (Get-Content $script:DKCOM_FILENAME).replace("${APP_IMAGE}:$TAG", "${APP_IMAGE}:$newTag") | Set-Content $DKCOM_FILENAME
+        }
     }
-} else {
-    colorprint "yellow" "No native image tag found for $DKARCH arch, emulation layer will try to run this app image anyway."
-    #colorprint "default" "If an emulation layer is not already installed, the script will try to install it now. Please provide your sudo password if prompted."
-}
+    else {
+        colorprint "yellow" "No native image tag found for $DKARCH arch, emulation layer will try to run this app image anyway."
+        #colorprint "default" "If an emulation layer is not already installed, the script will try to install it now. Please provide your sudo password if prompted."
+    }
     
     Write-Host "$app configuration complete, press enter to continue to the next app"
     Read-Host
@@ -994,7 +1136,8 @@ function fn_checkDependencies() {
         #colorprint "YELLOW" "Now a small useful package named JQ used to manage JSON files will be installed if not already present"
         #colorprint "YELLOW" "Please, if prompted, enter your sudo password to proceed"
         #fn_install_packages "jq"
-    } else {
+    }
+    else {
         colorprint "BLUE" "Done, script ready to go"
     }
 }
