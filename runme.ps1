@@ -20,11 +20,11 @@ $DEBUG_LOG = "debug_$SCRIPT_NAME.log"
 $ENV_SRC = 'https://github.com/MRColorR/money4band/raw/main/.env'
 # Env file default #
 $DEVICE_NAME_PLACEHOLDER = 'yourDeviceName'
-$DEVICE_NAME = 'yourDeviceName'
+$script:DEVICE_NAME = 'yourDeviceName'
 # Proxy config #
-$PROXY_CONF = 'false'
-$CURRENT_PROXY = ''
-$NEW_STACK_PROXY = ''
+$script:PROXY_CONF = $false
+$script:STACK_PROXY = ''
+$script:NEW_STACK_PROXY = ''
 
 ## Config file related constants and variables ##
 $CONFIG_JSON_FILE = "config.json"
@@ -47,11 +47,32 @@ $script:SCRIPTS_DIR = "$RESOURCES_DIR\.scripts"
 $script:FILES_DIR = "$RESOURCES_DIR\.files"
 
 ## Architecture and OS related constants and variables ##
-# Architecture default #
+# Architecture default. Also define a map for the recognized architectures #
+
 $script:ARCH = 'unknown'
 $script:DKARCH = 'unknown'
-# OS default #
+$arch_map = @{
+    "x86_64"  = "amd64";
+    "amd64"   = "amd64";
+    "aarch64" = "arm64";
+    "arm64"   = "arm64";
+    "x86"     = "x86";
+}
+
+# OS default. Also define a map for the recognized OSs #
 $script:OS_TYPE = 'unknown'
+# Define the OS type map
+$os_map = @{
+    "win32nt" = "Windows"
+    "windows_nt" = "Windows"
+    "windows" = "Windows"
+    "linux"   = "Linux";
+    "darwin"  = "Mac";
+    "cygwin"  = "Cygwin";
+    "mingw"   = "MinGw";
+    "msys"    = "Msys";
+    "freebsd" = "FreeBSD";
+}
 
 ## Colors ##
 # Colors used inside the script #
@@ -63,13 +84,13 @@ $colors = @{
     "yellow"  = [System.ConsoleColor]::Yellow
     "magenta" = [System.ConsoleColor]::Magenta
     "cyan"    = [System.ConsoleColor]::Cyan
+    "purple"  = [System.ConsoleColor]::DarkMagenta
 }
 
 # Color functions #
 function colorprint($color, $text) {
     $color = $color.ToLower()
     $prevColor = [System.Console]::ForegroundColor
-
     if ($colors.ContainsKey($color)) {
         [System.Console]::ForegroundColor = $colors[$color]
         Write-Output $text
@@ -79,71 +100,110 @@ function colorprint($color, $text) {
     }
 }
 
-# Function to print an error message and write it to the debug log file #
-function errorprint_and_log($text) {
-    Write-Error $text
-    debug [DateTime]::Now.ToString("yyyy-MM-dd HH:mm:ss") + " - [ERROR]: $text"
+# Function to manage unexpected choices of flags #
+function fn_unknown($REPLY) {
+    colorprint "Red" "Unknown choice $REPLY, please choose a valid option"
 }
 
-
-
-
-
-### Env file default ###
-$script:DEVICE_NAME = 'yourDeviceName'
-
-### Proxy config ###
-$script:PROXY_CONF = $false
-$script:STACK_PROXY = ''
-
-### Functions ###
+# Function to exit the script gracefully #
 function fn_bye {
     colorprint "Green" "Share this app with your friends thank you!"
-    colorprint "Green" "Exiting the application...Bye!Bye!"
+    print_and_log "Green" "Exiting the application...Bye!Bye!"
     exit 0
 }
 
+### Log, Update and Utility functions ###
+## Enable or disable logging using debug mode ##
+# Check if the first argument is -d or --debug if so, enable debug mode
+if ($args[0] -eq '-d' -or $args[0] -eq '--debug') {
+    $script:DEBUG = $true
+    # shift the arguments array to remove the debug flag consumed
+    $args = $args[1..$args.Length]
+    debug "[DEBUG]: Debug mode enabled."
+} else {
+    $script:DEBUG = $false
+}
+
+# Function to write debug messages to the debug log file #
+function debug($text) {
+    if ($script:DEBUG) {
+        [DateTime]::Now.ToString("yyyy-MM-dd HH:mm:ss") + " - $text" | Out-File -FilePath $script:DEBUG_LOG -Append
+    }
+}
+
+# Function to print an info message that will be also logged to the debug log file #
+function print_and_log($color, $message) {
+    colorprint $color $message
+    debug "[INFO]: $message"
+}
+
+# Function to print an error message and write it to the debug log file #
+function errorprint_and_log($text) {
+    Write-Error $text
+    debug "[ERROR]: $text"
+}
+
+# Function to print criticals errors that will stop the script execution, write them to the debug log file and exit the script with code 1 #
 function fn_fail($text) {
     errorprint_and_log $text
     Read-Host -Prompt "Press Enter to exit..."
     exit 1
 }
 
-function fn_unknown($REPLY) {
-    colorprint "Red" "Unknown choice $REPLY, please choose a valid option"
+## Utility functions ##
+# Function to detect OS
+function detect_os {
+    debug "Detecting OS..."
+    try {
+        if ($PSVersionTable.Platform) {
+            $OSStr = $PSVersionTable.Platform.ToString().ToLower()
+        } elseif ($env:OS) {
+            $OSStr = $env:OS.ToString().ToLower()
+        } else {
+            $OSStr = (uname -s).ToLower()
+        }
+        # check if OSStr contains any known OS substring
+        $script:OS_TYPE = $os_map.Keys | Where-Object { $OSStr.Contains($_) } | Select-Object -First 1
+    } catch {
+        debug "Neither PS OS detection commands nor uname were found, OS detection failed. OS type will be set to 'unknown'."
+        $script:OS_TYPE = 'unknown'        
+    }
+    debug "OS type detected: $script:OS_TYPE"
 }
 
-### Sub-menu Functions
-function fn_showLinks {
-    Clear-Host
-    colorprint "Green" "Use CTRL+Click to open links or copy them:"
+# Function to detect OS architecture and set the relative Docker architecture
+function detect_architecture {
+    debug "Detecting system architecture..."
+    try {
+        # Try to use the new PowerShell command
+        if (Get-Command 'System.Runtime.InteropServices.RuntimeInformation::OSArchitecture' -ErrorAction SilentlyContinue) {
+            $archStr = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString().ToLower()
+        } 
+        # Fallback to using uname if on a Unix-like system
+        elseif (Get-Command 'uname' -ErrorAction SilentlyContinue) {
+            $archStr = (uname -m).ToLower()
+        } 
+        # Final fallback to older PowerShell/Windows method
+        else {
+            $archStr = $env:PROCESSOR_ARCHITECTURE.ToLower()
+        }
 
-    $configPath = Join-Path -Path $CONFIG_DIR -ChildPath 'config.json'
-    $configData = Get-Content -Path $configPath -Raw | ConvertFrom-Json
-
-    foreach ($app in $configData.apps) {
-        $displayString = "$($app.name) | $($app.link)"
-        colorprint "Cyan" $displayString
+        $script:ARCH = $archStr
+        $script:DKARCH = $arch_map[$archStr]
+        if ($null -eq $script:DKARCH) {
+            $script:DKARCH = "unknown"
+        }
+    } catch {
+        debug "Neither PS arch detection commands nor uname were found, architecture detection failed. Architecture will be set to 'unknown'."
+        $script:ARCH = 'unknown'
+        $script:DKARCH = 'unknown'
     }
 
-    Read-Host -Prompt "Press Enter to go back to mainmenu"
+    debug "System architecture detected: $script:ARCH, Docker architecture has been set to $script:DKARCH"
 }
-<#
-.SYNOPSIS
-An experimanetal function that provide support for installing packages using Chocolatey
 
-.DESCRIPTION
-An experimanetal function that provide support for installing packages using Chocolatey. If chocolatey is not installed it will be installed automatically.
 
-.PARAMETER REQUIRED_PACKAGES
-A list of packages to install using Chocolatey
-
-.EXAMPLE
-fn_install_packages -REQUIRED_PACKAGES "git","curl"
-
-.NOTES
-This function has not been tested yes and is not used in the script yet but could be used in the future
-#>
+# experimanetal function that provide support for installing packages using Chocolatey
 function fn_install_packages {
     param(
         [Parameter(Mandatory=$true)]
@@ -171,6 +231,22 @@ function fn_install_packages {
     }
 }
 
+### Sub-menu Functions ###
+# Shows the liks of the apps
+function fn_showLinks {
+    Clear-Host
+    colorprint "Green" "Use CTRL+Click to open links or copy them:"
+
+    $configPath = Join-Path -Path $CONFIG_DIR -ChildPath 'config.json'
+    $configData = Get-Content -Path $configPath -Raw | ConvertFrom-Json
+
+    foreach ($app in $configData.apps) {
+        $displayString = "$($app.name) | $($app.link)"
+        colorprint "Cyan" $displayString
+    }
+
+    Read-Host -Prompt "Press Enter to go back to mainmenu"
+}
 <#
 .SYNOPSIS
 Function that will attempt to install Docker on different OSs
@@ -937,27 +1013,17 @@ Just call mainmenu
 This function has been tested until v 2.0.0. The new version has not been tested as its assume that the logic is the same as the previous one just more refined.
 #>
 function mainmenu {
-    Clear-Host
-    # Detect OS architecture
-    $script:ARCH = $env:PROCESSOR_ARCHITECTURE.ToLower()
-    if ($script:ARCH -eq "x86_64") {
-        $script:DKARCH = 'amd64'
-    } elseif ($script:ARCH -eq "aarch64") {
-        $script:DKARCH = 'arm64'
-    } else {
-        $script:DKARCH = $script:ARCH
-    }
-
-    
+    Clear-Host       
     $options = @("Show supported apps' links", "Install Docker", "Setup .env file", "Start apps stack", "Stop apps stack", "Reset .env File", "Reset $($script:DKCOM_FILENAME) file", "Quit")
     
     Do {
         Clear-Host
-        colorprint "GREEN" "MONEY4BAND AUTOMATIC GUIDED SETUP"
-        colorprint "GREEN" "--------------------------------- "
-        colorprint "DEFAULT" "Detected OS architecture $($script:ARCH)"
+        colorprint "GREEN" "MONEY4BAND AUTOMATIC GUIDED SETUP v$script:SCRIPT_VERSION"
+        colorprint "GREEN" "------------------------------------------ "
+        colorprint "DEFAULT" "Detected OS type: $($script:OS_TYPE)"
+        colorprint "DEFAULT" "Detected architecture $($script:ARCH)"
         colorprint "DEFAULT" "Docker $($script:DKARCH) image architecture will be used if the app's image permits it"
-        colorprint "DEFAULT" "--------------------------------- "
+        colorprint "DEFAULT" "------------------------------------------ "
         for ($i = 0; $i -lt $options.Length; $i++) {
             Write-Output "$($i + 1)) $($options[$i])"
         }
@@ -979,7 +1045,18 @@ function mainmenu {
     While ($Select -ne $options.Length)
 }
 
-# Startup
+### Startup ##
+debug "Starting $script:SCRIPT_NAME v$script:SCRIPT_VERSION"
 Clear-Host
+
+# Detect the operating system
+detect_os
+
+# Detect the architecture and set the correct docker image architecture
+detect_architecture
+
+# Check dependencies
 fn_checkDependencies
+
+# Start the main menu
 mainmenu

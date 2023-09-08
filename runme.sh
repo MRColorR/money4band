@@ -4,10 +4,13 @@
 ## Script variables ##
 # Script version #
 readonly SCRIPT_VERSION="2.2.0" # used for checking updates
+
 # Script name #
 readonly SCRIPT_NAME=$(basename "$0") # save the script name in a variable not the full path
+
 # Script URL for update #
 readonly UPDATE_SCRIPT_URL="https://raw.githubusercontent.com/MRColorR/money4band/main/${SCRIPT_NAME}"
+
 # Script debug log file #
 readonly DEBUG_LOG="debug_${SCRIPT_NAME}.log"
 
@@ -38,36 +41,65 @@ readonly SCRIPTS_DIR="$RESOURCES_DIR/.scripts"
 readonly FILES_DIR="$RESOURCES_DIR/.files"
 
 ## Architecture and OS related constants and variables ##
-# Architecture default #
+# Architecture default. Also define a map for the recognized architectures #
 ARCH='unknown'
 DKARCH='unknown'
-# OS default #
+declare -A arch_map=(
+    ["x86_64"]="amd64"
+    ["amd64"]="amd64"
+    ["aarch64"]="arm64"
+    ["arm64"]="arm64"
+)
+# OS default. Also define a map for the recognized OSs #
 OS_TYPE='unknown'
+declare -A os_map=(
+    ["win32nt"]="Windows"
+    ["windows_nt"]="Windows"
+    ["windows"]="Windows"
+    ["linux"]="Linux"
+    ["darwin"]="MacOS"
+    ["macos"]="MacOS"
+    ["macosx"]="MacOS"
+    ["mac"]="MacOS"
+    ["osx"]="MacOS"    
+    ["cygwin"]="Cygwin"
+    ["mingw"]="MinGw"
+    ["msys"]="Msys"
+    ["freebsd"]="FreeBSD"
+)
 
 ## Colors ##
 # Colors used inside the script #
 ESC=$(printf '\033') DEFAULT="${ESC}[0m"
-declare -A colors=( [GREEN]="${ESC}[32m" [BLUE]="${ESC}[34m" [RED]="${ESC}[31m" [YELLOW]="${ESC}[33m" [MAGENTA]="${ESC}[35m" [CYAN]="${ESC}[36m" [PURPLE]="${ESC}[35;1m" [DEFAULT]="${ESC}[0m")
+declare -A colors=( 
+    [DEFAULT]="${ESC}[0m" 
+    [GREEN]="${ESC}[32m" 
+    [BLUE]="${ESC}[34m" 
+    [RED]="${ESC}[31m" 
+    [YELLOW]="${ESC}[33m" 
+    [MAGENTA]="${ESC}[35m" 
+    [CYAN]="${ESC}[36m" 
+    [PURPLE]="${ESC}[35;1m" 
+    )
+
 # Color functions #
-colorprint() { printf "${colors[$1]}%s${DEFAULT}\n" "$2"; }
-# Function to print an error message and write it to the debug log file #
-errorprint_and_log() {
-    printf "%s\n" "$1" >&2
-    debug "$(date +'%Y-%m-%d %H:%M:%S') - [ERROR]: $1"
+colorprint() {
+    if [[ -n "${colors[$1]}" ]]; then
+        printf "${colors[$1]}%s${DEFAULT}\n" "$2"
+    else
+        printf "Unknown color: $1. Available colors are: ${!colors[@]}\n"
+    fi
 }
-# Function to print criticals errors that will stop the script and make it exit with error code 1 #
-fn_fail() {
-    errorprint_and_log "$1"
-    read -p "Press Enter to exit..."
-    exit 1
-}
+
 # Function to manage unexpected choices of flags #
-fn_unknown() { colorprint "RED" "Unknown choice $REPLY, please choose a valid option"; }
+fn_unknown() { 
+    colorprint "RED" "Unknown choice $REPLY, please choose a valid option"; 
+    }
+
 # Function to exit the script gracefully #
 fn_bye(){
     colorprint "GREEN" "Share this app with your friends thank you!"
-    colorprint "GREEN" "Exiting the application...Bye!Bye!"
-    debug "Exiting the application...Bye!Bye!"
+    print_and_log "GREEN" "Exiting the application...Bye!Bye!"
     exit 0
 }
 
@@ -78,12 +110,15 @@ if [[ $1 == '-d' || $1 == '--debug' ]]; then
     DEBUG=true
     # Remove the first argument so it doesn't interfere with the rest of the script
     shift
+    debug "[DEBUG]: Debug mode enabled."
+else
+    DEBUG=false
 fi
 
 # Function to write debug messages to the debug log file #
 debug() {
     if [ $DEBUG ]; then
-        echo "[DEBUG] $@" >> "$DEBUG_LOG"
+        echo "$(date +'%Y-%m-%d %H:%M:%S') - $@" >> "$DEBUG_LOG"
     fi
 }
 # Function to print an info message that will be also logged to the debug log file #
@@ -91,35 +126,63 @@ print_and_log() {
     local color="$1"
     local message="$2"
     colorprint "$color" "$message"
-    debug "$message"
+    debug "[INFO]: $message"
+}
+
+# Function to print an error message and write it to the debug log file #
+errorprint_and_log() {
+    printf "%s\n" "$1" >&2
+    debug "[ERROR]: $1"
+}
+
+# Function to print criticals errors that will stop the script execution, write them to the debug log file and exit the script with code 1 #
+fn_fail() {
+    errorprint_and_log "$1"
+    read -p "Press Enter to exit..."
+    exit 1
 }
 
 ## Utility functions ##
-# Function to check the OS type #
-detect_os_type() {
-    debug "Checking OS type..."
-    unameOut="$(uname -s)"
-    case "${unameOut}" in
-        Linux*)     OS_TYPE="Linux" ; echo "Linux" ;;
-        Darwin*)    OS_TYPE="Mac" ; echo "Mac" ;;
-        CYGWIN*)    OS_TYPE="Cygwin" ; echo "Cygwin" ;;
-        MINGW*)     OS_TYPE="MinGw" ; echo "MinGw" ;;
-        MSYS*)      OS_TYPE="Msys" ; echo "Msys" ;;
-        FreeBSD*)   OS_TYPE="FreeBSD" ; echo "FreeBSD" ;;
-        *)          OS_TYPE="unknown" echo "unknown" ;;
-    esac
+# Function to detect OS
+detect_os() {
+    debug "Detecting OS..."
+    if ! command -v uname -s &> /dev/null; then
+        debug "uname command not found, OS detection failed. OS type will be set to 'unknown'."
+        OS_TYPE="unknown"
+    else
+        OSStr="$(uname -s | tr '[:upper:]' '[:lower:]')"  # Convert to lowercase
+        # Use a for loop to check if OSStr contains any known OS substring
+        for key in "${!os_map[@]}"; do
+            if [[ $OSStr == *"$key"* ]]; then
+                OS_TYPE="${os_map[$key]}"
+                break
+            else
+                OS_TYPE="unknown"
+            fi
+        done
+    fi
     debug "OS type detected: $OS_TYPE"
 }
-# Function to detect OS architecture and set the relative docker architecture #
+
+# Function to detect OS architecture and set the relative Docker architecture
 detect_architecture() {
     debug "Detecting system architecture..."
-    ARCH=$(uname -m)
-    if [ "$ARCH" == "x86_64" ]; then 
-        DKARCH='amd64'
-    elif [ "$ARCH" == "aarch64" ]; then
-        DKARCH='arm64'
-    else 
-        DKARCH=$ARCH
+    if ! command -v uname -m &> /dev/null; then
+        debug "uname command not found, architecture detection failed. Architecture will be set to 'unknown'."
+        ARCH="unknown"
+        DKARCH="unknown"
+    else
+        archStr=$(uname -m | tr '[:upper:]' '[:lower:]')  # Convert to lowercase
+        # Use a for loop to check if archStr contains any known architecture substring
+        for key in "${!arch_map[@]}"; do
+            if [[ $archStr == *"$key"* ]]; then
+                ARCH="${archStr}"
+                DKARCH="${arch_map[$key]}"
+                break
+            else
+                DKARCH="unknown"
+            fi
+        done
     fi
     debug "System architecture detected: $ARCH, Docker architecture has been set to $DKARCH"
 }
@@ -170,7 +233,7 @@ fn_install_packages() {
                 print_and_log "DEFAULT" "$package is already installed."
             fi
         done
-    elif [[ "$OS_TYPE" == "macOS" ]]; then
+    elif [[ "$OS_TYPE" == "MacOS" ]]; then
         if ! command -v brew &> /dev/null; then
             print_and_log "DEFAULT" "Homebrew is not installed. Trying to install now..."
             /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
@@ -287,6 +350,7 @@ fn_addDockerBinfmtSVC() {
 }
 
 ### Sub-menu Functions ###
+# Shows the liks of the apps
 fn_showLinks() {
     debug "Showing apps links"
     clear
@@ -978,14 +1042,18 @@ mainmenu() {
 }
 
 ### Startup ##
-debug "${SCRIPT_NAME} v${SCRIPT_VERSION} started"
+debug "Starting ${SCRIPT_NAME} v${SCRIPT_VERSION}"
 clear
-# Check the operating system
-detect_os_type
-# Check the system architecture and set the related docker architecture
+
+# Detect the operating system
+detect_os
+
+# Detect the architecture and set the correct docker image architecture
 detect_architecture
-#check dependencies
+
+# Check dependencies
 fn_checkDependencies
+
 # Start the main menu
 debug "Starting main menu..."
 while true; do
