@@ -52,6 +52,7 @@ Using your preferred method get the latest version of this project and unzip it.
 | Go to [PROXYRACK](https://peer.proxyrack.com/ref/myoas6qttvhuvkzh8ffx90ns1ouhwgilfgamo5ex)  | :white_check_mark:	  | :white_check_mark: |500|1|
 | Go to [PROXYLITE](https://proxylite.ru/?r=PJTKXWN3) | :white_check_mark:	  | :white_check_mark: |Unlimited|1|
 | Go to [BITPING](https://app.bitping.com?r=qm7mIuX3) | :white_check_mark:	  | :white_check_mark: |Unlimited|1|
+| Go to [MYSTNODE](https://mystnodes.com/onboarding) | :white_check_mark:	  | :white_check_mark: |Unlimited|Unlimited|
 
 ### 3):technologist: Complete the automatic guided setup using runme.sh or runme.ps1
 * (On linux) open a terminal in the project folder or navigate to it then use the following commands to add execute permission and run the guided script to configure the .env file and then start the stack:
