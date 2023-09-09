@@ -16,7 +16,7 @@ This Docker Stack should work on anything that may have docker installed. In par
 | on device | Desktop/Laptop PC | Desktop/Laptop PC | Raspberry Pi3/Pi4 | _not tested_ | _not tested_ |
 
 :green_circle:: All functions supported, Auto/manual setup supported
-:yellow_circle:: Some functions supported, Manual setup supported
+:yellow_circle:: All functions supported but not tested, Auto/manual setup supported
 
 ### Prerequisites
 - A 64-bit operating system is strongly recommended.
