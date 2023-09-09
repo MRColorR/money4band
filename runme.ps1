@@ -430,10 +430,10 @@ function fn_dockerInstall {
             }
 
             Clear-Host
-            print_and_log "Yellow" "Installing Docker for $script:OS_TYPE"
+            print_and_log "Yellow" "Installing Docker for $script:OS_TYPE."
             $InstallStatus = $false;
             
-            Switch ($OSTYPE) {
+            Switch ($script:OS_TYPE) {
                 "Linux" {
                     Clear-Host
                     print_and_log "Yellow" "Starting Docker for Linux auto installation script"
