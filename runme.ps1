@@ -23,11 +23,11 @@ $DEVICE_NAME_PLACEHOLDER = 'yourDeviceName'
 $script:DEVICE_NAME = 'yourDeviceName'
 # Proxy config #
 $script:PROXY_CONF = $false
-$script:STACK_PROXY = ''
+$script:CURRENT_PROXY = ''
 $script:NEW_STACK_PROXY = ''
 
 ## Config file related constants and variables ##
-$CONFIG_JSON_FILE = "config.json"
+$script:CONFIG_JSON_FILE = "config.json"
 
 ## Docker compose related constants and variables ##
 # docker compose yaml file name #
@@ -39,6 +39,10 @@ $DKCOM_SRC = "https://github.com/MRColorR/money4band/raw/main/$DKCOM_FILENAME"
 $DKINST_WIN_SRC = 'https://github.com/MRColorR/money4band/raw/main/.resources/.scripts/install-docker-win.ps1'
 ### Docker installer script for Mac source link ##
 $DKINST_MAC_SRC = 'https://github.com/MRColorR/money4band/raw/main/.resources/.scripts/install-docker-mac.ps1'
+
+## Dashboard related constants and variables ##
+# Dashboard URL #
+$script:DASHBOARD_URL = 'http://localhost:8081/'
 
 ### Resources, Scripts and Files folders ###
 $script:RESOURCES_DIR = "$PWD\.resources"
@@ -170,7 +174,7 @@ function detect_os {
             $OSStr = (uname -s).ToLower()
         }
         # check if OSStr contains any known OS substring
-        $script:OS_TYPE = $os_map.Keys | Where-Object { $OSStr.Contains($_) } | Select-Object -First 1
+        $script:OS_TYPE = $os_map.Keys | Where-Object { $OSStr.Contains($_) } | Select-Object -First 1 | ForEach-Object { $os_map[$_] }
     }
     catch {
         debug "Neither PS OS detection commands nor uname were found, OS detection failed. OS type will be set to 'unknown'."
@@ -372,6 +376,7 @@ function fn_showLinks {
         }
     }
     Read-Host -Prompt "Press Enter to go back to mainmenu"
+    debug "Links shown, going back to main menu."
 }
 
 <#
@@ -403,10 +408,11 @@ function fn_dockerInstall {
                     debug "Docker is already installed. Asking user if he wants to continue with the installation anyway."
                     while ($true) {
                         colorprint "Yellow" "Docker seems to be installed already. Do you want to continue with the installation anyway? (Y/N)"
-                        $yn = (Read-Host -Prompt "").ToLower()
-                        if ($yn -eq 'n' -or $yn -eq 'no') {
+                        $yn = (Read-Host).ToLower()
+                        if ($yn -eq 'n' -or $yn -eq 'no'){
                             debug "User decided to abort the Docker re-install."
                             colorprint "Blue" "Returning to main menu..."
+                            sleep 1
                             return
                         }
                         elseif ($yn -eq 'y' -or $yn -eq 'yes' ) {
@@ -430,7 +436,7 @@ function fn_dockerInstall {
             Switch ($OSTYPE) {
                 "Linux" {
                     Clear-Host
-                    colorprint "Yellow" "Starting Docker for linux auto installation script"
+                    print_and_log "Yellow" "Starting Docker for Linux auto installation script"
                     $ProgressPreference = 'SilentlyContinue'
                     Invoke-WebRequest https://get.docker.com -o "$SCRIPTS_DIR/get-docker.sh"
                     $ProgressPreference = 'Continue'
@@ -439,7 +445,7 @@ function fn_dockerInstall {
                 }
                 "Windows" {
                     Clear-Host
-                    colorprint "Yellow" "Starting Docker for Windows auto installation script"
+                    print_and_log "Yellow" "Starting Docker for Windows auto installation script"
                     $ProgressPreference = 'SilentlyContinue'
                     Invoke-WebRequest $DKINST_WIN_SRC -o "$SCRIPTS_DIR\install-docker-win.ps1"
                     $ProgressPreference = 'Continue'
@@ -448,7 +454,7 @@ function fn_dockerInstall {
                 }
                 "MacOS" {
                     Clear-Host
-                    colorprint "Yellow" "Starting Docker for MacOS auto installation script"  
+                    print_and_log "Yellow" "Starting Docker for MacOS auto installation script"  
                     $ProgressPreference = 'SilentlyContinue'
                     Invoke-WebRequest $DKINST_MAC_SRC -o "$SCRIPTS_DIR\install-docker-mac.ps1"
                     $ProgressPreference = 'Continue'
@@ -470,7 +476,7 @@ function fn_dockerInstall {
                     
                 }
                 DEFAULT {
-                    fn_unknown "$OSSel"
+                    print_and_log "Red" "Your operating system (${OSTYPE}) has not been recognized or is not supported by this function. Please install Docker manually and then try again."
                 }
             }
             if ($InstallStatus) {
@@ -508,53 +514,78 @@ Just call fn_setupNotifications
 .NOTES
 This function has been tested until v 2.0.0. The new version has not been tested as its assume that the logic is the same as the previous one just more refined.
 #>
-function fn_setupNotifications() {
-    Clear-Host
-    colorprint "Yellow" "This step will setup notifications about containers updates using shoutrrr"
-    colorprint "Default" "The resulting SHOUTRRR_URL should have the format: <app>://<token>@<webhook>."
-    colorprint "Default" "Where <app> is one of the supported messaging apps on Shoutrrr (e.g. Discord), and <token> and <webhook> are specific to your messaging app."
-    colorprint "Default" "To obtain the SHOUTRRR_URL, create a new webhook for your messaging app and rearrange its URL to match the format above."
-    colorprint "Default" "For more details, visit https://containrrr.dev/shoutrrr/ and select your messaging app."
-    colorprint "Default" "Now a Discord notification setup example will be shown (Remember: you can also use a different supported app)."
-    Read-Host -Prompt "Press enter to continue"
-    Clear-Host
-    colorprint "Magenta" "Create a new Discord server, go to server settings > integrations, and create a webhook."
-    colorprint "Magenta" "Your Discord Webhook-URL will look like this: https://discordapp.com/api/webhooks/YourWebhookid/YourToken."
-    colorprint "Magenta" "To obtain the SHOUTRRR_URL, rearrange it to look like this: discord://YourToken@YourWebhookid."
-    Read-Host -Prompt "Press enter to proceed."
+function fn_setupNotifications {
     Clear-Host
     while ($true) {
-        colorprint "Yellow" "NOW INSERT BELOW THE LINK FOR NOTIFICATIONS using THE SAME FORMAT WRITTEN ABOVE e.g.: discord://yourToken@yourWebhookid"
-        $SHOUTRRR_URL = Read-Host
-        if ($SHOUTRRR_URL -match '^[a-zA-Z]+://') {
-            (Get-Content .\.env).replace('# SHOUTRRR_URL=yourApp:yourToken@yourWebHook', "SHOUTRRR_URL=$SHOUTRRR_URL") | Set-Content .\.env
-            (Get-Content .\$DKCOM_FILENAME).replace('# - WATCHTOWER_NOTIFICATIONS=shoutrrr', "  - WATCHTOWER_NOTIFICATIONS=shoutrrr") | Set-Content .\$DKCOM_FILENAME
-            (Get-Content .\$DKCOM_FILENAME).replace('# - WATCHTOWER_NOTIFICATION_URL', "  - WATCHTOWER_NOTIFICATION_URL") | Set-Content .\$DKCOM_FILENAME
-            (Get-Content .\$DKCOM_FILENAME).replace('# - WATCHTOWER_NOTIFICATIONS_HOSTNAME', "  - WATCHTOWER_NOTIFICATIONS_HOSTNAME") | Set-Content .\$DKCOM_FILENAME
-            colorprint "DEFAULT" "Notifications setup complete. If the link is correct, you will receive a notification for each update made on the app container images."
-            Read-Host -p "Press enter to continue"
-            break
-        }
-        else {
-            colorprint "Red" "Invalid link format. Please make sure to use the correct format."
+        
+    
+        colorprint "Yellow" "Do you wish to setup notifications about apps images updates (Yes to receive notifications and apply updates, No to just silently apply updates) Y/N?"
+        $yn = Read-Host
+        $yn = $yn.ToLower()
+        if ($yn -eq 'y' -or $yn -eq 'yes') {
+            debug "User decided to setup notifications about apps images updates."
+            colorprint "Yellow" "This step will setup notifications about containers updates using shoutrrr"
+            colorprint "Default" "The resulting SHOUTRRR_URL should have the format: <app>://<token>@<webhook>."
+            colorprint "Default" "Where <app> is one of the supported messaging apps on Shoutrrr (e.g. Discord), and <token> and <webhook> are specific to your messaging app."
+            colorprint "Default" "To obtain the SHOUTRRR_URL, create a new webhook for your messaging app and rearrange its URL to match the format above."
+            colorprint "Default" "For more details, visit https://containrrr.dev/shoutrrr/ and select your messaging app."
+            colorprint "Default" "Now a Discord notification setup example will be shown (Remember: you can also use a different supported app)."
+            Read-Host -Prompt "Press enter to continue"
+            Clear-Host
+            colorprint "Purple" "Create a new Discord server, go to server settings > integrations, and create a webhook."
+            colorprint "Purple" "Your Discord Webhook-URL will look like this: https://discordapp.com/api/webhooks/YourWebhookid/YourToken."
+            colorprint "Purple" "To obtain the SHOUTRRR_URL, rearrange it to look like this: discord://YourToken@YourWebhookid."
+            Read-Host -Prompt "Press enter to proceed."
+            Clear-Host
             while ($true) {
-                colorprint "Yellow" "Do you wish to try again or leave the notifications disabled and continue with the setup script? (Yes to try again, No to continue without notifications) Y/N?"
-                $yn = Read-Host
-                $yn = $yn.ToLower()
-                if ($yn -eq 'y' -or $yn -eq 'yes') {
+                colorprint "Yellow" "NOW INSERT BELOW THE LINK FOR NOTIFICATIONS using THE SAME FORMAT WRITTEN ABOVE e.g.: discord://yourToken@yourWebhookid"
+                $SHOUTRRR_URL = Read-Host
+                if ($SHOUTRRR_URL -match '^[a-zA-Z]+://') {
+                    # Replace the lines in .env and $DKCOM_FILENAME
+                    (Get-Content .\.env).replace('# SHOUTRRR_URL=', "SHOUTRRR_URL=") | Set-Content .\.env
+                    $CURRENT_VALUE = (Get-Content .\.env | Select-String -Pattern "SHOUTRRR_URL=" -SimpleMatch).ToString().Split("=")[1]
+                    (Get-Content .\.env).replace("SHOUTRRR_URL=${CURRENT_VALUE}", "SHOUTRRR_URL=${SHOUTRRR_URL}") | Set-Content .\.env
+                    (Get-Content .\$DKCOM_FILENAME).replace('# - WATCHTOWER_NOTIFICATIONS=shoutrrr', "  - WATCHTOWER_NOTIFICATIONS=shoutrrr") | Set-Content .\$DKCOM_FILENAME
+                    (Get-Content .\$DKCOM_FILENAME).replace('# - WATCHTOWER_NOTIFICATION_URL', "  - WATCHTOWER_NOTIFICATION_URL") | Set-Content .\$DKCOM_FILENAME
+                    (Get-Content .\$DKCOM_FILENAME).replace('# - WATCHTOWER_NOTIFICATIONS_HOSTNAME', "  - WATCHTOWER_NOTIFICATIONS_HOSTNAME") | Set-Content .\$DKCOM_FILENAME
+                    (Get-Content .\.env).replace("NOTIFICATIONS_CONFIGURATION_STATUS=0", "NOTIFICATIONS_CONFIGURATION_STATUS=1") | Set-Content .\.env
+                    colorprint "DEFAULT" "Notifications setup complete. If the link is correct, you will receive a notification for each update made on the app container images."
+                    Read-Host -p "Press enter to continue"
                     break
                 }
-                elseif ($yn -eq 'n' -or $yn -eq 'no') {
-                    return
-                }
                 else {
-                    colorprint "Red" "Please answer yes or no."
+                    colorprint "Red" "Invalid link format. Please make sure to use the correct format."
+                    while ($true) {
+                        colorprint "Yellow" "Do you wish to try again or leave the notifications disabled and continue with the setup script? (Yes to try again, No to continue without notifications) Y/N?"
+                        $yn = Read-Host
+                        $yn = $yn.ToLower()
+                        if ($yn -eq 'y' -or $yn -eq 'yes') {
+                            break
+                        }
+                        elseif ($yn -eq 'n' -or $yn -eq 'no') {
+                            return
+                        }
+                        else {
+                            colorprint "Red" "Please answer yes or no."
+                        }
+                    }
                 }
             }
         }
+        elseif ($yn -eq 'n' -or $yn -eq 'no') {
+            debug "User chose to skip notifications setup"
+            colorprint "Blue" "Noted: all updates will be applied automatically and silently"
+            Read-Host -Prompt "Press enter to continue"
+            break
+        }
+        else {
+            colorprint "Red" "Please answer yes or no."
+        }
     }
     Clear-Host
+    debug "Notifications setup ended."
 }
+
 
 <#
 .SYNOPSIS
@@ -603,7 +634,8 @@ function fn_setupApp {
     #Write-Output "passed parameters: APP: $app, IMG: $image, FLAGS: $flags"
     #Read-Host -Prompt "This is for debug Press enter to continue"
     $CURRENT_APP = $APP_NAME
-    if ($app) { (Get-content $script:DKCOM_FILENAME) -replace "#${CURRENT_APP}_ENABLE", "" | Set-Content $script:DKCOM_FILENAME }
+    if ($app) { (Get-content $script:DKCOM_FILENAME) -replace "#ENABLE_${CURRENT_APP}", "" | Set-Content $script:DKCOM_FILENAME }
+    debug "Enabled ${CURRENT_APP} in $script:DKCOM_FILENAME"
 
     for ($i = 0; $i -lt $flags.Count; $i++) {
         switch ($flags[$i]) {
@@ -624,6 +656,7 @@ function fn_setupApp {
     }
     
     if ($email) {
+        debug "Starting email setup for ${CURRENT_APP} app"
         while ($true) {
             colorprint "GREEN" "Enter your ${CURRENT_APP} Email:"
             $APP_EMAIL = Read-Host
@@ -638,6 +671,7 @@ function fn_setupApp {
     }
 
     if ($password) {
+        debug "Starting password setup for ${CURRENT_APP} app"
         while ($true) {
             colorprint "DEFAULT" "Note: If you are using login with Google, remember to set also a password for your ${CURRENT_APP} account!"
             colorprint "GREEN" "Enter your ${CURRENT_APP} Password:"
@@ -653,6 +687,7 @@ function fn_setupApp {
     }
 
     if ($apikey) {
+        debug "Starting APIKey setup for ${CURRENT_APP} app"
         colorprint "DEFAULT" "Find/Generate your APIKey inside your ${CURRENT_APP} dashboard/profile."
         colorprint "GREEN" "Enter your ${CURRENT_APP} APIKey:"
         $APP_APIKEY = Read-Host
@@ -660,6 +695,7 @@ function fn_setupApp {
     }
 
     if ($userid) {
+        debug "Starting UserID setup for ${CURRENT_APP} app"
         colorprint "DEFAULT" "Find your UserID inside your ${CURRENT_APP} dashboard/profile."
         colorprint "GREEN" "Enter your ${CURRENT_APP} UserID:"
         $APP_USERID = Read-Host
@@ -667,6 +703,7 @@ function fn_setupApp {
     }
 
     if ($uuid) {
+        debug "Starting UUID setup for ${CURRENT_APP} app"
         colorprint "DEFAULT" "Starting UUID generation/import for ${CURRENT_APP}"
         $SALT = "$script:DEVICE_NAME$((Get-Random))"
         $UUID = New-Object System.Security.Cryptography.MD5CryptoServiceProvider
@@ -712,6 +749,7 @@ function fn_setupApp {
     }
 
     if ($cid) {
+        debug "Starting CID setup for ${CURRENT_APP} app"
         colorprint "DEFAULT" "Find your CID, you can fetch it from your dashboard https://packetstream.io/dashboard/download?linux# then click on ->View your configuration file<-."
         colorprint "GREEN" "Enter your ${CURRENT_APP} CID:"
         $APP_CID = Read-Host
@@ -719,6 +757,7 @@ function fn_setupApp {
     }
 
     if ($token) {
+        debug "Starting Token setup for ${CURRENT_APP} app"
         colorprint "DEFAULT" "Find your Token inside your ${CURRENT_APP} dashboard/profile."
         colorprint "GREEN" "Enter your ${CURRENT_APP} Token:"
         $APP_TOKEN = Read-Host
@@ -728,6 +767,7 @@ function fn_setupApp {
     if ($customScript) {
         $SCRIPT_NAME = "${customScript}.ps1"
         $SCRIPT_PATH = Join-Path -Path $script:SCRIPTS_DIR -ChildPath $SCRIPT_NAME
+        debug "Starting custom script execution for ${CURRENT_APP} app using $SCRIPT_NAME, from $SCRIPT_PATH"
         if (Test-Path -Path $SCRIPT_PATH) {
             Set-Content $SCRIPT_PATH -Value (Get-Content $SCRIPT_PATH) -Encoding UTF8
             colorprint "DEFAULT" "Executing custom script: $SCRIPT_NAME"
@@ -738,9 +778,11 @@ function fn_setupApp {
         }
     }
     if ($manual) {
-        colorprint "DEFAULT" "${CURRENT_APP} requires further manual configuration."
-        colorprint "DEFAULT" "Please after completing this automated setup follow the manual steps described on the app's website."
+        debug "Starting manual setup for ${CURRENT_APP} app"
+        colorprint "Yellow" "${CURRENT_APP} requires further manual configuration."
+        colorprint "Yellow" "Please after completing this automated setup follow the manual steps described on the app's website."
     }
+    debug "Finished parsing arguments of setupApp function for ${CURRENT_APP} app"
     # App Docker image architecture adjustments
     $TAG = 'latest'
 
@@ -782,9 +824,10 @@ function fn_setupApp {
         colorprint "yellow" "No native image tag found for $DKARCH arch, emulation layer will try to run this app image anyway."
         #colorprint "default" "If an emulation layer is not already installed, the script will try to install it now. Please provide your sudo password if prompted."
     }
-    
+    debug "Finished Docker image architecture adjustments for ${CURRENT_APP} app. Its image tag is now " + (Get-Content $script:DKCOM_FILENAME | Select-String -Pattern "${APP_IMAGE}:" -SimpleMatch).ToString().Split(":")[1]
     Write-Host "$app configuration complete, press enter to continue to the next app"
     Read-Host
+    debug "Finished setupApp function for ${CURRENT_APP} app"
 }
 
 <#
@@ -801,31 +844,38 @@ Just call fn_setupProxy
 This function has been tested until v 2.0.0. The new version has not been tested as its assume that the logic is the same as the previous one just more refined.
 #>
 function fn_setupProxy() {
+    debug "Starting setupProxy function"
     if ($script:PROXY_CONF -eq $false) {
         while ($true) {
             colorprint "YELLOW" "Do you wish to setup a proxy for the apps in this stack Y/N?"
             colorprint "DEFAULT" "Note that if you want to run multiple instances of the same app, you will need to configure different env files in different project folders (copy the project to multiple different folders and configure them using different proxies)."
             $yn = Read-Host
-
             if ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') {
                 Clear-Host
+                debug "User chose to setup a proxy"
                 colorprint "YELLOW" "Proxy setup started."
                 $script:RANDOM_VALUE = Get-Random
                 colorprint "GREEN" "Insert the designed proxy to use. Eg: protocol://proxyUsername:proxyPassword@proxy_url:proxy_port or just protocol://proxy_url:proxy_port if auth is not needed:"
-                $script:STACK_PROXY = Read-Host 
-                colorprint "DEFAULT" "Ok, $script:STACK_PROXY will be used as proxy for all apps in this stack"
-                Read-Host -p "Press enter to continue"
-                $script:PROXY_CONF = $true
+                $script:NEW_STACK_PROXY = Read-Host 
                 # An unique name for the stack is chosen so that even if multiple stacks are started with different proxies the names do not conflict
+                # ATTENTION: if a random value has been already added to the project and devicename during a previous setup it should remain the same to mantain consistency withthe devices name registered on the apps sites but the proxy url could be changed
                 (Get-Content .\.env).replace("COMPOSE_PROJECT_NAME=money4band", "COMPOSE_PROJECT_NAME=money4band_$($script:RANDOM_VALUE)") | Set-Content .\.env
                 (Get-Content .\.env).replace("DEVICE_NAME=$($script:DEVICE_NAME)", "DEVICE_NAME=$($script:DEVICE_NAME)$($script:RANDOM_VALUE)") | Set-Content .\.env
-                # uncomment .env and compose file
-                (Get-Content .\.env).replace("# STACK_PROXY=", "STACK_PROXY=$($script:STACK_PROXY)") | Set-Content .\.env
-                (Get-Content "$script:DKCOM_FILENAME").replace("#PROXY_ENABLE", "") | Set-Content "$script:DKCOM_FILENAME"
+                # Obtaining the line of STACK_PROXY= in the .env file and then replace the line with the new proxy also uncomment the line if it was commented
+                (Get-Content .\.env).replace("# STACK_PROXY=", "STACK_PROXY=") | Set-Content .\.env # if it was already uncommented it does nothing
+                $CURRENT_VALUE = $(Get-Content .\.env | Select-String -Pattern "STACK_PROXY=" -SimpleMatch).ToString().Split("=")[1]
+                (Get-Content .\.env).replace("STACK_PROXY=${CURRENT_VALUE}", "STACK_PROXY=$($script:NEW_STACK_PROXY)") | Set-Content .\.env
+                (Get-Content "$script:DKCOM_FILENAME").replace("#ENABLE_PROXY", "") | Set-Content "$script:DKCOM_FILENAME"
                 (Get-Content "$script:DKCOM_FILENAME").replace("# network_mode", "network_mode") | Set-Content "$script:DKCOM_FILENAME"
+                $script:PROXY_CONF = $true
+                (Get-Content .\.env).replace("PROXY_CONFIGURATION_STATUS=0", "PROXY_CONFIGURATION_STATUS=1") | Set-Content .\.env
+                colorprint "DEFAULT" "Ok, $script:NEW_STACK_PROXY will be used as proxy for all apps in this stack"
+                Read-Host -p "Press enter to continue"
+                debug "Proxy setup finished"
                 break
             }
             elseif ($yn.ToLower() -eq 'n' -or $yn.ToLower() -eq 'no') {
+                debug "User chose not to setup a proxy"
                 colorprint "BLUE" "Ok, no proxy added to configuration."
                 Start-Sleep -Seconds 1
                 break
@@ -852,31 +902,88 @@ Just call fn_setupEnv
 This function has been tested until v 2.0.0. The new version has not been tested as its assume that the logic is the same as the previous one just more refined.
 #>
 function fn_setupEnv() {
+    param(
+        [string]$app_type
+    )
+    print_and_log "Yellow" "Starting setupEnv function for $app_type"
+    # Check if .env file is already configured if 1 then it is already configured, if 0 then it is not configured
+    $ENV_CONFIGURATION_STATUS = (Get-Content .\.env | Select-String -Pattern "ENV_CONFIGURATION_STATUS=" -SimpleMatch).ToString().Split("=")[1]
+    debug "Current ENV_CONFIGURATION_STATUS: $ENV_CONFIGURATION_STATUS"
+    $PROXY_CONFIGURATION_STATUS = (Get-Content .\.env | Select-String -Pattern "PROXY_CONFIGURATION_STATUS=" -SimpleMatch).ToString().Split("=")[1]
+    debug "Current PROXY_CONFIGURATION_STATUS: $PROXY_CONFIGURATION_STATUS"
+    $NOTIFICATIONS_CONFIGURATION_STATUS = (Get-Content .\.env | Select-String -Pattern "NOTIFICATIONS_CONFIGURATION_STATUS=" -SimpleMatch).ToString().Split("=")[1]
+    debug "Current NOTIFICATIONS_CONFIGURATION_STATUS: $NOTIFICATIONS_CONFIGURATION_STATUS"
     while ($true) {
         colorprint "YELLOW" "Do you wish to proceed with the .env file guided setup Y/N? (This will also adapt the $($script:DKCOM_FILENAME) file accordingly)"
         $yn = Read-Host
-
         if ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') {
             Clear-Host
-            if ((Get-Content .\.env) -NotContains "DEVICE_NAME=$($script:DEVICE_NAME)") {
-                colorprint "DEFAULT" "The current .env file appears to have already been modified. A fresh version will be downloaded and used."
-                $ProgressPreference = 'SilentlyContinue'
-                Invoke-WebRequest -Uri $script:ENV_SRC -OutFile ".env"
-                Invoke-WebRequest -Uri $script:DKCOM_SRC -OutFile "$($script:DKCOM_FILENAME)"
-                $ProgressPreference = 'Continue'
-                Clear-Host
+            debug "User chose to proceed with the .env file guided setup for $app_type"
+
+            if (($ENV_CONFIGURATION_STATUS -eq 1) -and ($app_type -eq "apps")) {
+                colorprint "DEFAULT" "The current .env file appears to have already been configured. Do you wish to reset it? (Y/N)"
+                $yn = Read-Host
+                if ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') {
+                    colorprint "DEFAULT" "Resetting .env file..."
+                    $ProgressPreference = 'SilentlyContinue'
+                    Invoke-WebRequest -Uri $script:ENV_SRC -OutFile ".env"
+                    Invoke-WebRequest -Uri $script:DKCOM_SRC -OutFile "$($script:DKCOM_FILENAME)"
+                    $ProgressPreference = 'Continue'
+                    Clear-Host
+                }
+                else {
+                    colorprint "Blue" "Keeping the existing .env file"
+                    Read-Host -p "Press enter to continue"
+                }
+            }
+            elseif (($ENV_CONFIGURATION_STATUS -eq 1) -and ($app_type -ne "apps")) {
+                print_and_log "Blue" "Proceeding with $app_type setup whitout resetting the .env file as it should already be configured by te main apps setup"
+                Read-Host -p "Press enter to continue"
             }
             colorprint "YELLOW" "beginning env file guided setup"
             $script:CURRENT_APP = ''
-            colorprint "YELLOW" "PLEASE ENTER A NAME FOR YOUR DEVICE:"
-            $script:DEVICE_NAME = Read-Host
-            (Get-Content .\.env).replace("yourDeviceName", $script:DEVICE_NAME) | Set-Content .\.env
+            if (Get-Content .\.env | Select-String "DEVICE_NAME=${DEVICE_NAME_PLACEHOLDER}") {
+                debug "Device name is still the default one, asking user to change it"
+                colorprint "YELLOW" "PLEASE ENTER A NAME FOR YOUR DEVICE:"
+                $script:DEVICE_NAME = Read-Host
+                (Get-Content .\.env).replace("DEVICE_NAME=${DEVICE_NAME_PLACEHOLDER}", "DEVICE_NAME=$script:DEVICE_NAME") | Set-Content .\.env
+            }
+            else {
+                debug "Device name is already set, skipping user input"
+                $script:DEVICE_NAME = (Get-Content .\.env | Select-String -Pattern "DEVICE_NAME=" -SimpleMatch).ToString().Split("=")[1]
+            }
             Clear-Host
-            fn_setupProxy
+            if ($PROXY_CONFIGURATION_STATUS -eq 1) {
+                $script:CURRENT_PROXY = (Get-Content .\.env | Select-String -Pattern "STACK_PROXY=" -SimpleMatch).ToString().Split("=")[1]
+                print_and_log "BLUE" "Proxy is already set up."
+                while ($true) {
+                    colorprint "YELLOW" "The current proxy is: ${CURRENT_PROXY}. Do you wish to change it? (Y/N)"
+                    $yn = Read-Host
+                    if ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') {
+                        $script:PROXY_CONF = $false
+                        debug "User chose to change the proxy that was already configured"
+                        fn_setupProxy
+                        break
+                    }
+                    elseif ($yn.ToLower() -eq 'n' -or $yn.ToLower() -eq 'no') {
+                        debug "User chose not to change the proxy that was already configured"
+                        colorprint "BLUE" "Keeping the existing proxy."
+                        Read-Host -p "Press enter to continue"
+                        break
+                    }
+                    else {
+                        colorprint "RED" "Please answer yes or no."
+                    }
+                }
+            }
+            else {
+                debug "Asking user if they want to setup a proxy as it is not already configured"
+                fn_setupProxy
+            }
             Clear-Host
-
-            $apps = Get-Content "$script:CONFIG_DIR/config.json" | ConvertFrom-Json | Select-Object -ExpandProperty apps
-
+            debug "Loading $app_type from ${CONFIG_JSON_FILE}"
+            $apps = Get-Content "$script:CONFIG_DIR/${CONFIG_JSON_FILE}" | ConvertFrom-Json | Select-Object -ExpandProperty $app_type
+            debug "$app_type loaded from ${CONFIG_JSON_FILE}"
             foreach ($app in $apps) {
                 Clear-Host
                 colorprint "YELLOW" "PLEASE REGISTER ON THE PLATFORMS USING THE FOLLOWING LINKS, YOU'LL NEED TO ENTER SOME DATA BELOW:"
@@ -885,14 +992,12 @@ function fn_setupEnv() {
                 $link = $app.link
                 $image = $app.image
                 $flags = $app.flags
-
                 $script:CURRENT_APP = $name.ToUpper()
-
                 while ($true) {
-                    colorprint "YELLOW" "Do you wish to enable and use $($script:CURRENT_APP)? (Y/N)"
-                    $yn = Read-Host
-
-                    if ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') {
+                    # check if the ${CURRENT_APP} is already enabled in the $DKCOM_FILENAME file and if it is not (if there is a #ENABLE_$CURRENTAPP) then ask the user if they want to enable it
+                    if ((Get-Content $script:DKCOM_FILENAME | Select-String -Pattern "#ENABLE_${CURRENT_APP}", -SimpleMatch)) {
+                        colorprint "YELLOW" "Do you wish to enable and use $($script:CURRENT_APP)? (Y/N)"
+                        $yn = Read-Host
                         try {
                             colorprint "CYAN" "Go to ${name} ${link} and register"
                             Read-Host -p "When done, press enter to continue"
@@ -906,41 +1011,56 @@ function fn_setupEnv() {
                             Read-Host -p "Press enter to continue to the next app"
                             break
                         }
-                    }
-                    elseif ($yn.ToLower() -eq 'n' -or $yn.ToLower() -eq 'no') {
-                        colorprint "BLUE" "$($script:CURRENT_APP) setup will be skipped."
-                        Read-Host -p "Press enter to continue to the next app"
-                        break
+                        elseif ($yn.ToLower() -eq 'n' -or $yn.ToLower() -eq 'no') {
+                            colorprint "BLUE" "$($script:CURRENT_APP) setup will be skipped."
+                            Read-Host -p "Press enter to continue to the next app"
+                            break
+                        }
+                        else {
+                            colorprint "RED" "Please answer yes or no."
+                        }
                     }
                     else {
-                        colorprint "RED" "Please answer yes or no."
+                        print_and_log "Blue" "${CURRENT_APP} is already enabled."
+                        sleep 1
+                        break
                     }
                 }
             }
 
             # Notifications setup
             Clear-Host
-            while ($true) {
-                colorprint "YELLOW" "Do you wish to setup notifications about apps images updates (Yes to receive notifications and apply updates, No to just silently apply updates) Y/N?"
-                $yn = Read-Host
-                if ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') {
-                    fn_setupNotifications
-                    break
-                }
-                elseif ($yn.ToLower() -eq 'n' -or $yn.ToLower() -eq 'no') {
-                    colorprint "BLUE" "Noted: all updates will be applied automatically and silently"
-                    break
-                }
-                else {
-                    colorprint "RED" "Invalid input. Please answer yes or no."
+            if ($NOTIFICATIONS_CONFIGURATION_STATUS -eq 1) {
+                print_and_log "Blue" "Notifications are already set up."
+                while ($true) {
+                    $CURRENT_SHOUTRRR_URL = (Get-Content .\.env | Select-String -Pattern "SHOUTRRR_URL=" -SimpleMatch).ToString().Split("=")[1]
+                    colorprint "YELLOW" "The current notifications setup uses: ${CURRENT_SHOUTRRR_URL}. Do you wish to change it? (Y/N)"
+                    $yn = Read-Host
+                    if ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') {
+                        fn_setupNotifications
+                        break
+                    }
+                    elseif ($yn.ToLower() -eq 'n' -or $yn.ToLower() -eq 'no') {
+                        debug "User chose not to change the notifications setup that was already configured"
+                        print_and_log "BLUE" "Noted: all updates will be applied automatically and silently"
+                        break
+                    }
+                    else {
+                        colorprint "RED" "Invalid input. Please answer yes or no."
+                    }
                 }
             }
-
-            colorprint "GREEN" "env file setup complete."
-            Read-Host -p "Press any key to go back to the menu"
+            else {
+                debug "Asking user if they want to setup notifications as they are not already configured"
+                fn_setupNotifications
+            }
+            (Get-Content .\.env).replace("ENV_CONFIGURATION_STATUS=0", "ENV_CONFIGURATION_STATUS=1") | Set-Content .\.env
+            print_and_log "GREEN" "env file setup complete."
+            Read-Host -p "Press enter to go back to the menu"
             break
         }
         elseif ($yn.ToLower() -eq 'n' -or $yn.ToLower() -eq 'no') {
+            debug "User chose not to proceed with the .env file guided setup for $app_type"
             colorprint "BLUE" ".env file setup canceled. Make sure you have a valid .env file before proceeding with the stack startup."
             Read-Host -p "Press Enter to go back to mainmenu"
             return
@@ -949,6 +1069,14 @@ function fn_setupEnv() {
             colorprint "RED" "Please answer yes or no."
         }
     }
+}
+#Setup main apps
+function fn_setupApps {
+    fn_setupEnv -app_type "apps"
+}
+# Setup extra apps
+function fn_setupExtraApps {
+    fn_setupEnv -app_type "extra-apps"
 }
 
 <#
@@ -971,7 +1099,7 @@ function fn_startStack() {
         $yn = Read-Host "Do you wish to proceed Y/N?"
         if ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') {
             if (docker compose up -d) {
-                colorprint "GREEN" "All Apps started. You can visit the web dashboard on http://localhost:8081/. If not already done, use the previously generated earnapp node URL to add your device in your earnapp dashboard. Check the README file for more details."
+                colorprint "GREEN" "All Apps started. You can visit the web dashboard on ${DASHBOARD_URL}. If not already done, use the previously generated earnapp node URL to add your device in your earnapp dashboard. Check the README file for more details."
             }
             else {
                 colorprint "RED" "Error starting Docker stack. Please check the configuration and try again."
@@ -1164,7 +1292,7 @@ function mainmenu {
         colorprint "GREEN" "MONEY4BAND AUTOMATIC GUIDED SETUP v$script:SCRIPT_VERSION"
         colorprint "GREEN" "------------------------------------------ "
         colorprint "DEFAULT" "Detected OS type: $($script:OS_TYPE)"
-        colorprint "DEFAULT" "Detected architecture $($script:ARCH)"
+        colorprint "DEFAULT" "Detected architecture: $($script:ARCH)"
         colorprint "DEFAULT" "Docker $($script:DKARCH) image architecture will be used if the app's image permits it"
         colorprint "DEFAULT" "------------------------------------------ "
         for ($i = 0; $i -lt $options.Length; $i++) {

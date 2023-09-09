@@ -34,6 +34,10 @@ readonly DKCOM_FILENAME="docker-compose.yaml"
 # docker compose yaml prototype file link #
 readonly DKCOM_SRC="https://github.com/MRColorR/money4band/raw/main/$DKCOM_FILENAME"
 
+## Dashboard related constants and variables ##
+# Dashboard URL #
+readonly DASHBOARD_URL="http://localhost:8081/"
+
 ### Resources, Scripts and Files folders ###
 readonly RESOURCES_DIR="$PWD/.resources"
 readonly CONFIG_DIR="$RESOURCES_DIR/.www/.configs"
@@ -466,7 +470,7 @@ fn_setupNotifications() {
         read -r yn
         case $yn in
             [Yy]* )
-                debug "User chose to setup notifications"
+                debug "User decided to setup notifications about apps images updates."
                 colorprint "YELLOW" "This step will setup notifications about containers updates using shoutrrr"
                 colorprint "DEFAULT" "The resulting SHOUTRRR_URL should have the format: <app>://<token>@<webhook>."
                 colorprint "DEFAULT" "Where <app> is one of the supported messaging apps on Shoutrrr (e.g. Discord), and <token> and <webhook> are specific to your messaging app."
@@ -485,8 +489,8 @@ fn_setupNotifications() {
                     read -r SHOUTRRR_URL
                     if [[ "$SHOUTRRR_URL" =~ ^[a-zA-Z]+:// ]]; then
                         sed -i "s~# SHOUTRRR_URL=~SHOUTRRR_URL=~" .env
-                        CURRENT_LINE=$(grep -oP 'SHOUTRRR_URL=\K[^#\r]+' .env)
-                        sed -i "s~SHOUTRRR_URL=${CURRENT_LINE}~SHOUTRRR_URL=$SHOUTRRR_URL~" .env
+                        CURRENT_VALUE=$(grep -oP 'SHOUTRRR_URL=\K[^#\r]+' .env)
+                        sed -i "s~SHOUTRRR_URL=${CURRENT_VALUE}~SHOUTRRR_URL=$SHOUTRRR_URL~" .env
                         sed -i "s~# - WATCHTOWER_NOTIFICATIONS=shoutrrr~  - WATCHTOWER_NOTIFICATIONS=shoutrrr~" "$DKCOM_FILENAME"
                         sed -i "s~# - WATCHTOWER_NOTIFICATION_URL~  - WATCHTOWER_NOTIFICATION_URL~" "$DKCOM_FILENAME"
                         sed -i "s~# - WATCHTOWER_NOTIFICATIONS_HOSTNAME~  - WATCHTOWER_NOTIFICATIONS_HOSTNAME~" "$DKCOM_FILENAME"
@@ -530,16 +534,16 @@ fn_setupApp() {
             --app)
                 CURRENT_APP="$2"
                 sed -i "s^#ENABLE_${CURRENT_APP}^^" $DKCOM_FILENAME
-                debug "Enabled $CURRENT_APP app in $DKCOM_FILENAME"
+                debug "Enabled ${CURRENT_APP} app in $DKCOM_FILENAME"
                 shift
                 ;;
             --image)
                 APP_IMAGE="$2"
-                debug "Defaulting $CURRENT_APP image to $APP_IMAGE, then the check for the architecture will be performed"
+                debug "Reading ${APP_IMAGE} image for ${CURRENT_APP} from config, then the check for the architecture will be performed"
                 shift
                 ;;
             --email)
-                debug "Starting email setup for $CURRENT_APP app"
+                debug "Starting email setup for ${CURRENT_APP} app"
                 while true; do
                     colorprint "GREEN" "Enter your ${CURRENT_APP} Email:"
                     read -r APP_EMAIL
@@ -552,7 +556,7 @@ fn_setupApp() {
                 done
                 ;;
             --password)
-                debug "Starting password setup for $CURRENT_APP app"
+                debug "Starting password setup for ${CURRENT_APP} app"
                 while true; do
                     colorprint "DEFAULT" "Note: If you are using login with Google, remember to set also a password for your ${CURRENT_APP} account!"
                     colorprint "GREEN" "Enter your ${CURRENT_APP} Password:"
@@ -566,21 +570,21 @@ fn_setupApp() {
                 done
                 ;;
             --apikey)
-                debug "Starting APIKey setup for $CURRENT_APP app"
+                debug "Starting APIKey setup for ${CURRENT_APP} app"
                 colorprint "DEFAULT" "Find/Generate your APIKey inside your ${CURRENT_APP} dashboard/profile."
                 colorprint "GREEN" "Enter your ${CURRENT_APP} APIKey:"
                 read -r APP_APIKEY
                 sed -i "s^your${CURRENT_APP}APIKey^$APP_APIKEY^" .env
                 ;;
             --userid)
-                debug "Starting UserID setup for $CURRENT_APP app"
+                debug "Starting UserID setup for ${CURRENT_APP} app"
                 colorprint "DEFAULT" "Find your UserID inside your ${CURRENT_APP} dashboard/profile."
                 colorprint "GREEN" "Enter your ${CURRENT_APP} UserID:"
                 read -r APP_USERID
                 sed -i "s/your${CURRENT_APP}UserID/$APP_USERID/" .env
                 ;;
             --uuid)
-                debug "Starting UUID setup for $CURRENT_APP app"
+                debug "Starting UUID setup for ${CURRENT_APP} app"
                 colorprint "DEFAULT" "Starting UUID generation/import for ${CURRENT_APP}"
                 shift
                 SALT="${DEVICE_NAME}""${RANDOM}"
@@ -625,25 +629,25 @@ fn_setupApp() {
                 ;;
 
             --cid)
-                debug "Starting CID setup for $CURRENT_APP app"
+                debug "Starting CID setup for ${CURRENT_APP} app"
                 colorprint "DEFAULT" "Find your CID, you can fetch it from your dashboard https://packetstream.io/dashboard/download?linux# then click on -> Looking for linux app -> now search for CID= in the code shown in the page, you need to enter the code after -e CID= (e.g. if in the code CID=6aTk, just enter 6aTk)"
                 colorprint "GREEN" "Enter your ${CURRENT_APP} CID."
                 read -r APP_CID
                 sed -i "s/your${CURRENT_APP}CID/$APP_CID/" .env
                 ;;
             --token)
-                debug "Starting Token setup for $CURRENT_APP app"
+                debug "Starting Token setup for ${CURRENT_APP} app"
                 colorprint "DEFAULT" "Find your token, you can fetch it from your dashboard https://app.traffmonetizer.com/dashboard then -> Look for Your application token -> just insert it here (you can also copy and then paste it)"
                 colorprint "GREEN" "Enter your ${CURRENT_APP} Token."
                 read -r APP_TOKEN
                 sed -i "s^your${CURRENT_APP}Token^$APP_TOKEN^" .env
                 ;;
             --customScript)
-                debug "Starting custom script execution for $CURRENT_APP app"
                 shift
                 CUSTOM_SCRIPT_NAME="$1.sh"
                 SCRIPT_PATH="$SCRIPTS_DIR/$CUSTOM_SCRIPT_NAME"
                 ESCAPED_PATH="$(echo "$SCRIPT_PATH" | sed 's/"/\\"/g')"
+                debug "Starting custom script execution for ${CURRENT_APP} app using $SCRIPT_NAME from $ESCAPED_PATH"
                 if [[ -f "$SCRIPT_PATH" ]]; then
                     chmod +x "$ESCAPED_PATH"
                     colorprint "DEFAULT" "Executing custom script: $CUSTOM_SCRIPT_NAME"
@@ -653,7 +657,7 @@ fn_setupApp() {
                 fi
                 ;;
             --manual)
-                debug "Starting manual setup for $CURRENT_APP app"
+                debug "Starting manual setup for ${CURRENT_APP} app"
                 colorprint "YELLOW" "${CURRENT_APP} requires further manual configuration."
                 colorprint "YELLOW" "Please after completing this automated setup follow the manual steps described on the app's website."
                 ;;
@@ -664,12 +668,12 @@ fn_setupApp() {
         esac
         shift
     done
-    debug "Finished parsing arguments of setupApp function for $CURRENT_APP app"
+    debug "Finished parsing arguments of setupApp function for ${CURRENT_APP} app"
 
     # App Docker image architecture adjustments
-    debug "Starting Docker image architecture adjustments for $CURRENT_APP app"
+    debug "Starting Docker image architecture adjustments for ${CURRENT_APP} app"
     TAG='latest'
-    DKHUBRES=$(curl -L -s "https://registry.hub.docker.com/v2/repositories/$APP_IMAGE/tags" | jq --arg DKARCH "$DKARCH" '[.results[] | select(.images[].architecture == $DKARCH) | .name]')
+    DKHUBRES=$(curl -L -s "https://registry.hub.docker.com/v2/repositories/${APP_IMAGE}/tags" | jq --arg DKARCH "$DKARCH" '[.results[] | select(.images[].architecture == $DKARCH) | .name]')
     TAGSNUMBER=$(echo $DKHUBRES | jq '. | length')
     if [ $TAGSNUMBER -gt 0 ]; then 
         colorprint "DEFAULT" "There are $TAGSNUMBER tags supporting $DKARCH arch for this image"
@@ -680,7 +684,7 @@ fn_setupApp() {
         else 
             colorprint "YELLOW" "$TAG tag does not support $DKARCH arch but other tags do, the newer tag supporting $DKARCH will be selected"
             NEWTAG=$(echo $DKHUBRES | jq -r '.[0]')
-            sed -i "s^$APP_IMAGE:latest^$APP_IMAGE:$NEWTAG^" $DKCOM_FILENAME
+            sed -i "s^${APP_IMAGE}:latest^${APP_IMAGE}:$NEWTAG^" $DKCOM_FILENAME
         fi
     else 
         colorprint "YELLOW" "No native image tag found for $DKARCH arch, emulation layer will try to run this app image anyway."
@@ -688,10 +692,9 @@ fn_setupApp() {
         #fn_install_packages qemu binfmt-support qemu-user-static
         fn_addDockerBinfmtSVC
     fi
-    debug "Finished Docker image architecture adjustments for $CURRENT_APP app"
-
+    debug "Finished Docker image architecture adjustments for ${CURRENT_APP} app. Its image tag is now $(grep -oP "${APP_IMAGE}:\K[^#\r]+" $DKCOM_FILENAME)"
     read -r -p "${CURRENT_APP} configuration complete, press enter to continue to the next app"
-    debug "Finished setupApp function for $CURRENT_APP app"
+    debug "Finished setupApp function for ${CURRENT_APP} app"
 }
 
 fn_setupProxy() {
@@ -713,10 +716,10 @@ fn_setupProxy() {
                     # ATTENTION: if a random value has been already added to the project and devicename during a previous setup it should remain the same to mantain consistency withthe devices name registered on the apps sites but the proxy url could be changed
                     sed -i "s^COMPOSE_PROJECT_NAME=money4band^COMPOSE_PROJECT_NAME=money4band_$RANDOM_VALUE^" .env 
                     sed -i "s^DEVICE_NAME=${DEVICE_NAME}^DEVICE_NAME=${DEVICE_NAME}$RANDOM_VALUE^" .env
-                    #using grep obtain the line of STACK_PROXY= in the .env file and then replace the line with the new proxy also uncomment the line if it was commented
-                    sed -i "s^# STACK_PROXY=^STACK_PROXY=^" .env #if it was already uncommented it does nothing
-                    CURRENT_LINE=$(grep -oP 'STACK_PROXY=\K[^#\r]+' .env)
-                    sed -i "s^$CURRENT_LINE^$NEW_STACK_PROXY^" .env
+                    # Obtaining the line of STACK_PROXY= in the .env file and then replace the line with the new proxy also uncomment the line if it was commented
+                    sed -i "s^# STACK_PROXY=^STACK_PROXY=^" .env # if it was already uncommented it does nothing
+                    CURRENT_VALUE=$(grep -oP 'STACK_PROXY=\K[^#\r]+' .env)
+                    sed -i "s^$CURRENT_VALUE^$NEW_STACK_PROXY^" .env
                     sed -i "s^#ENABLE_PROXY^^" $DKCOM_FILENAME
                     sed -i "s^# network_mode^network_mode^" $DKCOM_FILENAME
                     PROXY_CONF='true'
@@ -741,27 +744,22 @@ fn_setupProxy() {
 fn_setupEnv(){
     local app_type="$1"  # Accept the type of apps as an argument
     print_and_log "BLUE" "Starting setupEnv function for $app_type"
-
     # Check if .env file is already configured if 1 then it is already configured, if 0 then it is not configured
     ENV_CONFIGURATION_STATUS=$(grep -oP '# ENV_CONFIGURATION_STATUS=\K[^#\r]+' .env)
     debug "Current ENV_CONFIGURATION_STATUS: $ENV_CONFIGURATION_STATUS"
-
     PROXY_CONFIGURATION_STATUS=$(grep -oP '# PROXY_CONFIGURATION_STATUS=\K[^#\r]+' .env)
     debug "Current PROXY_CONFIGURATION_STATUS: $PROXY_CONFIGURATION_STATUS"
-
     NOTIFICATIONS_CONFIGURATION_STATUS=$(grep -oP '# NOTIFICATIONS_CONFIGURATION_STATUS=\K[^#\r]+' .env)
     debug "Current NOTIFICATIONS_CONFIGURATION_STATUS: $NOTIFICATIONS_CONFIGURATION_STATUS"
-
     while true; do
         colorprint "YELLOW" "Do you wish to proceed with the .env file guided setup Y/N? (This will also adapt the $DKCOM_FILENAME file accordingly)"
         read -r yn
         case $yn in
             [Yy]* ) 
                 clear
-                debug "User chose to proceed with the .env file guided setup"
-
+                debug "User chose to proceed with the .env file guided setup for $app_type"
                 if [ "$ENV_CONFIGURATION_STATUS" == "1" ] && [ "$app_type" == "apps" ]; then
-                    colorprint "YELLOW" "The current .env file appears to have already been configured. Do you want to reset it? (Y/N)"
+                    colorprint "YELLOW" "The current .env file appears to have already been configured. Do you wish to reset it? (Y/N)"
                     read -r yn
                     case $yn in
                         [Yy]* )
@@ -772,6 +770,7 @@ fn_setupEnv(){
                             ;;
                         [Nn]* )
                             print_and_log "BLUE" "Keeping the existing .env file."
+                            read -r -p "Press enter to continue"
                             ;;
                         * )
                             colorprint "RED" "Invalid input. Please answer yes or no."
@@ -779,23 +778,26 @@ fn_setupEnv(){
                             ;;
                     esac
                 elif [ "$ENV_CONFIGURATION_STATUS" == "1" ] && [ "$app_type" != "apps" ]; then
-                    print_and_log "BLUE" "Proceeding with $app_type setup without resetting .env file as it should be already configured by the main apps setup."
+                    print_and_log "BLUE" "Proceeding with $app_type setup without resetting .env file as it should already be configured by the main apps setup."
+                    read -r -p "Press enter to continue"
                 fi
-
                 colorprint "YELLOW" "beginnning env file guided setup"
                 CURRENT_APP='';
                 if grep -q "DEVICE_NAME=${DEVICE_NAME_PLACEHOLDER}" .env  ; then
                     debug "Device name is still the default one, asking user to change it"
                     colorprint "YELLOW" "PLEASE ENTER A NAME FOR YOUR DEVICE:"
                     read -r DEVICE_NAME
-                    sed -i "s/yourDeviceName/${DEVICE_NAME}/" .env
+                    sed -i "s/DEVICE_NAME=${DEVICE_NAME_PLACEHOLDER}/DEVICE_NAME=${DEVICE_NAME}/" .env
+                else
+                    debug "Device name is already set, skipping user input"
+                    $DEVICE_NAME=$(grep -oP 'DEVICE_NAME=\K[^#\r]+' .env)
                 fi
                 clear ;
                 if [ "$PROXY_CONFIGURATION_STATUS" == "1" ]; then
                     CURRENT_PROXY=$(grep -oP 'STACK_PROXY=\K[^#\r]+' .env)
                     print_and_log "BLUE" "Proxy is already set up."
                     while true; do
-                        colorprint "YELLOW" "The current proxy is: ${CURRENT_PROXY} . Do you want to change the proxy? (Y/N)"
+                        colorprint "YELLOW" "The current proxy is: ${CURRENT_PROXY} . Do you wish to change it? (Y/N)"
                         read -r yn
                         case $yn in
                             [Yy]* )
@@ -816,10 +818,9 @@ fn_setupEnv(){
                     fn_setupProxy;
                 fi
                 clear ;
-                debug " Loading $app_type from $CONFIG_JSON_FILE..."
-                apps=$(jq -c ".[\"$app_type\"][]" "$CONFIG_DIR/$CONFIG_JSON_FILE")
-                debug " $app_type loaded from $CONFIG_JSON_FILE"
-
+                debug "Loading $app_type from ${CONFIG_JSON_FILE}..."
+                apps=$(jq -c ".[\"$app_type\"][]" "${CONFIG_DIR}/${CONFIG_JSON_FILE}")
+                debug "$app_type loaded from ${CONFIG_JSON_FILE}"
                 for app in $apps; do
                     clear
                     colorprint "YELLOW" "PLEASE REGISTER ON THE PLATFORMS USING THE FOLLOWING LINKS, YOU'LL NEED TO ENTER SOME DATA BELOW:"
@@ -828,11 +829,9 @@ fn_setupEnv(){
                     link=$(jq -r '.link' <<< "$app")
                     image=$(jq -r '.image' <<< "$app")
                     flags=$(jq -r '.flags[]' <<< "$app")
-
                     CURRENT_APP=$(echo "$name" | tr '[:lower:]' '[:upper:]')
-                    
                     while true; do
-                        # check if the $CURRENT_APP is already enabled in the $DKCOM_FILENAME file and if it is not (if there is a #ENABLE_$CURRENTAPP) then ask the user if they want to enable it
+                        # check if the ${CURRENT_APP} is already enabled in the $DKCOM_FILENAME file and if it is not (if there is a #ENABLE_$CURRENTAPP) then ask the user if they want to enable it
                         if grep -q "#ENABLE_${CURRENT_APP}" "$DKCOM_FILENAME"; then
                             colorprint "YELLOW" "Do you wish to enable and use ${CURRENT_APP}? (Y/N)"
                             read -r yn
@@ -853,8 +852,8 @@ fn_setupEnv(){
                                 * ) colorprint "RED" "Please answer yes or no." ;;
                             esac
                         else
-                            colorprint "BLUE" "${CURRENT_APP} is already enabled."
-                            read -r -p "Press enter to continue to the next app"
+                            print_and_log "BLUE" "${CURRENT_APP} is already enabled."
+                            sleep 1
                             break
                         fi
                     done
@@ -865,7 +864,8 @@ fn_setupEnv(){
                 if [ "$NOTIFICATIONS_CONFIGURATION_STATUS" == "1" ]; then
                     print_and_log "BLUE" "Notifications are already set up."
                     while true; do
-                        colorprint "YELLOW" "The current notifications setup uses: $(grep -oP 'SHOUTRRR_URL=\K[^#\r]+' .env) . Do you want to change the notifications setup? (Y/N)"
+                        CURRENT_SHOUTRRR_URL=$(grep -oP 'SHOUTRRR_URL=\K[^#\r]+' .env)
+                        colorprint "YELLOW" "The current notifications setup uses: ${CURRENT_SHOUTRRR_URL}. Do you wish to change it? (Y/N)"
                         read -r yn
                         case $yn in
                             [Yy]* )
@@ -887,11 +887,11 @@ fn_setupEnv(){
                 
                 sed -i 's/ENV_CONFIGURATION_STATUS=0/ENV_CONFIGURATION_STATUS=1/' .env
                 print_and_log "GREEN" "env file setup complete.";
-                read -n 1 -s -r -p "Press any key to go back to the menu"$'\n'
+                read -n 1 -s -r -p "Press enter to go back to the menu"$'\n'
                 break
                 ;;
             [Nn]* )
-                debug "User chose not to proceed with the .env file guided setup"
+                debug "User chose not to proceed with the .env file guided setup for $app_type"
                 colorprint "BLUE" ".env file setup canceled. Make sure you have a valid .env file before proceeding with the stack startup."
                 read -r -p "Press Enter to go back to mainmenu"
                 break
@@ -900,11 +900,11 @@ fn_setupEnv(){
         esac
     done
 }
-
+#Setup main apps
 fn_setupApps(){
     fn_setupEnv "apps"  # Call fn_setupEnv with "apps"
 }
-
+# Setup extra apps
 fn_setupExtraApps(){
     fn_setupEnv "extra-apps"  # Call fn_setupEnv with "extra_apps"
 }
@@ -919,7 +919,7 @@ fn_startStack(){
             [Yy]* ) 
                 if sudo docker compose up -d; then
                     print_and_log "GREEN" "All Apps started."
-                    colorprint "GREEN" "You can visit the web dashboard on http://localhost:8081/. If not already done, use the previously generated earnapp node URL to add your device in your earnapp dashboard. Check the README file for more details."
+                    colorprint "GREEN" "You can visit the web dashboard on ${DASHBOARD_URL}. If not already done, use the previously generated earnapp node URL to add your device in your earnapp dashboard. Check the README file for more details."
                 else
                     errorprint_and_log "RED" "Error starting Docker stack. Please check the configuration and try again."
                 fi
