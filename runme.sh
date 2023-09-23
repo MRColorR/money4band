@@ -14,6 +14,9 @@ readonly UPDATE_SCRIPT_URL="https://raw.githubusercontent.com/MRColorR/money4ban
 # Script debug log file #
 readonly DEBUG_LOG="debug_${SCRIPT_NAME}.log"
 
+# Script default sleep time #
+readonly SLEEP_TIME=1
+
 ## Env file related constants and variables ##
 # .env file prototype link #
 readonly ENV_SRC='https://github.com/MRColorR/money4band/raw/main/.env'
@@ -289,7 +292,7 @@ fn_install_packages() {
 ## Multiarch emulation service installer function ##
 fn_addDockerBinfmtSVC() {
     debug "Installing multiarch emulation service..."
-    # Check if the service file exists
+    # Check if the service file exists if it does then check if it is enabled and if not enable it, if its enabled then check if the content is the same as the one in the script and if not overwrite it then start the service
     debug "Checking if the service already exists..."
     if [ -f "/etc/systemd/system/docker.binfmt.service" ]; then
         # Compare the contents of the existing service file with the one in $FILES_DIR
@@ -529,172 +532,256 @@ fn_setupNotifications() {
 
 fn_setupApp() {
     debug "SetupApp function started"
+    local app_json=""
+    local dk_compose_filename="docker-compose.yaml"
     while [[ "$#" -gt 0 ]]; do
         case $1 in
-            --app)
-                CURRENT_APP="$2"
-                sed -i "s^#ENABLE_${CURRENT_APP}^^" $DKCOM_FILENAME
-                debug "Enabled ${CURRENT_APP} app in $DKCOM_FILENAME"
+            --app-json)
+                app_json="$2"
                 shift
                 ;;
-            --image)
-                APP_IMAGE="$2"
-                debug "Reading ${APP_IMAGE} image for ${CURRENT_APP} from config, then the check for the architecture will be performed"
+            --dk-compose-filename)
+                dk_compose_filename="$2"
                 shift
-                ;;
-            --email)
-                debug "Starting email setup for ${CURRENT_APP} app"
-                while true; do
-                    colorprint "GREEN" "Enter your ${CURRENT_APP} Email:"
-                    read -r APP_EMAIL
-                    if [[ "$APP_EMAIL" =~ ^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[a-zA-Z]{2,}$ ]]; then
-                        sed -i "s/your${CURRENT_APP}Mail/$APP_EMAIL/" .env
-                        break
-                    else
-                        colorprint "RED" "Invalid email address. Please try again."
-                    fi
-                done
-                ;;
-            --password)
-                debug "Starting password setup for ${CURRENT_APP} app"
-                while true; do
-                    colorprint "DEFAULT" "Note: If you are using login with Google, remember to set also a password for your ${CURRENT_APP} account!"
-                    colorprint "GREEN" "Enter your ${CURRENT_APP} Password:"
-                    read -r APP_PASSWORD
-                    if [[ -z "$APP_PASSWORD" ]]; then
-                        colorprint "RED" "Password cannot be empty. Please try again."
-                    else
-                        sed -i "s/your${CURRENT_APP}Pw/$APP_PASSWORD/" .env
-                        break
-                    fi
-                done
-                ;;
-            --apikey)
-                debug "Starting APIKey setup for ${CURRENT_APP} app"
-                colorprint "DEFAULT" "Find/Generate your APIKey inside your ${CURRENT_APP} dashboard/profile."
-                colorprint "GREEN" "Enter your ${CURRENT_APP} APIKey:"
-                read -r APP_APIKEY
-                sed -i "s^your${CURRENT_APP}APIKey^$APP_APIKEY^" .env
-                ;;
-            --userid)
-                debug "Starting UserID setup for ${CURRENT_APP} app"
-                colorprint "DEFAULT" "Find your UserID inside your ${CURRENT_APP} dashboard/profile."
-                colorprint "GREEN" "Enter your ${CURRENT_APP} UserID:"
-                read -r APP_USERID
-                sed -i "s/your${CURRENT_APP}UserID/$APP_USERID/" .env
-                ;;
-            --uuid)
-                debug "Starting UUID setup for ${CURRENT_APP} app"
-                colorprint "DEFAULT" "Starting UUID generation/import for ${CURRENT_APP}"
-                shift
-                SALT="${DEVICE_NAME}""${RANDOM}"
-                UUID="$(echo -n "$SALT" | md5sum | cut -c1-32)"
-                while true; do
-                    colorprint "YELLOW" "Do you want to use a previously registered sdk-node-uuid for ${CURRENT_APP}? (Y/N)"
-                    read -r USE_EXISTING_UUID
-                    case $USE_EXISTING_UUID in
-                        [Yy]* )
-                            while true; do
-                                colorprint "GREEN" "Please enter the 32 char long alphanumeric part of the existing sdk-node-uuid for ${CURRENT_APP}:"
-                                colorprint "DEFAULT" "E.g. if existing registered node is sdk-node-b86301656baefekba8917349bdf0f3g4 then enter just b86301656baefekba8917349bdf0f3g4"
-                                read -r EXISTING_UUID
-                                if [[ ! "$EXISTING_UUID" =~ ^[a-f0-9]{32}$ ]]; then
-                                    colorprint "RED" "Invalid UUID entered, it should be an md5 hash and 32 characters long."
-                                    colorprint "DEFAULT" "Do you want to try again? (Y/N)"
-                                    read -r TRY_AGAIN
-                                    case $TRY_AGAIN in
-                                        [Nn]* ) break ;;
-                                        * ) continue ;;
-                                    esac
-                                else
-                                    UUID="$EXISTING_UUID"
-                                    break
-                                fi
-                            done
-                            break
-                            ;;
-                        [Nn]* )
-                            break
-                            ;;
-                        * )
-                            colorprint "RED" "Please answer yes or no."
-                            ;;
-                    esac
-                done
-                sed -i "s/your${CURRENT_APP}MD5sum/$UUID/" .env
-                colorprint "DEFAULT" "${CURRENT_APP} UUID setup: done"
-                colorprint "BLUE" "Save the following link somewhere to claim your ${CURRENT_APP} node after completing the setup and starting the apps stack: https://earnapp.com/r/sdk-node-$UUID."
-                colorprint "DEFAULT" "A new file containing this link has been created for you in the current directory"
-                printf "https://earnapp.com/r/sdk-node-%s\n" "$UUID" > ClaimEarnappNode.txt
-                ;;
-
-            --cid)
-                debug "Starting CID setup for ${CURRENT_APP} app"
-                colorprint "DEFAULT" "Find your CID, you can fetch it from your dashboard https://packetstream.io/dashboard/download?linux# then click on -> Looking for linux app -> now search for CID= in the code shown in the page, you need to enter the code after -e CID= (e.g. if in the code CID=6aTk, just enter 6aTk)"
-                colorprint "GREEN" "Enter your ${CURRENT_APP} CID."
-                read -r APP_CID
-                sed -i "s/your${CURRENT_APP}CID/$APP_CID/" .env
-                ;;
-            --token)
-                debug "Starting Token setup for ${CURRENT_APP} app"
-                colorprint "DEFAULT" "Find your token, you can fetch it from your dashboard https://app.traffmonetizer.com/dashboard then -> Look for Your application token -> just insert it here (you can also copy and then paste it)"
-                colorprint "GREEN" "Enter your ${CURRENT_APP} Token."
-                read -r APP_TOKEN
-                sed -i "s^your${CURRENT_APP}Token^$APP_TOKEN^" .env
-                ;;
-            --customScript)
-                shift
-                CUSTOM_SCRIPT_NAME="$1.sh"
-                SCRIPT_PATH="$SCRIPTS_DIR/$CUSTOM_SCRIPT_NAME"
-                ESCAPED_PATH="$(echo "$SCRIPT_PATH" | sed 's/"/\\"/g')"
-                debug "Starting custom script execution for ${CURRENT_APP} app using $SCRIPT_NAME from $ESCAPED_PATH"
-                if [[ -f "$SCRIPT_PATH" ]]; then
-                    chmod +x "$ESCAPED_PATH"
-                    colorprint "DEFAULT" "Executing custom script: $CUSTOM_SCRIPT_NAME"
-                    source "$ESCAPED_PATH"
-                else
-                    colorprint "RED" "Custom script '$CUSTOM_SCRIPT_NAME' not found in the scripts directory."
-                fi
-                ;;
-            --manual)
-                debug "Starting manual setup for ${CURRENT_APP} app"
-                colorprint "YELLOW" "${CURRENT_APP} requires further manual configuration."
-                colorprint "YELLOW" "Please after completing this automated setup follow the manual steps described on the app's website."
                 ;;
             *)
-                colorprint "RED" "Unknown flag: $1"
-                exit 1
+                colorprint "RED" "Unknown parameter passed to fn_setupApp: $1"
                 ;;
         esac
         shift
     done
-    debug "Finished parsing arguments of setupApp function for ${CURRENT_APP} app"
+    # Extract the necessary fields from the app json
+    debug "Extracting necessary fields from the passed app json"
+    local name=$(jq -r '.name' <<< "$app_json")
+    local link=$(jq -r '.link' <<< "$app_json")
+    local image=$(jq -r '.image' <<< "$app_json")
+    local flags=($(jq -r '.flags[]?' <<< "$app_json")) # The ? is to make the flags field optional if not present in the json it will be set to null. The flags are then stored in an arrayusing the parenthesis()
+    local claimURLBase=$(jq -r '.claimURLBase? // .link' <<< "$app_json") # The ? is to make the claimURLBase field optional if not present in the json it will be set to the link field
+    local CURRENT_APP=$( "${name}" | tr '[:lower:]' '[:upper:]')
+    while true; do
+        # Check if the ${CURRENT_APP} is already enabled in the ${dk_compose_filename} file and if it is not (if there is a #ENABLE_$CURRENTAPP) then ask the user if they want to enable it
+        debug "Checking if the ${CURRENT_APP} app is already enabled in the ${dk_compose_filename} file"
+        if grep -q "#ENABLE_${CURRENT_APP}" "${dk_compose_filename}"; then
+            debug "${CURRENT_APP} is not enabled in the ${dk_compose_filename} file, asking the user if they want to enable it"
+            # Show the generic message before asking the user if they want to enable the app
+            colorprint "YELLOW" "PLEASE REGISTER ON THE PLATFORMS USING THE LINKS THAT WILL BE PROVIDED, YOU'LL THEN NEED TO ENTER SOME DATA BELOW:"
+            # Ask the user if they want to enable the ${CURRENT_APP}
+            colorprint "YELLOW" "Do you wish to enable and use ${CURRENT_APP}? (Y/N)"
+            read -r yn
+            case $yn in
+                [Yy]* )
+                    debug "User decided to enable and use ${CURRENT_APP}"
+                    colorprint "CYAN" "Go to ${CURRENT_APP} ${link} and register"
+                    colorprint "GREEN" "Use CTRL+Click to open links or copy them:"
+                    read -r -p "When you are done press Enter to continue"
+                    debug "Enabling ${CURRENT_APP} app. The parameters received are: name=$name, link=$link, image=$image, flags=$flags, claimURLBase=$claimURLBase"
+                    # Read the flags in the array and execute the relative loginc using the case statement
+                    for flag in "${flags[@]}"; do
+                        local flag_name="${flag%% *}"  # Extracts the flag name (e.g., "uuid")
+                        local flag_param="${flag#* }"  # Extracts the flag parameter if there is one (e.g., "32") if no parameter is present it will be set to null
+                        if [ "$flag_name" == "$flag_param" ]; then
+                            unset flag_param  # If they are the same, unset flag_param.
+                        fi
+                        case $flag_name in
+                            --email)
+                                debug "Starting email setup for ${CURRENT_APP} app"
+                                while true; do
+                                    colorprint "GREEN" "Enter your ${CURRENT_APP} Email:"
+                                    read -r APP_EMAIL
+                                    if [[ "$APP_EMAIL" =~ ^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[a-zA-Z]{2,}$ ]]; then
+                                        sed -i "s/your${CURRENT_APP}Mail/$APP_EMAIL/" .env
+                                        break
+                                    else
+                                        colorprint "RED" "Invalid email address. Please try again."
+                                    fi
+                                done
+                                ;;
+                            --password)
+                                debug "Starting password setup for ${CURRENT_APP} app"
+                                while true; do
+                                    colorprint "DEFAULT" "Note: If you are using login with Google, remember to set also a password for your ${CURRENT_APP} account!"
+                                    colorprint "GREEN" "Enter your ${CURRENT_APP} Password:"
+                                    read -r APP_PASSWORD
+                                    if [[ -z "$APP_PASSWORD" ]]; then
+                                        colorprint "RED" "Password cannot be empty. Please try again."
+                                    else
+                                        sed -i "s/your${CURRENT_APP}Pw/$APP_PASSWORD/" .env
+                                        break
+                                    fi
+                                done
+                                ;;
+                            --apikey)
+                                debug "Starting APIKey setup for ${CURRENT_APP} app"
+                                colorprint "DEFAULT" "Find/Generate your APIKey inside your ${CURRENT_APP} dashboard/profile."
+                                colorprint "GREEN" "Enter your ${CURRENT_APP} APIKey:"
+                                read -r APP_APIKEY
+                                sed -i "s^your${CURRENT_APP}APIKey^$APP_APIKEY^" .env
+                                ;;
+                            --userid)
+                                debug "Starting UserID setup for ${CURRENT_APP} app"
+                                colorprint "DEFAULT" "Find your UserID inside your ${CURRENT_APP} dashboard/profile."
+                                colorprint "GREEN" "Enter your ${CURRENT_APP} UserID:"
+                                read -r APP_USERID
+                                sed -i "s/your${CURRENT_APP}UserID/$APP_USERID/" .env
+                                ;;
+                            --uuid)
+                                debug "Starting UUID setup for ${CURRENT_APP} app"
+                                colorprint "DEFAULT" "Starting UUID generation/import for ${CURRENT_APP}"
 
-    # App Docker image architecture adjustments
-    debug "Starting Docker image architecture adjustments for ${CURRENT_APP} app"
-    TAG='latest'
-    DKHUBRES=$(curl -L -s "https://registry.hub.docker.com/v2/repositories/${APP_IMAGE}/tags" | jq --arg DKARCH "$DKARCH" '[.results[] | select(.images[].architecture == $DKARCH) | .name]')
-    TAGSNUMBER=$(echo $DKHUBRES | jq '. | length')
-    if [ $TAGSNUMBER -gt 0 ]; then 
-        colorprint "DEFAULT" "There are $TAGSNUMBER tags supporting $DKARCH arch for this image"
-        colorprint "DEFAULT" "Let's see if $TAG tag is in there"
-        LATESTPRESENT=$(echo $DKHUBRES | jq --arg TAG "$TAG" '[.[] | contains($TAG)] | any')
-        if [ $LATESTPRESENT == "true" ]; then 
-            colorprint "GREEN" "OK, $TAG tag present and it supports $DKARCH arch, nothing to do"
-        else 
-            colorprint "YELLOW" "$TAG tag does not support $DKARCH arch but other tags do, the newer tag supporting $DKARCH will be selected"
-            NEWTAG=$(echo $DKHUBRES | jq -r '.[0]')
-            sed -i "s^${APP_IMAGE}:latest^${APP_IMAGE}:$NEWTAG^" $DKCOM_FILENAME
+                                # Check if the flag_param exists and if is a number (i.e., the desired length)
+                                if [[ -n "${flag_param:-}" ]] && [[ "${flag_param:-}" =~ ^[0-9]+$ ]]; then
+                                    DESIRED_LENGTH="$flag_param"
+                                    debug "Desired length for UUID generation/import passed as argument of the uuid flag (read from json), its value is: $DESIRED_LENGTH"
+                                else
+                                    # If no length is provided, ask the user
+                                    debug "No desired length for UUID generation/import passed as argument of the uuid flag, asking the user"
+                                    colorprint "GREEN" "Enter desired length for the UUID (default is 32, press Enter to use default):"
+                                    read -r DESIRED_LENGTH_INPUT
+                                    DESIRED_LENGTH=${DESIRED_LENGTH_INPUT:-32}  # Defaulting to 32 if no input provided
+                                fi
+                                debug "Starting temporary UUID generation/import for ${CURRENT_APP} with desired length: $DESIRED_LENGTH. This will be overwritten if the user chooses to use an existing UUID."
+                                local UUID=""
+                                while [ ${#UUID} -lt $DESIRED_LENGTH ]; do
+                                    # Regenerate the salt for each iteration
+                                    SALT="${DEVICE_NAME}""${RANDOM}""${UUID}"  # Incorporate the previously generated UUID part for added randomness
+                                    UUID_PART="$(echo -n "$SALT" | md5sum | cut -c1-32)"
+                                    UUID+="$UUID_PART"
+                                done
+                            
+                                # Cut or trail the generated UUID based on the desired length
+                                UUID=${UUID:0:$DESIRED_LENGTH}
+                                debug "Done, generated temporary UUID: $UUID"
+                                
+                                while true; do
+                                    colorprint "YELLOW" "Do you want to use a previously registered uuid for ${CURRENT_APP}? (Y/N)"
+                                    read -r USE_EXISTING_UUID
+                                    case $USE_EXISTING_UUID in
+                                        [Yy]* )
+                                            while true; do
+                                                colorprint "GREEN" "Please enter the alphanumeric part of the existing uuid for ${CURRENT_APP}, it should be $DESIRED_LENGTH characters long."
+                                                colorprint "DEFAULT" "E.g. if existing registered node is sdk-node-b86301656baefekba8917349bdf0f3g4 then enter just b86301656baefekba8917349bdf0f3g4"
+                                                read -r EXISTING_UUID
+                                                if [[ ! "$EXISTING_UUID" =~ ^[a-f0-9]{$DESIRED_LENGTH}$ ]]; then
+                                                    colorprint "RED" "Invalid UUID entered, it should be an alphanumeric string and $DESIRED_LENGTH characters long."
+                                                    colorprint "DEFAULT" "Do you want to try again? (Y/N)"
+                                                    read -r TRY_AGAIN
+                                                    case $TRY_AGAIN in
+                                                        [Nn]* ) break ;;
+                                                        * ) continue ;;
+                                                    esac
+                                                else
+                                                    UUID="$EXISTING_UUID"
+                                                    print_and_log "DEFAULT" "Using user provided existing UUID: $UUID"
+                                                    break
+                                                fi
+                                            done
+                                            break
+                                            ;;
+                                        [Nn]* )
+                                            break
+                                            ;;
+                                        * )
+                                            colorprint "RED" "Please answer yes or no."
+                                            ;;
+                                    esac
+                                done
+                                
+                                sed -i "s/your${CURRENT_APP}DeviceUUID/$UUID/" .env
+                                colorprint "DEFAULT" "${CURRENT_APP} UUID setup: done"
+                                # Generaing the claim link
+                                local claimlink="${claimURLBase}${UUID}"
+                                colorprint "BLUE" "Save the following link somewhere to claim/register your ${CURRENT_APP} node/device after completing the setup and starting the apps stack: ${claimlink}"
+                                echo "${claimlink}" > "claim${CURRENT_APP}NodeDevice.txt"
+                                colorprint "DEFAULT" "A new file containing this link has been created for you in the current directory"
+                                ;;
+                            --cid)
+                                debug "Starting CID setup for ${CURRENT_APP} app"
+                                colorprint "DEFAULT" "Find your CID inside your ${CURRENT_APP} dashboard/profile."
+                                colorprint "DEFAULT" "Example: For packetstream you can fetch it from your dashboard https://packetstream.io/dashboard/download?linux# then click on -> Looking for linux app -> now search for CID= in the code shown in the page, you need to enter the code after -e CID= (e.g. if in the code CID=6aTk, just enter 6aTk)"
+                                colorprint "GREEN" "Enter your ${CURRENT_APP} CID:"
+                                read -r APP_CID
+                                sed -i "s/your${CURRENT_APP}CID/$APP_CID/" .env
+                                ;;
+                            --token)
+                                debug "Starting token setup for ${CURRENT_APP} app"
+                                colorprint "DEFAULT" "Find your token inside your ${CURRENT_APP} dashboard/profile."
+                                colorprint "DEFAULT" "Example: For traffmonetizer you can fetch it from your dashboard https://app.traffmonetizer.com/dashboard then -> Look for Your application token -> just insert it here (you can also copy and then paste it)"
+                                colorprint "GREEN" "Enter your ${CURRENT_APP} token:"
+                                read -r APP_TOKEN
+                                sed -i "s/your${CURRENT_APP}Token/$APP_TOKEN/" .env
+                                ;;
+                            --customScript)
+                                debug "Starting customScript setup for ${CURRENT_APP} app"
+                                shift
+                                CUSTOM_SCRIPT_NAME="$1.sh"
+                                SCRIPT_PATH="$SCRIPTS_DIR/$CUSTOM_SCRIPT_NAME"
+                                ESCAPED_PATH="$(echo "$SCRIPT_PATH" | sed 's/"/\\"/g')"
+                                debug "Starting custom script execution for ${CURRENT_APP} app using $SCRIPT_NAME from $ESCAPED_PATH"
+                                if [[ -f "$SCRIPT_PATH" ]]; then
+                                    chmod +x "$ESCAPED_PATH"
+                                    colorprint "DEFAULT" "Executing custom script: $CUSTOM_SCRIPT_NAME"
+                                    source "$ESCAPED_PATH"
+                                else
+                                    colorprint "RED" "Custom script '$CUSTOM_SCRIPT_NAME' not found in the scripts directory."
+                                fi
+                                ;;
+                            --manual)
+                                debug "Starting manual setup for ${CURRENT_APP} app"
+                                colorprint "YELLOW" "${CURRENT_APP} requires further manual configuration."
+                                colorprint "YELLOW" "Please after completing this automated setup follow the manual steps described on the app's website."
+                                ;; 
+                            *)
+                                fn_fail "Unknown ${flag} flag passed to fn_setupApp"
+                                ;;  
+                        esac
+                    done
+                    # Complete the setup of the app by enabling it in the docker-compose file
+                    sed -i "s^#ENABLE_${CURRENT_APP}^^" "${dk_compose_filename}"
+                    debug "Enabled ${CURRENT_APP} app in ${dk_compose_filename}"
+
+                    # App Docker image architecture adjustments
+                    debug "Starting Docker image architecture adjustments for ${CURRENT_APP} app"
+                    TAG='latest'
+                    DKHUBRES=$(curl -L -s "https://registry.hub.docker.com/v2/repositories/${APP_IMAGE}/tags" | jq --arg DKARCH "$DKARCH" '[.results[] | select(.images[].architecture == $DKARCH) | .name]')
+                    TAGSNUMBER=$(echo $DKHUBRES | jq '. | length')
+                    if [ $TAGSNUMBER -gt 0 ]; then 
+                        colorprint "DEFAULT" "There are $TAGSNUMBER tags supporting $DKARCH arch for this image"
+                        colorprint "DEFAULT" "Let's see if $TAG tag is in there"
+                        LATESTPRESENT=$(echo $DKHUBRES | jq --arg TAG "$TAG" '[.[] | contains($TAG)] | any')
+                        if [ $LATESTPRESENT == "true" ]; then 
+                            colorprint "GREEN" "OK, $TAG tag present and it supports $DKARCH arch, nothing to do"
+                        else 
+                            colorprint "YELLOW" "$TAG tag does not support $DKARCH arch but other tags do, the newer tag supporting $DKARCH will be selected"
+                            NEWTAG=$(echo $DKHUBRES | jq -r '.[0]')
+                            sed -i "s^${APP_IMAGE}:latest^${APP_IMAGE}:$NEWTAG^" $DKCOM_FILENAME
+                        fi
+                    else 
+                        colorprint "YELLOW" "No native image tag found for $DKARCH arch, emulation layer will try to run this app image anyway."
+                        colorprint "DEFAULT" "If an emulation layer is not already installed, the script will try to install it now. Please provide your sudo password if prompted."
+                        #fn_install_packages qemu binfmt-support qemu-user-static
+                        fn_addDockerBinfmtSVC
+                    fi
+                    debug "Finished Docker image architecture adjustments for ${CURRENT_APP} app. Its image tag is now $(grep -oP "${APP_IMAGE}:\K[^#\r]+" $DKCOM_FILENAME)"
+                    read -r -p "${CURRENT_APP} configuration complete, press enter to continue to the next app"
+                    debug "Finished setupApp function for ${CURRENT_APP} app"
+                    break
+                    ;;
+                [Nn]* )
+                    debug "User decided to skip ${CURRENT_APP} setup"
+                    colorprint "BLUE" "${CURRENT_APP} setup will be skipped."
+                    read -r -p "Press enter to continue to the next app"
+                    break
+                    ;;
+                * )
+                    colorprint "RED" "Please answer yes or no."
+                    ;;
+            esac
+        else
+            print_and_log "BLUE" "${CURRENT_APP} is already enabled."
+            sleep ${SLEEP_TIME}
+            break
         fi
-    else 
-        colorprint "YELLOW" "No native image tag found for $DKARCH arch, emulation layer will try to run this app image anyway."
-        colorprint "DEFAULT" "If an emulation layer is not already installed, the script will try to install it now. Please provide your sudo password if prompted."
-        #fn_install_packages qemu binfmt-support qemu-user-static
-        fn_addDockerBinfmtSVC
-    fi
-    debug "Finished Docker image architecture adjustments for ${CURRENT_APP} app. Its image tag is now $(grep -oP "${APP_IMAGE}:\K[^#\r]+" $DKCOM_FILENAME)"
-    read -r -p "${CURRENT_APP} configuration complete, press enter to continue to the next app"
-    debug "Finished setupApp function for ${CURRENT_APP} app"
+    done
 }
 
 fn_setupProxy() {
@@ -782,7 +869,6 @@ fn_setupEnv(){
                     read -r -p "Press enter to continue"
                 fi
                 colorprint "YELLOW" "beginnning env file guided setup"
-                CURRENT_APP='';
                 if grep -q "DEVICE_NAME=${DEVICE_NAME_PLACEHOLDER}" .env  ; then
                     debug "Device name is still the default one, asking user to change it"
                     colorprint "YELLOW" "PLEASE ENTER A NAME FOR YOUR DEVICE:"
@@ -823,40 +909,8 @@ fn_setupEnv(){
                 debug "$app_type loaded from ${CONFIG_JSON_FILE}"
                 for app in $apps; do
                     clear
-                    colorprint "YELLOW" "PLEASE REGISTER ON THE PLATFORMS USING THE FOLLOWING LINKS, YOU'LL NEED TO ENTER SOME DATA BELOW:"
-                    colorprint "GREEN" "Use CTRL+Click to open links or copy them:"
-                    name=$(jq -r '.name' <<< "$app")
-                    link=$(jq -r '.link' <<< "$app")
-                    image=$(jq -r '.image' <<< "$app")
-                    flags=$(jq -r '.flags[]' <<< "$app")
-                    CURRENT_APP=$(echo "$name" | tr '[:lower:]' '[:upper:]')
-                    while true; do
-                        # check if the ${CURRENT_APP} is already enabled in the $DKCOM_FILENAME file and if it is not (if there is a #ENABLE_$CURRENTAPP) then ask the user if they want to enable it
-                        if grep -q "#ENABLE_${CURRENT_APP}" "$DKCOM_FILENAME"; then
-                            colorprint "YELLOW" "Do you wish to enable and use ${CURRENT_APP}? (Y/N)"
-                            read -r yn
-                            case $yn in
-                                [Yy]* )
-                                    colorprint "CYAN" "Go to ${name} ${link} and register"
-                                    read -r -p "When done, press enter to continue"$'\n'
-                                    # Pass the flags string to the function
-                                    fn_setupApp --app "${CURRENT_APP}" --image "$image" ${flags}
-                                    clear
-                                    break
-                                    ;;
-                                [Nn]* )
-                                    colorprint "BLUE" "${CURRENT_APP} setup will be skipped."
-                                    read -r -p "Press enter to continue to the next app"
-                                    break
-                                    ;;
-                                * ) colorprint "RED" "Please answer yes or no." ;;
-                            esac
-                        else
-                            print_and_log "BLUE" "${CURRENT_APP} is already enabled."
-                            sleep 1
-                            break
-                        fi
-                    done
+                    fn_setupApp --app-json "$app" --dk-compose-filename "$DKCOM_FILENAME"
+                    clear
                 done
 
                 # Notifications setup
