@@ -5,7 +5,8 @@
       "dashboard": "https://earnapp.com/dashboard",
       "link": "https://earnapp.com/i/3zulx7k",
       "image": "fazalfarhan01/earnapp",
-      "flags": ["--uuid"]
+      "flags": ["--uuid 32"],
+      "claimURLBase": "https://earnapp.com/r/sdk-node-"
     },
     {
       "name": "HONEYGAIN",
@@ -47,7 +48,8 @@
       "dashboard": "https://peer.proxyrack.com/dashboard",
       "link": "https://peer.proxyrack.com/ref/myoas6qttvhuvkzh8ffx90ns1ouhwgilfgamo5ex",
       "image": "proxyrack/pop",
-      "flags": ["--apikey"]
+      "flags": ["--apikey, --uuid 64"],
+      "claimURLBase": "https://peer.proxyrack.com/devices?"
     },
     {
       "name": "PROXYLITE",
