@@ -75,6 +75,7 @@ services:
 #ENABLE_PROXYRACK    environment:
 #ENABLE_PROXYRACK        - api_key=$PROXYRACK_APIKEY
 #ENABLE_PROXYRACK        - device_name=$DEVICE_NAME
+#ENABLE_PROXYRACK        - UUID=$PROXYRACK_DEVICE_UUID
 #ENABLE_PROXYRACK    # network_mode: service:tun2socks
 #ENABLE_PROXYRACK    restart: always
 
