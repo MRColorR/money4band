@@ -555,7 +555,8 @@ fn_setupApp() {
     local name=$(jq -r '.name' <<< "$app_json")
     local link=$(jq -r '.link' <<< "$app_json")
     local image=$(jq -r '.image' <<< "$app_json")
-    local flags=($(jq -r '.flags[]?' <<< "$app_json")) # The ? is to make the flags field optional if not present in the json it will be set to null. The flags are then stored in an arrayusing the parenthesis()
+    local flags=$(jq -r 'keys[]' <<< "$(jq '.flags?' <<< "$app_json")")
+    #local flags=($(jq -r '.flags[]?' <<< "$app_json")) # The ? is to make the flags field optional if not present in the json it will be set to null. The flags are then stored in an arrayusing the parenthesis()
     local claimURLBase=$(jq -r '.claimURLBase? // .link' <<< "$app_json") # The ? is to make the claimURLBase field optional if not present in the json it will be set to the link field
     local CURRENT_APP=$( "${name}" | tr '[:lower:]' '[:upper:]')
     while true; do
@@ -576,11 +577,13 @@ fn_setupApp() {
                     read -r -p "When you are done press Enter to continue"
                     debug "Enabling ${CURRENT_APP} app. The parameters received are: name=$name, link=$link, image=$image, flags=$flags, claimURLBase=$claimURLBase"
                     # Read the flags in the array and execute the relative loginc using the case statement
-                    for flag in "${flags[@]}"; do
-                        local flag_name="${flag%% *}"  # Extracts the flag name (e.g., "uuid")
-                        local flag_param="${flag#* }"  # Extracts the flag parameter if there is one (e.g., "32") if no parameter is present it will be set to null
-                        if [ "$flag_name" == "$flag_param" ]; then
-                            unset flag_param  # If they are the same, unset flag_param.
+                    for flag_name in "${flags[@]}"; do
+                        # Extract flag details and parameters if they exist
+                        local flag_details=$(jq -r ".flags[\"$flag_name\"]?" <<< "$app_json")
+                        if [[ "$flag_details" != "null" ]]; then
+                            local flag_param=$(jq -r "to_entries[]? | \"\(.key)=\(.value)\"" <<< "$flag_details")
+                        else
+                            unset flag_param
                         fi
                         case $flag_name in
                             --email)
@@ -712,8 +715,7 @@ fn_setupApp() {
                                 ;;
                             --customScript)
                                 debug "Starting customScript setup for ${CURRENT_APP} app"
-                                shift
-                                CUSTOM_SCRIPT_NAME="$1.sh"
+                                CUSTOM_SCRIPT_NAME="$flag_param.sh"
                                 SCRIPT_PATH="$SCRIPTS_DIR/$CUSTOM_SCRIPT_NAME"
                                 ESCAPED_PATH="$(echo "$SCRIPT_PATH" | sed 's/"/\\"/g')"
                                 debug "Starting custom script execution for ${CURRENT_APP} app using $SCRIPT_NAME from $ESCAPED_PATH"
