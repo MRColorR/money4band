@@ -3,7 +3,7 @@
 ### Variables and constants ###
 ## Script variables ##
 # Script version #
-readonly SCRIPT_VERSION="2.2.0" # used for checking updates
+readonly SCRIPT_VERSION="2.3.0" # used for checking updates
 
 # Script name #
 readonly SCRIPT_NAME=$(basename "$0") # save the script name in a variable not the full path
@@ -125,7 +125,7 @@ fi
 # Function to write debug messages to the debug log file #
 debug() {
     if [ $DEBUG ]; then
-        echo "$(date +'%Y-%m-%d %H:%M:%S') - $@" >> "$DEBUG_LOG"
+        echo "$(date +'%Y-%m-%d %H:%M:%S') - [DEBUG] - $@" >> "$DEBUG_LOG"
     fi
 }
 # Function to print an info message that will be also logged to the debug log file #
@@ -554,9 +554,13 @@ fn_setupApp() {
     debug "Extracting necessary fields from the passed app json"
     local name=$(jq -r '.name' <<< "$app_json")
     local link=$(jq -r '.link' <<< "$app_json")
-    local image=$(jq -r '.image' <<< "$app_json")
-    local flags=$(jq -r 'keys[]' <<< "$(jq '.flags?' <<< "$app_json")")
-    #local flags=($(jq -r '.flags[]?' <<< "$app_json")) # The ? is to make the flags field optional if not present in the json it will be set to null. The flags are then stored in an arrayusing the parenthesis()
+    local app_image=$(jq -r '.image' <<< "$app_json")
+    local flags_raw=$(jq -r 'keys[]' <<< "$(jq '.flags?' <<< "$app_json")")
+    # Load the flags thata are extracted by jq as a string in an array
+    local flags=()
+    while read -r line; do
+        flags+=("$line")
+    done <<< "$flags_raw"
     local claimURLBase=$(jq -r '.claimURLBase? // .link' <<< "$app_json") # The ? is to make the claimURLBase field optional if not present in the json it will be set to the link field
     local CURRENT_APP=$(echo "${name}" | tr '[:lower:]' '[:upper:]')
     while true; do
@@ -575,15 +579,18 @@ fn_setupApp() {
                     colorprint "CYAN" "Go to ${CURRENT_APP} ${link} and register"
                     colorprint "GREEN" "Use CTRL+Click to open links or copy them:"
                     read -r -p "When you are done press Enter to continue"
-                    debug "Enabling ${CURRENT_APP} app. The parameters received are: name=$name, link=$link, image=$image, flags=$flags, claimURLBase=$claimURLBase"
-                    # Read the flags in the array and execute the relative loginc using the case statement
+                    debug "Enabling ${CURRENT_APP} app. The parameters received are: name=$name, link=$link, image=$app_image, flags=$flags, claimURLBase=$claimURLBase"
+                    # Read the flags in the array and execute the relative logic using the case statement
                     for flag_name in "${flags[@]}"; do
-                        # Extract flag details and parameters if they exist
+                        # Extract flag details and all the parameters if they exist 
                         local flag_details=$(jq -r ".flags[\"$flag_name\"]?" <<< "$app_json")
+                        debug "Result of flag_details reading: $flag_details"
                         if [[ "$flag_details" != "null" ]]; then
-                            local flag_param=$(jq -r "to_entries[]? | \"\(.key)=\(.value)\"" <<< "$flag_details")
+                            #load all the flags parameters keys in an array so then we cann iterate on them and access their values easily from the json
+                            local flag_params_keys=$(jq -r "keys[]?" <<< "$flag_details")
+                            debug "Result of flag_params_keys reading: $flag_params_keys"
                         else
-                            unset flag_param
+                            debug "No flag details found for flag: $flag_name"
                         fi
                         case $flag_name in
                             --email)
@@ -630,10 +637,28 @@ fn_setupApp() {
                             --uuid)
                                 debug "Starting UUID setup for ${CURRENT_APP} app"
                                 colorprint "DEFAULT" "Starting UUID generation/import for ${CURRENT_APP}"
+                                # Read all the parameters for the uuid flag , if one of them is the case length then save it in a variable
+                                if [[ -n "${flag_params_keys:-}" ]]; then
+                                    for flag_param_key in $flag_params_keys; do
+                                        debug "Reading flag parameter: $flag_param_key"
+                                        case $flag_param_key in
+                                            length)
+                                                debug "Reading flag parameter length"
+                                                flag_length_param=$(jq -r ".flags[\"$flag_name\"][\"$flag_param_key\"]?" <<< "$app_json")
+                                                debug "Result of flag_length_param reading: $flag_length_param"
+                                                ;;
+                                            *)
+                                                debug "Unknown flag parameter: $flag_param_key"
+                                                ;;
+                                        esac
+                                    done
+                                else
+                                    debug "No flag parameters found for flag: $flag_name as flag_params_keys array is empty"
+                                fi
 
-                                # Check if the flag_param exists and if is a number (i.e., the desired length)
-                                if [[ -n "${flag_param:-}" ]] && [[ "${flag_param:-}" =~ ^[0-9]+$ ]]; then
-                                    DESIRED_LENGTH="$flag_param"
+                                # Check if the flag_length_param exists and if is a number (i.e., the desired length)
+                                if [[ -n "${flag_length_param:-}" ]] && [[ "${flag_length_param:-}" =~ ^[0-9]+$ ]]; then
+                                    DESIRED_LENGTH="$flag_length_param"
                                     debug "Desired length for UUID generation/import passed as argument of the uuid flag (read from json), its value is: $DESIRED_LENGTH"
                                 else
                                     # If no length is provided, ask the user
@@ -715,7 +740,25 @@ fn_setupApp() {
                                 ;;
                             --customScript)
                                 debug "Starting customScript setup for ${CURRENT_APP} app"
-                                CUSTOM_SCRIPT_NAME="$flag_param.sh"
+                                # Read all the parameters for the customScript flag , if one of them is the case scriptname then save it in a variable
+                                if [[ -n "${flag_params_keys:-}" ]]; then
+                                    for flag_param_key in $flag_params_keys; do
+                                        debug "Reading flag parameter: $flag_param_key"
+                                        case $flag_param_key in
+                                            scriptname)
+                                                debug "Reading flag parameter scriptname"
+                                                flag_scriptname_param=$(jq -r ".flags[\"$flag_name\"][\"$flag_param_key\"]?" <<< "$app_json")
+                                                debug "Result of flag_scriptname_param reading: $flag_scriptname_param"
+                                                ;;
+                                            *)
+                                                debug "Unknown flag parameter: $flag_param_key"
+                                                ;;
+                                        esac
+                                    done
+                                else
+                                    debug "No flag parameters found for flag: $flag_name as flag_params_keys array is empty"
+                                fi
+                                CUSTOM_SCRIPT_NAME="${flag_scriptname_param}.sh"
                                 SCRIPT_PATH="$SCRIPTS_DIR/$CUSTOM_SCRIPT_NAME"
                                 ESCAPED_PATH="$(echo "$SCRIPT_PATH" | sed 's/"/\\"/g')"
                                 debug "Starting custom script execution for ${CURRENT_APP} app using $SCRIPT_NAME from $ESCAPED_PATH"
@@ -744,7 +787,7 @@ fn_setupApp() {
                     # App Docker image architecture adjustments
                     debug "Starting Docker image architecture adjustments for ${CURRENT_APP} app"
                     TAG='latest'
-                    DKHUBRES=$(curl -L -s "https://registry.hub.docker.com/v2/repositories/${APP_IMAGE}/tags" | jq --arg DKARCH "$DKARCH" '[.results[] | select(.images[].architecture == $DKARCH) | .name]')
+                    DKHUBRES=$(curl -L -s "https://registry.hub.docker.com/v2/repositories/${app_image}/tags" | jq --arg DKARCH "$DKARCH" '[.results[] | select(.images[].architecture == $DKARCH) | .name]')
                     TAGSNUMBER=$(echo $DKHUBRES | jq '. | length')
                     if [ $TAGSNUMBER -gt 0 ]; then 
                         colorprint "DEFAULT" "There are $TAGSNUMBER tags supporting $DKARCH arch for this image"
@@ -755,7 +798,7 @@ fn_setupApp() {
                         else 
                             colorprint "YELLOW" "$TAG tag does not support $DKARCH arch but other tags do, the newer tag supporting $DKARCH will be selected"
                             NEWTAG=$(echo $DKHUBRES | jq -r '.[0]')
-                            sed -i "s^${APP_IMAGE}:latest^${APP_IMAGE}:$NEWTAG^" $DKCOM_FILENAME
+                            sed -i "s^${app_image}:latest^${app_image}:$NEWTAG^" $DKCOM_FILENAME
                         fi
                     else 
                         colorprint "YELLOW" "No native image tag found for $DKARCH arch, emulation layer will try to run this app image anyway."
@@ -763,7 +806,7 @@ fn_setupApp() {
                         #fn_install_packages qemu binfmt-support qemu-user-static
                         fn_addDockerBinfmtSVC
                     fi
-                    debug "Finished Docker image architecture adjustments for ${CURRENT_APP} app. Its image tag is now $(grep -oP "${APP_IMAGE}:\K[^#\r]+" $DKCOM_FILENAME)"
+                    debug "Finished Docker image architecture adjustments for ${CURRENT_APP} app. Its image tag is now $(grep -oP "${app_image}:\K[^#\r]+" $DKCOM_FILENAME)"
                     read -r -p "${CURRENT_APP} configuration complete, press enter to continue to the next app"
                     debug "Finished setupApp function for ${CURRENT_APP} app"
                     break
@@ -840,6 +883,29 @@ fn_setupEnv(){
     debug "Current PROXY_CONFIGURATION_STATUS: $PROXY_CONFIGURATION_STATUS"
     NOTIFICATIONS_CONFIGURATION_STATUS=$(grep -oP '# NOTIFICATIONS_CONFIGURATION_STATUS=\K[^#\r]+' .env)
     debug "Current NOTIFICATIONS_CONFIGURATION_STATUS: $NOTIFICATIONS_CONFIGURATION_STATUS"
+    if [ "$ENV_CONFIGURATION_STATUS" == "1" ] && [ "$app_type" == "apps" ]; then
+        colorprint "YELLOW" "The current .env file appears to have already been configured. Do you wish to reset it? (Y/N)"
+        read -r yn
+        case $yn in
+            [Yy]* )
+                print_and_log "DEFAULT" "Downloading a fresh .env file.";
+                curl -fsSL $ENV_SRC -o ".env"
+                curl -fsSL $DKCOM_SRC -o "$DKCOM_FILENAME"
+                clear
+                ;;
+            [Nn]* )
+                print_and_log "BLUE" "Keeping the existing .env file."
+                read -r -p "Press enter to continue"
+                ;;
+            * )
+                colorprint "RED" "Invalid input. Please answer yes or no."
+                return 1
+                ;;
+        esac
+    elif [ "$ENV_CONFIGURATION_STATUS" == "1" ] && [ "$app_type" != "apps" ]; then
+        print_and_log "BLUE" "Proceeding with $app_type setup without resetting .env file as it should already be configured by the main apps setup."
+        read -r -p "Press enter to continue"
+    fi
     while true; do
         colorprint "YELLOW" "Do you wish to proceed with the .env file guided setup Y/N? (This will also adapt the $DKCOM_FILENAME file accordingly)"
         read -r yn
@@ -847,30 +913,8 @@ fn_setupEnv(){
             [Yy]* ) 
                 clear
                 debug "User chose to proceed with the .env file guided setup for $app_type"
-                if [ "$ENV_CONFIGURATION_STATUS" == "1" ] && [ "$app_type" == "apps" ]; then
-                    colorprint "YELLOW" "The current .env file appears to have already been configured. Do you wish to reset it? (Y/N)"
-                    read -r yn
-                    case $yn in
-                        [Yy]* )
-                            print_and_log "DEFAULT" "Downloading a fresh .env file.";
-                            curl -fsSL $ENV_SRC -o ".env"
-                            curl -fsSL $DKCOM_SRC -o "$DKCOM_FILENAME"
-                            clear
-                            ;;
-                        [Nn]* )
-                            print_and_log "BLUE" "Keeping the existing .env file."
-                            read -r -p "Press enter to continue"
-                            ;;
-                        * )
-                            colorprint "RED" "Invalid input. Please answer yes or no."
-                            return 1
-                            ;;
-                    esac
-                elif [ "$ENV_CONFIGURATION_STATUS" == "1" ] && [ "$app_type" != "apps" ]; then
-                    print_and_log "BLUE" "Proceeding with $app_type setup without resetting .env file as it should already be configured by the main apps setup."
-                    read -r -p "Press enter to continue"
-                fi
                 colorprint "YELLOW" "beginnning env file guided setup"
+                sed -i 's/ENV_CONFIGURATION_STATUS=0/ENV_CONFIGURATION_STATUS=1/' .env
                 if grep -q "DEVICE_NAME=${DEVICE_NAME_PLACEHOLDER}" .env  ; then
                     debug "Device name is still the default one, asking user to change it"
                     colorprint "YELLOW" "PLEASE ENTER A NAME FOR YOUR DEVICE:"
@@ -940,8 +984,6 @@ fn_setupEnv(){
                     debug "Asking user if they want to setup notifications as they are not already configured"
                     fn_setupNotifications;
                 fi
-                
-                sed -i 's/ENV_CONFIGURATION_STATUS=0/ENV_CONFIGURATION_STATUS=1/' .env
                 print_and_log "GREEN" "env file setup complete.";
                 read -n 1 -s -r -p "Press enter to go back to the menu"$'\n'
                 break
