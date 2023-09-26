@@ -558,7 +558,7 @@ fn_setupApp() {
     local flags=$(jq -r 'keys[]' <<< "$(jq '.flags?' <<< "$app_json")")
     #local flags=($(jq -r '.flags[]?' <<< "$app_json")) # The ? is to make the flags field optional if not present in the json it will be set to null. The flags are then stored in an arrayusing the parenthesis()
     local claimURLBase=$(jq -r '.claimURLBase? // .link' <<< "$app_json") # The ? is to make the claimURLBase field optional if not present in the json it will be set to the link field
-    local CURRENT_APP=$( "${name}" | tr '[:lower:]' '[:upper:]')
+    local CURRENT_APP=$(echo "${name}" | tr '[:lower:]' '[:upper:]')
     while true; do
         # Check if the ${CURRENT_APP} is already enabled in the ${dk_compose_filename} file and if it is not (if there is a #ENABLE_$CURRENTAPP) then ask the user if they want to enable it
         debug "Checking if the ${CURRENT_APP} app is already enabled in the ${dk_compose_filename} file"
