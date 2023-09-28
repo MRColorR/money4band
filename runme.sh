@@ -117,10 +117,21 @@ fn_bye(){
 ### Log, Update and Utility functions ###
 # Function to write info/debug/warn/error messages to the log file if debug flag is true #
 toLog_ifDebug() {
-    local log_level="${1:-[DEBUG]}"
-    shift
-    if [ $DEBUG ]; then
-        echo "$(date +'%Y-%m-%d %H:%M:%S') - $log_level - $*" >> "$DEBUG_LOG"
+    local log_level
+    local message
+
+    # If only one argument is passed, default to DEBUG log level
+    if [[ $# -eq 1 ]]; then
+        log_level="[DEBUG]"
+        message="$1"
+    else
+        log_level="$1"
+        message="$2"
+    fi
+
+    # Only log if DEBUG mode is enabled
+    if [[ "$DEBUG" == "true" ]]; then
+        echo "$(date +'%Y-%m-%d %H:%M:%S') - $log_level - $message" >> "$DEBUG_LOG"
     fi
 }
 ## Enable or disable logging using debug mode ##
@@ -129,7 +140,7 @@ if [[ $1 == '-d' || $1 == '--debug' ]]; then
     DEBUG=true
     # Remove the first argument so it doesn't interfere with the rest of the script
     shift
-    toLog_ifDebug "[DEBUG]: Debug mode enabled."
+    toLog_ifDebug "[DEBUG]" "Debug mode enabled."
 else
     DEBUG=false
 fi
