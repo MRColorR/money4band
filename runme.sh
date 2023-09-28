@@ -1044,7 +1044,7 @@ fn_startStack(){
                     print_and_log "GREEN" "All Apps started."
                     colorprint "GREEN" "You can visit the web dashboard on ${DASHBOARD_URL}. If not already done, use the previously generated earnapp node URL to add your device in your earnapp dashboard. Check the README file for more details."
                 else
-                    errorprint_and_log "RED" "Error starting Docker stack. Please check the configuration and try again."
+                    errorprint_and_log "Error starting Docker stack. Please check the configuration and try again."
                 fi
                 read -r -p "Now press enter to go back to the menu"
                 break
@@ -1073,7 +1073,7 @@ fn_stopStack(){
                 if sudo docker compose down; then
                     print_and_log "GREEN" "All Apps stopped and stack deleted."
                 else
-                    errorprint_and_log "RED" "Error stopping and deleting Docker stack. Please check the configuration and try again."
+                    errorprint_and_log "Error stopping and deleting Docker stack. Please check the configuration and try again."
                 fi
                 read -r -p "Now press enter to go back to the menu"
                 break
