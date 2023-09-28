@@ -3,7 +3,7 @@
 ### Variables and constants ###
 ## Script variables ##
 # Script version #
-readonly SCRIPT_VERSION="2.3.0" # used for checking updates
+readonly SCRIPT_VERSION="2.3.1" # used for checking updates
 
 # Script name #
 readonly SCRIPT_NAME=$(basename "$0") # save the script name in a variable not the full path
@@ -57,7 +57,9 @@ declare -A arch_map=(
     ["amd64"]="amd64"
     ["aarch64"]="arm64"
     ["arm64"]="arm64"
+    ["x86"]="x86"
 )
+
 # OS default. Also define a map for the recognized OSs #
 OS_TYPE='unknown'
 declare -A os_map=(
@@ -117,30 +119,39 @@ fn_bye(){
 ### Log, Update and Utility functions ###
 # Function to write info/debug/warn/error messages to the log file if debug flag is true #
 toLog_ifDebug() {
-    local log_level
-    local message
+    local log_level="[DEBUG]"
+    local message=""
 
-    # If only one argument is passed, default to DEBUG log level
-    if [[ $# -eq 1 ]]; then
-        log_level="[DEBUG]"
-        message="$1"
-    else
-        log_level="$1"
-        message="$2"
-    fi
+    while [[ "$#" -gt 0 ]]; do
+        case "$1" in
+            -l|--log_level)
+                log_level="$2"
+                shift 2
+                ;;
+            -m|--message)
+                message="$2"
+                shift 2
+                ;;
+            *)
+                echo "Unknown parameter passed: $1"
+                exit 1
+                ;;
+        esac
+    done
 
     # Only log if DEBUG mode is enabled
     if [[ "$DEBUG" == "true" ]]; then
         echo "$(date +'%Y-%m-%d %H:%M:%S') - $log_level - $message" >> "$DEBUG_LOG"
     fi
 }
+
 ## Enable or disable logging using debug mode ##
 # Check if the first argument is -d or --debug if so, enable debug mode
 if [[ $1 == '-d' || $1 == '--debug' ]]; then
     DEBUG=true
     # Remove the first argument so it doesn't interfere with the rest of the script
     shift
-    toLog_ifDebug "[DEBUG]" "Debug mode enabled."
+    toLog_ifDebug -l "[DEBUG]" -m "Debug mode enabled."
 else
     DEBUG=false
 fi
@@ -150,13 +161,13 @@ print_and_log() {
     local color="$1"
     local message="$2"
     colorprint "$color" "$message"
-    toLog_ifDebug "[INFO]" "$message"
+    toLog_ifDebug -l "[INFO]" -m "$message"
 }
 
 # Function to print an error message and write it to the log file #
 errorprint_and_log() {
     printf "%s\n" "$1" >&2
-    toLog_ifDebug "[ERROR]" "$1"
+    toLog_ifDebug -l "[ERROR]" -m "$1"
 }
 
 # Function to print criticals errors that will stop the script execution, write them to the log file and exit the script with code 1 #
@@ -169,9 +180,9 @@ fn_fail() {
 ## Utility functions ##
 # Function to detect OS
 detect_os() {
-    toLog_ifDebug "Detecting OS..."
+    toLog_ifDebug -l "[DEBUG]" -m "Detecting OS..."
     if ! command -v uname -s &> /dev/null; then
-        toLog_ifDebug "uname command not found, OS detection failed. OS type will be set to 'unknown'."
+        toLog_ifDebug -l "[WARN]" -m "uname command not found, OS detection failed. OS type will be set to 'unknown'."
         OS_TYPE="unknown"
     else
         OSStr="$(uname -s | tr '[:upper:]' '[:lower:]')"  # Convert to lowercase
@@ -185,14 +196,14 @@ detect_os() {
             fi
         done
     fi
-    toLog_ifDebug "OS type detected: $OS_TYPE"
+    toLog_ifDebug -l "[DEBUG]" -m "OS type detected: $OS_TYPE"
 }
 
 # Function to detect OS architecture and set the relative Docker architecture
 detect_architecture() {
-    toLog_ifDebug "Detecting system architecture..."
+    toLog_ifDebug -l "[DEBUG]" -m "Detecting system architecture..."
     if ! command -v uname -m &> /dev/null; then
-        toLog_ifDebug "uname command not found, architecture detection failed. Architecture will be set to 'unknown'."
+        toLog_ifDebug -l "[DEBUG]" -m "uname command not found, architecture detection failed. Architecture will be set to 'unknown'."
         ARCH="unknown"
         DKARCH="unknown"
     else
@@ -208,12 +219,12 @@ detect_architecture() {
             fi
         done
     fi
-    toLog_ifDebug "System architecture detected: $ARCH, Docker architecture has been set to $DKARCH"
+    toLog_ifDebug -l "[DEBUG]" -m "System architecture detected: $ARCH, Docker architecture has been set to $DKARCH"
 }
 
 # Function to check if dependencies packages are installed and install them if not #
 fn_install_packages() {
-    toLog_ifDebug "Checking if required packages are installed..."
+    toLog_ifDebug -l "[DEBUG]" -m "Checking if required packages are installed..."
     REQUIRED_PACKAGES=("$@")
 
     if [[ "$OS_TYPE" == "Linux" ]]; then
@@ -251,7 +262,7 @@ fn_install_packages() {
             read -r -p "Press Enter to continue"
             return
         fi
-        toLog_ifDebug "Detected package manager: $PKG_MANAGER"
+        toLog_ifDebug -l "[DEBUG]" -m "Detected package manager: $PKG_MANAGER"
         # Install required packages
         for package in "${REQUIRED_PACKAGES[@]}"
         do
@@ -303,45 +314,45 @@ fn_install_packages() {
         read -r -p "Press Enter to continue"
         return
     fi
-    toLog_ifDebug "Required packages installation completed."
+    toLog_ifDebug -l "[DEBUG]" -m "Required packages installation completed."
 }
 
 ## Multiarch emulation service installer function ##
 fn_addDockerBinfmtSVC() {
-    toLog_ifDebug "Installing multiarch emulation service..."
+    toLog_ifDebug -l "[DEBUG]" -m "Installing multiarch emulation service..."
     # Check if the service file exists if it does then check if it is enabled and if not enable it, if its enabled then check if the content is the same as the one in the script and if not overwrite it then start the service
-    toLog_ifDebug "Checking if the service already exists..."
+    toLog_ifDebug -l "[DEBUG]" -m "Checking if the service already exists..."
     if [ -f "/etc/systemd/system/docker.binfmt.service" ]; then
         # Compare the contents of the existing service file with the one in $FILES_DIR
-        toLog_ifDebug "Service already exists, comparing contents..."
+        toLog_ifDebug -l "[DEBUG]" -m "Service already exists, comparing contents..."
         if ! cmp -s "/etc/systemd/system/docker.binfmt.service" "$FILES_DIR/docker.binfmt.service"; then
             # The contents are different, overwrite the existing service file
-            toLog_ifDebug "Service contents are different, overwriting the file of the existing service..."
+            toLog_ifDebug -l "[DEBUG]" -m "Service contents are different, overwriting the file of the existing service..."
             if ! sudo cp "$FILES_DIR/docker.binfmt.service" /etc/systemd/system; then
                 fn_fail "Failed to copy service file. Please check your permissions and the file path."
             fi
         fi
 
         # Check if the service is enabled
-        toLog_ifDebug "Checking if the service is enabled..."
+        toLog_ifDebug -l "[DEBUG]" -m "Checking if the service is enabled..."
         if [ -d "/etc/systemd/system" ]; then
             # Systemd-based distributions
-            toLog_ifDebug "Systemd-based distribution detected, checking if the service is enabled..."
+            toLog_ifDebug -l "[DEBUG]" -m "Systemd-based distribution detected, checking if the service is enabled..."
             if ! systemctl is-enabled --quiet docker.binfmt.service; then
                 # Enable the service
-                toLog_ifDebug "Service is not enabled, enabling it..."
+                toLog_ifDebug -l "[DEBUG]" -m "Service is not enabled, enabling it..."
                 if ! sudo systemctl enable docker.binfmt.service; then
                     fn_fail "Failed to enable docker.binfmt.service. Please check your system config and try to enable the exixting service manually. Then run the script again."
                 fi
             fi
         fi
     elif [ -f "/etc/init.d/docker.binfmt" ]; then
-        toLog_ifDebug "SysV init-based distribution detected, checking if the service is enabled..."
+        toLog_ifDebug -l "[DEBUG]" -m "SysV init-based distribution detected, checking if the service is enabled..."
         # Compare the contents of the existing service file with the one in $FILES_DIR
-        toLog_ifDebug "Service already exists, comparing contents..."
+        toLog_ifDebug -l "[DEBUG]" -m "Service already exists, comparing contents..."
         if ! cmp -s "/etc/init.d/docker.binfmt" "$FILES_DIR/docker.binfmt.service"; then
             # The contents are different, overwrite the existing service file
-            toLog_ifDebug "Service contents are different, overwriting the file of the existing service..."
+            toLog_ifDebug -l "[DEBUG]" -m "Service contents are different, overwriting the file of the existing service..."
             if ! sudo cp "$FILES_DIR/docker.binfmt.service" /etc/init.d/docker.binfmt; then
                 fn_fail "Failed to copy service file. Please check your permissions and the file path."
             fi
@@ -349,32 +360,32 @@ fn_addDockerBinfmtSVC() {
         fi
 
         # Check if the service is enabled
-        toLog_ifDebug "Checking if the service is enabled..."
+        toLog_ifDebug -l "[DEBUG]" -m "Checking if the service is enabled..."
         if [ -d "/etc/init.d" ]; then
             # SysV init-based distributions
-            toLog_ifDebug "SysV init-based distribution detected, checking if the service is enabled..."
+            toLog_ifDebug -l "[DEBUG]" -m "SysV init-based distribution detected, checking if the service is enabled..."
             if ! grep -q "docker.binfmt" /etc/rc.local; then
                 # Enable the service
-                toLog_ifDebug "Service is not enabled, enabling it..."
+                toLog_ifDebug -l "[DEBUG]" -m "Service is not enabled, enabling it..."
                 sudo update-rc.d docker.binfmt defaults
             fi
         fi
     else
         # The service file does not exist, copy it to the appropriate location
-        toLog_ifDebug "Service does not already exists, copying it to the appropriate location..."
+        toLog_ifDebug -l "[DEBUG]" -m "Service does not already exists, copying it to the appropriate location..."
         if [ -d "/etc/systemd/system" ]; then
             # Systemd-based distributions
-            toLog_ifDebug "Systemd-based distribution detected, copying service file..."
+            toLog_ifDebug -l "[DEBUG]" -m "Systemd-based distribution detected, copying service file..."
             sudo cp "$FILES_DIR/docker.binfmt.service" /etc/systemd/system
             sudo systemctl enable docker.binfmt.service
-            toLog_ifDebug "Service file copied and enabled."
+            toLog_ifDebug -l "[DEBUG]" -m "Service file copied and enabled."
         elif [ -d "/etc/init.d" ]; then
             # SysV init-based distributions
-            toLog_ifDebug "SysV init-based distribution detected, copying service file..."
+            toLog_ifDebug -l "[DEBUG]" -m "SysV init-based distribution detected, copying service file..."
             sudo cp "$FILES_DIR/docker.binfmt.service" /etc/init.d/docker.binfmt
             sudo chmod +x /etc/init.d/docker.binfmt
             sudo update-rc.d docker.binfmt defaults
-            toLog_ifDebug "Service file copied and enabled."
+            toLog_ifDebug -l "[DEBUG]" -m "Service file copied and enabled."
         else
             # Fallback option (handle unsupported systems)
             fn_fail "Warning: I can not find a supported init system. You will have to manually enable the binfmt service. Then restart the script."
@@ -382,21 +393,21 @@ fn_addDockerBinfmtSVC() {
     fi
 
     # Start the service
-    toLog_ifDebug "Starting the service..."
+    toLog_ifDebug -l "[DEBUG]" -m "Starting the service..."
     if [ -d "/etc/systemd/system" ]; then
         # Systemd-based distributions
-        toLog_ifDebug "Systemd-based distribution detected, starting the service..."
+        toLog_ifDebug -l "[DEBUG]" -m "Systemd-based distribution detected, starting the service..."
         if ! sudo systemctl start docker.binfmt.service; then
             fn_fail "Failed to start docker.binfmt.service. Please check your system config and try to start the exixting service manually. Then run the script again."
         fi
-        toLog_ifDebug "Service started."
+        toLog_ifDebug -l "[DEBUG]" -m "Service started."
     elif [ -d "/etc/init.d" ]; then
         # SysV init-based distributions
-        toLog_ifDebug "SysV init-based distribution detected, starting the service..."
+        toLog_ifDebug -l "[DEBUG]" -m "SysV init-based distribution detected, starting the service..."
         if ! sudo service docker.binfmt start; then
             fn_fail "Failed to start docker.binfmt.service. Please check your system config and try to start the exixting service manually. Then run the script again."
         fi
-        toLog_ifDebug "Service started."
+        toLog_ifDebug -l "[DEBUG]" -m "Service started."
     fi
 }
 
@@ -404,7 +415,7 @@ fn_addDockerBinfmtSVC() {
 # Shows the liks of the apps
 fn_showLinks() {
     clear
-    toLog_ifDebug "Showing apps links"
+    toLog_ifDebug -l "[DEBUG]" -m "Showing apps links"
     colorprint "GREEN" "Use CTRL+Click to open links or copy them:"
     # reading from $CONFIG_JSON_FILE show all the apps type that are the dictionary keys and then show the name and the link of each app in the dictionary
     for app_type in $(jq -r 'keys[]' "$CONFIG_DIR/$CONFIG_JSON_FILE"); do
@@ -416,13 +427,13 @@ fn_showLinks() {
         done
     done
     read -r -p "Press Enter to go back to mainmenu"
-    toLog_ifDebug "Links shown, going back to mainmenu"
+    toLog_ifDebug -l "[DEBUG]" -m "Links shown, going back to mainmenu"
 }
 
 ## Docker checker and installer function ##
 # Check if docker is installed and if not then it tries to install it automatically
 fn_dockerInstall() {
-    toLog_ifDebug "DockerInstall function started"
+    toLog_ifDebug -l "[DEBUG]" -m "DockerInstall function started"
     clear
     colorprint "YELLOW" "This menu item will launch a script that will attempt to install Docker"
     colorprint "YELLOW" "Use it only if you do not know how to perform the manual Docker installation described at https://docs.docker.com/get-docker/ as the automatic script in some rare cases and depending on the distros may fail to install Docker correctly."
@@ -431,20 +442,21 @@ fn_dockerInstall() {
         read -r -p "Do you wish to proceed with the Docker automatic installation Y/N? " yn
         case $yn in
             [Yy]* )
-                toLog_ifDebug "User decided to install Docker through the script. Checking if Docker is already installed."
+                toLog_ifDebug -l "[DEBUG]" -m "User decided to install Docker through the script. Checking if Docker is already installed."
                 if docker --version >/dev/null 2>&1; then
-                    toLog_ifDebug "Docker is already installed. Asking user if he wants to continue with the installation anyway."
+                    toLog_ifDebug -l "[DEBUG]" -m "Docker is already installed. Asking user if he wants to continue with the installation anyway."
                     while true; do
                         colorprint "YELLOW" "It seems that Docker is already installed. Do you want to continue with the installation anyway? (Y/N)"
                         read -r yn
                         case $yn in
                             [Yy]* )
-                                toLog_ifDebug "User decided to continue with the Docker re-install anyway."
+                                toLog_ifDebug -l "[DEBUG]" -m "User decided to continue with the Docker re-install anyway."
                                 break
                                 ;;
                             [Nn]* )
-                                toLog_ifDebug "User decided to abort the Docker re-install."
+                                toLog_ifDebug -l "[DEBUG]" -m "User decided to abort the Docker re-install."
                                 read -r -p "Press Enter to go back to mainmenu"
+                                sleep "$SLEEP_TIME"
                                 return
                                 ;;
                             * ) 
@@ -483,14 +495,14 @@ fn_dockerInstall() {
 ## Notifications setup function ##
 # This function will setup notifications about containers updates using shoutrrr
 fn_setupNotifications() {
-    toLog_ifDebug "SetupNotifications function started"
+    toLog_ifDebug -l "[DEBUG]" -m "SetupNotifications function started"
     clear
     while true; do
         colorprint "YELLOW" "Do you wish to setup notifications about apps images updates (Yes to receive notifications and apply updates, No to just silently apply updates) Y/N?"
         read -r yn
         case $yn in
             [Yy]* )
-                toLog_ifDebug "User decided to setup notifications about apps images updates."
+                toLog_ifDebug -l "[DEBUG]" -m "User decided to setup notifications about apps images updates."
                 colorprint "YELLOW" "This step will setup notifications about containers updates using shoutrrr"
                 colorprint "DEFAULT" "The resulting SHOUTRRR_URL should have the format: <app>://<token>@<webhook>."
                 colorprint "DEFAULT" "Where <app> is one of the supported messaging apps on Shoutrrr (e.g. Discord), and <token> and <webhook> are specific to your messaging app."
@@ -508,6 +520,7 @@ fn_setupNotifications() {
                     colorprint "YELLOW" "NOW INSERT BELOW THE LINK FOR NOTIFICATIONS using THE SAME FORMAT WRITTEN ABOVE e.g.: discord://yourToken@yourWebhookid"
                     read -r SHOUTRRR_URL
                     if [[ "$SHOUTRRR_URL" =~ ^[a-zA-Z]+:// ]]; then
+                        # Replace the lines in the .env file and in the $DKCOM_FILENAME file
                         sed -i "s~# SHOUTRRR_URL=~SHOUTRRR_URL=~" .env
                         CURRENT_VALUE=$(grep -oP 'SHOUTRRR_URL=\K[^#\r]+' .env)
                         sed -i "s~SHOUTRRR_URL=${CURRENT_VALUE}~SHOUTRRR_URL=$SHOUTRRR_URL~" .env
@@ -533,9 +546,9 @@ fn_setupNotifications() {
                 done
                 break;;
             [Nn]* )
-                toLog_ifDebug "User chose to skip notifications setup"
+                toLog_ifDebug -l "[DEBUG]" -m "User chose to skip notifications setup"
                 colorprint "BLUE" "Noted: all updates will be applied automatically and silently";
-                read -r -p "Press enter to continue."
+                sleep "$SLEEP_TIME"
                 break;;
             * )
                 colorprint "RED" "Please answer yes or no.";;
@@ -543,12 +556,12 @@ fn_setupNotifications() {
     done
 
     clear
-    toLog_ifDebug "SetupNotifications function ended"
+    toLog_ifDebug -l "[DEBUG]" -m "SetupNotifications function ended"
 }
 
 
 fn_setupApp() {
-    toLog_ifDebug "SetupApp function started"
+    toLog_ifDebug -l "[DEBUG]" -m "SetupApp function started"
     local app_json=""
     local dk_compose_filename="docker-compose.yaml"
     while [[ "$#" -gt 0 ]]; do
@@ -568,7 +581,7 @@ fn_setupApp() {
         shift
     done
     # Extract the necessary fields from the app json
-    toLog_ifDebug "Extracting necessary fields from the passed app json"
+    toLog_ifDebug -l "[DEBUG]" -m "Extracting necessary fields from the passed app json"
     local name
     name=$(jq -r '.name' <<< "$app_json")
     local link
@@ -588,9 +601,9 @@ fn_setupApp() {
     CURRENT_APP=$(echo "${name}" | tr '[:lower:]' '[:upper:]')
     while true; do
         # Check if the ${CURRENT_APP} is already enabled in the ${dk_compose_filename} file and if it is not (if there is a #ENABLE_$CURRENTAPP) then ask the user if they want to enable it
-        toLog_ifDebug "Checking if the ${CURRENT_APP} app is already enabled in the ${dk_compose_filename} file"
+        toLog_ifDebug -l "[DEBUG]" -m "Checking if the ${CURRENT_APP} app is already enabled in the ${dk_compose_filename} file"
         if grep -q "#ENABLE_${CURRENT_APP}" "${dk_compose_filename}"; then
-            toLog_ifDebug "${CURRENT_APP} is not enabled in the ${dk_compose_filename} file, asking the user if they want to enable it"
+            toLog_ifDebug -l "[DEBUG]" -m "${CURRENT_APP} is not enabled in the ${dk_compose_filename} file, asking the user if they want to enable it"
             # Show the generic message before asking the user if they want to enable the app
             colorprint "YELLOW" "PLEASE REGISTER ON THE PLATFORMS USING THE LINKS THAT WILL BE PROVIDED, YOU'LL THEN NEED TO ENTER SOME DATA BELOW:"
             # Ask the user if they want to enable the ${CURRENT_APP}
@@ -598,28 +611,28 @@ fn_setupApp() {
             read -r yn
             case $yn in
                 [Yy]* )
-                    toLog_ifDebug "User decided to enable and use ${CURRENT_APP}"
+                    toLog_ifDebug -l "[DEBUG]" -m "User decided to enable and use ${CURRENT_APP}"
                     colorprint "CYAN" "Go to ${CURRENT_APP} ${link} and register"
                     colorprint "GREEN" "Use CTRL+Click to open links or copy them:"
                     read -r -p "When you are done press Enter to continue"
-                    toLog_ifDebug "Enabling ${CURRENT_APP} app. The parameters received are: name=$name, link=$link, image=$app_image, flags=${flags[*]}, claimURLBase=$claimURLBase"
+                    toLog_ifDebug -l "[DEBUG]" -m "Enabling ${CURRENT_APP} app. The parameters received are: name=$name, link=$link, image=$app_image, flags=${flags[*]}, claimURLBase=$claimURLBase"
                     # Read the flags in the array and execute the relative logic using the case statement
                     for flag_name in "${flags[@]}"; do
                         # Extract flag details and all the parameters if they exist 
                         local flag_details
                         flag_details=$(jq -r ".flags[\"$flag_name\"]?" <<< "$app_json")
-                        toLog_ifDebug "Result of flag_details reading: $flag_details"
+                        toLog_ifDebug -l "[DEBUG]" -m "Result of flag_details reading: $flag_details"
                         if [[ "$flag_details" != "null" ]]; then
                             #load all the flags parameters keys in an array so then we cann iterate on them and access their values easily from the json
                             local flag_params_keys
                             flag_params_keys=$(jq -r "keys[]?" <<< "$flag_details")
-                            toLog_ifDebug "Result of flag_params_keys reading: $flag_params_keys"
+                            toLog_ifDebug -l "[DEBUG]" -m "Result of flag_params_keys reading: $flag_params_keys"
                         else
-                            toLog_ifDebug "No flag details found for flag: $flag_name"
+                            toLog_ifDebug -l "[DEBUG]" -m "No flag details found for flag: $flag_name"
                         fi
                         case $flag_name in
                             --email)
-                                toLog_ifDebug "Starting email setup for ${CURRENT_APP} app"
+                                toLog_ifDebug -l "[DEBUG]" -m "Starting email setup for ${CURRENT_APP} app"
                                 while true; do
                                     colorprint "GREEN" "Enter your ${CURRENT_APP} Email:"
                                     read -r APP_EMAIL
@@ -632,7 +645,7 @@ fn_setupApp() {
                                 done
                                 ;;
                             --password)
-                                toLog_ifDebug "Starting password setup for ${CURRENT_APP} app"
+                                toLog_ifDebug -l "[DEBUG]" -m "Starting password setup for ${CURRENT_APP} app"
                                 while true; do
                                     colorprint "DEFAULT" "Note: If you are using login with Google, remember to set also a password for your ${CURRENT_APP} account!"
                                     colorprint "GREEN" "Enter your ${CURRENT_APP} Password:"
@@ -646,53 +659,53 @@ fn_setupApp() {
                                 done
                                 ;;
                             --apikey)
-                                toLog_ifDebug "Starting APIKey setup for ${CURRENT_APP} app"
+                                toLog_ifDebug -l "[DEBUG]" -m "Starting APIKey setup for ${CURRENT_APP} app"
                                 colorprint "DEFAULT" "Find/Generate your APIKey inside your ${CURRENT_APP} dashboard/profile."
                                 colorprint "GREEN" "Enter your ${CURRENT_APP} APIKey:"
                                 read -r APP_APIKEY
                                 sed -i "s^your${CURRENT_APP}APIKey^$APP_APIKEY^" .env
                                 ;;
                             --userid)
-                                toLog_ifDebug "Starting UserID setup for ${CURRENT_APP} app"
+                                toLog_ifDebug -l "[DEBUG]" -m "Starting UserID setup for ${CURRENT_APP} app"
                                 colorprint "DEFAULT" "Find your UserID inside your ${CURRENT_APP} dashboard/profile."
                                 colorprint "GREEN" "Enter your ${CURRENT_APP} UserID:"
                                 read -r APP_USERID
                                 sed -i "s/your${CURRENT_APP}UserID/$APP_USERID/" .env
                                 ;;
                             --uuid)
-                                toLog_ifDebug "Starting UUID setup for ${CURRENT_APP} app"
+                                toLog_ifDebug -l "[DEBUG]" -m "Starting UUID setup for ${CURRENT_APP} app"
                                 colorprint "DEFAULT" "Starting UUID generation/import for ${CURRENT_APP}"
                                 # Read all the parameters for the uuid flag , if one of them is the case length then save it in a variable
                                 if [[ -n "${flag_params_keys:-}" ]]; then
                                     for flag_param_key in $flag_params_keys; do
-                                        toLog_ifDebug "Reading flag parameter: $flag_param_key"
+                                        toLog_ifDebug -l "[DEBUG]" -m "Reading flag parameter: $flag_param_key"
                                         case $flag_param_key in
                                             length)
-                                                toLog_ifDebug "Reading flag parameter length"
+                                                toLog_ifDebug -l "[DEBUG]" -m "Reading flag parameter length"
                                                 flag_length_param=$(jq -r ".flags[\"$flag_name\"][\"$flag_param_key\"]?" <<< "$app_json")
-                                                toLog_ifDebug "Result of flag_length_param reading: $flag_length_param"
+                                                toLog_ifDebug -l "[DEBUG]" -m "Result of flag_length_param reading: $flag_length_param"
                                                 ;;
                                             *)
-                                                toLog_ifDebug "Unknown flag parameter: $flag_param_key"
+                                                toLog_ifDebug -l "[DEBUG]" -m "Unknown flag parameter: $flag_param_key"
                                                 ;;
                                         esac
                                     done
                                 else
-                                    toLog_ifDebug "No flag parameters found for flag: $flag_name as flag_params_keys array is empty"
+                                    toLog_ifDebug -l "[DEBUG]" -m "No flag parameters found for flag: $flag_name as flag_params_keys array is empty"
                                 fi
 
                                 # Check if the flag_length_param exists and if is a number (i.e., the desired length)
                                 if [[ -n "${flag_length_param:-}" ]] && [[ "${flag_length_param:-}" =~ ^[0-9]+$ ]]; then
                                     DESIRED_LENGTH="$flag_length_param"
-                                    toLog_ifDebug "Desired length for UUID generation/import passed as argument of the uuid flag (read from json), its value is: $DESIRED_LENGTH"
+                                    toLog_ifDebug -l "[DEBUG]" -m "Desired length for UUID generation/import passed as argument of the uuid flag (read from json), its value is: $DESIRED_LENGTH"
                                 else
                                     # If no length is provided, ask the user
-                                    toLog_ifDebug "No desired length for UUID generation/import passed as argument of the uuid flag, asking the user"
+                                    toLog_ifDebug -l "[DEBUG]" -m "No desired length for UUID generation/import passed as argument of the uuid flag, asking the user"
                                     colorprint "GREEN" "Enter desired length for the UUID (default is 32, press Enter to use default):"
                                     read -r DESIRED_LENGTH_INPUT
                                     DESIRED_LENGTH=${DESIRED_LENGTH_INPUT:-32}  # Defaulting to 32 if no input provided
                                 fi
-                                toLog_ifDebug "Starting temporary UUID generation/import for ${CURRENT_APP} with desired length: $DESIRED_LENGTH. This will be overwritten if the user chooses to use an existing UUID."
+                                toLog_ifDebug -l "[DEBUG]" -m "Starting temporary UUID generation/import for ${CURRENT_APP} with desired length: $DESIRED_LENGTH. This will be overwritten if the user chooses to use an existing UUID."
                                 local UUID=""
                                 while [ ${#UUID} -lt "$DESIRED_LENGTH" ]; do
                                     # Regenerate the salt for each iteration
@@ -703,7 +716,7 @@ fn_setupApp() {
                             
                                 # Cut or trail the generated UUID based on the desired length
                                 UUID=${UUID:0:$DESIRED_LENGTH}
-                                toLog_ifDebug "Done, generated temporary UUID: $UUID"
+                                toLog_ifDebug -l "[DEBUG]" -m "Done, generated temporary UUID: $UUID"
                                 
                                 while true; do
                                     colorprint "YELLOW" "Do you want to use a previously registered uuid for ${CURRENT_APP}? (Y/N)"
@@ -748,7 +761,7 @@ fn_setupApp() {
                                 colorprint "DEFAULT" "A new file containing this link has been created for you in the current directory"
                                 ;;
                             --cid)
-                                toLog_ifDebug "Starting CID setup for ${CURRENT_APP} app"
+                                toLog_ifDebug -l "[DEBUG]" -m "Starting CID setup for ${CURRENT_APP} app"
                                 colorprint "DEFAULT" "Find your CID inside your ${CURRENT_APP} dashboard/profile."
                                 colorprint "DEFAULT" "Example: For packetstream you can fetch it from your dashboard https://packetstream.io/dashboard/download?linux# then click on -> Looking for linux app -> now search for CID= in the code shown in the page, you need to enter the code after -e CID= (e.g. if in the code CID=6aTk, just enter 6aTk)"
                                 colorprint "GREEN" "Enter your ${CURRENT_APP} CID:"
@@ -756,7 +769,7 @@ fn_setupApp() {
                                 sed -i "s/your${CURRENT_APP}CID/$APP_CID/" .env
                                 ;;
                             --token)
-                                toLog_ifDebug "Starting token setup for ${CURRENT_APP} app"
+                                toLog_ifDebug -l "[DEBUG]" -m "Starting token setup for ${CURRENT_APP} app"
                                 colorprint "DEFAULT" "Find your token inside your ${CURRENT_APP} dashboard/profile."
                                 colorprint "DEFAULT" "Example: For traffmonetizer you can fetch it from your dashboard https://app.traffmonetizer.com/dashboard then -> Look for Your application token -> just insert it here (you can also copy and then paste it)"
                                 colorprint "GREEN" "Enter your ${CURRENT_APP} token:"
@@ -764,29 +777,29 @@ fn_setupApp() {
                                 sed -i "s/your${CURRENT_APP}Token/$APP_TOKEN/" .env
                                 ;;
                             --customScript)
-                                toLog_ifDebug "Starting customScript setup for ${CURRENT_APP} app"
+                                toLog_ifDebug -l "[DEBUG]" -m "Starting customScript setup for ${CURRENT_APP} app"
                                 # Read all the parameters for the customScript flag , if one of them is the case scriptname then save it in a variable
                                 if [[ -n "${flag_params_keys:-}" ]]; then
                                     for flag_param_key in $flag_params_keys; do
-                                        toLog_ifDebug "Reading flag parameter: $flag_param_key"
+                                        toLog_ifDebug -l "[DEBUG]" -m "Reading flag parameter: $flag_param_key"
                                         case $flag_param_key in
                                             scriptname)
-                                                toLog_ifDebug "Reading flag parameter scriptname"
+                                                toLog_ifDebug -l "[DEBUG]" -m "Reading flag parameter scriptname"
                                                 flag_scriptname_param=$(jq -r ".flags[\"$flag_name\"][\"$flag_param_key\"]?" <<< "$app_json")
-                                                toLog_ifDebug "Result of flag_scriptname_param reading: $flag_scriptname_param"
+                                                toLog_ifDebug -l "[DEBUG]" -m "Result of flag_scriptname_param reading: $flag_scriptname_param"
                                                 ;;
                                             *)
-                                                toLog_ifDebug "Unknown flag parameter: $flag_param_key"
+                                                toLog_ifDebug -l "[DEBUG]" -m "Unknown flag parameter: $flag_param_key"
                                                 ;;
                                         esac
                                     done
                                 else
-                                    toLog_ifDebug "No flag parameters found for flag: $flag_name as flag_params_keys array is empty"
+                                    toLog_ifDebug -l "[DEBUG]" -m "No flag parameters found for flag: $flag_name as flag_params_keys array is empty"
                                 fi
                                 CUSTOM_SCRIPT_NAME="${flag_scriptname_param}.sh"
                                 SCRIPT_PATH="$SCRIPTS_DIR/$CUSTOM_SCRIPT_NAME"
                                 ESCAPED_PATH="${SCRIPT_PATH//\"/\\\"}"
-                                toLog_ifDebug "Starting custom script execution for ${CURRENT_APP} app using $SCRIPT_NAME from $ESCAPED_PATH"
+                                toLog_ifDebug -l "[DEBUG]" -m "Starting custom script execution for ${CURRENT_APP} app using $SCRIPT_NAME from $ESCAPED_PATH"
                                 if [[ -f "$SCRIPT_PATH" ]]; then
                                     chmod +x "$ESCAPED_PATH"
                                     colorprint "DEFAULT" "Executing custom script: $CUSTOM_SCRIPT_NAME"
@@ -796,7 +809,7 @@ fn_setupApp() {
                                 fi
                                 ;;
                             --manual)
-                                toLog_ifDebug "Starting manual setup for ${CURRENT_APP} app"
+                                toLog_ifDebug -l "[DEBUG]" -m "Starting manual setup for ${CURRENT_APP} app"
                                 colorprint "YELLOW" "${CURRENT_APP} requires further manual configuration."
                                 colorprint "YELLOW" "Please after completing this automated setup follow the manual steps described on the app's website."
                                 ;; 
@@ -807,10 +820,10 @@ fn_setupApp() {
                     done
                     # Complete the setup of the app by enabling it in the docker-compose file
                     sed -i "s^#ENABLE_${CURRENT_APP}^^" "${dk_compose_filename}"
-                    toLog_ifDebug "Enabled ${CURRENT_APP} app in ${dk_compose_filename}"
+                    toLog_ifDebug -l "[DEBUG]" -m "Enabled ${CURRENT_APP} app in ${dk_compose_filename}"
 
                     # App Docker image architecture adjustments
-                    toLog_ifDebug "Starting Docker image architecture adjustments for ${CURRENT_APP} app"
+                    toLog_ifDebug -l "[DEBUG]" -m "Starting Docker image architecture adjustments for ${CURRENT_APP} app"
                     TAG='latest'
                     DKHUBRES=$(curl -L -s "https://registry.hub.docker.com/v2/repositories/${app_image}/tags" | jq --arg DKARCH "$DKARCH" '[.results[] | select(.images[].architecture == $DKARCH) | .name]')
                     TAGSNUMBER=$(echo "$DKHUBRES" | jq '. | length')
@@ -831,13 +844,13 @@ fn_setupApp() {
                         #fn_install_packages qemu binfmt-support qemu-user-static
                         fn_addDockerBinfmtSVC
                     fi
-                    toLog_ifDebug "Finished Docker image architecture adjustments for ${CURRENT_APP} app. Its image tag is now $(grep -oP "${app_image}:\K[^#\r]+" $DKCOM_FILENAME)"
+                    toLog_ifDebug -l "[DEBUG]" -m "Finished Docker image architecture adjustments for ${CURRENT_APP} app. Its image tag is now $(grep -oP "${app_image}:\K[^#\r]+" $DKCOM_FILENAME)"
                     read -r -p "${CURRENT_APP} configuration complete, press enter to continue to the next app"
-                    toLog_ifDebug "Finished setupApp function for ${CURRENT_APP} app"
+                    toLog_ifDebug -l "[DEBUG]" -m "Finished setupApp function for ${CURRENT_APP} app"
                     break
                     ;;
                 [Nn]* )
-                    toLog_ifDebug "User decided to skip ${CURRENT_APP} setup"
+                    toLog_ifDebug -l "[DEBUG]" -m "User decided to skip ${CURRENT_APP} setup"
                     colorprint "BLUE" "${CURRENT_APP} setup will be skipped."
                     read -r -p "Press enter to continue to the next app"
                     break
@@ -855,7 +868,7 @@ fn_setupApp() {
 }
 
 fn_setupProxy() {
-    toLog_ifDebug "Starting setupProxy function"
+    toLog_ifDebug -l "[DEBUG]" -m "Starting setupProxy function"
     if [ "$PROXY_CONF" == 'false' ]; then
         while true; do
             colorprint "YELLOW" "Do you wish to setup a proxy for the apps in this stack Y/N?"
@@ -864,7 +877,7 @@ fn_setupProxy() {
             case $yn in
                 [Yy]* )
                     clear
-                    toLog_ifDebug "User chose to setup a proxy"
+                    toLog_ifDebug -l "[DEBUG]" -m "User chose to setup a proxy"
                     colorprint "YELLOW" "Proxy setup started."
                     readonly RANDOM_VALUE=$RANDOM
                     colorprint "GREEN" "Insert the designed proxy to use. Eg: protocol://proxyUsername:proxyPassword@proxy_url:proxy_port or just protocol://proxy_url:proxy_port if auth is not needed"
@@ -883,13 +896,13 @@ fn_setupProxy() {
                     sed -i 's/PROXY_CONFIGURATION_STATUS=0/PROXY_CONFIGURATION_STATUS=1/' .env
                     colorprint "DEFAULT" "Ok, $NEW_STACK_PROXY will be used as proxy for all apps in this stack"
                     read -r -p "Press enter to continue"
-                    toLog_ifDebug "Proxy setup finished"
+                    toLog_ifDebug -l "[DEBUG]" -m "Proxy setup finished"
                     break
                     ;;
                 [Nn]* )
-                    toLog_ifDebug "User chose not to setup a proxy"
+                    toLog_ifDebug -l "[DEBUG]" -m "User chose not to setup a proxy"
                     colorprint "BLUE" "Ok, no proxy added to configuration."
-                    sleep 1
+                    sleep ${SLEEP_TIME}
                     break
                     ;;
                 * ) colorprint "RED" "Please answer yes or no." ;;
@@ -903,11 +916,11 @@ fn_setupEnv(){
     print_and_log "BLUE" "Starting setupEnv function for $app_type"
     # Check if .env file is already configured if 1 then it is already configured, if 0 then it is not configured
     ENV_CONFIGURATION_STATUS=$(grep -oP '# ENV_CONFIGURATION_STATUS=\K[^#\r]+' .env)
-    toLog_ifDebug "Current ENV_CONFIGURATION_STATUS: $ENV_CONFIGURATION_STATUS"
+    toLog_ifDebug -l "[DEBUG]" -m "Current ENV_CONFIGURATION_STATUS: $ENV_CONFIGURATION_STATUS"
     PROXY_CONFIGURATION_STATUS=$(grep -oP '# PROXY_CONFIGURATION_STATUS=\K[^#\r]+' .env)
-    toLog_ifDebug "Current PROXY_CONFIGURATION_STATUS: $PROXY_CONFIGURATION_STATUS"
+    toLog_ifDebug -l "[DEBUG]" -m "Current PROXY_CONFIGURATION_STATUS: $PROXY_CONFIGURATION_STATUS"
     NOTIFICATIONS_CONFIGURATION_STATUS=$(grep -oP '# NOTIFICATIONS_CONFIGURATION_STATUS=\K[^#\r]+' .env)
-    toLog_ifDebug "Current NOTIFICATIONS_CONFIGURATION_STATUS: $NOTIFICATIONS_CONFIGURATION_STATUS"
+    toLog_ifDebug -l "[DEBUG]" -m "Current NOTIFICATIONS_CONFIGURATION_STATUS: $NOTIFICATIONS_CONFIGURATION_STATUS"
     if [ "$ENV_CONFIGURATION_STATUS" == "1" ] && [ "$app_type" == "apps" ]; then
         colorprint "YELLOW" "The current .env file appears to have already been configured. Do you wish to reset it? (Y/N)"
         read -r yn
@@ -937,16 +950,16 @@ fn_setupEnv(){
         case $yn in
             [Yy]* ) 
                 clear
-                toLog_ifDebug "User chose to proceed with the .env file guided setup for $app_type"
+                toLog_ifDebug -l "[DEBUG]" -m "User chose to proceed with the .env file guided setup for $app_type"
                 colorprint "YELLOW" "beginnning env file guided setup"
                 sed -i 's/ENV_CONFIGURATION_STATUS=0/ENV_CONFIGURATION_STATUS=1/' .env
                 if grep -q "DEVICE_NAME=${DEVICE_NAME_PLACEHOLDER}" .env  ; then
-                    toLog_ifDebug "Device name is still the default one, asking user to change it"
+                    toLog_ifDebug -l "[DEBUG]" -m "Device name is still the default one, asking user to change it"
                     colorprint "YELLOW" "PLEASE ENTER A NAME FOR YOUR DEVICE:"
                     read -r DEVICE_NAME
                     sed -i "s/DEVICE_NAME=${DEVICE_NAME_PLACEHOLDER}/DEVICE_NAME=${DEVICE_NAME}/" .env
                 else
-                    toLog_ifDebug "Device name is already set, skipping user input"
+                    toLog_ifDebug -l "[DEBUG]" -m "Device name is already set, skipping user input"
                     DEVICE_NAME=$(grep -oP 'DEVICE_NAME=\K[^#\r]+' .env)
                 fi
                 clear ;
@@ -959,11 +972,11 @@ fn_setupEnv(){
                         case $yn in
                             [Yy]* )
                                 PROXY_CONF='false'
-                                toLog_ifDebug "User chose to change the proxy that was already configured"
+                                toLog_ifDebug -l "[DEBUG]" -m "User chose to change the proxy that was already configured"
                                 fn_setupProxy;
                                 break;;
                             [Nn]* )
-                                toLog_ifDebug "User chose not to change the proxy that was already configured"
+                                toLog_ifDebug -l "[DEBUG]" -m "User chose not to change the proxy that was already configured"
                                 print_and_log "BLUE" "Keeping the existing proxy."
                                 break;;
                             * )
@@ -971,13 +984,13 @@ fn_setupEnv(){
                         esac
                     done                        
                 else
-                    toLog_ifDebug "Asking user if they want to setup a proxy as it is not already configured"
+                    toLog_ifDebug -l "[DEBUG]" -m "Asking user if they want to setup a proxy as it is not already configured"
                     fn_setupProxy;
                 fi
                 clear ;
-                toLog_ifDebug "Loading $app_type from ${CONFIG_JSON_FILE}..."
+                toLog_ifDebug -l "[DEBUG]" -m "Loading $app_type from ${CONFIG_JSON_FILE}..."
                 apps=$(jq -c ".[\"$app_type\"][]" "${CONFIG_DIR}/${CONFIG_JSON_FILE}")
-                toLog_ifDebug "$app_type loaded from ${CONFIG_JSON_FILE}"
+                toLog_ifDebug -l "[DEBUG]" -m "$app_type loaded from ${CONFIG_JSON_FILE}"
                 for app in $apps; do
                     clear
                     fn_setupApp --app-json "$app" --dk-compose-filename "$DKCOM_FILENAME"
@@ -994,11 +1007,11 @@ fn_setupEnv(){
                         read -r yn
                         case $yn in
                             [Yy]* )
-                                toLog_ifDebug "User chose to change the notifications setup that was already configured"
+                                toLog_ifDebug -l "[DEBUG]" -m "User chose to change the notifications setup that was already configured"
                                 fn_setupNotifications;
                                 break;;
                             [Nn]* )
-                                toLog_ifDebug "User chose not to change the notifications setup that was already configured"
+                                toLog_ifDebug -l "[DEBUG]" -m "User chose not to change the notifications setup that was already configured"
                                 print_and_log "BLUE" "Keeping the existing notifications setup."
                                 break;;
                             * )
@@ -1006,7 +1019,7 @@ fn_setupEnv(){
                         esac
                     done
                 else
-                    toLog_ifDebug "Asking user if they want to setup notifications as they are not already configured"
+                    toLog_ifDebug -l "[DEBUG]" -m "Asking user if they want to setup notifications as they are not already configured"
                     fn_setupNotifications;
                 fi
                 print_and_log "GREEN" "env file setup complete.";
@@ -1014,7 +1027,7 @@ fn_setupEnv(){
                 break
                 ;;
             [Nn]* )
-                toLog_ifDebug "User chose not to proceed with the .env file guided setup for $app_type"
+                toLog_ifDebug -l "[DEBUG]" -m "User chose not to proceed with the .env file guided setup for $app_type"
                 colorprint "BLUE" ".env file setup canceled. Make sure you have a valid .env file before proceeding with the stack startup."
                 read -r -p "Press Enter to go back to mainmenu"
                 break
@@ -1034,7 +1047,7 @@ fn_setupExtraApps(){
 
 fn_startStack(){
     clear
-    toLog_ifDebug "Starting startStack function"
+    toLog_ifDebug -l "[DEBUG]" -m "Starting startStack function"
     while true; do
         colorprint "YELLOW" "This menu item will launch all the apps using the configured .env file and the $DKCOM_FILENAME file (Docker must be already installed and running)"
         read -r -p "Do you wish to proceed Y/N?  " yn
@@ -1050,7 +1063,7 @@ fn_startStack(){
                 break
                 ;;
             [Nn]* ) 
-                toLog_ifDebug "User chose not to start the stack"
+                toLog_ifDebug -l "[DEBUG]" -m "User chose not to start the stack"
                 colorprint "BLUE" "Docker stack startup canceled."
                 read -r -p "Press Enter to go back to mainmenu"
                 break
@@ -1058,13 +1071,13 @@ fn_startStack(){
             * ) colorprint "RED" "Please answer yes or no.";;
         esac
     done
-    toLog_ifDebug "StartStack function ended"
+    toLog_ifDebug -l "[DEBUG]" -m "StartStack function ended"
 }
 
 
 fn_stopStack(){
     clear
-    toLog_ifDebug "Starting stopStack function"
+    toLog_ifDebug -l "[DEBUG]" -m "Starting stopStack function"
     while true; do
         colorprint "YELLOW" "This menu item will stop all the apps and delete the docker stack previously created using the configured .env file and the $DKCOM_FILENAME file."
         read -r -p "Do you wish to proceed Y/N?  " yn
@@ -1079,7 +1092,7 @@ fn_stopStack(){
                 break
                 ;;
             [Nn]* ) 
-                toLog_ifDebug "User chose not to stop the stack"
+                toLog_ifDebug -l "[DEBUG]" -m "User chose not to stop the stack"
                 colorprint "BLUE" "Docker stack removal canceled."
                 read -r -p "Press Enter to go back to mainmenu"
                 break
@@ -1093,7 +1106,7 @@ fn_stopStack(){
 
 fn_resetEnv(){
     clear
-    toLog_ifDebug "Starting resetEnv function"
+    toLog_ifDebug -l "[DEBUG]" -m "Starting resetEnv function"
     while true; do
         colorprint "RED" "Now a fresh env file will be downloaded and will need to be configured to be used again"
         read -r -p "Do you wish to proceed Y/N?  " yn
@@ -1115,12 +1128,12 @@ fn_resetEnv(){
             * ) colorprint "RED" "Please answer yes or no.";;
         esac
     done
-    toLog_ifDebug "resetEnv function ended"
+    toLog_ifDebug -l "[DEBUG]" -m "resetEnv function ended"
 }
 
 fn_resetDockerCompose(){
     clear
-    toLog_ifDebug "Starting resetDockerCompose function"
+    toLog_ifDebug -l "[DEBUG]" -m "Starting resetDockerCompose function"
     while true; do
         colorprint "RED" "Now a fresh $DKCOM_FILENAME file will be downloaded"
         read -r -p "Do you wish to proceed Y/N?  " yn
@@ -1142,7 +1155,7 @@ fn_resetDockerCompose(){
             * ) colorprint "RED" "Please answer yes or no.";;
         esac
     done
-    toLog_ifDebug "resetDockerCompose function ended"
+    toLog_ifDebug -l "[DEBUG]" -m "resetDockerCompose function ended"
 }
 
 # Function that will check the necerrary dependencies for the script to run
@@ -1160,7 +1173,7 @@ fn_checkDependencies(){
     else
         colorprint "BLUE" "Done, script ready to go"
     fi
-    toLog_ifDebug "Dependencies check completed"
+    toLog_ifDebug -l "[DEBUG]" -m "Dependencies check completed"
 }
 
 ### Main Menu ##
@@ -1170,7 +1183,7 @@ mainmenu() {
     colorprint "DEFAULT" "Detected OS type: ${OS_TYPE}"$'\n'"Detected architecture: $ARCH"$'\n'"Docker $DKARCH image architecture will be used if the app's image permits it"$'\n'"------------------------------------------ "$'\n'
     
     PS3="Select an option and press Enter "$'\n'
-    toLog_ifDebug "Loading menu options"
+    toLog_ifDebug -l "[DEBUG]" -m "Loading menu options"
     # Reset the menuItems array
     menuItems=()
     # Read labels from the JSON file without splitting them
@@ -1178,7 +1191,7 @@ mainmenu() {
         menuItems+=("$label")
     done < <(jq -r '.[].label? // empty' "$CONFIG_DIR/$MAINMENU_JSON_FILE")
     
-    toLog_ifDebug "Menu options loaded. Showing menu options, ready to select"
+    toLog_ifDebug -l "[DEBUG]" -m "Menu options loaded. Showing menu options, ready to select"
     select option in "${menuItems[@]}"
     do
         if [[ -n $option ]]; then
@@ -1190,7 +1203,7 @@ mainmenu() {
                 $functionName
             else
                 colorprint "RED" "Error: Unable to find the function associated with the selected option."
-                toLog_ifDebug "Error in JSON: Missing function for menu item $option"
+                toLog_ifDebug -l "[DEBUG]" -m "Error in JSON: Missing function for menu item $option"
             fi
             break
         else
@@ -1202,7 +1215,7 @@ mainmenu() {
 }
 
 ### Startup ##
-toLog_ifDebug "Starting ${SCRIPT_NAME} v${SCRIPT_VERSION}"
+toLog_ifDebug -l "[DEBUG]" -m "Starting ${SCRIPT_NAME} v${SCRIPT_VERSION}"
 clear
 
 # Detect the operating system
@@ -1215,7 +1228,7 @@ detect_architecture
 fn_checkDependencies
 
 # Start the main menu
-toLog_ifDebug "Starting main menu..."
+toLog_ifDebug -l "[INFO]" -m "Starting main menu..."
 while true; do
     mainmenu
 done

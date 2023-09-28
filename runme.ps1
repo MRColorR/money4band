@@ -4,7 +4,7 @@ set-executionpolicy -scope CurrentUser -executionPolicy Bypass -Force
 ### Variables and constants ###
 ## Script variables ##
 # Script version #
-$SCRIPT_VERSION = "2.2.0" # used for checking updates
+$SCRIPT_VERSION = "2.3.1" # used for checking updates
 
 # Script name #
 $SCRIPT_NAME = $MyInvocation.MyCommand.Name # save the script name in a variable, not the full path
@@ -14,6 +14,9 @@ $UPDATE_SCRIPT_URL = "https://raw.githubusercontent.com/MRColorR/money4band/main
 
 # Script debug log file #
 $DEBUG_LOG = "debug_$SCRIPT_NAME.log"
+
+# Script default sleep time #
+$SLEEP_TIME = 1
 
 ## Env file related constants and variables ##
 # .env file prototype link #
@@ -28,6 +31,7 @@ $script:NEW_STACK_PROXY = ''
 
 ## Config file related constants and variables ##
 $script:CONFIG_JSON_FILE = "config.json"
+$script:MAINMENU_JSON_FILE = "mainmenu.json"
 
 ## Docker compose related constants and variables ##
 # docker compose yaml file name #
@@ -74,6 +78,7 @@ $os_map = @{
     "darwin"     = "MacOS";
     "macos"      = "MacOS";
     "macosx"     = "MacOS";
+    "mac"        = "MacOS";
     "osx"        = "MacOS";
     "cygwin"     = "Cygwin";
     "mingw"      = "MinGw";
@@ -121,35 +126,47 @@ function fn_bye {
 }
 
 ### Log, Update and Utility functions ###
+# Function to write info/debug/warn/error messages to the log file if debug flag is true #
+function toLog_ifDebug {
+    param (
+        [Parameter(Mandatory = $false)]
+        [Alias('l')]
+        [string]$log_level = "[DEBUG]",
+
+        [Parameter(Mandatory = $true)]
+        [Alias('m')]
+        [string]$message
+    )
+
+    # Only log if DEBUG mode is enabled
+    if ($script:DEBUG) {
+        "$((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')) - $log_level - $message" | Out-File -Append -FilePath $script:DEBUG_LOG
+    }
+}
+
+
 ## Enable or disable logging using debug mode ##
 # Check if the first argument is -d or --debug if so, enable debug mode
 if ($args[0] -eq '-d' -or $args[0] -eq '--debug') {
     $script:DEBUG = $true
     # shift the arguments array to remove the debug flag consumed
     $args = $args[1..$args.Length]
-    debug "[DEBUG]: Debug mode enabled."
+    toLog_ifDebug -l "[DEBUG]" -m "Debug mode enabled."
 }
 else {
     $script:DEBUG = $false
 }
 
-# Function to write debug messages to the debug log file #
-function debug($text) {
-    if ($script:DEBUG) {
-        [DateTime]::Now.ToString("yyyy-MM-dd HH:mm:ss") + " - $text" | Out-File -FilePath $script:DEBUG_LOG -Append
-    }
-}
-
 # Function to print an info message that will be also logged to the debug log file #
 function print_and_log($color, $message) {
     colorprint $color $message
-    debug "[INFO]: $message"
+    toLog_ifDebug -l "[INFO]" -m "$message"
 }
 
 # Function to print an error message and write it to the debug log file #
 function errorprint_and_log($text) {
     Write-Error $text
-    debug "[ERROR]: $text"
+    toLog_ifDebug -l "[ERROR]" -m "$text"
 }
 
 # Function to print criticals errors that will stop the script execution, write them to the debug log file and exit the script with code 1 #
@@ -162,7 +179,7 @@ function fn_fail($text) {
 ## Utility functions ##
 # Function to detect OS
 function detect_os {
-    debug "Detecting OS..."
+    toLog_ifDebug -l "[DEBUG]" -m "Detecting OS..."
     try {
         if ($PSVersionTable.Platform) {
             $OSStr = $PSVersionTable.Platform.ToString().ToLower()
@@ -177,15 +194,15 @@ function detect_os {
         $script:OS_TYPE = $os_map.Keys | Where-Object { $OSStr.Contains($_) } | Select-Object -First 1 | ForEach-Object { $os_map[$_] }
     }
     catch {
-        debug "Neither PS OS detection commands nor uname were found, OS detection failed. OS type will be set to 'unknown'."
+        toLog_ifDebug -l "[WARN]" -m "Neither PS OS detection commands nor uname were found, OS detection failed. OS type will be set to 'unknown'."
         $script:OS_TYPE = 'unknown'        
     }
-    debug "OS type detected: $script:OS_TYPE"
+    toLog_ifDebug -l "[DEBUG]" -m "OS type detected: $script:OS_TYPE"
 }
 
 # Function to detect OS architecture and set the relative Docker architecture
 function detect_architecture {
-    debug "Detecting system architecture..."
+    toLog_ifDebug -l "[DEBUG]" -m "Detecting system architecture..."
     try {
         # Try to use the new PowerShell command
         if (Get-Command 'System.Runtime.InteropServices.RuntimeInformation::OSArchitecture' -ErrorAction SilentlyContinue) {
@@ -207,12 +224,12 @@ function detect_architecture {
         }
     }
     catch {
-        debug "Neither PS arch detection commands nor uname were found, architecture detection failed. Architecture will be set to 'unknown'."
+        toLog_ifDebug -l "[DEBUG]" -m "Neither PS arch detection commands nor uname were found, architecture detection failed. Architecture will be set to 'unknown'."
         $script:ARCH = 'unknown'
         $script:DKARCH = 'unknown'
     }
 
-    debug "System architecture detected: $script:ARCH, Docker architecture has been set to $script:DKARCH"
+    toLog_ifDebug -l "[DEBUG]" -m "System architecture detected: $script:ARCH, Docker architecture has been set to $script:DKARCH"
 }
 
 
@@ -330,7 +347,7 @@ function fn_install_packages {
             Read-Input -Prompt "Press enter to continue"
             return
         }
-        debug "Package manager detected: $PKG_MANAGER"
+        toLog_ifDebug -l "[DEBUG]" -m "Package manager detected: $PKG_MANAGER"
         # Install required packages
         foreach ($package in $REQUIRED_PACKAGES) {
             # Using Invoke-Expression to execute the package check command
@@ -356,13 +373,14 @@ function fn_install_packages {
         Read-Input -Prompt "Press enter to continue"
         return
     }
-    debug "Required packages installation completed."
+    toLog_ifDebug -l "[DEBUG]" -m "Required packages installation completed."
 }
 
 ### Sub-menu Functions ###
 # Shows the liks of the apps
 function fn_showLinks {
     Clear-Host
+    toLog_ifDebug -l "[DEBUG]" -m "Showing apps links"
     colorprint "Green" "Use CTRL+Click to open links or copy them:"
     $configPath = Join-Path -Path $CONFIG_DIR -ChildPath $CONFIG_JSON_FILE
     $configData = Get-Content -Path $configPath -Raw | ConvertFrom-Json
@@ -376,7 +394,7 @@ function fn_showLinks {
         }
     }
     Read-Host -Prompt "Press Enter to go back to mainmenu"
-    debug "Links shown, going back to main menu."
+    toLog_ifDebug -l "[DEBUG]" -m "Links shown, going back to main menu."
 }
 
 <#
@@ -394,29 +412,29 @@ This function has been tested until v 2.0.0 on windows and mac but not on linux 
 #>
 function fn_dockerInstall {
     Clear-Host
-    debug "DockerInstall function started"
+    toLog_ifDebug -l "[DEBUG]" -m "DockerInstall function started"
     colorprint "Yellow" "This menu item will launch a script that will attempt to install Docker"
     colorprint "Yellow" "Use it only if you do not know how to perform the manual Docker installation described at https://docs.docker.com/get-docker/ as the automatic script in some cases and depending on the OS you are using may fail to install Docker correctly."
     
     while ($true) {
         $yn = (Read-Host -Prompt "Do you wish to proceed with the Docker automatic installation Y/N?").ToLower()
         if ($yn -eq 'y' -or $yn -eq 'yes') {
-            debug "User decided to install Docker through the script. Checking if Docker is already installed."
+            toLog_ifDebug -l "[DEBUG]" -m "User decided to install Docker through the script. Checking if Docker is already installed."
             try {
                 $dockerVersion = docker --version
                 if ($dockerVersion) {
-                    debug "Docker is already installed. Asking user if he wants to continue with the installation anyway."
+                    toLog_ifDebug -l "[DEBUG]" -m "Docker is already installed. Asking user if he wants to continue with the installation anyway."
                     while ($true) {
                         colorprint "Yellow" "Docker seems to be installed already. Do you want to continue with the installation anyway? (Y/N)"
                         $yn = (Read-Host).ToLower()
                         if ($yn -eq 'n' -or $yn -eq 'no'){
-                            debug "User decided to abort the Docker re-install."
+                            toLog_ifDebug -l "[DEBUG]" -m "User decided to abort the Docker re-install."
                             colorprint "Blue" "Returning to main menu..."
-                            sleep 1
+                            Start-Sleep -Seconds $SLEEP_TIME
                             return
                         }
                         elseif ($yn -eq 'y' -or $yn -eq 'yes' ) {
-                            debug "User decided to continue with the Docker re-install anyway."
+                            toLog_ifDebug -l "[DEBUG]" -m "User decided to continue with the Docker re-install anyway."
                             break
                         }
                         else {
@@ -515,15 +533,14 @@ Just call fn_setupNotifications
 This function has been tested until v 2.0.0. The new version has not been tested as its assume that the logic is the same as the previous one just more refined.
 #>
 function fn_setupNotifications {
+    toLog_ifDebug -l "[DEBUG]" -m "SetupNotifications function started"
     Clear-Host
-    while ($true) {
-        
-    
+    while ($true) {      
         colorprint "Yellow" "Do you wish to setup notifications about apps images updates (Yes to receive notifications and apply updates, No to just silently apply updates) Y/N?"
         $yn = Read-Host
         $yn = $yn.ToLower()
         if ($yn -eq 'y' -or $yn -eq 'yes') {
-            debug "User decided to setup notifications about apps images updates."
+            toLog_ifDebug -l "[DEBUG]" -m "User decided to setup notifications about apps images updates."
             colorprint "Yellow" "This step will setup notifications about containers updates using shoutrrr"
             colorprint "Default" "The resulting SHOUTRRR_URL should have the format: <app>://<token>@<webhook>."
             colorprint "Default" "Where <app> is one of the supported messaging apps on Shoutrrr (e.g. Discord), and <token> and <webhook> are specific to your messaging app."
@@ -573,9 +590,9 @@ function fn_setupNotifications {
             }
         }
         elseif ($yn -eq 'n' -or $yn -eq 'no') {
-            debug "User chose to skip notifications setup"
+            toLog_ifDebug -l "[DEBUG]" -m "User chose to skip notifications setup"
             colorprint "Blue" "Noted: all updates will be applied automatically and silently"
-            Read-Host -Prompt "Press enter to continue"
+            Start-Sleep -Seconds $SLEEP_TIME
             break
         }
         else {
@@ -583,7 +600,7 @@ function fn_setupNotifications {
         }
     }
     Clear-Host
-    debug "Notifications setup ended."
+    toLog_ifDebug -l "[DEBUG]" -m "Notifications setup ended."
 }
 
 
@@ -610,32 +627,28 @@ fn_setupApp -app "HONEYGAIN" -image "honeygain/honeygain" -email "email" -passwo
 This function has been tested until v 2.0.0. The new version has not been tested as its assume that the logic is the same as the previous one just more refined.
 #>
 function fn_setupApp {
+    toLog_ifDebug -l "[DEBUG]" -m "SetupApp function started"
     param (
         [Parameter(Mandatory = $true)]
-        [string]$app,
-        [Parameter(Mandatory = $true)]
-        [string]$image,
+        [string]$app_json,
         [Parameter(Mandatory = $false)]
-        [string[]]$flags
+        [string]$dk_compose_filename = "docker-compose.yaml"
     )
-    $APP_NAME = $app
-    $APP_IMAGE = $image
-    $uuid = $false
-    $email = $false
-    $password = $false
-    $apikey = $false
-    $userid = $false
-    $uuid = $false
-    $cid = $false
-    $token = $false
-    $customScript = $null
-    $manual = $false
-
-    #Write-Output "passed parameters: APP: $app, IMG: $image, FLAGS: $flags"
-    #Read-Host -Prompt "This is for debug Press enter to continue"
-    $CURRENT_APP = $APP_NAME
-    if ($app) { (Get-content $script:DKCOM_FILENAME) -replace "#ENABLE_${CURRENT_APP}", "" | Set-Content $script:DKCOM_FILENAME }
-    debug "Enabled ${CURRENT_APP} in $script:DKCOM_FILENAME"
+    
+    $app_json_obj = $app_json | ConvertFrom-Json
+    $name = $app_json_obj.name
+    $link = $app_json_obj.link
+    $app_image = $app_json_obj.image
+    $flags_raw = $app_json_obj.flags.PSObject.Properties.Name
+    $flags = @()
+    foreach ($flag in $flags_raw) {
+        $flags += $flag
+    }
+    $claimURLBase = if ($app_json_obj.claimURLBase) { $app_json_obj.claimURLBase } else { $link }
+    $CURRENT_APP = $name.ToUpper()
+### WIP###
+    if ($app) { (Get-content $dk_compose_filename) -replace "#ENABLE_${CURRENT_APP}", "" | Set-Content $dk_compose_filename }
+    toLog_ifDebug -l "[DEBUG]" -m "Enabled ${CURRENT_APP} in $dk_compose_filename"
 
     for ($i = 0; $i -lt $flags.Count; $i++) {
         switch ($flags[$i]) {
@@ -656,7 +669,7 @@ function fn_setupApp {
     }
     
     if ($email) {
-        debug "Starting email setup for ${CURRENT_APP} app"
+        toLog_ifDebug -l "[DEBUG]" -m "Starting email setup for ${CURRENT_APP} app"
         while ($true) {
             colorprint "GREEN" "Enter your ${CURRENT_APP} Email:"
             $APP_EMAIL = Read-Host
@@ -671,7 +684,7 @@ function fn_setupApp {
     }
 
     if ($password) {
-        debug "Starting password setup for ${CURRENT_APP} app"
+        toLog_ifDebug -l "[DEBUG]" -m "Starting password setup for ${CURRENT_APP} app"
         while ($true) {
             colorprint "DEFAULT" "Note: If you are using login with Google, remember to set also a password for your ${CURRENT_APP} account!"
             colorprint "GREEN" "Enter your ${CURRENT_APP} Password:"
@@ -687,7 +700,7 @@ function fn_setupApp {
     }
 
     if ($apikey) {
-        debug "Starting APIKey setup for ${CURRENT_APP} app"
+        toLog_ifDebug -l "[DEBUG]" -m "Starting APIKey setup for ${CURRENT_APP} app"
         colorprint "DEFAULT" "Find/Generate your APIKey inside your ${CURRENT_APP} dashboard/profile."
         colorprint "GREEN" "Enter your ${CURRENT_APP} APIKey:"
         $APP_APIKEY = Read-Host
@@ -695,7 +708,7 @@ function fn_setupApp {
     }
 
     if ($userid) {
-        debug "Starting UserID setup for ${CURRENT_APP} app"
+        toLog_ifDebug -l "[DEBUG]" -m "Starting UserID setup for ${CURRENT_APP} app"
         colorprint "DEFAULT" "Find your UserID inside your ${CURRENT_APP} dashboard/profile."
         colorprint "GREEN" "Enter your ${CURRENT_APP} UserID:"
         $APP_USERID = Read-Host
@@ -703,7 +716,7 @@ function fn_setupApp {
     }
 
     if ($uuid) {
-        debug "Starting UUID setup for ${CURRENT_APP} app"
+        toLog_ifDebug -l "[DEBUG]" -m "Starting UUID setup for ${CURRENT_APP} app"
         colorprint "DEFAULT" "Starting UUID generation/import for ${CURRENT_APP}"
         $SALT = "$script:DEVICE_NAME$((Get-Random))"
         $UUID = New-Object System.Security.Cryptography.MD5CryptoServiceProvider
@@ -749,7 +762,7 @@ function fn_setupApp {
     }
 
     if ($cid) {
-        debug "Starting CID setup for ${CURRENT_APP} app"
+        toLog_ifDebug -l "[DEBUG]" -m "Starting CID setup for ${CURRENT_APP} app"
         colorprint "DEFAULT" "Find your CID, you can fetch it from your dashboard https://packetstream.io/dashboard/download?linux# then click on ->View your configuration file<-."
         colorprint "GREEN" "Enter your ${CURRENT_APP} CID:"
         $APP_CID = Read-Host
@@ -757,7 +770,7 @@ function fn_setupApp {
     }
 
     if ($token) {
-        debug "Starting Token setup for ${CURRENT_APP} app"
+        toLog_ifDebug -l "[DEBUG]" -m "Starting Token setup for ${CURRENT_APP} app"
         colorprint "DEFAULT" "Find your Token inside your ${CURRENT_APP} dashboard/profile."
         colorprint "GREEN" "Enter your ${CURRENT_APP} Token:"
         $APP_TOKEN = Read-Host
@@ -767,7 +780,7 @@ function fn_setupApp {
     if ($customScript) {
         $SCRIPT_NAME = "${customScript}.ps1"
         $SCRIPT_PATH = Join-Path -Path $script:SCRIPTS_DIR -ChildPath $SCRIPT_NAME
-        debug "Starting custom script execution for ${CURRENT_APP} app using $SCRIPT_NAME, from $SCRIPT_PATH"
+        toLog_ifDebug -l "[DEBUG]" -m "Starting custom script execution for ${CURRENT_APP} app using $SCRIPT_NAME, from $SCRIPT_PATH"
         if (Test-Path -Path $SCRIPT_PATH) {
             Set-Content $SCRIPT_PATH -Value (Get-Content $SCRIPT_PATH) -Encoding UTF8
             colorprint "DEFAULT" "Executing custom script: $SCRIPT_NAME"
@@ -778,11 +791,11 @@ function fn_setupApp {
         }
     }
     if ($manual) {
-        debug "Starting manual setup for ${CURRENT_APP} app"
+        toLog_ifDebug -l "[DEBUG]" -m "Starting manual setup for ${CURRENT_APP} app"
         colorprint "Yellow" "${CURRENT_APP} requires further manual configuration."
         colorprint "Yellow" "Please after completing this automated setup follow the manual steps described on the app's website."
     }
-    debug "Finished parsing arguments of setupApp function for ${CURRENT_APP} app"
+    toLog_ifDebug -l "[DEBUG]" -m "Finished parsing arguments of setupApp function for ${CURRENT_APP} app"
     # App Docker image architecture adjustments
     $TAG = 'latest'
 
@@ -817,17 +830,17 @@ function fn_setupApp {
             colorprint "yellow" "$TAG tag does not support $DKARCH arch but other tags do, the newer tag supporting $DKARCH will be selected"
             # Replace 'latest' tag with the first one that supports the given architecture in your Docker compose file
             $newTag = $supported_tags[0]
-        (Get-Content $script:DKCOM_FILENAME).replace("${APP_IMAGE}:$TAG", "${APP_IMAGE}:$newTag") | Set-Content $DKCOM_FILENAME
+        (Get-Content $dk_compose_filename).replace("${APP_IMAGE}:$TAG", "${APP_IMAGE}:$newTag") | Set-Content $DKCOM_FILENAME
         }
     }
     else {
         colorprint "yellow" "No native image tag found for $DKARCH arch, emulation layer will try to run this app image anyway."
         #colorprint "default" "If an emulation layer is not already installed, the script will try to install it now. Please provide your sudo password if prompted."
     }
-    debug "Finished Docker image architecture adjustments for ${CURRENT_APP} app. Its image tag is now " + (Get-Content $script:DKCOM_FILENAME | Select-String -Pattern "${APP_IMAGE}:" -SimpleMatch).ToString().Split(":")[1]
+    toLog_ifDebug -l "[DEBUG]" -m "Finished Docker image architecture adjustments for ${CURRENT_APP} app. Its image tag is now " + (Get-Content $dk_compose_filename | Select-String -Pattern "${APP_IMAGE}:" -SimpleMatch).ToString().Split(":")[1]
     Write-Host "$app configuration complete, press enter to continue to the next app"
     Read-Host
-    debug "Finished setupApp function for ${CURRENT_APP} app"
+    toLog_ifDebug -l "[DEBUG]" -m "Finished setupApp function for ${CURRENT_APP} app"
 }
 
 <#
@@ -844,7 +857,7 @@ Just call fn_setupProxy
 This function has been tested until v 2.0.0. The new version has not been tested as its assume that the logic is the same as the previous one just more refined.
 #>
 function fn_setupProxy() {
-    debug "Starting setupProxy function"
+    toLog_ifDebug -l "[DEBUG]" -m "Starting setupProxy function"
     if ($script:PROXY_CONF -eq $false) {
         while ($true) {
             colorprint "YELLOW" "Do you wish to setup a proxy for the apps in this stack Y/N?"
@@ -852,7 +865,7 @@ function fn_setupProxy() {
             $yn = Read-Host
             if ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') {
                 Clear-Host
-                debug "User chose to setup a proxy"
+                toLog_ifDebug -l "[DEBUG]" -m "User chose to setup a proxy"
                 colorprint "YELLOW" "Proxy setup started."
                 $script:RANDOM_VALUE = Get-Random
                 colorprint "GREEN" "Insert the designed proxy to use. Eg: protocol://proxyUsername:proxyPassword@proxy_url:proxy_port or just protocol://proxy_url:proxy_port if auth is not needed:"
@@ -871,13 +884,12 @@ function fn_setupProxy() {
                 (Get-Content .\.env).replace("PROXY_CONFIGURATION_STATUS=0", "PROXY_CONFIGURATION_STATUS=1") | Set-Content .\.env
                 colorprint "DEFAULT" "Ok, $script:NEW_STACK_PROXY will be used as proxy for all apps in this stack"
                 Read-Host -p "Press enter to continue"
-                debug "Proxy setup finished"
+                toLog_ifDebug -l "[DEBUG]" -m "Proxy setup finished"
                 break
             }
             elseif ($yn.ToLower() -eq 'n' -or $yn.ToLower() -eq 'no') {
-                debug "User chose not to setup a proxy"
-                colorprint "BLUE" "Ok, no proxy added to configuration."
-                Start-Sleep -Seconds 1
+                toLog_ifDebug -l "[DEBUG]" -m "User chose not to setup a proxy"
+                Start-Sleep -Seconds $SLEEP_TIME
                 break
             }
             else {
@@ -908,17 +920,17 @@ function fn_setupEnv() {
     print_and_log "Yellow" "Starting setupEnv function for $app_type"
     # Check if .env file is already configured if 1 then it is already configured, if 0 then it is not configured
     $ENV_CONFIGURATION_STATUS = (Get-Content .\.env | Select-String -Pattern "ENV_CONFIGURATION_STATUS=" -SimpleMatch).ToString().Split("=")[1]
-    debug "Current ENV_CONFIGURATION_STATUS: $ENV_CONFIGURATION_STATUS"
+    toLog_ifDebug -l "[DEBUG]" -m "Current ENV_CONFIGURATION_STATUS: $ENV_CONFIGURATION_STATUS"
     $PROXY_CONFIGURATION_STATUS = (Get-Content .\.env | Select-String -Pattern "PROXY_CONFIGURATION_STATUS=" -SimpleMatch).ToString().Split("=")[1]
-    debug "Current PROXY_CONFIGURATION_STATUS: $PROXY_CONFIGURATION_STATUS"
+    toLog_ifDebug -l "[DEBUG]" -m "Current PROXY_CONFIGURATION_STATUS: $PROXY_CONFIGURATION_STATUS"
     $NOTIFICATIONS_CONFIGURATION_STATUS = (Get-Content .\.env | Select-String -Pattern "NOTIFICATIONS_CONFIGURATION_STATUS=" -SimpleMatch).ToString().Split("=")[1]
-    debug "Current NOTIFICATIONS_CONFIGURATION_STATUS: $NOTIFICATIONS_CONFIGURATION_STATUS"
+    toLog_ifDebug -l "[DEBUG]" -m "Current NOTIFICATIONS_CONFIGURATION_STATUS: $NOTIFICATIONS_CONFIGURATION_STATUS"
     while ($true) {
         colorprint "YELLOW" "Do you wish to proceed with the .env file guided setup Y/N? (This will also adapt the $($script:DKCOM_FILENAME) file accordingly)"
         $yn = Read-Host
         if ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') {
             Clear-Host
-            debug "User chose to proceed with the .env file guided setup for $app_type"
+            toLog_ifDebug -l "[DEBUG]" -m "User chose to proceed with the .env file guided setup for $app_type"
 
             if (($ENV_CONFIGURATION_STATUS -eq 1) -and ($app_type -eq "apps")) {
                 colorprint "DEFAULT" "The current .env file appears to have already been configured. Do you wish to reset it? (Y/N)"
@@ -943,13 +955,13 @@ function fn_setupEnv() {
             colorprint "YELLOW" "beginning env file guided setup"
             $script:CURRENT_APP = ''
             if (Get-Content .\.env | Select-String "DEVICE_NAME=${DEVICE_NAME_PLACEHOLDER}") {
-                debug "Device name is still the default one, asking user to change it"
+                toLog_ifDebug -l "[DEBUG]" -m "Device name is still the default one, asking user to change it"
                 colorprint "YELLOW" "PLEASE ENTER A NAME FOR YOUR DEVICE:"
                 $script:DEVICE_NAME = Read-Host
                 (Get-Content .\.env).replace("DEVICE_NAME=${DEVICE_NAME_PLACEHOLDER}", "DEVICE_NAME=$script:DEVICE_NAME") | Set-Content .\.env
             }
             else {
-                debug "Device name is already set, skipping user input"
+                toLog_ifDebug -l "[DEBUG]" -m "Device name is already set, skipping user input"
                 $script:DEVICE_NAME = (Get-Content .\.env | Select-String -Pattern "DEVICE_NAME=" -SimpleMatch).ToString().Split("=")[1]
             }
             Clear-Host
@@ -961,12 +973,12 @@ function fn_setupEnv() {
                     $yn = Read-Host
                     if ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') {
                         $script:PROXY_CONF = $false
-                        debug "User chose to change the proxy that was already configured"
+                        toLog_ifDebug -l "[DEBUG]" -m "User chose to change the proxy that was already configured"
                         fn_setupProxy
                         break
                     }
                     elseif ($yn.ToLower() -eq 'n' -or $yn.ToLower() -eq 'no') {
-                        debug "User chose not to change the proxy that was already configured"
+                        toLog_ifDebug -l "[DEBUG]" -m "User chose not to change the proxy that was already configured"
                         colorprint "BLUE" "Keeping the existing proxy."
                         Read-Host -p "Press enter to continue"
                         break
@@ -977,13 +989,13 @@ function fn_setupEnv() {
                 }
             }
             else {
-                debug "Asking user if they want to setup a proxy as it is not already configured"
+                toLog_ifDebug -l "[DEBUG]" -m "Asking user if they want to setup a proxy as it is not already configured"
                 fn_setupProxy
             }
             Clear-Host
-            debug "Loading $app_type from ${CONFIG_JSON_FILE}"
+            toLog_ifDebug -l "[DEBUG]" -m "Loading $app_type from ${CONFIG_JSON_FILE}"
             $apps = Get-Content "$script:CONFIG_DIR/${CONFIG_JSON_FILE}" | ConvertFrom-Json | Select-Object -ExpandProperty $app_type
-            debug "$app_type loaded from ${CONFIG_JSON_FILE}"
+            toLog_ifDebug -l "[DEBUG]" -m "$app_type loaded from ${CONFIG_JSON_FILE}"
             foreach ($app in $apps) {
                 Clear-Host
                 colorprint "YELLOW" "PLEASE REGISTER ON THE PLATFORMS USING THE FOLLOWING LINKS, YOU'LL NEED TO ENTER SOME DATA BELOW:"
@@ -1022,7 +1034,7 @@ function fn_setupEnv() {
                     }
                     else {
                         print_and_log "Blue" "${CURRENT_APP} is already enabled."
-                        sleep 1
+                        Start-Sleep -Seconds $SLEEP_TIME
                         break
                     }
                 }
@@ -1041,7 +1053,7 @@ function fn_setupEnv() {
                         break
                     }
                     elseif ($yn.ToLower() -eq 'n' -or $yn.ToLower() -eq 'no') {
-                        debug "User chose not to change the notifications setup that was already configured"
+                        toLog_ifDebug -l "[DEBUG]" -m "User chose not to change the notifications setup that was already configured"
                         print_and_log "BLUE" "Noted: all updates will be applied automatically and silently"
                         break
                     }
@@ -1051,7 +1063,7 @@ function fn_setupEnv() {
                 }
             }
             else {
-                debug "Asking user if they want to setup notifications as they are not already configured"
+                toLog_ifDebug -l "[DEBUG]" -m "Asking user if they want to setup notifications as they are not already configured"
                 fn_setupNotifications
             }
             (Get-Content .\.env).replace("ENV_CONFIGURATION_STATUS=0", "ENV_CONFIGURATION_STATUS=1") | Set-Content .\.env
@@ -1060,7 +1072,7 @@ function fn_setupEnv() {
             break
         }
         elseif ($yn.ToLower() -eq 'n' -or $yn.ToLower() -eq 'no') {
-            debug "User chose not to proceed with the .env file guided setup for $app_type"
+            toLog_ifDebug -l "[DEBUG]" -m "User chose not to proceed with the .env file guided setup for $app_type"
             colorprint "BLUE" ".env file setup canceled. Make sure you have a valid .env file before proceeding with the stack startup."
             Read-Host -p "Press Enter to go back to mainmenu"
             return
@@ -1317,7 +1329,7 @@ function mainmenu {
 }
 
 ### Startup ##
-debug "Starting $script:SCRIPT_NAME v$script:SCRIPT_VERSION"
+toLog_ifDebug -l "[DEBUG]" -m "Starting $script:SCRIPT_NAME v$script:SCRIPT_VERSION"
 Clear-Host
 
 # Detect the operating system
