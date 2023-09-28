@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 ### Variables and constants ###
 ## Script variables ##
@@ -6,12 +6,10 @@
 readonly SCRIPT_VERSION="2.3.0" # used for checking updates
 
 # Script name #
-readonly SCRIPT_NAME
-SCRIPT_NAME=$(basename "$0") # save the script name in a variable not the full path
+readonly SCRIPT_NAME=$(basename "$0") # save the script name in a variable not the full path
 
 # Script URL for update #
-readonly UPDATE_SCRIPT_URL
-UPDATE_SCRIPT_URL="https://raw.githubusercontent.com/MRColorR/money4band/main/${SCRIPT_NAME}"
+readonly UPDATE_SCRIPT_URL="https://raw.githubusercontent.com/MRColorR/money4band/main/${SCRIPT_NAME}"
 
 # Script log file #
 readonly DEBUG_LOG="debug_${SCRIPT_NAME}.log"
@@ -32,6 +30,7 @@ NEW_STACK_PROXY=''
 
 ## Config file related constants and variables ##
 readonly CONFIG_JSON_FILE="config.json"
+readonly MAINMENU_JSON_FILE="mainmenu.json"
 
 ## Docker compose related constants and variables ##
 # docker compose yaml file name #
@@ -116,6 +115,14 @@ fn_bye(){
 }
 
 ### Log, Update and Utility functions ###
+# Function to write info/debug/warn/error messages to the log file if debug flag is true #
+toLog_ifDebug() {
+    local log_level="${1:-[DEBUG]}"
+    shift
+    if [ $DEBUG ]; then
+        echo "$(date +'%Y-%m-%d %H:%M:%S') - $log_level - $*" >> "$DEBUG_LOG"
+    fi
+}
 ## Enable or disable logging using debug mode ##
 # Check if the first argument is -d or --debug if so, enable debug mode
 if [[ $1 == '-d' || $1 == '--debug' ]]; then
@@ -127,14 +134,6 @@ else
     DEBUG=false
 fi
 
-# Function to write info/debug/warn/error messages to the log file if debug flag is true #
-toLog_ifDebug() {
-    local log_level="${1:-[DEBUG]}"
-    shift
-    if [ $DEBUG ]; then
-        echo "$(date +'%Y-%m-%d %H:%M:%S') - $log_level - $*" >> "$DEBUG_LOG"
-    fi
-}
 # Function to print an info message that will be also logged to the log file #
 print_and_log() {
     local color="$1"
@@ -261,9 +260,9 @@ fn_install_packages() {
         fi
         for package in "${REQUIRED_PACKAGES[@]}"
         do
-            if ! brew list --versions $package > /dev/null; then
+            if ! brew list --versions "$package" > /dev/null; then
                 print_and_log "DEFAULT" "$package is not installed. Trying to install now..."
-                if ! brew install $package; then
+                if ! brew install "$package"; then
                     print_and_log "RED" "Failed to install $package. Please install it manually."
                 fi
             else
@@ -279,9 +278,9 @@ fn_install_packages() {
         fi
         for package in "${REQUIRED_PACKAGES[@]}"
         do
-            if ! choco list --local-only --exact $package > /dev/null; then
+            if ! choco list --local-only --exact "$package" > /dev/null; then
                 print_and_log "DEFAULT" "$package is not installed. Trying to install now..."
-                if ! choco install $package -y; then
+                if ! choco install "$package" -y; then
                     print_and_log "RED" "Failed to install $package. Please install it manually."
                 fi
             else
@@ -559,17 +558,23 @@ fn_setupApp() {
     done
     # Extract the necessary fields from the app json
     toLog_ifDebug "Extracting necessary fields from the passed app json"
-    local name=$(jq -r '.name' <<< "$app_json")
-    local link=$(jq -r '.link' <<< "$app_json")
-    local app_image=$(jq -r '.image' <<< "$app_json")
-    local flags_raw=$(jq -r 'keys[]' <<< "$(jq '.flags?' <<< "$app_json")")
+    local name
+    name=$(jq -r '.name' <<< "$app_json")
+    local link
+    link=$(jq -r '.link' <<< "$app_json")
+    local app_image
+    app_image=$(jq -r '.image' <<< "$app_json")
+    local flags_raw
+    flags_raw=$(jq -r 'keys[]' <<< "$(jq '.flags?' <<< "$app_json")")
     # Load the flags thata are extracted by jq as a string in an array
     local flags=()
     while read -r line; do
         flags+=("$line")
     done <<< "$flags_raw"
-    local claimURLBase=$(jq -r '.claimURLBase? // .link' <<< "$app_json") # The ? is to make the claimURLBase field optional if not present in the json it will be set to the link field
-    local CURRENT_APP=$(echo "${name}" | tr '[:lower:]' '[:upper:]')
+    local claimURLBase
+    claimURLBase=$(jq -r '.claimURLBase? // .link' <<< "$app_json") # The ? is to make the claimURLBase field optional if not present in the json it will be set to the link field
+    local CURRENT_APP
+    CURRENT_APP=$(echo "${name}" | tr '[:lower:]' '[:upper:]')
     while true; do
         # Check if the ${CURRENT_APP} is already enabled in the ${dk_compose_filename} file and if it is not (if there is a #ENABLE_$CURRENTAPP) then ask the user if they want to enable it
         toLog_ifDebug "Checking if the ${CURRENT_APP} app is already enabled in the ${dk_compose_filename} file"
@@ -586,15 +591,17 @@ fn_setupApp() {
                     colorprint "CYAN" "Go to ${CURRENT_APP} ${link} and register"
                     colorprint "GREEN" "Use CTRL+Click to open links or copy them:"
                     read -r -p "When you are done press Enter to continue"
-                    toLog_ifDebug "Enabling ${CURRENT_APP} app. The parameters received are: name=$name, link=$link, image=$app_image, flags=$flags, claimURLBase=$claimURLBase"
+                    toLog_ifDebug "Enabling ${CURRENT_APP} app. The parameters received are: name=$name, link=$link, image=$app_image, flags=${flags[*]}, claimURLBase=$claimURLBase"
                     # Read the flags in the array and execute the relative logic using the case statement
                     for flag_name in "${flags[@]}"; do
                         # Extract flag details and all the parameters if they exist 
-                        local flag_details=$(jq -r ".flags[\"$flag_name\"]?" <<< "$app_json")
+                        local flag_details
+                        flag_details=$(jq -r ".flags[\"$flag_name\"]?" <<< "$app_json")
                         toLog_ifDebug "Result of flag_details reading: $flag_details"
                         if [[ "$flag_details" != "null" ]]; then
                             #load all the flags parameters keys in an array so then we cann iterate on them and access their values easily from the json
-                            local flag_params_keys=$(jq -r "keys[]?" <<< "$flag_details")
+                            local flag_params_keys
+                            flag_params_keys=$(jq -r "keys[]?" <<< "$flag_details")
                             toLog_ifDebug "Result of flag_params_keys reading: $flag_params_keys"
                         else
                             toLog_ifDebug "No flag details found for flag: $flag_name"
@@ -676,7 +683,7 @@ fn_setupApp() {
                                 fi
                                 toLog_ifDebug "Starting temporary UUID generation/import for ${CURRENT_APP} with desired length: $DESIRED_LENGTH. This will be overwritten if the user chooses to use an existing UUID."
                                 local UUID=""
-                                while [ ${#UUID} -lt $DESIRED_LENGTH ]; do
+                                while [ ${#UUID} -lt "$DESIRED_LENGTH" ]; do
                                     # Regenerate the salt for each iteration
                                     SALT="${DEVICE_NAME}""${RANDOM}""${UUID}"  # Incorporate the previously generated UUID part for added randomness
                                     UUID_PART="$(echo -n "$SALT" | md5sum | cut -c1-32)"
@@ -767,7 +774,7 @@ fn_setupApp() {
                                 fi
                                 CUSTOM_SCRIPT_NAME="${flag_scriptname_param}.sh"
                                 SCRIPT_PATH="$SCRIPTS_DIR/$CUSTOM_SCRIPT_NAME"
-                                ESCAPED_PATH="$(echo "$SCRIPT_PATH" | sed 's/"/\\"/g')"
+                                ESCAPED_PATH="${SCRIPT_PATH//\"/\\\"}"
                                 toLog_ifDebug "Starting custom script execution for ${CURRENT_APP} app using $SCRIPT_NAME from $ESCAPED_PATH"
                                 if [[ -f "$SCRIPT_PATH" ]]; then
                                     chmod +x "$ESCAPED_PATH"
@@ -783,7 +790,7 @@ fn_setupApp() {
                                 colorprint "YELLOW" "Please after completing this automated setup follow the manual steps described on the app's website."
                                 ;; 
                             *)
-                                fn_fail "Unknown ${flag} flag passed to fn_setupApp"
+                                fn_fail "Unknown ${flag_name} flag passed to fn_setupApp"
                                 ;;  
                         esac
                     done
@@ -795,16 +802,16 @@ fn_setupApp() {
                     toLog_ifDebug "Starting Docker image architecture adjustments for ${CURRENT_APP} app"
                     TAG='latest'
                     DKHUBRES=$(curl -L -s "https://registry.hub.docker.com/v2/repositories/${app_image}/tags" | jq --arg DKARCH "$DKARCH" '[.results[] | select(.images[].architecture == $DKARCH) | .name]')
-                    TAGSNUMBER=$(echo $DKHUBRES | jq '. | length')
-                    if [ $TAGSNUMBER -gt 0 ]; then 
+                    TAGSNUMBER=$(echo "$DKHUBRES" | jq '. | length')
+                    if [ "$TAGSNUMBER" -gt 0 ]; then 
                         colorprint "DEFAULT" "There are $TAGSNUMBER tags supporting $DKARCH arch for this image"
                         colorprint "DEFAULT" "Let's see if $TAG tag is in there"
-                        LATESTPRESENT=$(echo $DKHUBRES | jq --arg TAG "$TAG" '[.[] | contains($TAG)] | any')
-                        if [ $LATESTPRESENT == "true" ]; then 
+                        LATESTPRESENT=$(echo "$DKHUBRES" | jq --arg TAG "$TAG" '[.[] | contains($TAG)] | any')
+                        if [ "$LATESTPRESENT" == "true" ]; then 
                             colorprint "GREEN" "OK, $TAG tag present and it supports $DKARCH arch, nothing to do"
                         else 
                             colorprint "YELLOW" "$TAG tag does not support $DKARCH arch but other tags do, the newer tag supporting $DKARCH will be selected"
-                            NEWTAG=$(echo $DKHUBRES | jq -r '.[0]')
+                            NEWTAG=$(echo "$DKHUBRES" | jq -r '.[0]')
                             sed -i "s^${app_image}:latest^${app_image}:$NEWTAG^" $DKCOM_FILENAME
                         fi
                     else 
@@ -929,7 +936,7 @@ fn_setupEnv(){
                     sed -i "s/DEVICE_NAME=${DEVICE_NAME_PLACEHOLDER}/DEVICE_NAME=${DEVICE_NAME}/" .env
                 else
                     toLog_ifDebug "Device name is already set, skipping user input"
-                    $DEVICE_NAME=$(grep -oP 'DEVICE_NAME=\K[^#\r]+' .env)
+                    DEVICE_NAME=$(grep -oP 'DEVICE_NAME=\K[^#\r]+' .env)
                 fi
                 clear ;
                 if [ "$PROXY_CONFIGURATION_STATUS" == "1" ]; then
@@ -1153,23 +1160,33 @@ mainmenu() {
     
     PS3="Select an option and press Enter "$'\n'
     toLog_ifDebug "Loading menu options"
-    options=("Show supported apps' links" "Install Docker" "Setup Apps" "Setup Extra Apps" "Start apps stack" "Stop apps stack" "Reset .env File" "Reset $DKCOM_FILENAME file" "Quit")
+    # Reset the menuItems array
+    menuItems=()
+    # Read labels from the JSON file without splitting them
+    while IFS= read -r label; do
+        menuItems+=("$label")
+    done < <(jq -r '.[].label? // empty' "$CONFIG_DIR/$MAINMENU_JSON_FILE")
+    
     toLog_ifDebug "Menu options loaded. Showing menu options, ready to select"
-
-    select option in "${options[@]}"
+    select option in "${menuItems[@]}"
     do
-        case $REPLY in
-            1) clear; fn_showLinks; break;;
-            2) clear; fn_dockerInstall; break;;
-            3) clear; fn_setupApps; break;;
-            4) clear; fn_setupExtraApps; break;;
-            5) clear; fn_startStack; break;;
-            6) clear; fn_stopStack; break;;
-            7) clear; fn_resetEnv; break;;
-            8) clear; fn_resetDockerCompose; break;;
-            ${#options[@]}) fn_bye; break;;
-            *) clear; fn_unknown; break;;
-        esac
+        if [[ -n $option ]]; then
+            clear
+            # Fetch the function name associated with the chosen menu item
+            functionName=$(jq -r --arg chosen "$option" '.[] | select(.label == $chosen).function? // empty' "$CONFIG_DIR/$MAINMENU_JSON_FILE")
+            if [[ -n $functionName ]]; then
+                # Invoke the function
+                $functionName
+            else
+                colorprint "RED" "Error: Unable to find the function associated with the selected option."
+                toLog_ifDebug "Error in JSON: Missing function for menu item $option"
+            fi
+            break
+        else
+            clear
+            fn_unknown
+            break
+        fi
     done
 }
 
