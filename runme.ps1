@@ -646,7 +646,6 @@ function fn_setupApp() {
     foreach ($flag in $flags_raw) {
         $flags += $flag
     }
-    print_and_log "Yellow" "Setting up flags_raw: $flags_raw , flags: $flags"
     $claimURLBase = if ($app_json_obj.claimURLBase) { $app_json_obj.claimURLBase } else { $link }
     $CURRENT_APP = $name.ToUpper()
     while ($true) {
@@ -940,8 +939,9 @@ function fn_setupApp() {
                     colorprint "yellow" "No native image tag found for $DKARCH arch, emulation layer will try to run this app image anyway."
                     #colorprint "default" "If an emulation layer is not already installed, the script will try to install it now. Please provide your sudo password if prompted."
                 }
-                toLog_ifDebug -l "[DEBUG]" -m "Finished Docker image architecture adjustments for ${CURRENT_APP} app. Its image tag is now " + (Get-Content $dk_compose_filename | Select-String -Pattern "${APP_IMAGE}:" -SimpleMatch).ToString().Split(":")[1]
-                Write-Host "$app configuration complete, press enter to continue to the next app"
+                $currentTag = (Get-Content $dk_compose_filename | Select-String -Pattern "${APP_IMAGE}:" -SimpleMatch).ToString().Split(":")[1]
+                toLog_ifDebug -l "[DEBUG]" -m "Finished Docker image architecture adjustments for ${CURRENT_APP} app. Its image tag is now: $currentTag"
+                Write-Host "${CURRENT_APP} configuration complete, press enter to continue to the next app"
                 Read-Host
                 toLog_ifDebug -l "[DEBUG]" -m "Finished setupApp function for ${CURRENT_APP} app"
 

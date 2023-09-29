@@ -872,7 +872,8 @@ fn_setupApp() {
                         #fn_install_packages qemu binfmt-support qemu-user-static
                         fn_addDockerBinfmtSVC
                     fi
-                    toLog_ifDebug -l "[DEBUG]" -m "Finished Docker image architecture adjustments for ${CURRENT_APP} app. Its image tag is now $(grep -oP "${app_image}:\K[^#\r]+" $DKCOM_FILENAME)"
+                    local currentTag=$(grep -oP "${app_image}:\K[^#\r]+" $DKCOM_FILENAME)
+                    toLog_ifDebug -l "[DEBUG]" -m "Finished Docker image architecture adjustments for ${CURRENT_APP} app. Its image tag is now: $currentTag"
                     read -r -p "${CURRENT_APP} configuration complete, press enter to continue to the next app"
                     toLog_ifDebug -l "[DEBUG]" -m "Finished setupApp function for ${CURRENT_APP} app"
                     break
