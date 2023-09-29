@@ -57,7 +57,6 @@ declare -A arch_map=(
     ["amd64"]="amd64"
     ["aarch64"]="arm64"
     ["arm64"]="arm64"
-    ["x86"]="x86"
 )
 
 # OS default. Also define a map for the recognized OSs #
@@ -661,24 +660,30 @@ fn_setupApp() {
                             --apikey)
                                 toLog_ifDebug -l "[DEBUG]" -m "Starting APIKey setup for ${CURRENT_APP} app"
                                 colorprint "DEFAULT" "Find/Generate your APIKey inside your ${CURRENT_APP} dashboard/profile."
-                                colorprint "GREEN" "Enter your ${CURRENT_APP} APIKey:"
-                                read -r APP_APIKEY
-                                if [[ -z "$APP_APIKEY" ]]; then
-                                    colorprint "RED" "APIKey cannot be empty. Please try again."
-                                else
-                                    sed -i "s^your${CURRENT_APP}APIKey^$APP_APIKEY^" .env
-                                fi
+                                while true; do
+                                    colorprint "GREEN" "Enter your ${CURRENT_APP} APIKey:"
+                                    read -r APP_APIKEY
+                                    if [[ -z "$APP_APIKEY" ]]; then
+                                        colorprint "RED" "APIKey cannot be empty. Please try again."
+                                    else
+                                        sed -i "s^your${CURRENT_APP}APIKey^$APP_APIKEY^" .env
+                                        break
+                                    fi
+                                done
                                 ;;
                             --userid)
                                 toLog_ifDebug -l "[DEBUG]" -m "Starting UserID setup for ${CURRENT_APP} app"
                                 colorprint "DEFAULT" "Find your UserID inside your ${CURRENT_APP} dashboard/profile."
-                                colorprint "GREEN" "Enter your ${CURRENT_APP} UserID:"
-                                read -r APP_USERID
-                                if [[ -z "$APP_USERID" ]]; then
-                                    colorprint "RED" "UserID cannot be empty. Please try again."
-                                else
-                                    sed -i "s/your${CURRENT_APP}UserID/$APP_USERID/" .env
-                                fi
+                                while true; do
+                                    colorprint "GREEN" "Enter your ${CURRENT_APP} UserID:"
+                                    read -r APP_USERID
+                                    if [[ -z "$APP_USERID" ]]; then
+                                        colorprint "RED" "UserID cannot be empty. Please try again."
+                                    else
+                                        sed -i "s/your${CURRENT_APP}UserID/$APP_USERID/" .env
+                                        break
+                                    fi
+                                done
                                 ;;
                             --uuid)
                                 toLog_ifDebug -l "[DEBUG]" -m "Starting UUID setup for ${CURRENT_APP} app"
@@ -773,25 +778,31 @@ fn_setupApp() {
                                 toLog_ifDebug -l "[DEBUG]" -m "Starting CID setup for ${CURRENT_APP} app"
                                 colorprint "DEFAULT" "Find your CID inside your ${CURRENT_APP} dashboard/profile."
                                 colorprint "DEFAULT" "Example: For packetstream you can fetch it from your dashboard https://packetstream.io/dashboard/download?linux# then click on -> Looking for linux app -> now search for CID= in the code shown in the page, you need to enter the code after -e CID= (e.g. if in the code CID=6aTk, just enter 6aTk)"
-                                colorprint "GREEN" "Enter your ${CURRENT_APP} CID:"
-                                read -r APP_CID
-                                if [[ -z "$APP_CID" ]]; then
-                                    colorprint "RED" "CID cannot be empty. Please try again."
-                                else
-                                    sed -i "s/your${CURRENT_APP}CID/$APP_CID/" .env
-                                fi
+                                while true; do
+                                    colorprint "GREEN" "Enter your ${CURRENT_APP} CID:"
+                                    read -r APP_CID
+                                    if [[ -z "$APP_CID" ]]; then
+                                        colorprint "RED" "CID cannot be empty. Please try again."
+                                    else
+                                        sed -i "s/your${CURRENT_APP}CID/$APP_CID/" .env
+                                        break
+                                    fi
+                                done
                                 ;;
                             --token)
                                 toLog_ifDebug -l "[DEBUG]" -m "Starting token setup for ${CURRENT_APP} app"
                                 colorprint "DEFAULT" "Find your token inside your ${CURRENT_APP} dashboard/profile."
                                 colorprint "DEFAULT" "Example: For traffmonetizer you can fetch it from your dashboard https://app.traffmonetizer.com/dashboard then -> Look for Your application token -> just insert it here (you can also copy and then paste it)"
-                                colorprint "GREEN" "Enter your ${CURRENT_APP} token:"
-                                read -r APP_TOKEN
-                                if [[ -z "$APP_TOKEN" ]]; then
-                                    sed -i "s/your${CURRENT_APP}Token/$APP_TOKEN/" .env
-                                else
-                                    colorprint "RED" "Token cannot be empty. Please try again."
-                                fi
+                                while true; do
+                                    colorprint "GREEN" "Enter your ${CURRENT_APP} token:"
+                                    read -r APP_TOKEN
+                                    if [[ -z "$APP_TOKEN" ]]; then
+                                        colorprint "RED" "Token cannot be empty. Please try again."
+                                    else
+                                        sed -i "s^your${CURRENT_APP}Token^$APP_TOKEN^" .env
+                                        break
+                                    fi
+                                done
                                 ;;
                             --customScript)
                                 toLog_ifDebug -l "[DEBUG]" -m "Starting customScript setup for ${CURRENT_APP} app"
@@ -868,8 +879,8 @@ fn_setupApp() {
                     ;;
                 [Nn]* )
                     toLog_ifDebug -l "[DEBUG]" -m "User decided to skip ${CURRENT_APP} setup"
-                    colorprint "BLUE" "${CURRENT_APP} setup will be skipped."
-                    read -r -p "Press enter to continue to the next app"
+                    colorprint "BLUE" "Ok, ${CURRENT_APP} setup will be skipped."
+                    sleep ${SLEEP_TIME}
                     break
                     ;;
                 * )
@@ -907,7 +918,7 @@ fn_setupProxy() {
                     sed -i "s^# STACK_PROXY=^STACK_PROXY=^" .env # if it was already uncommented it does nothing
                     CURRENT_VALUE=$(grep -oP 'STACK_PROXY=\K[^#\r]+' .env)
                     sed -i "s^$CURRENT_VALUE^$NEW_STACK_PROXY^" .env
-                    sed -i "s^#ENABLE_PROXY^^" $DKCOM_FILENAME
+                    sed -i 's^#ENABLE_PROXY ^ ^' "$DKCOM_FILENAME"
                     sed -i "s^# network_mode^network_mode^" $DKCOM_FILENAME
                     PROXY_CONF='true'
                     sed -i 's/PROXY_CONFIGURATION_STATUS=0/PROXY_CONFIGURATION_STATUS=1/' .env
@@ -939,24 +950,29 @@ fn_setupEnv(){
     NOTIFICATIONS_CONFIGURATION_STATUS=$(grep -oP '# NOTIFICATIONS_CONFIGURATION_STATUS=\K[^#\r]+' .env)
     toLog_ifDebug -l "[DEBUG]" -m "Current NOTIFICATIONS_CONFIGURATION_STATUS: $NOTIFICATIONS_CONFIGURATION_STATUS"
     if [ "$ENV_CONFIGURATION_STATUS" == "1" ] && [ "$app_type" == "apps" ]; then
-        colorprint "YELLOW" "The current .env file appears to have already been configured. Do you wish to reset it? (Y/N)"
-        read -r yn
-        case $yn in
-            [Yy]* )
-                print_and_log "DEFAULT" "Downloading a fresh .env file.";
-                curl -fsSL $ENV_SRC -o ".env"
-                curl -fsSL $DKCOM_SRC -o "$DKCOM_FILENAME"
-                clear
-                ;;
-            [Nn]* )
-                print_and_log "BLUE" "Keeping the existing .env file."
-                read -r -p "Press enter to continue"
-                ;;
-            * )
-                colorprint "RED" "Invalid input. Please answer yes or no."
-                return 1
-                ;;
-        esac
+        while true; do
+            colorprint "YELLOW" "The current .env file appears to have already been configured. Do you wish to reset it? (Y/N)"
+            read -r yn
+            case $yn in
+                [Yy]* )
+                    print_and_log "DEFAULT" "Downloading a fresh .env file.";
+                    curl -fsSL $ENV_SRC -o ".env"
+                    curl -fsSL $DKCOM_SRC -o "$DKCOM_FILENAME"
+                    clear
+                    break
+                    ;;
+                [Nn]* )
+                    print_and_log "BLUE" "Keeping the existing .env file."
+                    sleep ${SLEEP_TIME}
+                    clear
+                    break
+                    ;;
+                * )
+                    colorprint "RED" "Invalid input. Please answer yes or no."
+                    continue
+                    ;;
+            esac
+        done            
     elif [ "$ENV_CONFIGURATION_STATUS" == "1" ] && [ "$app_type" != "apps" ]; then
         print_and_log "BLUE" "Proceeding with $app_type setup without resetting .env file as it should already be configured by the main apps setup."
         read -r -p "Press enter to continue"
