@@ -15,7 +15,7 @@ readonly UPDATE_SCRIPT_URL="https://raw.githubusercontent.com/MRColorR/money4ban
 readonly DEBUG_LOG="debug_${SCRIPT_NAME}.log"
 
 # Script default sleep time #
-readonly SLEEP_TIME=1
+readonly SLEEP_TIME=1.5
 
 ## Env file related constants and variables ##
 # .env file prototype link #
@@ -99,7 +99,6 @@ colorprint() {
     else
         # Join the array elements into a string
         color_list=$(IFS=','; echo "${!colors[*]}")
-        
         printf "Unknown color: %s. Available colors are: %s\n" "$1" "$color_list"
     fi
 }
@@ -580,6 +579,7 @@ fn_setupApp() {
         esac
         shift
     done
+    toLog_ifDebug -l "[DEBUG]" -m "SetupApp function parameters: app_json=$app_json, dk_compose_filename=$dk_compose_filename"
     # Extract the necessary fields from the app json
     toLog_ifDebug -l "[DEBUG]" -m "Extracting necessary fields from the passed app json"
     local name
@@ -663,14 +663,22 @@ fn_setupApp() {
                                 colorprint "DEFAULT" "Find/Generate your APIKey inside your ${CURRENT_APP} dashboard/profile."
                                 colorprint "GREEN" "Enter your ${CURRENT_APP} APIKey:"
                                 read -r APP_APIKEY
-                                sed -i "s^your${CURRENT_APP}APIKey^$APP_APIKEY^" .env
+                                if [[ -z "$APP_APIKEY" ]]; then
+                                    colorprint "RED" "APIKey cannot be empty. Please try again."
+                                else
+                                    sed -i "s^your${CURRENT_APP}APIKey^$APP_APIKEY^" .env
+                                fi
                                 ;;
                             --userid)
                                 toLog_ifDebug -l "[DEBUG]" -m "Starting UserID setup for ${CURRENT_APP} app"
                                 colorprint "DEFAULT" "Find your UserID inside your ${CURRENT_APP} dashboard/profile."
                                 colorprint "GREEN" "Enter your ${CURRENT_APP} UserID:"
                                 read -r APP_USERID
-                                sed -i "s/your${CURRENT_APP}UserID/$APP_USERID/" .env
+                                if [[ -z "$APP_USERID" ]]; then
+                                    colorprint "RED" "UserID cannot be empty. Please try again."
+                                else
+                                    sed -i "s/your${CURRENT_APP}UserID/$APP_USERID/" .env
+                                fi
                                 ;;
                             --uuid)
                                 toLog_ifDebug -l "[DEBUG]" -m "Starting UUID setup for ${CURRENT_APP} app"
@@ -732,6 +740,7 @@ fn_setupApp() {
                                                     colorprint "DEFAULT" "Do you want to try again? (Y/N)"
                                                     read -r TRY_AGAIN
                                                     case $TRY_AGAIN in
+                                                        [Yy]* ) continue ;;
                                                         [Nn]* ) break ;;
                                                         * ) continue ;;
                                                     esac
@@ -766,7 +775,11 @@ fn_setupApp() {
                                 colorprint "DEFAULT" "Example: For packetstream you can fetch it from your dashboard https://packetstream.io/dashboard/download?linux# then click on -> Looking for linux app -> now search for CID= in the code shown in the page, you need to enter the code after -e CID= (e.g. if in the code CID=6aTk, just enter 6aTk)"
                                 colorprint "GREEN" "Enter your ${CURRENT_APP} CID:"
                                 read -r APP_CID
-                                sed -i "s/your${CURRENT_APP}CID/$APP_CID/" .env
+                                if [[ -z "$APP_CID" ]]; then
+                                    colorprint "RED" "CID cannot be empty. Please try again."
+                                else
+                                    sed -i "s/your${CURRENT_APP}CID/$APP_CID/" .env
+                                fi
                                 ;;
                             --token)
                                 toLog_ifDebug -l "[DEBUG]" -m "Starting token setup for ${CURRENT_APP} app"
@@ -774,7 +787,11 @@ fn_setupApp() {
                                 colorprint "DEFAULT" "Example: For traffmonetizer you can fetch it from your dashboard https://app.traffmonetizer.com/dashboard then -> Look for Your application token -> just insert it here (you can also copy and then paste it)"
                                 colorprint "GREEN" "Enter your ${CURRENT_APP} token:"
                                 read -r APP_TOKEN
-                                sed -i "s/your${CURRENT_APP}Token/$APP_TOKEN/" .env
+                                if [[ -z "$APP_TOKEN" ]]; then
+                                    sed -i "s/your${CURRENT_APP}Token/$APP_TOKEN/" .env
+                                else
+                                    colorprint "RED" "Token cannot be empty. Please try again."
+                                fi
                                 ;;
                             --customScript)
                                 toLog_ifDebug -l "[DEBUG]" -m "Starting customScript setup for ${CURRENT_APP} app"
@@ -952,15 +969,18 @@ fn_setupEnv(){
                 clear
                 toLog_ifDebug -l "[DEBUG]" -m "User chose to proceed with the .env file guided setup for $app_type"
                 colorprint "YELLOW" "beginnning env file guided setup"
+                # Update the ENV_CONFIGURATION_STATUS
                 sed -i 's/ENV_CONFIGURATION_STATUS=0/ENV_CONFIGURATION_STATUS=1/' .env
-                if grep -q "DEVICE_NAME=${DEVICE_NAME_PLACEHOLDER}" .env  ; then
+                # Device Name setup
+                currentDeviceNameInEnv=$(grep -oP 'DEVICE_NAME=\K[^#\r]+' .env)
+                if [ "$currentDeviceNameInEnv" == "$DEVICE_NAME_PLACEHOLDER" ]; then
                     toLog_ifDebug -l "[DEBUG]" -m "Device name is still the default one, asking user to change it"
                     colorprint "YELLOW" "PLEASE ENTER A NAME FOR YOUR DEVICE:"
                     read -r DEVICE_NAME
                     sed -i "s/DEVICE_NAME=${DEVICE_NAME_PLACEHOLDER}/DEVICE_NAME=${DEVICE_NAME}/" .env
                 else
                     toLog_ifDebug -l "[DEBUG]" -m "Device name is already set, skipping user input"
-                    DEVICE_NAME=$(grep -oP 'DEVICE_NAME=\K[^#\r]+' .env)
+                    DEVICE_NAME="$currentDeviceNameInEnv"
                 fi
                 clear ;
                 if [ "$PROXY_CONFIGURATION_STATUS" == "1" ]; then
@@ -978,6 +998,7 @@ fn_setupEnv(){
                             [Nn]* )
                                 toLog_ifDebug -l "[DEBUG]" -m "User chose not to change the proxy that was already configured"
                                 print_and_log "BLUE" "Keeping the existing proxy."
+                                sleep ${SLEEP_TIME}
                                 break;;
                             * )
                                 colorprint "RED" "Invalid input. Please answer yes or no.";;
@@ -987,6 +1008,7 @@ fn_setupEnv(){
                     toLog_ifDebug -l "[DEBUG]" -m "Asking user if they want to setup a proxy as it is not already configured"
                     fn_setupProxy;
                 fi
+                # Apps setup
                 clear ;
                 toLog_ifDebug -l "[DEBUG]" -m "Loading $app_type from ${CONFIG_JSON_FILE}..."
                 apps=$(jq -c ".[\"$app_type\"][]" "${CONFIG_DIR}/${CONFIG_JSON_FILE}")
@@ -1161,7 +1183,7 @@ fn_resetDockerCompose(){
 # Function that will check the necerrary dependencies for the script to run
 fn_checkDependencies(){
     clear
-    colorprint "GREEN" "MONEY4BAND AUTOMATIC GUIDED SETUP v:${SCRIPT_VERSION}"$'\n'"------------------------------------------ "
+    colorprint "GREEN" "MONEY4BAND AUTOMATIC GUIDED SETUP v${SCRIPT_VERSION}"$'\n'"------------------------------------------ "
     print_and_log "YELLOW" "Checking dependencies..."
     # this need to be changed to dinamically read depenedncies for any platform and select and install all the dependencies for the current platform
     # Check if jq is installed
@@ -1179,7 +1201,7 @@ fn_checkDependencies(){
 ### Main Menu ##
 mainmenu() {
     clear
-    colorprint "GREEN" "MONEY4BAND AUTOMATIC GUIDED SETUP v:${SCRIPT_VERSION}"$'\n'"------------------------------------------ "
+    colorprint "GREEN" "MONEY4BAND AUTOMATIC GUIDED SETUP v${SCRIPT_VERSION}"$'\n'"------------------------------------------ "
     colorprint "DEFAULT" "Detected OS type: ${OS_TYPE}"$'\n'"Detected architecture: $ARCH"$'\n'"Docker $DKARCH image architecture will be used if the app's image permits it"$'\n'"------------------------------------------ "$'\n'
     
     PS3="Select an option and press Enter "$'\n'
@@ -1196,6 +1218,7 @@ mainmenu() {
     do
         if [[ -n $option ]]; then
             clear
+            toLog_ifDebug -l "[DEBUG]" -m "User selected option number $REPLY that corresponds to menu item $menu_item[$option]"
             # Fetch the function name associated with the chosen menu item
             functionName=$(jq -r --arg chosen "$option" '.[] | select(.label == $chosen).function? // empty' "$CONFIG_DIR/$MAINMENU_JSON_FILE")
             if [[ -n $functionName ]]; then
@@ -1203,12 +1226,12 @@ mainmenu() {
                 $functionName
             else
                 colorprint "RED" "Error: Unable to find the function associated with the selected option."
-                toLog_ifDebug -l "[DEBUG]" -m "Error in JSON: Missing function for menu item $option"
+                toLog_ifDebug -l "[DEBUG]" -m "Error in JSON: Missing function for menu item $menu_item[$option]"
             fi
             break
         else
-            clear
-            fn_unknown
+            colorprint "RED" "Invalid input. Please select a menu option between 1 and ${#menuItems[@]}."
+            sleep ${SLEEP_TIME}
             break
         fi
     done
