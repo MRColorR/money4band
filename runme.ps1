@@ -16,7 +16,7 @@ $UPDATE_SCRIPT_URL = "https://raw.githubusercontent.com/MRColorR/money4band/main
 $DEBUG_LOG = "debug_$SCRIPT_NAME.log"
 
 # Script default sleep time #
-$SLEEP_TIME = 1
+$SLEEP_TIME = 1.5
 
 ## Env file related constants and variables ##
 # .env file prototype link #
@@ -64,7 +64,6 @@ $arch_map = @{
     "amd64"   = "amd64";
     "aarch64" = "arm64";
     "arm64"   = "arm64";
-    "x86"     = "x86";
 }
 
 # OS default. Also define a map for the recognized OSs #
@@ -102,11 +101,12 @@ $colors = @{
 # Color functions #
 function colorprint($color, $text) {
     $color = $color.ToLower()
-    $prevColor = [System.Console]::ForegroundColor
+    #$prevColor = [System.Console]::ForegroundColor
     if ($colors.ContainsKey($color)) {
         [System.Console]::ForegroundColor = $colors[$color]
         Write-Output $text
-        [System.Console]::ForegroundColor = $prevColor
+        #[System.Console]::ForegroundColor = $prevColor
+        [System.Console]::ForegroundColor = $colors["default"]
     }
     else {
         Write-Output "Unknown color: $color. Available colors are: $($colors.Keys -join ', ')"
@@ -427,7 +427,7 @@ function fn_dockerInstall {
                     while ($true) {
                         colorprint "Yellow" "Docker seems to be installed already. Do you want to continue with the installation anyway? (Y/N)"
                         $yn = (Read-Host).ToLower()
-                        if ($yn -eq 'n' -or $yn -eq 'no'){
+                        if ($yn -eq 'n' -or $yn -eq 'no') {
                             toLog_ifDebug -l "[DEBUG]" -m "User decided to abort the Docker re-install."
                             colorprint "Blue" "Returning to main menu..."
                             Start-Sleep -Seconds $SLEEP_TIME
@@ -626,14 +626,16 @@ fn_setupApp -app "HONEYGAIN" -image "honeygain/honeygain" -email "email" -passwo
 .NOTES
 This function has been tested until v 2.0.0. The new version has not been tested as its assume that the logic is the same as the previous one just more refined.
 #>
-function fn_setupApp {
-    toLog_ifDebug -l "[DEBUG]" -m "SetupApp function started"
-    param (
-        [Parameter(Mandatory = $true)]
+function fn_setupApp() {
+    param(
+        [Parameter(Mandatory=$true)]
         [string]$app_json,
-        [Parameter(Mandatory = $false)]
+
+        [Parameter(Mandatory=$false)]
         [string]$dk_compose_filename = "docker-compose.yaml"
     )
+    toLog_ifDebug -l "[DEBUG]" -m "SetupApp function started"
+    toLog_ifDebug -l "[DEBUG]" -m "SetupApp function parameters: app_json=$app_json, dk_compose_filename=$dk_compose_filename"
     
     $app_json_obj = $app_json | ConvertFrom-Json
     $name = $app_json_obj.name
@@ -644,205 +646,326 @@ function fn_setupApp {
     foreach ($flag in $flags_raw) {
         $flags += $flag
     }
+    print_and_log "Yellow" "Setting up flags_raw: $flags_raw , flags: $flags"
     $claimURLBase = if ($app_json_obj.claimURLBase) { $app_json_obj.claimURLBase } else { $link }
     $CURRENT_APP = $name.ToUpper()
-### WIP###
-    if ($app) { (Get-content $dk_compose_filename) -replace "#ENABLE_${CURRENT_APP}", "" | Set-Content $dk_compose_filename }
-    toLog_ifDebug -l "[DEBUG]" -m "Enabled ${CURRENT_APP} in $dk_compose_filename"
-
-    for ($i = 0; $i -lt $flags.Count; $i++) {
-        switch ($flags[$i]) {
-            "--email" { $email = $true }
-            "--password" { $password = $true }
-            "--apikey" { $apikey = $true }
-            "--userid" { $userid = $true }
-            "--uuid" { $uuid = $true }
-            "--cid" { $cid = $true }
-            "--token" { $token = $true }
-            "--customScript" {
-                $customScript = $flags[$i + 1] # consider the element after --customScript as the script name
-                $i++ # increment the index to skip the next element
-            }
-            "--manual" { $manual = $true }
-            default { colorprint "RED" "Unknown flag: $($flags[$i])" }
-        }
-    }
-    
-    if ($email) {
-        toLog_ifDebug -l "[DEBUG]" -m "Starting email setup for ${CURRENT_APP} app"
-        while ($true) {
-            colorprint "GREEN" "Enter your ${CURRENT_APP} Email:"
-            $APP_EMAIL = Read-Host
-            if ($APP_EMAIL -match '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[a-zA-Z]{2,}$') {
-                (Get-Content .env) -replace "your${CURRENT_APP}Mail", $APP_EMAIL | Set-Content .env
-                break
-            }
-            else {
-                colorprint "RED" "Invalid email address. Please try again."
-            }
-        }
-    }
-
-    if ($password) {
-        toLog_ifDebug -l "[DEBUG]" -m "Starting password setup for ${CURRENT_APP} app"
-        while ($true) {
-            colorprint "DEFAULT" "Note: If you are using login with Google, remember to set also a password for your ${CURRENT_APP} account!"
-            colorprint "GREEN" "Enter your ${CURRENT_APP} Password:"
-            $APP_PASSWORD = Read-Host
-            if ($APP_PASSWORD) {
-                (Get-Content .env) -replace "your${CURRENT_APP}Pw", $APP_PASSWORD | Set-Content .env
-                break
-            }
-            else {
-                colorprint "RED" "Password cannot be empty. Please try again."
-            }
-        }
-    }
-
-    if ($apikey) {
-        toLog_ifDebug -l "[DEBUG]" -m "Starting APIKey setup for ${CURRENT_APP} app"
-        colorprint "DEFAULT" "Find/Generate your APIKey inside your ${CURRENT_APP} dashboard/profile."
-        colorprint "GREEN" "Enter your ${CURRENT_APP} APIKey:"
-        $APP_APIKEY = Read-Host
-        (Get-Content .env) -replace "your${CURRENT_APP}APIKey", $APP_APIKEY | Set-Content .env
-    }
-
-    if ($userid) {
-        toLog_ifDebug -l "[DEBUG]" -m "Starting UserID setup for ${CURRENT_APP} app"
-        colorprint "DEFAULT" "Find your UserID inside your ${CURRENT_APP} dashboard/profile."
-        colorprint "GREEN" "Enter your ${CURRENT_APP} UserID:"
-        $APP_USERID = Read-Host
-        (Get-Content .env) -replace "your${CURRENT_APP}UserID", $APP_USERID | Set-Content .env
-    }
-
-    if ($uuid) {
-        toLog_ifDebug -l "[DEBUG]" -m "Starting UUID setup for ${CURRENT_APP} app"
-        colorprint "DEFAULT" "Starting UUID generation/import for ${CURRENT_APP}"
-        $SALT = "$script:DEVICE_NAME$((Get-Random))"
-        $UUID = New-Object System.Security.Cryptography.MD5CryptoServiceProvider
-        $hash = $UUID.ComputeHash([System.Text.Encoding]::ASCII.GetBytes($SALT))
-        $UUID = ([System.BitConverter]::ToString($hash) -replace '-', '')
-        while ($true) {
-            colorprint "YELLOW" "Do you want to use a previously registered sdk-node-uuid for ${CURRENT_APP}? (yes/no)"
-            $USE_EXISTING_UUID = Read-Host
-            $USE_EXISTING_UUID = $USE_EXISTING_UUID.ToLower()
-        
-            if ($USE_EXISTING_UUID -eq "yes" -or $USE_EXISTING_UUID -eq "y") {
-                while ($true) {
-                    colorprint "GREEN" "Please enter the 32 char long alphanumeric part of the existing sdk-node-uuid for ${CURRENT_APP}:"
-                    colorprint "DEFAULT" "E.g. if existing registered node is sdk-node-b86301656baefekba8917349bdf0f3g4 then enter just b86301656baefekba8917349bdf0f3g4"
-                    $EXISTING_UUID = Read-Host
-                    if ($EXISTING_UUID -notmatch '^[a-f0-9]{32}$') {
-                        colorprint "RED" "Invalid UUID entered, it should be an md5 hash and 32 characters long."
-                        colorprint "DEFAULT" "Do you want to try again? (yes/no)"
-                        $TRY_AGAIN = Read-Host
-                        $TRY_AGAIN = $TRY_AGAIN.ToLower()
-                        if ($TRY_AGAIN -eq "no" -or $TRY_AGAIN -eq "n") { break }
+    while ($true) {
+        # Check if the ${CURRENT_APP} is already enabled in the ${dk_compose_filename} file and if it is not (if there is a #ENABLE_$CURRENTAPP) then ask the user if they want to enable it
+        toLog_ifDebug -l "[DEBUG]" -m "Checking if the ${CURRENT_APP} app is already enabled in the ${dk_compose_filename} file"
+        if ((Get-content $dk_compose_filename) -match "#ENABLE_${CURRENT_APP}") {
+            toLog_ifDebug -l "[DEBUG]" -m "The ${CURRENT_APP} app is not enabled in the ${dk_compose_filename} file, asking user if they want to enable it"
+            # Show the generic message before asking the user if they want to enable the app
+            colorprint "YELLOW" "PLEASE REGISTER ON THE PLATFORMS USING THE LINKS THAT WILL BE PROVIDED, YOU'LL THEN NEED TO ENTER SOME DATA BELOW:"
+            # Ask the user if they want to enable the ${CURRENT_APP}
+            colorprint "Yellow" "Do you wish to enable the ${CURRENT_APP} app? (Y/N)"
+            $yn = Read-Host
+            $yn = $yn.ToLower()
+            if ($yn -eq 'y' -or $yn -eq 'yes') {
+                toLog_ifDebug -l "[DEBUG]" -m "User decided to enable the ${CURRENT_APP} app"
+                colorprint "Cyan" "Go to ${CURRENT_APP} ${link} and register"
+                colorprint "Green" "Use CTRL+Click to open links or copy them:"
+                Read-Host -Prompt "When you are done press Enter to continue"
+                toLog_ifDebug -l "[DEBUG]" -m "Enabling ${CURRENT_APP} app. The parameters received are: name=$name, link=$link, image=$app_image, flags=$flags, claimURLBase=$claimURLBase"
+                # Read the flags in the array and execute the relative logic using the case statement
+                foreach ($flag_name in $flags) {
+                    #$flag_details = ($app_json_obj.flags | Get-Member -MemberType NoteProperty | Where-Object { $_.Name -eq $flag_name }).Value
+                    $flag_details = $app_json_obj.flags.$flag_name
+                    toLog_ifDebug -l "[DEBUG]" -m "Result of flag_details reading: $flag_details"
+                    if ($null -ne $flag_details) {
+                        $flag_params_keys = $flag_details.PSObject.Properties.Name
+                        toLog_ifDebug -l "[DEBUG]" -m "Result of flag_params_keys reading: $flag_params_keys"
                     }
                     else {
-                        $UUID = $EXISTING_UUID
-                        break
+                        toLog_ifDebug -l "[DEBUG]" -m "No flag details found for flag: $flag_name"
+                    }
+                    switch ($flag_name) {
+                        "--email" {
+                            toLog_ifDebug -l "[DEBUG]" -m "Starting email setup for ${CURRENT_APP} app"
+                            while ($true) {
+                                colorprint "GREEN" "Enter your ${CURRENT_APP} Email:"
+                                $APP_EMAIL = Read-Host
+                                if ($APP_EMAIL -match '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[a-zA-Z]{2,}$') {
+                                    (Get-Content .env) -replace "your${CURRENT_APP}Mail", $APP_EMAIL | Set-Content .env
+                                    break
+                                }
+                                else {
+                                    colorprint "RED" "Invalid email address. Please try again."
+                                }
+                            }
+                        }
+                        "--password" {
+                            toLog_ifDebug -l "[DEBUG]" -m "Starting password setup for ${CURRENT_APP} app"
+                            while ($true) {
+                                colorprint "DEFAULT" "Note: If you are using login with Google, remember to set also a password for your ${CURRENT_APP} account!"
+                                colorprint "GREEN" "Enter your ${CURRENT_APP} Password:"
+                                $APP_PASSWORD = Read-Host
+                                if ($APP_PASSWORD) {
+                                    (Get-Content .env) -replace "your${CURRENT_APP}Pw", $APP_PASSWORD | Set-Content .env
+                                    break
+                                }
+                                else {
+                                    colorprint "RED" "Password cannot be empty. Please try again."
+                                }
+                            }
+                        }
+                        "--apikey" {
+                            toLog_ifDebug -l "[DEBUG]" -m "Starting APIKey setup for ${CURRENT_APP} app"
+                            while ($true) {
+                                colorprint "DEFAULT" "Find/Generate your APIKey inside your ${CURRENT_APP} dashboard/profile."
+                                colorprint "GREEN" "Enter your ${CURRENT_APP} APIKey:"
+                                $APP_APIKEY = Read-Host
+                                if ($APP_APIKEY) {
+                                    (Get-Content .env) -replace "your${CURRENT_APP}APIKey", $APP_APIKEY | Set-Content .env
+                                    break
+                                }
+                                else {
+                                    colorprint "RED" "APIKey cannot be empty. Please try again."
+                                }
+                            }
+                        }
+                        "--userid" {
+                            toLog_ifDebug -l "[DEBUG]" -m "Starting UserID setup for ${CURRENT_APP} app"
+                            while ($true) {
+                                colorprint "DEFAULT" "Find your UserID inside your ${CURRENT_APP} dashboard/profile."
+                                colorprint "GREEN" "Enter your ${CURRENT_APP} UserID:"
+                                $APP_USERID = Read-Host
+                                if ($APP_USERID) {
+                                    (Get-Content .env) -replace "your${CURRENT_APP}UserID", $APP_USERID | Set-Content .env
+                                    break
+                                }
+                                else {
+                                    colorprint "RED" "UserID cannot be empty. Please try again."
+                                }
+                            }
+                        }
+                        "--uuid" {
+                            toLog_ifDebug -l "[DEBUG]" -m "Starting UUID setup for ${CURRENT_APP} app"
+                            colorprint "DEFAULT" "Starting UUID generation/import for ${CURRENT_APP}"
+                            # Read all the parameters for the uuid flag , if one of them is the case length then save it in a variable
+                            if ($null -ne $flag_params_keys) {
+                                foreach ($flag_param_key in $flag_params_keys) {
+                                    toLog_ifDebug -l "[DEBUG]" -m "Reading flag parameter: $flag_param_key"
+                                    switch ($flag_param_key) {
+                                        'length' {
+                                            toLog_ifDebug -l "[DEBUG]" -m "Reading flag parameter length"
+                                            $flag_length_param = $app_json_obj.flags.$flag_name.$flag_param_key
+                                            toLog_ifDebug -l "[DEBUG]" -m "Result of flag_length_param reading: $flag_length_param"
+                                        }
+                                        default {
+                                            toLog_ifDebug -l "[DEBUG]" -m "Unknown flag parameter: $flag_param_key"
+                                        }
+                                    }
+                                }
+                            }
+                            else {
+                                toLog_ifDebug -l "[DEBUG]" -m "No flag parameters found for flag: $flag_name as flag_params_keys array is empty"
+                            }
+                            # Check if the flag_length_param exists and if is a number (i.e., the desired length)
+                            if (($null -ne $flag_length_param) -and ($flag_length_param -match "^\d+$")) {
+                                $DESIRED_LENGTH = $flag_length_param
+                                toLog_ifDebug -l "[DEBUG]" -m "Desired length for UUID generation/import passed as argument of the uuid flag (read from json), its value is: $DESIRED_LENGTH"
+                            }
+                            else {
+                                # If no length is provided, ask the user
+                                toLog_ifDebug -l "[DEBUG]" -m "No desired length for UUID generation/import passed as argument of the uuid flag, asking the user"
+                                colorprint "GREEN" "Enter desired length for the UUID (default is 32, press Enter to use default):"
+                                $DESIRED_LENGTH_INPUT = Read-Host
+                                $DESIRED_LENGTH = if ($DESIRED_LENGTH_INPUT) { $DESIRED_LENGTH_INPUT } else { 32 } # Defaulting to 32 if no input provided
+                            }
+                        
+                            toLog_ifDebug -l "[DEBUG]" -m "Starting temporary UUID generation/import for ${CURRENT_APP} with desired length: $DESIRED_LENGTH. This will be overwritten if the user chooses to use an existing UUID."
+                            $UUID = ""
+                            while ($UUID.Length -lt $DESIRED_LENGTH) {
+                                # Regenerate the salt for each iteration
+                                $SALT = "${DEVICE_NAME}${Get-Random}${UUID}" # Incorporate the previously generated UUID part for added randomness
+                                $UUID_PART = [System.BitConverter]::ToString([System.Security.Cryptography.MD5]::Create().ComputeHash([System.Text.Encoding]::UTF8.GetBytes($SALT))).Replace("-", "").Substring(0, 32)
+                                $UUID += $UUID_PART
+                            }
+                            # Cut or trail the generated UUID based on the desired length
+                            $UUID = $UUID.Substring(0, $DESIRED_LENGTH)
+                            toLog_ifDebug -l "[DEBUG]" -m "Done, generated temporary UUID: $UUID"
+                            while ($true) {
+                                colorprint "YELLOW" "Do you want to use a previously registered uuid for ${CURRENT_APP}? (Y/N)"
+                                $USE_EXISTING_UUID = Read-Host
+                                if ($USE_EXISTING_UUID -match "^[Yy].*") {
+                                    while ($true) {
+                                        colorprint "GREEN" "Please enter the alphanumeric part of the existing uuid for ${CURRENT_APP}, it should be $DESIRED_LENGTH characters long."
+                                        colorprint "DEFAULT" "E.g. if existing registered node is sdk-node-b86301656baefekba8917349bdf0f3g4 then enter just b86301656baefekba8917349bdf0f3g4"
+                                        $EXISTING_UUID = Read-Host
+                            
+                                        if (-not ($EXISTING_UUID -match "^[a-f0-9]{$DESIRED_LENGTH}$")) {
+                                            colorprint "RED" "Invalid UUID entered, it should be an alphanumeric string and $DESIRED_LENGTH characters long."
+                                            colorprint "DEFAULT" "Do you want to try again? (Y/N)"
+                                            $TRY_AGAIN = Read-Host
+                            
+                                            if ($TRY_AGAIN -match "^[Nn].*") {
+                                                break
+                                            } elseif ($TRY_AGAIN -match "^[Yy].*") {
+                                                continue
+                                            } else {
+                                                colorprint "RED" "Please answer yes or no."
+                                            }
+                                        } else {
+                                            $UUID = $EXISTING_UUID
+                                            print_and_log "DEFAULT" "Using user provided existing UUID: $UUID"
+                                            break
+                                        }
+                                    }
+                                    break
+                                } elseif ($USE_EXISTING_UUID -match "^[Nn].*") {
+                                    break
+                                } else {
+                                    colorprint "RED" "Please answer yes or no."
+                                }
+                            }
+                        
+                            (Get-Content .env) -replace "your${CURRENT_APP}UUID", $UUID | Set-Content .env
+                            colorprint "DEFAULT" "${CURRENT_APP} UUID setup: done"
+                            # Generaing the claim link
+                            $claimlink = "${claimURLBase}${UUID}"
+                            colorprint "BLUE" "Save the following link somewhere to claim/register your ${CURRENT_APP} node/device after completing the setup and starting the apps stack: ${claimlink}"
+                            $claimlink | Out-File -Append "claim${CURRENT_APP}NodeDevice.txt"
+                            colorprint "DEFAULT" "A new file containing this link has been created for you in the current directory"
+                        }
+                        "--cid" {
+                            toLog_ifDebug -l "[DEBUG]" -m "Starting CID setup for ${CURRENT_APP} app"
+                            colorprint "Default" "Find your CID inside your ${CURRENT_APP} dashboard/profile."
+                            colorprint "Default" "Example: For packetstream you can fetch it from your dashboard https://packetstream.io/dashboard/download?linux# then click on -> Looking for linux app -> now search for CID= in the code shown in the page, you need to enter the code after -e CID= (e.g. if in the code CID=6aTk, just enter 6aTk)"
+                            colorprint "Green" "Enter your ${CURRENT_APP} CID:"
+                            $APP_CID = Read-Host
+                            if ($APP_CID) {
+                                (Get-Content .env) -replace "your${CURRENT_APP}CID", $APP_CID | Set-Content .env
+                            }
+                            else {
+                                colorprint "Red" "CID cannot be empty. Please try again."
+                            }
+                        }
+                        "--token" {
+                            toLog_ifDebug -l "[DEBUG]" -m "Starting token setup for ${CURRENT_APP} app"
+                            colorprint "DEFAULT" "Find your token inside your ${CURRENT_APP} dashboard/profile."
+                            colorprint "DEFAULT" "Example: For traffmonetizer you can fetch it from your dashboard https://app.traffmonetizer.com/dashboard then -> Look for Your application token -> just insert it here (you can also copy and then paste it)"
+                            colorprint "GREEN" "Enter your ${CURRENT_APP} token:"
+                            $APP_TOKEN = Read-Host
+                            if ($APP_TOKEN) {
+                                (Get-Content .env) -replace "your${CURRENT_APP}Token", $APP_TOKEN | Set-Content .env
+                            }
+                            else {
+                                colorprint "RED" "Token cannot be empty. Please try again."
+                            }                                
+                        }
+                        "--customScript" {
+                            toLog_ifDebug -l "[DEBUG]" -m "Starting customScript setup for ${CURRENT_APP} app"
+                            # Read all the parameters for the customScript flag , if one of them is the case scriptname then save it in a variable
+                            if ($null -ne $flag_params_keys) {
+                                foreach ($flag_param_key in $flag_params_keys) {
+                                    toLog_ifDebug -l "[DEBUG]" -m "Reading flag parameter: $flag_param_key"
+                                    switch ($flag_param_key) {
+                                        'scriptname' {
+                                            toLog_ifDebug -l "[DEBUG]" -m "Reading flag parameter scriptname"
+                                            $flag_scriptname_param = $app_json_obj.flags.$flag_name.$flag_param_key
+                                            toLog_ifDebug -l "[DEBUG]" -m "Result of flag_scriptname_param reading: $flag_scriptname_param"
+                                        }
+                                        default {
+                                            toLog_ifDebug -l "[DEBUG]" -m "Unknown flag parameter: $flag_param_key"
+                                        }
+                                    }
+                                }
+                            }
+                            else {
+                                toLog_ifDebug -l "[DEBUG]" -m "No flag parameters found for flag: $flag_name as flag_params_keys array is empty"
+                            }
+                            
+                            $CUSTOM_SCRIPT_NAME = "${flag_scriptname_param}.ps1"
+                            $SCRIPT_PATH = Join-Path $SCRIPTS_DIR $CUSTOM_SCRIPT_NAME
+                            toLog_ifDebug -l "[DEBUG]" -m "Starting custom script execution for ${CURRENT_APP} app using $SCRIPT_NAME from $SCRIPT_PATH"
+                            if (Test-Path -Path $SCRIPT_PATH) {
+                                Set-Content $SCRIPT_PATH -Value (Get-Content $SCRIPT_PATH) -Encoding UTF8
+                                colorprint "DEFAULT" "Executing custom script: $SCRIPT_NAME"
+                                Start-Process PowerShell -Verb RunAs "-noprofile -executionpolicy bypass -command `"cd '$pwd'; & '$SCRIPT_PATH';`"" -wait
+                            }
+                            else {
+                                colorprint "RED" "Custom script '$SCRIPT_NAME' not found in the scripts directory."
+                            }
+                        }
+                        
+                        '--manual' {
+                            toLog_ifDebug -l "[DEBUG]" -m "Starting manual setup for ${CURRENT_APP} app"
+                            colorprint "YELLOW" "${CURRENT_APP} requires further manual configuration."
+                            colorprint "YELLOW" "Please after completing this automated setup follow the manual steps described on the app's website."
+                        }
+                        default { colorprint "RED" "Unknown flag: $($flags[$i])" }
                     }
                 }
-                break
-            }
-            elseif ($USE_EXISTING_UUID -eq "no" -or $USE_EXISTING_UUID -eq "n") {
-                break
+                # Complete the setup of the app by enabling it in the docker-compose file
+                (Get-Content $dk_compose_filename) -replace "#ENABLE_${CURRENT_APP}", "" | Set-Content $dk_compose_filename
+                toLog_ifDebug -l "[DEBUG]" -m "Enabled ${CURRENT_APP} in $dk_compose_filename"
+                # App Docker image architecture adjustments                
+                $TAG = 'latest'
+                        
+                # Ensure $supported_tags is an array
+                $supported_tags = @()
+                        
+                # Send a request to DockerHub for a list of tags
+                $page_index = 1
+                $page_size = 500
+                $ProgressPreference = 'SilentlyContinue'
+                $json = Invoke-WebRequest -Uri "https://registry.hub.docker.com/v2/repositories/${APP_IMAGE}/tags?page=${page_index}&page_size=${page_size}" -UseBasicParsing | ConvertFrom-Json
+                $ProgressPreference = 'Continue'
+                        
+                # Filter out the tags that do not support the specified architecture
+                $json.results | ForEach-Object {
+                    $ntag = $_.name
+                    if (($_.images | Where-Object { $_.architecture -eq $DKARCH })) {
+                        $supported_tags += $ntag
+                    }
+                }
+            
+                # Check if there are any tags that support the given architecture
+                if ($supported_tags) {
+                    colorprint "default" "There are $($supported_tags.Count) tags supporting $DKARCH arch for this image"
+                    colorprint "default" "Let's see if $TAG tag is in there"
+                    
+                    # Check if 'latest' tag is among them
+                    if ($supported_tags -contains $TAG) {
+                        colorprint "green" "OK, $TAG tag present and it supports $DKARCH arch, nothing to do"
+                    }
+                    else {
+                        colorprint "yellow" "$TAG tag does not support $DKARCH arch but other tags do, the newer tag supporting $DKARCH will be selected"
+                        # Replace 'latest' tag with the first one that supports the given architecture in your Docker compose file
+                        $newTag = $supported_tags[0]
+                    (Get-Content $dk_compose_filename).replace("${APP_IMAGE}:$TAG", "${APP_IMAGE}:$newTag") | Set-Content $DKCOM_FILENAME
+                    }
+                }
+                else {
+                    colorprint "yellow" "No native image tag found for $DKARCH arch, emulation layer will try to run this app image anyway."
+                    #colorprint "default" "If an emulation layer is not already installed, the script will try to install it now. Please provide your sudo password if prompted."
+                }
+                toLog_ifDebug -l "[DEBUG]" -m "Finished Docker image architecture adjustments for ${CURRENT_APP} app. Its image tag is now " + (Get-Content $dk_compose_filename | Select-String -Pattern "${APP_IMAGE}:" -SimpleMatch).ToString().Split(":")[1]
+                Write-Host "$app configuration complete, press enter to continue to the next app"
+                Read-Host
+                toLog_ifDebug -l "[DEBUG]" -m "Finished setupApp function for ${CURRENT_APP} app"
+
+                elseif ($yn -eq 'n' -or $yn -eq 'no') {
+                    toLog_ifDebug -l "[DEBUG]" -m "User decided to skip the ${CURRENT_APP} app setup"
+                    colorprint "DEFAULT" "Ok, ${CURRENT_APP} setup will be skipped"
+                    Start-Sleep -Seconds $SLEEP_TIME
+                    break
+                }
+                else {
+                    colorprint "Red" "Please answer yes or no."
+                }
             }
             else {
-                colorprint "RED" "Please answer yes or no."
+                toLog_ifDebug -l "[DEBUG]" -m "The ${CURRENT_APP} app is already enabled in the ${dk_compose_filename} file"
+                break
             }
-        }   
-        $UUID = $UUID.ToLower() 
-        (Get-Content .env) -replace "your${CURRENT_APP}MD5sum", $UUID | Set-Content .env
-        colorprint "DEFAULT" "${CURRENT_APP} UUID setup: done"
-        colorprint "BLUE" "Save the following link somewhere to claim your ${CURRENT_APP} node after completing the setup and starting the apps stack: https://earnapp.com/r/sdk-node-$UUID."
-        colorprint "DEFAULT" "A new file containing this link has been created for you in the current directory"
-        "https://earnapp.com/r/sdk-node-$UUID" | Out-File -FilePath 'ClaimEarnappNode.txt'
-    }
 
-    if ($cid) {
-        toLog_ifDebug -l "[DEBUG]" -m "Starting CID setup for ${CURRENT_APP} app"
-        colorprint "DEFAULT" "Find your CID, you can fetch it from your dashboard https://packetstream.io/dashboard/download?linux# then click on ->View your configuration file<-."
-        colorprint "GREEN" "Enter your ${CURRENT_APP} CID:"
-        $APP_CID = Read-Host
-        (Get-Content .env) -replace "your${CURRENT_APP}CID", $APP_CID | Set-Content .env
-    }
-
-    if ($token) {
-        toLog_ifDebug -l "[DEBUG]" -m "Starting Token setup for ${CURRENT_APP} app"
-        colorprint "DEFAULT" "Find your Token inside your ${CURRENT_APP} dashboard/profile."
-        colorprint "GREEN" "Enter your ${CURRENT_APP} Token:"
-        $APP_TOKEN = Read-Host
-        (Get-Content .env) -replace "your${CURRENT_APP}Token", $APP_TOKEN | Set-Content .env
-    }
-
-    if ($customScript) {
-        $SCRIPT_NAME = "${customScript}.ps1"
-        $SCRIPT_PATH = Join-Path -Path $script:SCRIPTS_DIR -ChildPath $SCRIPT_NAME
-        toLog_ifDebug -l "[DEBUG]" -m "Starting custom script execution for ${CURRENT_APP} app using $SCRIPT_NAME, from $SCRIPT_PATH"
-        if (Test-Path -Path $SCRIPT_PATH) {
-            Set-Content $SCRIPT_PATH -Value (Get-Content $SCRIPT_PATH) -Encoding UTF8
-            colorprint "DEFAULT" "Executing custom script: $SCRIPT_NAME"
-            Start-Process PowerShell -Verb RunAs "-noprofile -executionpolicy bypass -command `"cd '$pwd'; & '$SCRIPT_PATH';`"" -wait
         }
-        else {
-            colorprint "RED" "Custom script '$SCRIPT_NAME' not found in the scripts directory."
-        }
-    }
-    if ($manual) {
-        toLog_ifDebug -l "[DEBUG]" -m "Starting manual setup for ${CURRENT_APP} app"
-        colorprint "Yellow" "${CURRENT_APP} requires further manual configuration."
-        colorprint "Yellow" "Please after completing this automated setup follow the manual steps described on the app's website."
-    }
-    toLog_ifDebug -l "[DEBUG]" -m "Finished parsing arguments of setupApp function for ${CURRENT_APP} app"
-    # App Docker image architecture adjustments
-    $TAG = 'latest'
 
-    # Ensure $supported_tags is an array
-    $supported_tags = @()
-
-    # Send a request to DockerHub for a list of tags
-    $page_index = 1
-    $page_size = 500
-    $ProgressPreference = 'SilentlyContinue'
-    $json = Invoke-WebRequest -Uri "https://registry.hub.docker.com/v2/repositories/${APP_IMAGE}/tags?page=${page_index}&page_size=${page_size}" -UseBasicParsing | ConvertFrom-Json
-    $ProgressPreference = 'Continue'
-
-    # Filter out the tags that do not support the specified architecture
-    $json.results | ForEach-Object {
-        $ntag = $_.name
-        if (($_.images | Where-Object { $_.architecture -eq $DKARCH })) {
-            $supported_tags += $ntag
-        }
+        if ($app) { (Get-content $dk_compose_filename) -replace "#ENABLE_${CURRENT_APP}", "" | Set-Content $dk_compose_filename }
+        toLog_ifDebug -l "[DEBUG]" -m "Enabled ${CURRENT_APP} in $dk_compose_filename"
     }
-
-    # Check if there are any tags that support the given architecture
-    if ($supported_tags) {
-        colorprint "default" "There are $($supported_tags.Count) tags supporting $DKARCH arch for this image"
-        colorprint "default" "Let's see if $TAG tag is in there"
-        
-        # Check if 'latest' tag is among them
-        if ($supported_tags -contains $TAG) {
-            colorprint "green" "OK, $TAG tag present and it supports $DKARCH arch, nothing to do"
-        }
-        else {
-            colorprint "yellow" "$TAG tag does not support $DKARCH arch but other tags do, the newer tag supporting $DKARCH will be selected"
-            # Replace 'latest' tag with the first one that supports the given architecture in your Docker compose file
-            $newTag = $supported_tags[0]
-        (Get-Content $dk_compose_filename).replace("${APP_IMAGE}:$TAG", "${APP_IMAGE}:$newTag") | Set-Content $DKCOM_FILENAME
-        }
-    }
-    else {
-        colorprint "yellow" "No native image tag found for $DKARCH arch, emulation layer will try to run this app image anyway."
-        #colorprint "default" "If an emulation layer is not already installed, the script will try to install it now. Please provide your sudo password if prompted."
-    }
-    toLog_ifDebug -l "[DEBUG]" -m "Finished Docker image architecture adjustments for ${CURRENT_APP} app. Its image tag is now " + (Get-Content $dk_compose_filename | Select-String -Pattern "${APP_IMAGE}:" -SimpleMatch).ToString().Split(":")[1]
-    Write-Host "$app configuration complete, press enter to continue to the next app"
-    Read-Host
-    toLog_ifDebug -l "[DEBUG]" -m "Finished setupApp function for ${CURRENT_APP} app"
 }
-
 <#
 .SYNOPSIS
 Function that will setup the proxy for the apps in the stack
@@ -878,7 +1001,7 @@ function fn_setupProxy() {
                 (Get-Content .\.env).replace("# STACK_PROXY=", "STACK_PROXY=") | Set-Content .\.env # if it was already uncommented it does nothing
                 $CURRENT_VALUE = $(Get-Content .\.env | Select-String -Pattern "STACK_PROXY=" -SimpleMatch).ToString().Split("=")[1]
                 (Get-Content .\.env).replace("STACK_PROXY=${CURRENT_VALUE}", "STACK_PROXY=$($script:NEW_STACK_PROXY)") | Set-Content .\.env
-                (Get-Content "$script:DKCOM_FILENAME").replace("#ENABLE_PROXY", "") | Set-Content "$script:DKCOM_FILENAME"
+                (Get-Content "$script:DKCOM_FILENAME" -Raw) -replace '(?<=^|[\r\n])#ENABLE_PROXY(?![a-zA-Z0-9])', '' | Set-Content "$script:DKCOM_FILENAME"
                 (Get-Content "$script:DKCOM_FILENAME").replace("# network_mode", "network_mode") | Set-Content "$script:DKCOM_FILENAME"
                 $script:PROXY_CONF = $true
                 (Get-Content .\.env).replace("PROXY_CONFIGURATION_STATUS=0", "PROXY_CONFIGURATION_STATUS=1") | Set-Content .\.env
@@ -900,6 +1023,7 @@ function fn_setupProxy() {
 }
 
 
+
 <#
 .SYNOPSIS
 Function that will setup the .env file and the docker compose file
@@ -915,9 +1039,9 @@ This function has been tested until v 2.0.0. The new version has not been tested
 #>
 function fn_setupEnv() {
     param(
-        [string]$app_type
+        [string]$app_type # Accept the type of apps as an argument
     )
-    print_and_log "Yellow" "Starting setupEnv function for $app_type"
+    print_and_log "BLUE" "Starting setupEnv function for $app_type"
     # Check if .env file is already configured if 1 then it is already configured, if 0 then it is not configured
     $ENV_CONFIGURATION_STATUS = (Get-Content .\.env | Select-String -Pattern "ENV_CONFIGURATION_STATUS=" -SimpleMatch).ToString().Split("=")[1]
     toLog_ifDebug -l "[DEBUG]" -m "Current ENV_CONFIGURATION_STATUS: $ENV_CONFIGURATION_STATUS"
@@ -925,36 +1049,51 @@ function fn_setupEnv() {
     toLog_ifDebug -l "[DEBUG]" -m "Current PROXY_CONFIGURATION_STATUS: $PROXY_CONFIGURATION_STATUS"
     $NOTIFICATIONS_CONFIGURATION_STATUS = (Get-Content .\.env | Select-String -Pattern "NOTIFICATIONS_CONFIGURATION_STATUS=" -SimpleMatch).ToString().Split("=")[1]
     toLog_ifDebug -l "[DEBUG]" -m "Current NOTIFICATIONS_CONFIGURATION_STATUS: $NOTIFICATIONS_CONFIGURATION_STATUS"
+
+    if (($ENV_CONFIGURATION_STATUS -eq "1") -and ($app_type -eq "apps")) {
+        while ($true) {
+            colorprint "YELLOW" "The current .env file appears to have already been configured. Do you wish to reset it? (Y/N)"
+            $yn = Read-Host
+
+            if ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') {
+                print_and_log "DEFAULT" "Downloading a fresh .env file."
+                $ProgressPreference = 'SilentlyContinue'
+                Invoke-WebRequest -Uri $script:ENV_SRC -OutFile ".env"
+                Invoke-WebRequest -Uri $script:DKCOM_SRC -OutFile "$($script:DKCOM_FILENAME)"
+                $ProgressPreference = 'Continue'
+                Clear-Host
+                break
+            }
+            elseif ($yn.ToLower() -eq 'n' -or $yn.ToLower() -eq 'no') {
+                print_and_log "BLUE" "Keeping the existing .env file."
+                Start-Sleep -Seconds $SLEEP_TIME
+                Clear-Host
+                break
+            }
+            else {
+                colorprint "RED" "Invalid input. Please answer yes or no."
+                continue
+            }
+        }
+    }
+    elseif (($ENV_CONFIGURATION_STATUS -eq "1") -and ($app_type -ne "apps")) {
+        print_and_log "Blue" "Proceeding with $app_type setup without resetting .env file as it should already be configured by the main apps setup."
+        Read-Host -Prompt "Press enter to continue"
+    }
+
     while ($true) {
         colorprint "YELLOW" "Do you wish to proceed with the .env file guided setup Y/N? (This will also adapt the $($script:DKCOM_FILENAME) file accordingly)"
         $yn = Read-Host
+
         if ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') {
             Clear-Host
             toLog_ifDebug -l "[DEBUG]" -m "User chose to proceed with the .env file guided setup for $app_type"
-
-            if (($ENV_CONFIGURATION_STATUS -eq 1) -and ($app_type -eq "apps")) {
-                colorprint "DEFAULT" "The current .env file appears to have already been configured. Do you wish to reset it? (Y/N)"
-                $yn = Read-Host
-                if ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') {
-                    colorprint "DEFAULT" "Resetting .env file..."
-                    $ProgressPreference = 'SilentlyContinue'
-                    Invoke-WebRequest -Uri $script:ENV_SRC -OutFile ".env"
-                    Invoke-WebRequest -Uri $script:DKCOM_SRC -OutFile "$($script:DKCOM_FILENAME)"
-                    $ProgressPreference = 'Continue'
-                    Clear-Host
-                }
-                else {
-                    colorprint "Blue" "Keeping the existing .env file"
-                    Read-Host -p "Press enter to continue"
-                }
-            }
-            elseif (($ENV_CONFIGURATION_STATUS -eq 1) -and ($app_type -ne "apps")) {
-                print_and_log "Blue" "Proceeding with $app_type setup whitout resetting the .env file as it should already be configured by te main apps setup"
-                Read-Host -p "Press enter to continue"
-            }
             colorprint "YELLOW" "beginning env file guided setup"
-            $script:CURRENT_APP = ''
-            if (Get-Content .\.env | Select-String "DEVICE_NAME=${DEVICE_NAME_PLACEHOLDER}") {
+            # Update the ENV_CONFIGURATION_STATUS
+            (Get-Content .\.env).replace("ENV_CONFIGURATION_STATUS=0", "ENV_CONFIGURATION_STATUS=1") | Set-Content .\.env
+            # Device Name setup
+            $currentDeviceNameInEnv = (Get-Content .\.env | Select-String -Pattern "DEVICE_NAME=" -SimpleMatch).ToString().Split("=")[1].Trim()
+            if ($currentDeviceNameInEnv -eq $DEVICE_NAME_PLACEHOLDER) {
                 toLog_ifDebug -l "[DEBUG]" -m "Device name is still the default one, asking user to change it"
                 colorprint "YELLOW" "PLEASE ENTER A NAME FOR YOUR DEVICE:"
                 $script:DEVICE_NAME = Read-Host
@@ -962,8 +1101,9 @@ function fn_setupEnv() {
             }
             else {
                 toLog_ifDebug -l "[DEBUG]" -m "Device name is already set, skipping user input"
-                $script:DEVICE_NAME = (Get-Content .\.env | Select-String -Pattern "DEVICE_NAME=" -SimpleMatch).ToString().Split("=")[1]
+                $script:DEVICE_NAME = "$currentDeviceNameInEnv"
             }
+            # Proxy setup
             Clear-Host
             if ($PROXY_CONFIGURATION_STATUS -eq 1) {
                 $script:CURRENT_PROXY = (Get-Content .\.env | Select-String -Pattern "STACK_PROXY=" -SimpleMatch).ToString().Split("=")[1]
@@ -980,11 +1120,11 @@ function fn_setupEnv() {
                     elseif ($yn.ToLower() -eq 'n' -or $yn.ToLower() -eq 'no') {
                         toLog_ifDebug -l "[DEBUG]" -m "User chose not to change the proxy that was already configured"
                         colorprint "BLUE" "Keeping the existing proxy."
-                        Read-Host -p "Press enter to continue"
+                        Start-Sleep -Seconds $SLEEP_TIME
                         break
                     }
                     else {
-                        colorprint "RED" "Please answer yes or no."
+                        colorprint "RED" "Invalid input. Please answer yes or no."
                     }
                 }
             }
@@ -992,52 +1132,19 @@ function fn_setupEnv() {
                 toLog_ifDebug -l "[DEBUG]" -m "Asking user if they want to setup a proxy as it is not already configured"
                 fn_setupProxy
             }
+            # Apps setup
             Clear-Host
             toLog_ifDebug -l "[DEBUG]" -m "Loading $app_type from ${CONFIG_JSON_FILE}"
             $apps = Get-Content "$script:CONFIG_DIR/${CONFIG_JSON_FILE}" | ConvertFrom-Json | Select-Object -ExpandProperty $app_type
             toLog_ifDebug -l "[DEBUG]" -m "$app_type loaded from ${CONFIG_JSON_FILE}"
             foreach ($app in $apps) {
                 Clear-Host
-                colorprint "YELLOW" "PLEASE REGISTER ON THE PLATFORMS USING THE FOLLOWING LINKS, YOU'LL NEED TO ENTER SOME DATA BELOW:"
-                colorprint "GREEN" "Use CTRL+Click to open links or copy them:"
-                $name = $app.name
-                $link = $app.link
-                $image = $app.image
-                $flags = $app.flags
-                $script:CURRENT_APP = $name.ToUpper()
-                while ($true) {
-                    # check if the ${CURRENT_APP} is already enabled in the $DKCOM_FILENAME file and if it is not (if there is a #ENABLE_$CURRENTAPP) then ask the user if they want to enable it
-                    if ((Get-Content $script:DKCOM_FILENAME | Select-String -Pattern "#ENABLE_${CURRENT_APP}", -SimpleMatch)) {
-                        colorprint "YELLOW" "Do you wish to enable and use $($script:CURRENT_APP)? (Y/N)"
-                        $yn = Read-Host
-                        try {
-                            colorprint "CYAN" "Go to ${name} ${link} and register"
-                            Read-Host -p "When done, press enter to continue"
-                            # Pass the flags string to the function
-                            fn_setupApp "$($script:CURRENT_APP)" "$image" $flags
-                            Clear-Host
-                            break
-                        }
-                        catch {
-                            colorprint "RED" "An error occurred while setting up $($script:CURRENT_APP). Please try again."
-                            Read-Host -p "Press enter to continue to the next app"
-                            break
-                        }
-                        elseif ($yn.ToLower() -eq 'n' -or $yn.ToLower() -eq 'no') {
-                            colorprint "BLUE" "$($script:CURRENT_APP) setup will be skipped."
-                            Read-Host -p "Press enter to continue to the next app"
-                            break
-                        }
-                        else {
-                            colorprint "RED" "Please answer yes or no."
-                        }
-                    }
-                    else {
-                        print_and_log "Blue" "${CURRENT_APP} is already enabled."
-                        Start-Sleep -Seconds $SLEEP_TIME
-                        break
-                    }
-                }
+                toLog_ifDebug -l "[DEBUG]" -m "Starting setupApp function for $($app.name) app"
+                toLog_ifDebug "[DEBUG]" "Current app json object: $app"
+                $app_as_json = $app | ConvertTo-Json -Compress
+                toLog_ifDebug "[DEBUG]" "Current app json object as json: $app_as_json"
+                fn_setupApp $app_as_json $script:DKCOM_FILENAME
+                clear-Host
             }
 
             # Notifications setup
@@ -1267,8 +1374,8 @@ Just call fn_checkDependencies
 This is a new function that has not been tested yet and currently is not really used in the script 
 #>
 function fn_checkDependencies() {
-    colorprint "GREEN" "MONEY4BAND AUTOMATIC GUIDED SETUP"
-    colorprint "GREEN" "--------------------------------- "
+    colorprint "GREEN" "MONEY4BAND AUTOMATIC GUIDED SETUP v$script:SCRIPT_VERSION"
+    colorprint "GREEN" "------------------------------------------ "
     colorprint "YELLOW" "Checking dependencies..."
     # this need to be changed to dinamically read depenedncies for any platform and select and install all the dependencies for the current platform
     # Check if dependencies are installed
@@ -1296,37 +1403,51 @@ Just call mainmenu
 This function has been tested until v 2.0.0. The new version has not been tested as its assume that the logic is the same as the previous one just more refined.
 #>
 function mainmenu {
-    Clear-Host       
-    $options = @("Show supported apps' links", "Install Docker", "Setup .env file", "Start apps stack", "Stop apps stack", "Reset .env File", "Reset $($script:DKCOM_FILENAME) file", "Quit")
+    Clear-Host
+    colorprint "GREEN" "MONEY4BAND AUTOMATIC GUIDED SETUP v$script:SCRIPT_VERSION"
+    colorprint "GREEN" "------------------------------------------ "
+    colorprint "DEFAULT" "Detected OS type: $($script:OS_TYPE)"
+    colorprint "DEFAULT" "Detected architecture: $($script:ARCH)"
+    colorprint "DEFAULT" "Docker $($script:DKARCH) image architecture will be used if the app's image permits it"
+    colorprint "DEFAULT" "------------------------------------------ "
     
-    Do {
-        Clear-Host
-        colorprint "GREEN" "MONEY4BAND AUTOMATIC GUIDED SETUP v$script:SCRIPT_VERSION"
-        colorprint "GREEN" "------------------------------------------ "
-        colorprint "DEFAULT" "Detected OS type: $($script:OS_TYPE)"
-        colorprint "DEFAULT" "Detected architecture: $($script:ARCH)"
-        colorprint "DEFAULT" "Docker $($script:DKARCH) image architecture will be used if the app's image permits it"
-        colorprint "DEFAULT" "------------------------------------------ "
-        for ($i = 0; $i -lt $options.Length; $i++) {
-            Write-Output "$($i + 1)) $($options[$i])"
-        }
+    toLog_ifDebug -l "[DEBUG]" -m "Loading menu options"
+    # Reset the menuItems array
+    $menuItems = @()
+    # Load the menu items from the JSON file
+    $menuItems = Get-Content "$script:CONFIG_DIR\$script:MAINMENU_JSON_FILE" | ConvertFrom-Json
+    toLog_ifDebug -l "[DEBUG]" -m "Menu options loaded. Showing menu options, ready to select"
 
-        $Select = Read-Host "Select an option and press Enter"
-
-        Switch ($Select) {
-            1 { Clear-Host; fn_showLinks }
-            2 { Clear-Host; fn_dockerInstall }
-            3 { Clear-Host; fn_setupEnv }
-            4 { Clear-Host; fn_startStack }
-            5 { Clear-Host; fn_stopStack }
-            6 { Clear-Host; fn_resetEnv }
-            7 { Clear-Host; fn_resetDockerCompose }
-            $options.Length { fn_bye; break }
-            DEFAULT { Clear-Host; fn_unknown; }
-        }
+    for ($i = 0; $i -lt $menuItems.Length; $i++) {
+        colorprint "DEFAULT" "$($i + 1)) $($menuItems[$i].label)"
     }
-    While ($Select -ne $options.Length)
+
+    $Select = Read-Host "Select an option and press Enter"
+    do {
+        if (([int]$Select -gt 0) -and ([int]$Select -le $menuItems.Length)) {
+            Clear-Host
+            toLog_ifDebug -l "[DEBUG]" -m "User selected option number $Select that corresponds to menu item [$($menuItems[$Select - 1].label)]"
+            # Fetch the function name associated with the chosen menu item
+            $functionName = $menuItems | Where-Object { $_.label -eq $menuItems[$Select - 1].label } | Select-Object -ExpandProperty function
+
+            if ($functionName) {
+                # Invoke the function
+                & $functionName
+            }
+            else{
+                colorprint "RED" "Error: Unable to find the function associated with the selected option."
+                toLog_ifDebug -l "[DEBUG]" -m "Error in JSON: Missing function for menu item $($menuItems[$Select - 1].label)"
+            }
+            break
+        }
+        else {
+            colorprint "RED" "Invalid input. Please select a number between 1 and $($menuItems.Length)"
+            Start-Sleep -Seconds "$SLEEP_TIME"
+            break
+        }
+    } while ($true)
 }
+
 
 ### Startup ##
 toLog_ifDebug -l "[DEBUG]" -m "Starting $script:SCRIPT_NAME v$script:SCRIPT_VERSION"
@@ -1342,4 +1463,6 @@ detect_architecture
 fn_checkDependencies
 
 # Start the main menu
-mainmenu
+do {
+    mainmenu
+} while ($true)
