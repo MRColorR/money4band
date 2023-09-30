@@ -552,7 +552,7 @@ function fn_setupNotifications {
             colorprint "Purple" "Create a new Discord server, go to server settings > integrations, and create a webhook."
             colorprint "Purple" "Your Discord Webhook-URL will look like this: https://discordapp.com/api/webhooks/YourWebhookid/YourToken."
             colorprint "Purple" "To obtain the SHOUTRRR_URL, rearrange it to look like this: discord://YourToken@YourWebhookid."
-            Read-Host -Prompt "Press enter to proceed."
+            Read-Host -Prompt "Press enter to proceed with the setup"
             Clear-Host
             while ($true) {
                 colorprint "Yellow" "NOW INSERT BELOW THE LINK FOR NOTIFICATIONS using THE SAME FORMAT WRITTEN ABOVE e.g.: discord://yourToken@yourWebhookid"
@@ -568,7 +568,7 @@ function fn_setupNotifications {
                     (Get-Content .\.env).replace("NOTIFICATIONS_CONFIGURATION_STATUS=0", "NOTIFICATIONS_CONFIGURATION_STATUS=1") | Set-Content .\.env
                     colorprint "DEFAULT" "Notifications setup complete. If the link is correct, you will receive a notification for each update made on the app container images."
                     Read-Host -p "Press enter to continue"
-                    break
+                    break 
                 }
                 else {
                     colorprint "Red" "Invalid link format. Please make sure to use the correct format."
@@ -580,6 +580,9 @@ function fn_setupNotifications {
                             break
                         }
                         elseif ($yn -eq 'n' -or $yn -eq 'no') {
+                            toLog_ifDebug -l "[DEBUG]" -m "User choose to not retry the notifications setup. Notifications wsetup will now return"
+                            colorprint "Blue" "Noted: all updates will be applied automatically and silently"
+                            Start-Sleep -Seconds $SLEEP_TIME
                             return
                         }
                         else {
@@ -588,9 +591,10 @@ function fn_setupNotifications {
                     }
                 }
             }
+            break
         }
         elseif ($yn -eq 'n' -or $yn -eq 'no') {
-            toLog_ifDebug -l "[DEBUG]" -m "User chose to skip notifications setup"
+            toLog_ifDebug -l "[DEBUG]" -m "User choose to skip notifications setup"
             colorprint "Blue" "Noted: all updates will be applied automatically and silently"
             Start-Sleep -Seconds $SLEEP_TIME
             break
@@ -628,10 +632,10 @@ This function has been tested until v 2.0.0. The new version has not been tested
 #>
 function fn_setupApp() {
     param(
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [string]$app_json,
 
-        [Parameter(Mandatory=$false)]
+        [Parameter(Mandatory = $false)]
         [string]$dk_compose_filename = "docker-compose.yaml"
     )
     toLog_ifDebug -l "[DEBUG]" -m "SetupApp function started"
@@ -799,26 +803,31 @@ function fn_setupApp() {
                             
                                             if ($TRY_AGAIN -match "^[Nn].*") {
                                                 break
-                                            } elseif ($TRY_AGAIN -match "^[Yy].*") {
+                                            }
+                                            elseif ($TRY_AGAIN -match "^[Yy].*") {
                                                 continue
-                                            } else {
+                                            }
+                                            else {
                                                 colorprint "RED" "Please answer yes or no."
                                             }
-                                        } else {
+                                        }
+                                        else {
                                             $UUID = $EXISTING_UUID
                                             print_and_log "DEFAULT" "Using user provided existing UUID: $UUID"
                                             break
                                         }
                                     }
                                     break
-                                } elseif ($USE_EXISTING_UUID -match "^[Nn].*") {
+                                }
+                                elseif ($USE_EXISTING_UUID -match "^[Nn].*") {
                                     break
-                                } else {
+                                }
+                                else {
                                     colorprint "RED" "Please answer yes or no."
                                 }
                             }
                         
-                            (Get-Content .env) -replace "your${CURRENT_APP}UUID", $UUID | Set-Content .env
+                            (Get-Content .env) -replace "your${CURRENT_APP}DeviceUUID", $UUID | Set-Content .env
                             colorprint "DEFAULT" "${CURRENT_APP} UUID setup: done"
                             # Generaing the claim link
                             $claimlink = "${claimURLBase}${UUID}"
@@ -894,6 +903,7 @@ function fn_setupApp() {
                         }
                         default { colorprint "RED" "Unknown flag: $($flags[$i])" }
                     }
+
                 }
                 # Complete the setup of the app by enabling it in the docker-compose file
                 (Get-Content $dk_compose_filename) -replace "#ENABLE_${CURRENT_APP}", "" | Set-Content $dk_compose_filename
@@ -944,26 +954,24 @@ function fn_setupApp() {
                 Write-Host "${CURRENT_APP} configuration complete, press enter to continue to the next app"
                 Read-Host
                 toLog_ifDebug -l "[DEBUG]" -m "Finished setupApp function for ${CURRENT_APP} app"
+                break
 
-                elseif ($yn -eq 'n' -or $yn -eq 'no') {
-                    toLog_ifDebug -l "[DEBUG]" -m "User decided to skip the ${CURRENT_APP} app setup"
-                    colorprint "DEFAULT" "Ok, ${CURRENT_APP} setup will be skipped"
-                    Start-Sleep -Seconds $SLEEP_TIME
-                    break
-                }
-                else {
-                    colorprint "Red" "Please answer yes or no."
-                }
             }
-            else {
-                toLog_ifDebug -l "[DEBUG]" -m "The ${CURRENT_APP} app is already enabled in the ${dk_compose_filename} file"
+            elseif ($yn -eq 'n' -or $yn -eq 'no') {
+                toLog_ifDebug -l "[DEBUG]" -m "User decided to skip the ${CURRENT_APP} app setup"
+                colorprint "Blue" "Ok, ${CURRENT_APP} setup will be skipped"
+                Start-Sleep -Seconds $SLEEP_TIME
                 break
             }
-
+            else {
+                colorprint "Red" "Please answer yes or no."
+            }
         }
-
-        if ($app) { (Get-content $dk_compose_filename) -replace "#ENABLE_${CURRENT_APP}", "" | Set-Content $dk_compose_filename }
-        toLog_ifDebug -l "[DEBUG]" -m "Enabled ${CURRENT_APP} in $dk_compose_filename"
+        else {
+            print_and_log "BLUE" "The ${CURRENT_APP} app is already enabled in the ${dk_compose_filename} file"
+            Start-Sleep -Seconds $SLEEP_TIME
+            break
+        }       
     }
 }
 <#
@@ -1434,7 +1442,7 @@ function mainmenu {
                 # Invoke the function
                 & $functionName
             }
-            else{
+            else {
                 colorprint "RED" "Error: Unable to find the function associated with the selected option."
                 toLog_ifDebug -l "[DEBUG]" -m "Error in JSON: Missing function for menu item $($menuItems[$Select - 1].label)"
             }

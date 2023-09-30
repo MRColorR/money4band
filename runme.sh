@@ -512,7 +512,7 @@ fn_setupNotifications() {
                 colorprint "PURPLE" "Create a new Discord server, go to server settings > integrations, and create a webhook."
                 colorprint "PURPLE" "Your Discord Webhook-URL will look like this: https://discordapp.com/api/webhooks/YourWebhookid/YourToken."
                 colorprint "PURPLE" "To obtain the SHOUTRRR_URL, rearrange it to look like this: discord://YourToken@YourWebhookid."
-                read -r -p "Press enter to proceed."
+                read -r -p "Press enter to proceed with the setup"
                 clear
                 while true; do
                     colorprint "YELLOW" "NOW INSERT BELOW THE LINK FOR NOTIFICATIONS using THE SAME FORMAT WRITTEN ABOVE e.g.: discord://yourToken@yourWebhookid"
@@ -536,7 +536,12 @@ fn_setupNotifications() {
                             read -r yn
                             case $yn in
                                 [Yy]* ) break;;
-                                [Nn]* ) return;;
+                                [Nn]* ) 
+                                    toLog_ifDebug -l "[DEBUG]" -m "User choose to not retry the notifications setup. Notifications wsetup will now return"
+                                    colorprint "BLUE" "Noted: all updates will be applied automatically and silently";
+                                    sleep "$SLEEP_TIME"
+                                    return;;
+
                                 * ) colorprint "RED" "Please answer yes or no.";;
                             esac
                         done
@@ -544,7 +549,7 @@ fn_setupNotifications() {
                 done
                 break;;
             [Nn]* )
-                toLog_ifDebug -l "[DEBUG]" -m "User chose to skip notifications setup"
+                toLog_ifDebug -l "[DEBUG]" -m "User choose to skip notifications setup"
                 colorprint "BLUE" "Noted: all updates will be applied automatically and silently";
                 sleep "$SLEEP_TIME"
                 break;;
