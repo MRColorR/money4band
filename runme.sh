@@ -889,7 +889,7 @@ fn_setupApp() {
                     ;;
             esac
         else
-            print_and_log "BLUE" "${CURRENT_APP} is already enabled."
+            print_and_log "BLUE" "${CURRENT_APP} is already enabled in the ${dk_compose_filename} file"
             sleep ${SLEEP_TIME}
             break
         fi
