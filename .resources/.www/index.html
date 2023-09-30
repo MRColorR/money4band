@@ -131,37 +131,5 @@ This Docker Stack should work on anything that may have docker installed.<br>
         <svg class="u-svg-content" enable-background="new 0 0 551.13 551.13" viewBox="0 0 551.13 551.13" xmlns="http://www.w3.org/2000/svg" id="svg-1d98"><path d="m275.565 189.451 223.897 223.897h51.668l-275.565-275.565-275.565 275.565h51.668z"></path></svg>
     </span>
     <!-- Insert the script here -->
-    <script>
-      window.onload = () => {
-        fetch('.configs/config.json')
-          .then(response => response.json())
-          .then(config => {
-            const tableBody = document.querySelector('.u-table-body');
-  
-            config.apps.forEach((app, index) => {
-              const tr = document.createElement('tr');
-              tr.style.height = '52px';
-  
-              const tdName = document.createElement('td');
-              tdName.className = 'u-border-2 u-border-grey-10 u-border-no-left u-border-no-right u-table-cell';
-              tdName.textContent = app.name;
-  
-              const tdDashboard = document.createElement('td');
-              tdDashboard.className = 'u-border-2 u-border-grey-10 u-border-no-left u-border-no-right u-table-cell';
-              tdDashboard.innerHTML = `<a class="u-active-none u-border-none u-btn u-button-link u-button-style u-hover-none u-none u-text-palette-1-base u-btn-${index+1}" href="${app.dashboard}" target="_blank" rel="nofollow">Dashboard</a>`;
-  
-              const tdInvite = document.createElement('td');
-              tdInvite.className = 'u-border-2 u-border-grey-10 u-border-no-left u-border-no-right u-table-cell';
-              tdInvite.innerHTML = `<a class="u-active-none u-border-none u-btn u-button-link u-button-style u-hover-none u-none u-text-palette-1-base u-btn-${index+2}" href="${app.link}" target="_blank">Invite friends</a>`;
-  
-              tr.appendChild(tdName);
-              tr.appendChild(tdDashboard);
-              tr.appendChild(tdInvite);
-  
-              tableBody.appendChild(tr);
-            });
-          })
-          .catch(error => console.error('Error:', error));
-      };
-    </script>
+    <script src="./.scripts/loadApps.js"></script>
 </body></html>
