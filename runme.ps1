@@ -1444,7 +1444,7 @@ function mainmenu {
             }
             else {
                 colorprint "RED" "Error: Unable to find the function associated with the selected option."
-                toLog_ifDebug -l "[DEBUG]" -m "Error in JSON: Missing function for menu item $($menuItems[$Select - 1].label)"
+                toLog_ifDebug -l "[DEBUG]" -m "Error in JSON: Missing function for menu item [$($menuItems[$Select - 1].label)]"
             }
             break
         }

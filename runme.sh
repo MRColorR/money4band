@@ -1240,7 +1240,7 @@ mainmenu() {
     do
         if [[ -n $option ]]; then
             clear
-            toLog_ifDebug -l "[DEBUG]" -m "User selected option number $REPLY that corresponds to menu item $menu_item[$option]"
+            toLog_ifDebug -l "[DEBUG]" -m "User selected option number $REPLY that corresponds to menu item [${menuItems[$REPLY-1]}]"
             # Fetch the function name associated with the chosen menu item
             functionName=$(jq -r --arg chosen "$option" '.[] | select(.label == $chosen).function? // empty' "$CONFIG_DIR/$MAINMENU_JSON_FILE")
             if [[ -n $functionName ]]; then
@@ -1248,7 +1248,7 @@ mainmenu() {
                 $functionName
             else
                 colorprint "RED" "Error: Unable to find the function associated with the selected option."
-                toLog_ifDebug -l "[DEBUG]" -m "Error in JSON: Missing function for menu item $menu_item[$option]"
+                toLog_ifDebug -l "[DEBUG]" -m "Error in JSON: Missing function for menu item [${menuItems[$REPLY-1]}]"
             fi
             break
         else
