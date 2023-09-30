@@ -777,7 +777,7 @@ function fn_setupApp() {
                             while ($UUID.Length -lt $DESIRED_LENGTH) {
                                 # Regenerate the salt for each iteration
                                 $SALT = "${DEVICE_NAME}${Get-Random}${UUID}" # Incorporate the previously generated UUID part for added randomness
-                                $UUID_PART = [System.BitConverter]::ToString([System.Security.Cryptography.MD5]::Create().ComputeHash([System.Text.Encoding]::UTF8.GetBytes($SALT))).Replace("-", "").Substring(0, 32)
+                                $UUID_PART = [System.BitConverter]::ToString([System.Security.Cryptography.MD5]::Create().ComputeHash([System.Text.Encoding]::UTF8.GetBytes($SALT))).Replace("-", "").Substring(0, 32).ToLower()
                                 $UUID += $UUID_PART
                             }
                             # Cut or trail the generated UUID based on the desired length
