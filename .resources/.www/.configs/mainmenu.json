@@ -1,0 +1,11 @@
+[
+    {"label": "Show supported apps' links", "function": "fn_showLinks"},
+    {"label": "Install Docker", "function": "fn_dockerInstall"},
+    {"label": "Setup Apps", "function": "fn_setupApps"},
+    {"label": "Setup Extra Apps", "function": "fn_setupExtraApps"},
+    {"label": "Start apps stack", "function": "fn_startStack"},
+    {"label": "Stop apps stack", "function": "fn_stopStack"},
+    {"label": "Reset .env File", "function": "fn_resetEnv"},
+    {"label": "Reset docker-compose.yaml file", "function": "fn_resetDockerCompose"},
+    {"label": "Quit", "function": "fn_bye"}
+]
