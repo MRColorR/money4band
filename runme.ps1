@@ -1021,6 +1021,7 @@ function fn_setupProxy() {
             }
             elseif ($yn.ToLower() -eq 'n' -or $yn.ToLower() -eq 'no') {
                 toLog_ifDebug -l "[DEBUG]" -m "User chose not to setup a proxy"
+                colorprint "BLUE" "Ok, no proxy will be used for the apps in this stack"
                 Start-Sleep -Seconds $SLEEP_TIME
                 break
             }

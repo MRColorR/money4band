@@ -936,7 +936,7 @@ fn_setupProxy() {
                     ;;
                 [Nn]* )
                     toLog_ifDebug -l "[DEBUG]" -m "User chose not to setup a proxy"
-                    colorprint "BLUE" "Ok, no proxy added to configuration."
+                    colorprint "BLUE" "Ok, no proxy will be used for the apps in this stack"
                     sleep ${SLEEP_TIME}
                     break
                     ;;
@@ -1100,7 +1100,7 @@ fn_startStack(){
             [Yy]* ) 
                 if sudo docker compose up -d; then
                     print_and_log "GREEN" "All Apps started."
-                    print_and_log "GREEN" "You can visit the web dashboard on ${DASHBOARD_URL}"
+                    print_and_log "CYAN" "You can visit the web dashboard on ${DASHBOARD_URL}"
                     echo "${DASHBOARD_URL}" > "dashboardURL.txt"
                     colorprint "YELLOW" "If not already done, use the previously generated apps nodes URLs to add your device in any apps dashboard that require node claiming/registration (e.g. Earnapp, ProxyRack, etc.)"
                 else
