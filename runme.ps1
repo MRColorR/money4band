@@ -3,8 +3,8 @@ set-executionpolicy -scope CurrentUser -executionPolicy Bypass -Force
 
 ### Variables and constants ###
 ## Script variables ##
-# Script version #
-$SCRIPT_VERSION = "2.3.1" # used for checking updates
+# Script version getting it from .env file#
+$SCRIPT_VERSION = (Get-Content .\.env | Select-String -Pattern "PROJECT_VERSION=" -SimpleMatch).ToString().Split("=")[1]
 
 # Script name #
 $SCRIPT_NAME = $MyInvocation.MyCommand.Name # save the script name in a variable, not the full path
@@ -45,8 +45,9 @@ $DKINST_WIN_SRC = 'https://github.com/MRColorR/money4band/raw/main/.resources/.s
 $DKINST_MAC_SRC = 'https://github.com/MRColorR/money4band/raw/main/.resources/.scripts/install-docker-mac.ps1'
 
 ## Dashboard related constants and variables ##
-# Dashboard URL #
-$script:DASHBOARD_URL = 'http://localhost:8081/'
+# Dashboard URL and PORT # get it form the .env file
+$script:DASHBOARD_PORT = (Get-Content .\.env | Select-String -Pattern "DASHBOARD_PORT=" -SimpleMatch).ToString().Split("=")[1]
+$script:DASHBOARD_URL = "http://localhost:$DASHBOARD_PORT"
 
 ### Resources, Scripts and Files folders ###
 $script:RESOURCES_DIR = "$PWD\.resources"
@@ -1226,7 +1227,10 @@ function fn_startStack() {
         $yn = Read-Host "Do you wish to proceed Y/N?"
         if ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') {
             if (docker compose up -d) {
-                colorprint "GREEN" "All Apps started. You can visit the web dashboard on ${DASHBOARD_URL}. If not already done, use the previously generated earnapp node URL to add your device in your earnapp dashboard. Check the README file for more details."
+                print_and_log "Green" "All Apps started"
+                print_and_log "Cyan" "You can visit the web dashboard on ${DASHBOARD_URL}" 
+                $DASHBOARD_URL | Out-File -Append "dashboardURL.txt"
+                colorprint "Yellow" "If not already done, use the previously generated apps nodes URLs to add your device in any apps dashboard that require node claiming/registration (e.g. Earnapp, ProxyRack, etc.)"
             }
             else {
                 colorprint "RED" "Error starting Docker stack. Please check the configuration and try again."

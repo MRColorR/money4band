@@ -2,8 +2,8 @@
 
 ### Variables and constants ###
 ## Script variables ##
-# Script version #
-readonly SCRIPT_VERSION="2.3.1" # used for checking updates
+# Script version getting it from .env file #
+readonly SCRIPT_VERSION=$(grep -oP 'PROJECT_VERSION=\K[^#\r]+' .env) 
 
 # Script name #
 readonly SCRIPT_NAME=$(basename "$0") # save the script name in a variable not the full path
@@ -39,8 +39,9 @@ readonly DKCOM_FILENAME="docker-compose.yaml"
 readonly DKCOM_SRC="https://github.com/MRColorR/money4band/raw/main/$DKCOM_FILENAME"
 
 ## Dashboard related constants and variables ##
-# Dashboard URL #
-readonly DASHBOARD_URL="http://localhost:8081/"
+# Dashboard URL and PORT # get it form the .env file
+readonly DASHBOARD_PORT=$(grep -oP 'DASHBOARD_PORT=\K[^#\r]+' .env)
+readonly DASHBOARD_URL="http://localhost:$DASHBOARD_PORT"
 
 ### Resources, Scripts and Files folders ###
 readonly RESOURCES_DIR="$PWD/.resources"
@@ -1099,7 +1100,9 @@ fn_startStack(){
             [Yy]* ) 
                 if sudo docker compose up -d; then
                     print_and_log "GREEN" "All Apps started."
-                    colorprint "GREEN" "You can visit the web dashboard on ${DASHBOARD_URL}. If not already done, use the previously generated earnapp node URL to add your device in your earnapp dashboard. Check the README file for more details."
+                    print_and_log "GREEN" "You can visit the web dashboard on ${DASHBOARD_URL}"
+                    echo "${DASHBOARD_URL}" > "dashboardURL.txt"
+                    colorprint "YELLOW" "If not already done, use the previously generated apps nodes URLs to add your device in any apps dashboard that require node claiming/registration (e.g. Earnapp, ProxyRack, etc.)"
                 else
                     errorprint_and_log "Error starting Docker stack. Please check the configuration and try again."
                 fi
