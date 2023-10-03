@@ -899,10 +899,35 @@ function fn_setupApp() {
                         
                         '--manual' {
                             toLog_ifDebug -l "[DEBUG]" -m "Starting manual setup for ${CURRENT_APP} app"
-                            colorprint "YELLOW" "${CURRENT_APP} requires further manual configuration."
-                            colorprint "YELLOW" "Please after completing this automated setup follow the manual steps described on the app's website."
+                            colorprint "Blue" "${CURRENT_APP} requires further manual configuration."
+                            # Read all the parameters for the manual flag , if one of them is the case instructions then save it in a variable and then prin the instruction to the user
+                            if ($null -ne $flag_params_keys) {
+                                foreach ($flag_param_key in $flag_params_keys) {
+                                    toLog_ifDebug -l "[DEBUG]" -m "Reading flag parameter: $flag_param_key"
+                                    switch ($flag_param_key) {
+                                        'instructions' {
+                                            toLog_ifDebug -l "[DEBUG]" -m "Reading flag parameter instructions"
+                                            $flag_instructions_param = $app_json_obj.flags.$flag_name.$flag_param_key
+                                            if ($flag_instructions_param) {
+                                                toLog_ifDebug -l "[DEBUG]" -m "Result of flag_instructions_param reading: $flag_instructions_param"
+                                                colorprint "Yellow" "$flag_instructions_param"
+                                            }
+                                            else {
+                                                toLog_ifDebug -l "[DEBUG]" -m "No instructions found for flag: $flag_name inside $flag_param_key as flag_instructions_param is empty"
+                                            }
+                                        }
+                                        default {
+                                            toLog_ifDebug -l "[DEBUG]" -m "Unknown flag parameter: $flag_param_key"
+                                        }
+                                    }
+                                }
+                            }
+                            else {
+                                toLog_ifDebug -l "[DEBUG]" -m "No flag parameters found for flag: $flag_name as flag_params_keys array is empty"
+                            }
+                            colorprint "YELLOW" "Please after completing this automated setup check also the app's website for further instructions if there are any."
                         }
-                        default { colorprint "RED" "Unknown flag: $($flags[$i])" }
+                        default { colorprint "RED" "Unknown flag: $($flags[$i]) passed to setupApp function" }
                     }
 
                 }
@@ -910,7 +935,7 @@ function fn_setupApp() {
                 (Get-Content $dk_compose_filename) -replace "#ENABLE_${CURRENT_APP}", "" | Set-Content $dk_compose_filename
                 toLog_ifDebug -l "[DEBUG]" -m "Enabled ${CURRENT_APP} in $dk_compose_filename"
                 # App Docker image architecture adjustments                
-                $TAG = 'latest'
+                $TAG = Get-Content $dk_compose_filename | Select-String -Pattern "\s*image: ${APP_IMAGE}:(\S+)" | ForEach-Object { $_.Matches[0].Groups[1].Value } | Select-Object -First 1
                         
                 # Ensure $supported_tags is an array
                 $supported_tags = @()
@@ -950,7 +975,7 @@ function fn_setupApp() {
                     colorprint "yellow" "No native image tag found for $DKARCH arch, emulation layer will try to run this app image anyway."
                     #colorprint "default" "If an emulation layer is not already installed, the script will try to install it now. Please provide your sudo password if prompted."
                 }
-                $currentTag = (Get-Content $dk_compose_filename | Select-String -Pattern "${APP_IMAGE}:" -SimpleMatch).ToString().Split(":")[1]
+                $currentTag = Get-Content $dk_compose_filename | Select-String -Pattern "\s*image: ${APP_IMAGE}:(\S+)" | ForEach-Object { $_.Matches[0].Groups[1].Value } | Select-Object -First 1
                 toLog_ifDebug -l "[DEBUG]" -m "Finished Docker image architecture adjustments for ${CURRENT_APP} app. Its image tag is now: $currentTag"
                 Write-Host "${CURRENT_APP} configuration complete, press enter to continue to the next app"
                 Read-Host

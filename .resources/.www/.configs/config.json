@@ -102,7 +102,9 @@
       "link": "https://mystnodes.com/onboarding",
       "image": "mysteriumnetwork/myst",
       "flags": {
-        "--manual":{}
+        "--manual":{
+          "instructions": "Log into your device’s mystnode local webdashboard that by default is on localhost:4449, navigate to the Myst Node page and follow the onscreen instruction to complete the setup"
+        }
       }
     },
     {
@@ -111,7 +113,9 @@
       "link": "https://p2pr.me/165849012262da8d0aa13c8",
       "image": "mrcolorrain/peer2profit",
       "flags": {
-        "--manual":{}
+        "--manual":{
+          "instructions": "Use any VNC client to connect to localhost:5901 using the password money4band and follow the onscreen instruction to complete the setup"
+        }
       }
     }
   ],

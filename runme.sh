@@ -844,11 +844,34 @@ fn_setupApp() {
                                 ;;
                             --manual)
                                 toLog_ifDebug -l "[DEBUG]" -m "Starting manual setup for ${CURRENT_APP} app"
-                                colorprint "YELLOW" "${CURRENT_APP} requires further manual configuration."
-                                colorprint "YELLOW" "Please after completing this automated setup follow the manual steps described on the app's website."
+                                colorprint "BLUE" "${CURRENT_APP} requires further manual configuration."
+                                # Read all the parameters for the manual flag , if one of them is the case instructions then save it in a variable and then prin the instruction to the user
+                                if [[ -n "${flag_params_keys:-}" ]]; then
+                                    for flag_param_key in $flag_params_keys; do
+                                        toLog_ifDebug -l "[DEBUG]" -m "Reading flag parameter: $flag_param_key"
+                                        case $flag_param_key in
+                                            instructions)
+                                                toLog_ifDebug -l "[DEBUG]" -m "Reading flag parameter instructions"
+                                                flag_instructions_param=$(jq -r ".flags[\"$flag_name\"][\"$flag_param_key\"]?" <<< "$app_json")
+                                                if [[ -n "${flag_instructions_param:-}" ]]; then
+                                                    toLog_ifDebug -l "[DEBUG]" -m "Result of flag_instructions_param reading: $flag_instructions_param"
+                                                    colorprint "YELLOW" "$flag_instructions_param"
+                                                else
+                                                    toLog_ifDebug -l "[DEBUG]" -m "No instructions found for flag: $flag_name inside $flag_param_key as flag_instructions_param is empty"
+                                                fi
+                                                ;;
+                                            *)
+                                                toLog_ifDebug -l "[DEBUG]" -m "Unknown flag parameter: $flag_param_key"
+                                                ;;
+                                        esac
+                                    done
+                                else
+                                    toLog_ifDebug -l "[DEBUG]" -m "No flag parameters found for flag: $flag_name as flag_params_keys array is empty"
+                                fi
+                                colorprint "YELLOW" "Please after completing this automated setup check also the app's website for further instructions if there are any."
                                 ;; 
                             *)
-                                fn_fail "Unknown ${flag_name} flag passed to fn_setupApp"
+                                fn_fail "Unknown ${flag_name} flag passed to setupApp function"
                                 ;;  
                         esac
                     done
@@ -858,7 +881,7 @@ fn_setupApp() {
 
                     # App Docker image architecture adjustments
                     toLog_ifDebug -l "[DEBUG]" -m "Starting Docker image architecture adjustments for ${CURRENT_APP} app"
-                    TAG='latest'
+                    TAG=$(grep -oP "\s*image: ${app_image}:\K[^\s#]+" $DKCOM_FILENAME)
                     DKHUBRES=$(curl -L -s "https://registry.hub.docker.com/v2/repositories/${app_image}/tags" | jq --arg DKARCH "$DKARCH" '[.results[] | select(.images[].architecture == $DKARCH) | .name]')
                     TAGSNUMBER=$(echo "$DKHUBRES" | jq '. | length')
                     if [ "$TAGSNUMBER" -gt 0 ]; then 
@@ -870,7 +893,7 @@ fn_setupApp() {
                         else 
                             colorprint "YELLOW" "$TAG tag does not support $DKARCH arch but other tags do, the newer tag supporting $DKARCH will be selected"
                             NEWTAG=$(echo "$DKHUBRES" | jq -r '.[0]')
-                            sed -i "s^${app_image}:latest^${app_image}:$NEWTAG^" $DKCOM_FILENAME
+                            sed -i "s^${app_image}:${TAG}^${app_image}:$NEWTAG^" $DKCOM_FILENAME
                         fi
                     else 
                         colorprint "YELLOW" "No native image tag found for $DKARCH arch, emulation layer will try to run this app image anyway."
@@ -1035,10 +1058,14 @@ fn_setupEnv(){
                 clear ;
                 toLog_ifDebug -l "[DEBUG]" -m "Loading $app_type from ${CONFIG_JSON_FILE}..."
                 apps=$(jq -c ".[\"$app_type\"][]" "${CONFIG_DIR}/${CONFIG_JSON_FILE}")
+                app_number=$(jq -c ".[\"$app_type\"] | length" "${CONFIG_DIR}/${CONFIG_JSON_FILE}")
                 toLog_ifDebug -l "[DEBUG]" -m "$app_type loaded from ${CONFIG_JSON_FILE}"
-                for app in $apps; do
+                for (( i=0; i<"$app_number"; i++ )); do # this loop worsks instead the for app in apps will not work as bash split the strings on spaces
                     clear
-                    fn_setupApp --app-json "$app" --dk-compose-filename "$DKCOM_FILENAME"
+                    app_name=$(jq -r ".[\"$app_type\"][$i].name" "${CONFIG_DIR}/${CONFIG_JSON_FILE}")
+                    toLog_ifDebug -l "[DEBUG]" -m "Starting setupApp function for $app_name app"
+                    app_json=$(jq -c ".[\"$app_type\"][$i]" "${CONFIG_DIR}/${CONFIG_JSON_FILE}")
+                    fn_setupApp --app-json "$app_json" --dk-compose-filename "$DKCOM_FILENAME"
                     clear
                 done
 
