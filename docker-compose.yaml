@@ -130,6 +130,8 @@ services:
 #ENABLE_PEER2PROFIT    image: mrcolorrain/peer2profit:latest
 #ENABLE_PEER2PROFIT    environment:
 #ENABLE_PEER2PROFIT      - P2P_EMAIL=$PEER2PROFIT_EMAIL
+#ENABLE_PEER2PROFIT    ports:
+#ENABLE_PEER2PROFIT      - 5901:5900
 #ENABLE_PEER2PROFIT    # network_mode: service:tun2socks
 #ENABLE_PEER2PROFIT    restart: always
 
