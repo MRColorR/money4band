@@ -1088,7 +1088,7 @@ function fn_setupEnv() {
     }
     elseif (($ENV_CONFIGURATION_STATUS -eq "1") -and ($app_type -ne "apps")) {
         print_and_log "Blue" "Proceeding with $app_type setup without resetting .env file as it should already be configured by the main apps setup."
-        Read-Host -Prompt "Press enter to continue"
+        Start-Sleep -Seconds $SLEEP_TIME
     }
 
     while ($true) {

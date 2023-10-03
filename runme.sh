@@ -982,7 +982,7 @@ fn_setupEnv(){
         done            
     elif [ "$ENV_CONFIGURATION_STATUS" == "1" ] && [ "$app_type" != "apps" ]; then
         print_and_log "BLUE" "Proceeding with $app_type setup without resetting .env file as it should already be configured by the main apps setup."
-        read -r -p "Press enter to continue"
+        sleep ${SLEEP_TIME}
     fi
     while true; do
         colorprint "YELLOW" "Do you wish to proceed with the .env file guided setup Y/N? (This will also adapt the $DKCOM_FILENAME file accordingly)"
