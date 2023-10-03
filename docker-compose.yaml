@@ -127,7 +127,7 @@ services:
 # PEER2PROFIT CONTAINER
 #ENABLE_PEER2PROFIT  peer2profit:
 #ENABLE_PEER2PROFIT    container_name: peer2profit
-#ENABLE_PEER2PROFIT    image: peer2profit/peer2profit_linux:latest
+#ENABLE_PEER2PROFIT    image: mrcolorrain/peer2profit:latest
 #ENABLE_PEER2PROFIT    environment:
 #ENABLE_PEER2PROFIT      - P2P_EMAIL=$PEER2PROFIT_EMAIL
 #ENABLE_PEER2PROFIT    # network_mode: service:tun2socks
