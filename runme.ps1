@@ -9,6 +9,9 @@ $SCRIPT_VERSION = (Get-Content .\.env | Select-String -Pattern "PROJECT_VERSION=
 # Script name #
 $SCRIPT_NAME = $MyInvocation.MyCommand.Name # save the script name in a variable, not the full path
 
+# Project Discord URL #
+$DS_PROJECT_SERVER_URL = (Get-Content .\.env | Select-String -Pattern "DS_PROJECT_SERVER_URL=" -SimpleMatch).ToString().Split("=")[1]
+
 # Script URL for update #
 $UPDATE_SCRIPT_URL = "https://raw.githubusercontent.com/MRColorR/money4band/main/$SCRIPT_NAME"
 
@@ -1413,7 +1416,9 @@ This is a new function that has not been tested yet and currently is not really 
 #>
 function fn_checkDependencies() {
     colorprint "GREEN" "MONEY4BAND AUTOMATIC GUIDED SETUP v$script:SCRIPT_VERSION"
-    colorprint "GREEN" "------------------------------------------ "
+    colorprint "GREEN" "---------------------------------------------- "
+    colorprint "MAGENTA" "Join our Discord community for updates, help, and discussions: $DS_PROJECT_SERVER_URL"
+    colorprint "MAGENTA" "---------------------------------------------- "
     colorprint "YELLOW" "Checking dependencies..."
     # this need to be changed to dinamically read depenedncies for any platform and select and install all the dependencies for the current platform
     # Check if dependencies are installed
@@ -1443,11 +1448,13 @@ This function has been tested until v 2.0.0. The new version has not been tested
 function mainmenu {
     Clear-Host
     colorprint "GREEN" "MONEY4BAND AUTOMATIC GUIDED SETUP v$script:SCRIPT_VERSION"
-    colorprint "GREEN" "------------------------------------------ "
+    colorprint "GREEN" "---------------------------------------------- "
+    colorprint "MAGENTA" "Join our Discord community for updates, help, and discussions: $DS_PROJECT_SERVER_URL"
+    colorprint "MAGENTA" "---------------------------------------------- "
     colorprint "DEFAULT" "Detected OS type: $($script:OS_TYPE)"
     colorprint "DEFAULT" "Detected architecture: $($script:ARCH)"
     colorprint "DEFAULT" "Docker $($script:DKARCH) image architecture will be used if the app's image permits it"
-    colorprint "DEFAULT" "------------------------------------------ "
+    colorprint "DEFAULT" "---------------------------------------------- "
     
     toLog_ifDebug -l "[DEBUG]" -m "Loading menu options"
     # Reset the menuItems array

@@ -8,6 +8,9 @@ readonly SCRIPT_VERSION=$(grep -oP 'PROJECT_VERSION=\K[^#\r]+' .env)
 # Script name #
 readonly SCRIPT_NAME=$(basename "$0") # save the script name in a variable not the full path
 
+# Project Discord URL #
+readonly DS_PROJECT_SERVER_URL=$(grep -oP 'DS_PROJECT_SERVER_URL=\K[^#\r]+' .env)
+
 # Script URL for update #
 readonly UPDATE_SCRIPT_URL="https://raw.githubusercontent.com/MRColorR/money4band/main/${SCRIPT_NAME}"
 
@@ -1235,7 +1238,9 @@ fn_resetDockerCompose(){
 # Function that will check the necerrary dependencies for the script to run
 fn_checkDependencies(){
     clear
-    colorprint "GREEN" "MONEY4BAND AUTOMATIC GUIDED SETUP v${SCRIPT_VERSION}"$'\n'"------------------------------------------ "
+    colorprint "GREEN" "MONEY4BAND AUTOMATIC GUIDED SETUP v${SCRIPT_VERSION}"$'\n'"---------------------------------------------- "
+    colorprint "PURPLE" "Join our Discord community for updates, help, and discussions: ${DS_PROJECT_SERVER_URL}"
+    colorprint "PURPLE" "---------------------------------------------- "
     print_and_log "YELLOW" "Checking dependencies..."
     # this need to be changed to dinamically read depenedncies for any platform and select and install all the dependencies for the current platform
     # Check if jq is installed
@@ -1253,8 +1258,10 @@ fn_checkDependencies(){
 ### Main Menu ##
 mainmenu() {
     clear
-    colorprint "GREEN" "MONEY4BAND AUTOMATIC GUIDED SETUP v${SCRIPT_VERSION}"$'\n'"------------------------------------------ "
-    colorprint "DEFAULT" "Detected OS type: ${OS_TYPE}"$'\n'"Detected architecture: $ARCH"$'\n'"Docker $DKARCH image architecture will be used if the app's image permits it"$'\n'"------------------------------------------ "$'\n'
+    colorprint "GREEN" "MONEY4BAND AUTOMATIC GUIDED SETUP v${SCRIPT_VERSION}"$'\n'"---------------------------------------------- "
+    colorprint "PURPLE" "Join our Discord community for updates, help, and discussions: ${DS_PROJECT_SERVER_URL}"
+    colorprint "PURPLE" "---------------------------------------------- "
+    colorprint "DEFAULT" "Detected OS type: ${OS_TYPE}"$'\n'"Detected architecture: $ARCH"$'\n'"Docker $DKARCH image architecture will be used if the app's image permits it"$'\n'"---------------------------------------------- "$'\n'
     
     PS3="Select an option and press Enter "$'\n'
     toLog_ifDebug -l "[DEBUG]" -m "Loading menu options"
