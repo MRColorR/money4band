@@ -89,7 +89,7 @@ Using your preferred method get the latest version of this project and unzip it.
 - For Info, Help and new features reques use the [Discussion tab](https://github.com/MRColorR/money4band/discussions)
 - For issues and bug report use the [Issue tab](https://github.com/MRColorR/money4band/issues)
 
-## 🚀 Join the Money4Band Community on Discord!! 
+## 🚀 Join the Money4Band Community on Discord! 
 We've launched a Discord server! It's a space for you to share your experiences, ask questions, and discuss everything related to Money4Band and its related projects like custom docker images created for M4B and so on. 
 [Join the Money4Band Discord Community](https://discord.com/invite/Fq8eeazBAD)
 
