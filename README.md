@@ -79,15 +79,19 @@ Using your preferred method get the latest version of this project and unzip it.
 - You could also run this project on servers or in cloud (check your provider ToS)
 - You can also use proxyes to run multiple instances on the same machine just setting up the project in different folders and running the setup script again using different proxies (Check your provider and apps ToS).
 
+---
+
 ## :grey_question: Wiki (F.A.Q., Alternatve Manual Setup, How To Update,...)
 
 * Go to the [Wiki](https://github.com/MRColorR/money4band/wiki) to find F.A.Q., Alternatve Manual Setup, How To Update, other useful guides and more details.
 
-
-
 ## :interrobang: Need help or Found an issue/bug ? 
-- For Info, Help and new features requesto use the [Discussion tab](https://github.com/MRColorR/money4band/discussions)
+- For Info, Help and new features reques use the [Discussion tab](https://github.com/MRColorR/money4band/discussions)
 - For issues and bug report use the [Issue tab](https://github.com/MRColorR/money4band/issues)
+
+## 🚀 Join the Money4Band Community on Discord! 
+We've launched a Discord server! It's a space for you to share your experiences, ask questions, and discuss everything related to Money4Band and its related projects like custom docker images created for M4B and so on. 
+[Join the Money4Band Discord Community](https://discord.com/invite/Fq8eeazBAD)
 
 ---
 
