@@ -3,7 +3,7 @@
 
 **|Easy automatic multi app passive income project with Webdasboard, Auto Updater and Proxy Support:dollar::satisfied::+1:|**
 ## :information_source: Info
-**Money4Band Leverages unused internet bandwidth allowing you to make money with something you have and would otherwise be wasted.** It use containerized version of apps like EarnApp, Honeygain, IPRoyal Pawns, PacketStream, Peer2Profit, Repocket, Proxyrack, Proxylite, Bitping and so on but it's also safer than installing and using these native apps on your host system. More info and FAQ in the [Wiki and on Discord ]([https://github.com/MRColorR/money4band/wiki](https://github.com/MRColorR/money4band/tree/v.2.4.3#grey_question-wiki-faq-alternatve-manual-setup-how-to-update)).
+**Money4Band Leverages unused internet bandwidth allowing you to make money with something you have and would otherwise be wasted.** It use containerized version of apps like EarnApp, Honeygain, IPRoyal Pawns, PacketStream, Peer2Profit, Repocket, Proxyrack, Proxylite, Bitping and so on but it's also safer than installing and using these native apps on your host system. More info and FAQ in the [Wiki and on Discord](https://github.com/MRColorR/money4band/tree/v.2.4.3#grey_question-wiki-faq-alternatve-manual-setup-how-to-update).
 
 - This is a multiplatform, self updating, lightweight docker stack that runs many passive income applications that pay you in USD or in crypto to share your unused internet bandwidth. This docker stack makes it easier to set up and use those apps and it also includes an auto updater, multiproxy support, notification system and web dashboard.
 
