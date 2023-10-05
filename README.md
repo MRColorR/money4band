@@ -64,7 +64,7 @@ Using your preferred method get the latest version of this project and unzip it.
 :information_source: Within the script menu there are many options dedicated to:
 - Register for the various apps,
 - Automatically install docker for the less experienced who cannot perform the manual installation,
-- Setup of the .env file,
+- Setup of the apps and .env file,
 - Application stack start/stop helper,
 - Tools to reset the configurations made in case of problems.
 - Other useful tools and functions
