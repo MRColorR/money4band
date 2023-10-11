@@ -69,7 +69,7 @@ This Docker Stack should work on anything that may have docker installed. In par
 
 
 ## Need Help or Found an Issue? ❓
-- For discussions, info, and feature requests, use the [Discussion tab](https://github.com/MRColorR/money4band/discussions) or join our [Discord Community](https://discord.com/invite/Fq8eeazBAD).
+- For discussions, info, and feature requests, use the [Discussion tab](https://github.com/MRColorR/money4band/discussions) or join our [Discord Community](#-join-the-money4band-community-on-discord).
 - F.A.Q., Alternatve Manual Setup, How To Update, other useful guides and more details inside the [Wiki](https://github.com/MRColorR/money4band/wiki)
 
 - For issues and bug reporting, use the [Issue tab](https://github.com/MRColorR/money4band/issues).
