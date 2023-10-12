@@ -16,9 +16,9 @@
 
 ## Getting Started 🚥
 ### Prerequisites
-- Ensure that you have a 64-bit operating system, virtualization functions are enabled and Docker is installer and able to auto star up on system boot.
-- (Optional) For ARM devices like Raspberry Pi, installing an emulation layer for non-ARM native Docker images is recommended. Even though the script can assist with the installation, we recommend users to navigate through the setup themselves following the [Wiki](https://github.com/MRColorR/money4band/wiki) guide.
-- (Optional) On Windows, ensure the Virtualization platform and Windows Subsystem for Linux are active as Docker requires these features. Even though the script can assist with the installation, we recommend users to navigate through the setup themselves following the [Wiki](https://github.com/MRColorR/money4band/wiki) guide.
+- Ensure that you have a 64-bit operating system, virtualization functions are enabled and Docker is installed and able to auto start up on system boot.
+- (Optional) For ARM devices like Raspberry Pi, installing an emulation layer for non-ARM native Docker images is recommended. Even though the script can assist with the installation, we recommend users to install an emulation layer by themselves following the [Wiki](https://github.com/MRColorR/money4band/wiki) guide.
+- (Optional) On Windows, ensure the Virtualization platform and Windows Subsystem for Linux are active as Docker requires these features. Even though the script can assist with the installation, we recommend users to enable these windows functions by themselves following the [Wiki](https://github.com/MRColorR/money4band/wiki) guide.
 
 
 
