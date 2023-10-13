@@ -18,6 +18,9 @@ services:
 #ENABLE_EARNAPP      - earnapp-data:/etc/earnapp
 #ENABLE_EARNAPP    # network_mode: service:tun2socks
 #ENABLE_EARNAPP    restart: always
+#ENABLE_EARNAPP    cpus: ${APP_CPU_LIMIT_LITTLE}
+#ENABLE_EARNAPP    mem_reservation: ${APP_MEM_RESERV_LITTLE}
+#ENABLE_EARNAPP    mem_limit: ${APP_MEM_LIMIT_LITTLE}
 
 # HONEYGAIN CONTAINER
 #ENABLE_HONEYGAIN  honeygain:
@@ -28,6 +31,9 @@ services:
 #ENABLE_HONEYGAIN      - HONEYGAIN_DUMMY=''
 #ENABLE_HONEYGAIN    command: -tou-accept -email $HONEYGAIN_EMAIL -pass $HONEYGAIN_PASSWD -device $DEVICE_NAME
 #ENABLE_HONEYGAIN    restart: always
+#ENABLE_EARNAPP    cpus: ${APP_CPU_LIMIT_LITTLE}
+#ENABLE_EARNAPP    mem_reservation: ${APP_MEM_RESERV_LITTLE}
+#ENABLE_EARNAPP    mem_limit: ${APP_MEM_LIMIT_LITTLE}
 
 # IPROYALPAWNS CONTAINER
 #ENABLE_IPROYALPAWNS  iproyal:
@@ -38,6 +44,9 @@ services:
 #ENABLE_IPROYALPAWNS    command: -accept-tos -email=$IPROYALPAWNS_EMAIL -password=$IPROYALPAWNS_PASSWD -device-name=$DEVICE_NAME
 #ENABLE_IPROYALPAWNS    # network_mode: service:tun2socks
 #ENABLE_IPROYALPAWNS    restart: always
+#ENABLE_IPROYALPAWNS    cpus: ${APP_CPU_LIMIT_LITTLE}
+#ENABLE_IPROYALPAWNS    mem_reservation: ${APP_MEM_RESERV_LITTLE}
+#ENABLE_IPROYALPAWNS    mem_limit: ${APP_MEM_LIMIT_LITTLE}
 
 # PACKETSTREAM CONTAINER
 #ENABLE_PACKETSTREAM  packetstream:
@@ -47,6 +56,9 @@ services:
 #ENABLE_PACKETSTREAM      - CID=$PACKETSTREAM_CID
 #ENABLE_PACKETSTREAM    # network_mode: service:tun2socks
 #ENABLE_PACKETSTREAM    restart: always
+#ENABLE_PACKETSTREAM    cpus: ${APP_CPU_LIMIT_LITTLE}
+#ENABLE_PACKETSTREAM    mem_reservation: ${APP_MEM_RESERV_LITTLE}
+#ENABLE_PACKETSTREAM    mem_limit: ${APP_MEM_LIMIT_LITTLE}
 
 # TRAFFMONETIZER CONTAINER
 #ENABLE_TRAFFMONETIZER  traffMonetizer:
@@ -57,6 +69,9 @@ services:
 #ENABLE_TRAFFMONETIZER    command: start accept status --token $TRAFFMONETIZER_TOKEN --device-name $DEVICE_NAME
 #ENABLE_TRAFFMONETIZER    # network_mode: service:tun2socks
 #ENABLE_TRAFFMONETIZER    restart: always
+#ENABLE_TRAFFMONETIZER    cpus: ${APP_CPU_LIMIT_LITTLE}
+#ENABLE_TRAFFMONETIZER    mem_reservation: ${APP_MEM_RESERV_LITTLE}
+#ENABLE_TRAFFMONETIZER    mem_limit: ${APP_MEM_LIMIT_LITTLE}
 
 # REPOCKET CONTAINER
 #ENABLE_REPOCKET  repocket:
@@ -67,6 +82,9 @@ services:
 #ENABLE_REPOCKET        - RP_API_KEY=$REPOCKET_APIKEY
 #ENABLE_REPOCKET    # network_mode: service:tun2socks
 #ENABLE_REPOCKET    restart: always
+#ENABLE_REPOCKET    cpus: ${APP_CPU_LIMIT_MEDIUM}
+#ENABLE_REPOCKET    mem_reservation: ${APP_MEM_RESERV_MEDIUM}
+#ENABLE_REPOCKET    mem_limit: ${APP_MEM_LIMIT_MEDIUM}
 
 # PROXYRACK CONTAINER
 #ENABLE_PROXYRACK  proxyrack:
@@ -78,6 +96,9 @@ services:
 #ENABLE_PROXYRACK        - UUID=$PROXYRACK_DEVICE_UUID
 #ENABLE_PROXYRACK    # network_mode: service:tun2socks
 #ENABLE_PROXYRACK    restart: always
+#ENABLE_PROXYRACK    cpus: ${APP_CPU_LIMIT_BIG}
+#ENABLE_PROXYRACK    mem_reservation: ${APP_MEM_RESERV_BIG}
+#ENABLE_PROXYRACK    mem_limit: ${APP_MEM_LIMIT_BIG}
 
 # PROXYLITE CONTAINER
 #ENABLE_PROXYLITE  proxylite:
@@ -87,6 +108,9 @@ services:
 #ENABLE_PROXYLITE      - USER_ID=$PROXYLITE_USER_ID
 #ENABLE_PROXYLITE    # network_mode: service:tun2socks
 #ENABLE_PROXYLITE    restart: always
+#ENABLE_PROXYLITE    cpus: ${APP_CPU_LIMIT_MEDIUM}
+#ENABLE_PROXYLITE    mem_reservation: ${APP_MEM_RESERV_MEDIUM}
+#ENABLE_PROXYLITE    mem_limit: ${APP_MEM_LIMIT_MEDIUM}
 
 # BITPING CONTAINER 
 # For this app you'll need a one-time operation to claim your node: the first time if you do not have a backup of your identity you will need to enter manually your credentials to initialize it use : sudo docker run --rm -it -v ${PWD}/.data/.bitping/:/root/.bitping bitping/bitping-node:latest , then enter your credential , once this is done CTRL+C to end container and then if using bind folder just use docker compose to restart it as always, if you use the docker volume mount it in the previous comamnd or copy the created credentials in the volume using ' docker cp ${PWD}/.data/.bitping bitping:/root/' or just mount the volume in the interactive temporary container
@@ -102,6 +126,10 @@ services:
 #ENABLE_BITPING      #- bitping-data:/root/.bitping # if you use this also uncomment the relative volume in volumes section, this  Use docker volumes (more secure harder to access, backup and restore) you'll need to do backups using 'docker cp
 #ENABLE_BITPING    # network_mode: service:tun2socks
 #ENABLE_BITPING    restart: always
+#ENABLE_BITPING    cpus: ${APP_CPU_LIMIT_BIG}
+#ENABLE_BITPING    mem_reservation: ${APP_MEM_RESERV_BIG}
+#ENABLE_BITPING    mem_limit: ${APP_MEM_LIMIT_BIG}
+
 
 ### EXTRA APPS ###
 
@@ -123,6 +151,9 @@ services:
 #ENABLE_MYSTNODE          #- myst-data:/var/lib/mysterium-node # if you use this also uncomment the relative volume in volumes section, this  Use docker volumes (more secure harder to access, backup and restore) you'll need to do backups using 'docker cp myst:/var/lib/mysterium-node .' and then when you need to restore the identity first delete the automatically created and not needed identities using 'sudo docker exec -it myst sh' and then in the container shell use 'sudo rm -rf /var/lib/mysterium-node/*' then stop the container and use docker cp to copy the backed-up identity in the container, ther restart the container.
 #ENABLE_MYSTNODE    # network_mode: service:tun2socks
 #ENABLE_MYSTNODE    restart: always
+#ENABLE_MYSTNODE    cpus: ${APP_CPU_LIMIT_BIG}
+#ENABLE_MYSTNODE    mem_reservation: ${APP_MEM_RESERV_BIG}
+#ENABLE_MYSTNODE    mem_limit: ${APP_MEM_LIMIT_BIG}
 
 # PEER2PROFIT CONTAINER
 #ENABLE_PEER2PROFIT  peer2profit:
@@ -134,6 +165,9 @@ services:
 #ENABLE_PEER2PROFIT      - 5901:5900
 #ENABLE_PEER2PROFIT    # network_mode: service:tun2socks
 #ENABLE_PEER2PROFIT    restart: always
+#ENABLE_PEER2PROFIT    cpus: ${APP_CPU_LIMIT_HUGE}
+#ENABLE_PEER2PROFIT    mem_reservation: ${APP_MEM_RESERV_HUGE}
+#ENABLE_PEER2PROFIT    mem_limit: ${APP_MEM_LIMIT_HUGE}
 
 ### TOOLS AND SERVICES ###
 
@@ -150,6 +184,9 @@ services:
 #ENABLE_PROXY      - '/dev/net/tun:/dev/net/tun'
 #ENABLE_PROXY    cap_add:
 #ENABLE_PROXY      - NET_ADMIN
+#ENABLE_PROXY    cpus: ${APP_CPU_LIMIT_BIG}
+#ENABLE_PROXY    mem_reservation: ${APP_MEM_RESERV_BIG}
+#ENABLE_PROXY    mem_limit: ${APP_MEM_LIMIT_BIG}
 
 
 # WATCHTOWER AUTO-UPDATER AND NOTIFICATIONS
@@ -167,16 +204,22 @@ services:
       - WATCHTOWER_NO_STARTUP_MESSAGE=true
       - WATCHTOWER_CLEANUP=true
     restart: always
+    cpus: ${APP_CPU_LIMIT_MEDIUM}
+    mem_reservation: ${APP_MEM_RESERV_MEDIUM}
+    mem_limit: ${APP_MEM_LIMIT_MEDIUM}
         
 # WEB DASBOARD
   webdashboard:
     container_name: webdashboard
-    image: fnichol/uhttpd:latest
+    image: nginx:alpine-slim
     volumes:
-      - ./.resources/.www:/www
+      - ./.resources/.www:/usr/share/nginx/html:ro
     ports:
       - ${DASHBOARD_PORT}:80
     restart: always
+    cpus: ${APP_CPU_LIMIT_LITTLE}
+    mem_reservation: ${APP_MEM_RESERV_LITTLE}
+    mem_limit: ${APP_MEM_LIMIT_LITTLE}
         
 volumes:
   earnapp-data:
