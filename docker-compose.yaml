@@ -18,7 +18,7 @@ services:
 #ENABLE_EARNAPP      - earnapp-data:/etc/earnapp
 #ENABLE_EARNAPP    # network_mode: service:tun2socks
 #ENABLE_EARNAPP    restart: always
-#ENABLE_EARNAPP    cpus: ${APP_CPU_LIMIT_MEDIUM}
+#ENABLE_EARNAPP    cpus: ${APP_CPU_LIMIT_LITTLE}
 #ENABLE_EARNAPP    mem_reservation: ${APP_MEM_RESERV_LITTLE}
 #ENABLE_EARNAPP    mem_limit: ${APP_MEM_LIMIT_LITTLE}
 
@@ -31,7 +31,7 @@ services:
 #ENABLE_HONEYGAIN      - HONEYGAIN_DUMMY=''
 #ENABLE_HONEYGAIN    command: -tou-accept -email $HONEYGAIN_EMAIL -pass $HONEYGAIN_PASSWD -device $DEVICE_NAME
 #ENABLE_HONEYGAIN    restart: always
-#ENABLE_EARNAPP    cpus: ${APP_CPU_LIMIT_MEDIUM}
+#ENABLE_EARNAPP    cpus: ${APP_CPU_LIMIT_LITTLE}
 #ENABLE_EARNAPP    mem_reservation: ${APP_MEM_RESERV_LITTLE}
 #ENABLE_EARNAPP    mem_limit: ${APP_MEM_LIMIT_LITTLE}
 
@@ -44,7 +44,7 @@ services:
 #ENABLE_IPROYALPAWNS    command: -accept-tos -email=$IPROYALPAWNS_EMAIL -password=$IPROYALPAWNS_PASSWD -device-name=$DEVICE_NAME
 #ENABLE_IPROYALPAWNS    # network_mode: service:tun2socks
 #ENABLE_IPROYALPAWNS    restart: always
-#ENABLE_IPROYALPAWNS    cpus: ${APP_CPU_LIMIT_MEDIUM}
+#ENABLE_IPROYALPAWNS    cpus: ${APP_CPU_LIMIT_LITTLE}
 #ENABLE_IPROYALPAWNS    mem_reservation: ${APP_MEM_RESERV_LITTLE}
 #ENABLE_IPROYALPAWNS    mem_limit: ${APP_MEM_LIMIT_LITTLE}
 
@@ -56,7 +56,7 @@ services:
 #ENABLE_PACKETSTREAM      - CID=$PACKETSTREAM_CID
 #ENABLE_PACKETSTREAM    # network_mode: service:tun2socks
 #ENABLE_PACKETSTREAM    restart: always
-#ENABLE_PACKETSTREAM    cpus: ${APP_CPU_LIMIT_MEDIUM}
+#ENABLE_PACKETSTREAM    cpus: ${APP_CPU_LIMIT_LITTLE}
 #ENABLE_PACKETSTREAM    mem_reservation: ${APP_MEM_RESERV_LITTLE}
 #ENABLE_PACKETSTREAM    mem_limit: ${APP_MEM_LIMIT_LITTLE}
 
@@ -69,7 +69,7 @@ services:
 #ENABLE_TRAFFMONETIZER    command: start accept status --token $TRAFFMONETIZER_TOKEN --device-name $DEVICE_NAME
 #ENABLE_TRAFFMONETIZER    # network_mode: service:tun2socks
 #ENABLE_TRAFFMONETIZER    restart: always
-#ENABLE_TRAFFMONETIZER    cpus: ${APP_CPU_LIMIT_MEDIUM}
+#ENABLE_TRAFFMONETIZER    cpus: ${APP_CPU_LIMIT_LITTLE}
 #ENABLE_TRAFFMONETIZER    mem_reservation: ${APP_MEM_RESERV_LITTLE}
 #ENABLE_TRAFFMONETIZER    mem_limit: ${APP_MEM_LIMIT_LITTLE}
 
