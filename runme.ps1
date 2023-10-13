@@ -99,7 +99,6 @@ $colors = @{
     "yellow"  = [System.ConsoleColor]::Yellow
     "magenta" = [System.ConsoleColor]::Magenta
     "cyan"    = [System.ConsoleColor]::Cyan
-    "purple"  = [System.ConsoleColor]::DarkMagenta
 }
 
 # Color functions #
@@ -394,7 +393,7 @@ function fn_showLinks {
         # Iterate over the apps in each type
         foreach ($app in $configData.$appType) {
             colorprint "Default" $app.name
-            colorprint "Blue" $app.link
+            colorprint "Cyan" $app.link
         }
     }
     Read-Host -Prompt "Press Enter to go back to mainmenu"
@@ -553,9 +552,9 @@ function fn_setupNotifications {
             colorprint "Default" "Now a Discord notification setup example will be shown (Remember: you can also use a different supported app)."
             Read-Host -Prompt "Press enter to continue"
             Clear-Host
-            colorprint "Purple" "Create a new Discord server, go to server settings > integrations, and create a webhook."
-            colorprint "Purple" "Your Discord Webhook-URL will look like this: https://discordapp.com/api/webhooks/YourWebhookid/YourToken."
-            colorprint "Purple" "To obtain the SHOUTRRR_URL, rearrange it to look like this: discord://YourToken@YourWebhookid."
+            colorprint "magenta" "Create a new Discord server, go to server settings > integrations, and create a webhook."
+            colorprint "magenta" "Your Discord Webhook-URL will look like this: https://discordapp.com/api/webhooks/YourWebhookid/YourToken."
+            colorprint "magenta" "To obtain the SHOUTRRR_URL, rearrange it to look like this: discord://YourToken@YourWebhookid."
             Read-Host -Prompt "Press enter to proceed with the setup"
             Clear-Host
             while ($true) {

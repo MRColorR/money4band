@@ -85,14 +85,13 @@ declare -A os_map=(
 # Colors used inside the script #
 ESC=$(printf '\033') DEFAULT="${ESC}[0m"
 declare -A colors=( 
-    [DEFAULT]="${ESC}[0m" 
-    [GREEN]="${ESC}[32m" 
-    [BLUE]="${ESC}[34m" 
-    [RED]="${ESC}[31m" 
-    [YELLOW]="${ESC}[33m" 
-    [MAGENTA]="${ESC}[35m" 
-    [CYAN]="${ESC}[36m" 
-    [PURPLE]="${ESC}[35;1m" 
+    [DEFAULT]="${ESC}[1;0m" 
+    [GREEN]="${ESC}[1;32m" 
+    [BLUE]="${ESC}[1;34m" 
+    [RED]="${ESC}[1;31m" 
+    [YELLOW]="${ESC}[1;33m" 
+    [MAGENTA]="${ESC}[1;35m" 
+    [CYAN]="${ESC}[1;36m" 
     )
 
 # Color functions #
@@ -424,7 +423,7 @@ fn_showLinks() {
         colorprint "YELLOW" "---$app_type---"
         for app in $(jq -r ".[\"$app_type\"][].name" "$CONFIG_DIR/$CONFIG_JSON_FILE"); do
             colorprint "DEFAULT" "$app"
-            colorprint "BLUE" "$(jq -r ".[\"$app_type\"][] | select(.name==\"$app\") | .link" "$CONFIG_DIR/$CONFIG_JSON_FILE")"
+            colorprint "CYAN" "$(jq -r ".[\"$app_type\"][] | select(.name==\"$app\") | .link" "$CONFIG_DIR/$CONFIG_JSON_FILE")"
             
         done
     done
@@ -513,9 +512,9 @@ fn_setupNotifications() {
                 colorprint "DEFAULT" "Now a Discord notification setup example will be shown (Remember: you can also use a different supported app)."
                 read -r -p "Press enter to continue"
                 clear
-                colorprint "PURPLE" "Create a new Discord server, go to server settings > integrations, and create a webhook."
-                colorprint "PURPLE" "Your Discord Webhook-URL will look like this: https://discordapp.com/api/webhooks/YourWebhookid/YourToken."
-                colorprint "PURPLE" "To obtain the SHOUTRRR_URL, rearrange it to look like this: discord://YourToken@YourWebhookid."
+                colorprint "MAGENTA" "Create a new Discord server, go to server settings > integrations, and create a webhook."
+                colorprint "MAGENTA" "Your Discord Webhook-URL will look like this: https://discordapp.com/api/webhooks/YourWebhookid/YourToken."
+                colorprint "MAGENTA" "To obtain the SHOUTRRR_URL, rearrange it to look like this: discord://YourToken@YourWebhookid."
                 read -r -p "Press enter to proceed with the setup"
                 clear
                 while true; do
@@ -1239,8 +1238,8 @@ fn_resetDockerCompose(){
 fn_checkDependencies(){
     clear
     colorprint "GREEN" "MONEY4BAND AUTOMATIC GUIDED SETUP v${SCRIPT_VERSION}"$'\n'"---------------------------------------------- "
-    colorprint "PURPLE" "Join our Discord community for updates, help, and discussions: ${DS_PROJECT_SERVER_URL}"
-    colorprint "PURPLE" "---------------------------------------------- "
+    colorprint "MAGENTA" "Join our Discord community for updates, help, and discussions: ${DS_PROJECT_SERVER_URL}"
+    colorprint "MAGENTA" "---------------------------------------------- "
     print_and_log "YELLOW" "Checking dependencies..."
     # this need to be changed to dinamically read depenedncies for any platform and select and install all the dependencies for the current platform
     # Check if jq is installed
@@ -1259,8 +1258,8 @@ fn_checkDependencies(){
 mainmenu() {
     clear
     colorprint "GREEN" "MONEY4BAND AUTOMATIC GUIDED SETUP v${SCRIPT_VERSION}"$'\n'"---------------------------------------------- "
-    colorprint "PURPLE" "Join our Discord community for updates, help, and discussions: ${DS_PROJECT_SERVER_URL}"
-    colorprint "PURPLE" "---------------------------------------------- "
+    colorprint "MAGENTA" "Join our Discord community for updates, help, and discussions: ${DS_PROJECT_SERVER_URL}"
+    colorprint "MAGENTA" "---------------------------------------------- "
     colorprint "DEFAULT" "Detected OS type: ${OS_TYPE}"$'\n'"Detected architecture: $ARCH"$'\n'"Docker $DKARCH image architecture will be used if the app's image permits it"$'\n'"---------------------------------------------- "$'\n'
     
     PS3="Select an option and press Enter "$'\n'
