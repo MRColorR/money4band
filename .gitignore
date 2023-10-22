@@ -1,3 +1,6 @@
 .data
 *.txt
 *.log
+.env
+docker-compose.yaml
+userconf.json
