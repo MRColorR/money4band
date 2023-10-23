@@ -525,9 +525,9 @@ fn_setupNotifications() {
                         sed -i "s~# SHOUTRRR_URL=~SHOUTRRR_URL=~" .env
                         CURRENT_VALUE=$(grep -oP 'SHOUTRRR_URL=\K[^#\r]+' .env)
                         sed -i "s~SHOUTRRR_URL=${CURRENT_VALUE}~SHOUTRRR_URL=$SHOUTRRR_URL~" .env
-                        sed -i "s~# - WATCHTOWER_NOTIFICATIONS=shoutrrr~  - WATCHTOWER_NOTIFICATIONS=shoutrrr~" "$DKCOM_FILENAME"
-                        sed -i "s~# - WATCHTOWER_NOTIFICATION_URL~  - WATCHTOWER_NOTIFICATION_URL~" "$DKCOM_FILENAME"
-                        sed -i "s~# - WATCHTOWER_NOTIFICATIONS_HOSTNAME~  - WATCHTOWER_NOTIFICATIONS_HOSTNAME~" "$DKCOM_FILENAME"
+                        sed -i "s~# - WATCHTOWER_NOTIFICATIONS=shoutrrr~- WATCHTOWER_NOTIFICATIONS=shoutrrr~" "$DKCOM_FILENAME"
+                        sed -i "s~# - WATCHTOWER_NOTIFICATION_URL~- WATCHTOWER_NOTIFICATION_URL~" "$DKCOM_FILENAME"
+                        sed -i "s~# - WATCHTOWER_NOTIFICATIONS_HOSTNAME~- WATCHTOWER_NOTIFICATIONS_HOSTNAME~" "$DKCOM_FILENAME"
                         sed -i 's/NOTIFICATIONS_CONFIGURATION_STATUS=0/NOTIFICATIONS_CONFIGURATION_STATUS=1/' .env
                         colorprint "DEFAULT" "Notifications setup complete. If the link is correct, you will receive a notification for each update made on the app container images."
                         read -r -p "Press enter to continue."
