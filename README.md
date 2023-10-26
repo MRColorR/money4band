@@ -4,7 +4,7 @@
 **|Easy automatic multi app passive income project with Webdasboard, Auto Updater and Proxy Support:dollar::satisfied::+1:|**
 
 ## Quick Overview 🚀
-**Money4Band** leverages unused internet bandwidth allowing you to make money with something you have and would otherwise be wasted.** It utilizes containerized version of apps like EarnApp, Honeygain, IPRoyal Pawns, PacketStream, Peer2Profit, Repocket, Proxyrack, Proxylite, Bitping and so on but it's also safer than installing and using these native apps on your host system.
+**Money4Band** leverages unused internet bandwidth allowing you to make money with something you have and would otherwise be wasted.** It utilizes containerized version of apps like EarnApp, Honeygain, IPRoyal Pawns, PacketStream, Peer2Profit, Repocket, Earnfm, Proxyrack, Proxylite, Bitping and so on but it's also safer than installing and using these native apps on your host system.
 
 ✨ **Key Features:**
 - **Multiplatform** and lightweight docker stack.
