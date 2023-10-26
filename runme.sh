@@ -60,7 +60,7 @@ readonly SCRIPT_NAME=$(basename "$0") # save the script name in a variable not t
 readonly DS_PROJECT_SERVER_URL=$(grep -oP 'DS_PROJECT_SERVER_URL=\K[^#\r]+' ${ENV_FILENAME})
 
 # Script URL for update #
-readonly PROJECT_BRANCH="pythonize"
+readonly PROJECT_BRANCH="main"
 readonly PROJECT_URL="https://raw.githubusercontent.com/MRColorR/money4band/${PROJECT_BRANCH}"
 
 

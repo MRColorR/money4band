@@ -66,7 +66,7 @@ $SCRIPT_NAME = $MyInvocation.MyCommand.Name # save the script name in a variable
 $DS_PROJECT_SERVER_URL = (Get-Content .\${ENV_FILENAME} | Select-String -Pattern "DS_PROJECT_SERVER_URL=" -SimpleMatch).ToString().Split("=")[1]
 
 # Script URL for update #
-$PROJECT_BRANCH = "pythonize"
+$PROJECT_BRANCH = "main"
 $PROJECT_URL = "https://raw.githubusercontent.com/MRColorR/money4band/${PROJECT_BRANCH}"
 
 # Script debug log file #
