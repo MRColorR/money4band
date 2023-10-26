@@ -3,6 +3,7 @@ set-executionpolicy -scope CurrentUser -executionPolicy Bypass -Force
 
 ### Variables and constants ###
 ## Env file related constants and variables ##
+# env file name #
 $ENV_FILENAME = '.env'
 # ${ENV_FILENAME} file prototype link #
 $ENV_SRC = "https://github.com/MRColorR/money4band/raw/main/${ENV_FILENAME}"
@@ -1254,7 +1255,7 @@ function fn_startStack() {
         colorprint "YELLOW" "This menu item will launch all the apps using the configured ${ENV_FILENAME} file and the $($script:DKCOM_FILENAME) file (Docker must be already installed and running)"
         $yn = Read-Host "Do you wish to proceed Y/N?"
         if ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') {
-            if (docker compose up -d) {
+            if (docker-compose -f ${DKCOM_FILENAME} --env-file ${ENV_FILENAME} up -d) {
                 print_and_log "Green" "All Apps started"
                 print_and_log "Cyan" "You can visit the web dashboard on ${DASHBOARD_URL}" 
                 $DASHBOARD_URL | Out-File -Append "dashboardURL.txt"
@@ -1297,7 +1298,7 @@ function fn_stopStack() {
         $yn = Read-Host "Do you wish to proceed Y/N?"
 
         if ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') {
-            if (docker compose down) {
+            if (docker-compose -f $DKCOM_FILENAME down) {
                 colorprint "GREEN" "All Apps stopped and stack deleted."
             }
             else {

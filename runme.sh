@@ -3,6 +3,7 @@
 ### Variables and constants ###
 
 ## Env file related constants and variables ##
+# env file name #
 readonly ENV_FILENAME='.env'
 # ${ENV_FILENAME} file prototype link #
 readonly ENV_SRC="https://github.com/MRColorR/money4band/raw/main/${ENV_FILENAME}" # this should be removed and to reset copyrom the template
@@ -1129,7 +1130,7 @@ fn_startStack(){
         read -r -p "Do you wish to proceed Y/N?  " yn
         case $yn in
             [Yy]* ) 
-                if sudo docker compose up -d; then
+                if sudo docker-compose -f ${DKCOM_FILENAME} --env-file ${ENV_FILENAME} up -d; then
                     print_and_log "GREEN" "All Apps started."
                     print_and_log "CYAN" "You can visit the web dashboard on ${DASHBOARD_URL}"
                     echo "${DASHBOARD_URL}" > "dashboardURL.txt"
@@ -1161,7 +1162,7 @@ fn_stopStack(){
         read -r -p "Do you wish to proceed Y/N?  " yn
         case $yn in
             [Yy]* ) 
-                if sudo docker compose down; then
+                if sudo docker-compose -f $DKCOM_FILENAME down; then
                     print_and_log "GREEN" "All Apps stopped and stack deleted."
                 else
                     errorprint_and_log "Error stopping and deleting Docker stack. Please check the configuration and try again."
