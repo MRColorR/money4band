@@ -37,7 +37,7 @@ fi
 #read -r -p "Press Enter to continue"
 
 # Script version getting it from ${ENV_FILENAME} file #
-readonly SCRIPT_VERSION=$(grep -oP 'PROJECT_VERSION=\K[^#\r]+' ${ENV_FILENAME}) 
+SCRIPT_VERSION=$(grep -oP 'PROJECT_VERSION=\K[^#\r]+' ${ENV_FILENAME}) 
 
 # Script name #
 readonly SCRIPT_NAME=$(basename "$0") # save the script name in a variable not the full path
@@ -197,16 +197,41 @@ fn_fail() {
 # Function to check if there are any updates available #
 check_project_updates() {
     # Get the current script version from the local .env file
-    SCRIPT_VERSION=$(grep -oP 'PROJECT_VERSION=\K.*' "./\$ENV_FILENAME")
+    SCRIPT_VERSION=$(grep -oP 'PROJECT_VERSION=\K[^#\r]+' "./${ENV_FILENAME}")
+    if [[ -z $SCRIPT_VERSION ]]; then
+        errorprint_and_log "Failed to get the script version from the local .env file."
+        return 1
+    fi
 
     # Get the latest script version from the .env.template file on GitHub
-    LATEST_SCRIPT_VERSION=$(curl -s "$PROJECT_URL/$ENV_TEMPLATE_FILENAME" | grep -oP 'PROJECT_VERSION=\K.*')
+    LATEST_SCRIPT_VERSION=$(curl -fs "$PROJECT_URL/$ENV_TEMPLATE_FILENAME" | grep -oP 'PROJECT_VERSION=\K[^#\r]+')
+    if [[ -z $LATEST_SCRIPT_VERSION ]]; then
+        errorprint_and_log "Failed to get the latest script version from GitHub."
+        return 1
+    fi
+
+    # Split the versions into major, minor, and patch numbers
+    IFS='.' read -ra SCRIPT_VERSION_SPLIT <<< "$SCRIPT_VERSION"
+    IFS='.' read -ra LATEST_SCRIPT_VERSION_SPLIT <<< "$LATEST_SCRIPT_VERSION"
 
     # Compare the versions and print a message if a newer version is available
-    if [[ "$SCRIPT_VERSION" < "$LATEST_SCRIPT_VERSION" ]]; then
-        print_and_log "GREEN" "A newer version of the script is available. Please consider updating."
-    fi
+    for i in "${!SCRIPT_VERSION_SPLIT[@]}"; do
+        if (( ${SCRIPT_VERSION_SPLIT[i]} < ${LATEST_SCRIPT_VERSION_SPLIT[i]} )); then
+            print_and_log "YELLOW" "A newer version of the script is available. Please consider updating."
+            return 0  # Return here to exit the function as soon as a newer version is found
+        elif (( ${SCRIPT_VERSION_SPLIT[i]} > ${LATEST_SCRIPT_VERSION_SPLIT[i]} )); then
+            # If any part of the local version is greater, it's not an older version
+            return 0
+        fi
+    done
+
+    # If the loop completes without finding a newer version, you're up to date
+    print_and_log "BLUE" "Script is up to date."
 }
+
+
+
+
 
 # Function to detect OS
 detect_os() {

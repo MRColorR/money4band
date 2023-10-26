@@ -196,18 +196,45 @@ function fn_fail($text) {
 # Function to check if there are any updates available #
 function check_project_updates {
     # Get the current script version from the local .env file
-    $SCRIPT_VERSION = (Get-Content .\$ENV_FILENAME | Select-String -Pattern "PROJECT_VERSION=" -SimpleMatch).ToString().Split("=")[1]
+    $SCRIPT_VERSION_MATCH = (Get-Content .\$ENV_FILENAME | Select-String -Pattern "PROJECT_VERSION=(\d+\.\d+\.\d+)").Matches
+    if ($SCRIPT_VERSION_MATCH.Count -eq 0) {
+        errorprint_and_log "Failed to get the script version from the local .env file."
+        return
+    }
+    $SCRIPT_VERSION = $SCRIPT_VERSION_MATCH[0].Groups[1].Value
 
     # Get the latest script version from the .env.template file on GitHub
-    $webClient = New-Object System.Net.WebClient
-    $templateContent = $webClient.DownloadString("$PROJECT_URL/$ENV_TEMPLATE_FILENAME")
-    $LATEST_SCRIPT_VERSION = ($templateContent | Select-String -Pattern "PROJECT_VERSION=" -SimpleMatch).ToString().Split("=")[1]
+    try {
+        $webClient = New-Object System.Net.WebClient
+        $templateContent = $webClient.DownloadString("$PROJECT_URL/$ENV_TEMPLATE_FILENAME")
+        $LATEST_SCRIPT_VERSION_MATCH = ($templateContent | Select-String -Pattern "PROJECT_VERSION=(\d+\.\d+\.\d+)").Matches
+        if ($LATEST_SCRIPT_VERSION_MATCH.Count -eq 0) {
+            errorprint_and_log "Failed to get the latest script version from GitHub."
+            return
+        }
+        $LATEST_SCRIPT_VERSION = $LATEST_SCRIPT_VERSION_MATCH[0].Groups[1].Value
+    } catch {
+        errorprint_and_log "Failed to fetch the .env.template file from GitHub: $_"
+        return
+    }
+
+    # Split the versions into major, minor, and patch numbers
+    $SCRIPT_VERSION_SPLIT = $SCRIPT_VERSION.Split(".")
+    $LATEST_SCRIPT_VERSION_SPLIT = $LATEST_SCRIPT_VERSION.Split(".")
 
     # Compare the versions and print a message if a newer version is available
-    if ($SCRIPT_VERSION -lt $LATEST_SCRIPT_VERSION) {
-        print_and_log "GREEN" "A newer version of the script is available. Please consider updating."
+    for ($i=0; $i -lt 3; $i++) {
+        if ([int]$SCRIPT_VERSION_SPLIT[$i] -lt [int]$LATEST_SCRIPT_VERSION_SPLIT[$i]) {
+            print_and_log "Yellow" "A newer version of the script is available. Please consider updating."
+            return
+        }
+        elseif ([int]$SCRIPT_VERSION_SPLIT[$i] -gt [int]$LATEST_SCRIPT_VERSION_SPLIT[$i]) {
+            return
+        }
     }
-    Read-Host -Prompt "Press Enter to continue"
+
+    # If the loop completes without finding a newer version, print a message indicating that the script is up to date
+    print_and_log "BLUE" "Script is up to date."
 }
 
 # Function to detect OS
