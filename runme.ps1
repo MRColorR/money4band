@@ -3,10 +3,10 @@ set-executionpolicy -scope CurrentUser -executionPolicy Bypass -Force
 
 ### Variables and constants ###
 ## Env file related constants and variables ##
-# env file name #
-$ENV_FILENAME = '.env'
-# ${ENV_FILENAME} file prototype link #
-$ENV_SRC = "https://github.com/MRColorR/money4band/raw/main/${ENV_FILENAME}"
+# env file name and template file name #
+$script:ENV_TEMPLATE_FILENAME = '.env.template'
+$script:ENV_FILENAME = '.env'
+
 # Env file default #
 $DEVICE_NAME_PLACEHOLDER = 'yourDeviceName'
 $script:DEVICE_NAME = 'yourDeviceName'
@@ -20,16 +20,27 @@ $script:CONFIG_JSON_FILE = "config.json"
 $script:MAINMENU_JSON_FILE = "mainmenu.json"
 
 ## Docker compose related constants and variables ##
-# docker compose yaml file name #
+# docker compose yaml file name and template file name #
+$DKCOM_TEMPLATE_FILENAME = "docker-compose.yaml.template"
 $DKCOM_FILENAME = "docker-compose.yaml"
-# docker compose yaml prototype file link #
-$DKCOM_SRC = "https://github.com/MRColorR/money4band/raw/main/$DKCOM_FILENAME"
 
 ### Docker installer script for Windows source link ##
 $DKINST_WIN_SRC = 'https://github.com/MRColorR/money4band/raw/main/.resources/.scripts/install-docker-win.ps1'
 ### Docker installer script for Mac source link ##
 $DKINST_MAC_SRC = 'https://github.com/MRColorR/money4band/raw/main/.resources/.scripts/install-docker-mac.ps1'
-## Script variables ##
+## Script init and variables ##
+# initialize the env file with the default values if there is no env file already present
+# Check if the ${ENV_FILENAME} file is already present in the current directory, if it is not present copy from the .env.template file renaming it to ${ENV_FILENAME}, if it is present ask the user if they want to reset it or keep it as it is
+if (-not (Test-Path .\${ENV_FILENAME})) {
+    Write-Output "No ${ENV_FILENAME} file found, copying ${ENV_FILENAME} and ${DKCOM_FILENAME} from the template files"
+    Copy-Item .\${ENV_TEMPLATE_FILENAME} .\${ENV_FILENAME} -Force
+    Copy-Item .\${DKCOM_TEMPLATE_FILENAME} .\${DKCOM_FILENAME} -Force
+}
+else {
+    Write-Output "Already found ${ENV_FILENAME} file, proceeding with setup"
+}
+#Read-Host -Prompt "Press Enter to continue"
+
 # Script version getting it from ${ENV_FILENAME} file#
 $SCRIPT_VERSION = (Get-Content .\${ENV_FILENAME} | Select-String -Pattern "PROJECT_VERSION=" -SimpleMatch).ToString().Split("=")[1]
 
@@ -40,7 +51,8 @@ $SCRIPT_NAME = $MyInvocation.MyCommand.Name # save the script name in a variable
 $DS_PROJECT_SERVER_URL = (Get-Content .\${ENV_FILENAME} | Select-String -Pattern "DS_PROJECT_SERVER_URL=" -SimpleMatch).ToString().Split("=")[1]
 
 # Script URL for update #
-$UPDATE_SCRIPT_URL = "https://raw.githubusercontent.com/MRColorR/money4band/main/$SCRIPT_NAME"
+$PROJECT_BRANCH = "pythonize"
+$PROJECT_URL = "https://raw.githubusercontent.com/MRColorR/money4band/${PROJECT_BRANCH}"
 
 # Script debug log file #
 $DEBUG_LOG = "debug_$SCRIPT_NAME.log"
@@ -181,6 +193,23 @@ function fn_fail($text) {
 }
 
 ## Utility functions ##
+# Function to check if there are any updates available #
+function check_project_updates {
+    # Get the current script version from the local .env file
+    $SCRIPT_VERSION = (Get-Content .\$ENV_FILENAME | Select-String -Pattern "PROJECT_VERSION=" -SimpleMatch).ToString().Split("=")[1]
+
+    # Get the latest script version from the .env.template file on GitHub
+    $webClient = New-Object System.Net.WebClient
+    $templateContent = $webClient.DownloadString("$PROJECT_URL/$ENV_TEMPLATE_FILENAME")
+    $LATEST_SCRIPT_VERSION = ($templateContent | Select-String -Pattern "PROJECT_VERSION=" -SimpleMatch).ToString().Split("=")[1]
+
+    # Compare the versions and print a message if a newer version is available
+    if ($SCRIPT_VERSION -lt $LATEST_SCRIPT_VERSION) {
+        print_and_log "GREEN" "A newer version of the script is available. Please consider updating."
+    }
+    Read-Host -Prompt "Press Enter to continue"
+}
+
 # Function to detect OS
 function detect_os {
     toLog_ifDebug -l "[DEBUG]" -m "Detecting OS..."
@@ -1080,6 +1109,7 @@ function fn_setupEnv() {
         [string]$app_type # Accept the type of apps as an argument
     )
     print_and_log "BLUE" "Starting setupEnv function for $app_type"
+
     # Check if ${ENV_FILENAME} file is already configured if 1 then it is already configured, if 0 then it is not configured
     $ENV_CONFIGURATION_STATUS = (Get-Content .\${ENV_FILENAME} | Select-String -Pattern "ENV_CONFIGURATION_STATUS=" -SimpleMatch).ToString().Split("=")[1]
     toLog_ifDebug -l "[DEBUG]" -m "Current ENV_CONFIGURATION_STATUS: $ENV_CONFIGURATION_STATUS"
@@ -1094,11 +1124,11 @@ function fn_setupEnv() {
             $yn = Read-Host
 
             if ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') {
-                print_and_log "DEFAULT" "Downloading a fresh ${ENV_FILENAME} file."
-                $ProgressPreference = 'SilentlyContinue'
-                Invoke-WebRequest -Uri $script:ENV_SRC -OutFile "${ENV_FILENAME}"
-                Invoke-WebRequest -Uri $script:DKCOM_SRC -OutFile "$($script:DKCOM_FILENAME)"
-                $ProgressPreference = 'Continue'
+                print_and_log "DEFAULT" "Resetting ${ENV_FILENAME} file and ${DKCOM_FILENAME} file."
+                Remove-Item .\${ENV_FILENAME}
+                Remove-Item .\${DKCOM_FILENAME}
+                Copy-Item .\${ENV_TEMPLATE_FILENAME} .\${ENV_FILENAME} -Force
+                Copy-Item .\${DKCOM_TEMPLATE_FILENAME} .\${DKCOM_FILENAME} -Force
                 Clear-Host
                 break
             }
@@ -1323,28 +1353,27 @@ function fn_stopStack() {
 Function that will reset the ${ENV_FILENAME} file
 
 .DESCRIPTION
-This function will reset the ${ENV_FILENAME} file to the original version downloading a fresh copy from the repository.
+This function will reset the ${ENV_FILENAME} file to the original version using the ${ENV_TEMPLATE_FILENAME} template file.
 
 .EXAMPLE
 Just call fn_resetEnv
-
-.NOTES
-This function has been tested until v 2.0.0. The new version has not been tested as its assume that the logic is the same as the previous one just more refined.
 #>
 function fn_resetEnv() {
     Clear-Host
+    toLog_ifDebug -l "[DEBUG]" -m "Starting resetEnv function"
     while ($true) {
-        colorprint "YELLOW" "Now a fresh env file will be downloaded and will need to be configured to be used again"
+        colorprint "YELLOW" "A fresh ${ENV_FILENAME} file will be created from the ${ENV_TEMPLATE_FILENAME} template file"
         $yn = Read-Host "Do you wish to proceed Y/N?"
         if ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') {
             try {
-                $ProgressPreference = 'SilentlyContinue'
-                Invoke-WebRequest -Uri $script:ENV_SRC -OutFile "${ENV_FILENAME}"
-                $ProgressPreference = 'Continue'
+                if (Test-Path .\${ENV_FILENAME}) {
+                    Remove-Item .\${ENV_FILENAME}
+                }
+                Copy-Item .\${ENV_TEMPLATE_FILENAME} .\${ENV_FILENAME} -Force
                 colorprint "GREEN" "${ENV_FILENAME} file resetted, remember to reconfigure it"
             }
             catch {
-                colorprint "RED" "Error resetting ${ENV_FILENAME} file. Please check your internet connection and try again."
+                colorprint "RED" "Error resetting ${ENV_FILENAME} file."
             }
             Read-Host "Press Enter to go back to mainmenu"
             break
@@ -1358,6 +1387,7 @@ function fn_resetEnv() {
             colorprint "RED" "Please answer yes or no."
         }
     }
+    toLog_ifDebug -l "[DEBUG]" -m "resetEnv function ended"
 }
 
 
@@ -1366,28 +1396,27 @@ function fn_resetEnv() {
 Function that will reset the docker-compose.yaml file
 
 .DESCRIPTION
-This function will reset the docker-compose.yaml file to the original version downloading a fresh copy from the repository.
+This function will reset the docker-compose.yaml file to the original version using the ${DKCOM_TEMPLATE_FILENAME} template file.
 
 .EXAMPLE
 Just call fn_resetDockerCompose
-
-.NOTES
-This function has been tested until v 2.0.0. The new version has not been tested as its assume that the logic is the same as the previous one just more refined.
 #>
 function fn_resetDockerCompose() {
     Clear-Host
+    toLog_ifDebug -l "[DEBUG]" -m "Starting resetDockerCompose function"
     while ($true) {
-        colorprint "YELLOW" "Now a fresh $($script:DKCOM_FILENAME) file will be downloaded"
+        colorprint "YELLOW" "A fresh ${DKCOM_FILENAME} file will be created from the ${DKCOM_TEMPLATE_FILENAME} template file"
         $yn = Read-Host "Do you wish to proceed Y/N?"
         if ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') {
             try {
-                $ProgressPreference = 'SilentlyContinue'
-                Invoke-WebRequest -Uri $script:DKCOM_SRC -OutFile "$($script:DKCOM_FILENAME)"
-                $ProgressPreference = 'Continue'
-                colorprint "GREEN" "$($script:DKCOM_FILENAME) file resetted, remember to reconfigure it if needed"
+                if (Test-Path .\${DKCOM_FILENAME}) {
+                    Remove-Item .\${DKCOM_FILENAME}
+                }
+                Copy-Item .\${DKCOM_TEMPLATE_FILENAME} .\${DKCOM_FILENAME} -Force
+                colorprint "GREEN" "${DKCOM_FILENAME} file resetted, remember to reconfigure it if needed"
             }
             catch {
-                colorprint "RED" "Error resetting $($script:DKCOM_FILENAME) file. Please check your internet connection and try again."
+                colorprint "RED" "Error resetting ${DKCOM_FILENAME} file."
             }
             Read-Host "Press Enter to go back to mainmenu"
             break
@@ -1401,6 +1430,7 @@ function fn_resetDockerCompose() {
             colorprint "RED" "Please answer yes or no."
         }
     }
+    toLog_ifDebug -l "[DEBUG]" -m "resetDockerCompose function ended"
 }
 
 
@@ -1448,6 +1478,7 @@ This function has been tested until v 2.0.0. The new version has not been tested
 function mainmenu {
     Clear-Host
     colorprint "GREEN" "MONEY4BAND AUTOMATIC GUIDED SETUP v$script:SCRIPT_VERSION"
+    check_project_updates
     colorprint "GREEN" "---------------------------------------------- "
     colorprint "MAGENTA" "Join our Discord community for updates, help, and discussions: $DS_PROJECT_SERVER_URL"
     colorprint "MAGENTA" "---------------------------------------------- "

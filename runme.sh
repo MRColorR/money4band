@@ -3,10 +3,10 @@
 ### Variables and constants ###
 
 ## Env file related constants and variables ##
-# env file name #
+# env file name and template file name #
+readonly ENV_TEMPLATE_FILENAME='.env.template'
 readonly ENV_FILENAME='.env'
-# ${ENV_FILENAME} file prototype link #
-readonly ENV_SRC="https://github.com/MRColorR/money4band/raw/main/${ENV_FILENAME}" # this should be removed and to reset copyrom the template
+
 # Env file default #
 readonly DEVICE_NAME_PLACEHOLDER='yourDeviceName'
 DEVICE_NAME='yourDeviceName'
@@ -20,12 +20,22 @@ readonly CONFIG_JSON_FILE="config.json"
 readonly MAINMENU_JSON_FILE="mainmenu.json"
 
 ## Docker compose related constants and variables ##
-# docker compose yaml file name #
+# docker compose yaml file name and template file name #
+readonly DKCOM_TEMPLATE_FILENAME="docker-compose.yaml.template"
 readonly DKCOM_FILENAME="docker-compose.yaml"
-# docker compose yaml prototype file link #
-readonly DKCOM_SRC="https://github.com/MRColorR/money4band/raw/main/$DKCOM_FILENAME"
 
-## Script variables ##
+## Script init and variables ##
+# initialize the env file with the default values if there is no env file already present
+# Check if the ${ENV_FILENAME} file is already present in the current directory, if it is not present copy from the .env.template file renaming it to ${ENV_FILENAME}, if it is present ask the user if they want to reset it or keep it as it is
+if [ ! -f "${ENV_FILENAME}" ]; then
+    printf "No ${ENV_FILENAME} file found, copying ${ENV_FILENAME} and ${DKCOM_FILENAME} from the template files"
+    cp "${ENV_TEMPLATE_FILENAME}" "${ENV_FILENAME}"
+    cp "${DKCOM_TEMPLATE_FILENAME}" "${DKCOM_FILENAME}"
+else
+    printf "Already found ${ENV_FILENAME} file, proceeding with setup"
+fi
+#read -r -p "Press Enter to continue"
+
 # Script version getting it from ${ENV_FILENAME} file #
 readonly SCRIPT_VERSION=$(grep -oP 'PROJECT_VERSION=\K[^#\r]+' ${ENV_FILENAME}) 
 
@@ -36,7 +46,9 @@ readonly SCRIPT_NAME=$(basename "$0") # save the script name in a variable not t
 readonly DS_PROJECT_SERVER_URL=$(grep -oP 'DS_PROJECT_SERVER_URL=\K[^#\r]+' ${ENV_FILENAME})
 
 # Script URL for update #
-readonly UPDATE_SCRIPT_URL="https://raw.githubusercontent.com/MRColorR/money4band/main/${SCRIPT_NAME}"
+readonly PROJECT_BRANCH="pythonize"
+readonly PROJECT_URL="https://raw.githubusercontent.com/MRColorR/money4band/${PROJECT_BRANCH}"
+
 
 # Script log file #
 readonly DEBUG_LOG="debug_${SCRIPT_NAME}.log"
@@ -182,6 +194,20 @@ fn_fail() {
 }
 
 ## Utility functions ##
+# Function to check if there are any updates available #
+check_project_updates() {
+    # Get the current script version from the local .env file
+    SCRIPT_VERSION=$(grep -oP 'PROJECT_VERSION=\K.*' "./\$ENV_FILENAME")
+
+    # Get the latest script version from the .env.template file on GitHub
+    LATEST_SCRIPT_VERSION=$(curl -s "$PROJECT_URL/$ENV_TEMPLATE_FILENAME" | grep -oP 'PROJECT_VERSION=\K.*')
+
+    # Compare the versions and print a message if a newer version is available
+    if [[ "$SCRIPT_VERSION" < "$LATEST_SCRIPT_VERSION" ]]; then
+        print_and_log "GREEN" "A newer version of the script is available. Please consider updating."
+    fi
+}
+
 # Function to detect OS
 detect_os() {
     toLog_ifDebug -l "[DEBUG]" -m "Detecting OS..."
@@ -977,6 +1003,7 @@ fn_setupProxy() {
 fn_setupEnv(){
     local app_type="$1"  # Accept the type of apps as an argument
     print_and_log "BLUE" "Starting setupEnv function for $app_type"
+
     # Check if ${ENV_FILENAME} file is already configured if 1 then it is already configured, if 0 then it is not configured
     ENV_CONFIGURATION_STATUS=$(grep -oP '# ENV_CONFIGURATION_STATUS=\K[^#\r]+' ${ENV_FILENAME})
     toLog_ifDebug -l "[DEBUG]" -m "Current ENV_CONFIGURATION_STATUS: $ENV_CONFIGURATION_STATUS"
@@ -990,9 +1017,11 @@ fn_setupEnv(){
             read -r yn
             case $yn in
                 [Yy]* )
-                    print_and_log "DEFAULT" "Downloading a fresh ${ENV_FILENAME} file."; #this partshould bechanged to use the local template file notdownloadingit from internet
-                    curl -fsSL $ENV_SRC -o "${ENV_FILENAME}"
-                    curl -fsSL $DKCOM_SRC -o "$DKCOM_FILENAME"
+                    print_and_log "DEFAULT" "Resetting ${ENV_FILENAME} file and ${DKCOM_FILENAME} file."
+                    rm "${ENV_FILENAME}"
+                    rm "$DKCOM_FILENAME"
+                    cp "${ENV_TEMPLATE_FILENAME}" "${ENV_FILENAME}"
+                    cp "${DKCOM_TEMPLATE_FILENAME}" "${DKCOM_FILENAME}"
                     clear
                     break
                     ;;
@@ -1187,15 +1216,15 @@ fn_resetEnv(){ # this function needs rewiting as it should use now the local .en
     clear
     toLog_ifDebug -l "[DEBUG]" -m "Starting resetEnv function"
     while true; do
-        colorprint "RED" "Now a fresh env file will be downloaded and will need to be configured to be used again"
-        read -r -p "Do you wish to proceed Y/N?  " yn
+        colorprint "YELLOW" "A fresh ${ENV_FILENAME} file will be created from the ${ENV_TEMPLATE_FILENAME} template file"
+        read -r -p "Do you wish to proceed Y/N?" yn
         case $yn in
             [Yy]* ) 
-                if curl -fsSL $ENV_SRC -o "${ENV_FILENAME}"; then
-                    colorprint "GREEN" "${ENV_FILENAME} file resetted, remember to reconfigure it"
-                else
-                    colorprint "RED" "Error resetting ${ENV_FILENAME} file. Please check your internet connection and try again."
+                if [ -f ./${ENV_FILENAME} ]; then
+                    rm ./${ENV_FILENAME} || { colorprint "RED" "Error resetting ${ENV_FILENAME} file."; continue; }
                 fi
+                cp ./${ENV_TEMPLATE_FILENAME} ./${ENV_FILENAME} || { colorprint "RED" "Error resetting ${ENV_FILENAME} file."; continue; }
+                colorprint "GREEN" "${ENV_FILENAME} file resetted, remember to reconfigure it"
                 read -r -p "Press Enter to go back to mainmenu"
                 break
                 ;;
@@ -1204,25 +1233,27 @@ fn_resetEnv(){ # this function needs rewiting as it should use now the local .en
                 read -r -p "Press Enter to go back to mainmenu"
                 break
                 ;;
-            * ) colorprint "RED" "Please answer yes or no.";;
+            * ) 
+                colorprint "RED" "Please answer yes or no.";;
         esac
     done
-    toLog_ifDebug -l "[DEBUG]" -m "resetEnv function ended"
 }
+
+
 
 fn_resetDockerCompose(){
     clear
     toLog_ifDebug -l "[DEBUG]" -m "Starting resetDockerCompose function"
     while true; do
-        colorprint "RED" "Now a fresh $DKCOM_FILENAME file will be downloaded"
+        colorprint "YELLOW" "A fresh ${DKCOM_FILENAME} file will be created from the ${DKCOM_TEMPLATE_FILENAME} template file"
         read -r -p "Do you wish to proceed Y/N?  " yn
         case $yn in
             [Yy]* ) 
-                if curl -fsSL $DKCOM_SRC -o "$DKCOM_FILENAME"; then
-                    colorprint "GREEN" "$DKCOM_FILENAME file resetted, remember to reconfigure it if needed"
-                else
-                    colorprint "RED" "Error resetting $DKCOM_FILENAME file. Please check your internet connection and try again."
+                if [ -f ./$DKCOM_FILENAME ]; then
+                    rm ./$DKCOM_FILENAME || { colorprint "RED" "Error resetting $DKCOM_FILENAME file."; continue; }
                 fi
+                cp  ./$DKCOM_TEMPLATE_FILENAME ./$DKCOM_FILENAME || { colorprint "RED" "Error resetting $DKCOM_FILENAME file."; continue; }
+                colorprint "GREEN" "$DKCOM_FILENAME file resetted, remember to reconfigure it"
                 read -r -p "Press Enter to go back to mainmenu"
                 break
                 ;;
@@ -1240,7 +1271,9 @@ fn_resetDockerCompose(){
 # Function that will check the necerrary dependencies for the script to run
 fn_checkDependencies(){
     clear
-    colorprint "GREEN" "MONEY4BAND AUTOMATIC GUIDED SETUP v${SCRIPT_VERSION}"$'\n'"---------------------------------------------- "
+    colorprint "GREEN" "MONEY4BAND AUTOMATIC GUIDED SETUP v${SCRIPT_VERSION}"
+    check_project_updates
+    colorprint "GREEN" "---------------------------------------------- "
     colorprint "MAGENTA" "Join our Discord community for updates, help, and discussions: ${DS_PROJECT_SERVER_URL}"
     colorprint "MAGENTA" "---------------------------------------------- "
     print_and_log "YELLOW" "Checking dependencies..."
@@ -1260,7 +1293,9 @@ fn_checkDependencies(){
 ### Main Menu ##
 mainmenu() {
     clear
-    colorprint "GREEN" "MONEY4BAND AUTOMATIC GUIDED SETUP v${SCRIPT_VERSION}"$'\n'"---------------------------------------------- "
+    colorprint "GREEN" "MONEY4BAND AUTOMATIC GUIDED SETUP v${SCRIPT_VERSION}"
+    check_project_updates
+    colorprint "GREEN" "---------------------------------------------- "
     colorprint "MAGENTA" "Join our Discord community for updates, help, and discussions: ${DS_PROJECT_SERVER_URL}"
     colorprint "MAGENTA" "---------------------------------------------- "
     colorprint "DEFAULT" "Detected OS type: ${OS_TYPE}"$'\n'"Detected architecture: $ARCH"$'\n'"Docker $DKARCH image architecture will be used if the app's image permits it"$'\n'"---------------------------------------------- "$'\n'
