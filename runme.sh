@@ -1,28 +1,12 @@
 #!/usr/bin/env bash
 
 ### Variables and constants ###
-## Script variables ##
-# Script version getting it from .env file #
-readonly SCRIPT_VERSION=$(grep -oP 'PROJECT_VERSION=\K[^#\r]+' .env) 
-
-# Script name #
-readonly SCRIPT_NAME=$(basename "$0") # save the script name in a variable not the full path
-
-# Project Discord URL #
-readonly DS_PROJECT_SERVER_URL=$(grep -oP 'DS_PROJECT_SERVER_URL=\K[^#\r]+' .env)
-
-# Script URL for update #
-readonly UPDATE_SCRIPT_URL="https://raw.githubusercontent.com/MRColorR/money4band/main/${SCRIPT_NAME}"
-
-# Script log file #
-readonly DEBUG_LOG="debug_${SCRIPT_NAME}.log"
-
-# Script default sleep time #
-readonly SLEEP_TIME=1.5
 
 ## Env file related constants and variables ##
-# .env file prototype link #
-readonly ENV_SRC='https://github.com/MRColorR/money4band/raw/main/.env'
+# env file name and template file name #
+readonly ENV_TEMPLATE_FILENAME='.env.template'
+readonly ENV_FILENAME='.env'
+
 # Env file default #
 readonly DEVICE_NAME_PLACEHOLDER='yourDeviceName'
 DEVICE_NAME='yourDeviceName'
@@ -36,14 +20,45 @@ readonly CONFIG_JSON_FILE="config.json"
 readonly MAINMENU_JSON_FILE="mainmenu.json"
 
 ## Docker compose related constants and variables ##
-# docker compose yaml file name #
+# docker compose yaml file name and template file name #
+readonly DKCOM_TEMPLATE_FILENAME="docker-compose.yaml.template"
 readonly DKCOM_FILENAME="docker-compose.yaml"
-# docker compose yaml prototype file link #
-readonly DKCOM_SRC="https://github.com/MRColorR/money4band/raw/main/$DKCOM_FILENAME"
+
+## Script init and variables ##
+# initialize the env file with the default values if there is no env file already present
+# Check if the ${ENV_FILENAME} file is already present in the current directory, if it is not present copy from the .env.template file renaming it to ${ENV_FILENAME}, if it is present ask the user if they want to reset it or keep it as it is
+if [ ! -f "${ENV_FILENAME}" ]; then
+    printf "No ${ENV_FILENAME} file found, copying ${ENV_FILENAME} and ${DKCOM_FILENAME} from the template files"
+    cp "${ENV_TEMPLATE_FILENAME}" "${ENV_FILENAME}"
+    cp "${DKCOM_TEMPLATE_FILENAME}" "${DKCOM_FILENAME}"
+else
+    printf "Already found ${ENV_FILENAME} file, proceeding with setup"
+fi
+#read -r -p "Press Enter to continue"
+
+# Script version getting it from ${ENV_FILENAME} file #
+SCRIPT_VERSION=$(grep -oP 'PROJECT_VERSION=\K[^#\r]+' ${ENV_FILENAME}) 
+
+# Script name #
+readonly SCRIPT_NAME=$(basename "$0") # save the script name in a variable not the full path
+
+# Project Discord URL #
+readonly DS_PROJECT_SERVER_URL=$(grep -oP 'DS_PROJECT_SERVER_URL=\K[^#\r]+' ${ENV_FILENAME})
+
+# Script URL for update #
+readonly PROJECT_BRANCH="pythonize"
+readonly PROJECT_URL="https://raw.githubusercontent.com/MRColorR/money4band/${PROJECT_BRANCH}"
+
+
+# Script log file #
+readonly DEBUG_LOG="debug_${SCRIPT_NAME}.log"
+
+# Script default sleep time #
+readonly SLEEP_TIME=1.5
 
 ## Dashboard related constants and variables ##
-# Dashboard URL and PORT # get it form the .env file
-readonly DASHBOARD_PORT=$(grep -oP 'DASHBOARD_PORT=\K[^#\r]+' .env)
+# Dashboard URL and PORT # get it form the ${ENV_FILENAME} file
+readonly DASHBOARD_PORT=$(grep -oP 'DASHBOARD_PORT=\K[^#\r]+' ${ENV_FILENAME})
 readonly DASHBOARD_URL="http://localhost:$DASHBOARD_PORT"
 
 ### Resources, Scripts and Files folders ###
@@ -179,6 +194,45 @@ fn_fail() {
 }
 
 ## Utility functions ##
+# Function to check if there are any updates available #
+check_project_updates() {
+    # Get the current script version from the local .env file
+    SCRIPT_VERSION=$(grep -oP 'PROJECT_VERSION=\K[^#\r]+' "./${ENV_FILENAME}")
+    if [[ -z $SCRIPT_VERSION ]]; then
+        errorprint_and_log "Failed to get the script version from the local .env file."
+        return 1
+    fi
+
+    # Get the latest script version from the .env.template file on GitHub
+    LATEST_SCRIPT_VERSION=$(curl -fs "$PROJECT_URL/$ENV_TEMPLATE_FILENAME" | grep -oP 'PROJECT_VERSION=\K[^#\r]+')
+    if [[ -z $LATEST_SCRIPT_VERSION ]]; then
+        errorprint_and_log "Failed to get the latest script version from GitHub."
+        return 1
+    fi
+
+    # Split the versions into major, minor, and patch numbers
+    IFS='.' read -ra SCRIPT_VERSION_SPLIT <<< "$SCRIPT_VERSION"
+    IFS='.' read -ra LATEST_SCRIPT_VERSION_SPLIT <<< "$LATEST_SCRIPT_VERSION"
+
+    # Compare the versions and print a message if a newer version is available
+    for i in "${!SCRIPT_VERSION_SPLIT[@]}"; do
+        if (( ${SCRIPT_VERSION_SPLIT[i]} < ${LATEST_SCRIPT_VERSION_SPLIT[i]} )); then
+            print_and_log "YELLOW" "A newer version of the script is available. Please consider updating."
+            return 0  # Return here to exit the function as soon as a newer version is found
+        elif (( ${SCRIPT_VERSION_SPLIT[i]} > ${LATEST_SCRIPT_VERSION_SPLIT[i]} )); then
+            # If any part of the local version is greater, it's not an older version
+            return 0
+        fi
+    done
+
+    # If the loop completes without finding a newer version, you're up to date
+    print_and_log "BLUE" "Script is up to date."
+}
+
+
+
+
+
 # Function to detect OS
 detect_os() {
     toLog_ifDebug -l "[DEBUG]" -m "Detecting OS..."
@@ -521,14 +575,14 @@ fn_setupNotifications() {
                     colorprint "YELLOW" "NOW INSERT BELOW THE LINK FOR NOTIFICATIONS using THE SAME FORMAT WRITTEN ABOVE e.g.: discord://yourToken@yourWebhookid"
                     read -r SHOUTRRR_URL
                     if [[ "$SHOUTRRR_URL" =~ ^[a-zA-Z]+:// ]]; then
-                        # Replace the lines in the .env file and in the $DKCOM_FILENAME file
-                        sed -i "s~# SHOUTRRR_URL=~SHOUTRRR_URL=~" .env
-                        CURRENT_VALUE=$(grep -oP 'SHOUTRRR_URL=\K[^#\r]+' .env)
-                        sed -i "s~SHOUTRRR_URL=${CURRENT_VALUE}~SHOUTRRR_URL=$SHOUTRRR_URL~" .env
+                        # Replace the lines in the ${ENV_FILENAME} file and in the $DKCOM_FILENAME file
+                        sed -i "s~# SHOUTRRR_URL=~SHOUTRRR_URL=~" ${ENV_FILENAME}
+                        CURRENT_VALUE=$(grep -oP 'SHOUTRRR_URL=\K[^#\r]+' ${ENV_FILENAME})
+                        sed -i "s~SHOUTRRR_URL=${CURRENT_VALUE}~SHOUTRRR_URL=$SHOUTRRR_URL~" ${ENV_FILENAME}
                         sed -i "s~# - WATCHTOWER_NOTIFICATIONS=shoutrrr~- WATCHTOWER_NOTIFICATIONS=shoutrrr~" "$DKCOM_FILENAME"
                         sed -i "s~# - WATCHTOWER_NOTIFICATION_URL~- WATCHTOWER_NOTIFICATION_URL~" "$DKCOM_FILENAME"
                         sed -i "s~# - WATCHTOWER_NOTIFICATIONS_HOSTNAME~- WATCHTOWER_NOTIFICATIONS_HOSTNAME~" "$DKCOM_FILENAME"
-                        sed -i 's/NOTIFICATIONS_CONFIGURATION_STATUS=0/NOTIFICATIONS_CONFIGURATION_STATUS=1/' .env
+                        sed -i 's/NOTIFICATIONS_CONFIGURATION_STATUS=0/NOTIFICATIONS_CONFIGURATION_STATUS=1/' ${ENV_FILENAME}
                         colorprint "DEFAULT" "Notifications setup complete. If the link is correct, you will receive a notification for each update made on the app container images."
                         read -r -p "Press enter to continue."
                         break
@@ -644,7 +698,7 @@ fn_setupApp() {
                                     colorprint "GREEN" "Enter your ${CURRENT_APP} Email:"
                                     read -r APP_EMAIL
                                     if [[ "$APP_EMAIL" =~ ^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[a-zA-Z]{2,}$ ]]; then
-                                        sed -i "s/your${CURRENT_APP}Mail/$APP_EMAIL/" .env
+                                        sed -i "s/your${CURRENT_APP}Mail/$APP_EMAIL/" ${ENV_FILENAME}
                                         break
                                     else
                                         colorprint "RED" "Invalid email address. Please try again."
@@ -660,7 +714,7 @@ fn_setupApp() {
                                     if [[ -z "$APP_PASSWORD" ]]; then
                                         colorprint "RED" "Password cannot be empty. Please try again."
                                     else
-                                        sed -i "s/your${CURRENT_APP}Pw/$APP_PASSWORD/" .env
+                                        sed -i "s/your${CURRENT_APP}Pw/$APP_PASSWORD/" ${ENV_FILENAME}
                                         break
                                     fi
                                 done
@@ -674,7 +728,7 @@ fn_setupApp() {
                                     if [[ -z "$APP_APIKEY" ]]; then
                                         colorprint "RED" "APIKey cannot be empty. Please try again."
                                     else
-                                        sed -i "s^your${CURRENT_APP}APIKey^$APP_APIKEY^" .env
+                                        sed -i "s^your${CURRENT_APP}APIKey^$APP_APIKEY^" ${ENV_FILENAME}
                                         break
                                     fi
                                 done
@@ -688,7 +742,7 @@ fn_setupApp() {
                                     if [[ -z "$APP_USERID" ]]; then
                                         colorprint "RED" "UserID cannot be empty. Please try again."
                                     else
-                                        sed -i "s/your${CURRENT_APP}UserID/$APP_USERID/" .env
+                                        sed -i "s/your${CURRENT_APP}UserID/$APP_USERID/" ${ENV_FILENAME}
                                         break
                                     fi
                                 done
@@ -774,7 +828,7 @@ fn_setupApp() {
                                     esac
                                 done
                                 
-                                sed -i "s/your${CURRENT_APP}DeviceUUID/$UUID/" .env
+                                sed -i "s/your${CURRENT_APP}DeviceUUID/$UUID/" ${ENV_FILENAME}
                                 colorprint "DEFAULT" "${CURRENT_APP} UUID setup: done"
                                 # Generaing the claim link
                                 local claimlink="${claimURLBase}${UUID}"
@@ -792,7 +846,7 @@ fn_setupApp() {
                                     if [[ -z "$APP_CID" ]]; then
                                         colorprint "RED" "CID cannot be empty. Please try again."
                                     else
-                                        sed -i "s/your${CURRENT_APP}CID/$APP_CID/" .env
+                                        sed -i "s/your${CURRENT_APP}CID/$APP_CID/" ${ENV_FILENAME}
                                         break
                                     fi
                                 done
@@ -807,7 +861,7 @@ fn_setupApp() {
                                     if [[ -z "$APP_TOKEN" ]]; then
                                         colorprint "RED" "Token cannot be empty. Please try again."
                                     else
-                                        sed -i "s^your${CURRENT_APP}Token^$APP_TOKEN^" .env
+                                        sed -i "s^your${CURRENT_APP}Token^$APP_TOKEN^" ${ENV_FILENAME}
                                         break
                                     fi
                                 done
@@ -944,16 +998,16 @@ fn_setupProxy() {
                     read -r NEW_STACK_PROXY
                     # An unique name for the stack is chosen so that even if multiple stacks are started with different proxies the names do not conflict
                     # ATTENTION: if a random value has been already added to the project and devicename during a previous setup it should remain the same to mantain consistency withthe devices name registered on the apps sites but the proxy url could be changed
-                    sed -i "s^COMPOSE_PROJECT_NAME=money4band^COMPOSE_PROJECT_NAME=money4band_$RANDOM_VALUE^" .env 
-                    sed -i "s^DEVICE_NAME=${DEVICE_NAME}^DEVICE_NAME=${DEVICE_NAME}$RANDOM_VALUE^" .env
-                    # Obtaining the line of STACK_PROXY= in the .env file and then replace the line with the new proxy also uncomment the line if it was commented
-                    sed -i "s^# STACK_PROXY=^STACK_PROXY=^" .env # if it was already uncommented it does nothing
-                    CURRENT_VALUE=$(grep -oP 'STACK_PROXY=\K[^#\r]+' .env)
-                    sed -i "s^$CURRENT_VALUE^$NEW_STACK_PROXY^" .env
+                    sed -i "s^COMPOSE_PROJECT_NAME=money4band^COMPOSE_PROJECT_NAME=money4band_$RANDOM_VALUE^" ${ENV_FILENAME} 
+                    sed -i "s^DEVICE_NAME=${DEVICE_NAME}^DEVICE_NAME=${DEVICE_NAME}$RANDOM_VALUE^" ${ENV_FILENAME}
+                    # Obtaining the line of STACK_PROXY= in the ${ENV_FILENAME} file and then replace the line with the new proxy also uncomment the line if it was commented
+                    sed -i "s^# STACK_PROXY=^STACK_PROXY=^" ${ENV_FILENAME} # if it was already uncommented it does nothing
+                    CURRENT_VALUE=$(grep -oP 'STACK_PROXY=\K[^#\r]+' ${ENV_FILENAME})
+                    sed -i "s^$CURRENT_VALUE^$NEW_STACK_PROXY^" ${ENV_FILENAME}
                     sed -i 's^#ENABLE_PROXY ^ ^' "$DKCOM_FILENAME"
                     sed -i "s^# network_mode^network_mode^" $DKCOM_FILENAME
                     PROXY_CONF='true'
-                    sed -i 's/PROXY_CONFIGURATION_STATUS=0/PROXY_CONFIGURATION_STATUS=1/' .env
+                    sed -i 's/PROXY_CONFIGURATION_STATUS=0/PROXY_CONFIGURATION_STATUS=1/' ${ENV_FILENAME}
                     colorprint "DEFAULT" "Ok, $NEW_STACK_PROXY will be used as proxy for all apps in this stack"
                     read -r -p "Press enter to continue"
                     toLog_ifDebug -l "[DEBUG]" -m "Proxy setup finished"
@@ -974,27 +1028,30 @@ fn_setupProxy() {
 fn_setupEnv(){
     local app_type="$1"  # Accept the type of apps as an argument
     print_and_log "BLUE" "Starting setupEnv function for $app_type"
-    # Check if .env file is already configured if 1 then it is already configured, if 0 then it is not configured
-    ENV_CONFIGURATION_STATUS=$(grep -oP '# ENV_CONFIGURATION_STATUS=\K[^#\r]+' .env)
+
+    # Check if ${ENV_FILENAME} file is already configured if 1 then it is already configured, if 0 then it is not configured
+    ENV_CONFIGURATION_STATUS=$(grep -oP '# ENV_CONFIGURATION_STATUS=\K[^#\r]+' ${ENV_FILENAME})
     toLog_ifDebug -l "[DEBUG]" -m "Current ENV_CONFIGURATION_STATUS: $ENV_CONFIGURATION_STATUS"
-    PROXY_CONFIGURATION_STATUS=$(grep -oP '# PROXY_CONFIGURATION_STATUS=\K[^#\r]+' .env)
+    PROXY_CONFIGURATION_STATUS=$(grep -oP '# PROXY_CONFIGURATION_STATUS=\K[^#\r]+' ${ENV_FILENAME})
     toLog_ifDebug -l "[DEBUG]" -m "Current PROXY_CONFIGURATION_STATUS: $PROXY_CONFIGURATION_STATUS"
-    NOTIFICATIONS_CONFIGURATION_STATUS=$(grep -oP '# NOTIFICATIONS_CONFIGURATION_STATUS=\K[^#\r]+' .env)
+    NOTIFICATIONS_CONFIGURATION_STATUS=$(grep -oP '# NOTIFICATIONS_CONFIGURATION_STATUS=\K[^#\r]+' ${ENV_FILENAME})
     toLog_ifDebug -l "[DEBUG]" -m "Current NOTIFICATIONS_CONFIGURATION_STATUS: $NOTIFICATIONS_CONFIGURATION_STATUS"
     if [ "$ENV_CONFIGURATION_STATUS" == "1" ] && [ "$app_type" == "apps" ]; then
         while true; do
-            colorprint "YELLOW" "The current .env file appears to have already been configured. Do you wish to reset it? (Y/N)"
+            colorprint "YELLOW" "The current ${ENV_FILENAME} file appears to have already been configured. Do you wish to reset it? (Y/N)"
             read -r yn
             case $yn in
                 [Yy]* )
-                    print_and_log "DEFAULT" "Downloading a fresh .env file.";
-                    curl -fsSL $ENV_SRC -o ".env"
-                    curl -fsSL $DKCOM_SRC -o "$DKCOM_FILENAME"
+                    print_and_log "DEFAULT" "Resetting ${ENV_FILENAME} file and ${DKCOM_FILENAME} file."
+                    rm "${ENV_FILENAME}"
+                    rm "$DKCOM_FILENAME"
+                    cp "${ENV_TEMPLATE_FILENAME}" "${ENV_FILENAME}"
+                    cp "${DKCOM_TEMPLATE_FILENAME}" "${DKCOM_FILENAME}"
                     clear
                     break
                     ;;
                 [Nn]* )
-                    print_and_log "BLUE" "Keeping the existing .env file."
+                    print_and_log "BLUE" "Keeping the existing ${ENV_FILENAME} file."
                     sleep ${SLEEP_TIME}
                     clear
                     break
@@ -1006,33 +1063,33 @@ fn_setupEnv(){
             esac
         done            
     elif [ "$ENV_CONFIGURATION_STATUS" == "1" ] && [ "$app_type" != "apps" ]; then
-        print_and_log "BLUE" "Proceeding with $app_type setup without resetting .env file as it should already be configured by the main apps setup."
+        print_and_log "BLUE" "Proceeding with $app_type setup without resetting ${ENV_FILENAME} file as it should already be configured by the main apps setup."
         sleep ${SLEEP_TIME}
     fi
     while true; do
-        colorprint "YELLOW" "Do you wish to proceed with the .env file guided setup Y/N? (This will also adapt the $DKCOM_FILENAME file accordingly)"
+        colorprint "YELLOW" "Do you wish to proceed with the ${ENV_FILENAME} file guided setup Y/N? (This will also adapt the $DKCOM_FILENAME file accordingly)"
         read -r yn
         case $yn in
             [Yy]* ) 
                 clear
-                toLog_ifDebug -l "[DEBUG]" -m "User chose to proceed with the .env file guided setup for $app_type"
+                toLog_ifDebug -l "[DEBUG]" -m "User chose to proceed with the ${ENV_FILENAME} file guided setup for $app_type"
                 colorprint "YELLOW" "beginnning env file guided setup"
                 # Update the ENV_CONFIGURATION_STATUS
-                sed -i 's/ENV_CONFIGURATION_STATUS=0/ENV_CONFIGURATION_STATUS=1/' .env
+                sed -i 's/ENV_CONFIGURATION_STATUS=0/ENV_CONFIGURATION_STATUS=1/' ${ENV_FILENAME}
                 # Device Name setup
-                currentDeviceNameInEnv=$(grep -oP 'DEVICE_NAME=\K[^#\r]+' .env)
+                currentDeviceNameInEnv=$(grep -oP 'DEVICE_NAME=\K[^#\r]+' ${ENV_FILENAME})
                 if [ "$currentDeviceNameInEnv" == "$DEVICE_NAME_PLACEHOLDER" ]; then
                     toLog_ifDebug -l "[DEBUG]" -m "Device name is still the default one, asking user to change it"
                     colorprint "YELLOW" "PLEASE ENTER A NAME FOR YOUR DEVICE:"
                     read -r DEVICE_NAME
-                    sed -i "s/DEVICE_NAME=${DEVICE_NAME_PLACEHOLDER}/DEVICE_NAME=${DEVICE_NAME}/" .env
+                    sed -i "s/DEVICE_NAME=${DEVICE_NAME_PLACEHOLDER}/DEVICE_NAME=${DEVICE_NAME}/" ${ENV_FILENAME}
                 else
                     toLog_ifDebug -l "[DEBUG]" -m "Device name is already set, skipping user input"
                     DEVICE_NAME="$currentDeviceNameInEnv"
                 fi
                 clear ;
                 if [ "$PROXY_CONFIGURATION_STATUS" == "1" ]; then
-                    CURRENT_PROXY=$(grep -oP 'STACK_PROXY=\K[^#\r]+' .env)
+                    CURRENT_PROXY=$(grep -oP 'STACK_PROXY=\K[^#\r]+' ${ENV_FILENAME})
                     print_and_log "BLUE" "Proxy is already set up."
                     while true; do
                         colorprint "YELLOW" "The current proxy is: ${CURRENT_PROXY} . Do you wish to change it? (Y/N)"
@@ -1076,7 +1133,7 @@ fn_setupEnv(){
                 if [ "$NOTIFICATIONS_CONFIGURATION_STATUS" == "1" ]; then
                     print_and_log "BLUE" "Notifications are already set up."
                     while true; do
-                        CURRENT_SHOUTRRR_URL=$(grep -oP 'SHOUTRRR_URL=\K[^#\r]+' .env)
+                        CURRENT_SHOUTRRR_URL=$(grep -oP 'SHOUTRRR_URL=\K[^#\r]+' ${ENV_FILENAME})
                         colorprint "YELLOW" "The current notifications setup uses: ${CURRENT_SHOUTRRR_URL}. Do you wish to change it? (Y/N)"
                         read -r yn
                         case $yn in
@@ -1101,8 +1158,8 @@ fn_setupEnv(){
                 break
                 ;;
             [Nn]* )
-                toLog_ifDebug -l "[DEBUG]" -m "User chose not to proceed with the .env file guided setup for $app_type"
-                colorprint "BLUE" ".env file setup canceled. Make sure you have a valid .env file before proceeding with the stack startup."
+                toLog_ifDebug -l "[DEBUG]" -m "User chose not to proceed with the ${ENV_FILENAME} file guided setup for $app_type"
+                colorprint "BLUE" "${ENV_FILENAME} file setup canceled. Make sure you have a valid ${ENV_FILENAME} file before proceeding with the stack startup."
                 read -r -p "Press Enter to go back to mainmenu"
                 break
                 ;;
@@ -1123,11 +1180,11 @@ fn_startStack(){
     clear
     toLog_ifDebug -l "[DEBUG]" -m "Starting startStack function"
     while true; do
-        colorprint "YELLOW" "This menu item will launch all the apps using the configured .env file and the $DKCOM_FILENAME file (Docker must be already installed and running)"
+        colorprint "YELLOW" "This menu item will launch all the apps using the configured ${ENV_FILENAME} file and the $DKCOM_FILENAME file (Docker must be already installed and running)"
         read -r -p "Do you wish to proceed Y/N?  " yn
         case $yn in
             [Yy]* ) 
-                if sudo docker compose up -d; then
+                if sudo docker-compose -f ${DKCOM_FILENAME} --env-file ${ENV_FILENAME} up -d; then
                     print_and_log "GREEN" "All Apps started."
                     print_and_log "CYAN" "You can visit the web dashboard on ${DASHBOARD_URL}"
                     echo "${DASHBOARD_URL}" > "dashboardURL.txt"
@@ -1155,11 +1212,11 @@ fn_stopStack(){
     clear
     toLog_ifDebug -l "[DEBUG]" -m "Starting stopStack function"
     while true; do
-        colorprint "YELLOW" "This menu item will stop all the apps and delete the docker stack previously created using the configured .env file and the $DKCOM_FILENAME file."
+        colorprint "YELLOW" "This menu item will stop all the apps and delete the docker stack previously created using the configured ${ENV_FILENAME} file and the $DKCOM_FILENAME file."
         read -r -p "Do you wish to proceed Y/N?  " yn
         case $yn in
             [Yy]* ) 
-                if sudo docker compose down; then
+                if sudo docker-compose -f $DKCOM_FILENAME down; then
                     print_and_log "GREEN" "All Apps stopped and stack deleted."
                 else
                     errorprint_and_log "Error stopping and deleting Docker stack. Please check the configuration and try again."
@@ -1180,46 +1237,48 @@ fn_stopStack(){
 }
 
 
-fn_resetEnv(){
+fn_resetEnv(){ # this function needs rewiting as it should use now the local .env.template file
     clear
     toLog_ifDebug -l "[DEBUG]" -m "Starting resetEnv function"
     while true; do
-        colorprint "RED" "Now a fresh env file will be downloaded and will need to be configured to be used again"
-        read -r -p "Do you wish to proceed Y/N?  " yn
+        colorprint "YELLOW" "A fresh ${ENV_FILENAME} file will be created from the ${ENV_TEMPLATE_FILENAME} template file"
+        read -r -p "Do you wish to proceed Y/N?" yn
         case $yn in
             [Yy]* ) 
-                if curl -fsSL $ENV_SRC -o ".env"; then
-                    colorprint "GREEN" ".env file resetted, remember to reconfigure it"
-                else
-                    colorprint "RED" "Error resetting .env file. Please check your internet connection and try again."
+                if [ -f ./${ENV_FILENAME} ]; then
+                    rm ./${ENV_FILENAME} || { colorprint "RED" "Error resetting ${ENV_FILENAME} file."; continue; }
                 fi
+                cp ./${ENV_TEMPLATE_FILENAME} ./${ENV_FILENAME} || { colorprint "RED" "Error resetting ${ENV_FILENAME} file."; continue; }
+                colorprint "GREEN" "${ENV_FILENAME} file resetted, remember to reconfigure it"
                 read -r -p "Press Enter to go back to mainmenu"
                 break
                 ;;
             [Nn]* ) 
-                colorprint "BLUE" ".env file reset canceled. The file is left as it is"
+                colorprint "BLUE" "${ENV_FILENAME} file reset canceled. The file is left as it is"
                 read -r -p "Press Enter to go back to mainmenu"
                 break
                 ;;
-            * ) colorprint "RED" "Please answer yes or no.";;
+            * ) 
+                colorprint "RED" "Please answer yes or no.";;
         esac
     done
-    toLog_ifDebug -l "[DEBUG]" -m "resetEnv function ended"
 }
+
+
 
 fn_resetDockerCompose(){
     clear
     toLog_ifDebug -l "[DEBUG]" -m "Starting resetDockerCompose function"
     while true; do
-        colorprint "RED" "Now a fresh $DKCOM_FILENAME file will be downloaded"
+        colorprint "YELLOW" "A fresh ${DKCOM_FILENAME} file will be created from the ${DKCOM_TEMPLATE_FILENAME} template file"
         read -r -p "Do you wish to proceed Y/N?  " yn
         case $yn in
             [Yy]* ) 
-                if curl -fsSL $DKCOM_SRC -o "$DKCOM_FILENAME"; then
-                    colorprint "GREEN" "$DKCOM_FILENAME file resetted, remember to reconfigure it if needed"
-                else
-                    colorprint "RED" "Error resetting $DKCOM_FILENAME file. Please check your internet connection and try again."
+                if [ -f ./$DKCOM_FILENAME ]; then
+                    rm ./$DKCOM_FILENAME || { colorprint "RED" "Error resetting $DKCOM_FILENAME file."; continue; }
                 fi
+                cp  ./$DKCOM_TEMPLATE_FILENAME ./$DKCOM_FILENAME || { colorprint "RED" "Error resetting $DKCOM_FILENAME file."; continue; }
+                colorprint "GREEN" "$DKCOM_FILENAME file resetted, remember to reconfigure it"
                 read -r -p "Press Enter to go back to mainmenu"
                 break
                 ;;
@@ -1237,7 +1296,9 @@ fn_resetDockerCompose(){
 # Function that will check the necerrary dependencies for the script to run
 fn_checkDependencies(){
     clear
-    colorprint "GREEN" "MONEY4BAND AUTOMATIC GUIDED SETUP v${SCRIPT_VERSION}"$'\n'"---------------------------------------------- "
+    colorprint "GREEN" "MONEY4BAND AUTOMATIC GUIDED SETUP v${SCRIPT_VERSION}"
+    check_project_updates
+    colorprint "GREEN" "---------------------------------------------- "
     colorprint "MAGENTA" "Join our Discord community for updates, help, and discussions: ${DS_PROJECT_SERVER_URL}"
     colorprint "MAGENTA" "---------------------------------------------- "
     print_and_log "YELLOW" "Checking dependencies..."
@@ -1257,7 +1318,9 @@ fn_checkDependencies(){
 ### Main Menu ##
 mainmenu() {
     clear
-    colorprint "GREEN" "MONEY4BAND AUTOMATIC GUIDED SETUP v${SCRIPT_VERSION}"$'\n'"---------------------------------------------- "
+    colorprint "GREEN" "MONEY4BAND AUTOMATIC GUIDED SETUP v${SCRIPT_VERSION}"
+    check_project_updates
+    colorprint "GREEN" "---------------------------------------------- "
     colorprint "MAGENTA" "Join our Discord community for updates, help, and discussions: ${DS_PROJECT_SERVER_URL}"
     colorprint "MAGENTA" "---------------------------------------------- "
     colorprint "DEFAULT" "Detected OS type: ${OS_TYPE}"$'\n'"Detected architecture: $ARCH"$'\n'"Docker $DKARCH image architecture will be used if the app's image permits it"$'\n'"---------------------------------------------- "$'\n'
