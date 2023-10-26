@@ -59,7 +59,15 @@
         "--email":{},
         "--apikey":{}
       }
-
+    },
+    {
+      "name": "EARNFM",
+      "dashboard": "https://app.earn.fm/",
+      "link": "https://earn.fm/ref/MATTTAV6",
+      "image": "earnfm/earnfm-client",
+      "flags":{
+        "--apikey":{}
+      }
     },
     {
       "name": "PROXYRACK",
