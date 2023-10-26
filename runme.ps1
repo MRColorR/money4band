@@ -29,17 +29,32 @@ $DKINST_WIN_SRC = 'https://github.com/MRColorR/money4band/raw/main/.resources/.s
 ### Docker installer script for Mac source link ##
 $DKINST_MAC_SRC = 'https://github.com/MRColorR/money4band/raw/main/.resources/.scripts/install-docker-mac.ps1'
 ## Script init and variables ##
+# Script default sleep time #
+$SLEEP_TIME = 1.5
 # initialize the env file with the default values if there is no env file already present
 # Check if the ${ENV_FILENAME} file is already present in the current directory, if it is not present copy from the .env.template file renaming it to ${ENV_FILENAME}, if it is present ask the user if they want to reset it or keep it as it is
 if (-not (Test-Path .\${ENV_FILENAME})) {
     Write-Output "No ${ENV_FILENAME} file found, copying ${ENV_FILENAME} and ${DKCOM_FILENAME} from the template files"
     Copy-Item .\${ENV_TEMPLATE_FILENAME} .\${ENV_FILENAME} -Force
     Copy-Item .\${DKCOM_TEMPLATE_FILENAME} .\${DKCOM_FILENAME} -Force
+    Write-Output "Copied ${ENV_FILENAME} and ${DKCOM_FILENAME} from the template files"
 }
 else {
     Write-Output "Already found ${ENV_FILENAME} file, proceeding with setup"
+    # check if the release version in the local env fileis the same of the local template file , if not align it
+    $LOCAL_SCRIPT_VERSION = (Get-Content .\${ENV_FILENAME} | Select-String -Pattern "PROJECT_VERSION=" -SimpleMatch).ToString().Split("=")[1]
+    $LOCAL_SCRIPT_TEMPLATE_VERSION = (Get-Content .\${ENV_TEMPLATE_FILENAME} | Select-String -Pattern "PROJECT_VERSION=" -SimpleMatch).ToString().Split("=")[1]
+    if ($LOCAL_SCRIPT_VERSION -ne $LOCAL_SCRIPT_TEMPLATE_VERSION) {
+        Write-Output "Local ${ENV_FILENAME} file version is different from the local ${ENV_TEMPLATE_FILENAME} file version, aligning the local ${ENV_FILENAME} file version to the local ${ENV_TEMPLATE_FILENAME} file version"
+        # Replace the lines in ${ENV_FILENAME} and $DKCOM_FILENAME
+        (Get-Content .\${ENV_FILENAME}).replace("PROJECT_VERSION=${LOCAL_SCRIPT_VERSION}", "PROJECT_VERSION=${LOCAL_SCRIPT_TEMPLATE_VERSION}") | Set-Content .\${ENV_FILENAME}
+        Write-Output "Local ${ENV_FILENAME} file version aligned to the local ${ENV_TEMPLATE_FILENAME} file version"
+        Write-Output "This could be the result of an update applied to an existing ${ENV_FILENAME} file, if something is not working as expected please check the ${ENV_FILENAME} file and the ${ENV_TEMPLATE_FILENAME} file and make sure they are aligned."
+        Write-Output "If you are not sure, please delete/reset the ${ENV_FILENAME} file and the ${DKCOM_FILENAME} file and then run this script again or download the latest version directly from GitHub."
+        Start-Sleep -Seconds $SLEEP_TIME
+        Read-Host -Prompt "Press Enter to continue"
+    }
 }
-#Read-Host -Prompt "Press Enter to continue"
 
 # Script version getting it from ${ENV_FILENAME} file#
 $SCRIPT_VERSION = (Get-Content .\${ENV_FILENAME} | Select-String -Pattern "PROJECT_VERSION=" -SimpleMatch).ToString().Split("=")[1]
@@ -57,8 +72,6 @@ $PROJECT_URL = "https://raw.githubusercontent.com/MRColorR/money4band/${PROJECT_
 # Script debug log file #
 $DEBUG_LOG = "debug_$SCRIPT_NAME.log"
 
-# Script default sleep time #
-$SLEEP_TIME = 1.5
 
 ## Dashboard related constants and variables ##
 # Dashboard URL and PORT # get it form the ${ENV_FILENAME} file

@@ -25,16 +25,30 @@ readonly DKCOM_TEMPLATE_FILENAME="docker-compose.yaml.template"
 readonly DKCOM_FILENAME="docker-compose.yaml"
 
 ## Script init and variables ##
+# Script default sleep time #
+readonly SLEEP_TIME=1.5
 # initialize the env file with the default values if there is no env file already present
 # Check if the ${ENV_FILENAME} file is already present in the current directory, if it is not present copy from the .env.template file renaming it to ${ENV_FILENAME}, if it is present ask the user if they want to reset it or keep it as it is
 if [ ! -f "${ENV_FILENAME}" ]; then
-    printf "No ${ENV_FILENAME} file found, copying ${ENV_FILENAME} and ${DKCOM_FILENAME} from the template files"
+    echo "No ${ENV_FILENAME} file found, copying ${ENV_FILENAME} and ${DKCOM_FILENAME} from the template files"
     cp "${ENV_TEMPLATE_FILENAME}" "${ENV_FILENAME}"
     cp "${DKCOM_TEMPLATE_FILENAME}" "${DKCOM_FILENAME}"
+    echo "Copied ${ENV_FILENAME} and ${DKCOM_FILENAME} from the template files"
 else
-    printf "Already found ${ENV_FILENAME} file, proceeding with setup"
+    echo "Already found ${ENV_FILENAME} file, proceeding with setup"
+    # check if the release version in the local env fileis the same of the local template file , if not align it
+    LOCAL_SCRIPT_VERSION=$(grep -oP 'PROJECT_VERSION=\K[^#\r]+' ${ENV_FILENAME})
+    LOCAL_SCRIPT_TEMPLATE_VERSION=$(grep -oP 'PROJECT_VERSION=\K[^#\r]+' ${ENV_TEMPLATE_FILENAME})
+    if [[ "$LOCAL_SCRIPT_VERSION" != "$LOCAL_SCRIPT_TEMPLATE_VERSION" ]]; then
+        echo "Local ${ENV_FILENAME} file version is different from the local ${ENV_TEMPLATE_FILENAME} file version, aligning the ${ENV_FILENAME} file version to the ${ENV_TEMPLATE_FILENAME} file version"
+        sed -i "s~PROJECT_VERSION=${LOCAL_SCRIPT_VERSION}~PROJECT_VERSION=${LOCAL_SCRIPT_TEMPLATE_VERSION}~" ${ENV_FILENAME}
+        echo "Local ${ENV_FILENAME} file version aligned to the local ${ENV_TEMPLATE_FILENAME} file version"
+        echo "This could be the result of an update applied to an existing ${ENV_FILENAME} file, if something is not working as expected please check the ${ENV_FILENAME} file and the ${ENV_TEMPLATE_FILENAME} file and make sure they are aligned."
+        echo "If you are not sure, please delete/reset the ${ENV_FILENAME} file and the ${DKCOM_FILENAME} file and then run this script again or download the latest version directly from GitHub."
+        sleep $SLEEP_TIME
+        read -r -p "Press Enter to continue"
+    fi
 fi
-#read -r -p "Press Enter to continue"
 
 # Script version getting it from ${ENV_FILENAME} file #
 SCRIPT_VERSION=$(grep -oP 'PROJECT_VERSION=\K[^#\r]+' ${ENV_FILENAME}) 
@@ -52,9 +66,6 @@ readonly PROJECT_URL="https://raw.githubusercontent.com/MRColorR/money4band/${PR
 
 # Script log file #
 readonly DEBUG_LOG="debug_${SCRIPT_NAME}.log"
-
-# Script default sleep time #
-readonly SLEEP_TIME=1.5
 
 ## Dashboard related constants and variables ##
 # Dashboard URL and PORT # get it form the ${ENV_FILENAME} file
@@ -228,10 +239,6 @@ check_project_updates() {
     # If the loop completes without finding a newer version, you're up to date
     print_and_log "BLUE" "Script is up to date."
 }
-
-
-
-
 
 # Function to detect OS
 detect_os() {
