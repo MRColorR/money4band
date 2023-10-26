@@ -2,28 +2,10 @@
 set-executionpolicy -scope CurrentUser -executionPolicy Bypass -Force
 
 ### Variables and constants ###
-## Script variables ##
-# Script version getting it from .env file#
-$SCRIPT_VERSION = (Get-Content .\.env | Select-String -Pattern "PROJECT_VERSION=" -SimpleMatch).ToString().Split("=")[1]
-
-# Script name #
-$SCRIPT_NAME = $MyInvocation.MyCommand.Name # save the script name in a variable, not the full path
-
-# Project Discord URL #
-$DS_PROJECT_SERVER_URL = (Get-Content .\.env | Select-String -Pattern "DS_PROJECT_SERVER_URL=" -SimpleMatch).ToString().Split("=")[1]
-
-# Script URL for update #
-$UPDATE_SCRIPT_URL = "https://raw.githubusercontent.com/MRColorR/money4band/main/$SCRIPT_NAME"
-
-# Script debug log file #
-$DEBUG_LOG = "debug_$SCRIPT_NAME.log"
-
-# Script default sleep time #
-$SLEEP_TIME = 1.5
-
 ## Env file related constants and variables ##
-# .env file prototype link #
-$ENV_SRC = 'https://github.com/MRColorR/money4band/raw/main/.env'
+$ENV_FILENAME = '.env'
+# ${ENV_FILENAME} file prototype link #
+$ENV_SRC = "https://github.com/MRColorR/money4band/raw/main/${ENV_FILENAME}"
 # Env file default #
 $DEVICE_NAME_PLACEHOLDER = 'yourDeviceName'
 $script:DEVICE_NAME = 'yourDeviceName'
@@ -46,10 +28,28 @@ $DKCOM_SRC = "https://github.com/MRColorR/money4band/raw/main/$DKCOM_FILENAME"
 $DKINST_WIN_SRC = 'https://github.com/MRColorR/money4band/raw/main/.resources/.scripts/install-docker-win.ps1'
 ### Docker installer script for Mac source link ##
 $DKINST_MAC_SRC = 'https://github.com/MRColorR/money4band/raw/main/.resources/.scripts/install-docker-mac.ps1'
+## Script variables ##
+# Script version getting it from ${ENV_FILENAME} file#
+$SCRIPT_VERSION = (Get-Content .\${ENV_FILENAME} | Select-String -Pattern "PROJECT_VERSION=" -SimpleMatch).ToString().Split("=")[1]
+
+# Script name #
+$SCRIPT_NAME = $MyInvocation.MyCommand.Name # save the script name in a variable, not the full path
+
+# Project Discord URL #
+$DS_PROJECT_SERVER_URL = (Get-Content .\${ENV_FILENAME} | Select-String -Pattern "DS_PROJECT_SERVER_URL=" -SimpleMatch).ToString().Split("=")[1]
+
+# Script URL for update #
+$UPDATE_SCRIPT_URL = "https://raw.githubusercontent.com/MRColorR/money4band/main/$SCRIPT_NAME"
+
+# Script debug log file #
+$DEBUG_LOG = "debug_$SCRIPT_NAME.log"
+
+# Script default sleep time #
+$SLEEP_TIME = 1.5
 
 ## Dashboard related constants and variables ##
-# Dashboard URL and PORT # get it form the .env file
-$script:DASHBOARD_PORT = (Get-Content .\.env | Select-String -Pattern "DASHBOARD_PORT=" -SimpleMatch).ToString().Split("=")[1]
+# Dashboard URL and PORT # get it form the ${ENV_FILENAME} file
+$script:DASHBOARD_PORT = (Get-Content .\${ENV_FILENAME} | Select-String -Pattern "DASHBOARD_PORT=" -SimpleMatch).ToString().Split("=")[1]
 $script:DASHBOARD_URL = "http://localhost:$DASHBOARD_PORT"
 
 ### Resources, Scripts and Files folders ###
@@ -501,7 +501,7 @@ function fn_dockerInstall {
                 }
             }
             if ($InstallStatus) {
-                colorprint "Green" "Script completed. If no errors appeared Docker should be installed. Please restart your machine and then proceed to .env file config and stack startup."
+                colorprint "Green" "Script completed. If no errors appeared Docker should be installed. Please restart your machine and then proceed to ${ENV_FILENAME} file config and stack startup."
             }
             else {
                 colorprint "Red" "Something went wrong (maybe bad choice or incomplete installation), failed to install Docker automatically. Please try to install Docker manually by following the instructions on Docker website."
@@ -527,7 +527,7 @@ function fn_dockerInstall {
 Function that will setup notifications about containers updates using shoutrrr
 
 .DESCRIPTION
-This function will setup notifications about containers updates using shoutrrr. It will ask the user to enter a link for notifications and then it will update the .env file and the docker-compose.yaml file accordingly.
+This function will setup notifications about containers updates using shoutrrr. It will ask the user to enter a link for notifications and then it will update the ${ENV_FILENAME} file and the docker-compose.yaml file accordingly.
 
 .EXAMPLE
 Just call fn_setupNotifications
@@ -561,14 +561,14 @@ function fn_setupNotifications {
                 colorprint "Yellow" "NOW INSERT BELOW THE LINK FOR NOTIFICATIONS using THE SAME FORMAT WRITTEN ABOVE e.g.: discord://yourToken@yourWebhookid"
                 $SHOUTRRR_URL = Read-Host
                 if ($SHOUTRRR_URL -match '^[a-zA-Z]+://') {
-                    # Replace the lines in .env and $DKCOM_FILENAME
-                    (Get-Content .\.env).replace('# SHOUTRRR_URL=', "SHOUTRRR_URL=") | Set-Content .\.env
-                    $CURRENT_VALUE = (Get-Content .\.env | Select-String -Pattern "SHOUTRRR_URL=" -SimpleMatch).ToString().Split("=")[1]
-                    (Get-Content .\.env).replace("SHOUTRRR_URL=${CURRENT_VALUE}", "SHOUTRRR_URL=${SHOUTRRR_URL}") | Set-Content .\.env
+                    # Replace the lines in ${ENV_FILENAME} and $DKCOM_FILENAME
+                    (Get-Content .\${ENV_FILENAME}).replace('# SHOUTRRR_URL=', "SHOUTRRR_URL=") | Set-Content .\${ENV_FILENAME}
+                    $CURRENT_VALUE = (Get-Content .\${ENV_FILENAME} | Select-String -Pattern "SHOUTRRR_URL=" -SimpleMatch).ToString().Split("=")[1]
+                    (Get-Content .\${ENV_FILENAME}).replace("SHOUTRRR_URL=${CURRENT_VALUE}", "SHOUTRRR_URL=${SHOUTRRR_URL}") | Set-Content .\${ENV_FILENAME}
                     (Get-Content .\$DKCOM_FILENAME).replace('# - WATCHTOWER_NOTIFICATIONS=shoutrrr', "- WATCHTOWER_NOTIFICATIONS=shoutrrr") | Set-Content .\$DKCOM_FILENAME
                     (Get-Content .\$DKCOM_FILENAME).replace('# - WATCHTOWER_NOTIFICATION_URL', "- WATCHTOWER_NOTIFICATION_URL") | Set-Content .\$DKCOM_FILENAME
                     (Get-Content .\$DKCOM_FILENAME).replace('# - WATCHTOWER_NOTIFICATIONS_HOSTNAME', "- WATCHTOWER_NOTIFICATIONS_HOSTNAME") | Set-Content .\$DKCOM_FILENAME
-                    (Get-Content .\.env).replace("NOTIFICATIONS_CONFIGURATION_STATUS=0", "NOTIFICATIONS_CONFIGURATION_STATUS=1") | Set-Content .\.env
+                    (Get-Content .\${ENV_FILENAME}).replace("NOTIFICATIONS_CONFIGURATION_STATUS=0", "NOTIFICATIONS_CONFIGURATION_STATUS=1") | Set-Content .\${ENV_FILENAME}
                     colorprint "DEFAULT" "Notifications setup complete. If the link is correct, you will receive a notification for each update made on the app container images."
                     Read-Host -p "Press enter to continue"
                     break 
@@ -616,7 +616,7 @@ function fn_setupNotifications {
 This function will manage the setup of each app in the stack
 
 .DESCRIPTION
-This function will manage the setup of each app in the stack. It will ask the user to enter the required data for each app and then it will update the .env file and the docker-compose.yaml file accordingly.
+This function will manage the setup of each app in the stack. It will ask the user to enter the required data for each app and then it will update the ${ENV_FILENAME} file and the docker-compose.yaml file accordingly.
 
 .PARAMETER app
 App name and image are required parameters. The app name is used to identify the app in the setup process.
@@ -625,7 +625,7 @@ App name and image are required parameters. The app name is used to identify the
 the image is used to feryfy if the image supports the current architecture and to update the docker-compose.yaml file accordingly.
 
 .PARAMETER flags
-Optional parameter. If the app requires an email to be setup, this parameter will be used to update the .env file.
+Optional parameter. If the app requires an email to be setup, this parameter will be used to update the ${ENV_FILENAME} file.
 
 .EXAMPLE
 fn_setupApp -app "HONEYGAIN" -image "honeygain/honeygain" -email "email" -password "password"
@@ -691,7 +691,7 @@ function fn_setupApp() {
                                 colorprint "GREEN" "Enter your ${CURRENT_APP} Email:"
                                 $APP_EMAIL = Read-Host
                                 if ($APP_EMAIL -match '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[a-zA-Z]{2,}$') {
-                                    (Get-Content .env) -replace "your${CURRENT_APP}Mail", $APP_EMAIL | Set-Content .env
+                                    (Get-Content ${ENV_FILENAME}) -replace "your${CURRENT_APP}Mail", $APP_EMAIL | Set-Content ${ENV_FILENAME}
                                     break
                                 }
                                 else {
@@ -706,7 +706,7 @@ function fn_setupApp() {
                                 colorprint "GREEN" "Enter your ${CURRENT_APP} Password:"
                                 $APP_PASSWORD = Read-Host
                                 if ($APP_PASSWORD) {
-                                    (Get-Content .env) -replace "your${CURRENT_APP}Pw", $APP_PASSWORD | Set-Content .env
+                                    (Get-Content ${ENV_FILENAME}) -replace "your${CURRENT_APP}Pw", $APP_PASSWORD | Set-Content ${ENV_FILENAME}
                                     break
                                 }
                                 else {
@@ -721,7 +721,7 @@ function fn_setupApp() {
                                 colorprint "GREEN" "Enter your ${CURRENT_APP} APIKey:"
                                 $APP_APIKEY = Read-Host
                                 if ($APP_APIKEY) {
-                                    (Get-Content .env) -replace "your${CURRENT_APP}APIKey", $APP_APIKEY | Set-Content .env
+                                    (Get-Content ${ENV_FILENAME}) -replace "your${CURRENT_APP}APIKey", $APP_APIKEY | Set-Content ${ENV_FILENAME}
                                     break
                                 }
                                 else {
@@ -736,7 +736,7 @@ function fn_setupApp() {
                                 colorprint "GREEN" "Enter your ${CURRENT_APP} UserID:"
                                 $APP_USERID = Read-Host
                                 if ($APP_USERID) {
-                                    (Get-Content .env) -replace "your${CURRENT_APP}UserID", $APP_USERID | Set-Content .env
+                                    (Get-Content ${ENV_FILENAME}) -replace "your${CURRENT_APP}UserID", $APP_USERID | Set-Content ${ENV_FILENAME}
                                     break
                                 }
                                 else {
@@ -830,7 +830,7 @@ function fn_setupApp() {
                                 }
                             }
                         
-                            (Get-Content .env) -replace "your${CURRENT_APP}DeviceUUID", $UUID | Set-Content .env
+                            (Get-Content ${ENV_FILENAME}) -replace "your${CURRENT_APP}DeviceUUID", $UUID | Set-Content ${ENV_FILENAME}
                             colorprint "DEFAULT" "${CURRENT_APP} UUID setup: done"
                             # Generaing the claim link
                             $claimlink = "${claimURLBase}${UUID}"
@@ -845,7 +845,7 @@ function fn_setupApp() {
                             colorprint "Green" "Enter your ${CURRENT_APP} CID:"
                             $APP_CID = Read-Host
                             if ($APP_CID) {
-                                (Get-Content .env) -replace "your${CURRENT_APP}CID", $APP_CID | Set-Content .env
+                                (Get-Content ${ENV_FILENAME}) -replace "your${CURRENT_APP}CID", $APP_CID | Set-Content ${ENV_FILENAME}
                             }
                             else {
                                 colorprint "Red" "CID cannot be empty. Please try again."
@@ -858,7 +858,7 @@ function fn_setupApp() {
                             colorprint "GREEN" "Enter your ${CURRENT_APP} token:"
                             $APP_TOKEN = Read-Host
                             if ($APP_TOKEN) {
-                                (Get-Content .env) -replace "your${CURRENT_APP}Token", $APP_TOKEN | Set-Content .env
+                                (Get-Content ${ENV_FILENAME}) -replace "your${CURRENT_APP}Token", $APP_TOKEN | Set-Content ${ENV_FILENAME}
                             }
                             else {
                                 colorprint "RED" "Token cannot be empty. Please try again."
@@ -1007,7 +1007,7 @@ function fn_setupApp() {
 Function that will setup the proxy for the apps in the stack
 
 .DESCRIPTION
-This function will setup the proxy for the apps in the stack. It will ask the user to enter the proxy to use and then it will update the .env file and the docker-compose.yaml file accordingly.
+This function will setup the proxy for the apps in the stack. It will ask the user to enter the proxy to use and then it will update the ${ENV_FILENAME} file and the docker-compose.yaml file accordingly.
 
 .EXAMPLE
 Just call fn_setupProxy
@@ -1031,16 +1031,16 @@ function fn_setupProxy() {
                 $script:NEW_STACK_PROXY = Read-Host 
                 # An unique name for the stack is chosen so that even if multiple stacks are started with different proxies the names do not conflict
                 # ATTENTION: if a random value has been already added to the project and devicename during a previous setup it should remain the same to mantain consistency withthe devices name registered on the apps sites but the proxy url could be changed
-                (Get-Content .\.env).replace("COMPOSE_PROJECT_NAME=money4band", "COMPOSE_PROJECT_NAME=money4band_$($script:RANDOM_VALUE)") | Set-Content .\.env
-                (Get-Content .\.env).replace("DEVICE_NAME=$($script:DEVICE_NAME)", "DEVICE_NAME=$($script:DEVICE_NAME)$($script:RANDOM_VALUE)") | Set-Content .\.env
-                # Obtaining the line of STACK_PROXY= in the .env file and then replace the line with the new proxy also uncomment the line if it was commented
-                (Get-Content .\.env).replace("# STACK_PROXY=", "STACK_PROXY=") | Set-Content .\.env # if it was already uncommented it does nothing
-                $CURRENT_VALUE = $(Get-Content .\.env | Select-String -Pattern "STACK_PROXY=" -SimpleMatch).ToString().Split("=")[1]
-                (Get-Content .\.env).replace("STACK_PROXY=${CURRENT_VALUE}", "STACK_PROXY=$($script:NEW_STACK_PROXY)") | Set-Content .\.env
+                (Get-Content .\${ENV_FILENAME}).replace("COMPOSE_PROJECT_NAME=money4band", "COMPOSE_PROJECT_NAME=money4band_$($script:RANDOM_VALUE)") | Set-Content .\${ENV_FILENAME}
+                (Get-Content .\${ENV_FILENAME}).replace("DEVICE_NAME=$($script:DEVICE_NAME)", "DEVICE_NAME=$($script:DEVICE_NAME)$($script:RANDOM_VALUE)") | Set-Content .\${ENV_FILENAME}
+                # Obtaining the line of STACK_PROXY= in the ${ENV_FILENAME} file and then replace the line with the new proxy also uncomment the line if it was commented
+                (Get-Content .\${ENV_FILENAME}).replace("# STACK_PROXY=", "STACK_PROXY=") | Set-Content .\${ENV_FILENAME} # if it was already uncommented it does nothing
+                $CURRENT_VALUE = $(Get-Content .\${ENV_FILENAME} | Select-String -Pattern "STACK_PROXY=" -SimpleMatch).ToString().Split("=")[1]
+                (Get-Content .\${ENV_FILENAME}).replace("STACK_PROXY=${CURRENT_VALUE}", "STACK_PROXY=$($script:NEW_STACK_PROXY)") | Set-Content .\${ENV_FILENAME}
                 (Get-Content "$script:DKCOM_FILENAME" -Raw) -replace '(?<=^|[\r\n])#ENABLE_PROXY(?![a-zA-Z0-9])', '' | Set-Content "$script:DKCOM_FILENAME"
                 (Get-Content "$script:DKCOM_FILENAME").replace("# network_mode", "network_mode") | Set-Content "$script:DKCOM_FILENAME"
                 $script:PROXY_CONF = $true
-                (Get-Content .\.env).replace("PROXY_CONFIGURATION_STATUS=0", "PROXY_CONFIGURATION_STATUS=1") | Set-Content .\.env
+                (Get-Content .\${ENV_FILENAME}).replace("PROXY_CONFIGURATION_STATUS=0", "PROXY_CONFIGURATION_STATUS=1") | Set-Content .\${ENV_FILENAME}
                 colorprint "DEFAULT" "Ok, $script:NEW_STACK_PROXY will be used as proxy for all apps in this stack"
                 Read-Host -p "Press enter to continue"
                 toLog_ifDebug -l "[DEBUG]" -m "Proxy setup finished"
@@ -1063,10 +1063,10 @@ function fn_setupProxy() {
 
 <#
 .SYNOPSIS
-Function that will setup the .env file and the docker compose file
+Function that will setup the ${ENV_FILENAME} file and the docker compose file
 
 .DESCRIPTION
-This function will setup the .env file and the docker compose file. It will ask the user to enter the required data for each app and then it will update the .env file and the docker-compose.yaml file accordingly.
+This function will setup the ${ENV_FILENAME} file and the docker compose file. It will ask the user to enter the required data for each app and then it will update the ${ENV_FILENAME} file and the docker-compose.yaml file accordingly.
 
 .EXAMPLE
 Just call fn_setupEnv
@@ -1079,30 +1079,30 @@ function fn_setupEnv() {
         [string]$app_type # Accept the type of apps as an argument
     )
     print_and_log "BLUE" "Starting setupEnv function for $app_type"
-    # Check if .env file is already configured if 1 then it is already configured, if 0 then it is not configured
-    $ENV_CONFIGURATION_STATUS = (Get-Content .\.env | Select-String -Pattern "ENV_CONFIGURATION_STATUS=" -SimpleMatch).ToString().Split("=")[1]
+    # Check if ${ENV_FILENAME} file is already configured if 1 then it is already configured, if 0 then it is not configured
+    $ENV_CONFIGURATION_STATUS = (Get-Content .\${ENV_FILENAME} | Select-String -Pattern "ENV_CONFIGURATION_STATUS=" -SimpleMatch).ToString().Split("=")[1]
     toLog_ifDebug -l "[DEBUG]" -m "Current ENV_CONFIGURATION_STATUS: $ENV_CONFIGURATION_STATUS"
-    $PROXY_CONFIGURATION_STATUS = (Get-Content .\.env | Select-String -Pattern "PROXY_CONFIGURATION_STATUS=" -SimpleMatch).ToString().Split("=")[1]
+    $PROXY_CONFIGURATION_STATUS = (Get-Content .\${ENV_FILENAME} | Select-String -Pattern "PROXY_CONFIGURATION_STATUS=" -SimpleMatch).ToString().Split("=")[1]
     toLog_ifDebug -l "[DEBUG]" -m "Current PROXY_CONFIGURATION_STATUS: $PROXY_CONFIGURATION_STATUS"
-    $NOTIFICATIONS_CONFIGURATION_STATUS = (Get-Content .\.env | Select-String -Pattern "NOTIFICATIONS_CONFIGURATION_STATUS=" -SimpleMatch).ToString().Split("=")[1]
+    $NOTIFICATIONS_CONFIGURATION_STATUS = (Get-Content .\${ENV_FILENAME} | Select-String -Pattern "NOTIFICATIONS_CONFIGURATION_STATUS=" -SimpleMatch).ToString().Split("=")[1]
     toLog_ifDebug -l "[DEBUG]" -m "Current NOTIFICATIONS_CONFIGURATION_STATUS: $NOTIFICATIONS_CONFIGURATION_STATUS"
 
     if (($ENV_CONFIGURATION_STATUS -eq "1") -and ($app_type -eq "apps")) {
         while ($true) {
-            colorprint "YELLOW" "The current .env file appears to have already been configured. Do you wish to reset it? (Y/N)"
+            colorprint "YELLOW" "The current ${ENV_FILENAME} file appears to have already been configured. Do you wish to reset it? (Y/N)"
             $yn = Read-Host
 
             if ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') {
-                print_and_log "DEFAULT" "Downloading a fresh .env file."
+                print_and_log "DEFAULT" "Downloading a fresh ${ENV_FILENAME} file."
                 $ProgressPreference = 'SilentlyContinue'
-                Invoke-WebRequest -Uri $script:ENV_SRC -OutFile ".env"
+                Invoke-WebRequest -Uri $script:ENV_SRC -OutFile "${ENV_FILENAME}"
                 Invoke-WebRequest -Uri $script:DKCOM_SRC -OutFile "$($script:DKCOM_FILENAME)"
                 $ProgressPreference = 'Continue'
                 Clear-Host
                 break
             }
             elseif ($yn.ToLower() -eq 'n' -or $yn.ToLower() -eq 'no') {
-                print_and_log "BLUE" "Keeping the existing .env file."
+                print_and_log "BLUE" "Keeping the existing ${ENV_FILENAME} file."
                 Start-Sleep -Seconds $SLEEP_TIME
                 Clear-Host
                 break
@@ -1114,27 +1114,27 @@ function fn_setupEnv() {
         }
     }
     elseif (($ENV_CONFIGURATION_STATUS -eq "1") -and ($app_type -ne "apps")) {
-        print_and_log "Blue" "Proceeding with $app_type setup without resetting .env file as it should already be configured by the main apps setup."
+        print_and_log "Blue" "Proceeding with $app_type setup without resetting ${ENV_FILENAME} file as it should already be configured by the main apps setup."
         Start-Sleep -Seconds $SLEEP_TIME
     }
 
     while ($true) {
-        colorprint "YELLOW" "Do you wish to proceed with the .env file guided setup Y/N? (This will also adapt the $($script:DKCOM_FILENAME) file accordingly)"
+        colorprint "YELLOW" "Do you wish to proceed with the ${ENV_FILENAME} file guided setup Y/N? (This will also adapt the $($script:DKCOM_FILENAME) file accordingly)"
         $yn = Read-Host
 
         if ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') {
             Clear-Host
-            toLog_ifDebug -l "[DEBUG]" -m "User chose to proceed with the .env file guided setup for $app_type"
+            toLog_ifDebug -l "[DEBUG]" -m "User chose to proceed with the ${ENV_FILENAME} file guided setup for $app_type"
             colorprint "YELLOW" "beginning env file guided setup"
             # Update the ENV_CONFIGURATION_STATUS
-            (Get-Content .\.env).replace("ENV_CONFIGURATION_STATUS=0", "ENV_CONFIGURATION_STATUS=1") | Set-Content .\.env
+            (Get-Content .\${ENV_FILENAME}).replace("ENV_CONFIGURATION_STATUS=0", "ENV_CONFIGURATION_STATUS=1") | Set-Content .\${ENV_FILENAME}
             # Device Name setup
-            $currentDeviceNameInEnv = (Get-Content .\.env | Select-String -Pattern "DEVICE_NAME=" -SimpleMatch).ToString().Split("=")[1].Trim()
+            $currentDeviceNameInEnv = (Get-Content .\${ENV_FILENAME} | Select-String -Pattern "DEVICE_NAME=" -SimpleMatch).ToString().Split("=")[1].Trim()
             if ($currentDeviceNameInEnv -eq $DEVICE_NAME_PLACEHOLDER) {
                 toLog_ifDebug -l "[DEBUG]" -m "Device name is still the default one, asking user to change it"
                 colorprint "YELLOW" "PLEASE ENTER A NAME FOR YOUR DEVICE:"
                 $script:DEVICE_NAME = Read-Host
-                (Get-Content .\.env).replace("DEVICE_NAME=${DEVICE_NAME_PLACEHOLDER}", "DEVICE_NAME=$script:DEVICE_NAME") | Set-Content .\.env
+                (Get-Content .\${ENV_FILENAME}).replace("DEVICE_NAME=${DEVICE_NAME_PLACEHOLDER}", "DEVICE_NAME=$script:DEVICE_NAME") | Set-Content .\${ENV_FILENAME}
             }
             else {
                 toLog_ifDebug -l "[DEBUG]" -m "Device name is already set, skipping user input"
@@ -1143,7 +1143,7 @@ function fn_setupEnv() {
             # Proxy setup
             Clear-Host
             if ($PROXY_CONFIGURATION_STATUS -eq 1) {
-                $script:CURRENT_PROXY = (Get-Content .\.env | Select-String -Pattern "STACK_PROXY=" -SimpleMatch).ToString().Split("=")[1]
+                $script:CURRENT_PROXY = (Get-Content .\${ENV_FILENAME} | Select-String -Pattern "STACK_PROXY=" -SimpleMatch).ToString().Split("=")[1]
                 print_and_log "BLUE" "Proxy is already set up."
                 while ($true) {
                     colorprint "YELLOW" "The current proxy is: ${CURRENT_PROXY}. Do you wish to change it? (Y/N)"
@@ -1189,7 +1189,7 @@ function fn_setupEnv() {
             if ($NOTIFICATIONS_CONFIGURATION_STATUS -eq 1) {
                 print_and_log "Blue" "Notifications are already set up."
                 while ($true) {
-                    $CURRENT_SHOUTRRR_URL = (Get-Content .\.env | Select-String -Pattern "SHOUTRRR_URL=" -SimpleMatch).ToString().Split("=")[1]
+                    $CURRENT_SHOUTRRR_URL = (Get-Content .\${ENV_FILENAME} | Select-String -Pattern "SHOUTRRR_URL=" -SimpleMatch).ToString().Split("=")[1]
                     colorprint "YELLOW" "The current notifications setup uses: ${CURRENT_SHOUTRRR_URL}. Do you wish to change it? (Y/N)"
                     $yn = Read-Host
                     if ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') {
@@ -1210,14 +1210,14 @@ function fn_setupEnv() {
                 toLog_ifDebug -l "[DEBUG]" -m "Asking user if they want to setup notifications as they are not already configured"
                 fn_setupNotifications
             }
-            (Get-Content .\.env).replace("ENV_CONFIGURATION_STATUS=0", "ENV_CONFIGURATION_STATUS=1") | Set-Content .\.env
+            (Get-Content .\${ENV_FILENAME}).replace("ENV_CONFIGURATION_STATUS=0", "ENV_CONFIGURATION_STATUS=1") | Set-Content .\${ENV_FILENAME}
             print_and_log "GREEN" "env file setup complete."
             Read-Host -p "Press enter to go back to the menu"
             break
         }
         elseif ($yn.ToLower() -eq 'n' -or $yn.ToLower() -eq 'no') {
-            toLog_ifDebug -l "[DEBUG]" -m "User chose not to proceed with the .env file guided setup for $app_type"
-            colorprint "BLUE" ".env file setup canceled. Make sure you have a valid .env file before proceeding with the stack startup."
+            toLog_ifDebug -l "[DEBUG]" -m "User chose not to proceed with the ${ENV_FILENAME} file guided setup for $app_type"
+            colorprint "BLUE" "${ENV_FILENAME} file setup canceled. Make sure you have a valid ${ENV_FILENAME} file before proceeding with the stack startup."
             Read-Host -p "Press Enter to go back to mainmenu"
             return
         }
@@ -1237,10 +1237,10 @@ function fn_setupExtraApps {
 
 <#
 .SYNOPSIS
-Function that will start the apps stack using the configured .env file and the docker compose file.
+Function that will start the apps stack using the configured ${ENV_FILENAME} file and the docker compose file.
 
 .DESCRIPTION
-This function will start the apps stack using the configured .env file and the docker compose file.
+This function will start the apps stack using the configured ${ENV_FILENAME} file and the docker compose file.
 
 .EXAMPLE
 Just call fn_startStack
@@ -1251,7 +1251,7 @@ This function has been tested until v 2.0.0. The new version has not been tested
 function fn_startStack() {
     Clear-Host
     while ($true) {
-        colorprint "YELLOW" "This menu item will launch all the apps using the configured .env file and the $($script:DKCOM_FILENAME) file (Docker must be already installed and running)"
+        colorprint "YELLOW" "This menu item will launch all the apps using the configured ${ENV_FILENAME} file and the $($script:DKCOM_FILENAME) file (Docker must be already installed and running)"
         $yn = Read-Host "Do you wish to proceed Y/N?"
         if ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') {
             if (docker compose up -d) {
@@ -1279,10 +1279,10 @@ function fn_startStack() {
 
 <#
 .SYNOPSIS
-Function that will stop all the apps and delete the docker stack previously created using the configured .env file and the docker compose file.
+Function that will stop all the apps and delete the docker stack previously created using the configured ${ENV_FILENAME} file and the docker compose file.
 
 .DESCRIPTION
-This function will stop all the apps and delete the docker stack previously created using the configured .env file and the docker compose file.
+This function will stop all the apps and delete the docker stack previously created using the configured ${ENV_FILENAME} file and the docker compose file.
 
 .EXAMPLE
 Just call fn_stopStack
@@ -1293,7 +1293,7 @@ This function has been tested until v 2.0.0. The new version has not been tested
 function fn_stopStack() {
     Clear-Host
     while ($true) {
-        colorprint "YELLOW" "This menu item will stop all the apps and delete the docker stack previously created using the configured .env file and the $($script:DKCOM_FILENAME) file."
+        colorprint "YELLOW" "This menu item will stop all the apps and delete the docker stack previously created using the configured ${ENV_FILENAME} file and the $($script:DKCOM_FILENAME) file."
         $yn = Read-Host "Do you wish to proceed Y/N?"
 
         if ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') {
@@ -1319,10 +1319,10 @@ function fn_stopStack() {
 
 <#
 .SYNOPSIS
-Function that will reset the .env file
+Function that will reset the ${ENV_FILENAME} file
 
 .DESCRIPTION
-This function will reset the .env file to the original version downloading a fresh copy from the repository.
+This function will reset the ${ENV_FILENAME} file to the original version downloading a fresh copy from the repository.
 
 .EXAMPLE
 Just call fn_resetEnv
@@ -1338,18 +1338,18 @@ function fn_resetEnv() {
         if ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') {
             try {
                 $ProgressPreference = 'SilentlyContinue'
-                Invoke-WebRequest -Uri $script:ENV_SRC -OutFile ".env"
+                Invoke-WebRequest -Uri $script:ENV_SRC -OutFile "${ENV_FILENAME}"
                 $ProgressPreference = 'Continue'
-                colorprint "GREEN" ".env file resetted, remember to reconfigure it"
+                colorprint "GREEN" "${ENV_FILENAME} file resetted, remember to reconfigure it"
             }
             catch {
-                colorprint "RED" "Error resetting .env file. Please check your internet connection and try again."
+                colorprint "RED" "Error resetting ${ENV_FILENAME} file. Please check your internet connection and try again."
             }
             Read-Host "Press Enter to go back to mainmenu"
             break
         }
         elseif ($yn.ToLower() -eq 'n' -or $yn.ToLower() -eq 'no') {
-            colorprint "BLUE" ".env file reset canceled. The file is left as it is"
+            colorprint "BLUE" "${ENV_FILENAME} file reset canceled. The file is left as it is"
             Read-Host "Press Enter to go back to mainmenu"
             break
         }
