@@ -24,8 +24,10 @@
 
 ### Quick Setup Guide
 1. **Download** the latest version of Money4Band from the [Releases](https://github.com/MRColorR/money4band/releases) or git clone the project.
-2. **Register** accounts on the application websites. [Here's a list of availabe apps](#app-compatibility-and-sign-up-links-)
-3. **Run** the guided setup:
+   - OR you can also use on Linux/MacOS a bash command like: `wget https://github.com/MRColorR/money4band/archive/refs/heads/main.zip && unzip main.zip`
+   - OR on Windows use a pwsh command like:`Invoke-WebRequest -Uri https://github.com/MRColorR/money4band/archive/refs/heads/main.zip -OutFile main.zip; Expand-Archive -Path main.zip -DestinationPath .\ `
+3. **Register** accounts on the application websites. [Here's a list of availabe apps](#app-compatibility-and-sign-up-links-)
+4. **Run** the guided setup:
    - **Linux:** 
      ```bash
      sudo chmod +x runme.sh && ./runme.sh 
@@ -34,7 +36,7 @@
      ```powershell
      Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy Bypass -Force; .\runme.ps1 
      ```
-4. **Start Earning** passively and monitor your performance through the web dashboard.
+5. **Start Earning** passively and monitor your performance through the web dashboard.
 
 ## App Compatibility and Sign Up Links 📋
 Register an account on the app's sites clicking each apps' names in the following compatibility matrix
