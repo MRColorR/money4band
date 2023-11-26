@@ -118,7 +118,7 @@
     {
       "name": "PEER2PROFIT",
       "dashboard": "https://t.me/peer2profit_app_bot",
-      "link": "https://p2pr.me/165849012262da8d0aa13c8",
+      "link": "https://t.me/peer2profit_app_bot?start=165849012262da8d0aa13c8",
       "image": "mrcolorrain/peer2profit",
       "flags": {
         "--email":{},
