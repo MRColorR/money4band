@@ -18,9 +18,9 @@ services:
 #ENABLE_EARNAPP      - earnapp-data:/etc/earnapp
 #ENABLE_EARNAPP    # network_mode: service:tun2socks
 #ENABLE_EARNAPP    restart: always
-#ENABLE_EARNAPP    cpus: ${APP_CPU_LIMIT_LITTLE}
-#ENABLE_EARNAPP    mem_reservation: ${APP_MEM_RESERV_LITTLE}
-#ENABLE_EARNAPP    mem_limit: ${APP_MEM_LIMIT_LITTLE}
+#ENABLE_EARNAPP    cpus: ${APP_CPU_LIMIT_MEDIUM}
+#ENABLE_EARNAPP    mem_reservation: ${APP_MEM_RESERV_MEDIUM}
+#ENABLE_EARNAPP    mem_limit: ${APP_MEM_LIMIT_MEDIUM}
 
 # HONEYGAIN CONTAINER
 #ENABLE_HONEYGAIN  honeygain:
@@ -31,9 +31,9 @@ services:
 #ENABLE_HONEYGAIN      - HONEYGAIN_DUMMY=''
 #ENABLE_HONEYGAIN    command: -tou-accept -email $HONEYGAIN_EMAIL -pass $HONEYGAIN_PASSWD -device $DEVICE_NAME
 #ENABLE_HONEYGAIN    restart: always
-#ENABLE_EARNAPP    cpus: ${APP_CPU_LIMIT_LITTLE}
-#ENABLE_EARNAPP    mem_reservation: ${APP_MEM_RESERV_LITTLE}
-#ENABLE_EARNAPP    mem_limit: ${APP_MEM_LIMIT_LITTLE}
+#ENABLE_HONEYGAIN    cpus: ${APP_CPU_LIMIT_MEDIUM}
+#ENABLE_HONEYGAIN    mem_reservation: ${APP_MEM_RESERV_MEDIUM}
+#ENABLE_HONEYGAIN    mem_limit: ${APP_MEM_LIMIT_MEDIUM}
 
 # IPROYALPAWNS CONTAINER
 #ENABLE_IPROYALPAWNS  iproyal:
@@ -120,9 +120,9 @@ services:
 #ENABLE_PROXYLITE      - USER_ID=$PROXYLITE_USER_ID
 #ENABLE_PROXYLITE    # network_mode: service:tun2socks
 #ENABLE_PROXYLITE    restart: always
-#ENABLE_PROXYLITE    cpus: ${APP_CPU_LIMIT_MEDIUM}
-#ENABLE_PROXYLITE    mem_reservation: ${APP_MEM_RESERV_MEDIUM}
-#ENABLE_PROXYLITE    mem_limit: ${APP_MEM_LIMIT_MEDIUM}
+#ENABLE_PROXYLITE    cpus: ${APP_CPU_LIMIT_BIG}
+#ENABLE_PROXYLITE    mem_reservation: ${APP_MEM_RESERV_BIG}
+#ENABLE_PROXYLITE    mem_limit: ${APP_MEM_LIMIT_BIG}
 
 # BITPING CONTAINER 
 # For this app you'll need a one-time operation to claim your node: the first time if you do not have a backup of your identity you will need to enter manually your credentials to initialize it use : sudo docker run --rm -it -v ${PWD}/.data/.bitping/:/root/.bitping bitping/bitping-node:latest , then enter your credential , once this is done CTRL+C to end container and then if using bind folder just use docker compose to restart it as always, if you use the docker volume mount it in the previous comamnd or copy the created credentials in the volume using ' docker cp ${PWD}/.data/.bitping bitping:/root/' or just mount the volume in the interactive temporary container
@@ -163,9 +163,9 @@ services:
 #ENABLE_MYSTNODE          #- myst-data:/var/lib/mysterium-node # if you use this also uncomment the relative volume in volumes section, this  Use docker volumes (more secure harder to access, backup and restore) you'll need to do backups using 'docker cp myst:/var/lib/mysterium-node .' and then when you need to restore the identity first delete the automatically created and not needed identities using 'sudo docker exec -it myst sh' and then in the container shell use 'sudo rm -rf /var/lib/mysterium-node/*' then stop the container and use docker cp to copy the backed-up identity in the container, ther restart the container.
 #ENABLE_MYSTNODE    # network_mode: service:tun2socks
 #ENABLE_MYSTNODE    restart: always
-#ENABLE_MYSTNODE    cpus: ${APP_CPU_LIMIT_BIG}
-#ENABLE_MYSTNODE    mem_reservation: ${APP_MEM_RESERV_BIG}
-#ENABLE_MYSTNODE    mem_limit: ${APP_MEM_LIMIT_BIG}
+#ENABLE_MYSTNODE    cpus: ${APP_CPU_LIMIT_HUGE}
+#ENABLE_MYSTNODE    mem_reservation: ${APP_MEM_RESERV_HUGE}
+#ENABLE_MYSTNODE    mem_limit: ${APP_MEM_LIMIT_HUGE}
 
 # PEER2PROFIT CONTAINER
 #ENABLE_PEER2PROFIT  peer2profit:
