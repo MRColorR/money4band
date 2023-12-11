@@ -31,6 +31,7 @@ $DKINST_MAC_SRC = 'https://github.com/MRColorR/money4band/raw/main/.resources/.s
 ## Script init and variables ##
 # Script default sleep time #
 $SLEEP_TIME = 1.5
+
 # initialize the env file with the default values if there is no env file already present
 # Check if the ${ENV_FILENAME} file is already present in the current directory, if it is not present copy from the .env.template file renaming it to ${ENV_FILENAME}, if it is present ask the user if they want to reset it or keep it as it is
 if (-not (Test-Path .\${ENV_FILENAME})) {
@@ -206,6 +207,104 @@ function fn_fail($text) {
 }
 
 ## Utility functions ##
+# Function to round up to the nearest power of 2
+function RoundUpPowerOf2 {
+    param([float]$value)
+    $value = ($value)  # Convert to an integer by rounding
+    $i = 1
+    while ($i -lt $value) {
+        $i = $i * 2
+    }
+    return $i
+}
+
+function adaptLimits {
+    # Get the number of CPU cores the machine has and others CPU related info
+    $COMPUTER_INFO = Get-CimInstance -ClassName Win32_ComputerSystem
+    $CPU_INFO = Get-CimInstance -ClassName Win32_Processor
+    $CPU_SOCKETS = $COMPUTER_INFO.NumberOfProcessors
+    $CPU_CORES = $CPU_INFO.NumberOfCores
+    $CPU_THREADS = $CPU_INFO.NumberOfLogicalProcessors
+    $TOTAL_CPUS = $CPU_CORES * $CPU_SOCKETS
+
+    # Get the total RAM of the machine in MB
+    $totalRamBytes = $COMPUTER_INFO | Select-Object -ExpandProperty TotalPhysicalMemory
+    $totalRamMb = ($totalRamBytes / 1MB)
+
+    # Load current limits from .env file
+    $envContent = Get-Content -Path $ENV_FILENAME
+    $currentAppCpuLimitLittle = ($envContent | Where-Object { $_ -match 'APP_CPU_LIMIT_LITTLE=(.*)' }) -replace 'APP_CPU_LIMIT_LITTLE=', ''
+    $currentAppCpuLimitMedium = ($envContent | Where-Object { $_ -match 'APP_CPU_LIMIT_MEDIUM=(.*)' }) -replace 'APP_CPU_LIMIT_MEDIUM=', ''
+    $currentAppCpuLmitBig = ($envContent | Where-Object { $_ -match 'APP_CPU_LIMIT_BIG=(.*)' }) -replace 'APP_CPU_LIMIT_BIG=', ''
+    $currentAppCpuLimitHuge = ($envContent | Where-Object { $_ -match 'APP_CPU_LIMIT_HUGE=(.*)' }) -replace 'APP_CPU_LIMIT_HUGE=', ''
+    $currentAppMemReservLittle = ($envContent | Where-Object { $_ -match 'APP_MEM_RESERV_LITTLE=(.*)' }) -replace 'APP_MEM_RESERV_LITTLE=', ''
+    $currentAppMemLimitLittle = ($envContent | Where-Object { $_ -match 'APP_MEM_LIMIT_LITTLE=(.*)' }) -replace 'APP_MEM_LIMIT_LITTLE=', ''
+    $currentAppMemReservMedium = ($envContent | Where-Object { $_ -match 'APP_MEM_RESERV_MEDIUM=(.*)' }) -replace 'APP_MEM_RESERV_MEDIUM=', ''
+    $currentAppMemLimitMedium = ($envContent | Where-Object { $_ -match 'APP_MEM_LIMIT_MEDIUM=(.*)' }) -replace 'APP_MEM_LIMIT_MEDIUM=', ''
+    $currentAppMemReservBig = ($envContent | Where-Object { $_ -match 'APP_MEM_RESERV_BIG=(.*)' }) -replace 'APP_MEM_RESERV_BIG=', ''
+    $currentAppMemLimitBig = ($envContent | Where-Object { $_ -match 'APP_MEM_LIMIT_BIG=(.*)' }) -replace 'APP_MEM_LIMIT_BIG=', ''
+    $currentAppMemReservHuge = ($envContent | Where-Object { $_ -match 'APP_MEM_RESERV_HUGE=(.*)' }) -replace 'APP_MEM_RESERV_HUGE=', ''
+    $currentAppMemLimitHuge = ($envContent | Where-Object { $_ -match 'APP_MEM_LIMIT_HUGE=(.*)' }) -replace 'APP_MEM_LIMIT_HUGE=', ''
+
+    # adapt the limits in .env file for CPU and RAM taking into account the number of CPU cores the machine has and the amount of RAM the machine has
+    # CPU limits: little should use max 15% of the CPU power , medium should use max 30% of the CPU power , big should use max 50% of the CPU power , huge should use max 100% of the CPU power
+    $appCpuLimitLittle = ($TOTAL_CPUS * 15 / 100)
+    $appCpuLimitMedium = ($TOTAL_CPUS * 30 / 100)
+    $appCpuLimitBig = ($TOTAL_CPUS * 50 / 100)
+    $appCpuLimitHuge = ($TOTAL_CPUS * 100 / 100)
+
+    # RAM limits: little should reserve at least 64 MB or the next near power of 2 in MB of 5% of RAM as upperbound and use as max limit the 250% of this value, medium should reserve double of the little value or the next near power of 2 in MB of 10% of RAM as upperbound and use as max limit the 250% of this value, big should reserve double of the medium value or the next near power of 2 in MB of 20% of RAM as upperbound and use as max limit the 250% of this value, huge should reserve double of the big value or the next near power of 2 in MB of 40% of RAM as upperbound and use as max limit the 400% of this value
+    # Implementing a cap for high RAM devices
+    $ramCapMbDefault = 8192
+    # Uncomment the following to simulate a low RAM device
+    # $totalRamMb = 1024
+    $ramCapMb = If ($totalRamMb -gt $ramCapMbDefault) { $ramCapMbDefault } else { $totalRamMb }
+    $maxUseRamMb = [math]::Min($totalRamMb, $ramCapMb)
+
+    # Calculate new RAM limits
+    $appMemReservLittle = RoundUpPowerOf2 (($maxUseRamMb * 5 / 100))
+    $appMemLimitLittle = RoundUpPowerOf2 (($appMemReservLittle * 200 / 100))
+    $appMemReservMedium = RoundUpPowerOf2 (($maxUseRamMb * 10 / 100))
+    $appMemLimitMedium = RoundUpPowerOf2 (($appMemReservMedium * 200 / 100))
+    $appMemReservBig = RoundUpPowerOf2 (($maxUseRamMb * 20 / 100))
+    $appMemLimitBig = RoundUpPowerOf2 (($appMemReservBig * 200 / 100))
+    $appMemReservHuge = RoundUpPowerOf2 (($maxUseRamMb * 40 / 100))
+    $appMemLimitHuge = RoundUpPowerOf2 (($appMemReservHuge * 200 / 100))
+    
+    # Update the limits in the .env file
+    (Get-Content $ENV_FILENAME).Replace("APP_CPU_LIMIT_LITTLE=$currentAppCpuLimitLittle", "APP_CPU_LIMIT_LITTLE=$appCpuLimitLittle") | Set-Content $ENV_FILENAME
+    (Get-Content $ENV_FILENAME).Replace("APP_CPU_LIMIT_MEDIUM=$currentAppCpuLimitMedium", "APP_CPU_LIMIT_MEDIUM=$appCpuLimitMedium") | Set-Content $ENV_FILENAME
+    (Get-Content $ENV_FILENAME).Replace("APP_CPU_LIMIT_BIG=$currentAppCpuLmitBig", "APP_CPU_LIMIT_BIG=$appCpuLimitBig") | Set-Content $ENV_FILENAME
+    (Get-Content $ENV_FILENAME).Replace("APP_CPU_LIMIT_HUGE=$currentAppCpuLimitHuge", "APP_CPU_LIMIT_HUGE=$appCpuLimitHuge") | Set-Content $ENV_FILENAME
+    (Get-Content $ENV_FILENAME).Replace("APP_MEM_RESERV_LITTLE=$currentAppMemReservLittle", "APP_MEM_RESERV_LITTLE=$appMemReservLittle") | Set-Content $ENV_FILENAME
+    (Get-Content $ENV_FILENAME).Replace("APP_MEM_LIMIT_LITTLE=$currentAppMemLimitLittle", "APP_MEM_LIMIT_LITTLE=$appMemLimitLittle") | Set-Content $ENV_FILENAME
+    (Get-Content $ENV_FILENAME).Replace("APP_MEM_RESERV_MEDIUM=$currentAppMemReservMedium", "APP_MEM_RESERV_MEDIUM=$appMemReservMedium") | Set-Content $ENV_FILENAME
+    (Get-Content $ENV_FILENAME).Replace("APP_MEM_LIMIT_MEDIUM=$currentAppMemLimitMedium", "APP_MEM_LIMIT_MEDIUM=$appMemLimitMedium") | Set-Content $ENV_FILENAME
+    (Get-Content $ENV_FILENAME).Replace("APP_MEM_RESERV_BIG=$currentAppMemReservBig", "APP_MEM_RESERV_BIG=$appMemReservBig") | Set-Content $ENV_FILENAME
+    (Get-Content $ENV_FILENAME).Replace("APP_MEM_LIMIT_BIG=$currentAppMemLimitBig", "APP_MEM_LIMIT_BIG=$appMemLimitBig") | Set-Content $ENV_FILENAME
+    (Get-Content $ENV_FILENAME).Replace("APP_MEM_RESERV_HUGE=$currentAppMemReservHuge", "APP_MEM_RESERV_HUGE=$appMemReservHuge") | Set-Content $ENV_FILENAME
+    (Get-Content $ENV_FILENAME).Replace("APP_MEM_LIMIT_HUGE=$currentAppMemLimitHuge", "APP_MEM_LIMIT_HUGE=$appMemLimitHuge") | Set-Content $ENV_FILENAME
+
+
+    # If debug mode is enabled print the calculated limits values
+    if ($Debug -eq $true) {
+        print_and_log "DEFAULT" "Total CPUs: $TOTAL_CPUS"
+        print_and_log "DEFAULT" "APP_CPU_LIMIT_LITTLE: $appCpuLimitLittle"
+        print_and_log "DEFAULT" "APP_CPU_LIMIT_MEDIUM: $appCpuLimitMedium"
+        print_and_log "DEFAULT" "APP_CPU_LIMIT_BIG: $appCpuLimitBig"
+        print_and_log "DEFAULT" "APP_CPU_LIMIT_HUGE: $appCpuLimitHuge"
+        print_and_log "DEFAULT" "APP_MEM_RESERV_LITTLE: $appMemReservLittle"
+        print_and_log "DEFAULT" "APP_MEM_LIMIT_LITTLE: $appMemLimitLittle"
+        print_and_log "DEFAULT" "APP_MEM_RESERV_MEDIUM: $appMemReservMedium"
+        print_and_log "DEFAULT" "APP_MEM_LIMIT_MEDIUM: $appMemLimitMedium"
+        print_and_log "DEFAULT" "APP_MEM_RESERV_BIG: $appMemReservBig"
+        print_and_log "DEFAULT" "APP_MEM_LIMIT_BIG: $appMemLimitBig"
+        print_and_log "DEFAULT" "APP_MEM_RESERV_HUGE: $appMemReservHuge"
+        print_and_log "DEFAULT" "APP_MEM_LIMIT_HUGE: $appMemLimitHuge"
+        #Read-Host -Prompt "Press Enter to continue"
+    }
+}
+
 # Function to check if there are any updates available #
 function check_project_updates {
     # Get the current script version from the local .env file
@@ -1519,6 +1618,7 @@ function mainmenu {
     Clear-Host
     colorprint "GREEN" "MONEY4BAND AUTOMATIC GUIDED SETUP v$script:SCRIPT_VERSION"
     check_project_updates
+    adaptLimits
     colorprint "GREEN" "---------------------------------------------- "
     colorprint "MAGENTA" "Join our Discord community for updates, help, and discussions: $DS_PROJECT_SERVER_URL"
     colorprint "MAGENTA" "---------------------------------------------- "
