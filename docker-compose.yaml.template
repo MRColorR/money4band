@@ -11,7 +11,7 @@ services:
 # EARNAPP CONTAINER
 #ENABLE_EARNAPP  earnapp:
 #ENABLE_EARNAPP    container_name: earnapp
-#ENABLE_EARNAPP    image: fazalfarhan01/earnapp:lite
+#ENABLE_EARNAPP    image: cwlu2001/earnapp:latest
 #ENABLE_EARNAPP    environment:
 #ENABLE_EARNAPP      - EARNAPP_UUID=$EARNAPP_DEVICE_UUID
 #ENABLE_EARNAPP    volumes:
