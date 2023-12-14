@@ -271,19 +271,20 @@ function adaptLimits {
     $appMemReservHuge = RoundUpPowerOf2 (($maxUseRamMb * 40 / 100))
     $appMemLimitHuge = RoundUpPowerOf2 (($appMemReservHuge * 200 / 100))
     
-    # Update the limits in the .env file
+    # Update the CPU limits with the new values
     (Get-Content $ENV_FILENAME).Replace("APP_CPU_LIMIT_LITTLE=$currentAppCpuLimitLittle", "APP_CPU_LIMIT_LITTLE=$appCpuLimitLittle") | Set-Content $ENV_FILENAME
     (Get-Content $ENV_FILENAME).Replace("APP_CPU_LIMIT_MEDIUM=$currentAppCpuLimitMedium", "APP_CPU_LIMIT_MEDIUM=$appCpuLimitMedium") | Set-Content $ENV_FILENAME
     (Get-Content $ENV_FILENAME).Replace("APP_CPU_LIMIT_BIG=$currentAppCpuLmitBig", "APP_CPU_LIMIT_BIG=$appCpuLimitBig") | Set-Content $ENV_FILENAME
     (Get-Content $ENV_FILENAME).Replace("APP_CPU_LIMIT_HUGE=$currentAppCpuLimitHuge", "APP_CPU_LIMIT_HUGE=$appCpuLimitHuge") | Set-Content $ENV_FILENAME
-    (Get-Content $ENV_FILENAME).Replace("APP_MEM_RESERV_LITTLE=$currentAppMemReservLittle", "APP_MEM_RESERV_LITTLE=$appMemReservLittle") | Set-Content $ENV_FILENAME
-    (Get-Content $ENV_FILENAME).Replace("APP_MEM_LIMIT_LITTLE=$currentAppMemLimitLittle", "APP_MEM_LIMIT_LITTLE=$appMemLimitLittle") | Set-Content $ENV_FILENAME
-    (Get-Content $ENV_FILENAME).Replace("APP_MEM_RESERV_MEDIUM=$currentAppMemReservMedium", "APP_MEM_RESERV_MEDIUM=$appMemReservMedium") | Set-Content $ENV_FILENAME
-    (Get-Content $ENV_FILENAME).Replace("APP_MEM_LIMIT_MEDIUM=$currentAppMemLimitMedium", "APP_MEM_LIMIT_MEDIUM=$appMemLimitMedium") | Set-Content $ENV_FILENAME
-    (Get-Content $ENV_FILENAME).Replace("APP_MEM_RESERV_BIG=$currentAppMemReservBig", "APP_MEM_RESERV_BIG=$appMemReservBig") | Set-Content $ENV_FILENAME
-    (Get-Content $ENV_FILENAME).Replace("APP_MEM_LIMIT_BIG=$currentAppMemLimitBig", "APP_MEM_LIMIT_BIG=$appMemLimitBig") | Set-Content $ENV_FILENAME
-    (Get-Content $ENV_FILENAME).Replace("APP_MEM_RESERV_HUGE=$currentAppMemReservHuge", "APP_MEM_RESERV_HUGE=$appMemReservHuge") | Set-Content $ENV_FILENAME
-    (Get-Content $ENV_FILENAME).Replace("APP_MEM_LIMIT_HUGE=$currentAppMemLimitHuge", "APP_MEM_LIMIT_HUGE=$appMemLimitHuge") | Set-Content $ENV_FILENAME
+    # Update RAM limits with the new values unsing as unit MB
+    (Get-Content $ENV_FILENAME).Replace("APP_MEM_RESERV_LITTLE=$currentAppMemReservLittle", "APP_MEM_RESERV_LITTLE=${appMemReservLittle}m") | Set-Content $ENV_FILENAME
+    (Get-Content $ENV_FILENAME).Replace("APP_MEM_LIMIT_LITTLE=$currentAppMemLimitLittle", "APP_MEM_LIMIT_LITTLE=${appMemLimitLittle}m") | Set-Content $ENV_FILENAME
+    (Get-Content $ENV_FILENAME).Replace("APP_MEM_RESERV_MEDIUM=$currentAppMemReservMedium", "APP_MEM_RESERV_MEDIUM=${appMemReservMedium}m") | Set-Content $ENV_FILENAME
+    (Get-Content $ENV_FILENAME).Replace("APP_MEM_LIMIT_MEDIUM=$currentAppMemLimitMedium", "APP_MEM_LIMIT_MEDIUM=${appMemLimitMedium}m") | Set-Content $ENV_FILENAME
+    (Get-Content $ENV_FILENAME).Replace("APP_MEM_RESERV_BIG=$currentAppMemReservBig", "APP_MEM_RESERV_BIG=${appMemReservBig}m") | Set-Content $ENV_FILENAME
+    (Get-Content $ENV_FILENAME).Replace("APP_MEM_LIMIT_BIG=$currentAppMemLimitBig", "APP_MEM_LIMIT_BIG=${appMemLimitBig}m") | Set-Content $ENV_FILENAME
+    (Get-Content $ENV_FILENAME).Replace("APP_MEM_RESERV_HUGE=$currentAppMemReservHuge", "APP_MEM_RESERV_HUGE=${appMemReservHuge}m") | Set-Content $ENV_FILENAME
+    (Get-Content $ENV_FILENAME).Replace("APP_MEM_LIMIT_HUGE=$currentAppMemLimitHuge", "APP_MEM_LIMIT_HUGE=${appMemLimitHuge}m") | Set-Content $ENV_FILENAME
 
 
     # If debug mode is enabled print the calculated limits values
