@@ -27,6 +27,7 @@ readonly DKCOM_FILENAME="docker-compose.yaml"
 ## Script init and variables ##
 # Script default sleep time #
 readonly SLEEP_TIME=1.5
+
 # initialize the env file with the default values if there is no env file already present
 # Check if the ${ENV_FILENAME} file is already present in the current directory, if it is not present copy from the .env.template file renaming it to ${ENV_FILENAME}, if it is present ask the user if they want to reset it or keep it as it is
 if [ ! -f "${ENV_FILENAME}" ]; then
@@ -205,6 +206,131 @@ fn_fail() {
 }
 
 ## Utility functions ##
+# Function to round up to the nearest power of 2
+RoundUpPowerOf2() {
+    local value=$(printf "%.0f" $1)  # Convert to an integer by rounding
+    local i=1
+    while [ $i -lt $value ]; do
+        i=$(( i * 2 ))
+    done
+    echo $i
+}
+
+# Function to adapt the limits in .env for CPU and RAM taking into account the number of CPU cores and the amount of RAM installed on the machine #
+fn_adaptLimits() {
+    # check if lscpu is installed, if yes then get the number of CPU cores the machine has and the amount of RAM the machine has and adapt the limits in .env for CPU and RAM taking into account the number of CPU cores the machine has and the amount of RAM the machine has if not then print a warning message and leave the limits to the default values
+    if command -v lscpu &> /dev/null; then
+        # Get the number of CPU cores the machine has and others CPU related info
+        CPU_SOCKETS=$(lscpu | awk '/^Socket\(s\)/{ print $2 }')
+        CPU_CORES=$(lscpu | awk '/^Core\(s\) per socket/{ print $4 }')
+        TOTAL_CPUS=$((CPU_CORES * CPU_SOCKETS))
+        CPU_THREADS=$(lscpu | awk '/^Thread\(s\) per core/{ print $4 }')
+        TOTAL_THREADS=$((TOTAL_CPUS * CPU_THREADS))
+
+        # Get the total RAM of the machine in MB
+        TOTAL_RAM_MB=$(( $(grep MemTotal /proc/meminfo | awk '{print $2}') / 1024 ))
+        TOTAL_FREE_RAM_MB=$(( $(grep MemFree /proc/meminfo | awk '{print $2}') / 1024 ))
+        
+        # Get current limits values from .env file
+        local CURRENT_APP_CPU_LIMIT_LITTLE=$(grep -oP 'APP_CPU_LIMIT_LITTLE=\K[^#\r]+' ${ENV_FILENAME})
+        local CURRENT_APP_CPU_LIMIT_MEDIUM=$(grep -oP 'APP_CPU_LIMIT_MEDIUM=\K[^#\r]+' ${ENV_FILENAME})
+        local CURRENT_APP_CPU_LIMIT_BIG=$(grep -oP 'APP_CPU_LIMIT_BIG=\K[^#\r]+' ${ENV_FILENAME})
+        local CURRENT_APP_CPU_LIMIT_HUGE=$(grep -oP 'APP_CPU_LIMIT_HUGE=\K[^#\r]+' ${ENV_FILENAME})
+        local CURRENT_APP_MEM_RESERV_LITTLE=$(grep -oP 'APP_MEM_RESERV_LITTLE=\K[^#\r]+' ${ENV_FILENAME})
+        local CURRENT_APP_MEM_LIMIT_LITTLE=$(grep -oP 'APP_MEM_LIMIT_LITTLE=\K[^#\r]+' ${ENV_FILENAME})
+        local CURRENT_APP_MEM_RESERV_MEDIUM=$(grep -oP 'APP_MEM_RESERV_MEDIUM=\K[^#\r]+' ${ENV_FILENAME})
+        local CURRENT_APP_MEM_LIMIT_MEDIUM=$(grep -oP 'APP_MEM_LIMIT_MEDIUM=\K[^#\r]+' ${ENV_FILENAME})
+        local CURRENT_APP_MEM_RESERV_BIG=$(grep -oP 'APP_MEM_RESERV_BIG=\K[^#\r]+' ${ENV_FILENAME})
+        local CURRENT_APP_MEM_LIMIT_BIG=$(grep -oP 'APP_MEM_LIMIT_BIG=\K[^#\r]+' ${ENV_FILENAME})
+        local CURRENT_APP_MEM_RESERV_HUGE=$(grep -oP 'APP_MEM_RESERV_HUGE=\K[^#\r]+' ${ENV_FILENAME})
+        local CURRENT_APP_MEM_LIMIT_HUGE=$(grep -oP 'APP_MEM_LIMIT_HUGE=\K[^#\r]+' ${ENV_FILENAME})
+
+        # adapt the limits in .env file for CPU and RAM taking into account the number of CPU cores the machine has and the amount of RAM the machine has
+        # CPU limits: little should use max 15% of the CPU power , medium should use max 30% of the CPU power , big should use max 50% of the CPU power , huge should use max 100% of the CPU power
+        if command -v awk &> /dev/null; then
+            local APP_CPU_LIMIT_LITTLE=$(awk "BEGIN {print $TOTAL_CPUS * 15 / 100}")
+            local APP_CPU_LIMIT_MEDIUM=$(awk "BEGIN {print $TOTAL_CPUS * 30 / 100}")
+            local APP_CPU_LIMIT_BIG=$(awk "BEGIN {print $TOTAL_CPUS * 50 / 100}")
+            local APP_CPU_LIMIT_HUGE=$(awk "BEGIN {print $TOTAL_CPUS * 100 / 100}")
+        else
+            local APP_CPU_LIMIT_LITTLE=$(( TOTAL_CPUS * 15 / 100 ))
+            local APP_CPU_LIMIT_MEDIUM=$(( TOTAL_CPUS * 30 / 100 ))
+            local APP_CPU_LIMIT_BIG=$(( TOTAL_CPUS * 50 / 100 ))
+            local APP_CPU_LIMIT_HUGE=$(( TOTAL_CPUS * 100 / 100 ))
+            print_and_log "YELLOW" "Warning: awk command not found. Leaving limits setted using nearest integer values."            
+        fi
+
+        # RAM limits: little should reserve at least 64 MB or the next near power of 2 in MB of 5% of RAM as upperbound and use as max limit the 250% of this value, medium should reserve double of the little value or the next near power of 2 in MB of 10% of RAM as upperbound and use as max limit the 250% of this value, big should reserve double of the medium value or the next near power of 2 in MB of 20% of RAM as upperbound and use as max limit the 250% of this value, huge should reserve double of the big value or the next near power of 2 in MB of 40% of RAM as upperbound and use as max limit the 400% of this value
+        # Implementing a cap for high RAM devices
+        RAM_CAP_MB_DEFAULT=8192 # Example cap at 8 GB
+        # Uncomment the following to simulate a low RAM device
+        # TOTAL_RAM_MB=1024
+        RAM_CAP_MB=$(( TOTAL_RAM_MB > RAM_CAP_MB_DEFAULT ? RAM_CAP_MB_DEFAULT : TOTAL_RAM_MB ))
+        MAX_USE_RAM_MB=$(( TOTAL_RAM_MB > RAM_CAP_MB ? RAM_CAP_MB : TOTAL_RAM_MB ))
+
+        # Calculate RAM limits
+        if command -v awk &> /dev/null; then
+            local APP_MEM_RESERV_LITTLE=$(RoundUpPowerOf2 $(awk "BEGIN {print $MAX_USE_RAM_MB * 5 / 100}"))
+            local APP_MEM_LIMIT_LITTLE=$(RoundUpPowerOf2 $(awk "BEGIN {print $APP_MEM_RESERV_LITTLE * 200 / 100}"))
+            local APP_MEM_RESERV_MEDIUM=$(RoundUpPowerOf2 $(awk "BEGIN {print $MAX_USE_RAM_MB * 10 / 100}"))
+            local APP_MEM_LIMIT_MEDIUM=$(RoundUpPowerOf2 $(awk "BEGIN {print $APP_MEM_RESERV_MEDIUM * 200 / 100}"))
+            local APP_MEM_RESERV_BIG=$(RoundUpPowerOf2 $(awk "BEGIN {print $MAX_USE_RAM_MB * 20 / 100}"))
+            local APP_MEM_LIMIT_BIG=$(RoundUpPowerOf2 $(awk "BEGIN {print $APP_MEM_RESERV_BIG * 200 / 100}"))
+            local APP_MEM_RESERV_HUGE=$(RoundUpPowerOf2 $(awk "BEGIN {print $MAX_USE_RAM_MB * 40 / 100}"))
+            local APP_MEM_LIMIT_HUGE=$(RoundUpPowerOf2 $(awk "BEGIN {print $APP_MEM_RESERV_HUGE * 200 / 100}"))
+
+        else
+            local APP_MEM_RESERV_LITTLE=$(RoundUpPowerOf2 $(( MAX_USE_RAM_MB * 5 / 100 )))
+            local APP_MEM_LIMIT_LITTLE=$(RoundUpPowerOf2 $(( APP_MEM_RESERV_LITTLE * 200 / 100 )))
+            local APP_MEM_RESERV_MEDIUM=$(RoundUpPowerOf2 $(( MAX_USE_RAM_MB * 10 / 100 )))
+            local APP_MEM_LIMIT_MEDIUM=$(RoundUpPowerOf2 $(( APP_MEM_RESERV_MEDIUM * 200 / 100 )))
+            local APP_MEM_RESERV_BIG=$(RoundUpPowerOf2 $(( MAX_USE_RAM_MB * 20 / 100 )))
+            local APP_MEM_LIMIT_BIG=$(RoundUpPowerOf2 $(( APP_MEM_RESERV_BIG * 200 / 100 )))
+            local APP_MEM_RESERV_HUGE=$(RoundUpPowerOf2 $(( MAX_USE_RAM_MB * 40 / 100 )))
+            local APP_MEM_LIMIT_HUGE=$(RoundUpPowerOf2 $(( APP_MEM_RESERV_HUGE * 200 / 100 )))
+
+            print_and_log "YELLOW" "Warning: awk command not found. Limits setted using nearest integer values."
+        fi
+
+        # Update the CPU limits with the new values
+        sed -i "s/APP_CPU_LIMIT_LITTLE=${CURRENT_APP_CPU_LIMIT_LITTLE}/APP_CPU_LIMIT_LITTLE=${APP_CPU_LIMIT_LITTLE}/" $ENV_FILENAME
+        sed -i "s/APP_CPU_LIMIT_MEDIUM=${CURRENT_APP_CPU_LIMIT_MEDIUM}/APP_CPU_LIMIT_MEDIUM=${APP_CPU_LIMIT_MEDIUM}/" $ENV_FILENAME
+        sed -i "s/APP_CPU_LIMIT_BIG=${CURRENT_APP_CPU_LIMIT_BIG}/APP_CPU_LIMIT_BIG=${APP_CPU_LIMIT_BIG}/" $ENV_FILENAME
+        sed -i "s/APP_CPU_LIMIT_HUGE=${CURRENT_APP_CPU_LIMIT_HUGE}/APP_CPU_LIMIT_HUGE=${APP_CPU_LIMIT_HUGE}/" $ENV_FILENAME
+        # Update RAM limits with the new values unsing as unit MB
+        sed -i "s/APP_MEM_RESERV_LITTLE=${CURRENT_APP_MEM_RESERV_LITTLE}/APP_MEM_RESERV_LITTLE=${APP_MEM_RESERV_LITTLE}m/" $ENV_FILENAME
+        sed -i "s/APP_MEM_LIMIT_LITTLE=${CURRENT_APP_MEM_LIMIT_LITTLE}/APP_MEM_LIMIT_LITTLE=${APP_MEM_LIMIT_LITTLE}m/" $ENV_FILENAME
+        sed -i "s/APP_MEM_RESERV_MEDIUM=${CURRENT_APP_MEM_RESERV_MEDIUM}/APP_MEM_RESERV_MEDIUM=${APP_MEM_RESERV_MEDIUM}m/" $ENV_FILENAME
+        sed -i "s/APP_MEM_LIMIT_MEDIUM=${CURRENT_APP_MEM_LIMIT_MEDIUM}/APP_MEM_LIMIT_MEDIUM=${APP_MEM_LIMIT_MEDIUM}m/" $ENV_FILENAME
+        sed -i "s/APP_MEM_RESERV_BIG=${CURRENT_APP_MEM_RESERV_BIG}/APP_MEM_RESERV_BIG=${APP_MEM_RESERV_BIG}m/" $ENV_FILENAME
+        sed -i "s/APP_MEM_LIMIT_BIG=${CURRENT_APP_MEM_LIMIT_BIG}/APP_MEM_LIMIT_BIG=${APP_MEM_LIMIT_BIG}m/" $ENV_FILENAME
+        sed -i "s/APP_MEM_RESERV_HUGE=${CURRENT_APP_MEM_RESERV_HUGE}/APP_MEM_RESERV_HUGE=${APP_MEM_RESERV_HUGE}m/" $ENV_FILENAME
+        sed -i "s/APP_MEM_LIMIT_HUGE=${CURRENT_APP_MEM_LIMIT_HUGE}/APP_MEM_LIMIT_HUGE=${APP_MEM_LIMIT_HUGE}m/" $ENV_FILENAME
+
+        # If debug mode is enabled print the calculated limits values
+        if [[ "$DEBUG" == "true" ]]; then
+            print_and_log "DEFAULT" "Total CPUs: $TOTAL_CPUS"
+            print_and_log "DEFAULT" "APP_CPU_LIMIT_LITTLE: $APP_CPU_LIMIT_LITTLE"
+            print_and_log "DEFAULT" "APP_CPU_LIMIT_MEDIUM: $APP_CPU_LIMIT_MEDIUM"
+            print_and_log "DEFAULT" "APP_CPU_LIMIT_BIG: $APP_CPU_LIMIT_BIG"
+            print_and_log "DEFAULT" "APP_CPU_LIMIT_HUGE: $APP_CPU_LIMIT_HUGE"
+            print_and_log "DEFAULT" "Total RAM: $TOTAL_RAM_MB MB"
+            print_and_log "DEFAULT" "APP_MEM_RESERV_LITTLE: $APP_MEM_RESERV_LITTLE MB"
+            print_and_log "DEFAULT" "APP_MEM_LIMIT_LITTLE: $APP_MEM_LIMIT_LITTLE MB"
+            print_and_log "DEFAULT" "APP_MEM_RESERV_MEDIUM: $APP_MEM_RESERV_MEDIUM MB"
+            print_and_log "DEFAULT" "APP_MEM_LIMIT_MEDIUM: $APP_MEM_LIMIT_MEDIUM MB"
+            print_and_log "DEFAULT" "APP_MEM_RESERV_BIG: $APP_MEM_RESERV_BIG MB"
+            print_and_log "DEFAULT" "APP_MEM_LIMIT_BIG: $APP_MEM_LIMIT_BIG MB"
+            print_and_log "DEFAULT" "APP_MEM_RESERV_HUGE: $APP_MEM_RESERV_HUGE MB"
+            print_and_log "DEFAULT" "APP_MEM_LIMIT_HUGE: $APP_MEM_LIMIT_HUGE MB"
+            #read -r -p "Press Enter to continue"
+        fi
+
+    else
+        echo "Warning: Required commands not found. Leaving limits at default values."
+    fi
+}
+
 # Function to check if there are any updates available #
 check_project_updates() {
     # Get the current script version from the local .env file
@@ -1305,6 +1431,7 @@ fn_checkDependencies(){
     clear
     colorprint "GREEN" "MONEY4BAND AUTOMATIC GUIDED SETUP v${SCRIPT_VERSION}"
     check_project_updates
+    fn_adaptLimits
     colorprint "GREEN" "---------------------------------------------- "
     colorprint "MAGENTA" "Join our Discord community for updates, help, and discussions: ${DS_PROJECT_SERVER_URL}"
     colorprint "MAGENTA" "---------------------------------------------- "
