@@ -207,6 +207,22 @@ function fn_fail($text) {
 }
 
 ## Utility functions ##
+# Function to check if the env file is already configured #
+function Check-ConfigurationStatus {
+    param (
+        [string]$envFileArg
+    )
+    # Check if ${envFileArg} file is already configured
+    $ENV_CONFIGURATION_STATUS = (Get-Content $envFileArg | Select-String -Pattern "ENV_CONFIGURATION_STATUS=" -SimpleMatch).ToString().Split("=")[1]
+    toLog_ifDebug -l "[DEBUG]" -m "Current ENV_CONFIGURATION_STATUS: $ENV_CONFIGURATION_STATUS"
+
+    $PROXY_CONFIGURATION_STATUS = (Get-Content $envFileArg | Select-String -Pattern "PROXY_CONFIGURATION_STATUS=" -SimpleMatch).ToString().Split("=")[1]
+    toLog_ifDebug -l "[DEBUG]" -m "Current PROXY_CONFIGURATION_STATUS: $PROXY_CONFIGURATION_STATUS"
+
+    $NOTIFICATIONS_CONFIGURATION_STATUS = (Get-Content $envFileArg | Select-String -Pattern "NOTIFICATIONS_CONFIGURATION_STATUS=" -SimpleMatch).ToString().Split("=")[1]
+    toLog_ifDebug -l "[DEBUG]" -m "Current NOTIFICATIONS_CONFIGURATION_STATUS: $NOTIFICATIONS_CONFIGURATION_STATUS"
+}
+
 # Function to round up to the nearest power of 2
 function RoundUpPowerOf2 {
     param([float]$value)
@@ -1207,6 +1223,8 @@ function fn_setupProxy() {
                 (Get-Content .\${ENV_FILENAME}).replace("# STACK_PROXY=", "STACK_PROXY=") | Set-Content .\${ENV_FILENAME} # if it was already uncommented it does nothing
                 $CURRENT_VALUE = $(Get-Content .\${ENV_FILENAME} | Select-String -Pattern "STACK_PROXY=" -SimpleMatch).ToString().Split("=")[1]
                 (Get-Content .\${ENV_FILENAME}).replace("STACK_PROXY=${CURRENT_VALUE}", "STACK_PROXY=$($script:NEW_STACK_PROXY)") | Set-Content .\${ENV_FILENAME}
+                # disable rolling restarts for watchtower as enabling proxy will  make the others containers dependent on it and so rolling restarts will not work
+                (Get-Content "$script:DKCOM_FILENAME" -Raw) -replace '- WATCHTOWER_ROLLING_RESTART=true', '- WATCHTOWER_ROLLING_RESTART=false' | Set-Content "$script:DKCOM_FILENAME"
                 (Get-Content "$script:DKCOM_FILENAME" -Raw) -replace '(?<=^|[\r\n])#ENABLE_PROXY(?![a-zA-Z0-9])', '' | Set-Content "$script:DKCOM_FILENAME"
                 (Get-Content "$script:DKCOM_FILENAME").replace("# network_mode", "network_mode") | Set-Content "$script:DKCOM_FILENAME"
                 $script:PROXY_CONF = $true
@@ -1251,12 +1269,7 @@ function fn_setupEnv() {
     print_and_log "BLUE" "Starting setupEnv function for $app_type"
 
     # Check if ${ENV_FILENAME} file is already configured if 1 then it is already configured, if 0 then it is not configured
-    $ENV_CONFIGURATION_STATUS = (Get-Content .\${ENV_FILENAME} | Select-String -Pattern "ENV_CONFIGURATION_STATUS=" -SimpleMatch).ToString().Split("=")[1]
-    toLog_ifDebug -l "[DEBUG]" -m "Current ENV_CONFIGURATION_STATUS: $ENV_CONFIGURATION_STATUS"
-    $PROXY_CONFIGURATION_STATUS = (Get-Content .\${ENV_FILENAME} | Select-String -Pattern "PROXY_CONFIGURATION_STATUS=" -SimpleMatch).ToString().Split("=")[1]
-    toLog_ifDebug -l "[DEBUG]" -m "Current PROXY_CONFIGURATION_STATUS: $PROXY_CONFIGURATION_STATUS"
-    $NOTIFICATIONS_CONFIGURATION_STATUS = (Get-Content .\${ENV_FILENAME} | Select-String -Pattern "NOTIFICATIONS_CONFIGURATION_STATUS=" -SimpleMatch).ToString().Split("=")[1]
-    toLog_ifDebug -l "[DEBUG]" -m "Current NOTIFICATIONS_CONFIGURATION_STATUS: $NOTIFICATIONS_CONFIGURATION_STATUS"
+    Check-ConfigurationStatus -envFileArg "${ENV_FILENAME}"
 
     if (($ENV_CONFIGURATION_STATUS -eq "1") -and ($app_type -eq "apps")) {
         while ($true) {
@@ -1269,12 +1282,14 @@ function fn_setupEnv() {
                 Remove-Item .\${DKCOM_FILENAME}
                 Copy-Item .\${ENV_TEMPLATE_FILENAME} .\${ENV_FILENAME} -Force
                 Copy-Item .\${DKCOM_TEMPLATE_FILENAME} .\${DKCOM_FILENAME} -Force
+                Check-ConfigurationStatus -envFileArg "${ENV_FILENAME}"
                 Clear-Host
                 break
             }
             elseif ($yn.ToLower() -eq 'n' -or $yn.ToLower() -eq 'no') {
                 print_and_log "BLUE" "Keeping the existing ${ENV_FILENAME} file."
                 Start-Sleep -Seconds $SLEEP_TIME
+                Check-ConfigurationStatus -envFileArg "${ENV_FILENAME}"
                 Clear-Host
                 break
             }
