@@ -10,7 +10,7 @@ services:
 
 # EARNAPP CONTAINER
 #ENABLE_EARNAPP  earnapp:
-#ENABLE_EARNAPP    container_name: earnapp
+#ENABLE_EARNAPP    container_name: earnapp_$DEVICE_NAME
 #ENABLE_EARNAPP    image: cwlu2001/earnapp:latest
 #ENABLE_EARNAPP    environment:
 #ENABLE_EARNAPP      - EARNAPP_UUID=$EARNAPP_DEVICE_UUID
@@ -24,7 +24,7 @@ services:
 
 # HONEYGAIN CONTAINER
 #ENABLE_HONEYGAIN  honeygain:
-#ENABLE_HONEYGAIN    container_name: honeygain
+#ENABLE_HONEYGAIN    container_name: honeygain_$DEVICE_NAME
 #ENABLE_HONEYGAIN    image: honeygain/honeygain:latest
 #ENABLE_HONEYGAIN    # network_mode: service:tun2socks
 #ENABLE_HONEYGAIN    environment:
@@ -37,7 +37,7 @@ services:
 
 # IPROYALPAWNS CONTAINER
 #ENABLE_IPROYALPAWNS  iproyal:
-#ENABLE_IPROYALPAWNS    container_name: iproyal
+#ENABLE_IPROYALPAWNS    container_name: iproyal_$DEVICE_NAME
 #ENABLE_IPROYALPAWNS    image: iproyal/pawns-cli:latest
 #ENABLE_IPROYALPAWNS    environment:
 #ENABLE_IPROYALPAWNS      - IPROYALPAWNS_DUMMY=''
@@ -50,7 +50,7 @@ services:
 
 # PACKETSTREAM CONTAINER
 #ENABLE_PACKETSTREAM  packetstream:
-#ENABLE_PACKETSTREAM    container_name: packetstream
+#ENABLE_PACKETSTREAM    container_name: packetstream_$DEVICE_NAME
 #ENABLE_PACKETSTREAM    image: packetstream/psclient:latest
 #ENABLE_PACKETSTREAM    environment:
 #ENABLE_PACKETSTREAM      - CID=$PACKETSTREAM_CID
@@ -62,7 +62,7 @@ services:
 
 # TRAFFMONETIZER CONTAINER
 #ENABLE_TRAFFMONETIZER  traffMonetizer:
-#ENABLE_TRAFFMONETIZER    container_name: traffmonetizer
+#ENABLE_TRAFFMONETIZER    container_name: traffmonetizer_$DEVICE_NAME
 #ENABLE_TRAFFMONETIZER    image: traffmonetizer/cli_v2:latest
 #ENABLE_TRAFFMONETIZER    environment:
 #ENABLE_TRAFFMONETIZER      - TRAFFMONETIZER_DUMMY=''
@@ -75,7 +75,7 @@ services:
 
 # REPOCKET CONTAINER
 #ENABLE_REPOCKET  repocket:
-#ENABLE_REPOCKET    container_name: repocket
+#ENABLE_REPOCKET    container_name: repocket_$DEVICE_NAME
 #ENABLE_REPOCKET    image: repocket/repocket:latest
 #ENABLE_REPOCKET    environment:
 #ENABLE_REPOCKET        - RP_EMAIL=$REPOCKET_EMAIL
@@ -88,7 +88,7 @@ services:
 
 # EARNFM CONTAINER
 #ENABLE_EARNFM  earnfm:
-#ENABLE_EARNFM    container_name: earnfm
+#ENABLE_EARNFM    container_name: earnfm_$DEVICE_NAME
 #ENABLE_EARNFM    image: earnfm/earnfm-client:latest
 #ENABLE_EARNFM    environment:
 #ENABLE_EARNFM        - EARNFM_TOKEN=$EARNFM_APIKEY
@@ -100,7 +100,7 @@ services:
 
 # PROXYRACK CONTAINER
 #ENABLE_PROXYRACK  proxyrack:
-#ENABLE_PROXYRACK    container_name: proxyrack
+#ENABLE_PROXYRACK    container_name: proxyrack_$DEVICE_NAME
 #ENABLE_PROXYRACK    image: proxyrack/pop:latest
 #ENABLE_PROXYRACK    environment:
 #ENABLE_PROXYRACK        - api_key=$PROXYRACK_APIKEY
@@ -114,7 +114,7 @@ services:
 
 # PROXYLITE CONTAINER
 #ENABLE_PROXYLITE  proxylite:
-#ENABLE_PROXYLITE    container_name: proxylite
+#ENABLE_PROXYLITE    container_name: proxylite_$DEVICE_NAME
 #ENABLE_PROXYLITE    image: proxylite/proxyservice:latest
 #ENABLE_PROXYLITE    environment:
 #ENABLE_PROXYLITE      - USER_ID=$PROXYLITE_USER_ID
@@ -127,7 +127,7 @@ services:
 # BITPING CONTAINER 
 # For this app you'll need a one-time operation to claim your node: the first time if you do not have a backup of your identity you will need to enter manually your credentials to initialize it use : sudo docker run --rm -it -v ${PWD}/.data/.bitping/:/root/.bitping bitping/bitping-node:latest , then enter your credential , once this is done CTRL+C to end container and then if using bind folder just use docker compose to restart it as always, if you use the docker volume mount it in the previous comamnd or copy the created credentials in the volume using ' docker cp ${PWD}/.data/.bitping bitping:/root/' or just mount the volume in the interactive temporary container
 #ENABLE_BITPING  bitping:
-#ENABLE_BITPING    container_name: bitping
+#ENABLE_BITPING    container_name: bitping_$DEVICE_NAME
 #ENABLE_BITPING    image: mrcolorrain/bitping:latest
 #ENABLE_BITPING    environment:
 #ENABLE_BITPING      - BITPING_EMAIL=$BITPING_EMAIL
@@ -148,7 +148,7 @@ services:
 
 # MYSTERIUM CONTAINER
 #ENABLE_MYSTNODE  mysterium:
-#ENABLE_MYSTNODE    container_name: mystnode
+#ENABLE_MYSTNODE    container_name: mystnode_$DEVICE_NAME
 #ENABLE_MYSTNODE    image: mysteriumnetwork/myst:latest
 #ENABLE_MYSTNODE    environment:
 #ENABLE_MYSTNODE      - MYSTNODE_DUMMY=''
@@ -170,7 +170,7 @@ services:
 
 # PEER2PROFIT CONTAINER
 #ENABLE_PEER2PROFIT  peer2profit:
-#ENABLE_PEER2PROFIT    container_name: peer2profit
+#ENABLE_PEER2PROFIT    container_name: peer2profit_$DEVICE_NAME
 #ENABLE_PEER2PROFIT    image: mrcolorrain/peer2profit:latest
 #ENABLE_PEER2PROFIT    environment:
 #ENABLE_PEER2PROFIT      - P2P_EMAIL=$PEER2PROFIT_EMAIL
@@ -187,7 +187,7 @@ services:
 # TUN2SOCKS CONTAINER
 #ENABLE_PROXY  tun2socks:
 #ENABLE_PROXY    image: xjasonlyu/tun2socks
-#ENABLE_PROXY    container_name: tun2socks
+#ENABLE_PROXY    container_name: tun2socks_$DEVICE_NAME
 #ENABLE_PROXY    restart: always
 #ENABLE_PROXY    command: ["/bin/sh", "-c", "echo 'nameserver 1.1.1.1\nnameserver 8.8.8.8' > /etc/resolv.conf && ip rule add iif lo ipproto udp dport 53 lookup main && ip rule add iif lo ipproto udp dport 3478 lookup main"]
 #ENABLE_PROXY    environment:
@@ -204,7 +204,7 @@ services:
 
 # WATCHTOWER AUTO-UPDATER AND NOTIFICATIONS
   watchtower:
-    container_name: watchtower
+    container_name: watchtower_$DEVICE_NAME
     image: containrrr/watchtower:latest
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
@@ -223,7 +223,7 @@ services:
         
 # WEB DASBOARD
   webdashboard:
-    container_name: webdashboard
+    container_name: webdashboard_$DEVICE_NAME
     image: nginx:alpine-slim
     volumes:
       - ./.resources/.www:/usr/share/nginx/html:ro
