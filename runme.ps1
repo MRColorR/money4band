@@ -213,13 +213,13 @@ function Check-ConfigurationStatus {
         [string]$envFileArg
     )
     # Check if ${envFileArg} file is already configured
-    $ENV_CONFIGURATION_STATUS = (Get-Content $envFileArg | Select-String -Pattern "ENV_CONFIGURATION_STATUS=" -SimpleMatch).ToString().Split("=")[1]
+    $script:ENV_CONFIGURATION_STATUS = (Get-Content $envFileArg | Select-String -Pattern "ENV_CONFIGURATION_STATUS=" -SimpleMatch).ToString().Split("=")[1]
     toLog_ifDebug -l "[DEBUG]" -m "Current ENV_CONFIGURATION_STATUS: $ENV_CONFIGURATION_STATUS"
 
-    $PROXY_CONFIGURATION_STATUS = (Get-Content $envFileArg | Select-String -Pattern "PROXY_CONFIGURATION_STATUS=" -SimpleMatch).ToString().Split("=")[1]
+    $script:PROXY_CONFIGURATION_STATUS = (Get-Content $envFileArg | Select-String -Pattern "PROXY_CONFIGURATION_STATUS=" -SimpleMatch).ToString().Split("=")[1]
     toLog_ifDebug -l "[DEBUG]" -m "Current PROXY_CONFIGURATION_STATUS: $PROXY_CONFIGURATION_STATUS"
 
-    $NOTIFICATIONS_CONFIGURATION_STATUS = (Get-Content $envFileArg | Select-String -Pattern "NOTIFICATIONS_CONFIGURATION_STATUS=" -SimpleMatch).ToString().Split("=")[1]
+    $script:NOTIFICATIONS_CONFIGURATION_STATUS = (Get-Content $envFileArg | Select-String -Pattern "NOTIFICATIONS_CONFIGURATION_STATUS=" -SimpleMatch).ToString().Split("=")[1]
     toLog_ifDebug -l "[DEBUG]" -m "Current NOTIFICATIONS_CONFIGURATION_STATUS: $NOTIFICATIONS_CONFIGURATION_STATUS"
 }
 
