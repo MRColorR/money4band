@@ -192,7 +192,7 @@ services:
 #ENABLE_PROXY    command: ["/bin/sh", "-c", "echo 'nameserver 1.1.1.1\nnameserver 8.8.8.8' > /etc/resolv.conf && ip rule add iif lo ipproto udp dport 53 lookup main && ip rule add iif lo ipproto udp dport 3478 lookup main"]
 #ENABLE_PROXY    environment:
 #ENABLE_PROXY      - LOGLEVEL=info
-#ENABLE_PROXY      - PROXY=$PROXY_STACK
+#ENABLE_PROXY      - PROXY=$STACK_PROXY
 #ENABLE_PROXY    volumes:
 #ENABLE_PROXY      - '/dev/net/tun:/dev/net/tun'
 #ENABLE_PROXY    cap_add:
