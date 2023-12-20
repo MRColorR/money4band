@@ -128,14 +128,15 @@ services:
 # For this app you'll need a one-time operation to claim your node: the first time if you do not have a backup of your identity you will need to enter manually your credentials to initialize it use : sudo docker run --rm -it -v ${PWD}/.data/.bitping/:/root/.bitping bitping/bitping-node:latest , then enter your credential , once this is done CTRL+C to end container and then if using bind folder just use docker compose to restart it as always, if you use the docker volume mount it in the previous comamnd or copy the created credentials in the volume using ' docker cp ${PWD}/.data/.bitping bitping:/root/' or just mount the volume in the interactive temporary container
 #ENABLE_BITPING  bitping:
 #ENABLE_BITPING    container_name: bitping
-#ENABLE_BITPING    image: bitping/bitping-node:latest
+#ENABLE_BITPING    image: mrcolorrain/bitping:latest
 #ENABLE_BITPING    environment:
-#ENABLE_BITPING      - BITPING_DUMMY=''
+#ENABLE_BITPING      - BITPING_EMAIL=$BITPING_EMAIL
+#ENABLE_BITPING      - BITPING_PASSWD=$BITPING_PASSWD
 #ENABLE_BITPING    volumes:
 #ENABLE_BITPING      # You have 2 options
-#ENABLE_BITPING      - ./.data/.bitping:/root/.bitping # Bind an host folder to the container (more insecure but simplier to port and backup) this option mount a new identity or a backed up one from the host file system
+#ENABLE_BITPING      - ./.data/.bitpingd:/root/.bitpingd # Bind an host folder to the container (more insecure but simplier to port and backup) this option mount a new identity or a backed up one from the host file system
 #ENABLE_BITPING      # OR
-#ENABLE_BITPING      #- bitping-data:/root/.bitping # if you use this also uncomment the relative volume in volumes section, this  Use docker volumes (more secure harder to access, backup and restore) you'll need to do backups using 'docker cp
+#ENABLE_BITPING      #- bitping-data:/root/.bitpingd # if you use this also uncomment the relative volume in volumes section, this  Use docker volumes (more secure harder to access, backup and restore) you'll need to do backups using 'docker cp
 #ENABLE_BITPING    # network_mode: service:tun2socks
 #ENABLE_BITPING    restart: always
 #ENABLE_BITPING    cpus: ${APP_CPU_LIMIT_BIG}

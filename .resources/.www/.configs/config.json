@@ -95,11 +95,10 @@
       "name": "BITPING",
       "dashboard": "https://app.bitping.com/earnings",
       "link": "https://app.bitping.com?r=qm7mIuX3",
-      "image": "bitping/bitping-node",
+      "image": "mrcolorrain/bitping",
       "flags": {
-        "--customScript":{
-          "scriptname": "bitpingSetup"
-      }
+        "--email":{},
+        "--password":{}
     }
   }
   ],
