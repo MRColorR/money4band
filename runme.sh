@@ -206,6 +206,21 @@ fn_fail() {
 }
 
 ## Utility functions ##
+# Function to check if the env file is already configured #
+check_configuration_status() {
+    local envFileArg=$1
+
+    # Check if ${envFileArg} file is already configured
+    ENV_CONFIGURATION_STATUS=$(grep -oP '# ENV_CONFIGURATION_STATUS=\K[^#\r]+' "$envFileArg")
+    toLog_ifDebug -l "[DEBUG]" -m "Current ENV_CONFIGURATION_STATUS: $ENV_CONFIGURATION_STATUS"
+    
+    PROXY_CONFIGURATION_STATUS=$(grep -oP '# PROXY_CONFIGURATION_STATUS=\K[^#\r]+' "$envFileArg")
+    toLog_ifDebug -l "[DEBUG]" -m "Current PROXY_CONFIGURATION_STATUS: $PROXY_CONFIGURATION_STATUS"
+
+    NOTIFICATIONS_CONFIGURATION_STATUS=$(grep -oP '# NOTIFICATIONS_CONFIGURATION_STATUS=\K[^#\r]+' "$envFileArg")
+    toLog_ifDebug -l "[DEBUG]" -m "Current NOTIFICATIONS_CONFIGURATION_STATUS: $NOTIFICATIONS_CONFIGURATION_STATUS"
+}
+
 # Function to round up to the nearest power of 2
 RoundUpPowerOf2() {
     local value=$(printf "%.0f" $1)  # Convert to an integer by rounding
@@ -1130,13 +1145,15 @@ fn_setupProxy() {
                     colorprint "GREEN" "Insert the designed proxy to use. Eg: protocol://proxyUsername:proxyPassword@proxy_url:proxy_port or just protocol://proxy_url:proxy_port if auth is not needed"
                     read -r NEW_STACK_PROXY
                     # An unique name for the stack is chosen so that even if multiple stacks are started with different proxies the names do not conflict
-                    # ATTENTION: if a random value has been already added to the project and devicename during a previous setup it should remain the same to mantain consistency withthe devices name registered on the apps sites but the proxy url could be changed
+                    # ATTENTION: if a random value has been already added to the project and devicename during a previous setup it should remain the same to mantain consistency with the devices name registered on the apps sites but the proxy url could be changed
                     sed -i "s^COMPOSE_PROJECT_NAME=money4band^COMPOSE_PROJECT_NAME=money4band_$RANDOM_VALUE^" ${ENV_FILENAME} 
                     sed -i "s^DEVICE_NAME=${DEVICE_NAME}^DEVICE_NAME=${DEVICE_NAME}$RANDOM_VALUE^" ${ENV_FILENAME}
                     # Obtaining the line of STACK_PROXY= in the ${ENV_FILENAME} file and then replace the line with the new proxy also uncomment the line if it was commented
                     sed -i "s^# STACK_PROXY=^STACK_PROXY=^" ${ENV_FILENAME} # if it was already uncommented it does nothing
                     CURRENT_VALUE=$(grep -oP 'STACK_PROXY=\K[^#\r]+' ${ENV_FILENAME})
                     sed -i "s^$CURRENT_VALUE^$NEW_STACK_PROXY^" ${ENV_FILENAME}
+                    # disable rolling restarts for watchtower as enabling proxy will  make the others containers dependent on it and so rolling restarts will not work
+                    sed -i "s^- WATCHTOWER_ROLLING_RESTART=true^- WATCHTOWER_ROLLING_RESTART=false^" "$DKCOM_FILENAME"
                     sed -i 's^#ENABLE_PROXY ^ ^' "$DKCOM_FILENAME"
                     sed -i "s^# network_mode^network_mode^" $DKCOM_FILENAME
                     PROXY_CONF='true'
@@ -1163,12 +1180,7 @@ fn_setupEnv(){
     print_and_log "BLUE" "Starting setupEnv function for $app_type"
 
     # Check if ${ENV_FILENAME} file is already configured if 1 then it is already configured, if 0 then it is not configured
-    ENV_CONFIGURATION_STATUS=$(grep -oP '# ENV_CONFIGURATION_STATUS=\K[^#\r]+' ${ENV_FILENAME})
-    toLog_ifDebug -l "[DEBUG]" -m "Current ENV_CONFIGURATION_STATUS: $ENV_CONFIGURATION_STATUS"
-    PROXY_CONFIGURATION_STATUS=$(grep -oP '# PROXY_CONFIGURATION_STATUS=\K[^#\r]+' ${ENV_FILENAME})
-    toLog_ifDebug -l "[DEBUG]" -m "Current PROXY_CONFIGURATION_STATUS: $PROXY_CONFIGURATION_STATUS"
-    NOTIFICATIONS_CONFIGURATION_STATUS=$(grep -oP '# NOTIFICATIONS_CONFIGURATION_STATUS=\K[^#\r]+' ${ENV_FILENAME})
-    toLog_ifDebug -l "[DEBUG]" -m "Current NOTIFICATIONS_CONFIGURATION_STATUS: $NOTIFICATIONS_CONFIGURATION_STATUS"
+    check_configuration_status "$ENV_FILENAME"
     if [ "$ENV_CONFIGURATION_STATUS" == "1" ] && [ "$app_type" == "apps" ]; then
         while true; do
             colorprint "YELLOW" "The current ${ENV_FILENAME} file appears to have already been configured. Do you wish to reset it? (Y/N)"
@@ -1180,12 +1192,14 @@ fn_setupEnv(){
                     rm "$DKCOM_FILENAME"
                     cp "${ENV_TEMPLATE_FILENAME}" "${ENV_FILENAME}"
                     cp "${DKCOM_TEMPLATE_FILENAME}" "${DKCOM_FILENAME}"
+                    check_configuration_status "$ENV_FILENAME"
                     clear
                     break
                     ;;
                 [Nn]* )
                     print_and_log "BLUE" "Keeping the existing ${ENV_FILENAME} file."
                     sleep ${SLEEP_TIME}
+                    check_configuration_status "$ENV_FILENAME"
                     clear
                     break
                     ;;
