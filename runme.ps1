@@ -46,12 +46,16 @@ else {
     $LOCAL_SCRIPT_VERSION = (Get-Content .\${ENV_FILENAME} | Select-String -Pattern "PROJECT_VERSION=" -SimpleMatch).ToString().Split("=")[1]
     $LOCAL_SCRIPT_TEMPLATE_VERSION = (Get-Content .\${ENV_TEMPLATE_FILENAME} | Select-String -Pattern "PROJECT_VERSION=" -SimpleMatch).ToString().Split("=")[1]
     if ($LOCAL_SCRIPT_VERSION -ne $LOCAL_SCRIPT_TEMPLATE_VERSION) {
-        Write-Output "Local ${ENV_FILENAME} file version is different from the local ${ENV_TEMPLATE_FILENAME} file version, aligning the local ${ENV_FILENAME} file version to the local ${ENV_TEMPLATE_FILENAME} file version"
-        # Replace the lines in ${ENV_FILENAME} and $DKCOM_FILENAME
-        (Get-Content .\${ENV_FILENAME}).replace("PROJECT_VERSION=${LOCAL_SCRIPT_VERSION}", "PROJECT_VERSION=${LOCAL_SCRIPT_TEMPLATE_VERSION}") | Set-Content .\${ENV_FILENAME}
-        Write-Output "Local ${ENV_FILENAME} file version aligned to the local ${ENV_TEMPLATE_FILENAME} file version"
-        Write-Output "This could be the result of an update applied to an existing ${ENV_FILENAME} file, if something is not working as expected please check the ${ENV_FILENAME} file and the ${ENV_TEMPLATE_FILENAME} file and make sure they are aligned."
-        Write-Output "If you are not sure, please delete/reset the ${ENV_FILENAME} file and the ${DKCOM_FILENAME} file and then run this script again or download the latest version directly from GitHub."
+        Write-Output "Local ${ENV_FILENAME} file version differs from local ${ENV_TEMPLATE_FILENAME} file version"
+        Write-Output "This could be the result of an updated project using an outdated ${ENV_FILENAME} file"
+        Start-Sleep -Seconds $SLEEP_TIME
+        Write-Output "Generating new ${ENV_FILENAME} and ${DKCOM_FILENAME} files from the local template files and backing up the old files as ${ENV_FILENAME}.bak and ${DKCOM_FILENAME}.bak"
+        Copy-Item "${ENV_FILENAME}" "${ENV_FILENAME}.bak" -Force
+        Copy-Item "${ENV_TEMPLATE_FILENAME}" "${ENV_FILENAME}" -Force
+        Copy-Item "${DKCOM_FILENAME}" "${DKCOM_FILENAME}.bak" -Force
+        Copy-Item "${DKCOM_TEMPLATE_FILENAME}" "${DKCOM_FILENAME}" -Force
+        Write-Output "New local ${ENV_FILENAME} and ${DKCOM_FILENAME} files generated from the local template files"
+        Write-Output "If you are unsure, download the latest version directly from GitHub."
         Start-Sleep -Seconds $SLEEP_TIME
         Read-Host -Prompt "Press Enter to continue"
     }

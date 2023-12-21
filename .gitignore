@@ -4,3 +4,4 @@
 .env
 docker-compose.yaml
 userconf.json
+*.bak

@@ -41,11 +41,16 @@ else
     LOCAL_SCRIPT_VERSION=$(grep -oP 'PROJECT_VERSION=\K[^#\r]+' ${ENV_FILENAME})
     LOCAL_SCRIPT_TEMPLATE_VERSION=$(grep -oP 'PROJECT_VERSION=\K[^#\r]+' ${ENV_TEMPLATE_FILENAME})
     if [[ "$LOCAL_SCRIPT_VERSION" != "$LOCAL_SCRIPT_TEMPLATE_VERSION" ]]; then
-        echo "Local ${ENV_FILENAME} file version is different from the local ${ENV_TEMPLATE_FILENAME} file version, aligning the ${ENV_FILENAME} file version to the ${ENV_TEMPLATE_FILENAME} file version"
-        sed -i "s~PROJECT_VERSION=${LOCAL_SCRIPT_VERSION}~PROJECT_VERSION=${LOCAL_SCRIPT_TEMPLATE_VERSION}~" ${ENV_FILENAME}
-        echo "Local ${ENV_FILENAME} file version aligned to the local ${ENV_TEMPLATE_FILENAME} file version"
-        echo "This could be the result of an update applied to an existing ${ENV_FILENAME} file, if something is not working as expected please check the ${ENV_FILENAME} file and the ${ENV_TEMPLATE_FILENAME} file and make sure they are aligned."
-        echo "If you are not sure, please delete/reset the ${ENV_FILENAME} file and the ${DKCOM_FILENAME} file and then run this script again or download the latest version directly from GitHub."
+        echo "Local ${ENV_FILENAME} file version differs from local ${ENV_TEMPLATE_FILENAME} file version"
+        echo "This could be the result of an updated project using an outdated ${ENV_FILENAME} file"
+        sleep $SLEEP_TIME
+        echo "Generating new ${ENV_FILENAME} and ${DKCOM_FILENAME} files from the local template files and backing up the old files as ${ENV_FILENAME}.bak and ${DKCOM_FILENAME}.bak"
+        cp "${ENV_FILENAME}" "${ENV_FILENAME}.bak"
+        cp "${ENV_TEMPLATE_FILENAME}" "${ENV_FILENAME}"
+        cp "${DKCOM_FILENAME}" "${DKCOM_FILENAME}.bak"
+        cp "${DKCOM_TEMPLATE_FILENAME}" "${DKCOM_FILENAME}"
+        echo "New local ${ENV_FILENAME} and ${DKCOM_FILENAME} files generated from the local template files"
+        echo "If you are unsure, download the latest version directly from GitHub."
         sleep $SLEEP_TIME
         read -r -p "Press Enter to continue"
     fi
