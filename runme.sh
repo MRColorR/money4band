@@ -277,7 +277,7 @@ fn_adaptLimits() {
 
         # RAM limits: little should reserve at least 64 MB or the next near power of 2 in MB of 5% of RAM as upperbound and use as max limit the 250% of this value, medium should reserve double of the little value or the next near power of 2 in MB of 10% of RAM as upperbound and use as max limit the 250% of this value, big should reserve double of the medium value or the next near power of 2 in MB of 20% of RAM as upperbound and use as max limit the 250% of this value, huge should reserve double of the big value or the next near power of 2 in MB of 40% of RAM as upperbound and use as max limit the 400% of this value
         # Implementing a cap for high RAM devices
-        RAM_CAP_MB_DEFAULT=8192 # Example cap at 8 GB
+        RAM_CAP_MB_DEFAULT=6.144 # Example cap at 6 GB to leave some RAM for the OS based on current devices mean RAM value
         # Uncomment the following to simulate a low RAM device
         # TOTAL_RAM_MB=1024
         RAM_CAP_MB=$(( TOTAL_RAM_MB > RAM_CAP_MB_DEFAULT ? RAM_CAP_MB_DEFAULT : TOTAL_RAM_MB ))
