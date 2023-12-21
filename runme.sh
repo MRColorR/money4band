@@ -242,9 +242,23 @@ fn_adaptLimits() {
         CPU_THREADS=$(lscpu | awk '/^Thread\(s\) per core/{ print $4 }')
         TOTAL_THREADS=$((TOTAL_CPUS * CPU_THREADS))
 
+        # Adapt the limits in .env file for CPU and RAM taking into account the number of CPU cores the machine has and the amount of RAM the machine has
+        # CPU limits: little should use max 15% of the CPU power , medium should use max 30% of the CPU power , big should use max 50% of the CPU power , huge should use max 100% of the CPU power
+        if command -v awk &> /dev/null; then
+            local APP_CPU_LIMIT_LITTLE=$(awk "BEGIN {print $TOTAL_CPUS * 15 / 100}")
+            local APP_CPU_LIMIT_MEDIUM=$(awk "BEGIN {print $TOTAL_CPUS * 30 / 100}")
+            local APP_CPU_LIMIT_BIG=$(awk "BEGIN {print $TOTAL_CPUS * 50 / 100}")
+            local APP_CPU_LIMIT_HUGE=$(awk "BEGIN {print $TOTAL_CPUS * 100 / 100}")
+        else
+            local APP_CPU_LIMIT_LITTLE=$(( TOTAL_CPUS * 15 / 100 ))
+            local APP_CPU_LIMIT_MEDIUM=$(( TOTAL_CPUS * 30 / 100 ))
+            local APP_CPU_LIMIT_BIG=$(( TOTAL_CPUS * 50 / 100 ))
+            local APP_CPU_LIMIT_HUGE=$(( TOTAL_CPUS * 100 / 100 ))
+            print_and_log "YELLOW" "Warning: awk command not found. Leaving limits setted using nearest integer values."            
+        fi
+
         # Get the total RAM of the machine in MB
         TOTAL_RAM_MB=$(( $(grep MemTotal /proc/meminfo | awk '{print $2}') / 1024 ))
-        TOTAL_FREE_RAM_MB=$(( $(grep MemFree /proc/meminfo | awk '{print $2}') / 1024 ))
         
         # Get current limits values from .env file
         local CURRENT_APP_CPU_LIMIT_LITTLE=$(grep -oP 'APP_CPU_LIMIT_LITTLE=\K[^#\r]+' ${ENV_FILENAME})
@@ -260,24 +274,9 @@ fn_adaptLimits() {
         local CURRENT_APP_MEM_RESERV_HUGE=$(grep -oP 'APP_MEM_RESERV_HUGE=\K[^#\r]+' ${ENV_FILENAME})
         local CURRENT_APP_MEM_LIMIT_HUGE=$(grep -oP 'APP_MEM_LIMIT_HUGE=\K[^#\r]+' ${ENV_FILENAME})
 
-        # adapt the limits in .env file for CPU and RAM taking into account the number of CPU cores the machine has and the amount of RAM the machine has
-        # CPU limits: little should use max 15% of the CPU power , medium should use max 30% of the CPU power , big should use max 50% of the CPU power , huge should use max 100% of the CPU power
-        if command -v awk &> /dev/null; then
-            local APP_CPU_LIMIT_LITTLE=$(awk "BEGIN {print $TOTAL_CPUS * 15 / 100}")
-            local APP_CPU_LIMIT_MEDIUM=$(awk "BEGIN {print $TOTAL_CPUS * 30 / 100}")
-            local APP_CPU_LIMIT_BIG=$(awk "BEGIN {print $TOTAL_CPUS * 50 / 100}")
-            local APP_CPU_LIMIT_HUGE=$(awk "BEGIN {print $TOTAL_CPUS * 100 / 100}")
-        else
-            local APP_CPU_LIMIT_LITTLE=$(( TOTAL_CPUS * 15 / 100 ))
-            local APP_CPU_LIMIT_MEDIUM=$(( TOTAL_CPUS * 30 / 100 ))
-            local APP_CPU_LIMIT_BIG=$(( TOTAL_CPUS * 50 / 100 ))
-            local APP_CPU_LIMIT_HUGE=$(( TOTAL_CPUS * 100 / 100 ))
-            print_and_log "YELLOW" "Warning: awk command not found. Leaving limits setted using nearest integer values."            
-        fi
-
         # RAM limits: little should reserve at least 64 MB or the next near power of 2 in MB of 5% of RAM as upperbound and use as max limit the 250% of this value, medium should reserve double of the little value or the next near power of 2 in MB of 10% of RAM as upperbound and use as max limit the 250% of this value, big should reserve double of the medium value or the next near power of 2 in MB of 20% of RAM as upperbound and use as max limit the 250% of this value, huge should reserve double of the big value or the next near power of 2 in MB of 40% of RAM as upperbound and use as max limit the 400% of this value
-        # Implementing a cap for high RAM devices
-        RAM_CAP_MB_DEFAULT=6.144 # Example cap at 6 GB to leave some RAM for the OS based on current devices mean RAM value
+        # Implementing a cap for high RAM devices reading value from .env.template file it will be like RAM_CAP_MB_DEFAULT=6144m we need the value 6144
+        RAM_CAP_MB_DEFAULT=$(grep -oP 'RAM_CAP_MB_DEFAULT=\K[^#\r]+' ${ENV_TEMPLATE_FILENAME} | sed 's/m//')
         # Uncomment the following to simulate a low RAM device
         # TOTAL_RAM_MB=1024
         RAM_CAP_MB=$(( TOTAL_RAM_MB > RAM_CAP_MB_DEFAULT ? RAM_CAP_MB_DEFAULT : TOTAL_RAM_MB ))
@@ -306,6 +305,16 @@ fn_adaptLimits() {
 
             print_and_log "YELLOW" "Warning: awk command not found. Limits setted using nearest integer values."
         fi
+
+        # Ensure the calculated values do not exceed RAM_CAP_MB_DEFAULT
+        APP_MEM_RESERV_LITTLE=$((APP_MEM_RESERV_LITTLE > RAM_CAP_MB_DEFAULT ? RAM_CAP_MB_DEFAULT : APP_MEM_RESERV_LITTLE))
+        APP_MEM_LIMIT_LITTLE=$((APP_MEM_LIMIT_LITTLE > RAM_CAP_MB_DEFAULT ? RAM_CAP_MB_DEFAULT : APP_MEM_LIMIT_LITTLE))
+        APP_MEM_RESERV_MEDIUM=$((APP_MEM_RESERV_MEDIUM > RAM_CAP_MB_DEFAULT ? RAM_CAP_MB_DEFAULT : APP_MEM_RESERV_MEDIUM))
+        APP_MEM_LIMIT_MEDIUM=$((APP_MEM_LIMIT_MEDIUM > RAM_CAP_MB_DEFAULT ? RAM_CAP_MB_DEFAULT : APP_MEM_LIMIT_MEDIUM))
+        APP_MEM_RESERV_BIG=$((APP_MEM_RESERV_BIG > RAM_CAP_MB_DEFAULT ? RAM_CAP_MB_DEFAULT : APP_MEM_RESERV_BIG))
+        APP_MEM_LIMIT_BIG=$((APP_MEM_LIMIT_BIG > RAM_CAP_MB_DEFAULT ? RAM_CAP_MB_DEFAULT : APP_MEM_LIMIT_BIG))
+        APP_MEM_RESERV_HUGE=$((APP_MEM_RESERV_HUGE > RAM_CAP_MB_DEFAULT ? RAM_CAP_MB_DEFAULT : APP_MEM_RESERV_HUGE))
+        APP_MEM_LIMIT_HUGE=$((APP_MEM_LIMIT_HUGE > RAM_CAP_MB_DEFAULT ? RAM_CAP_MB_DEFAULT : APP_MEM_LIMIT_HUGE))
 
         # Update the CPU limits with the new values
         sed -i "s/APP_CPU_LIMIT_LITTLE=${CURRENT_APP_CPU_LIMIT_LITTLE}/APP_CPU_LIMIT_LITTLE=${APP_CPU_LIMIT_LITTLE}/" $ENV_FILENAME
@@ -1445,7 +1454,6 @@ fn_checkDependencies(){
     clear
     colorprint "GREEN" "MONEY4BAND AUTOMATIC GUIDED SETUP v${SCRIPT_VERSION}"
     check_project_updates
-    fn_adaptLimits
     colorprint "GREEN" "---------------------------------------------- "
     colorprint "MAGENTA" "Join our Discord community for updates, help, and discussions: ${DS_PROJECT_SERVER_URL}"
     colorprint "MAGENTA" "---------------------------------------------- "
@@ -1468,6 +1476,7 @@ mainmenu() {
     clear
     colorprint "GREEN" "MONEY4BAND AUTOMATIC GUIDED SETUP v${SCRIPT_VERSION}"
     check_project_updates
+    fn_adaptLimits
     colorprint "GREEN" "---------------------------------------------- "
     colorprint "MAGENTA" "Join our Discord community for updates, help, and discussions: ${DS_PROJECT_SERVER_URL}"
     colorprint "MAGENTA" "---------------------------------------------- "

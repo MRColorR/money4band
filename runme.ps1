@@ -243,6 +243,13 @@ function adaptLimits {
     $CPU_THREADS = $CPU_INFO.NumberOfLogicalProcessors
     $TOTAL_CPUS = $CPU_CORES * $CPU_SOCKETS
 
+    # Adapt the limits in .env file for CPU and RAM taking into account the number of CPU cores the machine has and the amount of RAM the machine has
+    # CPU limits: little should use max 15% of the CPU power , medium should use max 30% of the CPU power , big should use max 50% of the CPU power , huge should use max 100% of the CPU power
+    $appCpuLimitLittle = ($TOTAL_CPUS * 15 / 100)
+    $appCpuLimitMedium = ($TOTAL_CPUS * 30 / 100)
+    $appCpuLimitBig = ($TOTAL_CPUS * 50 / 100)
+    $appCpuLimitHuge = ($TOTAL_CPUS * 100 / 100)
+
     # Get the total RAM of the machine in MB
     $totalRamBytes = $COMPUTER_INFO | Select-Object -ExpandProperty TotalPhysicalMemory
     $totalRamMb = ($totalRamBytes / 1MB)
@@ -262,16 +269,9 @@ function adaptLimits {
     $currentAppMemReservHuge = ($envContent | Where-Object { $_ -match 'APP_MEM_RESERV_HUGE=(.*)' }) -replace 'APP_MEM_RESERV_HUGE=', ''
     $currentAppMemLimitHuge = ($envContent | Where-Object { $_ -match 'APP_MEM_LIMIT_HUGE=(.*)' }) -replace 'APP_MEM_LIMIT_HUGE=', ''
 
-    # adapt the limits in .env file for CPU and RAM taking into account the number of CPU cores the machine has and the amount of RAM the machine has
-    # CPU limits: little should use max 15% of the CPU power , medium should use max 30% of the CPU power , big should use max 50% of the CPU power , huge should use max 100% of the CPU power
-    $appCpuLimitLittle = ($TOTAL_CPUS * 15 / 100)
-    $appCpuLimitMedium = ($TOTAL_CPUS * 30 / 100)
-    $appCpuLimitBig = ($TOTAL_CPUS * 50 / 100)
-    $appCpuLimitHuge = ($TOTAL_CPUS * 100 / 100)
-
     # RAM limits: little should reserve at least 64 MB or the next near power of 2 in MB of 5% of RAM as upperbound and use as max limit the 250% of this value, medium should reserve double of the little value or the next near power of 2 in MB of 10% of RAM as upperbound and use as max limit the 250% of this value, big should reserve double of the medium value or the next near power of 2 in MB of 20% of RAM as upperbound and use as max limit the 250% of this value, huge should reserve double of the big value or the next near power of 2 in MB of 40% of RAM as upperbound and use as max limit the 400% of this value
-    # Implementing a cap for high RAM devices
-    $ramCapMbDefault = 8192
+    # Implementing a cap for high RAM devices reading value from .env.template file it will be like RAM_CAP_MB_DEFAULT=6144m we need the value 6144
+    $ramCapMbDefault = (Get-Content $ENV_TEMPLATE_FILENAME | Select-String -Pattern 'RAM_CAP_MB_DEFAULT=').Line -replace 'RAM_CAP_MB_DEFAULT=|m', ''
     # Uncomment the following to simulate a low RAM device
     # $totalRamMb = 1024
     $ramCapMb = If ($totalRamMb -gt $ramCapMbDefault) { $ramCapMbDefault } else { $totalRamMb }
@@ -286,6 +286,16 @@ function adaptLimits {
     $appMemLimitBig = RoundUpPowerOf2 (($appMemReservBig * 200 / 100))
     $appMemReservHuge = RoundUpPowerOf2 (($maxUseRamMb * 40 / 100))
     $appMemLimitHuge = RoundUpPowerOf2 (($appMemReservHuge * 200 / 100))
+
+    # Ensure the calculated values do not exceed RAM_CAP_MB_DEFAULT
+    $appMemReservLittle = [math]::Min($appMemReservLittle, $ramCapMbDefault)
+    $appMemLimitLittle = [math]::Min($appMemLimitLittle, $ramCapMbDefault)
+    $appMemReservMedium = [math]::Min($appMemReservMedium, $ramCapMbDefault)
+    $appMemLimitMedium = [math]::Min($appMemLimitMedium, $ramCapMbDefault)
+    $appMemReservBig = [math]::Min($appMemReservBig, $ramCapMbDefault)
+    $appMemLimitBig = [math]::Min($appMemLimitBig, $ramCapMbDefault)
+    $appMemReservHuge = [math]::Min($appMemReservHuge, $ramCapMbDefault)
+    $appMemLimitHuge = [math]::Min($appMemLimitHuge, $ramCapMbDefault)
     
     # Update the CPU limits with the new values
     (Get-Content $ENV_FILENAME).Replace("APP_CPU_LIMIT_LITTLE=$currentAppCpuLimitLittle", "APP_CPU_LIMIT_LITTLE=$appCpuLimitLittle") | Set-Content $ENV_FILENAME
@@ -1601,6 +1611,7 @@ This is a new function that has not been tested yet and currently is not really 
 #>
 function fn_checkDependencies() {
     colorprint "GREEN" "MONEY4BAND AUTOMATIC GUIDED SETUP v$script:SCRIPT_VERSION"
+    check_project_updates
     colorprint "GREEN" "---------------------------------------------- "
     colorprint "MAGENTA" "Join our Discord community for updates, help, and discussions: $DS_PROJECT_SERVER_URL"
     colorprint "MAGENTA" "---------------------------------------------- "
