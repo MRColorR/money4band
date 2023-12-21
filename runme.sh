@@ -285,14 +285,14 @@ fn_adaptLimits() {
 
         # Calculate RAM limits
         if command -v awk &> /dev/null; then
-            local APP_MEM_RESERV_LITTLE=$(RoundUpPowerOf2 $(awk "BEGIN {print $MAX_USE_RAM_MB * 5 / 100}"))
-            local APP_MEM_LIMIT_LITTLE=$(RoundUpPowerOf2 $(awk "BEGIN {print $APP_MEM_RESERV_LITTLE * 200 / 100}"))
-            local APP_MEM_RESERV_MEDIUM=$(RoundUpPowerOf2 $(awk "BEGIN {print $MAX_USE_RAM_MB * 10 / 100}"))
-            local APP_MEM_LIMIT_MEDIUM=$(RoundUpPowerOf2 $(awk "BEGIN {print $APP_MEM_RESERV_MEDIUM * 200 / 100}"))
-            local APP_MEM_RESERV_BIG=$(RoundUpPowerOf2 $(awk "BEGIN {print $MAX_USE_RAM_MB * 20 / 100}"))
-            local APP_MEM_LIMIT_BIG=$(RoundUpPowerOf2 $(awk "BEGIN {print $APP_MEM_RESERV_BIG * 200 / 100}"))
-            local APP_MEM_RESERV_HUGE=$(RoundUpPowerOf2 $(awk "BEGIN {print $MAX_USE_RAM_MB * 40 / 100}"))
-            local APP_MEM_LIMIT_HUGE=$(RoundUpPowerOf2 $(awk "BEGIN {print $APP_MEM_RESERV_HUGE * 200 / 100}"))
+            local APP_MEM_RESERV_LITTLE=$(RoundUpPowerOf2 $(awk "BEGIN {printf \"%d\", $MAX_USE_RAM_MB * 5 / 100}"))
+            local APP_MEM_LIMIT_LITTLE=$(RoundUpPowerOf2 $(awk "BEGIN {printf \"%d\", $APP_MEM_RESERV_LITTLE * 200 / 100}"))
+            local APP_MEM_RESERV_MEDIUM=$(RoundUpPowerOf2 $(awk "BEGIN {printf \"%d\", $MAX_USE_RAM_MB * 10 / 100}"))
+            local APP_MEM_LIMIT_MEDIUM=$(RoundUpPowerOf2 $(awk "BEGIN {printf \"%d\", $APP_MEM_RESERV_MEDIUM * 200 / 100}"))
+            local APP_MEM_RESERV_BIG=$(RoundUpPowerOf2 $(awk "BEGIN {printf \"%d\", $MAX_USE_RAM_MB * 20 / 100}"))
+            local APP_MEM_LIMIT_BIG=$(RoundUpPowerOf2 $(awk "BEGIN {printf \"%d\", $APP_MEM_RESERV_BIG * 200 / 100}"))
+            local APP_MEM_RESERV_HUGE=$(RoundUpPowerOf2 $(awk "BEGIN {printf \"%d\", $MAX_USE_RAM_MB * 40 / 100}"))
+            local APP_MEM_LIMIT_HUGE=$(RoundUpPowerOf2 $(awk "BEGIN {printf \"%d\", $APP_MEM_RESERV_HUGE * 200 / 100}"))
 
         else
             local APP_MEM_RESERV_LITTLE=$(RoundUpPowerOf2 $(( MAX_USE_RAM_MB * 5 / 100 )))
