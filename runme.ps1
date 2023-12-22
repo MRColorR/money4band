@@ -240,12 +240,16 @@ function RoundUpPowerOf2 {
 
 function adaptLimits {
     # Get the number of CPU cores the machine has and others CPU related info
-    $COMPUTER_INFO = Get-CimInstance -ClassName Win32_ComputerSystem
-    $CPU_INFO = Get-CimInstance -ClassName Win32_Processor
-    $CPU_SOCKETS = $COMPUTER_INFO.NumberOfProcessors
-    $CPU_CORES = $CPU_INFO.NumberOfCores
-    $CPU_THREADS = $CPU_INFO.NumberOfLogicalProcessors
-    $TOTAL_CPUS = $CPU_CORES * $CPU_SOCKETS
+    # $COMPUTER_INFO = Get-CimInstance -ClassName Win32_ComputerSystem
+    # $CPU_INFO = Get-CimInstance -ClassName Win32_Processor
+    # $CPU_SOCKETS = $COMPUTER_INFO.NumberOfProcessors
+    # #$CPU_SOCKETS = '-'  # Uncomment to simulate incorrect socket number reporting
+    # if (-not [int]::TryParse($CPU_SOCKETS, [ref]$null)) {
+    #     $CPU_SOCKETS = 1  # Default to 1 if CPU_SOCKETS is not a number
+    # }
+    # $CPU_CORES = $CPU_INFO.NumberOfCores
+    # $TOTAL_CPUS_OLD = $CPU_CORES * $CPU_SOCKETS # commented ot as the absh equivalent calculations were not working on some systems as sockets or cpus per socket are not reported correctly
+    $TOTAL_CPUS = (Get-WmiObject -Class Win32_Processor | Measure-Object -Property NumberOfCores -Sum).Sum
 
     # Adapt the limits in .env file for CPU and RAM taking into account the number of CPU cores the machine has and the amount of RAM the machine has
     # CPU limits: little should use max 15% of the CPU power , medium should use max 30% of the CPU power , big should use max 50% of the CPU power , huge should use max 100% of the CPU power

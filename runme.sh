@@ -241,11 +241,14 @@ fn_adaptLimits() {
     # check if lscpu is installed, if yes then get the number of CPU cores the machine has and the amount of RAM the machine has and adapt the limits in .env for CPU and RAM taking into account the number of CPU cores the machine has and the amount of RAM the machine has if not then print a warning message and leave the limits to the default values
     if command -v lscpu &> /dev/null; then
         # Get the number of CPU cores the machine has and others CPU related info
-        CPU_SOCKETS=$(lscpu | awk '/^Socket\(s\)/{ print $2 }')
-        CPU_CORES=$(lscpu | awk '/^Core\(s\) per socket/{ print $4 }')
-        TOTAL_CPUS=$((CPU_CORES * CPU_SOCKETS))
-        CPU_THREADS=$(lscpu | awk '/^Thread\(s\) per core/{ print $4 }')
-        TOTAL_THREADS=$((TOTAL_CPUS * CPU_THREADS))
+        # CPU_SOCKETS=$(lscpu | awk '/^Socket\(s\)/{ print $2 }')
+        # # CPU_SOCKETS='-' # Uncomment to simulate incorrect socket number reporting
+        # if ! [[ "$CPU_SOCKETS" =~ ^[0-9]+$ ]]; then
+        #     CPU_SOCKETS=1  # Default to 1 if CPU_SOCKETS is not a number
+        # fi
+        # CPU_CORES=$(lscpu | awk '/^Core\(s\) per socket/{ print $4 }')
+        # TOTAL_CPUS_OLD=$((CPU_CORES * CPU_SOCKETS)) # old calculations not working on some systems as sockets or cpus per socket are not reported correctly
+        TOTAL_CPUS=$(lscpu -b -p=Core,Socket | grep -v '^#' | sort -u | wc -l)
 
         # Adapt the limits in .env file for CPU and RAM taking into account the number of CPU cores the machine has and the amount of RAM the machine has
         # CPU limits: little should use max 15% of the CPU power , medium should use max 30% of the CPU power , big should use max 50% of the CPU power , huge should use max 100% of the CPU power
