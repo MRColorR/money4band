@@ -239,8 +239,9 @@ function RoundUpPowerOf2 {
 }
 
 function adaptLimits {
+    $COMPUTER_INFO = Get-CimInstance -ClassName Win32_ComputerSystem
+    
     # Get the number of CPU cores the machine has and others CPU related info
-    # $COMPUTER_INFO = Get-CimInstance -ClassName Win32_ComputerSystem
     # $CPU_INFO = Get-CimInstance -ClassName Win32_Processor
     # $CPU_SOCKETS = $COMPUTER_INFO.NumberOfProcessors
     # #$CPU_SOCKETS = '-'  # Uncomment to simulate incorrect socket number reporting
@@ -260,7 +261,7 @@ function adaptLimits {
 
     # Get the total RAM of the machine in MB
     $totalRamBytes = $COMPUTER_INFO | Select-Object -ExpandProperty TotalPhysicalMemory
-    $totalRamMb = ($totalRamBytes / 1MB)
+    $totalRamMb = ($totalRamBytes / 1024)
 
     # Load current limits from .env file
     $envContent = Get-Content -Path $ENV_FILENAME
@@ -279,7 +280,7 @@ function adaptLimits {
 
     # RAM limits: little should reserve at least 64 MB or the next near power of 2 in MB of 5% of RAM as upperbound and use as max limit the 250% of this value, medium should reserve double of the little value or the next near power of 2 in MB of 10% of RAM as upperbound and use as max limit the 250% of this value, big should reserve double of the medium value or the next near power of 2 in MB of 20% of RAM as upperbound and use as max limit the 250% of this value, huge should reserve double of the big value or the next near power of 2 in MB of 40% of RAM as upperbound and use as max limit the 400% of this value
     # Implementing a cap for high RAM devices reading value from .env.template file it will be like RAM_CAP_MB_DEFAULT=6144m we need the value 6144
-    $ramCapMbDefault = (Get-Content $ENV_TEMPLATE_FILENAME | Select-String -Pattern 'RAM_CAP_MB_DEFAULT=').Line -replace 'RAM_CAP_MB_DEFAULT=|m', ''
+    $ramCapMbDefault = (Get-Content $ENV_TEMPLATE_FILENAME | Where-Object { $_ -match 'RAM_CAP_MB_DEFAULT=(.*)' }) -replace 'RAM_CAP_MB_DEFAULT=', '' -replace 'm', ''
     # Uncomment the following to simulate a low RAM device
     # $totalRamMb = 1024
     $ramCapMb = If ($totalRamMb -gt $ramCapMbDefault) { $ramCapMbDefault } else { $totalRamMb }
