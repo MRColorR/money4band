@@ -1158,13 +1158,56 @@ fn_setupProxy() {
                     clear
                     toLog_ifDebug -l "[DEBUG]" -m "User chose to setup a proxy"
                     colorprint "YELLOW" "Proxy setup started."
+
+                    # Read current names values
+                    FULL_COMPOSE_PROJECT_NAME=$(grep -oP 'COMPOSE_PROJECT_NAME=\K[^#\r]+' ${ENV_FILENAME})
+                    FULL_DEVICE_NAME=$(grep -oP 'DEVICE_NAME=\K[^#\r]+' ${ENV_FILENAME})
+
+                    # Shorten the project name by removing all the trailing numbers and underscores if present
+                    SHORT_COMPOSE_PROJECT_NAME=$(echo "$FULL_COMPOSE_PROJECT_NAME" | sed -E 's/[_*0-9]+$//')
+                    # Shorten the device name by removing all the trailing numbers if present
+                    SHORT_DEVICE_NAME=$(echo "$FULL_DEVICE_NAME" | sed -E 's/[0-9]+$//')
+
+                    # Generate a random value to append to the project name and device name to make them unique
                     readonly RANDOM_VALUE=$RANDOM
                     colorprint "GREEN" "Insert the designed proxy to use. Eg: protocol://proxyUsername:proxyPassword@proxy_url:proxy_port or just protocol://proxy_url:proxy_port if auth is not needed"
                     read -r NEW_STACK_PROXY
                     # An unique name for the stack is chosen so that even if multiple stacks are started with different proxies the names do not conflict
                     # ATTENTION: if a random value has been already added to the project and devicename during a previous setup it should remain the same to mantain consistency with the devices name registered on the apps sites but the proxy url could be changed
-                    sed -i "s^COMPOSE_PROJECT_NAME=money4band^COMPOSE_PROJECT_NAME=money4band_$RANDOM_VALUE^" ${ENV_FILENAME} 
-                    sed -i "s^DEVICE_NAME=${DEVICE_NAME}^DEVICE_NAME=${DEVICE_NAME}$RANDOM_VALUE^" ${ENV_FILENAME}
+                    # If this is not the first setup proxy (proxy setup already configued in the past) then Ask the user if they wnat to keep the current project and device name, in the case they are just changing the proxy url for an existing stack that they want to keep or if they want to change the project and device name as well usable on a new stack runnin on the same device or on a different one
+                    SKIP_NAMES_CHANGE_FOR_PROXY_SETUP=false
+                    if [ "$PROXY_CONFIGURATION_STATUS" == "1" ]; then
+                        while true; do
+                            colorprint "BLUE" "The current project name is: $FULL_COMPOSE_PROJECT_NAME"
+                            colorprint "BLUE" "The current device name is: $FULL_DEVICE_NAME"
+                            colorprint "YELLOW" "Do you want to keep the current project and device name? (Y/N)"
+                            colorprint "DEFAULT" "No if you want to run multiple instances of the same app on the same device (copy the project to multiple different folders and configure them using different proxies), the project and device names will slightly change to keep them unique."
+                            colorprint "DEFAULT" "Yes if you just want to update the proxy in use without changing the project and device name (One instance of the same app per device)"
+                            read -r yn
+                            case $yn in
+                                [Yy]* )
+                                    toLog_ifDebug -l "[DEBUG]" -m "User chose to keep the current project and device name"
+                                    colorprint "BLUE" "Ok, the current project and device name will be kept"
+                                    SKIP_NAMES_CHANGE_FOR_PROXY_SETUP=true
+                                    break
+                                    ;;
+                                [Nn]* )
+                                    toLog_ifDebug -l "[DEBUG]" -m "User chose to change the current project and device name"
+                                    colorprint "BLUE" "Ok, the current project and device name will be changed"
+                                    break
+                                    ;;
+                                * ) colorprint "RED" "Please answer yes or no." ;;
+                            esac
+                        done
+                    fi
+                    if [ "$SKIP_NAMES_CHANGE_FOR_PROXY_SETUP" == "false" ]; then
+                        # Update project name and device name with shortened name and random value
+                        sed -i "s^COMPOSE_PROJECT_NAME=${FULL_COMPOSE_PROJECT_NAME}^COMPOSE_PROJECT_NAME=${SHORT_COMPOSE_PROJECT_NAME}_${RANDOM_VALUE}^" ${ENV_FILENAME} 
+                        sed -i "s^DEVICE_NAME=${FULL_DEVICE_NAME}^DEVICE_NAME=${SHORT_DEVICE_NAME}${RANDOM_VALUE}^" ${ENV_FILENAME}
+                        # Update the DEVICE_NAME variable of the script with the new value
+                        DEVICE_NAME="${SHORT_DEVICE_NAME}${RANDOM_VALUE}"
+                    fi
+
                     # Obtaining the line of STACK_PROXY= in the ${ENV_FILENAME} file and then replace the line with the new proxy also uncomment the line if it was commented
                     sed -i "s^# STACK_PROXY=^STACK_PROXY=^" ${ENV_FILENAME} # if it was already uncommented it does nothing
                     CURRENT_VALUE=$(grep -oP 'STACK_PROXY=\K[^#\r]+' ${ENV_FILENAME})

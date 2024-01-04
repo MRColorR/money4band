@@ -1231,23 +1231,73 @@ function fn_setupProxy() {
                 Clear-Host
                 toLog_ifDebug -l "[DEBUG]" -m "User chose to setup a proxy"
                 colorprint "YELLOW" "Proxy setup started."
-                $script:RANDOM_VALUE = Get-Random
+
+                # Read current names values
+                $envContent = Get-Content .\$ENV_FILENAME
+                $fullComposeProjectName = ($envContent | Where-Object { $_ -match "^COMPOSE_PROJECT_NAME=" }) -replace 'COMPOSE_PROJECT_NAME=', ''
+                $fullDeviceName = ($envContent | Where-Object { $_ -match "^DEVICE_NAME=" }) -replace 'DEVICE_NAME=', ''
+
+                # Shorten the project and device names
+                $shortComposeProjectName = $fullComposeProjectName -replace '[_*0-9]+$'
+                $shortDeviceName = $fullDeviceName -replace '[0-9]+$'
+                
+                # Generate a random value to append to the project name and device name to make them unique
+                $script:RANDOM_VALUE = Get-Random -Maximum 32767 # 32767 is the maximum value for the $RANDOM function in bash
                 colorprint "GREEN" "Insert the designed proxy to use. Eg: protocol://proxyUsername:proxyPassword@proxy_url:proxy_port or just protocol://proxy_url:proxy_port if auth is not needed:"
                 $script:NEW_STACK_PROXY = Read-Host 
                 # An unique name for the stack is chosen so that even if multiple stacks are started with different proxies the names do not conflict
                 # ATTENTION: if a random value has been already added to the project and devicename during a previous setup it should remain the same to mantain consistency withthe devices name registered on the apps sites but the proxy url could be changed
-                (Get-Content .\${ENV_FILENAME}).replace("COMPOSE_PROJECT_NAME=money4band", "COMPOSE_PROJECT_NAME=money4band_$($script:RANDOM_VALUE)") | Set-Content .\${ENV_FILENAME}
-                (Get-Content .\${ENV_FILENAME}).replace("DEVICE_NAME=$($script:DEVICE_NAME)", "DEVICE_NAME=$($script:DEVICE_NAME)$($script:RANDOM_VALUE)") | Set-Content .\${ENV_FILENAME}
-                # Obtaining the line of STACK_PROXY= in the ${ENV_FILENAME} file and then replace the line with the new proxy also uncomment the line if it was commented
-                (Get-Content .\${ENV_FILENAME}).replace("# STACK_PROXY=", "STACK_PROXY=") | Set-Content .\${ENV_FILENAME} # if it was already uncommented it does nothing
-                $CURRENT_VALUE = $(Get-Content .\${ENV_FILENAME} | Select-String -Pattern "STACK_PROXY=" -SimpleMatch).ToString().Split("=")[1]
-                (Get-Content .\${ENV_FILENAME}).replace("STACK_PROXY=${CURRENT_VALUE}", "STACK_PROXY=$($script:NEW_STACK_PROXY)") | Set-Content .\${ENV_FILENAME}
-                # disable rolling restarts for watchtower as enabling proxy will  make the others containers dependent on it and so rolling restarts will not work
-                (Get-Content "$script:DKCOM_FILENAME" -Raw) -replace '- WATCHTOWER_ROLLING_RESTART=true', '- WATCHTOWER_ROLLING_RESTART=false' | Set-Content "$script:DKCOM_FILENAME"
-                (Get-Content "$script:DKCOM_FILENAME" -Raw) -replace '(?<=^|[\r\n])#ENABLE_PROXY(?![a-zA-Z0-9])', '' | Set-Content "$script:DKCOM_FILENAME"
-                (Get-Content "$script:DKCOM_FILENAME").replace("# network_mode", "network_mode") | Set-Content "$script:DKCOM_FILENAME"
+                # If this is not the first setup proxy (proxy setup already configued in the past) then Ask the user if they wnat to keep the current project and device name, in the case they are just changing the proxy url for an existing stack that they want to keep or if they want to change the project and device name as well usable on a new stack runnin on the same device or on a different one
+                $SKIP_NAMES_CHANGE_FOR_PROXY_SETUP = $false
+                if ($script:PROXY_CONFIGURATION_STATUS -eq "1") {
+                    while ($true) {
+                        colorprint "BLUE" "The current project name is: $fullComposeProjectName"
+                        colorprint "BLUE" "The current device name is: $fullDeviceName"
+                        colorprint "YELLOW" "Do you want to keep the current project and device name? (Y/N)"
+                        colorprint "DEFAULT" "No if you want to run multiple instances of the same app on the same device (copy the project to multiple different folders and configure them using different proxies), the project and device names will slightly change to keep them unique."
+                        colorprint "DEFAULT" "Yes if you just want to update the proxy in use without changing the project and device name (One instance of the same app per device)"
+                        $yn = Read-Host
+                        if ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') {
+                            toLog_ifDebug -l "[DEBUG]" -m "User chose to keep the current project and device name"
+                            colorprint "BLUE" "Ok, the current project and device name will be kept"
+                            $SKIP_NAMES_CHANGE_FOR_PROXY_SETUP = $true
+                            break
+                        }
+                        elseif ($yn.ToLower() -eq 'n' -or $yn.ToLower() -eq 'no') {
+                            toLog_ifDebug -l "[DEBUG]" -m "User chose to change the current project and device name"
+                            colorprint "BLUE" "Ok, the current project and device name will be changed"
+                            break
+                        }
+                        else {
+                            colorprint "RED" "Please answer yes or no."
+                        }
+                    }
+                }
+                if (-not $SKIP_NAMES_CHANGE_FOR_PROXY_SETUP) {
+                    # Update project name and device name with shortened name and random value
+                    $envContent = $envContent -replace "COMPOSE_PROJECT_NAME=$fullComposeProjectName", "COMPOSE_PROJECT_NAME=${shortComposeProjectName}_$($script:RANDOM_VALUE)"
+                    $envContent = $envContent -replace "DEVICE_NAME=$fullDeviceName", "DEVICE_NAME=${shortDeviceName}$($script:RANDOM_VALUE)"
+                    # Update the DEVICE_NAME variable of the script with the new value
+                    $script:DEVICE_NAME = "${shortDeviceName}$($script:RANDOM_VALUE)"
+                }
+
+                # Update the proxy configuration
+                $envContent = $envContent -replace "# STACK_PROXY=", "STACK_PROXY="
+                $CURRENT_VALUE = ($envContent | Select-String -Pattern "STACK_PROXY=" -SimpleMatch).ToString().Split("=")[1]
+                $envContent = $envContent -replace "STACK_PROXY=${CURRENT_VALUE}", "STACK_PROXY=$script:NEW_STACK_PROXY"
+                Set-Content .\$ENV_FILENAME -Value $envContent
+
+                # Disable rolling restarts for watchtower
+                $dkComContent = Get-Content $script:DKCOM_FILENAME -Raw
+                $dkComContent = $dkComContent -replace '- WATCHTOWER_ROLLING_RESTART=true', '- WATCHTOWER_ROLLING_RESTART=false'
+                $dkComContent = $dkComContent -replace '(?<=^|[\r\n])#ENABLE_PROXY(?![a-zA-Z0-9])', ''
+                $dkComContent = $dkComContent -replace "# network_mode", "network_mode"
+                Set-Content $script:DKCOM_FILENAME -Value $dkComContent
+
                 $script:PROXY_CONF = $true
-                (Get-Content .\${ENV_FILENAME}).replace("PROXY_CONFIGURATION_STATUS=0", "PROXY_CONFIGURATION_STATUS=1") | Set-Content .\${ENV_FILENAME}
+                $envContent = $envContent -replace "PROXY_CONFIGURATION_STATUS=0", "PROXY_CONFIGURATION_STATUS=1"
+                Set-Content .\$ENV_FILENAME -Value $envContent
+
                 colorprint "DEFAULT" "Ok, $script:NEW_STACK_PROXY will be used as proxy for all apps in this stack"
                 Read-Host -p "Press enter to continue"
                 toLog_ifDebug -l "[DEBUG]" -m "Proxy setup finished"
