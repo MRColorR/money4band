@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+export LC_NUMERIC="C" # address possible locale issues that uses different notations for decimal numbers
+
 
 ### Variables and constants ###
 
@@ -238,6 +240,9 @@ RoundUpPowerOf2() {
 
 # Function to adapt the limits in .env for CPU and RAM taking into account the number of CPU cores and the amount of RAM installed on the machine #
 fn_adaptLimits() {
+    # Define minimum values for CPU and RAM limits
+    MIN_CPU_LIMIT="0.2"  # Minimum CPU limit (reasonable value)
+    MIN_RAM_LIMIT="6"    # Minimum RAM limit is 6 MB (enforced by Docker)
     # check if lscpu is installed, if yes then get the number of CPU cores the machine has and the amount of RAM the machine has and adapt the limits in .env for CPU and RAM taking into account the number of CPU cores the machine has and the amount of RAM the machine has if not then print a warning message and leave the limits to the default values
     if command -v lscpu &> /dev/null; then
         # Get the number of CPU cores the machine has and others CPU related info
@@ -264,6 +269,12 @@ fn_adaptLimits() {
             local APP_CPU_LIMIT_HUGE=$(( TOTAL_CPUS * 100 / 100 ))
             print_and_log "YELLOW" "Warning: awk command not found. Leaving limits setted using nearest integer values."            
         fi
+        # Ensure CPU limits are not below minimum
+        local APP_CPU_LIMIT_LITTLE=$(awk "BEGIN { if ($APP_CPU_LIMIT_LITTLE < $MIN_CPU_LIMIT) print $MIN_CPU_LIMIT; else print $APP_CPU_LIMIT_LITTLE; }")
+        local APP_CPU_LIMIT_MEDIUM=$(awk "BEGIN { if ($APP_CPU_LIMIT_MEDIUM < $MIN_CPU_LIMIT) print $MIN_CPU_LIMIT; else print $APP_CPU_LIMIT_MEDIUM; }")
+        local APP_CPU_LIMIT_BIG=$(awk "BEGIN { if ($APP_CPU_LIMIT_BIG < $MIN_CPU_LIMIT) print $MIN_CPU_LIMIT; else print $APP_CPU_LIMIT_BIG; }")
+        local APP_CPU_LIMIT_HUGE=$(awk "BEGIN { if ($APP_CPU_LIMIT_HUGE < $MIN_CPU_LIMIT) print $MIN_CPU_LIMIT; else print $APP_CPU_LIMIT_HUGE; }")
+
 
         # Get the total RAM of the machine in MB
         TOTAL_RAM_MB=$(( $(grep MemTotal /proc/meminfo | awk '{print $2}') / 1024 ))
@@ -282,10 +293,10 @@ fn_adaptLimits() {
         local CURRENT_APP_MEM_RESERV_HUGE=$(grep -oP 'APP_MEM_RESERV_HUGE=\K[^#\r]+' ${ENV_FILENAME})
         local CURRENT_APP_MEM_LIMIT_HUGE=$(grep -oP 'APP_MEM_LIMIT_HUGE=\K[^#\r]+' ${ENV_FILENAME})
 
-        # RAM limits: little should reserve at least 64 MB or the next near power of 2 in MB of 5% of RAM as upperbound and use as max limit the 250% of this value, medium should reserve double of the little value or the next near power of 2 in MB of 10% of RAM as upperbound and use as max limit the 250% of this value, big should reserve double of the medium value or the next near power of 2 in MB of 20% of RAM as upperbound and use as max limit the 250% of this value, huge should reserve double of the big value or the next near power of 2 in MB of 40% of RAM as upperbound and use as max limit the 400% of this value
+        # RAM limits: little should reserve at least MIN_RAM_LIMIT MB or the next near power of 2 in MB of 5% of RAM as upperbound and use as max limit the 250% of this value, medium should reserve double of the little value or the next near power of 2 in MB of 10% of RAM as upperbound and use as max limit the 250% of this value, big should reserve double of the medium value or the next near power of 2 in MB of 20% of RAM as upperbound and use as max limit the 250% of this value, huge should reserve double of the big value or the next near power of 2 in MB of 40% of RAM as upperbound and use as max limit the 400% of this value
         # Implementing a cap for high RAM devices reading value from .env.template file it will be like RAM_CAP_MB_DEFAULT=6144m we need the value 6144
         RAM_CAP_MB_DEFAULT=$(grep -oP 'RAM_CAP_MB_DEFAULT=\K[^#\r]+' ${ENV_TEMPLATE_FILENAME} | sed 's/m//')
-        # Uncomment the following to simulate a low RAM device
+        # Uncomment the following to simulate a specific amount of RAM for the device
         # TOTAL_RAM_MB=1024
         RAM_CAP_MB=$(( TOTAL_RAM_MB > RAM_CAP_MB_DEFAULT ? RAM_CAP_MB_DEFAULT : TOTAL_RAM_MB ))
         MAX_USE_RAM_MB=$(( TOTAL_RAM_MB > RAM_CAP_MB ? RAM_CAP_MB : TOTAL_RAM_MB ))
@@ -323,6 +334,16 @@ fn_adaptLimits() {
         APP_MEM_LIMIT_BIG=$((APP_MEM_LIMIT_BIG > RAM_CAP_MB_DEFAULT ? RAM_CAP_MB_DEFAULT : APP_MEM_LIMIT_BIG))
         APP_MEM_RESERV_HUGE=$((APP_MEM_RESERV_HUGE > RAM_CAP_MB_DEFAULT ? RAM_CAP_MB_DEFAULT : APP_MEM_RESERV_HUGE))
         APP_MEM_LIMIT_HUGE=$((APP_MEM_LIMIT_HUGE > RAM_CAP_MB_DEFAULT ? RAM_CAP_MB_DEFAULT : APP_MEM_LIMIT_HUGE))
+
+        # Ensure RAM limits are not below minimum
+        APP_MEM_RESERV_LITTLE=$(awk "BEGIN { if ($APP_MEM_RESERV_LITTLE < $MIN_RAM_LIMIT) print $MIN_RAM_LIMIT; else print $APP_MEM_RESERV_LITTLE; }")
+        APP_MEM_LIMIT_LITTLE=$(awk "BEGIN { if ($APP_MEM_LIMIT_LITTLE < $MIN_RAM_LIMIT) print $MIN_RAM_LIMIT; else print $APP_MEM_LIMIT_LITTLE; }")
+        APP_MEM_RESERV_MEDIUM=$(awk "BEGIN { if ($APP_MEM_RESERV_MEDIUM < $MIN_RAM_LIMIT) print $MIN_RAM_LIMIT; else print $APP_MEM_RESERV_MEDIUM; }")
+        APP_MEM_LIMIT_MEDIUM=$(awk "BEGIN { if ($APP_MEM_LIMIT_MEDIUM < $MIN_RAM_LIMIT) print $MIN_RAM_LIMIT; else print $APP_MEM_LIMIT_MEDIUM; }")
+        APP_MEM_RESERV_BIG=$(awk "BEGIN { if ($APP_MEM_RESERV_BIG < $MIN_RAM_LIMIT) print $MIN_RAM_LIMIT; else print $APP_MEM_RESERV_BIG; }")
+        APP_MEM_LIMIT_BIG=$(awk "BEGIN { if ($APP_MEM_LIMIT_BIG < $MIN_RAM_LIMIT) print $MIN_RAM_LIMIT; else print $APP_MEM_LIMIT_BIG; }")
+        APP_MEM_RESERV_HUGE=$(awk "BEGIN { if ($APP_MEM_RESERV_HUGE < $MIN_RAM_LIMIT) print $MIN_RAM_LIMIT; else print $APP_MEM_RESERV_HUGE; }")
+        APP_MEM_LIMIT_HUGE=$(awk "BEGIN { if ($APP_MEM_LIMIT_HUGE < $MIN_RAM_LIMIT) print $MIN_RAM_LIMIT; else print $APP_MEM_LIMIT_HUGE; }")
 
         # Update the CPU limits with the new values
         sed -i "s/APP_CPU_LIMIT_LITTLE=${CURRENT_APP_CPU_LIMIT_LITTLE}/APP_CPU_LIMIT_LITTLE=${APP_CPU_LIMIT_LITTLE}/" $ENV_FILENAME

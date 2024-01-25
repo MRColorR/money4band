@@ -1,6 +1,9 @@
 #!/bin/pwsh
 set-executionpolicy -scope CurrentUser -executionPolicy Bypass -Force
 
+# Set culture to Invariant Culture to ensure consistent number formatting
+[System.Threading.Thread]::CurrentThread.CurrentCulture = [System.Globalization.CultureInfo]::InvariantCulture
+
 ### Variables and constants ###
 ## Env file related constants and variables ##
 # env file name and template file name #
@@ -239,6 +242,9 @@ function RoundUpPowerOf2 {
 }
 
 function adaptLimits {
+    # Define minimum values for CPU and RAM limits
+    $MIN_CPU_LIMIT = 0.2 # Minimum CPU limit (reasonable value)
+    $MIN_MEM_LIMIT = 6 # Minimum RAM limit is 6 MB (enforced by Docker)
     $COMPUTER_INFO = Get-CimInstance -ClassName Win32_ComputerSystem
     
     # Get the number of CPU cores the machine has and others CPU related info
@@ -259,6 +265,12 @@ function adaptLimits {
     $appCpuLimitBig = ($TOTAL_CPUS * 50 / 100)
     $appCpuLimitHuge = ($TOTAL_CPUS * 100 / 100)
 
+    # Ensure CPU limits are not below minimum
+    $appCpuLimitLittle = [math]::Max($appCpuLimitLittle, $MIN_CPU_LIMIT)
+    $appCpuLimitMedium = [math]::Max($appCpuLimitMedium, $MIN_CPU_LIMIT)
+    $appCpuLimitBig = [math]::Max($appCpuLimitBig, $MIN_CPU_LIMIT)
+    $appCpuLimitHuge = [math]::Max($appCpuLimitHuge, $MIN_CPU_LIMIT)
+    
     # Get the total RAM of the machine in MB
     $totalRamBytes = $COMPUTER_INFO | Select-Object -ExpandProperty TotalPhysicalMemory
     $totalRamMb = ($totalRamBytes / 1024)
@@ -278,10 +290,10 @@ function adaptLimits {
     $currentAppMemReservHuge = ($envContent | Where-Object { $_ -match 'APP_MEM_RESERV_HUGE=(.*)' }) -replace 'APP_MEM_RESERV_HUGE=', ''
     $currentAppMemLimitHuge = ($envContent | Where-Object { $_ -match 'APP_MEM_LIMIT_HUGE=(.*)' }) -replace 'APP_MEM_LIMIT_HUGE=', ''
 
-    # RAM limits: little should reserve at least 64 MB or the next near power of 2 in MB of 5% of RAM as upperbound and use as max limit the 250% of this value, medium should reserve double of the little value or the next near power of 2 in MB of 10% of RAM as upperbound and use as max limit the 250% of this value, big should reserve double of the medium value or the next near power of 2 in MB of 20% of RAM as upperbound and use as max limit the 250% of this value, huge should reserve double of the big value or the next near power of 2 in MB of 40% of RAM as upperbound and use as max limit the 400% of this value
+    # RAM limits: little should reserve at least MIN_RAM_LIMIT MB or the next near power of 2 in MB of 5% of RAM as upperbound and use as max limit the 250% of this value, medium should reserve double of the little value or the next near power of 2 in MB of 10% of RAM as upperbound and use as max limit the 250% of this value, big should reserve double of the medium value or the next near power of 2 in MB of 20% of RAM as upperbound and use as max limit the 250% of this value, huge should reserve double of the big value or the next near power of 2 in MB of 40% of RAM as upperbound and use as max limit the 400% of this value
     # Implementing a cap for high RAM devices reading value from .env.template file it will be like RAM_CAP_MB_DEFAULT=6144m we need the value 6144
     $ramCapMbDefault = (Get-Content $ENV_TEMPLATE_FILENAME | Where-Object { $_ -match 'RAM_CAP_MB_DEFAULT=(.*)' }) -replace 'RAM_CAP_MB_DEFAULT=', '' -replace 'm', ''
-    # Uncomment the following to simulate a low RAM device
+    # Uncomment the following to simulate a specific amount of RAM for the device
     # $totalRamMb = 1024
     $ramCapMb = If ($totalRamMb -gt $ramCapMbDefault) { $ramCapMbDefault } else { $totalRamMb }
     $maxUseRamMb = [math]::Min($totalRamMb, $ramCapMb)
@@ -305,6 +317,16 @@ function adaptLimits {
     $appMemLimitBig = [math]::Min($appMemLimitBig, $ramCapMbDefault)
     $appMemReservHuge = [math]::Min($appMemReservHuge, $ramCapMbDefault)
     $appMemLimitHuge = [math]::Min($appMemLimitHuge, $ramCapMbDefault)
+
+    # Ensure RAM limits are not below minimum
+    $appMemReservLittle = [math]::Max($appMemReservLittle, $MIN_MEM_LIMIT)
+    $appMemLimitLittle = [math]::Max($appMemLimitLittle, $MIN_MEM_LIMIT)
+    $appMemReservMedium = [math]::Max($appMemReservMedium, $MIN_MEM_LIMIT)
+    $appMemLimitMedium = [math]::Max($appMemLimitMedium, $MIN_MEM_LIMIT)
+    $appMemReservBig = [math]::Max($appMemReservBig, $MIN_MEM_LIMIT)
+    $appMemLimitBig = [math]::Max($appMemLimitBig, $MIN_MEM_LIMIT)
+    $appMemReservHuge = [math]::Max($appMemReservHuge, $MIN_MEM_LIMIT)
+    $appMemLimitHuge = [math]::Max($appMemLimitHuge, $MIN_MEM_LIMIT)
     
     # Update the CPU limits with the new values
     (Get-Content $ENV_FILENAME).Replace("APP_CPU_LIMIT_LITTLE=$currentAppCpuLimitLittle", "APP_CPU_LIMIT_LITTLE=$appCpuLimitLittle") | Set-Content $ENV_FILENAME
