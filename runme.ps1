@@ -19,7 +19,7 @@ $script:CURRENT_PROXY = ''
 $script:NEW_STACK_PROXY = ''
 
 ## Config file related constants and variables ##
-$script:CONFIG_JSON_FILE = "config.json"
+$script:APP_CONFIG_JSON_FILE = "app_config.json"
 $script:MAINMENU_JSON_FILE = "mainmenu.json"
 
 ## Docker compose related constants and variables ##
@@ -612,7 +612,7 @@ function fn_showLinks {
     Clear-Host
     toLog_ifDebug -l "[DEBUG]" -m "Showing apps links"
     colorprint "Green" "Use CTRL+Click to open links or copy them:"
-    $configPath = Join-Path -Path $CONFIG_DIR -ChildPath $CONFIG_JSON_FILE
+    $configPath = Join-Path -Path $CONFIG_DIR -ChildPath $APP_CONFIG_JSON_FILE
     $configData = Get-Content -Path $configPath -Raw | ConvertFrom-Json
     # Iterate over the top-level keys (app types) in the JSON
     foreach ($appType in $configData.PSObject.Properties.Name) {
@@ -1448,9 +1448,9 @@ function fn_setupEnv() {
             }
             # Apps setup
             Clear-Host
-            toLog_ifDebug -l "[DEBUG]" -m "Loading $app_type from ${CONFIG_JSON_FILE}"
-            $apps = Get-Content "$script:CONFIG_DIR/${CONFIG_JSON_FILE}" | ConvertFrom-Json | Select-Object -ExpandProperty $app_type
-            toLog_ifDebug -l "[DEBUG]" -m "$app_type loaded from ${CONFIG_JSON_FILE}"
+            toLog_ifDebug -l "[DEBUG]" -m "Loading $app_type from ${APP_CONFIG_JSON_FILE}"
+            $apps = Get-Content "$script:CONFIG_DIR/${APP_CONFIG_JSON_FILE}" | ConvertFrom-Json | Select-Object -ExpandProperty $app_type
+            toLog_ifDebug -l "[DEBUG]" -m "$app_type loaded from ${APP_CONFIG_JSON_FILE}"
             foreach ($app in $apps) {
                 Clear-Host
                 toLog_ifDebug -l "[DEBUG]" -m "Starting setupApp function for $($app.name) app"

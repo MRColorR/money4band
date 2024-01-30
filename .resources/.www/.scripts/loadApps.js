@@ -1,5 +1,5 @@
 window.onload = () => {
-    fetch('.configs/config.json')
+    fetch('.configs/app_config.json')
       .then(response => response.json())
       .then(config => {
         const tableBody = document.querySelector('.u-table-body');

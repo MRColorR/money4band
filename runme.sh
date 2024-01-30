@@ -18,7 +18,7 @@ CURRENT_PROXY=''
 NEW_STACK_PROXY=''
 
 ## Config file related constants and variables ##
-readonly CONFIG_JSON_FILE="config.json"
+readonly APP_CONFIG_JSON_FILE="app_config.json"
 readonly MAINMENU_JSON_FILE="mainmenu.json"
 
 ## Docker compose related constants and variables ##
@@ -658,12 +658,12 @@ fn_showLinks() {
     clear
     toLog_ifDebug -l "[DEBUG]" -m "Showing apps links"
     colorprint "GREEN" "Use CTRL+Click to open links or copy them:"
-    # reading from $CONFIG_JSON_FILE show all the apps type that are the dictionary keys and then show the name and the link of each app in the dictionary
-    for app_type in $(jq -r 'keys[]' "$CONFIG_DIR/$CONFIG_JSON_FILE"); do
+    # reading from $APP_CONFIG_JSON_FILE show all the apps type that are the dictionary keys and then show the name and the link of each app in the dictionary
+    for app_type in $(jq -r 'keys[]' "$CONFIG_DIR/$APP_CONFIG_JSON_FILE"); do
         colorprint "YELLOW" "---$app_type---"
-        for app in $(jq -r ".[\"$app_type\"][].name" "$CONFIG_DIR/$CONFIG_JSON_FILE"); do
+        for app in $(jq -r ".[\"$app_type\"][].name" "$CONFIG_DIR/$APP_CONFIG_JSON_FILE"); do
             colorprint "DEFAULT" "$app"
-            colorprint "CYAN" "$(jq -r ".[\"$app_type\"][] | select(.name==\"$app\") | .link" "$CONFIG_DIR/$CONFIG_JSON_FILE")"
+            colorprint "CYAN" "$(jq -r ".[\"$app_type\"][] | select(.name==\"$app\") | .link" "$CONFIG_DIR/$APP_CONFIG_JSON_FILE")"
             
         done
     done
@@ -1343,15 +1343,15 @@ fn_setupEnv(){
                 fi
                 # Apps setup
                 clear ;
-                toLog_ifDebug -l "[DEBUG]" -m "Loading $app_type from ${CONFIG_JSON_FILE}..."
-                apps=$(jq -c ".[\"$app_type\"][]" "${CONFIG_DIR}/${CONFIG_JSON_FILE}")
-                app_number=$(jq -c ".[\"$app_type\"] | length" "${CONFIG_DIR}/${CONFIG_JSON_FILE}")
-                toLog_ifDebug -l "[DEBUG]" -m "$app_type loaded from ${CONFIG_JSON_FILE}"
+                toLog_ifDebug -l "[DEBUG]" -m "Loading $app_type from ${APP_CONFIG_JSON_FILE}..."
+                apps=$(jq -c ".[\"$app_type\"][]" "${CONFIG_DIR}/${APP_CONFIG_JSON_FILE}")
+                app_number=$(jq -c ".[\"$app_type\"] | length" "${CONFIG_DIR}/${APP_CONFIG_JSON_FILE}")
+                toLog_ifDebug -l "[DEBUG]" -m "$app_type loaded from ${APP_CONFIG_JSON_FILE}"
                 for (( i=0; i<"$app_number"; i++ )); do # this loop worsks instead the for app in apps will not work as bash split the strings on spaces
                     clear
-                    app_name=$(jq -r ".[\"$app_type\"][$i].name" "${CONFIG_DIR}/${CONFIG_JSON_FILE}")
+                    app_name=$(jq -r ".[\"$app_type\"][$i].name" "${CONFIG_DIR}/${APP_CONFIG_JSON_FILE}")
                     toLog_ifDebug -l "[DEBUG]" -m "Starting setupApp function for $app_name app"
-                    app_json=$(jq -c ".[\"$app_type\"][$i]" "${CONFIG_DIR}/${CONFIG_JSON_FILE}")
+                    app_json=$(jq -c ".[\"$app_type\"][$i]" "${CONFIG_DIR}/${APP_CONFIG_JSON_FILE}")
                     fn_setupApp --app-json "$app_json" --dk-compose-filename "$DKCOM_FILENAME"
                     clear
                 done
