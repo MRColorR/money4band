@@ -106,7 +106,7 @@
     {
       "name": "MYSTNODE",
       "dashboard": "https://mystnodes.com/nodes",
-      "link": "https://mystnodes.com/onboarding",
+      "link": "https://mystnodes.co/?referral_code=Tc7RaS7Fm12K3Xun6mlU9q9hbnjojjl9aRBW8ZA9",
       "image": "mysteriumnetwork/myst",
       "flags": {
         "--manual":{
