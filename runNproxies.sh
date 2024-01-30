@@ -266,9 +266,9 @@ if [ -d "$INSTANCES_DIR" ]; then
         fi
         # Run docker-compose up -d in the instance directory amd increase instance count
         cd "$instance_dir" || exit
-        # if sudo docker compose -f ${DOCKER_COMPOSE_FILE} --env-file ${ENV_FILE} up -d ; then
         #execute a dry run do not start the containers for now
-        if sudo docker compose -f ${DOCKER_COMPOSE_FILE} --env-file ${ENV_FILE} up --no-start ; then
+        # if sudo docker compose -f ${DOCKER_COMPOSE_FILE} --env-file ${ENV_FILE} up --no-start ; then
+        if sudo docker compose -f ${DOCKER_COMPOSE_FILE} --env-file ${ENV_FILE} up -d ; then
             ((created_instance_count++))
             echo_and_log_message "Docker compose up for $instance_name succeeded"
         else
