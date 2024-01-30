@@ -162,7 +162,7 @@ services:
 #ENABLE_MYSTNODE          - ./.data/mysterium-node:/var/lib/mysterium-node # Bind an host folder to the container (more insecure but simplier to port and backup) this option mount a new identity or a backed up one from the host file system
 #ENABLE_MYSTNODE          # OR
 #ENABLE_MYSTNODE          #- myst-data:/var/lib/mysterium-node # if you use this also uncomment the relative volume in volumes section, this  Use docker volumes (more secure harder to access, backup and restore) you'll need to do backups using 'docker cp myst:/var/lib/mysterium-node .' and then when you need to restore the identity first delete the automatically created and not needed identities using 'sudo docker exec -it myst sh' and then in the container shell use 'sudo rm -rf /var/lib/mysterium-node/*' then stop the container and use docker cp to copy the backed-up identity in the container, ther restart the container.
-#ENABLE_MYSTNODE    # network_mode: service:tun2socks
+#ENABLE_MYSTNODE    # network_mode: host
 #ENABLE_MYSTNODE    restart: always
 #ENABLE_MYSTNODE    cpus: ${APP_CPU_LIMIT_HUGE}
 #ENABLE_MYSTNODE    mem_reservation: ${APP_MEM_RESERV_HUGE}
