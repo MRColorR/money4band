@@ -70,14 +70,35 @@ fi
 if [ "$(ls -A "$INSTANCES_DIR")" ]; then
     echo_and_log_message "The $INSTANCES_DIR directory is not empty."
     echo "Choose an option:"
-    echo "1 - Stop and remove all current instances, new one will be created (Warning: This will delete all data in the instances directories.)"
-    echo "2 - Update proxies for existing instances (you will need a number of proxies in the proxies.txt file equal or greater than the number of instances)."
-    echo "3 - Exit without making changes."
+    echo "1 - Just Cleanup: Stop and remove all current instances (Warning: This will delete all data in the instances directories without creating new ones)."
+    echo "2 - Cleanup and Recreate: Stop and remove all current instances, new one will be created (Warning: This will delete all data in the instances directories)."
+    echo "3 - Update: Update proxies for existing instances (you will need a number of proxies in the proxies.txt file equal or greater than the number of instances)."
+    echo "4 - Exit without making changes."
 
-    read -p "Enter your choice (1/2/3): " user_choice
+    read -p "Enter your choice (1/2/3/4): " user_choice
 
     case $user_choice in
         1)
+            echo_and_log_message "Stopping and removing all current instances..."
+            for instance_dir in "$INSTANCES_DIR"/*/; do
+                if [ -d "$instance_dir" ]; then
+                    echo_and_log_message "Stopping and removing instance in $instance_dir"
+                    cd "$instance_dir" 
+                    if sudo docker compose -f ${DOCKER_COMPOSE_FILE} --env-file ${ENV_FILE} down ; then
+                        echo_and_log_message "Docker compose down for $instance_dir succeeded"
+                    else
+                        echo_and_log_message "Docker compose down for $instance_dir failed"
+                    fi
+                fi
+            done
+            cd "$ROOT_DIR" || exit
+            # Remove the instance directories after stopping the containers
+            # Warning: This will delete all data in these directories
+            sudo rm -rf "$INSTANCES_DIR"/*
+            echo_and_log_message "Cleanup complete. Done stopping and removing all current instances. Exiting."
+            exit 0
+            ;;
+        2)
             echo_and_log_message "Stopping and removing all current instances..."
                 for instance_dir in "$INSTANCES_DIR"/*/; do
                     if [ -d "$instance_dir" ]; then
@@ -94,8 +115,9 @@ if [ "$(ls -A "$INSTANCES_DIR")" ]; then
                 # Remove the instance directories after stopping the containers
                 # Warning: This will delete all data in these directories
                 sudo rm -rf "$INSTANCES_DIR"/*
+                echo_and_log_message "Cleanup complete. Done stopping and removing all current instances. Preparing to create new instances..."
             ;;
-        2)
+        3)
             echo_and_log_message "Updating proxies for existing instances..."
             # Ensure that the number of proxies is sufficient
             num_proxies_avail=$(wc -l < "$PROXIES_FILE")
@@ -131,7 +153,7 @@ if [ "$(ls -A "$INSTANCES_DIR")" ]; then
             echo_and_log_message "Done updating proxies. Exiting."
             exit 0
             ;;
-        3)
+        4)
             echo_and_log_message "Exiting without changes."
             exit 0
             ;;
