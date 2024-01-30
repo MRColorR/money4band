@@ -30,56 +30,6 @@ readonly DKCOM_FILENAME="docker-compose.yaml"
 # Script default sleep time #
 readonly SLEEP_TIME=1.5
 
-# initialize the env file with the default values if there is no env file already present
-# Check if the ${ENV_FILENAME} file is already present in the current directory, if it is not present copy from the .env.template file renaming it to ${ENV_FILENAME}, if it is present ask the user if they want to reset it or keep it as it is
-if [ ! -f "${ENV_FILENAME}" ]; then
-    echo "No ${ENV_FILENAME} file found, copying ${ENV_FILENAME} and ${DKCOM_FILENAME} from the template files"
-    cp "${ENV_TEMPLATE_FILENAME}" "${ENV_FILENAME}"
-    cp "${DKCOM_TEMPLATE_FILENAME}" "${DKCOM_FILENAME}"
-    echo "Copied ${ENV_FILENAME} and ${DKCOM_FILENAME} from the template files"
-else
-    echo "Already found ${ENV_FILENAME} file, proceeding with setup"
-    # check if the release version in the local env fileis the same of the local template file , if not align it
-    LOCAL_SCRIPT_VERSION=$(grep -oP 'PROJECT_VERSION=\K[^#\r]+' ${ENV_FILENAME})
-    LOCAL_SCRIPT_TEMPLATE_VERSION=$(grep -oP 'PROJECT_VERSION=\K[^#\r]+' ${ENV_TEMPLATE_FILENAME})
-    if [[ "$LOCAL_SCRIPT_VERSION" != "$LOCAL_SCRIPT_TEMPLATE_VERSION" ]]; then
-        echo "Local ${ENV_FILENAME} file version differs from local ${ENV_TEMPLATE_FILENAME} file version"
-        echo "This could be the result of an updated project using an outdated ${ENV_FILENAME} file"
-        sleep $SLEEP_TIME
-        echo "Generating new ${ENV_FILENAME} and ${DKCOM_FILENAME} files from the local template files and backing up the old files as ${ENV_FILENAME}.bak and ${DKCOM_FILENAME}.bak"
-        cp "${ENV_FILENAME}" "${ENV_FILENAME}.bak"
-        cp "${ENV_TEMPLATE_FILENAME}" "${ENV_FILENAME}"
-        cp "${DKCOM_FILENAME}" "${DKCOM_FILENAME}.bak"
-        cp "${DKCOM_TEMPLATE_FILENAME}" "${DKCOM_FILENAME}"
-        echo "New local ${ENV_FILENAME} and ${DKCOM_FILENAME} files generated from the local template files"
-        echo "If you are unsure, download the latest version directly from GitHub."
-        sleep $SLEEP_TIME
-        read -r -p "Press Enter to continue"
-    fi
-fi
-
-# Script version getting it from ${ENV_FILENAME} file #
-SCRIPT_VERSION=$(grep -oP 'PROJECT_VERSION=\K[^#\r]+' ${ENV_FILENAME}) 
-
-# Script name #
-readonly SCRIPT_NAME=$(basename "$0") # save the script name in a variable not the full path
-
-# Project Discord URL #
-readonly DS_PROJECT_SERVER_URL=$(grep -oP 'DS_PROJECT_SERVER_URL=\K[^#\r]+' ${ENV_FILENAME})
-
-# Script URL for update #
-readonly PROJECT_BRANCH="main"
-readonly PROJECT_URL="https://raw.githubusercontent.com/MRColorR/money4band/${PROJECT_BRANCH}"
-
-
-# Script log file #
-readonly DEBUG_LOG="debug_${SCRIPT_NAME}.log"
-
-## Dashboard related constants and variables ##
-# Dashboard URL and PORT # get it form the ${ENV_FILENAME} file
-readonly DASHBOARD_PORT=$(grep -oP 'DASHBOARD_PORT=\K[^#\r]+' ${ENV_FILENAME})
-readonly DASHBOARD_URL="http://localhost:$DASHBOARD_PORT"
-
 ### Resources, Scripts and Files folders ###
 readonly RESOURCES_DIR="$PWD/.resources"
 readonly CONFIG_DIR="$RESOURCES_DIR/.www/.configs"
@@ -138,6 +88,56 @@ colorprint() {
         printf "Unknown color: %s. Available colors are: %s\n" "$1" "$color_list"
     fi
 }
+
+# initialize the env file with the default values if there is no env file already present
+# Check if the ${ENV_FILENAME} file is already present in the current directory, if it is not present copy from the .env.template file renaming it to ${ENV_FILENAME}, if it is present ask the user if they want to reset it or keep it as it is
+if [ ! -f "${ENV_FILENAME}" ]; then
+    echo "No ${ENV_FILENAME} file found, copying ${ENV_FILENAME} and ${DKCOM_FILENAME} from the template files"
+    cp "${ENV_TEMPLATE_FILENAME}" "${ENV_FILENAME}"
+    cp "${DKCOM_TEMPLATE_FILENAME}" "${DKCOM_FILENAME}"
+    echo "Copied ${ENV_FILENAME} and ${DKCOM_FILENAME} from the template files"
+else
+    echo "Already found ${ENV_FILENAME} file, proceeding with setup"
+    # check if the release version in the local env fileis the same of the local template file , if not align it
+    LOCAL_SCRIPT_VERSION=$(grep -oP 'PROJECT_VERSION=\K[^#\r]+' ${ENV_FILENAME})
+    LOCAL_SCRIPT_TEMPLATE_VERSION=$(grep -oP 'PROJECT_VERSION=\K[^#\r]+' ${ENV_TEMPLATE_FILENAME})
+    if [[ "$LOCAL_SCRIPT_VERSION" != "$LOCAL_SCRIPT_TEMPLATE_VERSION" ]]; then
+        echo "Local ${ENV_FILENAME} file version differs from local ${ENV_TEMPLATE_FILENAME} file version"
+        echo "This could be the result of an updated project using an outdated ${ENV_FILENAME} file"
+        sleep $SLEEP_TIME
+        echo "Generating new ${ENV_FILENAME} and ${DKCOM_FILENAME} files from the local template files and backing up the old files as ${ENV_FILENAME}.bak and ${DKCOM_FILENAME}.bak"
+        cp "${ENV_FILENAME}" "${ENV_FILENAME}.bak"
+        cp "${ENV_TEMPLATE_FILENAME}" "${ENV_FILENAME}"
+        cp "${DKCOM_FILENAME}" "${DKCOM_FILENAME}.bak"
+        cp "${DKCOM_TEMPLATE_FILENAME}" "${DKCOM_FILENAME}"
+        echo "New local ${ENV_FILENAME} and ${DKCOM_FILENAME} files generated from the local template files"
+        echo "If you are unsure, download the latest version directly from GitHub."
+        sleep $SLEEP_TIME
+        read -r -p "Press Enter to continue"
+    fi
+fi
+
+# Script version getting it from ${ENV_FILENAME} file #
+SCRIPT_VERSION=$(grep -oP 'PROJECT_VERSION=\K[^#\r]+' ${ENV_FILENAME}) 
+
+# Script name #
+readonly SCRIPT_NAME=$(basename "$0") # save the script name in a variable not the full path
+
+# Project Discord URL #
+readonly DS_PROJECT_SERVER_URL=$(grep -oP 'DS_PROJECT_SERVER_URL=\K[^#\r]+' ${ENV_FILENAME})
+
+# Script URL for update #
+readonly PROJECT_BRANCH="main"
+readonly PROJECT_URL="https://raw.githubusercontent.com/MRColorR/money4band/${PROJECT_BRANCH}"
+
+
+# Script log file #
+readonly DEBUG_LOG="debug_${SCRIPT_NAME}.log"
+
+## Dashboard related constants and variables ##
+# Dashboard URL and PORT # get it form the ${ENV_FILENAME} file
+readonly DASHBOARD_PORT=$(grep -oP 'DASHBOARD_PORT=\K[^#\r]+' ${ENV_FILENAME})
+readonly DASHBOARD_URL="http://localhost:$DASHBOARD_PORT"
 
 # Function to manage unexpected choices of flags #
 fn_unknown() { 

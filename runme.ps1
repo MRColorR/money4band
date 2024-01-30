@@ -35,57 +35,6 @@ $DKINST_MAC_SRC = 'https://github.com/MRColorR/money4band/raw/main/.resources/.s
 # Script default sleep time #
 $SLEEP_TIME = 1.5
 
-# initialize the env file with the default values if there is no env file already present
-# Check if the ${ENV_FILENAME} file is already present in the current directory, if it is not present copy from the .env.template file renaming it to ${ENV_FILENAME}, if it is present ask the user if they want to reset it or keep it as it is
-if (-not (Test-Path .\${ENV_FILENAME})) {
-    Write-Output "No ${ENV_FILENAME} file found, copying ${ENV_FILENAME} and ${DKCOM_FILENAME} from the template files"
-    Copy-Item .\${ENV_TEMPLATE_FILENAME} .\${ENV_FILENAME} -Force
-    Copy-Item .\${DKCOM_TEMPLATE_FILENAME} .\${DKCOM_FILENAME} -Force
-    Write-Output "Copied ${ENV_FILENAME} and ${DKCOM_FILENAME} from the template files"
-}
-else {
-    Write-Output "Already found ${ENV_FILENAME} file, proceeding with setup"
-    # check if the release version in the local env fileis the same of the local template file , if not align it
-    $LOCAL_SCRIPT_VERSION = (Get-Content .\${ENV_FILENAME} | Select-String -Pattern "PROJECT_VERSION=" -SimpleMatch).ToString().Split("=")[1]
-    $LOCAL_SCRIPT_TEMPLATE_VERSION = (Get-Content .\${ENV_TEMPLATE_FILENAME} | Select-String -Pattern "PROJECT_VERSION=" -SimpleMatch).ToString().Split("=")[1]
-    if ($LOCAL_SCRIPT_VERSION -ne $LOCAL_SCRIPT_TEMPLATE_VERSION) {
-        Write-Output "Local ${ENV_FILENAME} file version differs from local ${ENV_TEMPLATE_FILENAME} file version"
-        Write-Output "This could be the result of an updated project using an outdated ${ENV_FILENAME} file"
-        Start-Sleep -Seconds $SLEEP_TIME
-        Write-Output "Generating new ${ENV_FILENAME} and ${DKCOM_FILENAME} files from the local template files and backing up the old files as ${ENV_FILENAME}.bak and ${DKCOM_FILENAME}.bak"
-        Copy-Item "${ENV_FILENAME}" "${ENV_FILENAME}.bak" -Force
-        Copy-Item "${ENV_TEMPLATE_FILENAME}" "${ENV_FILENAME}" -Force
-        Copy-Item "${DKCOM_FILENAME}" "${DKCOM_FILENAME}.bak" -Force
-        Copy-Item "${DKCOM_TEMPLATE_FILENAME}" "${DKCOM_FILENAME}" -Force
-        Write-Output "New local ${ENV_FILENAME} and ${DKCOM_FILENAME} files generated from the local template files"
-        Write-Output "If you are unsure, download the latest version directly from GitHub."
-        Start-Sleep -Seconds $SLEEP_TIME
-        Read-Host -Prompt "Press Enter to continue"
-    }
-}
-
-# Script version getting it from ${ENV_FILENAME} file#
-$SCRIPT_VERSION = (Get-Content .\${ENV_FILENAME} | Select-String -Pattern "PROJECT_VERSION=" -SimpleMatch).ToString().Split("=")[1]
-
-# Script name #
-$SCRIPT_NAME = $MyInvocation.MyCommand.Name # save the script name in a variable, not the full path
-
-# Project Discord URL #
-$DS_PROJECT_SERVER_URL = (Get-Content .\${ENV_FILENAME} | Select-String -Pattern "DS_PROJECT_SERVER_URL=" -SimpleMatch).ToString().Split("=")[1]
-
-# Script URL for update #
-$PROJECT_BRANCH = "main"
-$PROJECT_URL = "https://raw.githubusercontent.com/MRColorR/money4band/${PROJECT_BRANCH}"
-
-# Script debug log file #
-$DEBUG_LOG = "debug_$SCRIPT_NAME.log"
-
-
-## Dashboard related constants and variables ##
-# Dashboard URL and PORT # get it form the ${ENV_FILENAME} file
-$script:DASHBOARD_PORT = (Get-Content .\${ENV_FILENAME} | Select-String -Pattern "DASHBOARD_PORT=" -SimpleMatch).ToString().Split("=")[1]
-$script:DASHBOARD_URL = "http://localhost:$DASHBOARD_PORT"
-
 ### Resources, Scripts and Files folders ###
 $script:RESOURCES_DIR = "$PWD\.resources"
 $script:CONFIG_DIR = "$RESOURCES_DIR\.www\.configs"
@@ -149,6 +98,56 @@ function colorprint($color, $text) {
         Write-Output "Unknown color: $color. Available colors are: $($colors.Keys -join ', ')"
     }
 }
+
+# initialize the env file with the default values if there is no env file already present
+# Check if the ${ENV_FILENAME} file is already present in the current directory, if it is not present copy from the .env.template file renaming it to ${ENV_FILENAME}, if it is present ask the user if they want to reset it or keep it as it is
+if (-not (Test-Path .\${ENV_FILENAME})) {
+    Write-Output "No ${ENV_FILENAME} file found, copying ${ENV_FILENAME} and ${DKCOM_FILENAME} from the template files"
+    Copy-Item .\${ENV_TEMPLATE_FILENAME} .\${ENV_FILENAME} -Force
+    Copy-Item .\${DKCOM_TEMPLATE_FILENAME} .\${DKCOM_FILENAME} -Force
+    Write-Output "Copied ${ENV_FILENAME} and ${DKCOM_FILENAME} from the template files"
+}
+else {
+    Write-Output "Already found ${ENV_FILENAME} file, proceeding with setup"
+    # check if the release version in the local env fileis the same of the local template file , if not align it
+    $LOCAL_SCRIPT_VERSION = (Get-Content .\${ENV_FILENAME} | Select-String -Pattern "PROJECT_VERSION=" -SimpleMatch).ToString().Split("=")[1]
+    $LOCAL_SCRIPT_TEMPLATE_VERSION = (Get-Content .\${ENV_TEMPLATE_FILENAME} | Select-String -Pattern "PROJECT_VERSION=" -SimpleMatch).ToString().Split("=")[1]
+    if ($LOCAL_SCRIPT_VERSION -ne $LOCAL_SCRIPT_TEMPLATE_VERSION) {
+        Write-Output "Local ${ENV_FILENAME} file version differs from local ${ENV_TEMPLATE_FILENAME} file version"
+        Write-Output "This could be the result of an updated project using an outdated ${ENV_FILENAME} file"
+        Start-Sleep -Seconds $SLEEP_TIME
+        Write-Output "Generating new ${ENV_FILENAME} and ${DKCOM_FILENAME} files from the local template files and backing up the old files as ${ENV_FILENAME}.bak and ${DKCOM_FILENAME}.bak"
+        Copy-Item "${ENV_FILENAME}" "${ENV_FILENAME}.bak" -Force
+        Copy-Item "${ENV_TEMPLATE_FILENAME}" "${ENV_FILENAME}" -Force
+        Copy-Item "${DKCOM_FILENAME}" "${DKCOM_FILENAME}.bak" -Force
+        Copy-Item "${DKCOM_TEMPLATE_FILENAME}" "${DKCOM_FILENAME}" -Force
+        Write-Output "New local ${ENV_FILENAME} and ${DKCOM_FILENAME} files generated from the local template files"
+        Write-Output "If you are unsure, download the latest version directly from GitHub."
+        Start-Sleep -Seconds $SLEEP_TIME
+        Read-Host -Prompt "Press Enter to continue"
+    }
+}
+
+# Script version getting it from ${ENV_FILENAME} file#
+$SCRIPT_VERSION = (Get-Content .\${ENV_FILENAME} | Select-String -Pattern "PROJECT_VERSION=" -SimpleMatch).ToString().Split("=")[1]
+
+# Script name #
+$SCRIPT_NAME = $MyInvocation.MyCommand.Name # save the script name in a variable, not the full path
+
+# Project Discord URL #
+$DS_PROJECT_SERVER_URL = (Get-Content .\${ENV_FILENAME} | Select-String -Pattern "DS_PROJECT_SERVER_URL=" -SimpleMatch).ToString().Split("=")[1]
+
+# Script URL for update #
+$PROJECT_BRANCH = "main"
+$PROJECT_URL = "https://raw.githubusercontent.com/MRColorR/money4band/${PROJECT_BRANCH}"
+
+# Script debug log file #
+$DEBUG_LOG = "debug_$SCRIPT_NAME.log"
+
+## Dashboard related constants and variables ##
+# Dashboard URL and PORT # get it form the ${ENV_FILENAME} file
+$script:DASHBOARD_PORT = (Get-Content .\${ENV_FILENAME} | Select-String -Pattern "DASHBOARD_PORT=" -SimpleMatch).ToString().Split("=")[1]
+$script:DASHBOARD_URL = "http://localhost:$DASHBOARD_PORT"
 
 # Function to manage unexpected choices of flags #
 function fn_unknown($REPLY) {
