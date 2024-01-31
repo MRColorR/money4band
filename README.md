@@ -68,7 +68,7 @@ Register an account on the app's sites clicking each apps' names in the followin
 - **Prepare Proxies**: Create a `proxies.txt` in the root folder, listing each proxy on a separate line.
 
 ### Launching Multiple Instances
-1. **Run the Script**: Use the "Setup multiproxy instances by list" in the M4B menu or execute `runmproxies` script in the terminal. This script intelligently handles existing instances by offering to:
+1. **Run the Script**: Use the "Setup and manage multiproxy instances by list" in the M4B menu or execute `runmproxies` script in the terminal. This script intelligently handles existing instances by offering to:
    - Clear and recreate all instances.
    - Update proxies for existing setups (if sufficient proxies are available).
    - Exit without changes.
