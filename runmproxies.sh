@@ -133,7 +133,7 @@ if [ "$(ls -A "$INSTANCES_DIR")" ]; then
                         # Get the proxy from the proxies.txt file using the instance number as line number
                         proxy=$(sed -n "$num_instances_to_upd"p "$PROXIES_FILE")
                         # Update the proxy in the .env file
-                        sed -i "s/STACK_PROXY=.*/STACK_PROXY=${proxy}/" "${instance_dir}/.env"
+                        sed -i "s/STACK_PROXY=.*/STACK_PROXY=${proxy//\//\\/}/" "${instance_dir}/.env"
                         echo_and_log_message "Updated .env file STACK_PROXY for $instance_dir"
                         # Restart the instance
                         if sudo docker compose -f ${DOCKER_COMPOSE_FILE} --env-file ${ENV_FILE} up -d ; then
@@ -208,6 +208,24 @@ if [ -d "$INSTANCES_DIR" ]; then
         sed -i "s/COMPOSE_PROJECT_NAME=.*/COMPOSE_PROJECT_NAME=${COMPOSE_PROJECT_NAME}-${unique_suffix}/" "${instance_dir}/.env"
         sed -i "s/DEVICE_NAME=.*/DEVICE_NAME=${DEVICE_NAME}${unique_suffix}/" "${instance_dir}/.env"
         sed -i "s/STACK_PROXY=.*/STACK_PROXY=${proxy//\//\\/}/" "${instance_dir}/.env"
+        # Update the ports present in the .env file like MYSTNODE_DASHBOARD_PORT M4B_DASHBOARD_PORT and so on increasing their value by $created_instance_count+1
+        # Increment value for any variable ending with _DASHBOARD_PORT
+        while IFS= read -r line; do
+            # Extract the variable name and its current port value
+            port_var=$(echo "$line" | cut -d'=' -f1)
+            current_port=$(echo "$line" | cut -d'=' -f2)
+
+            # Check if the line contains a valid port number
+            if [[ "$current_port" =~ ^[0-9]+$ ]]; then
+                # Calculate the new port value
+                new_port=$((current_port + created_instance_count + 1))
+
+                # Update the .env file with the new port value
+                sed -i "s/^${port_var}=.*/${port_var}=${new_port}/" "${instance_dir}/.env"
+                echo_and_log_message "Updated port for ${port_var} to ${new_port} in ${instance_dir}/.env"
+            fi
+        done < <(grep "_DASHBOARD_PORT=" "${instance_dir}/.env")
+
         echo_and_log_message "Updated .env file COMPOSE_PROJECT_NAME, DEVICE_NAME and STACK_PROXY for $instance_name"
 
 
