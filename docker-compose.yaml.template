@@ -156,7 +156,7 @@ services:
 #ENABLE_MYSTNODE    cap_add:
 #ENABLE_MYSTNODE          - NET_ADMIN
 #ENABLE_MYSTNODE    ports:
-#ENABLE_MYSTNODE          - 4449:4449
+#ENABLE_MYSTNODE          - ${MYSTNODE_DASHBOARD_PORT}:4449
 #ENABLE_MYSTNODE    volumes:
 #ENABLE_MYSTNODE          # You have 2 options
 #ENABLE_MYSTNODE          - ./.data/mysterium-node:/var/lib/mysterium-node # Bind an host folder to the container (more insecure but simplier to port and backup) this option mount a new identity or a backed up one from the host file system
@@ -222,13 +222,13 @@ services:
     mem_limit: ${APP_MEM_LIMIT_MEDIUM}
         
 # WEB DASBOARD
-  webdashboard:
+  m4bwebdashboard:
     container_name: webdashboard_$DEVICE_NAME
     image: nginx:alpine-slim
     volumes:
       - ./.resources/.www:/usr/share/nginx/html:ro
     ports:
-      - ${DASHBOARD_PORT}:80
+      - ${M4B_DASHBOARD_PORT}:80
     restart: always
     cpus: ${APP_CPU_LIMIT_LITTLE}
     mem_reservation: ${APP_MEM_RESERV_LITTLE}
