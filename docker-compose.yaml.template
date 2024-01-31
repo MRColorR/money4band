@@ -42,7 +42,7 @@ services:
 #ENABLE_IPROYALPAWNS    image: iproyal/pawns-cli:latest
 #ENABLE_IPROYALPAWNS    environment:
 #ENABLE_IPROYALPAWNS      - IPROYALPAWNS_DUMMY=''
-#ENABLE_IPROYALPAWNS    command: -accept-tos -email=$IPROYALPAWNS_EMAIL -password=$IPROYALPAWNS_PASSWD -device-name=$DEVICE_NAME
+#ENABLE_IPROYALPAWNS    command: -accept-tos -email=$IPROYALPAWNS_EMAIL -password=$IPROYALPAWNS_PASSWD -device-name=$DEVICE_NAME -device-id=id_$DEVICE_NAME
 #ENABLE_IPROYALPAWNS    # network_mode: service:tun2socks
 #ENABLE_IPROYALPAWNS    restart: always
 #ENABLE_IPROYALPAWNS    cpus: ${APP_CPU_LIMIT_LITTLE}
