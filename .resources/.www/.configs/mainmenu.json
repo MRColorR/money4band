@@ -5,6 +5,7 @@
     {"label": "Setup Extra Apps", "function": "fn_setupExtraApps"},
     {"label": "Start apps stack", "function": "fn_startStack"},
     {"label": "Stop apps stack", "function": "fn_stopStack"},
+    {"label": "Setup mutiproxy instances by list","function":"fn_setupmproxies"},
     {"label": "Reset .env File", "function": "fn_resetEnv"},
     {"label": "Reset docker-compose.yaml file", "function": "fn_resetDockerCompose"},
     {"label": "Quit", "function": "fn_bye"}

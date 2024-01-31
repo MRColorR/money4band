@@ -207,7 +207,7 @@ if [ -d "$INSTANCES_DIR" ]; then
         # Update .env file with unique COMPOSE_PROJECT_NAME and DEVICE_NAME appending to the old one the unique suffix and updte the old proxy with the new one
         sed -i "s/COMPOSE_PROJECT_NAME=.*/COMPOSE_PROJECT_NAME=${COMPOSE_PROJECT_NAME}-${unique_suffix}/" "${instance_dir}/.env"
         sed -i "s/DEVICE_NAME=.*/DEVICE_NAME=${DEVICE_NAME}${unique_suffix}/" "${instance_dir}/.env"
-        sed -i "s/STACK_PROXY=.*/STACK_PROXY=${proxy}/" "${instance_dir}/.env"
+        sed -i "s/STACK_PROXY=.*/STACK_PROXY=${proxy//\//\\/}/" "${instance_dir}/.env"
         echo_and_log_message "Updated .env file COMPOSE_PROJECT_NAME, DEVICE_NAME and STACK_PROXY for $instance_name"
 
 
