@@ -21,7 +21,6 @@
 - (Optional) On Windows, ensure the Virtualization platform and Windows Subsystem for Linux are active as Docker requires these features. Even though the script can assist with the installation, we recommend users to enable these windows functions by themselves following the [Wiki](https://github.com/MRColorR/money4band/wiki) guide.
 
 
-
 ### Quick Setup Guide
 1. **Download** the latest version of Money4Band from the [Releases](https://github.com/MRColorR/money4band/releases) or git clone the project.
    - OR you can also use on Linux/MacOS a bash command like: `wget https://github.com/MRColorR/money4band/archive/refs/heads/main.zip && unzip main.zip`
@@ -60,16 +59,33 @@ Register an account on the app's sites clicking each apps' names in the followin
 | Go to [BITPING](https://app.bitping.com?r=qm7mIuX3) | :white_check_mark:	  | :white_check_mark: |Unlimited|1|
 | Go to [MYSTNODE](https://mystnodes.co/?referral_code=Tc7RaS7Fm12K3Xun6mlU9q9hbnjojjl9aRBW8ZA9) | :white_check_mark:	  | :white_check_mark: |Unlimited|Unlimited|
 
+## Scale Up with Multi-Proxy Support 🌐
+
+**Money4Band** has the ability to create multiple instances also using a proxy list, ideal for scaling up your setup. Quickly set up numerous instances each linked to a different proxy with ease.
+
+### Getting Started with Multi-Proxy
+- **Initial Setup**: First, set up the main instance using `runme.sh`.
+- **Prepare Proxies**: Create a `proxies.txt` in the root folder, listing each proxy on a separate line.
+
+### Launching Multiple Instances
+1. **Run the Script**: Use the "Setup mutiproxy instances by list" in the M4B menu or execute `runmproxies` script in the terminal. This script intelligently handles existing instances by offering to:
+   - Clear and recreate all instances.
+   - Update proxies for existing setups (if sufficient proxies are available).
+   - Exit without changes.
+
+2. **Automated Setup**: For each proxy in `proxies.txt`, the script sets up a new instance with appropriate configurations.
+
+> **Notice**: While using multiple proxies, be aware that only certain apps permit proxy usage per their ToS. We recommend using personal, private proxies with IPs not flagged as proxies and always respecting the ToS of each app.
+
 ## Compatibility and tested environments
 This Docker Stack should work on anything that may have docker installed. In particular, it has been tested on: 
 | | Windows 11 x86_64\amd64 | Linux Ubuntu x86_64\amd64 | Raspbian OS arm64 | MacOS Intel x86_64 | MacOS silicon arm64 | 
 |  :---: |  :---: |  :---: |  :---: | :---: | :---: |
-| Tested | :green_circle: | :green_circle: | :green_circle: | :yellow_circle: | :yellow_circle:|
-| on device | Desktop/Laptop PC | Desktop/Laptop PC | Raspberry Pi3/Pi4 | _not tested_ | _not tested_ |
+| Tested | :green_circle: | :green_circle: | :green_circle: | :green_circle: | :green_circle:|
+| on device | Desktop/Laptop PC | Desktop/Laptop PC | Raspberry Pi3/Pi4 | MacBook Pro | MacBook Air |
 
 :green_circle:: All functions supported, Auto/manual setup supported
 :yellow_circle:: All functions supported but not tested, Auto/manual setup supported
-
 
 ## Need Help or Found an Issue? ❓
 - For discussions, info, and feature requests, use the [Discussion tab](https://github.com/MRColorR/money4band/discussions) or join our [Discord Community](#-join-the-money4band-community-on-discord).
