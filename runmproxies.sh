@@ -29,33 +29,58 @@ mkdir -p "$INSTANCES_DIR"
 LOG_FILE="multiproxies.log"
 touch "$LOG_FILE"
 
-# Function to log messages
+# Function to log messages with optional color
 echo_and_log_message() {
-    echo "$1"
-    echo "$(date): $1" >> "$LOG_FILE"
+    local color="$1"
+    local message="$2"
+
+    # ANSI color codes
+    RED='\033[0;31m'
+    GREEN='\033[0;32m'
+    YELLOW='\033[1;33m'
+    NC='\033[0m' # No Color
+
+    # Check for color argument and apply color
+    case "$color" in
+        RED) 
+            colored_message="${RED}${message}${NC}"
+            ;;
+        GREEN)
+            colored_message="${GREEN}${message}${NC}"
+            ;;
+        YELLOW)
+            colored_message="${YELLOW}${message}${NC}"
+            ;;
+        *)
+            colored_message="$message" # default (no color)
+            ;;
+    esac
+
+    # Print message and log it
+    echo -e "$colored_message"
+    echo "$(date): $message" >> "$LOG_FILE"
 }
 
-echo_and_log_message "Multiproxy instances setup script started."
+echo_and_log_message "GREEN" "Multiproxy instances setup script started."
 
-# Check if .env , docker-compose.yaml and proxies.txt files are present in the root folder
+# Check if .env, docker-compose.yaml, and proxies.txt files are present
 if [ ! -f "$ENV_FILE" ] || [ ! -f "$DOCKER_COMPOSE_FILE" ]; then
-    echo_and_log_message "No .env (or docker-compose file) found in the root folder. Please configure the main instance first using a proxy and then run this script again to create the other instances using the proxies in the proxies.txt file. Exiting."
+    echo_and_log_message "RED" "No .env (or docker-compose file) found in the root folder. Please configure the main instance first using a proxy and then run this script again to create the other instances using the proxies in the proxies.txt file. Exiting."
     exit 1
 fi
 
 if [ ! -f "$PROXIES_FILE" ]; then
-    echo_and_log_message "No proxies.txt file found in the root folder. Please create a proxies.txt file with one proxy per line and then run this script again. Exiting."
+    echo_and_log_message "RED" "No proxies.txt file found in the root folder. Please create a proxies.txt file with one proxy per line and then run this script again. Exiting."
     exit 1
 fi
 
 # Reading COMPOSE_PROJECT_NAME and DEVICE_NAME from original .env file
 COMPOSE_PROJECT_NAME=$(grep COMPOSE_PROJECT_NAME "$ENV_FILE" | cut -d'=' -f2)
-echo_and_log_message "Original COMPOSE_PROJECT_NAME: $COMPOSE_PROJECT_NAME"
+echo_and_log_message "GREEN" "Original COMPOSE_PROJECT_NAME: $COMPOSE_PROJECT_NAME"
 DEVICE_NAME=$(grep DEVICE_NAME "$ENV_FILE" | cut -d'=' -f2)
-echo_and_log_message "Original DEVICE_NAME: $DEVICE_NAME"
-# get total number of proxies and so max number of instances to create
+echo_and_log_message "GREEN" "Original DEVICE_NAME: $DEVICE_NAME"
 total_proxies=$(wc -l < "$PROXIES_FILE")
-echo_and_log_message "Total proxies: $total_proxies"
+echo_and_log_message "GREEN" "Total proxies: $total_proxies"
 
 # Check if the original env file has been configured with proxies checking the # PROXY_CONFIGURATION_STATUS=1 if not exit telling the user to configure the original .env file with a proxy and then pass the others as list in the proxies.txt file
 ORIG_ENV_PROXY_CONFIGURATION_STATUS=$(grep PROXY_CONFIGURATION_STATUS "$ENV_FILE" | cut -d'=' -f2)
@@ -164,11 +189,11 @@ if [ "$(ls -A "$INSTANCES_DIR")" ]; then
             exit 0
             ;;
         4)
-            echo_and_log_message "Exiting without changes."
+            echo_and_log_message "YELLOW" "Exiting without changes."
             exit 0
             ;;
         *)
-            echo_and_log_message "Invalid choice. Exiting."
+            echo_and_log_message "RED" "Invalid choice. Exiting."
             exit 1
             ;;
     esac
@@ -302,12 +327,12 @@ if [ -d "$INSTANCES_DIR" ]; then
             # Call the script to generate dashboards urls for the apps that has them and check if execute correctly
             sudo chmod +x ./generate_dashboard_urls.sh
             if ./generate_dashboard_urls.sh ; then
-                echo_and_log_message "All Apps dashboards URLs generated. Check the generated dashboards file for the URLs."
+                echo_and_log_message "YELLOW" "All Apps dashboards URLs generated. Check the generated dashboards file for the URLs."
             else
-                echo_and_log_message "Error generating Apps dashboards URLs. Please check the configuration and try again."
+                echo_and_log_message "RED" "Error generating Apps dashboards URLs. Please check the configuration and try again."
             fi                    
-            echo_and_log_message "If not already done, use the previously generated apps nodes URLs to add your device in any apps dashboard that require node claiming/registration (e.g. Earnapp, ProxyRack, etc.)"
-        
+            echo_and_log_message "YELLOW" "If not already done, use the previously generated apps nodes URLs to add your device in any apps dashboard that require node claiming/registration (e.g. Earnapp, ProxyRack, etc.)"
+            sleep 5
         else
             echo_and_log_message "Docker compose up for $instance_name failed"
         fi
@@ -316,7 +341,9 @@ if [ -d "$INSTANCES_DIR" ]; then
 
     # Final message and log
 
-    echo_and_log_message "Created and ran $created_instance_count instances out of $total_proxies proxies available. Bye!"
+    echo_and_log_message "GREEN" "Created and ran $created_instance_count instances out of $total_proxies proxies available. Bye!"
+    echo_and_log_message "YELLOW" "Check the generated dashboards file and claim nodes files for their URLs."
+    sleep 3
     exit 0
 else
     echo_and_log_message "The $INSTANCES_DIR directory does not exist. Exiting."
