@@ -110,7 +110,7 @@
       "image": "mysteriumnetwork/myst",
       "flags": {
         "--manual":{
-          "instructions": "Log into your device's mystnode local webdashboard that by default is on localhost:${MYSTNODE_DASHBOARD_PORT}, navigate to the Myst Node page and follow the onscreen instruction to complete the setup.\n\nDisclaimer: If you want to further optimize UPnP and port forwarding, consider setting manually 'network: host' for mystnode in your Docker compose. This may improve mystnode performance, but do this only if you know what you are doing and you are aware of potential security implications."
+          "instructions": "Log into your device's mystnode local webdashboard, navigate to the Myst Node page and follow the onscreen instruction to complete the setup.\n\nDisclaimer: If you want to further optimize UPnP and port forwarding, consider setting manually 'network: host' for mystnode in your Docker compose. This may improve mystnode performance, but do this only if you know what you are doing and you are aware of potential security implications."
         }
       }
     },
