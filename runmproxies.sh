@@ -19,8 +19,8 @@
 PROXIES_FILE=${1:-"proxies.txt"}
 DOCKER_COMPOSE_FILE=${2:-"docker-compose.yaml"}
 ENV_FILE=${3:-".env"}
-
-ROOT_DIR="$PWD"
+# rootdir is the folder where the script is located
+ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 # Directory for proxy instances
 INSTANCES_DIR="${ROOT_DIR}/m4b_proxy_instances"
 mkdir -p "$INSTANCES_DIR"
@@ -271,6 +271,15 @@ if [ -d "$INSTANCES_DIR" ]; then
         if sudo docker compose -f ${DOCKER_COMPOSE_FILE} --env-file ${ENV_FILE} up -d ; then
             ((created_instance_count++))
             echo_and_log_message "Docker compose up for $instance_name succeeded"
+            # Call the script to generate dashboards urls for the apps that has them and check if execute correctly
+            sudo chmod +x ./generate_dashboard_urls.sh
+            if ./generate_dashboard_urls.sh ; then
+                echo_and_log_message "All Apps dashboards URLs generated. Check the generated dashboards file for the URLs."
+            else
+                echo_and_log_message "Error generating Apps dashboards URLs. Please check the configuration and try again."
+            fi                    
+            echo_and_log_message "If not already done, use the previously generated apps nodes URLs to add your device in any apps dashboard that require node claiming/registration (e.g. Earnapp, ProxyRack, etc.)"
+        
         else
             echo_and_log_message "Docker compose up for $instance_name failed"
         fi
