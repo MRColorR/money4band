@@ -14,6 +14,7 @@ services:
 #ENABLE_EARNAPP    image: cwlu2001/earnapp:latest
 #ENABLE_EARNAPP    environment:
 #ENABLE_EARNAPP      - EARNAPP_UUID=$EARNAPP_DEVICE_UUID
+#ENABLE_EARNAPP      - EARNAPP_TERM="yes"
 #ENABLE_EARNAPP    volumes:
 #ENABLE_EARNAPP      - earnapp-data:/etc/earnapp
 #ENABLE_EARNAPP    # network_mode: service:tun2socks
