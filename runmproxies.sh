@@ -126,12 +126,22 @@ if [ "$(ls -A "$INSTANCES_DIR")" ]; then
             if [ "$num_proxies_avail" -ge "$num_instances_to_upd" ]; then
                 echo_and_log_message "Sufficient proxies available. Proceeding with update..."
                 # Update the proxy for each instance and restart it
+                # simple loop to check the content of the array
+                # for instance_dir in "$INSTANCES_DIR"/*/; do
+                #     if [ -d "$instance_dir" ]; then
+                #         echo "Instance dir: $instance_dir"
+                #     fi
+                # done
                 for instance_dir in "$INSTANCES_DIR"/*/; do
                     if [ -d "$instance_dir" ]; then
+                        # copy the new proxy file from the root folder to the instance folder
+                        echo_and_log_message "Copying new $PROXIES_FILE from $ROOT_DIR to $instance_dir"
+                        cp "$ROOT_DIR/$PROXIES_FILE" "${instance_dir}${PROXIES_FILE}"
                         echo_and_log_message "Updating proxy for instance in $instance_dir"
                         cd "$instance_dir" || exit
                         # Get the proxy from the proxies.txt file using the instance number as line number
                         proxy=$(sed -n "$num_instances_to_upd"p "$PROXIES_FILE")
+                        echo_and_log_message "New proxy to use: $proxy"
                         # Update the proxy in the .env file
                         sed -i "s/STACK_PROXY=.*/STACK_PROXY=${proxy//\//\\/}/" "${instance_dir}/.env"
                         echo_and_log_message "Updated .env file STACK_PROXY for $instance_dir"
