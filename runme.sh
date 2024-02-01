@@ -134,10 +134,6 @@ readonly PROJECT_URL="https://raw.githubusercontent.com/MRColorR/money4band/${PR
 # Script log file #
 readonly DEBUG_LOG="debug_${SCRIPT_NAME}.log"
 
-## Dashboard related constants and variables ##
-# Dashboard URL and PORT # get it form the ${ENV_FILENAME} file
-readonly DASHBOARD_PORT=$(grep -oP 'DASHBOARD_PORT=\K[^#\r]+' ${ENV_FILENAME})
-readonly DASHBOARD_URL="http://localhost:$DASHBOARD_PORT"
 
 # Function to manage unexpected choices of flags #
 fn_unknown() { 
@@ -1414,8 +1410,13 @@ fn_startStack(){
             [Yy]* ) 
                 if sudo docker compose -f ${DKCOM_FILENAME} --env-file ${ENV_FILENAME} up -d; then
                     print_and_log "GREEN" "All Apps started."
-                    print_and_log "CYAN" "You can visit the web dashboard on ${DASHBOARD_URL}"
-                    echo "${DASHBOARD_URL}" > "dashboardURL.txt"
+                    # Call the fscript to generate dashboards urls for the apps that has them and check if execute correctly
+                    sudo chmod +x ./generate_dashboard_urls.sh
+                    if ./generate_dashboard_urls.sh; then
+                        print_and_log "GREEN" "All Apps dashboards URLs generated. Check the generated dashboards file for the URLs."
+                    else
+                        errorprint_and_log "Error generating Apps dashboards URLs. Please check the configuration and try again."
+                    fi                    
                     colorprint "YELLOW" "If not already done, use the previously generated apps nodes URLs to add your device in any apps dashboard that require node claiming/registration (e.g. Earnapp, ProxyRack, etc.)"
                 else
                     errorprint_and_log "Error starting Docker stack. Please check the configuration and try again."
@@ -1463,6 +1464,33 @@ fn_stopStack(){
         esac
     done
 }
+
+# Function that will call the script to seup the multiple proxies instances
+fn_setupmproxies() {
+    clear
+    print_and_log "BLUE" "Starting multi-proxy setup function"
+
+    # Path to the runmproxies.sh script
+    runmproxies_script="./runmproxies.sh"
+
+    # Ensure the script is executable
+    chmod +x "$runmproxies_script"
+
+    # Execute the script
+    "$runmproxies_script"
+
+    # Check the exit status of the script
+    if [ $? -eq 0 ]; then
+        print_and_log "GREEN" "$runmproxies_script completed successfully"
+    else
+        print_and_log "RED" "$runmproxies_script encountered an error. Exit code: $?"
+    fi
+
+    # Control will return here after runmproxies.sh has finished executing
+    echo "Returning to main menu"
+    sleep ${SLEEP_TIME}
+}
+
 
 
 fn_resetEnv(){ # this function needs rewiting as it should use now the local .env.template file

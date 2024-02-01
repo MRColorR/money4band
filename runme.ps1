@@ -144,10 +144,14 @@ $PROJECT_URL = "https://raw.githubusercontent.com/MRColorR/money4band/${PROJECT_
 # Script debug log file #
 $DEBUG_LOG = "debug_$SCRIPT_NAME.log"
 
-## Dashboard related constants and variables ##
+## Apps specific ports and URLs ##
 # Dashboard URL and PORT # get it form the ${ENV_FILENAME} file
-$script:DASHBOARD_PORT = (Get-Content .\${ENV_FILENAME} | Select-String -Pattern "DASHBOARD_PORT=" -SimpleMatch).ToString().Split("=")[1]
-$script:DASHBOARD_URL = "http://localhost:$DASHBOARD_PORT"
+$script:M4B_DASHBOARD_PORT = (Get-Content .\${ENV_FILENAME} | Select-String -Pattern "M4B_DASHBOARD_PORT=" -SimpleMatch).ToString().Split("=")[1]
+$script:M4B_DASHBOARD_URL = "http://localhost:$M4B_DASHBOARD_PORT"
+
+# MYSTNODE PORT and URL # get it form the ${ENV_FILENAME} file
+$script:M4B_MYSTNODE_PORT = (Get-Content .\${ENV_FILENAME} | Select-String -Pattern "M4B_MYSTNODE_PORT=" -SimpleMatch).ToString().Split("=")[1]
+$script:M4B_MYSTNODE_URL = "http://localhost:$M4B_MYSTNODE_PORT"
 
 # Function to manage unexpected choices of flags #
 function fn_unknown($REPLY) {
@@ -1532,8 +1536,14 @@ function fn_startStack() {
         if ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') {
             if (docker compose -f ${DKCOM_FILENAME} --env-file ${ENV_FILENAME} up -d) {
                 print_and_log "Green" "All Apps started"
-                print_and_log "Cyan" "You can visit the web dashboard on ${DASHBOARD_URL}" 
-                $DASHBOARD_URL | Out-File -Append "dashboardURL.txt"
+                print_and_log "Cyan" "You can visit the M4B web dashboard on ${M4B_DASHBOARD_URL}" 
+                $M4B_DASHBOARD_URL | Out-File -Append "dashboardURL.txt"
+                # Add in a new line to the file separated by a line of dashes the others apps dashboards URLs specifying in the dash line they will work if the app is enabled in the stack and configured in default mode
+                $dashline = "\n--------------------Other apps dashboards URLs--------------------\n"
+                $dashline | Out-File -Append "dashboardURL.txt"
+                $mystline = "If enabled you can visit the MystNode web dashboard on ${MYSTNODE_DASHBOARD_URL} \n"
+                $mystline | Out-File -Append "dashboardURL.txt"
+
                 colorprint "Yellow" "If not already done, use the previously generated apps nodes URLs to add your device in any apps dashboard that require node claiming/registration (e.g. Earnapp, ProxyRack, etc.)"
             }
             else {

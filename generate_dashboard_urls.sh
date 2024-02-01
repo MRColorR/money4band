@@ -1,5 +1,13 @@
 #!/usr/bin/env bash
 
+# Function to generate dashboard URLs for a given compose project name and device name.
+# If the parameters are not provided, it tries to read them from the .env file.
+# If the .env file is not found or the parameters are not set, it returns an error.
+# The generated dashboard URLs are written to a file named "dashboards_URLs_<compose_project_name>-<device_name>.txt".
+# The function uses the "docker ps" command to get the running containers and extract the port information.
+# It then writes the URLs to the dashboard file if the port mapping is available.
+# The function returns 0 on success and 1 on failure.
+
 generate_dashboard_urls() {
     local compose_project_name=$1
     local device_name=$2
