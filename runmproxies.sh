@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # This script will run N copies of Money4Band using N proxies provided as list in the file passed as argument --proxies-file <filename> , by default it will use proxies.txt
-# It will create and subflder named "m4b_proxy_instances" and a subfolder with same name of the original COMPOSE_PROJECT_NAME<unique_suffix> the it will copy all the files from the root folder to the subfolder created for each instance and named like "m4b-<COMPOSE_PROJECT_NAME><unique_suffix>/<DEVICE_NAME><unique_suffix>" deriving this from the original instance running with or without proxy in the root folder that uses the original .env and docker-compose.yml files
+# It will create and subflder named "m4b_proxy_instances" and a subfolder with same name of the original COMPOSE_PROJECT_NAME<unique_suffix> the it will copy all the files from the root folder to the subfolder created for each instance and named like "m4b-<COMPOSE_PROJECT_NAME><unique_suffix>/<DEVICE_NAME><unique_suffix>" deriving this from the original instance running with or without proxy in the root folder that uses the original .env and docker-compose.yaml files
 # then it will change the COMPOSE_PROJECT_NAME and DEVICE_NAME in the subfolder .env file adding a random number of three digits to the original name already used for the name of the subfolder
 # if files that starts with claim*.txt contains the neam of one app then open the file use this uuid to edit the same uuid inside the file and inside the env file to the variable containg it in full caps the same appname followed _DEVICE_UUID with a new one of the same lenght newly generated and saving the new one back.
 # so if there's a file named claimEARNAPPNodeDevice.txt in the subfolder the uuid will be changed in the file and in the .env file to the new one for exampre EARNAPP_NODE_UUID=newUUID
@@ -11,28 +11,34 @@
 # the script will stop when it will have run all the proxies in the list and will print a message with the number of instances created  and a bye message
 
 
-# Usage: ./runNproxies.sh <proxies file> <original_docker-compose file> <original_.env file> by default it will use proxies.txt, docker-compose.yml and .env prensent in the root folder
+# Usage: ./runmproxies.sh <proxies file> <original_docker-compose file> <original_.env file> by default it will use proxies.txt, docker-compose.yaml and .env prensent in the root folder
 
 #!/usr/bin/env bash
 
-# Default file names
+# Default file names and paths if provided as arguments use the arguments otherwise use the default values
 PROXIES_FILE=${1:-"proxies.txt"}
 DOCKER_COMPOSE_FILE=${2:-"docker-compose.yaml"}
 ENV_FILE=${3:-".env"}
+
 # rootdir is the folder where the script is located
 ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 # Directory for proxy instances
 INSTANCES_DIR="${ROOT_DIR}/m4b_proxy_instances"
-mkdir -p "$INSTANCES_DIR"
+LOG_FILE="${ROOT_DIR}/multiproxies.log"
 
-# Log file
-LOG_FILE="multiproxies.log"
-touch "$LOG_FILE"
+# Ensure the instances directory exists
+if [ ! -d "$INSTANCES_DIR" ]; then
+    mkdir -p "$INSTANCES_DIR"
+fi
+# Ensure the log file exists
+if [ ! -f "$LOG_FILE" ]; then
+    touch "$LOG_FILE"
+fi
 
-# Function to log messages with optional color
+# Function to log messages with an optional color. If no color is specified, default to no color using NC.
 echo_and_log_message() {
-    local color="$1"
-    local message="$2"
+    local message="$1"
+    local color="${2:-NC}" # Default color to NC (No Color) if not specified
 
     # ANSI color codes
     RED='\033[0;31m'
@@ -42,7 +48,7 @@ echo_and_log_message() {
 
     # Check for color argument and apply color
     case "$color" in
-        RED) 
+        RED)
             colored_message="${RED}${message}${NC}"
             ;;
         GREEN)
@@ -51,56 +57,70 @@ echo_and_log_message() {
         YELLOW)
             colored_message="${YELLOW}${message}${NC}"
             ;;
+        NC)
+            colored_message="${message}" # Default to no color
+            ;;
         *)
-            colored_message="$message" # default (no color)
+            colored_message="${message}" # Fallback to no color if an unrecognized color is passed
             ;;
     esac
 
-    # Print message and log it
+    # Print the colored message
     echo -e "$colored_message"
+    # Log the message without color codes to the log file
     echo "$(date): $message" >> "$LOG_FILE"
 }
 
-echo_and_log_message "GREEN" "Multiproxy instances setup script started."
+
+# Print a starting message 
+echo_and_log_message "Starting Multiproxy instances setup script" "GREEN"
 
 # Check if .env, docker-compose.yaml, and proxies.txt files are present
-if [ ! -f "$ENV_FILE" ] || [ ! -f "$DOCKER_COMPOSE_FILE" ]; then
-    echo_and_log_message "RED" "No .env (or docker-compose file) found in the root folder. Please configure the main instance first using a proxy and then run this script again to create the other instances using the proxies in the proxies.txt file. Exiting."
+if [ ! -f "$ENV_FILE" ] ; then
+    echo_and_log_message "No .env file found in the root folder. Please create a .env file and then run this script again. Exiting." "RED" 
     exit 1
 fi
 
+#check if docker-compose.yaml file is present
+if [ ! -f "$DOCKER_COMPOSE_FILE" ]; then
+    echo_and_log_message "No docker-compose.yaml file found in the root folder. Please create a docker-compose.yaml file and then run this script again. Exiting." "RED" 
+    exit 1
+fi
+
+# Check if proxies.txt file is present
 if [ ! -f "$PROXIES_FILE" ]; then
-    echo_and_log_message "RED" "No proxies.txt file found in the root folder. Please create a proxies.txt file with one proxy per line and then run this script again. Exiting."
+    echo_and_log_message "No proxies.txt file found in the root folder. Please create a proxies.txt file with one proxy per line and then run this script again. Exiting." "RED"
     exit 1
 fi
 
 # Reading COMPOSE_PROJECT_NAME and DEVICE_NAME from original .env file
 COMPOSE_PROJECT_NAME=$(grep COMPOSE_PROJECT_NAME "$ENV_FILE" | cut -d'=' -f2)
-echo_and_log_message "GREEN" "Original COMPOSE_PROJECT_NAME: $COMPOSE_PROJECT_NAME"
+echo_and_log_message "Original COMPOSE_PROJECT_NAME: $COMPOSE_PROJECT_NAME" "GREEN"
 DEVICE_NAME=$(grep DEVICE_NAME "$ENV_FILE" | cut -d'=' -f2)
-echo_and_log_message "GREEN" "Original DEVICE_NAME: $DEVICE_NAME"
-total_proxies=$(wc -l < "$PROXIES_FILE")
-echo_and_log_message "GREEN" "Total proxies: $total_proxies"
+echo_and_log_message "Original DEVICE_NAME: $DEVICE_NAME" "GREEN"
+num_proxies_avail=$(wc -l < "$PROXIES_FILE")
+echo_and_log_message "Number of proxies available: $num_proxies_avail" "GREEN"
 
 # Check if the original env file has been configured with proxies checking the # PROXY_CONFIGURATION_STATUS=1 if not exit telling the user to configure the original .env file with a proxy and then pass the others as list in the proxies.txt file
-ORIG_ENV_PROXY_CONFIGURATION_STATUS=$(grep PROXY_CONFIGURATION_STATUS "$ENV_FILE" | cut -d'=' -f2)
-echo_and_log_message "Original PROXY_CONFIGURATION_STATUS: $ORIG_ENV_PROXY_CONFIGURATION_STATUS"
-if [ "$ORIG_ENV_PROXY_CONFIGURATION_STATUS" != "1" ]; then
-    echo_and_log_message "The original .env file has not been configured with a proxy. Please configure the main instance first using a proxy and then run this script again to create the other instances using the proxies in the proxies.txt file. Exiting."
+ORIG_ENV_PROXY_CONFIG_STATUS=$(grep PROXY_CONFIGURATION_STATUS "$ENV_FILE" | cut -d'=' -f2)
+echo_and_log_message "Original PROXY_CONFIGURATION_STATUS: $ORIG_ENV_PROXY_CONFIG_STATUS"
+if [ "$ORIG_ENV_PROXY_CONFIG_STATUS" != "1" ]; then
+    echo_and_log_message "Error: The original .env file has not been configured with a proxy" "RED"
+    echo_and_log_message "Please configure the original .env file with a proxy and then pass the others as list in the proxies.txt file. Exiting..." "RED"
     exit 1
 fi
 
 
-# Check if INSTANCES_DIR is not empty
+# Check if INSTANCES_DIR is not empty and if is not empty ask the user what to do
 if [ "$(ls -A "$INSTANCES_DIR")" ]; then
     echo_and_log_message "The $INSTANCES_DIR directory is not empty."
     echo "Choose an option:"
-    echo "1 - Just Cleanup: Stop and remove all current instances (Warning: This will delete all data in the instances directories without creating new ones)."
-    echo "2 - Cleanup and Recreate: Stop and remove all current instances, new one will be created (Warning: This will delete all data in the instances directories)."
-    echo "3 - Update: Update proxies for existing instances (you will need a number of proxies in the proxies.txt file equal or greater than the number of instances)."
-    echo "4 - Exit without making changes."
+    echo "1) Just Cleanup: Stop and remove all current instances (Warning: This will delete all data in the instances directories without creating new ones)."
+    echo "2) Cleanup and Recreate: Stop and remove all current instances, new one will be created (Warning: This will delete all data in the instances directories)."
+    echo "3) Update: Update proxies for existing instances (you will need a number of proxies in the proxies.txt file equal or greater than the number of instances)."
+    echo "4) Exit without making changes."
 
-    read -p "Enter your choice (1/2/3/4): " user_choice
+    read -p "Enter your choice: " user_choice
 
     case $user_choice in
         1)
@@ -110,9 +130,9 @@ if [ "$(ls -A "$INSTANCES_DIR")" ]; then
                     echo_and_log_message "Stopping and removing instance in $instance_dir"
                     cd "$instance_dir" 
                     if sudo docker compose -f ${DOCKER_COMPOSE_FILE} --env-file ${ENV_FILE} down ; then
-                        echo_and_log_message "Docker compose down for $instance_dir succeeded"
+                        echo_and_log_message "Docker compose down for $instance_dir succeeded."
                     else
-                        echo_and_log_message "Docker compose down for $instance_dir failed"
+                        echo_and_log_message "Docker compose down for $instance_dir failed."
                     fi
                 fi
             done
@@ -120,7 +140,7 @@ if [ "$(ls -A "$INSTANCES_DIR")" ]; then
             # Remove the instance directories after stopping the containers
             # Warning: This will delete all data in these directories
             sudo rm -rf "$INSTANCES_DIR"/*
-            echo_and_log_message "Cleanup complete. Done stopping and removing all current instances. Exiting."
+            echo_and_log_message "Cleanup complete. All current multiproxy instances have been removed. Exiting..."
             exit 0
             ;;
         2)
@@ -140,14 +160,12 @@ if [ "$(ls -A "$INSTANCES_DIR")" ]; then
                 # Remove the instance directories after stopping the containers
                 # Warning: This will delete all data in these directories
                 sudo rm -rf "$INSTANCES_DIR"/*
-                echo_and_log_message "Cleanup complete. Done stopping and removing all current instances. Preparing to create new instances..."
+                echo_and_log_message "Cleanup complete. All current multiproxy instances have been removed. Preparing to create new instances..."
             ;;
         3)
             echo_and_log_message "Updating proxies for existing instances..."
-            # Ensure that the number of proxies is sufficient
-            num_proxies_avail=$(wc -l < "$PROXIES_FILE")
+            # Ensure that the number of proxies is sufficient for the number of instances
             num_instances_to_upd=$(find "$INSTANCES_DIR" -mindepth 1 -maxdepth 1 -type d | wc -l)
-
             if [ "$num_proxies_avail" -ge "$num_instances_to_upd" ]; then
                 echo_and_log_message "Sufficient proxies available. Proceeding with update..."
                 # Update the proxy for each instance and restart it
@@ -159,7 +177,7 @@ if [ "$(ls -A "$INSTANCES_DIR")" ]; then
                 # done
                 for instance_dir in "$INSTANCES_DIR"/*/; do
                     if [ -d "$instance_dir" ]; then
-                        # copy the new proxy file from the root folder to the instance folder
+                        # Copy the new proxy file from the root folder to the instance folder
                         echo_and_log_message "Copying new $PROXIES_FILE from $ROOT_DIR to $instance_dir"
                         cp "$ROOT_DIR/$PROXIES_FILE" "${instance_dir}${PROXIES_FILE}"
                         echo_and_log_message "Updating proxy for instance in $instance_dir"
@@ -174,7 +192,7 @@ if [ "$(ls -A "$INSTANCES_DIR")" ]; then
                         if sudo docker compose -f ${DOCKER_COMPOSE_FILE} --env-file ${ENV_FILE} up -d ; then
                             echo_and_log_message "Docker compose up for $instance_dir succeeded"
                         else
-                            echo_and_log_message "Docker compose up for $instance_dir failed"
+                            echo_and_log_message "Docker compose up for $instance_dir failed" "RED"
                         fi
                         # Decrease the number of instances and proxies
                         ((num_instances_to_upd--))
@@ -182,21 +200,23 @@ if [ "$(ls -A "$INSTANCES_DIR")" ]; then
                     fi
                 done
             else
-                echo_and_log_message "Not enough proxies available. Cannot proceed with update. Exiting."
+                echo_and_log_message "Not enough proxies available. Cannot proceed with update. Exiting." "YELLOW"
                 exit 1
             fi
-            echo_and_log_message "Done updating proxies. Exiting."
+            echo_and_log_message "Done updating proxies. Exiting." "GREEN"
             exit 0
             ;;
         4)
-            echo_and_log_message "YELLOW" "Exiting without changes."
+            echo_and_log_message "Exiting without changes." "YELLOW"
             exit 0
             ;;
         *)
-            echo_and_log_message "RED" "Invalid choice. Exiting."
+            echo_and_log_message "Invalid choice. Exiting." "RED"
             exit 1
             ;;
     esac
+else
+    echo_and_log_message "The $INSTANCES_DIR directory is clean. Proceeding with setup..."
 fi
 
 ###############SETUP MULTI PROXIES INSTANCES#####################
@@ -327,11 +347,11 @@ if [ -d "$INSTANCES_DIR" ]; then
             # Call the script to generate dashboards urls for the apps that has them and check if execute correctly
             sudo chmod +x ./generate_dashboard_urls.sh
             if ./generate_dashboard_urls.sh ; then
-                echo_and_log_message "YELLOW" "All Apps dashboards URLs generated. Check the generated dashboards file for the URLs."
+                echo_and_log_message "All Apps dashboards URLs generated. Check the generated dashboards file for the URLs." "YELLOW"
             else
-                echo_and_log_message "RED" "Error generating Apps dashboards URLs. Please check the configuration and try again."
+                echo_and_log_message "Error generating Apps dashboards URLs. Please check the configuration and try again." "RED"
             fi                    
-            echo_and_log_message "YELLOW" "If not already done, use the previously generated apps nodes URLs to add your device in any apps dashboard that require node claiming/registration (e.g. Earnapp, ProxyRack, etc.)"
+            echo_and_log_message "If not already done, use the previously generated apps nodes URLs to add your device in any apps dashboard that require node claiming/registration (e.g. Earnapp, ProxyRack, etc.)" "YELLOW"
             sleep 5
         else
             echo_and_log_message "Docker compose up for $instance_name failed"
@@ -341,8 +361,8 @@ if [ -d "$INSTANCES_DIR" ]; then
 
     # Final message and log
 
-    echo_and_log_message "GREEN" "Created and ran $created_instance_count instances out of $total_proxies proxies available. Bye!"
-    echo_and_log_message "YELLOW" "Check the generated dashboards file and claim nodes files for their URLs."
+    echo_and_log_message "Created and ran $created_instance_count instances out of $num_proxies_avail proxies available. Bye!" "GREEN"
+    echo_and_log_message "Check the generated dashboards file and claim nodes files for their URLs." "YELLOW"
     sleep 3
     exit 0
 else
