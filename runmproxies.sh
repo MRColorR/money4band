@@ -363,9 +363,9 @@ if [ -d "$INSTANCES_DIR" ]; then
             ((num_instances_created++))
             echo_and_log_message "Docker compose up for $instance_name succeeded"
             # Call the script to generate dashboards urls for the apps that has them and check if execute correctly
-            dashboardsScriptPath = "$instance_dir/generate_dashboard_urls.sh"
-            sudo chmod +x $dashboardsScriptPath
-            if $dashboardsScriptPath ; then
+            dashboardsScriptPath="$instance_dir/generate_dashboard_urls.sh"
+            sudo chmod +x "$dashboardsScriptPath"
+            if "$dashboardsScriptPath" ; then
                 echo_and_log_message "Generated dashboards file for $instance_name"
             else
                 echo_and_log_message "Failed to generate dashboards file for $instance_name"
