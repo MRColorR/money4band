@@ -1316,7 +1316,7 @@ function fn_setupProxy() {
                 $dkComContent = Get-Content $script:DKCOM_FILENAME -Raw
                 $dkComContent = $dkComContent -replace '- WATCHTOWER_ROLLING_RESTART=true', '- WATCHTOWER_ROLLING_RESTART=false'
                 $dkComContent = $dkComContent -replace '(?<=^|[\r\n])#ENABLE_PROXY(?![a-zA-Z0-9])', ''
-                $dkComContent = $dkComContent -replace "# network_mode", "network_mode"
+                $dkComContent = $dkComContent -replace '# network_mode: service:', 'network_mode: service:'
                 Set-Content $script:DKCOM_FILENAME -Value $dkComContent
 
                 $script:PROXY_CONF = $true

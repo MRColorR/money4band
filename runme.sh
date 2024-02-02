@@ -1232,7 +1232,7 @@ fn_setupProxy() {
                     # disable rolling restarts for watchtower as enabling proxy will  make the others containers dependent on it and so rolling restarts will not work
                     sed -i "s^- WATCHTOWER_ROLLING_RESTART=true^- WATCHTOWER_ROLLING_RESTART=false^" "$DKCOM_FILENAME"
                     sed -i 's^#ENABLE_PROXY ^ ^' "$DKCOM_FILENAME"
-                    sed -i "s^# network_mode^network_mode^" $DKCOM_FILENAME
+                    sed -i 's^# network_mode: service:^network_mode: service:^' $DKCOM_FILENAME
                     PROXY_CONF='true'
                     sed -i 's/PROXY_CONFIGURATION_STATUS=0/PROXY_CONFIGURATION_STATUS=1/' ${ENV_FILENAME}
                     colorprint "DEFAULT" "Ok, $NEW_STACK_PROXY will be used as proxy for all apps in this stack"
