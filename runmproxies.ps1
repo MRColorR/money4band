@@ -318,6 +318,21 @@ if (Test-Path -Path $instancesDir) {
     
     # Return to root directory
     Set-Location -Path $rootDir
+
+    echo_and_log_message -Message "Updating dashboard urls aggreting new information from all instances..."
+    # Call the script generate_dashboard_urls to aggregate the dashboards urls from all instances
+    $dashboardsScriptPath = Join-Path -Path $rootDir -ChildPath "generate_dashboard_urls.ps1"
+    if (Test-Path -Path $dashboardsScriptPath) {
+        & $dashboardsScriptPath 
+        if ($LASTEXITCODE -ne 0) {
+            echo_and_log_message -Message "Failed to update dashboards file." -Type "ERROR"
+        } else {
+            echo_and_log_message -Message "Dashboards file updated successfully." -Color "Green"
+        }
+    } else {
+        echo_and_log_message -Message "Error: $dashboardsScriptPath not found." -Type "ERROR"
+    }
+  
     
     # Final message indicating completion
     echo_and_log_message -Message "Created and ran $num_instances_created instances out of $num_proxies_avail proxies available. Bye!" -Color "Green"

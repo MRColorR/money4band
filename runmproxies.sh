@@ -387,6 +387,21 @@ if [ -d "$INSTANCES_DIR" ]; then
     # Return to root directory
     cd "$ROOT_DIR" || exit
 
+    echo_and_log_message "Updating dashboard urls aggreting new information from all instances..."
+    # Call the script generate_dashboard_urls to aggregate the dashboards urls from all instances
+    dashboardsScriptPath="$ROOT_DIR/generate_dashboard_urls.sh"
+    sudo chmod +x "$dashboardsScriptPath"
+    if [ -f "$dashboardsScriptPath" ]; then
+        if "$dashboardsScriptPath" ; then
+            echo_and_log_message "Dashboards file updated successfully" "GREEN"
+        else
+            echo_and_log_message "Failed to update dashboards file" "RED"
+        fi
+    else
+        echo_and_log_message "generate_dashboard_urls.sh script not found in the root folder. Exiting..." "RED"
+        exit 1
+    fi
+
     # Final message and log
 
     echo_and_log_message "Created and ran $num_instances_created instances out of $num_proxies_avail proxies available. Bye!" "GREEN"

@@ -378,7 +378,7 @@ function check_project_updates {
         }
         $LATEST_SCRIPT_VERSION = $LATEST_SCRIPT_VERSION_MATCH[0].Groups[1].Value
     } catch {
-        errorprint_and_log "Failed to fetch the .env.template file from GitHub: $_"
+        print_and_log "Blue" "Updates check failed. Will try again later. Reason: $_"
         return
     }
 

@@ -37,7 +37,7 @@ function Generate-DashboardUrls {
         return 1
     }
 
-    $dashboardFile = "dashboards_URLs_${composeProjectName}_${deviceName}.txt"
+    $dashboardFile = "dashboards_URLs_${composeProjectName}-${deviceName}.txt"
     "------ Dashboards ${composeProjectName}-${deviceName} ------" | Out-File $dashboardFile
 
     # Get running docker containers and extract port 
@@ -50,7 +50,8 @@ function Generate-DashboardUrls {
             #"Match found: Port=$port, Name=$name"
             "If enabled you can visit the $name web dashboard on http://localhost:$port" | Out-File $dashboardFile -Append
         } else {
-            "No match found"
+            #"No match found"
+            continue
         }
     }
     Write-Host "Dashboard URLs have been written to $dashboardFile"
