@@ -232,7 +232,7 @@ if (Test-Path -Path $instancesDir) {
             -replace 'STACK_PROXY=.*', "STACK_PROXY=$proxy" | 
         Set-Content -Path $envFilePath
 
-         # Update the ports present in the .env file like MYSTNODE_DASHBOARD_PORT M4B_DASHBOARD_PORT and so on increasing their value by $num_instances_created+1
+        # Update the ports present in the .env file like MYSTNODE_DASHBOARD_PORT M4B_DASHBOARD_PORT and so on increasing their value by $num_instances_created+1
         # Increment value for any variable ending with _DASHBOARD_PORTe
         $envContent = Get-Content -Path $envFilePath
         $envContent | ForEach-Object {
@@ -241,6 +241,7 @@ if (Test-Path -Path $instancesDir) {
                 $port = [int]$matches[2]
                 $newPort = $port + $num_instances_created + 1
                 $prefix + $newPort
+                echo_and_log_message "Updating port for $prefix to $newPort in $instancedir"
             } else {
                 $_
             }

@@ -279,7 +279,8 @@ if [ -d "$INSTANCES_DIR" ]; then
         sed -i "s/STACK_PROXY=.*/STACK_PROXY=${proxy//\//\\/}/" "${instance_dir}/.env"
         # Update the ports present in the .env file like MYSTNODE_DASHBOARD_PORT M4B_DASHBOARD_PORT and so on increasing their value by $num_instances_created+1
         # Increment value for any variable ending with _DASHBOARD_PORT
-        while IFS= read -r line; do
+        envContent_filtered=$(grep -P '_DASHBOARD_PORT=\K[^#\r]+' "${instance_dir}/.env") # usign just -P as -o will return just the values but we want the entire line
+        for line in $envContent_filtered; do
             # Extract the variable name and its current port value
             port_var=$(echo "$line" | cut -d'=' -f1)
             current_port=$(echo "$line" | cut -d'=' -f2)
@@ -290,10 +291,10 @@ if [ -d "$INSTANCES_DIR" ]; then
                 new_port=$((current_port + num_instances_created + 1))
 
                 # Update the .env file with the new port value
+                echo_and_log_message "Updating port for ${port_var} to ${new_port} in ${instance_dir}/.env"
                 sed -i "s/^${port_var}=.*/${port_var}=${new_port}/" "${instance_dir}/.env"
-                echo_and_log_message "Updated port for ${port_var} to ${new_port} in ${instance_dir}/.env"
             fi
-        done < <(grep "_DASHBOARD_PORT=" "${instance_dir}/.env" | tr -d "[:space:]")
+        done
 
         echo_and_log_message "Updated .env file with unique COMPOSE_PROJECT_NAME, DEVICE_NAME, and STACK_PROXY for $instance_name"
 
