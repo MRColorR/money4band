@@ -94,15 +94,15 @@ if [ ! -f "$PROXIES_FILE" ]; then
 fi
 
 # Reading COMPOSE_PROJECT_NAME and DEVICE_NAME from original .env file
-COMPOSE_PROJECT_NAME=$(grep COMPOSE_PROJECT_NAME "$ENV_FILE" | cut -d'=' -f2)
+COMPOSE_PROJECT_NAME=$(grep COMPOSE_PROJECT_NAME "$ENV_FILE" | cut -d'=' -f2 | tr -d "[:space:]")
 echo_and_log_message "Original COMPOSE_PROJECT_NAME: $COMPOSE_PROJECT_NAME" "GREEN"
-DEVICE_NAME=$(grep DEVICE_NAME "$ENV_FILE" | cut -d'=' -f2)
+DEVICE_NAME=$(grep DEVICE_NAME "$ENV_FILE" | cut -d'=' -f2 | tr -d "[:space:]")
 echo_and_log_message "Original DEVICE_NAME: $DEVICE_NAME" "GREEN"
 num_proxies_avail=$(wc -l < "$PROXIES_FILE")
 echo_and_log_message "Number of proxies available: $num_proxies_avail" "GREEN"
 
 # Check if the original env file has been configured with proxies checking the # PROXY_CONFIGURATION_STATUS=1 if not exit telling the user to configure the original .env file with a proxy and then pass the others as list in the proxies.txt file
-ORIG_ENV_PROXY_CONFIG_STATUS=$(grep PROXY_CONFIGURATION_STATUS "$ENV_FILE" | cut -d'=' -f2)
+ORIG_ENV_PROXY_CONFIG_STATUS=$(grep PROXY_CONFIGURATION_STATUS "$ENV_FILE" | cut -d'=' -f2 | tr -d "[:space:]")
 echo_and_log_message "Original PROXY_CONFIGURATION_STATUS: $ORIG_ENV_PROXY_CONFIG_STATUS"
 if [ "$ORIG_ENV_PROXY_CONFIG_STATUS" != "1" ]; then
     echo_and_log_message "Error: The original .env file has not been configured with a proxy" "RED"
@@ -293,7 +293,7 @@ if [ -d "$INSTANCES_DIR" ]; then
                 sed -i "s/^${port_var}=.*/${port_var}=${new_port}/" "${instance_dir}/.env"
                 echo_and_log_message "Updated port for ${port_var} to ${new_port} in ${instance_dir}/.env"
             fi
-        done < <(grep "_DASHBOARD_PORT=" "${instance_dir}/.env")
+        done < <(grep "_DASHBOARD_PORT=" "${instance_dir}/.env" | tr -d "[:space:]")
 
         echo_and_log_message "Updated .env file with unique COMPOSE_PROJECT_NAME, DEVICE_NAME, and STACK_PROXY for $instance_name"
 
@@ -331,7 +331,7 @@ if [ -d "$INSTANCES_DIR" ]; then
                 uuidPrefixes=("sdk-node-")
 
                 # Extract the current old UUID from the .env file
-                oldUUID=$(grep "$envVarName" "${instance_dir}/.env" | cut -d'=' -f2)
+                oldUUID=$(grep "$envVarName" "${instance_dir}/.env" | cut -d'=' -f2 | tr -d "[:space:]")
                 echo_and_log_message "Old UUID extracted from .env file: $oldUUID"
 
                 # Initialize prefix variable
