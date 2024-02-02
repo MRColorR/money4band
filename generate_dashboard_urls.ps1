@@ -47,7 +47,7 @@ function Generate-DashboardUrls {
         if ($line -match '0.0.0.0:(\d+)->\d+/tcp\s+(.*)') {
             $port = $matches[1]
             $name = $matches[2]
-            "Match found: Port=$port, Name=$name"
+            #"Match found: Port=$port, Name=$name"
             "If enabled you can visit the $name web dashboard on http://localhost:$port" | Out-File $dashboardFile -Append
         } else {
             "No match found"
