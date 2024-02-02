@@ -228,6 +228,12 @@ fi
 ###############SETUP MULTI PROXIES INSTANCES#####################
 # Move back to the root folder
 cd "$ROOT_DIR" || exit
+
+# If instancesDir is not present then create it and proceed
+if [ ! -d "$INSTANCES_DIR" ]; then
+    mkdir -p "$INSTANCES_DIR"
+fi
+
 # Check if INSTANCES_DIR exists if yes proceed if not exit
 if [ -d "$INSTANCES_DIR" ]; then
     echo_and_log_message "Setting up multiproxy instances in $INSTANCES_DIR"

@@ -1410,12 +1410,19 @@ fn_startStack(){
             [Yy]* ) 
                 if sudo docker compose -f ${DKCOM_FILENAME} --env-file ${ENV_FILENAME} up -d; then
                     print_and_log "GREEN" "All Apps started."
-                    # Call the fscript to generate dashboards urls for the apps that has them and check if execute correctly
-                    sudo chmod +x ./generate_dashboard_urls.sh
-                    if ./generate_dashboard_urls.sh; then
-                        print_and_log "GREEN" "All Apps dashboards URLs generated. Check the generated dashboards file for the URLs."
+                    # Call the script to generate dashboards urls for the apps that has them and check if execute correctly
+                    dashboard_urls_script="./generate_dashboard_urls.sh"
+                    sudo chmod +x "$dashboard_urls_script"
+                    if [ -f "$dashboard_urls_script" ]; then
+                        print_and_log "GREEN" "Executing $dashboard_urls_script script"
+                        ./"$dashboard_urls_script"
+                        if [ $? -eq 0 ]; then
+                            print_and_log "GREEN" "All Apps dashboards URLs generated. Check the generated dashboards file for the URLs."
+                        else
+                            errorprint_and_log "Error: $dashboard_urls_script failed to execute. Error generating Apps dashboards URLs."
+                        fi
                     else
-                        errorprint_and_log "Error generating Apps dashboards URLs. Please check the configuration and try again."
+                        errorprint_and_log "Error: $dashboard_urls_script not found"
                     fi                    
                     colorprint "YELLOW" "If not already done, use the previously generated apps nodes URLs to add your device in any apps dashboard that require node claiming/registration (e.g. Earnapp, ProxyRack, etc.)"
                 else
@@ -1476,17 +1483,19 @@ fn_setupmproxies() {
     # Ensure the script is executable
     chmod +x "$runmproxies_script"
 
-    # Execute the script
-    "$runmproxies_script"
-
-    # Check the exit status of the script
-    if [ $? -eq 0 ]; then
-        print_and_log "GREEN" "$runmproxies_script completed successfully"
+    # Execute the script and check the exit status of the script
+    if [ -f "$runmproxies_script" ]; then
+        print_and_log "GREEN" "Executing $runmproxies_script"
+        ./"$runmproxies_script"
+        if [ $? -eq 0 ]; then
+            print_and_log "GREEN" "Multi-proxy setup completed successfully"
+        else
+            errorprint_and_log "Error: $runmproxies_script failed to execute"
+        fi
     else
-        print_and_log "RED" "$runmproxies_script encountered an error. Exit code: $?"
+        errorprint_and_log "Error: $runmproxies_script not found"
     fi
 
-    # Control will return here after runmproxies.sh has finished executing
     echo "Returning to main menu"
     sleep ${SLEEP_TIME}
 }

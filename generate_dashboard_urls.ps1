@@ -1,3 +1,6 @@
+#!/bin/pwsh
+set-executionpolicy -scope CurrentUser -executionPolicy Bypass -Force
+
 # Function to generate dashboard URLs for a given compose project name and device name.
 # If the parameters are not provided, it tries to read them from the .env file.
 # If the .env file is not found or the parameters are not set, it returns an error.
@@ -8,12 +11,12 @@
 
 function Generate-DashboardUrls {
     param (
-        [string]$composeProjectName = $null,
-        [string]$deviceName = $null,
+        [string]$composeProjectName,
+        [string]$deviceName,
         [string]$envFile = ".env"
     )
 
-    $envfile_path = "$PWD/$envFile"
+    $envfile_path = Join-Path $PWD $envFile
 
     # If parameters are not provided, try to read from .env file
     if (-not $composeProjectName -or -not $deviceName) {
@@ -35,17 +38,21 @@ function Generate-DashboardUrls {
     }
 
     $dashboardFile = "dashboards_URLs_${composeProjectName}_${deviceName}.txt"
-    "------Dashboards ${composeProjectName}-${deviceName} ------" | Out-File $dashboardFile
+    "------ Dashboards ${composeProjectName}-${deviceName} ------" | Out-File $dashboardFile
 
-    # Get running docker containers and extract port information
-    docker ps --format "{{.Ports}} {{.Names}}" | ForEach-Object {
-        if ($_ -match '0.0.0.0:(\d+)-\d+.*\s+(.*)') {
-            $portMapping = $matches[1]
-            $containerInfo = $matches[2]
-            "If enabled you can visit the $containerInfo web dashboard on http://localhost:$portMapping" | Out-File $dashboardFile -Append
+    # Get running docker containers and extract port 
+    $dockerOutput = docker ps --format "{{.Ports}} {{.Names}}"
+    foreach ($line in $dockerOutput) {
+        # Adjusted regex pattern to account for potential format variations
+        if ($line -match '0.0.0.0:(\d+)->\d+/tcp\s+(.*)') {
+            $port = $matches[1]
+            $name = $matches[2]
+            "Match found: Port=$port, Name=$name"
+            "If enabled you can visit the $name web dashboard on http://localhost:$port" | Out-File $dashboardFile -Append
+        } else {
+            "No match found"
         }
     }
-
     Write-Host "Dashboard URLs have been written to $dashboardFile"
 }
 

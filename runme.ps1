@@ -144,15 +144,6 @@ $PROJECT_URL = "https://raw.githubusercontent.com/MRColorR/money4band/${PROJECT_
 # Script debug log file #
 $DEBUG_LOG = "debug_$SCRIPT_NAME.log"
 
-## Apps specific ports and URLs ##
-# Dashboard URL and PORT # get it form the ${ENV_FILENAME} file
-$script:M4B_DASHBOARD_PORT = (Get-Content .\${ENV_FILENAME} | Select-String -Pattern "M4B_DASHBOARD_PORT=" -SimpleMatch).ToString().Split("=")[1]
-$script:M4B_DASHBOARD_URL = "http://localhost:$M4B_DASHBOARD_PORT"
-
-# MYSTNODE PORT and URL # get it form the ${ENV_FILENAME} file
-$script:M4B_MYSTNODE_PORT = (Get-Content .\${ENV_FILENAME} | Select-String -Pattern "M4B_MYSTNODE_PORT=" -SimpleMatch).ToString().Split("=")[1]
-$script:M4B_MYSTNODE_URL = "http://localhost:$M4B_MYSTNODE_PORT"
-
 # Function to manage unexpected choices of flags #
 function fn_unknown($REPLY) {
     colorprint "Red" "Unknown choice $REPLY, please choose a valid option"
@@ -1536,14 +1527,21 @@ function fn_startStack() {
         if ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') {
             if (docker compose -f ${DKCOM_FILENAME} --env-file ${ENV_FILENAME} up -d) {
                 print_and_log "Green" "All Apps started"
-                print_and_log "Cyan" "You can visit the M4B web dashboard on ${M4B_DASHBOARD_URL}" 
-                $M4B_DASHBOARD_URL | Out-File -Append "dashboardURL.txt"
-                # Add in a new line to the file separated by a line of dashes the others apps dashboards URLs specifying in the dash line they will work if the app is enabled in the stack and configured in default mode
-                $dashline = "\n--------------------Other apps dashboards URLs--------------------\n"
-                $dashline | Out-File -Append "dashboardURL.txt"
-                $mystline = "If enabled you can visit the MystNode web dashboard on ${MYSTNODE_DASHBOARD_URL} \n"
-                $mystline | Out-File -Append "dashboardURL.txt"
-
+                # Call the script to generate dashboards urls for the apps that has them and check if execute correctly
+                $dashboard_urls_script = "./generate_dashboard_urls.ps1"
+                if (Test-Path "$dashboard_urls_script") {
+                    print_and_log "GREEN" "Executing $dashboard_urls_script script"
+                    & "$dashboard_urls_script"
+                    if ($LASTEXITCODE -eq 0) {
+                        print_and_log "GREEN" "All Apps dashboards URLs generated. Check the generated dashboards file for the URLs."
+                    }
+                    else {
+                        errorprint_and_log "Error: $dashboard_urls_script failed to execute. Error generating Apps dashboards URLs"
+                    }
+                }
+                else {
+                    errorprint_and_log "Error: $dashboard_urls_script not found"
+                }
                 colorprint "Yellow" "If not already done, use the previously generated apps nodes URLs to add your device in any apps dashboard that require node claiming/registration (e.g. Earnapp, ProxyRack, etc.)"
             }
             else {
@@ -1603,6 +1601,31 @@ function fn_stopStack() {
     }
 }
 
+# Function that will call the script to seup the multiple proxies instances
+function fn_setupmproxies {
+    Clear-Host
+    toLog_ifDebug -l "[DEBUG]" -m "Starting setupmproxies function"
+
+    # Path to the runmproxies.sh script 
+    $runmproxies_script = "./runmproxies.ps1"
+
+    # Execute the  and check the exit status of the script
+    if (Test-Path $runmproxies_script) {
+        print_and_log "GREEN" "Executing $runmproxies_script script"
+        & $runmproxies_script
+        if ($LASTEXITCODE -eq 0) {
+            colorprint "GREEN" "Multi-proxy setup completed successfully"
+        }
+        else {
+            errorprint_and_log "Error: $runmproxies_script failed to execute"
+        }
+    }
+    else {
+        errorprint_and_log "Error: $runmproxies_script not found"
+    }
+    Write-Output "Returning to mainmenu"
+    Start-Sleep -Seconds $SLEEP_TIME
+}
 <#
 .SYNOPSIS
 Function that will reset the ${ENV_FILENAME} file

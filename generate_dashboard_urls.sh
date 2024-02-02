@@ -33,7 +33,7 @@ generate_dashboard_urls() {
     fi
 
     dashboard_file="dashboards_URLs_${compose_project_name}-${device_name}.txt"
-    echo "------Dashboards ${compose_project_name}-${device_name} ------" > "$dashboard_file"
+    echo "------ Dashboards ${compose_project_name}-${device_name} ------" > "$dashboard_file"
 
     # Get running docker containers and extract port information
     while IFS= read -r line; do

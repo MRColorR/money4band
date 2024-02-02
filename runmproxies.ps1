@@ -1,4 +1,5 @@
 #!/bin/pwsh
+set-executionpolicy -scope CurrentUser -executionPolicy Bypass -Force
 
 # This script will run N copies of Money4Band using N proxies provided as list in the file passed as argument --proxies-file <filename> , by default it will use proxies.txt
 # It will create and subflder named "m4b_proxy_instances" and a subfolder with same name of the original COMPOSE_PROJECT_NAME<unique_suffix> the it will copy all the files from the root folder to the subfolder created for each instance and named like "m4b-<COMPOSE_PROJECT_NAME><unique_suffix>/<DEVICE_NAME><unique_suffix>" deriving this from the original instance running with or without proxy in the root folder that uses the original .env and docker-compose.yaml files
@@ -192,6 +193,10 @@ if ((Get-ChildItem -Path $instancesDir).Count -gt 0) {
 # Move back to the root folder
 Set-Location $rootDir
 
+# If instancesDir is not present then create it and proceed
+if (-not (Test-Path -Path $instancesDir)) {
+    New-Item -Path $instancesDir -ItemType Directory | Out-Null
+}
 # Check if INSTANCES_DIR exists if yes proceed if not exit
 if (Test-Path -Path $instancesDir) {
     echo_and_log_message "Setting up multiproxy instances in $instancesDir"
@@ -211,48 +216,31 @@ if (Test-Path -Path $instancesDir) {
         New-Item -Path $instanceDir -ItemType Directory | Out-Null
     
         # Copy files from root directory to instance directory, excluding certain directories and files
-        Get-ChildItem -Path $rootDir -File | ForEach-Object {
-            $relativePath = $_.FullName.Substring($rootDir.Length)
-            $destPath = Join-Path -Path $instanceDir -ChildPath $relativePath
-        
-            # Define exclusions to skip if item is the instances directory, .data directory, starts with .git (like .git, .github, .gitignore, etc.) or is a .log file
-            $exclusions = @('m4b_proxy_instances', '.data', '.git', '*.log')  # Assuming 'm4b_proxy_instances' is $instancesDir's basename
-            $excludeItem = $false
-        
-            # Check if item matches any exclusion pattern
-            foreach ($exclusion in $exclusions) {
-                if ($_.Name -like $exclusion -or $_.FullName -like "*\$exclusion*") {
-                    $excludeItem = $true
-                    break
-                }
-            }
-        
-            # Copy item to instance directory if it doesn't match exclusions
-            if (-not $excludeItem) {
-                if (-not (Test-Path -Path (Split-Path -Path $destPath))) {
-                    New-Item -ItemType Directory -Path (Split-Path -Path $destPath) | Out-Null
-                }
-                Copy-Item -Path $_.FullName -Destination $destPath
+        $items = Get-ChildItem -Path $rootDir
+        $instancesDir_name = $instancesDir | Split-Path -Leaf
+        foreach ($item in $items) {
+            if ($item.Name -ne $instancesDir_name -and $item.Name -ne ".data" -and $item.Name -notlike ".git*" -and $item.Name -notlike "*.log") {
+                Copy-Item -Path $item.FullName -Destination $instanceDir -Recurse -Force
             }
         }
-    
-        # Update .env with unique COMPOSE_PROJECT_NAME, DEVICE_NAME, and properly escaped STACK_PROXY
+
+        # Update .env file with unique COMPOSE_PROJECT_NAME and DEVICE_NAME appending to the old one the unique suffix and updte the old proxy with the new one
         $envFilePath = Join-Path -Path $instanceDir -ChildPath ".env"
-        $escapedProxy = [regex]::Escape($proxy)
         (Get-Content -Path $envFilePath) `
             -replace 'COMPOSE_PROJECT_NAME=.*', "COMPOSE_PROJECT_NAME=${composeProjectName}-${uniqueSuffix}" `
             -replace 'DEVICE_NAME=.*', "DEVICE_NAME=${deviceName}${uniqueSuffix}" `
-            -replace 'STACK_PROXY=.*', "STACK_PROXY=$escapedProxy" | 
+            -replace 'STACK_PROXY=.*', "STACK_PROXY=$proxy" | 
         Set-Content -Path $envFilePath
 
-        # Update the ports present in the .env file
+         # Update the ports present in the .env file like MYSTNODE_DASHBOARD_PORT M4B_DASHBOARD_PORT and so on increasing their value by $num_instances_created+1
+        # Increment value for any variable ending with _DASHBOARD_PORTe
         $envContent = Get-Content -Path $envFilePath
         $envContent | ForEach-Object {
-            if ($_ -match "^(?<varname>.+)_DASHBOARD_PORT=(?<port>\d+)$") {
-                $varname = $Matches['varname']
-                $port = [int]$Matches['port']
+            if ($_ -match '^(.*_DASHBOARD_PORT=)(\d+)$') {
+                $prefix = $matches[1]
+                $port = [int]$matches[2]
                 $newPort = $port + $num_instances_created + 1
-                $_ -replace "$varname=$port", "$varname=$newPort"
+                $prefix + $newPort
             } else {
                 $_
             }
@@ -289,7 +277,12 @@ if (Test-Path -Path $instancesDir) {
                 }
         
                 # Generate new UUID of the same length as the modified old UUID
-                $newUUID = -join ((48..57) + (97..102) | Get-Random -Count $modifiedUUID.Length | ForEach-Object { [char]$_ })
+                $newUUID = ""
+                while ($newUUID.Length -lt $modifiedUUID.Length) {
+                    $newUUID +=   [System.BitConverter]::ToString([System.Security.Cryptography.MD5]::Create().ComputeHash([System.Text.Encoding]::UTF8.GetBytes([System.Guid]::NewGuid().ToString()))).Replace("-", "").ToLower()
+                }
+                # Cut or trail the generated UUID based on the desired length
+                $newUUID = $newUUID.Substring(0, $modifiedUUID.Length)
                 # Append the prefix if it was present
                 $fullNewUUID = $prefix + $newUUID
                 echo_and_log_message -Message "New UUID generated: $fullNewUUID"
@@ -311,10 +304,11 @@ if (Test-Path -Path $instancesDir) {
             $num_instances_created++
             echo_and_log_message -Message "Docker compose up for $instanceName succeeded." -Color "Green"
             # Call the script to generate dashboards urls for the apps that has them and check if execute correctly
-            $dashboardsScriptPath = Join-Path -Path $instanceDir -ChildPath "generate_dashboards.ps1"
+            $dashboardsScriptPath = Join-Path -Path $instanceDir -ChildPath "generate_dashboard_urls.ps1"
             if (Test-Path -Path $dashboardsScriptPath) {
                 echo_and_log_message -Message "Generating dashboards file for $instanceName..."
                 & $dashboardsScriptPath 
+            } else {
                 echo_and_log_message -Message "Error: $dashboardsScriptPath not found." -Type "ERROR"
             }
         } catch {
