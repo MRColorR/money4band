@@ -4,7 +4,7 @@
       "name": "EARNAPP",
       "dashboard": "https://earnapp.com/dashboard",
       "link": "https://earnapp.com/i/3zulx7k",
-      "image": "cwlu2001/earnapp",
+      "image": "fazalfarhan01/earnapp",
       "flags": {
         "--uuid":{
           "length": 32
