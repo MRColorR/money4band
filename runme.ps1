@@ -152,7 +152,7 @@ function fn_unknown($REPLY) {
 # Function to exit the script gracefully #
 function fn_bye {
     colorprint "Green" "Share this app with your friends thank you!"
-    colorprint "Cyan" "Support the project development check the donation options in the README, on GitHub, or in our Discord. Every bit helps! <3"
+    colorprint "Cyan" "Support the M4B development <3 check the donation options in the README, on GitHub or in our Discord. Every bit helps!"
     print_and_log "Green" "Exiting the application...Bye!Bye!"
     exit 0
 }
@@ -1773,7 +1773,7 @@ function mainmenu {
     check_project_updates
     adaptLimits
     colorprint "GREEN" "---------------------------------------------- "
-    colorprint "CYAN" "Support the project development check the donation options in the README, on GitHub, or in our Discord. Every bit helps! <3"
+    colorprint "CYAN" "Support the M4B development <3 check the donation options in the README, on GitHub or in our Discord. Every bit helps!"
     colorprint "MAGENTA" "Join our Discord community for updates, help, and discussions: $DS_PROJECT_SERVER_URL"
     colorprint "MAGENTA" "---------------------------------------------- "
     colorprint "DEFAULT" "Detected OS type: $($script:OS_TYPE)"
