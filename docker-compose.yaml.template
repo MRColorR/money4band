@@ -1,5 +1,5 @@
 #######################################################################
-# File name : docker-compose.yml
+# File name : docker-compose.yaml
 # Author : MRColor
 # This Docker-compose file use data from .env file
 #######################################################################
@@ -11,9 +11,10 @@ services:
 # EARNAPP CONTAINER
 #ENABLE_EARNAPP  earnapp:
 #ENABLE_EARNAPP    container_name: earnapp_$DEVICE_NAME
-#ENABLE_EARNAPP    image: cwlu2001/earnapp:latest
+#ENABLE_EARNAPP    image: fazalfarhan01/earnapp:lite
 #ENABLE_EARNAPP    environment:
 #ENABLE_EARNAPP      - EARNAPP_UUID=$EARNAPP_DEVICE_UUID
+#ENABLE_EARNAPP      - EARNAPP_TERM="yes"
 #ENABLE_EARNAPP    volumes:
 #ENABLE_EARNAPP      - earnapp-data:/etc/earnapp
 #ENABLE_EARNAPP    # network_mode: service:tun2socks
@@ -41,7 +42,7 @@ services:
 #ENABLE_IPROYALPAWNS    image: iproyal/pawns-cli:latest
 #ENABLE_IPROYALPAWNS    environment:
 #ENABLE_IPROYALPAWNS      - IPROYALPAWNS_DUMMY=''
-#ENABLE_IPROYALPAWNS    command: -accept-tos -email=$IPROYALPAWNS_EMAIL -password=$IPROYALPAWNS_PASSWD -device-name=$DEVICE_NAME
+#ENABLE_IPROYALPAWNS    command: -accept-tos -email=$IPROYALPAWNS_EMAIL -password=$IPROYALPAWNS_PASSWD -device-name=$DEVICE_NAME -device-id=id_$DEVICE_NAME
 #ENABLE_IPROYALPAWNS    # network_mode: service:tun2socks
 #ENABLE_IPROYALPAWNS    restart: always
 #ENABLE_IPROYALPAWNS    cpus: ${APP_CPU_LIMIT_LITTLE}
@@ -143,6 +144,18 @@ services:
 #ENABLE_BITPING    mem_reservation: ${APP_MEM_RESERV_BIG}
 #ENABLE_BITPING    mem_limit: ${APP_MEM_LIMIT_BIG}
 
+# SPEEDSHARE CONTAINER
+#ENABLE_SPEEDSHARE  speedshare:
+#ENABLE_SPEEDSHARE    container_name: speedshare_$DEVICE_NAME
+#ENABLE_SPEEDSHARE    image: eldavo/speedshare:latest
+#ENABLE_SPEEDSHARE    environment:
+#ENABLE_SPEEDSHARE      - CODE=$SPEEDSHARE_CODE
+#ENABLE_SPEEDSHARE    # network_mode: service:tun2socks
+#ENABLE_SPEEDSHARE    restart: always
+#ENABLE_SPEEDSHARE    cpus: ${APP_CPU_LIMIT_BIG}
+#ENABLE_SPEEDSHARE    mem_reservation: ${APP_MEM_RESERV_BIG}
+#ENABLE_SPEEDSHARE    mem_limit: ${APP_MEM_LIMIT_BIG}
+
 
 ### EXTRA APPS ###
 
@@ -156,13 +169,13 @@ services:
 #ENABLE_MYSTNODE    cap_add:
 #ENABLE_MYSTNODE          - NET_ADMIN
 #ENABLE_MYSTNODE    ports:
-#ENABLE_MYSTNODE          - 4449:4449
+#ENABLE_MYSTNODE          - ${MYSTNODE_DASHBOARD_PORT}:4449
 #ENABLE_MYSTNODE    volumes:
 #ENABLE_MYSTNODE          # You have 2 options
 #ENABLE_MYSTNODE          - ./.data/mysterium-node:/var/lib/mysterium-node # Bind an host folder to the container (more insecure but simplier to port and backup) this option mount a new identity or a backed up one from the host file system
 #ENABLE_MYSTNODE          # OR
 #ENABLE_MYSTNODE          #- myst-data:/var/lib/mysterium-node # if you use this also uncomment the relative volume in volumes section, this  Use docker volumes (more secure harder to access, backup and restore) you'll need to do backups using 'docker cp myst:/var/lib/mysterium-node .' and then when you need to restore the identity first delete the automatically created and not needed identities using 'sudo docker exec -it myst sh' and then in the container shell use 'sudo rm -rf /var/lib/mysterium-node/*' then stop the container and use docker cp to copy the backed-up identity in the container, ther restart the container.
-#ENABLE_MYSTNODE    # network_mode: service:tun2socks
+#ENABLE_MYSTNODE    # network_mode: host
 #ENABLE_MYSTNODE    restart: always
 #ENABLE_MYSTNODE    cpus: ${APP_CPU_LIMIT_HUGE}
 #ENABLE_MYSTNODE    mem_reservation: ${APP_MEM_RESERV_HUGE}
@@ -222,13 +235,13 @@ services:
     mem_limit: ${APP_MEM_LIMIT_MEDIUM}
         
 # WEB DASBOARD
-  webdashboard:
+  m4bwebdashboard:
     container_name: webdashboard_$DEVICE_NAME
     image: nginx:alpine-slim
     volumes:
       - ./.resources/.www:/usr/share/nginx/html:ro
     ports:
-      - ${DASHBOARD_PORT}:80
+      - ${M4B_DASHBOARD_PORT}:80
     restart: always
     cpus: ${APP_CPU_LIMIT_LITTLE}
     mem_reservation: ${APP_MEM_RESERV_LITTLE}

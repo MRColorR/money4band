@@ -4,7 +4,7 @@
       "name": "EARNAPP",
       "dashboard": "https://earnapp.com/dashboard",
       "link": "https://earnapp.com/i/3zulx7k",
-      "image": "cwlu2001/earnapp",
+      "image": "fazalfarhan01/earnapp",
       "flags": {
         "--uuid":{
           "length": 32
@@ -100,7 +100,17 @@
         "--email":{},
         "--password":{}
     }
+  },
+  {
+    "name": "SPEEDSHARE",
+    "dashboard": "https://dashboard.speedshare.app/",
+    "link": "https://speedshare.app/?ref=mindlessnerd",
+    "image": "eldavo/speedshare",
+    "flags": {
+      "--code": {}
+    }
   }
+  
   ],
   "extra-apps":[
     {
@@ -110,7 +120,7 @@
       "image": "mysteriumnetwork/myst",
       "flags": {
         "--manual":{
-          "instructions": "Log into your device's mystnode local webdashboard that by default is on localhost:4449, navigate to the Myst Node page and follow the onscreen instruction to complete the setup.\n\nDisclaimer: If you want to further optimize UPnP and port forwarding, consider setting manually 'network: host' for mystnode in your Docker compose. This may improve mystnode performance, but do this only if you know what you are doing and you are aware of potential security implications."
+          "instructions": "Log into your device's mystnode local webdashboard, navigate to the Myst Node page and follow the onscreen instruction to complete the setup.\n\nDisclaimer: If you want to further optimize UPnP and port forwarding, consider setting manually 'network: host' for mystnode in your Docker compose. This may improve mystnode performance, but do this only if you know what you are doing and you are aware of potential security implications."
         }
       }
     },

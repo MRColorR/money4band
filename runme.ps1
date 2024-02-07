@@ -144,11 +144,6 @@ $PROJECT_URL = "https://raw.githubusercontent.com/MRColorR/money4band/${PROJECT_
 # Script debug log file #
 $DEBUG_LOG = "debug_$SCRIPT_NAME.log"
 
-## Dashboard related constants and variables ##
-# Dashboard URL and PORT # get it form the ${ENV_FILENAME} file
-$script:DASHBOARD_PORT = (Get-Content .\${ENV_FILENAME} | Select-String -Pattern "DASHBOARD_PORT=" -SimpleMatch).ToString().Split("=")[1]
-$script:DASHBOARD_URL = "http://localhost:$DASHBOARD_PORT"
-
 # Function to manage unexpected choices of flags #
 function fn_unknown($REPLY) {
     colorprint "Red" "Unknown choice $REPLY, please choose a valid option"
@@ -157,6 +152,7 @@ function fn_unknown($REPLY) {
 # Function to exit the script gracefully #
 function fn_bye {
     colorprint "Green" "Share this app with your friends thank you!"
+    colorprint "Cyan" "Support the M4B development <3 check the donation options in the README, on GitHub or in our Discord. Every bit helps!"
     print_and_log "Green" "Exiting the application...Bye!Bye!"
     exit 0
 }
@@ -383,7 +379,7 @@ function check_project_updates {
         }
         $LATEST_SCRIPT_VERSION = $LATEST_SCRIPT_VERSION_MATCH[0].Groups[1].Value
     } catch {
-        errorprint_and_log "Failed to fetch the .env.template file from GitHub: $_"
+        print_and_log "Blue" "Updates check failed. Will try again later. Reason: $_"
         return
     }
 
@@ -1077,6 +1073,18 @@ function fn_setupApp() {
                                 colorprint "Red" "CID cannot be empty. Please try again."
                             }
                         }
+                        "--code" {
+                            toLog_ifDebug -l "[DEBUG]" -m "Starting auth code setup for ${CURRENT_APP} app"
+                            colorprint "Default" "Find your auth code inside your ${CURRENT_APP} dashboard/profile."
+                            colorprint "Green" "Enter your ${CURRENT_APP} auth code:"
+                            $APP_CODE = Read-Host
+                            if ($APP_CODE) {
+                                (Get-Content ${ENV_FILENAME}) -replace "your${CURRENT_APP}Code", $APP_CODE | Set-Content ${ENV_FILENAME}
+                            }
+                            else {
+                                colorprint "Red" "Code cannot be empty. Please try again."
+                            }
+                        }
                         "--token" {
                             toLog_ifDebug -l "[DEBUG]" -m "Starting token setup for ${CURRENT_APP} app"
                             colorprint "DEFAULT" "Find your token inside your ${CURRENT_APP} dashboard/profile."
@@ -1312,7 +1320,7 @@ function fn_setupProxy() {
                 $dkComContent = Get-Content $script:DKCOM_FILENAME -Raw
                 $dkComContent = $dkComContent -replace '- WATCHTOWER_ROLLING_RESTART=true', '- WATCHTOWER_ROLLING_RESTART=false'
                 $dkComContent = $dkComContent -replace '(?<=^|[\r\n])#ENABLE_PROXY(?![a-zA-Z0-9])', ''
-                $dkComContent = $dkComContent -replace "# network_mode", "network_mode"
+                $dkComContent = $dkComContent -replace '# network_mode: service:', 'network_mode: service:'
                 Set-Content $script:DKCOM_FILENAME -Value $dkComContent
 
                 $script:PROXY_CONF = $true
@@ -1532,8 +1540,21 @@ function fn_startStack() {
         if ($yn.ToLower() -eq 'y' -or $yn.ToLower() -eq 'yes') {
             if (docker compose -f ${DKCOM_FILENAME} --env-file ${ENV_FILENAME} up -d) {
                 print_and_log "Green" "All Apps started"
-                print_and_log "Cyan" "You can visit the web dashboard on ${DASHBOARD_URL}" 
-                $DASHBOARD_URL | Out-File -Append "dashboardURL.txt"
+                # Call the script to generate dashboards urls for the apps that has them and check if execute correctly
+                $dashboard_urls_script = "./generate_dashboard_urls.ps1"
+                if (Test-Path "$dashboard_urls_script") {
+                    print_and_log "GREEN" "Executing $dashboard_urls_script script"
+                    & "$dashboard_urls_script"
+                    if ($LASTEXITCODE -eq 0) {
+                        print_and_log "GREEN" "All Apps dashboards URLs generated. Check the generated dashboards file for the URLs."
+                    }
+                    else {
+                        errorprint_and_log "Error: $dashboard_urls_script failed to execute. Error generating Apps dashboards URLs"
+                    }
+                }
+                else {
+                    errorprint_and_log "Error: $dashboard_urls_script not found"
+                }
                 colorprint "Yellow" "If not already done, use the previously generated apps nodes URLs to add your device in any apps dashboard that require node claiming/registration (e.g. Earnapp, ProxyRack, etc.)"
             }
             else {
@@ -1593,6 +1614,31 @@ function fn_stopStack() {
     }
 }
 
+# Function that will call the script to seup the multiple proxies instances
+function fn_setupmproxies {
+    Clear-Host
+    toLog_ifDebug -l "[DEBUG]" -m "Starting setupmproxies function"
+
+    # Path to the runmproxies.sh script 
+    $runmproxies_script = "./runmproxies.ps1"
+
+    # Execute the  and check the exit status of the script
+    if (Test-Path $runmproxies_script) {
+        print_and_log "GREEN" "Executing $runmproxies_script script"
+        & $runmproxies_script
+        if ($LASTEXITCODE -eq 0) {
+            colorprint "GREEN" "Multi-proxy setup completed successfully"
+        }
+        else {
+            errorprint_and_log "Error: $runmproxies_script failed to execute"
+        }
+    }
+    else {
+        errorprint_and_log "Error: $runmproxies_script not found"
+    }
+    Write-Output "Returning to mainmenu"
+    Start-Sleep -Seconds $SLEEP_TIME
+}
 <#
 .SYNOPSIS
 Function that will reset the ${ENV_FILENAME} file
@@ -1727,6 +1773,7 @@ function mainmenu {
     check_project_updates
     adaptLimits
     colorprint "GREEN" "---------------------------------------------- "
+    colorprint "CYAN" "Support the M4B development <3 check the donation options in the README, on GitHub or in our Discord. Every bit helps!"
     colorprint "MAGENTA" "Join our Discord community for updates, help, and discussions: $DS_PROJECT_SERVER_URL"
     colorprint "MAGENTA" "---------------------------------------------- "
     colorprint "DEFAULT" "Detected OS type: $($script:OS_TYPE)"

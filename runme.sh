@@ -134,10 +134,6 @@ readonly PROJECT_URL="https://raw.githubusercontent.com/MRColorR/money4band/${PR
 # Script log file #
 readonly DEBUG_LOG="debug_${SCRIPT_NAME}.log"
 
-## Dashboard related constants and variables ##
-# Dashboard URL and PORT # get it form the ${ENV_FILENAME} file
-readonly DASHBOARD_PORT=$(grep -oP 'DASHBOARD_PORT=\K[^#\r]+' ${ENV_FILENAME})
-readonly DASHBOARD_URL="http://localhost:$DASHBOARD_PORT"
 
 # Function to manage unexpected choices of flags #
 fn_unknown() { 
@@ -147,6 +143,7 @@ fn_unknown() {
 # Function to exit the script gracefully #
 fn_bye(){
     colorprint "GREEN" "Share this app with your friends thank you!"
+    colorprint "CYAN" "Support the M4B development <3 check the donation options in the README, on GitHub or in our Discord. Every bit helps!"
     print_and_log "GREEN" "Exiting the application...Bye!Bye!"
     exit 0
 }
@@ -1037,6 +1034,20 @@ fn_setupApp() {
                                     fi
                                 done
                                 ;;
+                               --code)
+                                    toLog_ifDebug -l "[DEBUG]" -m "Starting auth code setup for ${CURRENT_APP} app"
+                                    colorprint "DEFAULT" "Find your auth code inside your ${CURRENT_APP} dashboard/profile."
+                                    while true; do
+                                        colorprint "GREEN" "Enter your ${CURRENT_APP} auth code:"
+                                        read -r APP_CODE
+                                        if [[ -z "$APP_CODE" ]]; then
+                                            colorprint "RED" "Code cannot be empty. Please try again."
+                                        else
+                                            sed -i "s/your${CURRENT_APP}Code/$APP_CODE/" ${ENV_FILENAME}
+                                            break
+                                        fi
+                                    done
+                                    ;;
                             --token)
                                 toLog_ifDebug -l "[DEBUG]" -m "Starting token setup for ${CURRENT_APP} app"
                                 colorprint "DEFAULT" "Find your token inside your ${CURRENT_APP} dashboard/profile."
@@ -1236,7 +1247,7 @@ fn_setupProxy() {
                     # disable rolling restarts for watchtower as enabling proxy will  make the others containers dependent on it and so rolling restarts will not work
                     sed -i "s^- WATCHTOWER_ROLLING_RESTART=true^- WATCHTOWER_ROLLING_RESTART=false^" "$DKCOM_FILENAME"
                     sed -i 's^#ENABLE_PROXY ^ ^' "$DKCOM_FILENAME"
-                    sed -i "s^# network_mode^network_mode^" $DKCOM_FILENAME
+                    sed -i 's^# network_mode: service:^network_mode: service:^' $DKCOM_FILENAME
                     PROXY_CONF='true'
                     sed -i 's/PROXY_CONFIGURATION_STATUS=0/PROXY_CONFIGURATION_STATUS=1/' ${ENV_FILENAME}
                     colorprint "DEFAULT" "Ok, $NEW_STACK_PROXY will be used as proxy for all apps in this stack"
@@ -1414,8 +1425,20 @@ fn_startStack(){
             [Yy]* ) 
                 if sudo docker compose -f ${DKCOM_FILENAME} --env-file ${ENV_FILENAME} up -d; then
                     print_and_log "GREEN" "All Apps started."
-                    print_and_log "CYAN" "You can visit the web dashboard on ${DASHBOARD_URL}"
-                    echo "${DASHBOARD_URL}" > "dashboardURL.txt"
+                    # Call the script to generate dashboards urls for the apps that has them and check if execute correctly
+                    dashboard_urls_script="./generate_dashboard_urls.sh"
+                    sudo chmod +x "$dashboard_urls_script"
+                    if [ -f "$dashboard_urls_script" ]; then
+                        print_and_log "GREEN" "Executing $dashboard_urls_script script"
+                        ./"$dashboard_urls_script"
+                        if [ $? -eq 0 ]; then
+                            print_and_log "GREEN" "All Apps dashboards URLs generated. Check the generated dashboards file for the URLs."
+                        else
+                            errorprint_and_log "Error: $dashboard_urls_script failed to execute. Error generating Apps dashboards URLs."
+                        fi
+                    else
+                        errorprint_and_log "Error: $dashboard_urls_script not found"
+                    fi                    
                     colorprint "YELLOW" "If not already done, use the previously generated apps nodes URLs to add your device in any apps dashboard that require node claiming/registration (e.g. Earnapp, ProxyRack, etc.)"
                 else
                     errorprint_and_log "Error starting Docker stack. Please check the configuration and try again."
@@ -1463,6 +1486,35 @@ fn_stopStack(){
         esac
     done
 }
+
+# Function that will call the script to seup the multiple proxies instances
+fn_setupmproxies() {
+    clear
+    print_and_log "BLUE" "Starting multi-proxy setup function"
+
+    # Path to the runmproxies.sh script
+    runmproxies_script="./runmproxies.sh"
+
+    # Ensure the script is executable
+    chmod +x "$runmproxies_script"
+
+    # Execute the script and check the exit status of the script
+    if [ -f "$runmproxies_script" ]; then
+        print_and_log "GREEN" "Executing $runmproxies_script"
+        ./"$runmproxies_script"
+        if [ $? -eq 0 ]; then
+            print_and_log "GREEN" "Multi-proxy setup completed successfully"
+        else
+            errorprint_and_log "Error: $runmproxies_script failed to execute"
+        fi
+    else
+        errorprint_and_log "Error: $runmproxies_script not found"
+    fi
+
+    echo "Returning to main menu"
+    sleep ${SLEEP_TIME}
+}
+
 
 
 fn_resetEnv(){ # this function needs rewiting as it should use now the local .env.template file
@@ -1550,6 +1602,7 @@ mainmenu() {
     check_project_updates
     fn_adaptLimits
     colorprint "GREEN" "---------------------------------------------- "
+    colorprint "CYAN" "Support the M4B development <3 check the donation options in the README, on GitHub or in our Discord. Every bit helps!"
     colorprint "MAGENTA" "Join our Discord community for updates, help, and discussions: ${DS_PROJECT_SERVER_URL}"
     colorprint "MAGENTA" "---------------------------------------------- "
     colorprint "DEFAULT" "Detected OS type: ${OS_TYPE}"$'\n'"Detected architecture: $ARCH"$'\n'"Docker $DKARCH image architecture will be used if the app's image permits it"$'\n'"---------------------------------------------- "$'\n'
