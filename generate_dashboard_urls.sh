@@ -43,7 +43,7 @@ generate_dashboard_urls() {
         if [[ -n "$port_mapping" ]]; then
             echo "If enabled you can visit the $container_info web dashboard on http://localhost:$port_mapping" >> "$dashboard_file"
         fi
-    done < <(docker ps --format "{{.Ports}} {{.Names}}")
+    done < <(sudo docker ps --format "{{.Ports}} {{.Names}}")
 
     echo "Dashboard URLs have been written to $dashboard_file"
 }
