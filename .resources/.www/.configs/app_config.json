@@ -100,7 +100,17 @@
         "--email":{},
         "--password":{}
     }
+  },
+  {
+    "name": "SPEEDSHARE",
+    "dashboard": "https://dashboard.speedshare.app/",
+    "link": "https://speedshare.app/?ref=mindlessnerd",
+    "image": "eldavo/speedshare",
+    "flags": {
+      "--code": {}
+    }
   }
+  
   ],
   "extra-apps":[
     {

@@ -144,6 +144,18 @@ services:
 #ENABLE_BITPING    mem_reservation: ${APP_MEM_RESERV_BIG}
 #ENABLE_BITPING    mem_limit: ${APP_MEM_LIMIT_BIG}
 
+# SPEEDSHARE CONTAINER
+#ENABLE_SPEEDSHARE  speedshare:
+#ENABLE_SPEEDSHARE    container_name: speedshare_$DEVICE_NAME
+#ENABLE_SPEEDSHARE    image: eldavo/speedshare:latest
+#ENABLE_SPEEDSHARE    environment:
+#ENABLE_SPEEDSHARE      - CODE=$SPEEDSHARE_CODE
+#ENABLE_SPEEDSHARE    # network_mode: service:tun2socks
+#ENABLE_SPEEDSHARE    restart: always
+#ENABLE_SPEEDSHARE    cpus: ${APP_CPU_LIMIT_BIG}
+#ENABLE_SPEEDSHARE    mem_reservation: ${APP_MEM_RESERV_BIG}
+#ENABLE_SPEEDSHARE    mem_limit: ${APP_MEM_LIMIT_BIG}
+
 
 ### EXTRA APPS ###
 

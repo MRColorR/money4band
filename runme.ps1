@@ -152,6 +152,7 @@ function fn_unknown($REPLY) {
 # Function to exit the script gracefully #
 function fn_bye {
     colorprint "Green" "Share this app with your friends thank you!"
+    colorprint "Cyan" "Support the project development check the donation options in the README, on GitHub, or in our Discord. Every bit helps! 💙"
     print_and_log "Green" "Exiting the application...Bye!Bye!"
     exit 0
 }
@@ -1072,6 +1073,18 @@ function fn_setupApp() {
                                 colorprint "Red" "CID cannot be empty. Please try again."
                             }
                         }
+                        "--code" {
+                            toLog_ifDebug -l "[DEBUG]" -m "Starting auth code setup for ${CURRENT_APP} app"
+                            colorprint "Default" "Find your auth code inside your ${CURRENT_APP} dashboard/profile."
+                            colorprint "Green" "Enter your ${CURRENT_APP} auth code:"
+                            $APP_CODE = Read-Host
+                            if ($APP_CODE) {
+                                (Get-Content ${ENV_FILENAME}) -replace "your${CURRENT_APP}Code", $APP_CODE | Set-Content ${ENV_FILENAME}
+                            }
+                            else {
+                                colorprint "Red" "Code cannot be empty. Please try again."
+                            }
+                        }
                         "--token" {
                             toLog_ifDebug -l "[DEBUG]" -m "Starting token setup for ${CURRENT_APP} app"
                             colorprint "DEFAULT" "Find your token inside your ${CURRENT_APP} dashboard/profile."
@@ -1760,6 +1773,7 @@ function mainmenu {
     check_project_updates
     adaptLimits
     colorprint "GREEN" "---------------------------------------------- "
+    colorprint "CYAN" "Support the project development check the donation options in the README, on GitHub, or in our Discord. Every bit helps! 💙"
     colorprint "MAGENTA" "Join our Discord community for updates, help, and discussions: $DS_PROJECT_SERVER_URL"
     colorprint "MAGENTA" "---------------------------------------------- "
     colorprint "DEFAULT" "Detected OS type: $($script:OS_TYPE)"

@@ -143,6 +143,7 @@ fn_unknown() {
 # Function to exit the script gracefully #
 fn_bye(){
     colorprint "GREEN" "Share this app with your friends thank you!"
+    colorprint "CYAN" "Support the project development check the donation options in the README, on GitHub, or in our Discord. Every bit helps! 💙"
     print_and_log "GREEN" "Exiting the application...Bye!Bye!"
     exit 0
 }
@@ -1033,6 +1034,20 @@ fn_setupApp() {
                                     fi
                                 done
                                 ;;
+                               --code)
+                                    toLog_ifDebug -l "[DEBUG]" -m "Starting auth code setup for ${CURRENT_APP} app"
+                                    colorprint "DEFAULT" "Find your auth code inside your ${CURRENT_APP} dashboard/profile."
+                                    while true; do
+                                        colorprint "GREEN" "Enter your ${CURRENT_APP} auth code:"
+                                        read -r APP_CODE
+                                        if [[ -z "$APP_CODE" ]]; then
+                                            colorprint "RED" "Code cannot be empty. Please try again."
+                                        else
+                                            sed -i "s/your${CURRENT_APP}Code/$APP_CODE/" ${ENV_FILENAME}
+                                            break
+                                        fi
+                                    done
+                                    ;;
                             --token)
                                 toLog_ifDebug -l "[DEBUG]" -m "Starting token setup for ${CURRENT_APP} app"
                                 colorprint "DEFAULT" "Find your token inside your ${CURRENT_APP} dashboard/profile."
@@ -1587,6 +1602,7 @@ mainmenu() {
     check_project_updates
     fn_adaptLimits
     colorprint "GREEN" "---------------------------------------------- "
+    colorprint "CYAN" "Support the project development check the donation options in the README, on GitHub, or in our Discord. Every bit helps! 💙"
     colorprint "MAGENTA" "Join our Discord community for updates, help, and discussions: ${DS_PROJECT_SERVER_URL}"
     colorprint "MAGENTA" "---------------------------------------------- "
     colorprint "DEFAULT" "Detected OS type: ${OS_TYPE}"$'\n'"Detected architecture: $ARCH"$'\n'"Docker $DKARCH image architecture will be used if the app's image permits it"$'\n'"---------------------------------------------- "$'\n'
