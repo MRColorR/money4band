@@ -100,7 +100,7 @@ We've launched a Discord server! It's a space for you to share your experiences,
 
 ## Support the Projects 🫶
 
-Your contributions are vital in helping to sustain the development of open-source projects and tools made freely available to everyone. If you find value in my work and wish to show your support, kindly consider making a donation to one of the following cryptocurrency wallets:
+Your contributions are vital in helping to sustain the development of open-source projects and tools made freely available to everyone. If you find value in my work and wish to show your support, kindly consider making a donation:
 
 ### Cryptocurrency Wallets
 
