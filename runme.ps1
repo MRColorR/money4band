@@ -254,10 +254,10 @@ function adaptLimits {
     $TOTAL_CPUS = (Get-WmiObject -Class Win32_Processor | Measure-Object -Property NumberOfCores -Sum).Sum
 
     # Adapt the limits in .env file for CPU and RAM taking into account the number of CPU cores the machine has and the amount of RAM the machine has
-    # CPU limits: little should use max 15% of the CPU power , medium should use max 30% of the CPU power , big should use max 50% of the CPU power , huge should use max 100% of the CPU power
-    $appCpuLimitLittle = ($TOTAL_CPUS * 15 / 100)
-    $appCpuLimitMedium = ($TOTAL_CPUS * 30 / 100)
-    $appCpuLimitBig = ($TOTAL_CPUS * 50 / 100)
+    # CPU limits: little should use max 25% of the CPU power , medium should use max 50% of the CPU power , big should use max 75% of the CPU power , huge should use max 100% of the CPU power
+    $appCpuLimitLittle = ($TOTAL_CPUS * 25 / 100)
+    $appCpuLimitMedium = ($TOTAL_CPUS * 50 / 100)
+    $appCpuLimitBig = ($TOTAL_CPUS * 75 / 100)
     $appCpuLimitHuge = ($TOTAL_CPUS * 100 / 100)
 
     # Ensure CPU limits are not below minimum

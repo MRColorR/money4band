@@ -253,11 +253,11 @@ fn_adaptLimits() {
         TOTAL_CPUS=$(lscpu -b -p=Core,Socket | grep -v '^#' | sort -u | wc -l)
 
         # Adapt the limits in .env file for CPU and RAM taking into account the number of CPU cores the machine has and the amount of RAM the machine has
-        # CPU limits: little should use max 15% of the CPU power , medium should use max 30% of the CPU power , big should use max 50% of the CPU power , huge should use max 100% of the CPU power
+        # CPU limits: little should use max 25% of the CPU power , medium should use max 50% of the CPU power , big should use max 75% of the CPU power , huge should use max 100% of the CPU power
         if command -v awk &> /dev/null; then
-            local APP_CPU_LIMIT_LITTLE=$(awk "BEGIN {print $TOTAL_CPUS * 15 / 100}")
-            local APP_CPU_LIMIT_MEDIUM=$(awk "BEGIN {print $TOTAL_CPUS * 30 / 100}")
-            local APP_CPU_LIMIT_BIG=$(awk "BEGIN {print $TOTAL_CPUS * 50 / 100}")
+            local APP_CPU_LIMIT_LITTLE=$(awk "BEGIN {print $TOTAL_CPUS * 25 / 100}")
+            local APP_CPU_LIMIT_MEDIUM=$(awk "BEGIN {print $TOTAL_CPUS * 50 / 100}")
+            local APP_CPU_LIMIT_BIG=$(awk "BEGIN {print $TOTAL_CPUS * 75 / 100}")
             local APP_CPU_LIMIT_HUGE=$(awk "BEGIN {print $TOTAL_CPUS * 100 / 100}")
         else
             local APP_CPU_LIMIT_LITTLE=$(( TOTAL_CPUS * 15 / 100 ))
