@@ -260,9 +260,9 @@ fn_adaptLimits() {
             local APP_CPU_LIMIT_BIG=$(awk "BEGIN {print $TOTAL_CPUS * 75 / 100}")
             local APP_CPU_LIMIT_HUGE=$(awk "BEGIN {print $TOTAL_CPUS * 100 / 100}")
         else
-            local APP_CPU_LIMIT_LITTLE=$(( TOTAL_CPUS * 15 / 100 ))
-            local APP_CPU_LIMIT_MEDIUM=$(( TOTAL_CPUS * 30 / 100 ))
-            local APP_CPU_LIMIT_BIG=$(( TOTAL_CPUS * 50 / 100 ))
+            local APP_CPU_LIMIT_LITTLE=$(( TOTAL_CPUS * 25 / 100 ))
+            local APP_CPU_LIMIT_MEDIUM=$(( TOTAL_CPUS * 50 / 100 ))
+            local APP_CPU_LIMIT_BIG=$(( TOTAL_CPUS * 75 / 100 ))
             local APP_CPU_LIMIT_HUGE=$(( TOTAL_CPUS * 100 / 100 ))
             print_and_log "YELLOW" "Warning: awk command not found. Leaving limits setted using nearest integer values."            
         fi
