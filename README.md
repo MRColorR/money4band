@@ -65,8 +65,8 @@ Register an account on the app's sites clicking each apps' names in the followin
 **Money4Band** has the ability to create multiple instances also using a proxy list, ideal for scaling up your setup. Quickly set up numerous instances each linked to a different proxy with ease.
 
 ### Getting Started with Multi-Proxy
-- **Initial Setup**: First, set up the main instance using `runme.sh`.
-- **Prepare Proxies**: Create a `proxies.txt` in the root folder, listing each proxy on a separate line.
+- **Initial Setup**: First, set up the main instance using `runme.sh` with a proxy.
+- **Prepare Proxies**: Create a `proxies.txt` in the root folder, listing each remaning proxy on a separate line and ending with a new line.
 
 ### Launching Multiple Instances
 1. **Run the Script**: Use the "Setup and manage multiproxy instances by list" in the M4B menu or execute `runmproxies` script in the terminal. This script intelligently handles existing instances by offering to:
