@@ -1183,7 +1183,7 @@ fn_setupProxy() {
     if [ "$PROXY_CONF" == 'false' ]; then
         while true; do
             colorprint "YELLOW" "Do you wish to setup a proxy for the apps in this stack Y/N?"
-            colorprint "DEFAULT" "Note that if you want to run multiple instances of the same app you will need to configure different env files each in different project folders (copy the project to multiple different folders and configure them using different proxies)"
+            colorprint "DEFAULT" "If you want to run multiple instances of M4B on same device you should setup the main instance with a proxy and then use mutiproxy function to setup all other replicas."
             read -r yn
             case $yn in
                 [Yy]* )
@@ -1213,8 +1213,8 @@ fn_setupProxy() {
                             colorprint "BLUE" "The current project name is: $FULL_COMPOSE_PROJECT_NAME"
                             colorprint "BLUE" "The current device name is: $FULL_DEVICE_NAME"
                             colorprint "YELLOW" "Do you want to keep the current project and device name? (Y/N)"
-                            colorprint "DEFAULT" "No if you want to run multiple instances of the same app on the same device (copy the project to multiple different folders and configure them using different proxies), the project and device names will slightly change to keep them unique."
-                            colorprint "DEFAULT" "Yes if you just want to update the proxy in use without changing the project and device name (One instance of the same app per device)"
+                            colorprint "DEFAULT" "No if you want to run multiple instances of the same app on the same device, the project and device names will slightly change to keep them unique."
+                            colorprint "DEFAULT" "Yes if you just want to update the proxy in use without changing the project and device name."
                             read -r yn
                             case $yn in
                                 [Yy]* )
