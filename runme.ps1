@@ -789,7 +789,6 @@ function fn_setupNotifications {
                     (Get-Content .\${ENV_FILENAME}).replace("SHOUTRRR_URL=${CURRENT_VALUE}", "SHOUTRRR_URL=${SHOUTRRR_URL}") | Set-Content .\${ENV_FILENAME}
                     (Get-Content .\$DKCOM_FILENAME).replace('# - WATCHTOWER_NOTIFICATIONS=shoutrrr', "- WATCHTOWER_NOTIFICATIONS=shoutrrr") | Set-Content .\$DKCOM_FILENAME
                     (Get-Content .\$DKCOM_FILENAME).replace('# - WATCHTOWER_NOTIFICATION_URL', "- WATCHTOWER_NOTIFICATION_URL") | Set-Content .\$DKCOM_FILENAME
-                    (Get-Content .\$DKCOM_FILENAME).replace('# - WATCHTOWER_NOTIFICATIONS_HOSTNAME', "- WATCHTOWER_NOTIFICATIONS_HOSTNAME") | Set-Content .\$DKCOM_FILENAME
                     (Get-Content .\${ENV_FILENAME}).replace("NOTIFICATIONS_CONFIGURATION_STATUS=0", "NOTIFICATIONS_CONFIGURATION_STATUS=1") | Set-Content .\${ENV_FILENAME}
                     colorprint "DEFAULT" "Notifications setup complete. If the link is correct, you will receive a notification for each update made on the app container images."
                     Read-Host -p "Press enter to continue"

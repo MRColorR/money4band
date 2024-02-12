@@ -10,7 +10,7 @@
           "length": 32
         }
       },
-      "claimURLBase": "https://earnapp.com/r/sdk-node-"
+      "claimURLBase": "To claim your node, after starting it, go to the app's dashboard and then visit the following link: https://earnapp.com/r/sdk-node-"
     },
     {
       "name": "HONEYGAIN",
@@ -80,7 +80,7 @@
           "length": 64
         }
       },
-      "claimURLBase": "https://peer.proxyrack.com/devices?"
+      "claimURLBase": "To claim your node, after starting it, go to the app's dashboard and then add the device using the following UUID: "
     },
     {
       "name": "PROXYLITE",
@@ -105,10 +105,14 @@
     "name": "SPEEDSHARE",
     "dashboard": "https://dashboard.speedshare.app/",
     "link": "https://speedshare.app/?ref=mindlessnerd",
-    "image": "eldavo/speedshare",
+    "image": "mrcolorrain/speedshare",
     "flags": {
-      "--code": {}
-    }
+      "--code": {},
+      "--uuid": {
+        "length": 32
+      }
+    },
+    "claimURLBase": "Speedshare nodes are automatically claimed. After starting it, go to the app's dashboard to see it. Its UUID is: "
   }
   
   ],
