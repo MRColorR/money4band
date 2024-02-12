@@ -1056,7 +1056,7 @@ function fn_setupApp() {
                             # Generaing the claim link
                             $claimlink = "${claimURLBase}${UUID}"
                             colorprint "BLUE" "Save the following instructions/link somewhere to claim/register your ${CURRENT_APP} node/device after completing the setup and starting the apps stack: ${claimlink}"
-                            $claimlink | Out-File -Append "claim${CURRENT_APP}NodeDevice.txt"
+                            $claimlink | Set-Content -Path "claim${CURRENT_APP}NodeDevice.txt" -Force
                             colorprint "DEFAULT" "A new file containing this link has been created for you in the current directory"
                         }
                         "--cid" {
