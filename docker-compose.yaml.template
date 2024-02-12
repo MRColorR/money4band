@@ -160,6 +160,7 @@ services:
 #ENABLE_SPEEDSHARE    image: mrcolorrain/speedshare:latest
 #ENABLE_SPEEDSHARE    environment:
 #ENABLE_SPEEDSHARE      - CODE=$SPEEDSHARE_CODE
+#ENABLE_SPEEDSHARE      - SPEEDSHARE_UUID=$SPEEDSHARE_DEVICE_UUID
 #ENABLE_SPEEDSHARE    # network_mode: service:tun2socks
 #ENABLE_SPEEDSHARE    restart: always
 #ENABLE_SPEEDSHARE    cpus: ${APP_CPU_LIMIT_BIG}
