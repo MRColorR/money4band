@@ -54,6 +54,7 @@ function echo_and_log_message {
 }
 
 # Print a starting message 
+Clear-Host
 echo_and_log_message -Message "Starting Multiproxy instances setup script" -Color "Green"
 
 # Check if .env, docker-compose.yaml, and proxies.txt files are present
@@ -180,6 +181,7 @@ if ((Get-ChildItem -Path $instancesDir).Count -gt 0) {
         }
         "4" {
             echo_and_log_message -Message "Exiting without changes..."
+            exit 0
         }
         default {
             echo_and_log_message -Message "Invalid choice. Exiting..." -Type "ERROR"

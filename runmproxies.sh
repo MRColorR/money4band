@@ -73,6 +73,7 @@ echo_and_log_message() {
 
 
 # Print a starting message 
+clear
 echo_and_log_message "Starting Multiproxy instances setup script" "GREEN"
 
 # Check if .env, docker-compose.yaml, and proxies.txt files are present
