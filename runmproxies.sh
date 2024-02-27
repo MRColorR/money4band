@@ -108,6 +108,7 @@ echo_and_log_message "Original PROXY_CONFIGURATION_STATUS: $ORIG_ENV_PROXY_CONFI
 if [ "$ORIG_ENV_PROXY_CONFIG_STATUS" != "1" ]; then
     echo_and_log_message "Error: The original .env file has not been configured with a proxy" "RED"
     echo_and_log_message "Please configure the original .env file with a proxy and then pass the others as list in the proxies.txt file. Exiting..." "RED"
+    sleep 3
     exit 1
 fi
 

@@ -1561,7 +1561,7 @@ function fn_startStack() {
                         print_and_log "GREEN" "All Apps dashboards URLs generated. Check the generated dashboards file for the URLs."
                     }
                     else {
-                        errorprint_and_log "Error: $dashboard_urls_script failed to execute. Error generating Apps dashboards URLs"
+                        errorprint_and_log "Something went wrong while executing $dashboard_urls_script script. Apps dashboards URLs not generated"
                     }
                 }
                 else {
@@ -1641,9 +1641,9 @@ function fn_setupmproxies {
         if ($LASTEXITCODE -eq 0) {
             colorprint "GREEN" "Multi-proxy setup completed successfully"
         }
-        else {
-            errorprint_and_log "Error: $runmproxies_script failed to execute"
-        }
+        # else {
+        #     errorprint_and_log "Something went wrong while executing $runmproxies_script script. Multi-proxy setup failed"
+        # }
     }
     else {
         errorprint_and_log "Error: $runmproxies_script not found"

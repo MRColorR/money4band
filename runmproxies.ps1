@@ -85,6 +85,7 @@ $orig_env_proxy_config_status = ($envContent | Where-Object { $_ -match "^# PROX
 if ($orig_env_proxy_config_status -ne "1") {
     echo_and_log_message -Message "Error: The original .env file has not been configured with a proxy." -Type "ERROR"
     echo_and_log_message -Message "Please configure the original .env file with a proxy and then pass the others as list in the proxies.txt file. Exiting..." -Type "ERROR"
+    Start-Sleep -Seconds 3
     exit 1
 }
 
