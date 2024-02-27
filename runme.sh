@@ -1238,15 +1238,28 @@ fn_setupProxy() {
                         # Update the DEVICE_NAME variable of the script with the new value
                         DEVICE_NAME="${SHORT_DEVICE_NAME}${RANDOM_VALUE}"
                     fi
-
+                    
+                    # Update the proxy configuration values
                     # Obtaining the line of STACK_PROXY= in the ${ENV_FILENAME} file and then replace the line with the new proxy also uncomment the line if it was commented
                     sed -i "s^# STACK_PROXY=^STACK_PROXY=^" ${ENV_FILENAME} # if it was already uncommented it does nothing
                     CURRENT_VALUE=$(grep -oP 'STACK_PROXY=\K[^#\r]+' ${ENV_FILENAME})
                     sed -i "s^$CURRENT_VALUE^$NEW_STACK_PROXY^" ${ENV_FILENAME}
-                    # disable rolling restarts for watchtower as enabling proxy will  make the others containers dependent on it and so rolling restarts will not work
+
+                    # Disable rolling restarts for watchtower as enabling proxy will  make the others containers dependent on it and so rolling restarts will not work
                     sed -i "s^- WATCHTOWER_ROLLING_RESTART=true^- WATCHTOWER_ROLLING_RESTART=false^" "$DKCOM_FILENAME"
                     sed -i 's^#ENABLE_PROXY ^ ^' "$DKCOM_FILENAME"
                     sed -i 's^# network_mode: service:^network_mode: service:^' $DKCOM_FILENAME
+
+                    # Check if there is a 'hostname:' line that is not commented out
+                    if grep -q '^[^#]*\bhostname:' "$DKCOM_FILENAME"; then
+                        # This sed command comments out lines with 'hostname:' that are not already commented out
+                        sed -ri 's/^([[:space:]]*)hostname:/\1# hostname:/' "$DKCOM_FILENAME"
+                        toLog_ifDebug "BLUE" "Hostname lines commented out due to proxy setup to avoid Docker network_mode conflicts."
+                    else
+                        toLog_ifDebug "GREEN" "No need to comment out 'hostname:' lines, as they are already commented or absent."
+                    fi
+
+                    # Update the proxy configuration status
                     PROXY_CONF='true'
                     sed -i 's/PROXY_CONFIGURATION_STATUS=0/PROXY_CONFIGURATION_STATUS=1/' ${ENV_FILENAME}
                     colorprint "DEFAULT" "Ok, $NEW_STACK_PROXY will be used as proxy for all apps in this stack"

@@ -1309,7 +1309,7 @@ function fn_setupProxy() {
                     $script:DEVICE_NAME = "${shortDeviceName}$($script:RANDOM_VALUE)"
                 }
 
-                # Update the proxy configuration
+                # Update the proxy configuration values
                 $envContent = $envContent -replace "# STACK_PROXY=", "STACK_PROXY="
                 $CURRENT_VALUE = ($envContent | Select-String -Pattern "STACK_PROXY=" -SimpleMatch).ToString().Split("=")[1]
                 $envContent = $envContent -replace "STACK_PROXY=${CURRENT_VALUE}", "STACK_PROXY=$script:NEW_STACK_PROXY"
@@ -1322,6 +1322,19 @@ function fn_setupProxy() {
                 $dkComContent = $dkComContent -replace '# network_mode: service:', 'network_mode: service:'
                 Set-Content $script:DKCOM_FILENAME -Value $dkComContent
 
+                # Update the Docker Compose file to ensure the Hostname lines is commented out if a proxy is being used
+                $dkComContent = Get-Content $script:DKCOM_FILENAME -Raw
+                # Match lines that contain 'hostname:' but are not already commented out
+                if ($dkComContent -match '(?m)^[^\#]*\bhostname:') {
+                    # This regex keeps the original indentation and adds a comment before 'hostname:'
+                    $dkComContent = $dkComContent -replace '(?m)^( *)(hostname: .*)', '$1# $2'
+                    Set-Content $script:DKCOM_FILENAME -Value $dkComContent
+                    print_and_log "BLUE" "Hostname line commented out due to proxy setup to avoid Docker network_mode conflicts."
+                } else {
+                    print_and_log "GREEN" "No need to comment out 'hostname:' lines, as they are already commented or absent."
+                }                
+
+                # Update the proxy configuration status
                 $script:PROXY_CONF = $true
                 $envContent = $envContent -replace "PROXY_CONFIGURATION_STATUS=0", "PROXY_CONFIGURATION_STATUS=1"
                 Set-Content .\$ENV_FILENAME -Value $envContent
