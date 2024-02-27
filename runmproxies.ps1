@@ -16,9 +16,9 @@ set-executionpolicy -scope CurrentUser -executionPolicy Bypass -Force
 
 
 # Default file names and paths if provided as arguments use the arguments otherwise use the default values
-$proxiesFile = $args[0] ?? "proxies.txt"
-$dockerComposeFile = $args[1] ?? "docker-compose.yaml"
-$envFile = $args[2] ?? ".env"
+$proxiesFile = If ($args[0] -ne $null) { $args[0] } Else { "proxies.txt" }
+$dockerComposeFile = If ($args[1] -ne $null) { $args[1] } Else { "docker-compose.yaml" }
+$envFile = If ($args[2] -ne $null) { $args[2] } Else { ".env" }
 
 # rootdir is the folder where the script is located
 $rootDir = Get-Location
