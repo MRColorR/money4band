@@ -1254,7 +1254,7 @@ fn_setupProxy() {
                     if grep -q '^[^#]*\bhostname:' "$DKCOM_FILENAME"; then
                         # This sed command comments out lines with 'hostname:' that are not already enabled apps and not already commented out
                         # First, comment out any 'hostname:' lines that are not part of an enabled/disabled block
-                        sed -ri '/^[[:space:]]*[^#]*hostname:/ s/^([[:space:]]*)/\1# /' "$DKCOM_FILENAME"
+                        # sed -ri '/^[[:space:]]*[^#]*hostname:/ s/^([[:space:]]*)/\1# /' "$DKCOM_FILENAME"
 
                         # Now, ensure 'hostname:' lines within '#ENABLE_' blocks are commented out
                         sed -ri '/^[[:space:]]*#ENABLE_[[:alnum:]_]*[[:space:]]+[^#]*hostname:/ s/^([[:space:]]*#ENABLE_[[:alnum:]_]*[[:space:]]*)/\1# /' "$DKCOM_FILENAME"

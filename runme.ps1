@@ -1328,7 +1328,7 @@ function fn_setupProxy() {
                 # Check if there are 'hostname:' lines that are not already commented out
                 if ($dkComContent -match '(?m)^[^\#]*\bhostname:') {
                     # This regex keeps the original indentation and adds a comment before 'hostname:' for lines not part of an enabled/disabled block
-                    $dkComContent = $dkComContent -replace '(?m)^( *)(hostname: .*)', '$1# $2'
+                    # $dkComContent = $dkComContent -replace '(?m)^( *)(hostname: .*)', '$1# $2'
 
                     # This regex ensures 'hostname:' lines within '#ENABLE_' blocks are commented out, preserving the block's enable/disable syntax
                     $dkComContent = $dkComContent -replace '(?m)^( *#ENABLE_[\w\d_]+ +)(hostname: .*)', '$1# $2'
