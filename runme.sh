@@ -1252,11 +1252,15 @@ fn_setupProxy() {
 
                     # Check if there is a 'hostname:' line that is not commented out
                     if grep -q '^[^#]*\bhostname:' "$DKCOM_FILENAME"; then
-                        # This sed command comments out lines with 'hostname:' that are not already commented out
-                        sed -ri 's/^([[:space:]]*)hostname:/\1# hostname:/' "$DKCOM_FILENAME"
-                        toLog_ifDebug "BLUE" "Hostname lines commented out due to proxy setup to avoid Docker network_mode conflicts."
+                        # This sed command comments out lines with 'hostname:' that are not already enabled apps and not already commented out
+                        # First, comment out any 'hostname:' lines that are not part of an enabled/disabled block
+                        sed -ri '/^[[:space:]]*[^#]*hostname:/ s/^([[:space:]]*)/\1# /' "$DKCOM_FILENAME"
+
+                        # Now, ensure 'hostname:' lines within '#ENABLE_' blocks are commented out
+                        sed -ri '/^[[:space:]]*#ENABLE_[[:alnum:]_]*[[:space:]]+[^#]*hostname:/ s/^([[:space:]]*#ENABLE_[[:alnum:]_]*[[:space:]]*)/\1# /' "$DKCOM_FILENAME"
+                        print_and_log "BLUE" "Hostname lines commented out due to proxy setup to avoid Docker network_mode conflicts."
                     else
-                        toLog_ifDebug "GREEN" "No need to comment out 'hostname:' lines, as they are already commented or absent."
+                        print_and_log "GREEN" "No need to comment out 'hostname:' lines, as they are already commented or absent."
                     fi
 
                     # Update the proxy configuration status

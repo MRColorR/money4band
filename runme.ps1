@@ -1322,17 +1322,23 @@ function fn_setupProxy() {
                 $dkComContent = $dkComContent -replace '# network_mode: service:', 'network_mode: service:'
                 Set-Content $script:DKCOM_FILENAME -Value $dkComContent
 
-                # Update the Docker Compose file to ensure the Hostname lines is commented out if a proxy is being used
+                # Update the Docker Compose file to ensure the Hostname lines are commented out if a proxy is being used
                 $dkComContent = Get-Content $script:DKCOM_FILENAME -Raw
-                # Match lines that contain 'hostname:' but are not already commented out
+
+                # Check if there are 'hostname:' lines that are not already commented out
                 if ($dkComContent -match '(?m)^[^\#]*\bhostname:') {
-                    # This regex keeps the original indentation and adds a comment before 'hostname:'
+                    # This regex keeps the original indentation and adds a comment before 'hostname:' for lines not part of an enabled/disabled block
                     $dkComContent = $dkComContent -replace '(?m)^( *)(hostname: .*)', '$1# $2'
+
+                    # This regex ensures 'hostname:' lines within '#ENABLE_' blocks are commented out, preserving the block's enable/disable syntax
+                    $dkComContent = $dkComContent -replace '(?m)^( *#ENABLE_[\w\d_]+ +)(hostname: .*)', '$1# $2'
+                    
                     Set-Content $script:DKCOM_FILENAME -Value $dkComContent
-                    print_and_log "BLUE" "Hostname line commented out due to proxy setup to avoid Docker network_mode conflicts."
+                    print_and_log "BLUE" "Hostname lines commented out due to proxy setup to avoid Docker network_mode conflicts."
                 } else {
                     print_and_log "GREEN" "No need to comment out 'hostname:' lines, as they are already commented or absent."
-                }                
+                }
+                            
 
                 # Update the proxy configuration status
                 $script:PROXY_CONF = $true
