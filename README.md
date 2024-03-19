@@ -58,6 +58,7 @@ Register an account on the app's sites clicking each apps' names in the followin
 | Go to [PROXYLITE](https://proxylite.ru/?r=PJTKXWN3) | :white_check_mark:	  | :white_check_mark: |Unlimited|1|
 | Go to [BITPING](https://app.bitping.com?r=qm7mIuX3) | :white_check_mark:	  | :white_check_mark: |Unlimited|1|
 | Go to [SPEEDSHARE](https://speedshare.app/?ref=mindlessnerd) | :white_check_mark: | :x: | Unlimited | 1 |
+| Go to [GRASS](https://app.getgrass.io/register/?referralCode=qyvJmxgNUhcLo2f) | :white_check_mark: | :x: | Unlimited | 1 |
 | Go to [MYSTNODE](https://mystnodes.co/?referral_code=Tc7RaS7Fm12K3Xun6mlU9q9hbnjojjl9aRBW8ZA9) | :white_check_mark:	  | :white_check_mark: |Unlimited|Unlimited|
 
 ## Scale Up with Multi-Proxy Support 🌐
