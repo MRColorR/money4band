@@ -113,7 +113,17 @@
       }
     },
     "claimURLBase": "Speedshare nodes are automatically claimed. After starting it, go to the app's dashboard to see it. Its UUID is: "
+  },
+  {
+    "name": "GRASS",
+    "dashboard": "https://app.getgrass.io/dashboard",
+    "link": "https://app.getgrass.io/register/?referralCode=qyvJmxgNUhcLo2f",
+    "image": "mrcolorrain/grass",
+    "flags": {
+      "--email":{},
+      "--password":{}
   }
+}
   
   ],
   "extra-apps":[

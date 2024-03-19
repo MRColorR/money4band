@@ -167,6 +167,20 @@ services:
 #ENABLE_SPEEDSHARE    mem_reservation: ${APP_MEM_RESERV_BIG}
 #ENABLE_SPEEDSHARE    mem_limit: ${APP_MEM_LIMIT_BIG}
 
+# GRASS CONTAINER
+#ENABLE_GRASS  grass:
+#ENABLE_GRASS    container_name: ${DEVICE_NAME}_grass
+#ENABLE_GRASS    hostname: ${DEVICE_NAME}_grass
+#ENABLE_GRASS    image: mrcolorrain/grass:latest
+#ENABLE_GRASS    environment:
+#ENABLE_GRASS      - GRASS_USER=$GRASS_EMAIL
+#ENABLE_GRASS      - GRASS_PASS=$GRASS_PASSWD
+#ENABLE_GRASS    # network_mode: service:tun2socks
+#ENABLE_GRASS    restart: always
+#ENABLE_GRASS    cpus: ${APP_CPU_LIMIT_BIG}
+#ENABLE_GRASS    mem_reservation: ${APP_MEM_RESERV_BIG}
+#ENABLE_GRASS    mem_limit: ${APP_MEM_LIMIT_BIG}
+
 
 ### EXTRA APPS ###
 
