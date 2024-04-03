@@ -232,9 +232,18 @@ services:
 #ENABLE_PROXY    environment:
 #ENABLE_PROXY      - LOGLEVEL=info
 #ENABLE_PROXY      - PROXY=$STACK_PROXY
-#ENABLE_PROXY    command: ["/bin/sh", "-c", "echo 'nameserver 1.1.1.1\nnameserver 8.8.8.8' > /etc/resolv.conf && ip rule add iif lo ipproto udp dport 53 lookup main && ip rule add iif lo ipproto udp dport 3478 lookup main"]
+#ENABLE_PROXY      - EXTRA_COMMANDS=ip rule add iif lo ipproto udp dport 53 lookup main;
 #ENABLE_PROXY    cap_add:
 #ENABLE_PROXY      - NET_ADMIN
+#ENABLE_PROXY    network_mode: "bridge"
+#ENABLE_PROXY    dns:
+#ENABLE_PROXY    - 1.1.1.1
+#ENABLE_PROXY    - 8.8.8.8
+#ENABLE_PROXY    - 1.0.0.1
+#ENABLE_PROXY    - 8.8.4.4
+#ENABLE_PROXY    ports:
+#ENABLE_PROXY      - ${M4B_DASHBOARD_PORT}:80
+#ENABLE_PROXY      - ${MYSTNODE_DASHBOARD_PORT}:4449
 #ENABLE_PROXY    volumes:
 #ENABLE_PROXY      - '/dev/net/tun:/dev/net/tun'
 #ENABLE_PROXY    restart: always
