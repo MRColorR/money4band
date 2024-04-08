@@ -194,8 +194,8 @@ services:
 #ENABLE_MYSTNODE    command: service --agreed-terms-and-conditions
 #ENABLE_MYSTNODE    cap_add:
 #ENABLE_MYSTNODE          - NET_ADMIN
-#ENABLE_MYSTNODE    ports:
-#ENABLE_MYSTNODE          - ${MYSTNODE_DASHBOARD_PORT}:4449
+#ENABLE_MYSTNODE    ports: #RMLINE_IF_ENABLE_PROXY
+#ENABLE_MYSTNODE          - ${MYSTNODE_DASHBOARD_PORT}:4449 #RMLINE_IF_ENABLE_PROXY
 #ENABLE_MYSTNODE    volumes:
 #ENABLE_MYSTNODE          # You have 2 options
 #ENABLE_MYSTNODE          - ./.data/mysterium-node:/var/lib/mysterium-node # Bind an host folder to the container (more insecure but simplier to port and backup) this option mount a new identity or a backed up one from the host file system
@@ -214,8 +214,8 @@ services:
 #ENABLE_PEER2PROFIT    image: mrcolorrain/peer2profit:latest
 #ENABLE_PEER2PROFIT    environment:
 #ENABLE_PEER2PROFIT      - P2P_EMAIL=$PEER2PROFIT_EMAIL
-#ENABLE_PEER2PROFIT    ports:
-#ENABLE_PEER2PROFIT      - 5901:5900
+#ENABLE_PEER2PROFIT    ports: #RMLINE_IF_ENABLE_PROXY
+#ENABLE_PEER2PROFIT      - 5901:5900 #RMLINE_IF_ENABLE_PROXY
 #ENABLE_PEER2PROFIT    # network_mode: service:tun2socks
 #ENABLE_PEER2PROFIT    restart: always
 #ENABLE_PEER2PROFIT    cpus: ${APP_CPU_LIMIT_HUGE}
@@ -232,9 +232,18 @@ services:
 #ENABLE_PROXY    environment:
 #ENABLE_PROXY      - LOGLEVEL=info
 #ENABLE_PROXY      - PROXY=$STACK_PROXY
-#ENABLE_PROXY    command: ["/bin/sh", "-c", "echo 'nameserver 1.1.1.1\nnameserver 8.8.8.8' > /etc/resolv.conf && ip rule add iif lo ipproto udp dport 53 lookup main && ip rule add iif lo ipproto udp dport 3478 lookup main"]
+#ENABLE_PROXY      - EXTRA_COMMANDS=ip rule add iif lo ipproto udp dport 53 lookup main;
 #ENABLE_PROXY    cap_add:
 #ENABLE_PROXY      - NET_ADMIN
+#ENABLE_PROXY    network_mode: "bridge"
+#ENABLE_PROXY    dns:
+#ENABLE_PROXY    - 1.1.1.1
+#ENABLE_PROXY    - 8.8.8.8
+#ENABLE_PROXY    - 1.0.0.1
+#ENABLE_PROXY    - 8.8.4.4
+#ENABLE_PROXY    ports:
+#ENABLE_PROXY      - ${M4B_DASHBOARD_PORT}:80
+#ENABLE_PROXY      - ${MYSTNODE_DASHBOARD_PORT}:4449
 #ENABLE_PROXY    volumes:
 #ENABLE_PROXY      - '/dev/net/tun:/dev/net/tun'
 #ENABLE_PROXY    restart: always
@@ -267,8 +276,8 @@ services:
     container_name: ${DEVICE_NAME}_webdashboard
     hostname: ${DEVICE_NAME}_webdashboard
     image: nginx:alpine-slim
-    ports:
-      - ${M4B_DASHBOARD_PORT}:80
+    ports: #RMLINE_IF_ENABLE_PROXY
+      - ${M4B_DASHBOARD_PORT}:80 #RMLINE_IF_ENABLE_PROXY
     volumes:
       - ./.resources/.www:/usr/share/nginx/html:ro
     restart: always

@@ -1263,6 +1263,10 @@ fn_setupProxy() {
                         print_and_log "GREEN" "No need to comment out 'hostname:' lines, as they are already commented or absent."
                     fi
 
+                    # Remove all lines having the comment #RMLINE_IF_ENABLE_PROXY
+                    sed -i '/#RMLINE_IF_ENABLE_PROXY/d' "$DKCOM_FILENAME"
+                    print_and_log "BLUE" "Service port lines commented out due to proxy configuration to avoid Docker network_mode conflicts. You can still visit these services through the ports published on the proxy service."
+
                     # Update the proxy configuration status
                     PROXY_CONF='true'
                     sed -i 's/PROXY_CONFIGURATION_STATUS=0/PROXY_CONFIGURATION_STATUS=1/' ${ENV_FILENAME}

@@ -1338,7 +1338,11 @@ function fn_setupProxy() {
                 } else {
                     print_and_log "GREEN" "No need to comment out 'hostname:' lines, as they are already commented or absent."
                 }
-                            
+
+                # Remove all lines having the comment #RMLINE_IF_ENABLE_PROXY
+                $dkComContent = $dkComContent -replace '(?m)^.*#RMLINE_IF_ENABLE_PROXY.*\r?\n', ''
+                Set-Content $script:DKCOM_FILENAME -Value $dkComContent
+                print_and_log "BLUE" "Service port lines commented out due to proxy configuration to avoid Docker network_mode conflicts. You can still visit these services through the ports published on the proxy service."
 
                 # Update the proxy configuration status
                 $script:PROXY_CONF = $true
