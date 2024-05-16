@@ -7,7 +7,6 @@ import argparse
 from typing import Dict, Any
 import locale
 
-
 # Load config variables from the config file
 def load_json_config(config_file_path: str) -> Dict[str, Any]:
     try:
@@ -26,8 +25,7 @@ def load_json_config(config_file_path: str) -> Dict[str, Any]:
         logging.error(f"An unexpected error occurred when loading {config_file_path}: {str(e)}")
         raise
 
-
-def detect_os(os_map: Dict[str,str]) -> Dict[str,str]:
+def detect_os(os_map: Dict[str, str]) -> Dict[str, str]:
     try:
         logging.debug("Detecting OS type")
         os_type = platform.system().lower()
@@ -38,7 +36,7 @@ def detect_os(os_map: Dict[str,str]) -> Dict[str,str]:
         logging.error(f"An error occurred while detecting OS: {str(e)}")
         raise
 
-def detect_architecture(arch_map):
+def detect_architecture(arch_map: Dict[str, str]) -> Dict[str, str]:
     try:
         logging.debug("Detecting system architecture")
         arch = platform.machine().lower()
@@ -49,7 +47,7 @@ def detect_architecture(arch_map):
         logging.error(f"An error occurred while detecting architecture: {str(e)}")
         raise
 
-def mainmenu(m4b_config):
+def mainmenu(m4b_config: Dict[str, Any]) -> None:
     while True:
         try:
             logging.debug("Loading main menu")
