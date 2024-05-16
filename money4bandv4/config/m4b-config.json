@@ -1,0 +1,74 @@
+{
+    "project_info": {
+        "project_version": "4.0.0",
+        "compose_project_name": "money4band",
+        "ds_project_server_url": "https://discord.com/invite/Fq8eeazBAD"
+    },
+    "placeholders": {
+        "device_name_placeholder": "yourDeviceName"
+    },
+    "proxy_info": {
+        "proxy_conf": "false",
+        "current_proxy": "",
+        "new_stack_proxy": "",
+        "stack_proxy": ""
+    },
+    "file_info": {
+        "env_template_filename": ".env.template",
+        "env_filename": ".env",
+        "app_config_json_file": "app_config.json",
+        "mainmenu_json_file": "mainmenu.json",
+        "dkcom_template_filename": "docker-compose.yaml.template",
+        "dkcom_filename": "docker-compose.yaml",
+        "resources_dir": ".resources",
+        "config_dir": ".resources/.www/.configs",
+        "scripts_dir": ".resources/.scripts",
+        "files_dir": ".resources/.files"
+    },
+    "system_info": {
+        "sleep_time": 1.5,
+        "arch": "unknown",
+        "dkarch": "unknown",
+        "os_type": "unknown",
+        "arch_map": {
+            "x86_64": "amd64",
+            "amd64": "amd64",
+            "aarch64": "arm64",
+            "arm64": "arm64"
+        },
+        "os_map": {
+            "win32nt": "Windows",
+            "windows_nt": "Windows",
+            "windows": "Windows",
+            "linux": "Linux",
+            "darwin": "MacOS",
+            "macos": "MacOS",
+            "macosx": "MacOS",
+            "mac": "MacOS",
+            "osx": "MacOS",
+            "cygwin": "Cygwin",
+            "mingw": "MinGw",
+            "msys": "Msys",
+            "freebsd": "FreeBSD"
+        }
+    },
+    "dashboards_info": {
+        "mystnode_dashboard_port": 4449,
+        "m4b_dashboard_port": 8081
+    },
+    "resource_limits": {
+        "app_cpu_limit_little": 0.8,
+        "app_cpu_limit_medium": 1,
+        "app_cpu_limit_big": 2,
+        "app_cpu_limit_huge": 4,
+        "ram_cap_mb_default": "6144m",
+        "app_mem_reserv_little": "64m",
+        "app_mem_limit_little": "128m",
+        "app_mem_reserv_medium": "128m",
+        "app_mem_limit_medium": "256m",
+        "app_mem_reserv_big": "256m",
+        "app_mem_limit_big": "512m",
+        "app_mem_reserv_huge": "512m",
+        "app_mem_limit_huge": "1024m"
+    }
+}
