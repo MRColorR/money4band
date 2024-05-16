@@ -29,7 +29,7 @@
         }
     },
     "menu": [
-        {"label": "Show supported apps' links", "function": "fn_showLinks"},
+        {"label": "Show supported apps' links", "function": "fn_show_links"},
         {"label": "Install Docker", "function": "fn_dockerInstall"},
         {"label": "Setup Apps", "function": "fn_setupApps"},
         {"label": "Setup Extra Apps", "function": "fn_setupExtraApps"},
