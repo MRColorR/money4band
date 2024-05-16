@@ -1,0 +1,42 @@
+{
+    "env_template_filename": ".env.template",
+    "env_filename": ".env",
+    "device_name_placeholder": "yourDeviceName",
+    "device_name": "yourDeviceName",
+    "proxy_conf": "false",
+    "current_proxy": "",
+    "new_stack_proxy": "",
+    "app_config_json_file": "app_config.json",
+    "mainmenu_json_file": "mainmenu.json",
+    "dkcom_template_filename": "docker-compose.yaml.template",
+    "dkcom_filename": "docker-compose.yaml",
+    "sleep_time": 1.5,
+    "resources_dir": ".resources",
+    "config_dir": ".resources/.www/.configs",
+    "scripts_dir": ".resources/.scripts",
+    "files_dir": ".resources/.files",
+    "arch": "unknown",
+    "dkarch": "unknown",
+    "arch_map": {
+        "x86_64": "amd64",
+        "amd64": "amd64",
+        "aarch64": "arm64",
+        "arm64": "arm64"
+    },
+    "os_type": "unknown",
+    "os_map": {
+        "win32nt": "Windows",
+        "windows_nt": "Windows",
+        "windows": "Windows",
+        "linux": "Linux",
+        "darwin": "MacOS",
+        "macos": "MacOS",
+        "macosx": "MacOS",
+        "mac": "MacOS",
+        "osx": "MacOS",
+        "cygwin": "Cygwin",
+        "mingw": "MinGw",
+        "msys": "Msys",
+        "freebsd": "FreeBSD"
+    }
+}
