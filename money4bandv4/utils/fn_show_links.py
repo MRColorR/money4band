@@ -1,5 +1,7 @@
-import json
+import os
 import argparse
+import logging
+import json
 from typing import Dict, Any
 from colorama import Fore, Back, Style, just_fix_windows_console
 
@@ -32,20 +34,35 @@ def main(app_config: Dict=None, m4b_config=None, system_info=None ):
         print(f"An error occurred: {str(e)}")
 
 if __name__ == '__main__':
+    # Get the script absolute path and name
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    script_name = os.path.basename(__file__)
+
+    # Parse command-line arguments
     parser = argparse.ArgumentParser(description='Run the module standalone.')
     parser.add_argument('--app_config', type=str, required=False, help='Path to app_config JSON file')
     parser.add_argument('--m4b_config', type=str, required=False, help='Path to m4b_config JSON file')
     parser.add_argument('--system_info', type=str, required=False, help='Path to system_info JSON file')
-
     args = parser.parse_args()
 
+    # Start logging
+    logging.basicConfig(filename=f"{script_name}.log",  format='%(asctime)s - [%(levelname)s] - %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level="DEBUG")
+
+    logging.info(f"Starting {script_name} test")
+    logging.info("Loading app_config JSON file")
     with open(args.app_config, 'r') as f:
         app_config = json.load(f)
+        logging.info("app_config JSON file loaded successfully")
 
+    logging.info("Loading m4b_config JSON file")
     with open(args.m4b_config, 'r') as f:
         m4b_config = json.load(f)
+        logging.info("m4b_config JSON file loaded successfully")
 
+    logging.info("Loading system_info JSON file")
     with open(args.system_info, 'r') as f:
         system_info = json.load(f)
+        logging.info("system_info JSON file loaded successfully")
 
     main(app_config, m4b_config, system_info)
+    logging.info(f"{script_name} test complete")

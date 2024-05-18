@@ -1,7 +1,7 @@
 import os
 import argparse
-import locale
 import logging
+import locale
 import time
 from typing import Dict, Any
 from colorama import Fore, Back, Style, just_fix_windows_console
