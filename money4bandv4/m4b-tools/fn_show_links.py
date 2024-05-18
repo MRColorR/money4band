@@ -4,18 +4,16 @@ import logging
 import json
 from typing import Dict, Any
 from colorama import Fore, Back, Style, just_fix_windows_console
+from utils.cls import cls
 
-from money4bandv4.utils.cls import cls
 
-
-def main(app_config: Dict=None, m4b_config=None, system_info=None ):
+def main(app_config: Dict=None, m4b_config=None):
     """
     Show the links of the apps.
 
     Arguments:
     app_config -- the app config dictionary
     m4b_config -- the m4b config dictionary (not used)
-    system_info -- the system info dictionary (not used)
     """
     try:
         cls()

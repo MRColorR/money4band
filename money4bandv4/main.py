@@ -9,14 +9,15 @@ from utils import load, detect
 from utils.cls import cls
 
 
-def mainmenu(m4b_config_path: str, apps_config_path: str, utils_dir_path: str) -> None:
+def mainmenu(m4b_config_path: str, apps_config_path: str, m4b_tools_dir_path: str) -> None:
     """
     Main menu of the script.
 
     Arguments:
     m4b_config_path -- the path to the m4b config file
     apps_config_path -- the path to the apps config file
-    utils_dir_path -- the path to the utils directory
+
+    m4b_tools_dir_path -- the path to the m4b-tools directory
     """
     try:
         cls()
@@ -44,17 +45,15 @@ def mainmenu(m4b_config_path: str, apps_config_path: str, utils_dir_path: str) -
             logging.debug("Loading main menu")
             logging.debug("Loading OS and architecture maps from config file")
             sleep_time = m4b_config.get("system").get("sleep_time")
-            os_map = m4b_config.get("system").get("os_map")
-            arch_map = m4b_config.get("system").get("arch_map")
             system_info = {
-                **detect.detect_os(os_map),
-                **detect.detect_architecture(arch_map)
+                **detect.detect_os(m4b_config_path),
+                **detect.detect_architecture(m4b_config_path)
             }
             
-            # Load the functions from the passed utils_dir
-            logging.debug(f"Loading modules from {utils_dir_path}")
-            utils_modules = load.load_modules_from_directory(utils_dir_path)
-            logging.info(f"Successfully loaded modules from {utils_dir_path}")
+            # Load the functions from the passed tools dir
+            logging.debug(f"Loading modules from {m4b_tools_dir_path}")
+            m4b_tools_modules = load.load_modules_from_directory(m4b_tools_dir_path)
+            logging.info(f"Successfully loaded modules from {m4b_tools_dir_path}")
 
             print(f"{Fore.GREEN}----------------------------------------------")
             print(f"{Back.GREEN}MONEY4BAND AUTOMATIC GUIDED SETUP v{m4b_config.get('project')['project_version']}{Back.RESET}")
@@ -94,7 +93,7 @@ def mainmenu(m4b_config_path: str, apps_config_path: str, utils_dir_path: str) -
                 function_label = menu_options[choice - 1]["label"]
                 function_name = menu_options[choice - 1]["function"]
                 logging.info(f"User selected menu option number {choice} that corresponds to menu item {function_label}")
-                utils_modules[function_name].main(apps_config, m4b_config, system_info)
+                m4b_tools_modules[function_name].main(apps_config, m4b_config)
 
             else:
                 print("Invalid input. Please select a menu option between 1 and {}.".format(len(menu_options)))
@@ -117,7 +116,7 @@ def main():
     parser.add_argument('--config-m4b-file', default='m4b-config.json', help='Set the m4b  config file name')
     parser.add_argument('--config-usr-file', default='usr-config.json', help='Set  the user config file name')
     parser.add_argument('--config-app-file', default='app-config.json', help='Set the apps config file name')
-    parser.add_argument('--utils-dir', default=os.path.join(script_dir, 'utils'), help='Set the utils directory')
+    parser.add_argument('--m4b-tools-dir', default=os.path.join(script_dir, 'm4b-tools'), help='Set the m4b tools directory')
     parser.add_argument('--requirements-path', default=os.path.join(script_dir, 'requirements.toml'), help='Set the requirements path')
     parser.add_argument('--log-level', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], default='INFO', help='Set the logging level')
     parser.add_argument('--log-dir', default=os.path.join(script_dir, 'logs'), help='Set the logging directory')
@@ -141,7 +140,7 @@ def main():
     # Run mainmenu function until exit
     mainmenu(m4b_config_path=os.path.join(args.config_dir, args.config_m4b_file), 
              apps_config_path=os.path.join(args.config_dir, args.config_app_file), 
-             utils_dir_path=args.utils_dir
+             m4b_tools_dir_path=args.m4b_tools_dir
              )
 
 if __name__ == '__main__':
