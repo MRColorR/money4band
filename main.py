@@ -139,7 +139,7 @@ def main():
     # Run mainmenu function until exit
     mainmenu(m4b_config_path=os.path.join(args.config_dir, args.config_m4b_file), 
              apps_config_path=os.path.join(args.config_dir, args.config_app_file), 
-             utils_dir_path=args.m4b_tools_dir
+             utils_dir_path=args.utils_dir
              )
 
 if __name__ == '__main__':
