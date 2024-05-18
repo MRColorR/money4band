@@ -40,13 +40,19 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Run the module standalone.')
     parser.add_argument('--app_config', type=str, required=False, help='Path to app_config JSON file')
     parser.add_argument('--m4b_config', type=str, required=False, help='Path to m4b_config JSON file')
-    parser.add_argument('--system_info', type=str, required=False, help='Path to system_info JSON file')
+    parser.add_argument('--log-dir', default=os.path.join(script_dir, 'logs'), help='Set the logging directory')
+    parser.add_argument('--log-file', default=f"{script_name}.log", help='Set the logging file name')
     args = parser.parse_args()
 
     # Start logging
-    logging.basicConfig(filename=f"{script_name}.log",  format='%(asctime)s - [%(levelname)s] - %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level="DEBUG")
+    os.makedirs(args.log_dir, exist_ok=True)
+    logging.basicConfig(filename=os.path.join(args.log_dir, args.log_file),  format='%(asctime)s - [%(levelname)s] - %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level="DEBUG")
 
-    logging.info(f"Starting {script_name} test")
+    msg = f"Testing {script_name} function"
+    print(msg)
+    logging.info(msg)
+
+    # Test the function
     logging.info("Loading app_config JSON file")
     with open(args.app_config, 'r') as f:
         app_config = json.load(f)
@@ -57,10 +63,9 @@ if __name__ == '__main__':
         m4b_config = json.load(f)
         logging.info("m4b_config JSON file loaded successfully")
 
-    logging.info("Loading system_info JSON file")
-    with open(args.system_info, 'r') as f:
-        system_info = json.load(f)
-        logging.info("system_info JSON file loaded successfully")
-
-    main(app_config, m4b_config, system_info)
+    main(app_config, m4b_config)
     logging.info(f"{script_name} test complete")
+
+    msg = f"{script_name} test complete"
+    print(msg)
+    logging.info(msg)
