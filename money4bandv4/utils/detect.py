@@ -3,17 +3,23 @@ import argparse
 import logging
 import json
 import platform
-from typing import Dict
+from typing import Dict, Any
 
-def detect_os(os_map: Dict[str, str]) -> Dict[str, str]:
+def detect_os(m4b_config_path: str) -> Dict[str, str]:
     """
     Detect the operating system and return its type.
 
     Arguments:
-    os_map -- a dictionary mapping operating system names to their types
+    m4b_config_path -- the path to the m4b config file
     """
     try:
+        logging.debug("Loading m4b_config JSON file")
+        with open(m4b_config_path, 'r') as f:
+            m4b_config = json.load(f)
+        logging.info("m4b_config JSON file loaded successfully")
+
         logging.debug("Detecting OS type")
+        os_map = m4b_config.get("system").get("os_map")
         os_type = platform.system().lower()
         os_type = os_map.get(os_type, "unknown")
         logging.info(f"OS type detected: {os_type}")
@@ -22,15 +28,21 @@ def detect_os(os_map: Dict[str, str]) -> Dict[str, str]:
         logging.error(f"An error occurred while detecting OS: {str(e)}")
         raise
 
-def detect_architecture(arch_map: Dict[str, str]) -> Dict[str, str]:
+def detect_architecture(m4b_config_path: str) -> Dict[str, str]:
     """
     Detect the system architecture and return its type.
 
     Arguments:
-    arch_map -- a dictionary mapping system architectures to their types
+    m4b_config_path -- the path to the m4b config file
     """
     try:
+        logging.debug("Loading m4b_config JSON file")
+        with open(m4b_config_path, 'r') as f:
+            m4b_config = json.load(f)
+        logging.info("m4b_config JSON file loaded successfully")
+
         logging.debug("Detecting system architecture")
+        arch_map = m4b_config.get("system").get("arch_map")
         arch = platform.machine().lower()
         dkarch = arch_map.get(arch, "unknown")
         logging.info(f"System architecture detected: {arch}, Docker architecture has been set to {dkarch}")
@@ -46,9 +58,7 @@ if __name__ == "__main__":
 
     # Parse command-line arguments
     parser = argparse.ArgumentParser(description=f"Run the {script_name} module standalone.")
-    parser.add_argument('--os-map', type=str, required=True, help='Path to os_map JSON file')
-    parser.add_argument('--arch-map', type=str, required=True, help='Path to arch_map JSON file')
-
+    parser.add_argument('--m4b-config-path', type=str, required=True, help='The m4b config file path')
     args = parser.parse_args()
 
     # Start logging
@@ -58,15 +68,7 @@ if __name__ == "__main__":
     msg = f"Testing {script_name} function"
     print(msg)
     logging.info(msg)
-    logging.info("Loading os_map JSON fie")
-    with open(args.os_map, 'r') as f:
-        os_map = json.load(f)
-        logging.info("os_map JSON file loaded successfully")
-    logging.info("Loading arch_map JSON file")
-    with open(args.arch_map, 'r') as f:
-        arch_map = json.load(f)
-        logging.info("arch_map JSON file loaded successfully")
 
-    print(detect_os(os_map))
-    print(detect_architecture(arch_map))
+    print(detect_os(args.m4b_config_path))
+    print(detect_architecture(args.m4b_config_path))
     logging.info(f"{script_name} test complete")
