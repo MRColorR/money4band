@@ -1,22 +1,22 @@
-{   "user":{
-        "Nickname": "yourNickname",
+{
+    "user": {
+        "Nickname": "Sam2029",
         "email": "your@mail.com"
     },
-    "device_info":{
-        "device_name": "yourDeviceName"
-        },
-        
+    "device_info": {
+        "device_name": "werwe"
+    },
     "apps": {
         "earnapp": {
             "enabled": false,
             "device_uuid": "sdk-node-yourEARNAPPDeviceUUID"
         },
         "honeygain": {
-            "enabled": false,
-            "email": "yourHONEYGAINMail",
-            "password": "yourHONEYGAINPw"
+            "enabled": true,
+            "email": "example@emaple.com",
+            "password": "Samaqweh"
         },
-        "iproyalpawns": {
+        "pawns": {
             "enabled": false,
             "email": "yourIPROYALPAWNSMail",
             "password": "yourIPROYALPAWNSPw"
@@ -34,9 +34,9 @@
             "token": "yourTRAFFMONETIZERToken"
         },
         "repocket": {
-            "enabled": false,
-            "email": "yourREPOCKETMail",
-            "apikey": "yourREPOCKETAPIKey"
+            "enabled": true,
+            "email": "E",
+            "apikey": "f me"
         },
         "earnfm": {
             "enabled": false,
@@ -73,7 +73,7 @@
     },
     "proxies": {
         "enabled": false,
-        "multiproxy":false,
+        "multiproxy": false,
         "stack_proxy": "yourProxy"
     },
     "notifications": {
