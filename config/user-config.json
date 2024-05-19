@@ -73,6 +73,7 @@
     },
     "proxies": {
         "enabled": false,
+        "multiproxy":false,
         "stack_proxy": "yourProxy"
     },
     "notifications": {
