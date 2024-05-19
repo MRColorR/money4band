@@ -23,7 +23,7 @@
       }
     },
     {
-      "name": "IPROYALPAWNS",
+      "name": "PAWNS",
       "dashboard": "https://dashboard.pawns.app/",
       "link": "https://pawns.app?r=MiNe",
       "image": "iproyal/pawns-cli",
