@@ -15,6 +15,7 @@ def main(app_config: Dict = None, m4b_config: Dict = None) -> None:
     m4b_config -- the m4b config dictionary (not used)
     """
     try:
+        logging.info("Showing links of the apps")
         cls()
         just_fix_windows_console()
         print("Use CTRL+Click to open links or copy them:")
@@ -81,6 +82,12 @@ if __name__ == '__main__':
         main(app_config, m4b_config)
 
         logging.info(f"{script_name} script completed successfully")
+    except FileNotFoundError as e:
+        logging.error(f"File not found: {str(e)}")
+        print(f"File not found: {str(e)}")
+    except json.JSONDecodeError as e:
+        logging.error(f"Error decoding JSON: {str(e)}")
+        print(f"Error decoding JSON: {str(e)}")
     except Exception as e:
         logging.error(f"An unexpected error occurred: {str(e)}")
         print(f"An unexpected error occurred: {str(e)}")
