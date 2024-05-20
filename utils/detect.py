@@ -51,30 +51,41 @@ def detect_architecture(m4b_config_path: str) -> Dict[str, str]:
         logging.error(f"An error occurred while detecting architecture: {str(e)}")
         raise
 
-if __name__ == "__main__":
-    # Get the script absolute path and name
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    script_name = os.path.basename(__file__)
+def main(m4b_config_path: str) -> None:
+    """
+    Main function to run the detect module standalone.
 
+    Arguments:
+    m4b_config_path -- the path to the m4b config file
+    """
+    try:
+        # Start logging
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        script_name = os.path.basename(__file__)
+        log_dir = os.path.join(script_dir, 'logs')
+        os.makedirs(log_dir, exist_ok=True)
+        logging.basicConfig(filename=os.path.join(log_dir, f"{script_name}.log"), format='%(asctime)s - [%(levelname)s] - %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=logging.DEBUG)
+
+        # Test the function
+        msg = f"Testing {script_name} function"
+        print(msg)
+        logging.info(msg)
+
+        print(detect_os(m4b_config_path))
+        print(detect_architecture(m4b_config_path))
+        
+        msg = f"{script_name} test complete"
+        print(msg)
+        logging.info(msg)
+    except Exception as e:
+        logging.error(f"An unexpected error occurred: {str(e)}")
+        raise
+
+if __name__ == "__main__":
     # Parse command-line arguments
     parser = argparse.ArgumentParser(description=f"Run the {script_name} module standalone.")
     parser.add_argument('--m4b-config-path', type=str, required=True, help='The m4b config file path')
-    parser.add_argument('--log-dir', default=os.path.join(script_dir, 'logs'), help='Set the logging directory')
-    parser.add_argument('--log-file', default=f"{script_name}.log", help='Set the logging file name')
     args = parser.parse_args()
 
-    # Start logging
-    os.makedirs(args.log_dir, exist_ok=True)
-    logging.basicConfig(filename=os.path.join(args.log_dir, args.log_file),  format='%(asctime)s - [%(levelname)s] - %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level="DEBUG")
-
-    # Test the function
-    msg = f"Testing {script_name} function"
-    print(msg)
-    logging.info(msg)
-
-    print(detect_os(args.m4b_config_path))
-    print(detect_architecture(args.m4b_config_path))
-    
-    msg = f"{script_name} test complete"
-    print(msg)
-    logging.info(msg)
+    # Call the main function
+    main(args.m4b_config_path)
