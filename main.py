@@ -8,7 +8,6 @@ from colorama import Fore, Back, Style, just_fix_windows_console
 from utils import load, detect
 from utils.cls import cls
 
-
 def mainmenu(m4b_config_path: str, apps_config_path: str, utils_dir_path: str) -> None:
     """
     Main menu of the script.
@@ -24,8 +23,9 @@ def mainmenu(m4b_config_path: str, apps_config_path: str, utils_dir_path: str) -
         just_fix_windows_console()
         logging.info("Colorama initialized successfully")
     except Exception as e:
-        logging.error(f"Error initializing colorama: {str(e)}")
+        logging.error(f"Error initializing colorama: {str(e)}", exc_info=True)
         raise
+
     while True:
         try:
             logging.debug("Loading m4b config from config file")
@@ -34,12 +34,13 @@ def mainmenu(m4b_config_path: str, apps_config_path: str, utils_dir_path: str) -
             logging.debug("Loading apps config from config file")
             apps_config = load.load_json_config(apps_config_path)
             logging.info(f"Successfully loaded apps config from {apps_config_path}")
-        except:
-            err_msg = "An error occurred while loading the config files"
-            logging.error(err_msg)
-            print(err_msg)
+        except FileNotFoundError as e:
+            logging.error(f"File not found: {str(e)}")
             raise
-            
+        except Exception as e:
+            logging.error(f"An error occurred: {str(e)}", exc_info=True)
+            raise
+
         try:
             logging.debug("Loading main menu")
             logging.debug("Loading OS and architecture maps from config file")
@@ -48,7 +49,7 @@ def mainmenu(m4b_config_path: str, apps_config_path: str, utils_dir_path: str) -
                 **detect.detect_os(m4b_config_path),
                 **detect.detect_architecture(m4b_config_path)
             }
-            
+
             # Load the functions from the passed tools dir
             logging.debug(f"Loading modules from {utils_dir_path}")
             m4b_tools_modules = load.load_modules_from_directory(utils_dir_path)
@@ -62,13 +63,12 @@ def mainmenu(m4b_config_path: str, apps_config_path: str, utils_dir_path: str) -
             print("----------------------------------------------")
             print(f"Detected OS type: {system_info.get('os_type')}")
             print(f"Detected architecture: {system_info.get('arch')}")
-            print(f"Docker {system_info.get("dkarch")} image architecture will be used if the app's image permits it")
+            print(f"Docker {system_info.get('dkarch')} image architecture will be used if the app's image permits it")
             print("----------------------------------------------")
-        except:
-            err_msg = "An error occurred while loading the main menu"
-            logging.error(err_msg)
-            print(err_msg)
+        except Exception as e:
+            logging.error(f"An error occurred: {str(e)}", exc_info=True)
             raise
+
         try:
             # Load menu options from the JSON file
             logging.debug("Loading menu options from config file")
@@ -98,11 +98,8 @@ def mainmenu(m4b_config_path: str, apps_config_path: str, utils_dir_path: str) -
                 print("Invalid input. Please select a menu option between 1 and {}.".format(len(menu_options)))
                 time.sleep(sleep_time)
         except Exception as e:
-            err_msg = f"An error occurred: {e}"
-            print(err_msg)
-            logging.error(err_msg)
+            logging.error(f"An error occurred: {str(e)}", exc_info=True)
             raise
-
 
 def main():   
     # Get the script absolute path and name
@@ -121,8 +118,7 @@ def main():
     parser.add_argument('--log-dir', default=os.path.join(script_dir, 'logs'), help='Set the logging directory')
     parser.add_argument('--log-file', default='m4b.log', help='Set the logging file name')
     args = parser.parse_args()
-
-    # Address possible locale issues that uses different notations for decimal numbers and so on
+    # Address possible locale issues that use different notations for decimal numbers and so on
     locale.setlocale(locale.LC_ALL, 'C')
 
     # Set logging level based on command-line arguments
@@ -130,17 +126,20 @@ def main():
     if not isinstance(log_level, int):
         raise ValueError(f'Invalid log level: {args.log_level}')
 
-    # Setup logging reporting date time, error level and message
+    # Setup logging reporting date time, error level, and message
     os.makedirs(args.log_dir, exist_ok=True)
     logging.basicConfig(filename=os.path.join(args.log_dir, args.log_file), format='%(asctime)s - [%(levelname)s] - %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=log_level)
 
-
     logging.info(f"Starting {script_name} script...")
-    # Run mainmenu function until exit
-    mainmenu(m4b_config_path=os.path.join(args.config_dir, args.config_m4b_file), 
-             apps_config_path=os.path.join(args.config_dir, args.config_app_file), 
-             utils_dir_path=args.utils_dir
-             )
+
+    try:
+        mainmenu(m4b_config_path=os.path.join(args.config_dir, args.config_m4b_file), 
+                apps_config_path=os.path.join(args.config_dir, args.config_app_file),
+                utils_dir_path=args.utils_dir
+                )
+    except Exception as e:
+        logging.error(f"An error occurred: {str(e)}", exc_info=True)
+        raise
 
 if __name__ == '__main__':
     main()
