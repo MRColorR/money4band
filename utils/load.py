@@ -5,8 +5,6 @@ import json
 import importlib.util
 from typing import Dict, Any
 
-
-
 def load_json_config(config_file_path: str) -> Dict[str, Any]:
     """
     Load JSON config variables from a file.
@@ -30,7 +28,6 @@ def load_json_config(config_file_path: str) -> Dict[str, Any]:
         logging.error(f"An unexpected error occurred when loading {config_file_path}: {str(e)}")
         raise
 
-
 def load_module_from_file(module_name: str, file_path: str):
     """
     Dynamically load a module from a Python file.
@@ -43,7 +40,6 @@ def load_module_from_file(module_name: str, file_path: str):
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
-
 
 def load_modules_from_directory(directory_path: str):
     """
@@ -63,6 +59,21 @@ def load_modules_from_directory(directory_path: str):
             except Exception as e:
                 logging.error(f'Failed to load module: {module_name}. Error: {str(e)}')
     return modules
+
+def main(config_path: str, module_dir_path: str) -> None:
+    """
+    Main function to run the load module standalone.
+
+    Arguments:
+    config_path -- the path to the config file
+    module_dir_path -- the directory containing the modules
+    """
+    try:
+        load_json_config(config_path)
+        load_modules_from_directory(module_dir_path)
+    except Exception as e:
+        logging.error(f"An unexpected error occurred: {str(e)}")
+        raise
 
 if __name__ == "__main__":
     # Get the script absolute path and name
@@ -86,8 +97,7 @@ if __name__ == "__main__":
     print(msg)
     logging.info(msg)
 
-    load_json_config(args.config_path)
-    load_modules_from_directory(args.module_dir_path)
+    main(args.config_path, args.module_dir_path)
     
     msg = f"{script_name} test complete"
     print(msg)
