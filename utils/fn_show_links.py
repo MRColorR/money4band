@@ -12,14 +12,12 @@ sys.path.append(parent_dir)
 # Import the module from the parent directory
 from utils.cls import cls
 
-def main(app_config: Dict = None, m4b_config: Dict = None, user_config: Dict = None) -> None:
+def fn_show_links(app_config: Dict) -> None:
     """
     Show the links of the apps.
 
     Arguments:
     app_config -- the app config dictionary
-    m4b_config -- the m4b config dictionary (not used)
-    user_config -- the user config dictionary (not used)
     """
     try:
         logging.info("Showing links of the apps")
@@ -35,8 +33,19 @@ def main(app_config: Dict = None, m4b_config: Dict = None, user_config: Dict = N
 
         input("Press Enter to go back to main menu")
     except Exception as e:
-        logging.error(f"An error occurred: {str(e)}")
+        logging.error(f"An error occurred in fn_show_links: {str(e)}")
         raise
+
+def main(app_config: Dict = None, m4b_config: Dict = None, user_config: Dict = None) -> None:
+    """
+    Main function to call the fn_show_links function.
+
+    Arguments:
+    app_config -- the app config dictionary
+    m4b_config -- the m4b config dictionary
+    user_config -- the user config dictionary
+    """
+    fn_show_links(app_config)
 
 if __name__ == '__main__':
     # Get the script absolute path and name
