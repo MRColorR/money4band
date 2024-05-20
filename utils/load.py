@@ -5,28 +5,34 @@ import json
 import importlib.util
 from typing import Dict, Any
 
-def load_json_config(config_file_path: str) -> Dict[str, Any]:
+def load_json_config(config_path_or_dict: Any) -> Dict[str, Any]:
     """
-    Load JSON config variables from a file.
+    Load JSON config variables from a file or dictionary.
 
     Arguments:
-    config_file_path -- the path to the config file
+    config_path_or_dict -- the config file path or dictionary
     """
-    try:
-        with open(config_file_path, 'r') as f:
-            logging.debug(f"Loading config from {config_file_path}")
-            config = json.load(f)
-        logging.info(f"Successfully loaded config from {config_file_path}")
-        return config
-    except FileNotFoundError:
-        logging.error(f"Config file {config_file_path} not found.")
-        raise
-    except json.JSONDecodeError:
-        logging.error(f"Error decoding JSON from {config_file_path}")
-        raise
-    except Exception as e:
-        logging.error(f"An unexpected error occurred when loading {config_file_path}: {str(e)}")
-        raise
+    if isinstance(config_path_or_dict, str):
+        # If config is a string, assume it's a file path and load the JSON file
+        try:
+            with open(config_path_or_dict, 'r') as f:
+                logging.debug(f"Loading config from file: {config_path_or_dict}")
+                return json.load(f)
+        except FileNotFoundError:
+            logging.error(f"Config file {config_path_or_dict} not found.")
+            raise
+        except json.JSONDecodeError:
+            logging.error(f"Error decoding JSON from {config_path_or_dict}")
+            raise
+        except Exception as e:
+            logging.error(f"An unexpected error occurred when loading {config_path_or_dict}: {str(e)}")
+            raise
+    elif isinstance(config_path_or_dict, dict):
+        # If config is a dictionary, assume it's already loaded and return it directly
+        logging.debug("Using provided config dictionary")
+        return config_path_or_dict
+    else:
+        raise ValueError("Invalid config type. Config must be a file path or a dictionary.")
 
 def load_module_from_file(module_name: str, file_path: str):
     """
@@ -60,16 +66,16 @@ def load_modules_from_directory(directory_path: str):
                 logging.error(f'Failed to load module: {module_name}. Error: {str(e)}')
     return modules
 
-def main(config_path: str, module_dir_path: str) -> None:
+def main(config_path_or_dict: Any, module_dir_path: str) -> None:
     """
     Main function to run the load module standalone.
 
     Arguments:
-    config_path -- the path to the config file
+    config_path_or_dict -- the config file path or dictionary
     module_dir_path -- the directory containing the modules
     """
     try:
-        load_json_config(config_path)
+        config = load_json_config(config_path_or_dict)
         load_modules_from_directory(module_dir_path)
     except Exception as e:
         logging.error(f"An unexpected error occurred: {str(e)}")
@@ -82,7 +88,7 @@ if __name__ == "__main__":
 
     # Parse command-line arguments
     parser = argparse.ArgumentParser(description=f"Run the {script_name} module standalone.")
-    parser.add_argument('--config-path', type=str, required=True, help='The config file path')
+    parser.add_argument('--config-path', type=str, required=True, help='The config file path or JSON string')
     parser.add_argument('--module-dir-path', type=str, required=True, help='The directory containing the modules')
     parser.add_argument('--log-dir', default=os.path.join(script_dir, 'logs'), help='Set the logging directory')
     parser.add_argument('--log-file', default=f"{script_name}.log", help='Set the logging file name')
@@ -90,7 +96,10 @@ if __name__ == "__main__":
 
     # Start logging
     os.makedirs(args.log_dir, exist_ok=True)
-    logging.basicConfig(filename=os.path.join(args.log_dir, args.log_file),  format='%(asctime)s - [%(levelname)s] - %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level="DEBUG")
+    logging.basicConfig(filename=os.path.join(args.log_dir, args.log_file),
+                        format='%(asctime)s - [%(levelname)s] - %(message)s',
+                        datefmt='%Y-%m-%d %H:%M:%S',
+                        level=logging.DEBUG)
 
     # Test the function
     msg = f"Testing {script_name} function"
