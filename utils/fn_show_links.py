@@ -6,13 +6,14 @@ from typing import Dict
 from colorama import Fore, Back, Style, just_fix_windows_console
 from utils.cls import cls
 
-def main(app_config: Dict = None, m4b_config: Dict = None) -> None:
+def main(app_config: Dict = None, m4b_config: Dict = None, user_config: Dict = None) -> None:
     """
     Show the links of the apps.
 
     Arguments:
     app_config -- the app config dictionary
     m4b_config -- the m4b config dictionary (not used)
+    user_config -- the user config dictionary (not used)
     """
     try:
         logging.info("Showing links of the apps")
@@ -29,7 +30,7 @@ def main(app_config: Dict = None, m4b_config: Dict = None) -> None:
         input("Press Enter to go back to main menu")
     except Exception as e:
         logging.error(f"An error occurred: {str(e)}")
-        print(f"An error occurred: {str(e)}")
+        raise
 
 if __name__ == '__main__':
     # Get the script absolute path and name
@@ -40,6 +41,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Run the module standalone.')
     parser.add_argument('--app-config', type=str, required=True, help='Path to app_config JSON file')
     parser.add_argument('--m4b-config', type=str, required=False, help='Path to m4b_config JSON file')
+    parser.add_argument('--user-config', type=str, required=False, help='Path to user_config JSON file')
     parser.add_argument('--log-dir', default=os.path.join(script_dir, 'logs'), help='Set the logging directory')
     parser.add_argument('--log-file', default=f"{script_name}.log", help='Set the logging file name')
     parser.add_argument('--log-level', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], default='INFO', help='Set the logging level')
@@ -63,23 +65,35 @@ if __name__ == '__main__':
 
     try:
         # Load the app_config JSON file
-        logging.info("Loading app_config JSON file")
-        with open(args.app_config, 'r') as f:
-            app_config = json.load(f)
-        logging.info("app_config JSON file loaded successfully")
+        app_config = {}
+        if args.app_config:
+            logging.debug("Loading app_config JSON file")
+            with open(args.app_config, 'r') as f:
+                app_config = json.load(f)
+            logging.info("app_config JSON file loaded successfully")
 
         # Load the m4b_config JSON file if provided
         m4b_config = {}
         if args.m4b_config:
-            logging.info("Loading m4b_config JSON file")
+            logging.debug("Loading m4b_config JSON file")
             with open(args.m4b_config, 'r') as f:
                 m4b_config = json.load(f)
             logging.info("m4b_config JSON file loaded successfully")
         else:
             logging.info("No m4b_config JSON file provided, proceeding without it")
 
+        # Load the user_config JSON file if provided
+        user_config = {}
+        if args.user_config:
+            logging.debug("Loading user_config JSON file")
+            with open(args.user_config, 'r') as f:
+                user_config = json.load(f)
+            logging.info("user_config JSON file loaded successfully")
+        else:
+            logging.info("No user_config JSON file provided, proceeding without it")
+
         # Call the main function
-        main(app_config, m4b_config)
+        main(app_config=app_config, m4b_config=m4b_config, user_config=user_config)
 
         logging.info(f"{script_name} script completed successfully")
     except FileNotFoundError as e:

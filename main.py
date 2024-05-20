@@ -8,13 +8,14 @@ from colorama import Fore, Back, Style, just_fix_windows_console
 from utils import load, detect
 from utils.cls import cls
 
-def mainmenu(m4b_config_path: str, apps_config_path: str, utils_dir_path: str) -> None:
+def mainmenu(m4b_config_path: str, apps_config_path: str, user_config_path: str, utils_dir_path: str) -> None:
     """
     Main menu of the script.
 
     Arguments:
     m4b_config_path -- the path to the m4b config file
     apps_config_path -- the path to the apps config file
+    user_config_path -- the path to the user config file
     utils_dir_path -- the path to the utils directory
     """
     try:
@@ -34,6 +35,9 @@ def mainmenu(m4b_config_path: str, apps_config_path: str, utils_dir_path: str) -
             logging.debug("Loading apps config from config file")
             apps_config = load.load_json_config(apps_config_path)
             logging.info(f"Successfully loaded apps config from {apps_config_path}")
+            logging.debug("Loading user config from config file")
+            user_config = load.load_json_config(user_config_path)
+            logging.info(f"Successfully loaded user config from {user_config_path}")
         except FileNotFoundError as e:
             logging.error(f"File not found: {str(e)}")
             raise
@@ -92,7 +96,7 @@ def mainmenu(m4b_config_path: str, apps_config_path: str, utils_dir_path: str) -
                 function_label = menu_options[choice - 1]["label"]
                 function_name = menu_options[choice - 1]["function"]
                 logging.info(f"User selected menu option number {choice} that corresponds to menu item {function_label}")
-                m4b_tools_modules[function_name].main(apps_config, m4b_config)
+                m4b_tools_modules[function_name].main(apps_config, m4b_config, user_config)
 
             else:
                 print("Invalid input. Please select a menu option between 1 and {}.".format(len(menu_options)))
@@ -110,7 +114,7 @@ def main():
     parser = argparse.ArgumentParser(description='Run the script.')
     parser.add_argument('--config-dir', default=os.path.join(script_dir, 'config'), help='Set the config directory')
     parser.add_argument('--config-m4b-file', default='m4b-config.json', help='Set the m4b  config file name')
-    parser.add_argument('--config-usr-file', default='usr-config.json', help='Set  the user config file name')
+    parser.add_argument('--config-usr-file', default='user-config.json', help='Set  the user config file name')
     parser.add_argument('--config-app-file', default='app-config.json', help='Set the apps config file name')
     parser.add_argument('--utils-dir', default=os.path.join(script_dir, 'utils'), help='Set the m4b tools directory')
     parser.add_argument('--requirements-path', default=os.path.join(script_dir, 'requirements.toml'), help='Set the requirements path')
@@ -133,13 +137,16 @@ def main():
     logging.info(f"Starting {script_name} script...")
 
     try:
-        mainmenu(m4b_config_path=os.path.join(args.config_dir, args.config_m4b_file), 
-                apps_config_path=os.path.join(args.config_dir, args.config_app_file),
-                utils_dir_path=args.utils_dir
-                )
+        mainmenu(
+            m4b_config_path=os.path.join(args.config_dir, args.config_m4b_file),
+            apps_config_path=os.path.join(args.config_dir, args.config_app_file),
+            user_config_path=os.path.join(args.config_dir, args.config_usr_file),
+            utils_dir_path=args.utils_dir
+        )
     except Exception as e:
         logging.error(f"An error occurred: {str(e)}")
         raise
+
 
 if __name__ == '__main__':
     main()
