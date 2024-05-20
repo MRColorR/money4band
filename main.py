@@ -23,7 +23,7 @@ def mainmenu(m4b_config_path: str, apps_config_path: str, utils_dir_path: str) -
         just_fix_windows_console()
         logging.info("Colorama initialized successfully")
     except Exception as e:
-        logging.error(f"Error initializing colorama: {str(e)}", exc_info=True)
+        logging.error(f"Error initializing colorama: {str(e)}")
         raise
 
     while True:
@@ -38,7 +38,7 @@ def mainmenu(m4b_config_path: str, apps_config_path: str, utils_dir_path: str) -
             logging.error(f"File not found: {str(e)}")
             raise
         except Exception as e:
-            logging.error(f"An error occurred: {str(e)}", exc_info=True)
+            logging.error(f"An error occurred: {str(e)}")
             raise
 
         try:
@@ -66,7 +66,7 @@ def mainmenu(m4b_config_path: str, apps_config_path: str, utils_dir_path: str) -
             print(f"Docker {system_info.get('dkarch')} image architecture will be used if the app's image permits it")
             print("----------------------------------------------")
         except Exception as e:
-            logging.error(f"An error occurred: {str(e)}", exc_info=True)
+            logging.error(f"An error occurred: {str(e)}")
             raise
 
         try:
@@ -98,7 +98,7 @@ def mainmenu(m4b_config_path: str, apps_config_path: str, utils_dir_path: str) -
                 print("Invalid input. Please select a menu option between 1 and {}.".format(len(menu_options)))
                 time.sleep(sleep_time)
         except Exception as e:
-            logging.error(f"An error occurred: {str(e)}", exc_info=True)
+            logging.error(f"An error occurred: {str(e)}")
             raise
 
 def main():   
@@ -138,7 +138,7 @@ def main():
                 utils_dir_path=args.utils_dir
                 )
     except Exception as e:
-        logging.error(f"An error occurred: {str(e)}", exc_info=True)
+        logging.error(f"An error occurred: {str(e)}")
         raise
 
 if __name__ == '__main__':
