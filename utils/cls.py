@@ -1,7 +1,6 @@
 import os
 import argparse
 import logging
-import time
 
 def cls():
     """
@@ -13,7 +12,6 @@ def cls():
     except Exception as e:
         error_msg = f"Error clearing console: {str(e)}"
         logging.error(error_msg)
-        print(error_msg)
 
 if __name__ == "__main__":
     # Get the script absolute path and name
@@ -44,13 +42,6 @@ if __name__ == "__main__":
     logging.info(f"Starting {script_name} script...")
 
     # Test the function
-    msg = f"Testing {script_name} function in 3 seconds..."
-    print(msg)
-    logging.info(msg)
-
-    time.sleep(3)
+    logging.info(f"Testing {script_name} function...")
     cls()
-
-    msg = f"{script_name} test complete"
-    print(msg)
-    logging.info(msg)
+    logging.info(f"{script_name} test complete")
