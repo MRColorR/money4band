@@ -13,7 +13,7 @@ sys.path.append(parent_dir)
 
 from utils.detect import detect_os, detect_architecture
 from utils.download_file import download_file
-from utils.load import load_json_config
+from utils.loader import load_json_config
 
 def install_docker_linux(files_path: str):
     """Install Docker on a Linux system."""
