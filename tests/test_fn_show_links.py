@@ -80,9 +80,7 @@ class TestFnShowLinks(unittest.TestCase):
         sys.stdout = sys.__stdout__
 
         # Remove ANSI escape codes from the output
-        output = captured_output.getvalue()
         ansi_escape = re.compile(r'\x1b\[([0-9;]*m)')
-        clean_output = ansi_escape.sub('', output)
 
         # Collect printed lines from mock_print
         printed_lines = [call.args[0] for call in mock_print.call_args_list]
