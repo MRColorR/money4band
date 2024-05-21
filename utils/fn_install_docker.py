@@ -4,7 +4,7 @@ import subprocess
 import logging
 import argparse
 import json
-from typing import Any
+from typing import Dict, Any
 import sys
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -14,13 +14,23 @@ sys.path.append(parent_dir)
 from utils.detector import detect_os, detect_architecture
 from utils.downloader import download_file
 from utils.loader import load_json_config
+from utils.cls import cls
+import time
 
-def is_docker_installed() -> bool:
+def is_docker_installed(m4b_config: Dict[str, Any] = None) -> bool:
+    # Detect OS and architecture using the detect module
+    os_info = detect_os(m4b_config)
+    arch_info = detect_architecture(m4b_config)
+    os_type = os_info["os_type"]
+    dkarch = arch_info["dkarch"]
+    sleep_time = m4b_config.get("system").get("sleep_time")
     """Check if Docker is already installed."""
     try:
         subprocess.run(["docker", "--version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
-        logging.info("Docker is already installed")
-        print("Docker is already installed")
+        msg = f"Docker is already installed on {os_type} with {dkarch} architecture"
+        logging.info(msg)
+        print(msg)
+        time.sleep(sleep_time)
         return True
     except subprocess.CalledProcessError:
         return False
@@ -117,10 +127,7 @@ def main(app_config: dict, m4b_config: dict, user_config: dict):
     """
     try:
         logging.info("Docker installation function started")
-
-        # Check if Docker is already installed
-        if is_docker_installed():
-            return
+        cls()
 
         # Detect OS and architecture using the detect module
         os_info = detect_os(m4b_config)
@@ -128,7 +135,11 @@ def main(app_config: dict, m4b_config: dict, user_config: dict):
         
         os_type = os_info["os_type"]
         dkarch = arch_info["dkarch"]
-        files_path = m4b_config.get('files_path', '/tmp')
+        files_path = m4b_config.get('files_path', './tmp')
+
+        # Check if Docker is already installed
+        if is_docker_installed(m4b_config):
+            return
 
         yn = input("Do you wish to proceed with the Docker automatic installation? (Y/N): ").lower()
         if yn not in ['y', 'yes']:
