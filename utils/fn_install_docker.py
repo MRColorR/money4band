@@ -139,7 +139,7 @@ def main(app_config: dict, m4b_config: dict, user_config: dict):
         
         os_type = os_info["os_type"]
         dkarch = arch_info["dkarch"]
-        files_path = m4b_config.get('files_path', './tmp')
+        files_path = m4b_config.get('files_path', 'tmp')
 
         # Check if Docker is already installed
         if is_docker_installed(m4b_config):
