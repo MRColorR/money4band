@@ -8,6 +8,7 @@ def cls():
     """
     try:
         os.system('cls' if os.name == 'nt' else 'clear')
+        os.system('cls' if os.name == 'nt' else 'clear') # Clear the console twice to ensure not flushed lines are erased
         logging.info("Console cleared successfully")
     except Exception as e:
         logging.error(f"Error clearing console: {str(e)}")
