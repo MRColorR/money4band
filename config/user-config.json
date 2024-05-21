@@ -13,8 +13,8 @@
         },
         "honeygain": {
             "enabled": true,
-            "email": "example@emaple.com",
-            "password": "Samaqweh"
+            "email": "",
+            "password": ""
         },
         "pawns": {
             "enabled": false,
@@ -34,7 +34,7 @@
             "token": "yourTRAFFMONETIZERToken"
         },
         "repocket": {
-            "enabled": true,
+            "enabled": false,
             "email": "E",
             "apikey": "f me"
         },
