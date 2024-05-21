@@ -124,10 +124,8 @@ def main(app_config: dict, m4b_config: dict, user_config: dict):
                 install_docker_macos(files_path, intel_cpu=True)
             else:
                 logging.error("Unsupported architecture for macOS")
-                print("Unsupported architecture for macOS. Aborting Docker installation.")
         else:
             logging.error(f"Unsupported operating system: {os_type}")
-            print(f"Unsupported operating system: {os_type}")
 
     except Exception as e:
         logging.error(f"An error occurred during Docker installation: {str(e)}")
@@ -179,10 +177,10 @@ if __name__ == '__main__':
         logging.info(f"{script_name} script completed successfully")
     except FileNotFoundError as e:
         logging.error(f"File not found: {str(e)}")
-        print(f"File not found: {str(e)}")
+        raise
     except json.JSONDecodeError as e:
         logging.error(f"Error decoding JSON: {str(e)}")
-        print(f"Error decoding JSON: {str(e)}")
+        raise
     except Exception as e:
         logging.error(f"An unexpected error occurred: {str(e)}")
-        print(f"An unexpected error occurred: {str(e)}")
+        raise

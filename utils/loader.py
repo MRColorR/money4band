@@ -85,6 +85,7 @@ def load_modules_from_directory(directory_path: str):
                 logging.info(f'Successfully loaded module: {module_name}')
             except Exception as e:
                 logging.error(f'Failed to load module: {module_name}. Error: {str(e)}')
+                raise
     return modules
 
 def main(config_path_or_dict: Any, module_dir_path: str) -> None:
@@ -143,10 +144,10 @@ if __name__ == "__main__":
         logging.info(f"{script_name} script completed successfully")
     except FileNotFoundError as e:
         logging.error(f"File not found: {str(e)}")
-        print(f"File not found: {str(e)}")
+        raise
     except json.JSONDecodeError as e:
         logging.error(f"Error decoding JSON: {str(e)}")
-        print(f"Error decoding JSON: {str(e)}")
+        raise
     except Exception as e:
         logging.error(f"An unexpected error occurred: {str(e)}")
-        print(f"An unexpected error occurred: {str(e)}")
+        raise

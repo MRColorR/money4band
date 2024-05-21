@@ -15,7 +15,7 @@ from utils.cls import cls
 
 def fn_example_function(app_config: Dict) -> None:
     """
-    Example function thata uses all or a subset of all the configurations.
+    Example function that uses all or a subset of all the configurations.
 
     Arguments:
     app_config -- the app config dictionary
@@ -47,7 +47,7 @@ if __name__ == '__main__':
 
     # Parse command-line arguments
     parser = argparse.ArgumentParser(description='Run the module standalone.')
-    # SET AS REQUIRED ALL THE CONFIGURATIONS THAT ARE REQUIRED BY THE MODULE IN THI EXAMPLE WE SET app-config TRUE
+    # SET AS REQUIRED ALL THE CONFIGURATIONS THAT ARE REQUIRED BY THE MODULE IN THIS EXAMPLE WE SET app-config TRUE
     parser.add_argument('--app-config', type=str, required=True, help='Path to app_config JSON file')
     parser.add_argument('--m4b-config', type=str, required=False, help='Path to m4b_config JSON file')
     parser.add_argument('--user-config', type=str, required=False, help='Path to user_config JSON file')
@@ -107,10 +107,10 @@ if __name__ == '__main__':
         logging.info(f"{script_name} script completed successfully")
     except FileNotFoundError as e:
         logging.error(f"File not found: {str(e)}")
-        print(f"File not found: {str(e)}")
+        raise
     except json.JSONDecodeError as e:
         logging.error(f"Error decoding JSON: {str(e)}")
-        print(f"Error decoding JSON: {str(e)}")
+        raise
     except Exception as e:
         logging.error(f"An unexpected error occurred: {str(e)}")
-        print(f"An unexpected error occurred: {str(e)}")
+        raise

@@ -117,4 +117,4 @@ if __name__ == "__main__":
         logging.info(f"{script_name} script completed successfully")
     except Exception as e:
         logging.error(f"An unexpected error occurred: {str(e)}")
-        print(f"An unexpected error occurred: {str(e)}")
+        raise

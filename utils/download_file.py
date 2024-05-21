@@ -119,10 +119,10 @@ if __name__ == '__main__':
         logging.info(f"{script_name} script completed successfully")
     except FileNotFoundError as e:
         logging.error(f"File not found: {str(e)}")
-        print(f"File not found: {str(e)}")
+        raise
     except json.JSONDecodeError as e:
         logging.error(f"Error decoding JSON: {str(e)}")
-        print(f"Error decoding JSON: {str(e)}")
+        raise
     except Exception as e:
         logging.error(f"An unexpected error occurred: {str(e)}")
-        print(f"An unexpected error occurred: {str(e)}")
+        raise
