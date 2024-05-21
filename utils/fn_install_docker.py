@@ -15,10 +15,23 @@ from utils.detector import detect_os, detect_architecture
 from utils.downloader import download_file
 from utils.loader import load_json_config
 
+def is_docker_installed() -> bool:
+    """Check if Docker is already installed."""
+    try:
+        subprocess.run(["docker", "--version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+        logging.info("Docker is already installed")
+        print("Docker is already installed")
+        return True
+    except subprocess.CalledProcessError:
+        return False
+
 def install_docker_linux(files_path: str):
     """Install Docker on a Linux system."""
     try:
         logging.info("Starting Docker for Linux auto installation script")
+        if is_docker_installed():
+            return
+
         installer_url = "https://get.docker.com"
         installer_path = os.path.join(files_path, "get-docker.sh")
 
@@ -42,6 +55,9 @@ def install_docker_windows(files_path: str):
     """Install Docker on a Windows system."""
     try:
         logging.info("Starting Docker for Windows auto installation script")
+        if is_docker_installed():
+            return
+
         installer_url = "https://desktop.docker.com/win/stable/Docker%20Desktop%20Installer.exe"
         installer_path = os.path.join(files_path, "DockerInstaller.exe")
 
@@ -64,6 +80,9 @@ def install_docker_macos(files_path: str, intel_cpu: bool):
     """Install Docker on a macOS system."""
     try:
         logging.info("Starting Docker for macOS auto installation script")
+        if is_docker_installed():
+            return
+
         if intel_cpu:
             installer_url = "https://desktop.docker.com/mac/main/amd64/Docker.dmg"
         else:
@@ -98,7 +117,11 @@ def main(app_config: dict, m4b_config: dict, user_config: dict):
     """
     try:
         logging.info("Docker installation function started")
-        
+
+        # Check if Docker is already installed
+        if is_docker_installed():
+            return
+
         # Detect OS and architecture using the detect module
         os_info = detect_os(m4b_config)
         arch_info = detect_architecture(m4b_config)
@@ -136,14 +159,13 @@ if __name__ == '__main__':
     script_name = os.path.basename(__file__)
 
     parser = argparse.ArgumentParser(description='Run the module standalone.')
-    parser.add_argument('--app-config', type=str, required=True, help='Path to app_config JSON file')
-    parser.add_argument('--m4b-config', type=str, required=False, help='Path to m4b_config JSON file')
+    parser.add_argument('--app-config', type=str, required=False, help='Path to app_config JSON file')
+    parser.add_argument('--m4b-config', type=str, required=True, help='Path to m4b_config JSON file')
     parser.add_argument('--user-config', type=str, required=False, help='Path to user_config JSON file')
     parser.add_argument('--log-dir', default=os.path.join(script_dir, 'logs'), help='Set the logging directory')
     parser.add_argument('--log-file', default=f"{script_name}.log", help='Set the logging file name')
     parser.add_argument('--log-level', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], default='INFO', help='Set the logging level')
     args = parser.parse_args()
-
     log_level = getattr(logging, args.log_level.upper(), None)
     if not isinstance(log_level, int):
         raise ValueError(f'Invalid log level: {args.log_level}')
@@ -159,21 +181,37 @@ if __name__ == '__main__':
     logging.info(f"Starting {script_name} script...")
 
     try:
-        with open(args.app_config, 'r') as app_file:
-            app_config = json.load(app_file)
+        # Load the app_config JSON file
+        app_config = {}
+        if args.app_config:
+            logging.debug("Loading app_config JSON file")
+            with open(args.app_config, 'r') as f:
+                app_config = json.load(f)
+            logging.info("app_config JSON file loaded successfully")
+
+        # Load the m4b_config JSON file if provided
+        m4b_config = {}
         if args.m4b_config:
-            with open(args.m4b_config, 'r') as m4b_file:
-                m4b_config = json.load(m4b_file)
+            logging.debug("Loading m4b_config JSON file")
+            with open(args.m4b_config, 'r') as f:
+                m4b_config = json.load(f)
+            logging.info("m4b_config JSON file loaded successfully")
         else:
-            m4b_config = {}
+            logging.info("No m4b_config JSON file provided, proceeding without it")
 
+        # Load the user_config JSON file if provided
+        user_config = {}
         if args.user_config:
-            with open(args.user_config, 'r') as user_file:
-                user_config = json.load(user_file)
+            logging.debug("Loading user_config JSON file")
+            with open(args.user_config, 'r') as f:
+                user_config = json.load(f)
+            logging.info("user_config JSON file loaded successfully")
         else:
-            user_config = {}
+            logging.info("No user_config JSON file provided, proceeding without it")
 
-        main(app_config, m4b_config, user_config)
+        # Call the main function
+        main(app_config=app_config, m4b_config=m4b_config, user_config=user_config)
+
         logging.info(f"{script_name} script completed successfully")
     except FileNotFoundError as e:
         logging.error(f"File not found: {str(e)}")
