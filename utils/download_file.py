@@ -3,7 +3,7 @@ import logging
 import os
 import argparse
 import json
-from typing import Any
+from typing import Any, Dict
 
 def download_file(url: str, dest_path: str):
     """
@@ -17,18 +17,19 @@ def download_file(url: str, dest_path: str):
     requests.RequestException: If there is an issue with the request.
     """
     try:
+        logging.info(f"Starting download from {url}")
         response = requests.get(url, stream=True)
         response.raise_for_status()
         with open(dest_path, 'wb') as file:
             for chunk in response.iter_content(chunk_size=8192):
                 if chunk:
                     file.write(chunk)
-        logging.info(f"File downloaded successfully from {url}")
+        logging.info(f"File downloaded successfully from {url} to {dest_path}")
     except requests.RequestException as e:
         logging.error(f"An error occurred while downloading the file from {url}: {str(e)}")
         raise
 
-def main(app_config: dict, m4b_config: dict, user_config: dict):
+def main(app_config: Dict[str, Any], m4b_config: Dict[str, Any], user_config: Dict[str, Any]):
     """
     Main function to demonstrate downloading a file based on provided configurations.
 
@@ -38,18 +39,18 @@ def main(app_config: dict, m4b_config: dict, user_config: dict):
     user_config (dict): The user configuration dictionary.
     """
     try:
-        logging.info("Starting download_file function")
+        logging.info("Starting main function for download_file")
         download_url = app_config.get('download_url')
         destination_path = m4b_config.get('destination_path', '/tmp/downloaded_file')
-        
+
         if not download_url:
             logging.error("Download URL not provided in app_config")
             raise ValueError("Download URL not provided in app_config")
-        
+
         download_file(download_url, destination_path)
         logging.info("Download completed successfully")
     except Exception as e:
-        logging.error(f"An error occurred: {str(e)}")
+        logging.error(f"An error occurred in main function: {str(e)}")
         raise
 
 if __name__ == '__main__':
@@ -59,7 +60,7 @@ if __name__ == '__main__':
 
     # Parse command-line arguments
     parser = argparse.ArgumentParser(description='Run the module standalone.')
-    parser.add_argument('--app-config', type=str, required=False, help='Path to app_config JSON file')
+    parser.add_argument('--app-config', type=str, required=True, help='Path to app_config JSON file')
     parser.add_argument('--m4b-config', type=str, required=False, help='Path to m4b_config JSON file')
     parser.add_argument('--user-config', type=str, required=False, help='Path to user_config JSON file')
     parser.add_argument('--log-dir', default=os.path.join(script_dir, 'logs'), help='Set the logging directory')
@@ -84,21 +85,37 @@ if __name__ == '__main__':
     logging.info(f"Starting {script_name} script...")
 
     try:
-        with open(args.app_config, 'r') as app_file:
-            app_config = json.load(app_file)
+        # Load the app_config JSON file
+        app_config = {}
+        if args.app_config:
+            logging.debug("Loading app_config JSON file")
+            with open(args.app_config, 'r') as f:
+                app_config = json.load(f)
+            logging.info("app_config JSON file loaded successfully")
+
+        # Load the m4b_config JSON file if provided
+        m4b_config = {}
         if args.m4b_config:
-            with open(args.m4b_config, 'r') as m4b_file:
-                m4b_config = json.load(m4b_file)
+            logging.debug("Loading m4b_config JSON file")
+            with open(args.m4b_config, 'r') as f:
+                m4b_config = json.load(f)
+            logging.info("m4b_config JSON file loaded successfully")
         else:
-            m4b_config = {}
+            logging.info("No m4b_config JSON file provided, proceeding without it")
 
+        # Load the user_config JSON file if provided
+        user_config = {}
         if args.user_config:
-            with open(args.user_config, 'r') as user_file:
-                user_config = json.load(user_file)
+            logging.debug("Loading user_config JSON file")
+            with open(args.user_config, 'r') as f:
+                user_config = json.load(f)
+            logging.info("user_config JSON file loaded successfully")
         else:
-            user_config = {}
+            logging.info("No user_config JSON file provided, proceeding without it")
 
-        main(app_config, m4b_config, user_config)
+        # Call the main function
+        main(app_config=app_config, m4b_config=m4b_config, user_config=user_config)
+
         logging.info(f"{script_name} script completed successfully")
     except FileNotFoundError as e:
         logging.error(f"File not found: {str(e)}")
