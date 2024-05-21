@@ -11,7 +11,7 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(script_dir)
 sys.path.append(parent_dir)
 # Import the module from the parent directory
-from utils import load, detect
+from utils import detect, loader
 from utils.cls import cls
 
 def mainmenu(m4b_config_path: str, apps_config_path: str, user_config_path: str, utils_dir_path: str) -> None:
@@ -36,9 +36,9 @@ def mainmenu(m4b_config_path: str, apps_config_path: str, user_config_path: str,
     while True:
         try:
             logging.info("Loading configurations")
-            m4b_config = load.load_json_config(m4b_config_path)
-            apps_config = load.load_json_config(apps_config_path)
-            user_config = load.load_json_config(user_config_path)
+            m4b_config = loader.load_json_config(m4b_config_path)
+            apps_config = loader.load_json_config(apps_config_path)
+            user_config = loader.load_json_config(user_config_path)
             logging.info("Configurations loaded successfully")
         except FileNotFoundError as e:
             logging.error(f"File not found: {str(e)}")
@@ -58,7 +58,7 @@ def mainmenu(m4b_config_path: str, apps_config_path: str, user_config_path: str,
 
             # Load the functions from the passed tools dir
             logging.debug(f"Loading modules from {utils_dir_path}")
-            m4b_tools_modules = load.load_modules_from_directory(utils_dir_path)
+            m4b_tools_modules = loader.load_modules_from_directory(utils_dir_path)
             logging.info(f"Successfully loaded modules from {utils_dir_path}")
 
             print(f"{Fore.GREEN}----------------------------------------------")

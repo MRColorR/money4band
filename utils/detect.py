@@ -10,7 +10,7 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(script_dir)
 sys.path.append(parent_dir)
 # Import the module from the parent directory
-from utils.load import load_json_config
+from utils.loader import load_json_config
 
 def detect_os(m4b_config_path_or_dict: Any) -> Dict[str, str]:
     """
