@@ -11,6 +11,14 @@ def load_json_config(config_path_or_dict: Any) -> Dict[str, Any]:
 
     Arguments:
     config_path_or_dict -- the config file path or dictionary
+
+    Returns:
+    Dict[str, Any] -- The loaded configuration dictionary.
+
+    Raises:
+    FileNotFoundError -- If the config file is not found.
+    JSONDecodeError -- If there is an error decoding the JSON file.
+    ValueError -- If the config type is invalid.
     """
     if isinstance(config_path_or_dict, str):
         # If config is a string, assume it's a file path and load the JSON file
@@ -41,11 +49,21 @@ def load_module_from_file(module_name: str, file_path: str):
     Arguments:
     module_name -- the name to give to the loaded module
     file_path -- the path to the Python file
+
+    Returns:
+    Module -- The loaded module.
+
+    Raises:
+    Exception -- If there is an error loading the module.
     """
-    spec = importlib.util.spec_from_file_location(module_name, file_path)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
+    try:
+        spec = importlib.util.spec_from_file_location(module_name, file_path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module
+    except Exception as e:
+        logging.error(f"Failed to load module: {module_name} from {file_path}. Error: {str(e)}")
+        raise
 
 def load_modules_from_directory(directory_path: str):
     """
@@ -53,6 +71,9 @@ def load_modules_from_directory(directory_path: str):
 
     Arguments:
     directory_path -- the path to the directory
+
+    Returns:
+    Dict[str, Module] -- A dictionary of loaded modules.
     """
     modules = {}
     for filename in os.listdir(directory_path):
@@ -92,22 +113,40 @@ if __name__ == "__main__":
     parser.add_argument('--module-dir-path', type=str, required=True, help='The directory containing the modules')
     parser.add_argument('--log-dir', default=os.path.join(script_dir, 'logs'), help='Set the logging directory')
     parser.add_argument('--log-file', default=f"{script_name}.log", help='Set the logging file name')
+    parser.add_argument('--log-level', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], default='INFO', help='Set the logging level')
     args = parser.parse_args()
+
+    # Set logging level based on command-line arguments
+    log_level = getattr(logging, args.log_level.upper(), None)
+    if not isinstance(log_level, int):
+        raise ValueError(f'Invalid log level: {args.log_level}')
 
     # Start logging
     os.makedirs(args.log_dir, exist_ok=True)
-    logging.basicConfig(filename=os.path.join(args.log_dir, args.log_file),
-                        format='%(asctime)s - [%(levelname)s] - %(message)s',
-                        datefmt='%Y-%m-%d %H:%M:%S',
-                        level=logging.DEBUG)
+    logging.basicConfig(
+        filename=os.path.join(args.log_dir, args.log_file),
+        format='%(asctime)s - [%(levelname)s] - %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S',
+        level=log_level
+    )
 
-    # Test the function
-    msg = f"Testing {script_name} function"
-    print(msg)
-    logging.info(msg)
+    logging.info(f"Starting {script_name} script...")
 
-    main(args.config_path, args.module_dir_path)
-    
-    msg = f"{script_name} test complete"
-    print(msg)
-    logging.info(msg)
+    try:
+        # Load the app_config JSON file
+        config_path = args.config_path
+        module_dir_path = args.module_dir_path
+
+        # Call the main function
+        main(config_path_or_dict=config_path, module_dir_path=module_dir_path)
+
+        logging.info(f"{script_name} script completed successfully")
+    except FileNotFoundError as e:
+        logging.error(f"File not found: {str(e)}")
+        print(f"File not found: {str(e)}")
+    except json.JSONDecodeError as e:
+        logging.error(f"Error decoding JSON: {str(e)}")
+        print(f"Error decoding JSON: {str(e)}")
+    except Exception as e:
+        logging.error(f"An unexpected error occurred: {str(e)}")
+        print(f"An unexpected error occurred: {str(e)}")
