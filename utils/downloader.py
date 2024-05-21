@@ -19,6 +19,10 @@ def download_file(url: str, dest_path: str):
         logging.info(f"Starting download from {url}")
         response = requests.get(url, stream=True)
         response.raise_for_status()
+
+        # Create the directory if it doesn't exist
+        os.makedirs(os.path.dirname(dest_path), exist_ok=True)
+
         with open(dest_path, 'wb') as file:
             for chunk in response.iter_content(chunk_size=8192):
                 if chunk:
