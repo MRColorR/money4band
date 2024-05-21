@@ -28,11 +28,13 @@ class TestClsFunction(unittest.TestCase):
         """
         Test that the cls function handles exceptions and logs the error message.
         """
-        cls()
+        with self.assertRaises(Exception) as context:
+            cls()
 
         mock_os_system.assert_called_once_with('cls' if os.name == 'nt' else 'clear')
         mock_logging_info.assert_not_called()
         mock_logging_error.assert_called_once_with("Error clearing console: Mocked error")
+        self.assertEqual(str(context.exception), "Mocked error")
 
 if __name__ == '__main__':
     unittest.main()
