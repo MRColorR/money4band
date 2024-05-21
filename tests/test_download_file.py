@@ -21,8 +21,9 @@ class TestDownloadFile(unittest.TestCase):
             mocked_file.assert_called_once_with('/tmp/testfile', 'wb')
             mocked_file().write.assert_called_once_with(b'test data')
 
+    @patch('utils.download_file.logging.error')
     @patch('utils.download_file.requests.get')
-    def test_download_file_failure(self, mock_get):
+    def test_download_file_failure(self, mock_get, mock_logging_error):
         """
         Test download failure due to a request exception.
         """
@@ -31,6 +32,10 @@ class TestDownloadFile(unittest.TestCase):
 
         with self.assertRaises(requests.RequestException):
             download_file('http://example.com/testfile', '/tmp/testfile')
+
+        mock_logging_error.assert_called_once_with(
+            "An error occurred while downloading the file from http://example.com/testfile: Error"
+        )
 
 if __name__ == '__main__':
     unittest.main()
