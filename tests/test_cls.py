@@ -17,7 +17,7 @@ class TestClsFunction(unittest.TestCase):
 
         cls()
 
-        mock_os_system.assert_called_once_with('cls' if os.name == 'nt' else 'clear')
+        mock_os_system.assert_has_calls([call('cls' if os.name == 'nt' else 'clear')] * 2)
         mock_logging_info.assert_called_once_with("Console cleared successfully")
         mock_logging_error.assert_not_called()
 
