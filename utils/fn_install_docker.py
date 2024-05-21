@@ -6,24 +6,27 @@ import argparse
 import json
 from typing import Dict, Any
 import sys
+import time
 
+# Ensure the parent directory is in the sys.path
 script_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(script_dir)
 sys.path.append(parent_dir)
 
+# Import the module from the parent directory
 from utils.detector import detect_os, detect_architecture
 from utils.downloader import download_file
 from utils.loader import load_json_config
 from utils.cls import cls
-import time
 
-def is_docker_installed(m4b_config: Dict[str, Any] = None) -> bool:
+def is_docker_installed(m4b_config: Dict[str, Any]) -> bool:
     # Detect OS and architecture using the detect module
     os_info = detect_os(m4b_config)
     arch_info = detect_architecture(m4b_config)
     os_type = os_info["os_type"]
     dkarch = arch_info["dkarch"]
-    sleep_time = m4b_config.get("system").get("sleep_time")
+    sleep_time = m4b_config.get("system", {}).get("sleep_time", 1)
+    
     """Check if Docker is already installed."""
     try:
         subprocess.run(["docker", "--version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
@@ -39,8 +42,6 @@ def install_docker_linux(files_path: str):
     """Install Docker on a Linux system."""
     try:
         logging.info("Starting Docker for Linux auto installation script")
-        if is_docker_installed():
-            return
 
         installer_url = "https://get.docker.com"
         installer_path = os.path.join(files_path, "get-docker.sh")
@@ -65,8 +66,6 @@ def install_docker_windows(files_path: str):
     """Install Docker on a Windows system."""
     try:
         logging.info("Starting Docker for Windows auto installation script")
-        if is_docker_installed():
-            return
 
         installer_url = "https://desktop.docker.com/win/stable/Docker%20Desktop%20Installer.exe"
         installer_path = os.path.join(files_path, "DockerInstaller.exe")
@@ -78,7 +77,7 @@ def install_docker_windows(files_path: str):
         subprocess.run(["start", "/wait", installer_path, "install", "--accept-license", "--quiet"], shell=True, check=True)
         msg = "Docker installed successfully on Windows"
         logging.info(msg)
-        print(f"{msg}\nPlease Ensure that Docker autostarts with your system by checking it in the Docker settings")
+        print(f"{msg}\nPlease ensure that Docker autostarts with your system by checking it in the Docker settings")
         os.remove(installer_path)  # Clean-up
         subprocess.run([os.path.join(os.getenv("ProgramFiles"), "Docker", "Docker", "Docker Desktop.exe")], shell=True)
     except subprocess.CalledProcessError as e:
@@ -92,8 +91,6 @@ def install_docker_macos(files_path: str, intel_cpu: bool):
     """Install Docker on a macOS system."""
     try:
         logging.info("Starting Docker for macOS auto installation script")
-        if is_docker_installed():
-            return
 
         if intel_cpu:
             installer_url = "https://desktop.docker.com/mac/main/amd64/Docker.dmg"
@@ -112,7 +109,7 @@ def install_docker_macos(files_path: str, intel_cpu: bool):
         subprocess.run(["open", "/Applications/Docker.app"], check=True)
         msg = "Docker installed successfully on macOS"
         logging.info(msg)
-        print(f"{msg}\nPlease Ensure that Docker autostarts with your system by checking it in the Docker settings")
+        print(f"{msg}\nPlease ensure that Docker autostarts with your system by checking it in the Docker settings")
     except subprocess.CalledProcessError as e:
         logging.error(f"An error occurred during Docker installation on macOS: {str(e)}")
         raise
@@ -139,11 +136,11 @@ def main(app_config: dict, m4b_config: dict, user_config: dict):
         
         os_type = os_info["os_type"].lower()
         dkarch = arch_info["dkarch"].lower()
-        files_path = m4b_config.get('files_path', 'tmp')
+        files_path = m4b_config.get('files_path', os.path.join(parent_dir, 'tmp'))
 
         # Check if Docker is already installed
-        if is_docker_installed(m4b_config):
-            return
+        # if is_docker_installed(m4b_config):
+        #     return
 
         yn = input("Do you wish to proceed with the Docker automatic installation? (Y/N): ").lower()
         if yn not in ['y', 'yes']:
