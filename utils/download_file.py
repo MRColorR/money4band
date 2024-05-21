@@ -59,7 +59,7 @@ if __name__ == '__main__':
 
     # Parse command-line arguments
     parser = argparse.ArgumentParser(description='Run the module standalone.')
-    parser.add_argument('--app-config', type=str, required=True, help='Path to app_config JSON file')
+    parser.add_argument('--app-config', type=str, required=False, help='Path to app_config JSON file')
     parser.add_argument('--m4b-config', type=str, required=False, help='Path to m4b_config JSON file')
     parser.add_argument('--user-config', type=str, required=False, help='Path to user_config JSON file')
     parser.add_argument('--log-dir', default=os.path.join(script_dir, 'logs'), help='Set the logging directory')
