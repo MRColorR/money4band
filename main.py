@@ -25,7 +25,6 @@ def mainmenu(m4b_config_path: str, apps_config_path: str, user_config_path: str,
     utils_dir_path -- the path to the utils directory
     """
     try:
-        cls()
         logging.debug("Initializing colorama")
         just_fix_windows_console()
         logging.info("Colorama initialized successfully")
@@ -60,7 +59,7 @@ def mainmenu(m4b_config_path: str, apps_config_path: str, user_config_path: str,
             logging.debug(f"Loading modules from {utils_dir_path}")
             m4b_tools_modules = loader.load_modules_from_directory(utils_dir_path)
             logging.info(f"Successfully loaded modules from {utils_dir_path}")
-
+            cls()
             print(f"{Fore.GREEN}----------------------------------------------")
             print(f"{Back.GREEN}MONEY4BAND AUTOMATIC GUIDED SETUP v{m4b_config.get('project')['project_version']}{Back.RESET}")
             print(f"----------------------------------------------{Style.RESET_ALL}")
