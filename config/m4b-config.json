@@ -5,7 +5,7 @@
         "ds_project_server_url": "https://discord.com/invite/Fq8eeazBAD"
     },
     "system": {
-        "sleep_time": 1.5,
+        "sleep_time": 2,
         "arch_map": {
             "x86_64": "amd64",
             "amd64": "amd64",
@@ -30,7 +30,7 @@
     },
     "menu": [
         {"label": "Show supported apps' links", "function": "fn_show_links"},
-        {"label": "Install Docker", "function": "fn_dockerInstall"},
+        {"label": "Install Docker", "function": "fn_install_docker"},
         {"label": "Setup Apps", "function": "fn_setupApps"},
         {"label": "Setup Extra Apps", "function": "fn_setupExtraApps"},
         {"label": "Start apps stack", "function": "fn_startStack"},
