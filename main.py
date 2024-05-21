@@ -11,7 +11,7 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(script_dir)
 sys.path.append(parent_dir)
 # Import the module from the parent directory
-from utils import detect, loader
+from utils import detector, loader
 from utils.cls import cls
 
 def mainmenu(m4b_config_path: str, apps_config_path: str, user_config_path: str, utils_dir_path: str) -> None:
@@ -52,8 +52,8 @@ def mainmenu(m4b_config_path: str, apps_config_path: str, user_config_path: str,
             sleep_time = m4b_config.get("system").get("sleep_time", 2)
             logging.debug("Loading OS and architecture maps from config file")
             system_info = {
-                **detect.detect_os(m4b_config_path),
-                **detect.detect_architecture(m4b_config_path)
+                **detector.detect_os(m4b_config_path),
+                **detector.detect_architecture(m4b_config_path)
             }
 
             # Load the functions from the passed tools dir

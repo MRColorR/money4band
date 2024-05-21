@@ -11,7 +11,7 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(script_dir)
 sys.path.append(parent_dir)
 
-from utils.detect import detect_os, detect_architecture
+from utils.detector import detect_os, detect_architecture
 from utils.download_file import download_file
 from utils.loader import load_json_config
 
