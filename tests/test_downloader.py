@@ -1,10 +1,10 @@
 import unittest
 from unittest.mock import patch, mock_open, MagicMock
 import requests
-from utils.download_file import download_file
+from utils.downloader import download_file
 
 class TestDownloadFile(unittest.TestCase):
-    @patch('utils.download_file.requests.get')
+    @patch('utils.downloader.requests.get')
     def test_download_file_success(self, mock_get):
         """
         Test successful download of a file.
@@ -21,8 +21,8 @@ class TestDownloadFile(unittest.TestCase):
             mocked_file.assert_called_once_with('/tmp/testfile', 'wb')
             mocked_file().write.assert_called_once_with(b'test data')
 
-    @patch('utils.download_file.logging.error')
-    @patch('utils.download_file.requests.get')
+    @patch('utils.downloader.logging.error')
+    @patch('utils.downloader.requests.get')
     def test_download_file_failure(self, mock_get, mock_logging_error):
         """
         Test download failure due to a request exception.
