@@ -23,14 +23,12 @@ def fn_show_links(app_config: Dict) -> None:
         logging.info("Showing links of the apps")
         cls()
         just_fix_windows_console()
-        print("Use CTRL+Click to open links or copy them:")
-
         # Iterate over all categories and apps
         for category, apps in app_config.items():
             print(f"{Back.YELLOW}---{category.upper()}---{Back.RESET}")
             for app in apps:
                 print(f"{Fore.GREEN}{app['name'].upper()}: {Fore.CYAN}{app['link']}{Style.RESET_ALL}")
-
+        print("\nInfo: Use CTRL+Click to open links or copy them:")
         input("Press Enter to go back to main menu")
     except Exception as e:
         logging.error(f"An error occurred in fn_show_links: {str(e)}")

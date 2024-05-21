@@ -1,10 +1,8 @@
 import unittest
 from unittest.mock import patch, MagicMock
 import logging
-import sys
-from io import StringIO
-from utils.fn_show_links import fn_show_links
 import re
+from utils.fn_show_links import fn_show_links
 
 class TestFnShowLinks(unittest.TestCase):
     @patch('utils.fn_show_links.print')
@@ -69,28 +67,18 @@ class TestFnShowLinks(unittest.TestCase):
             "removed-apps": []
         }
 
-        # Capture the output
-        captured_output = StringIO()
-        sys.stdout = captured_output
-
         # Call the function
         fn_show_links(app_config)
-
-        # Restore stdout
-        sys.stdout = sys.__stdout__
-
-        # Remove ANSI escape codes from the output
-        ansi_escape = re.compile(r'\x1b\[([0-9;]*m)')
 
         # Collect printed lines from mock_print
         printed_lines = [call.args[0] for call in mock_print.call_args_list]
         printed_output = '\n'.join(printed_lines)
 
         # Remove ANSI escape codes from printed output
+        ansi_escape = re.compile(r'\x1b\[([0-9;]*m)')
         clean_printed_output = ansi_escape.sub('', printed_output)
 
         # Assertions to check if the output contains the expected strings
-        self.assertIn("Use CTRL+Click to open links or copy them:", clean_printed_output)
         self.assertIn("---APPS---", clean_printed_output)
         self.assertIn("EARNAPP: https://earnapp.com/i/3zulx7k", clean_printed_output)
         self.assertIn("HONEYGAIN: https://r.honeygain.me/MINDL15721", clean_printed_output)
