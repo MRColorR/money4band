@@ -76,9 +76,11 @@ def install_docker_windows(files_path: str):
 
         # Install Docker
         subprocess.run(["start", "/wait", installer_path, "install", "--accept-license", "--quiet"], shell=True, check=True)
+        msg = "Docker installed successfully on Windows"
+        logging.info(msg)
+        print(f"{msg}\nPlease Ensure that Docker autostarts with your system by checking it in the Docker settings")
         os.remove(installer_path)  # Clean-up
         subprocess.run([os.path.join(os.getenv("ProgramFiles"), "Docker", "Docker", "Docker Desktop.exe")], shell=True)
-        logging.info("Docker installed and running on Windows")
     except subprocess.CalledProcessError as e:
         logging.error(f"An error occurred during Docker installation on Windows: {str(e)}")
         raise
@@ -108,7 +110,9 @@ def install_docker_macos(files_path: str, intel_cpu: bool):
         subprocess.run(["sudo", "/Volumes/Docker/Docker.app/Contents/MacOS/install", "--accept-license"], check=True)
         subprocess.run(["hdiutil", "detach", "/Volumes/Docker"], check=True)
         subprocess.run(["open", "/Applications/Docker.app"], check=True)
-        logging.info("Docker installed successfully on macOS")
+        msg = "Docker installed successfully on macOS"
+        logging.info(msg)
+        print(f"{msg}\nPlease Ensure that Docker autostarts with your system by checking it in the Docker settings")
     except subprocess.CalledProcessError as e:
         logging.error(f"An error occurred during Docker installation on macOS: {str(e)}")
         raise
