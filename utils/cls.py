@@ -10,8 +10,8 @@ def cls():
         os.system('cls' if os.name == 'nt' else 'clear')
         logging.info("Console cleared successfully")
     except Exception as e:
-        error_msg = f"Error clearing console: {str(e)}"
-        logging.error(error_msg)
+        logging.error(f"Error clearing console: {str(e)}")
+        raise
 
 if __name__ == "__main__":
     # Get the script absolute path and name
