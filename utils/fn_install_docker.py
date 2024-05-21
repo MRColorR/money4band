@@ -12,7 +12,7 @@ parent_dir = os.path.dirname(script_dir)
 sys.path.append(parent_dir)
 
 from utils.detector import detect_os, detect_architecture
-from utils.download_file import download_file
+from utils.downloader import download_file
 from utils.loader import load_json_config
 
 def install_docker_linux(files_path: str):
