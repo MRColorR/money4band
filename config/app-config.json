@@ -18,8 +18,12 @@
       "link": "https://r.honeygain.me/MINDL15721",
       "image": "honeygain/honeygain",
       "flags":{
-        "--email":{},
-        "--password":{}
+        "--email":{"in_command":"-email"},
+        "--password":{"in_command":"-pass"}
+      },
+      "extra":{
+        "device_name":{"in_command":"-device"},
+        "tos":{"in_command":"-tou-accept"}
       }
     },
     {
