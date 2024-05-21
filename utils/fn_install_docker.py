@@ -137,8 +137,8 @@ def main(app_config: dict, m4b_config: dict, user_config: dict):
         os_info = detect_os(m4b_config)
         arch_info = detect_architecture(m4b_config)
         
-        os_type = os_info["os_type"]
-        dkarch = arch_info["dkarch"]
+        os_type = os_info["os_type"].lower()
+        dkarch = arch_info["dkarch"].lower()
         files_path = m4b_config.get('files_path', 'tmp')
 
         # Check if Docker is already installed
@@ -147,8 +147,9 @@ def main(app_config: dict, m4b_config: dict, user_config: dict):
 
         yn = input("Do you wish to proceed with the Docker automatic installation? (Y/N): ").lower()
         if yn not in ['y', 'yes']:
-            logging.info("Docker installation canceled by user")
-            print("Docker installation canceled")
+            msg = "Docker installation canceled by user"
+            logging.info(msg)
+            print(msg)
             return
 
         if os_type == "linux":
