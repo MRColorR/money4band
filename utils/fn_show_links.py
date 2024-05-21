@@ -28,7 +28,7 @@ def fn_show_links(app_config: Dict) -> None:
             print(f"{Back.YELLOW}---{category.upper()}---{Back.RESET}")
             for app in apps:
                 print(f"{Fore.GREEN}{app['name'].upper()}: {Fore.CYAN}{app['link']}{Style.RESET_ALL}")
-        print("\nInfo: Use CTRL+Click to open links or copy them:")
+        print("\nInfo: Use CTRL+Click to open links or copy them")
         input("Press Enter to go back to main menu")
     except Exception as e:
         logging.error(f"An error occurred in fn_show_links: {str(e)}")
