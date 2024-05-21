@@ -25,9 +25,9 @@ def fn_show_links(app_config: Dict) -> None:
         just_fix_windows_console()
         print("Use CTRL+Click to open links or copy them:")
 
-        # Iterate over all app types and apps
-        for app_type, apps in app_config.items():
-            print(f"{Back.YELLOW}---{app_type.upper()}---{Back.RESET}")
+        # Iterate over all categories and apps
+        for category, apps in app_config.items():
+            print(f"{Back.YELLOW}---{category.upper()}---{Back.RESET}")
             for app in apps:
                 print(f"{Fore.GREEN}{app['name'].upper()}: {Fore.CYAN}{app['link']}{Style.RESET_ALL}")
 
