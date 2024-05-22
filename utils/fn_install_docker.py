@@ -1,5 +1,4 @@
 import os
-import platform
 import subprocess
 import logging
 import argparse
@@ -16,20 +15,17 @@ sys.path.append(parent_dir)
 # Import the module from the parent directory
 from utils.detector import detect_os, detect_architecture
 from utils.downloader import download_file
-from utils.loader import load_json_config
 from utils.cls import cls
 
 def is_docker_installed(m4b_config: Dict[str, Any]) -> bool:
-    # Detect OS and architecture using the detect module
-    os_info = detect_os(m4b_config)
-    arch_info = detect_architecture(m4b_config)
-    os_type = os_info["os_type"]
-    dkarch = arch_info["dkarch"]
-    sleep_time = m4b_config.get("system", {}).get("sleep_time", 1)
-    
     """Check if Docker is already installed."""
     try:
         subprocess.run(["docker", "--version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+        os_info = detect_os(m4b_config)
+        arch_info = detect_architecture(m4b_config)
+        os_type = os_info["os_type"]
+        dkarch = arch_info["dkarch"]
+        sleep_time = m4b_config.get("system", {}).get("sleep_time", 1)
         msg = f"Docker is already installed on {os_type} with {dkarch} architecture"
         logging.info(msg)
         print(msg)
@@ -37,6 +33,9 @@ def is_docker_installed(m4b_config: Dict[str, Any]) -> bool:
         return True
     except subprocess.CalledProcessError:
         return False
+    except Exception as e:
+        logging.error(f"An unexpected error occurred: {str(e)}")
+        raise
 
 def install_docker_linux(files_path: str):
     """Install Docker on a Linux system."""
@@ -74,33 +73,30 @@ def install_docker_windows(files_path: str):
         download_file(installer_url, installer_path)
 
         # Install Docker
-        # subprocess.run([installer_path, "install", "--accept-license", "--quiet"], shell=True, check=True)
-        process = subprocess.Popen(
-            [installer_path, "install", "--accept-license", "--quiet"], # quiet suppress lots of messages and disable the docker GUI
+        result = subprocess.run(
+            [installer_path, "install", "--accept-license", "--quiet"],  # quiet suppress lots of messages and disable the docker GUI
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             universal_newlines=True,
             shell=True,
+            check=True  # Raise error if the subprocess returns non-zero exit code
         )
-        while True:
-            output = process.stdout.readline()
-            if output == '' and process.poll() is not None:
-                break
-            if output:
-                print(output.strip())
-        rc = process.poll()
-        print("Return code:", rc)
+
+        # Print stdout and stderr
+        if result.stdout:
+            print(result.stdout.strip())
+        if result.stderr:
+            print(result.stderr.strip())
+
+        # Print installation success message
         msg = "Docker installed successfully on Windows"
-        if rc != 0: # exit status 0 is "OK,success"
-            if rc == 3:  # e.g 3 is not so standardized it could be the return code for "user cancelled" or "code changed, restart needed"
-                logging.warning(f"Docker installation terminated with return code {rc}") 
-            else: # exit status 1 is "failed, something went wrong whitin process" and exit status 2 is "failed, cannot access command-line argument"
-                logging.error(f"Docker installation terminated with return code {rc}")
-                raise subprocess.CalledProcessError(rc, installer_path)
         logging.info(msg)
         print(f"{msg}\nPlease ensure that Docker autostarts with your system by checking it in the Docker settings")
-        os.remove(installer_path)  # Clean-up
+
+        # Clean-up
+        os.remove(installer_path)
         subprocess.run([os.path.join(os.getenv("ProgramFiles"), "Docker", "Docker", "Docker Desktop.exe")], shell=True)
+
     except subprocess.CalledProcessError as e:
         logging.error(f"An error occurred during Docker installation on Windows: {str(e)}")
         raise
@@ -158,10 +154,9 @@ def main(app_config: dict, m4b_config: dict, user_config: dict):
         os_type = os_info["os_type"].lower()
         dkarch = arch_info["dkarch"].lower()
         files_path = m4b_config.get('files_path', os.path.join(parent_dir, 'tmp'))
-
         # Check if Docker is already installed
-        # if is_docker_installed(m4b_config):
-        #     return
+        if is_docker_installed(m4b_config):
+            return
 
         yn = input(f"Do you wish to proceed with the Docker for {os_type} automatic installation? (Y/N): ").lower()
         if yn not in ['y', 'yes']:
@@ -256,3 +251,4 @@ if __name__ == '__main__':
     except Exception as e:
         logging.error(f"An unexpected error occurred: {str(e)}")
         raise
+
