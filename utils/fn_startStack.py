@@ -24,20 +24,20 @@ def main(app_config:dict,m4b_config:dict):
 
             #now run the app with appropriate args
             extra_global = {'device_name':'device_info'}
-            run_command = ['docker','run']
+            run_command = ['docker','run','-d','--name',app_name]
+
             run_command.append(app['image'])
             for i in app['flags']:
-                property = i.lstrip('-')
                 run_command.append(f'{app['flags'][i]['in_command']}')
-                run_command.append(f'{user_config["apps"][app_name][property]}')
+                run_command.append(f'{user_config["apps"][app_name][i]}')
             
-            for i in app['extra']:
+            for i in app['additional_args']:
                 if i in extra_global:
-                    run_command.append(f'{app['extra'][i]['in_command']}')
+                    run_command.append(f'{app['additional_args'][i]['in_command']}')
                     run_command.append(f'{user_config[extra_global[i]][i]}')
                 else:
-                    run_command.append(f'{app['extra'][i]['in_command']}')
+                    run_command.append(f'{app['additional_args'][i]['in_command']}')
+
             print(run_command)
             subprocess.run(run_command,shell=True)
-            time.sleep(100)
             cls()
