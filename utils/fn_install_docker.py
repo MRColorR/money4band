@@ -74,8 +74,29 @@ def install_docker_windows(files_path: str):
         download_file(installer_url, installer_path)
 
         # Install Docker
-        subprocess.run(["start", "/wait", installer_path, "install", "--accept-license", "--quiet"], shell=True, check=True)
+        # subprocess.run([installer_path, "install", "--accept-license", "--quiet"], shell=True, check=True)
+        process = subprocess.Popen(
+            [installer_path, "install", "--accept-license", "--quiet"], # quiet suppress lots of messages and disable the docker GUI
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            universal_newlines=True,
+            shell=True,
+        )
+        while True:
+            output = process.stdout.readline()
+            if output == '' and process.poll() is not None:
+                break
+            if output:
+                print(output.strip())
+        rc = process.poll()
+        print("Return code:", rc)
         msg = "Docker installed successfully on Windows"
+        if rc != 0: # exit status 0 is "OK,success"
+            if rc == 3:  # e.g 3 is not so standardized it could be the return code for "user cancelled" or "code changed, restart needed"
+                logging.warning(f"Docker installation terminated with return code {rc}") 
+            else: # exit status 1 is "failed, something went wrong whitin process" and exit status 2 is "failed, cannot access command-line argument"
+                logging.error(f"Docker installation terminated with return code {rc}")
+                raise subprocess.CalledProcessError(rc, installer_path)
         logging.info(msg)
         print(f"{msg}\nPlease ensure that Docker autostarts with your system by checking it in the Docker settings")
         os.remove(installer_path)  # Clean-up
@@ -142,7 +163,7 @@ def main(app_config: dict, m4b_config: dict, user_config: dict):
         # if is_docker_installed(m4b_config):
         #     return
 
-        yn = input("Do you wish to proceed with the Docker automatic installation? (Y/N): ").lower()
+        yn = input(f"Do you wish to proceed with the Docker for {os_type} automatic installation? (Y/N): ").lower()
         if yn not in ['y', 'yes']:
             msg = "Docker installation canceled by user"
             logging.info(msg)
