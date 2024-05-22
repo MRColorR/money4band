@@ -18,16 +18,12 @@
       "link": "https://r.honeygain.me/MINDL15721",
       "image": "honeygain/honeygain",
       "flags":{
-        "--email":{"in_command":"-email"},
-        "--password":{"in_command":"-pass"}
-      },
-      "extra":{
-        "device_name":{"in_command":"-device"},
-        "tos":{"in_command":"-tou-accept"}
+        "--email":{},
+        "--password":{}
       }
     },
     {
-      "name": "PAWNS",
+      "name": "IPROYALPAWNS",
       "dashboard": "https://dashboard.pawns.app/",
       "link": "https://pawns.app?r=MiNe",
       "image": "iproyal/pawns-cli",
