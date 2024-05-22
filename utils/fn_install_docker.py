@@ -20,7 +20,7 @@ from utils.cls import cls
 def is_docker_installed(m4b_config: Dict[str, Any]) -> bool:
     """Check if Docker is already installed."""
     try:
-        subprocess.run(["docker", "--version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+        result = subprocess.run(["docker", "--version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True, universal_newlines=True)
         os_info = detect_os(m4b_config)
         arch_info = detect_architecture(m4b_config)
         os_type = os_info["os_type"]
@@ -31,12 +31,13 @@ def is_docker_installed(m4b_config: Dict[str, Any]) -> bool:
         print(msg)
         time.sleep(sleep_time)
         return True
+    except FileNotFoundError:
+        return False
     except subprocess.CalledProcessError:
         return False
     except Exception as e:
         logging.error(f"An unexpected error occurred: {str(e)}")
         raise
-
 def install_docker_linux(files_path: str):
     """Install Docker on a Linux system."""
     try:
@@ -154,6 +155,7 @@ def main(app_config: dict, m4b_config: dict, user_config: dict):
         os_type = os_info["os_type"].lower()
         dkarch = arch_info["dkarch"].lower()
         files_path = m4b_config.get('files_path', os.path.join(parent_dir, 'tmp'))
+
         # Check if Docker is already installed
         if is_docker_installed(m4b_config):
             return
