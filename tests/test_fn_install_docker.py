@@ -1,8 +1,7 @@
 import unittest
-from unittest.mock import patch, call, mock_open, MagicMock
+from unittest.mock import patch, call, MagicMock
 import subprocess
 import os
-import json
 import sys
 
 # Ensure the parent directory is in the sys.path
@@ -47,20 +46,44 @@ class TestFnInstallDocker(unittest.TestCase):
         mock_remove.assert_called_once_with(os.path.join(files_path, 'get-docker.sh'))
 
     @patch('utils.fn_install_docker.download_file')
-    @patch('utils.fn_install_docker.subprocess.Popen')
+    @patch('utils.fn_install_docker.subprocess.run')
     @patch('utils.fn_install_docker.os.remove')
-    def test_install_docker_windows(self, mock_remove, mock_popen, mock_download_file):
+    @patch('utils.fn_install_docker.os.getenv', return_value='C:\\Program Files')
+    def test_install_docker_windows(self, mock_getenv, mock_remove, mock_run, mock_download_file):
         files_path = '/fake/path'
-        mock_process = MagicMock()
-        mock_process.stdout.readline.side_effect = ['', None]
-        mock_process.poll.return_value = 0
-        mock_popen.return_value = mock_process
 
+        # Mock subprocess.run to simulate a successful installation and launch of Docker Desktop
+        mock_run.side_effect = [
+            subprocess.CompletedProcess(args=[], returncode=0),  # For installation
+            subprocess.CompletedProcess(args=[], returncode=0)   # For launching Docker Desktop
+        ]
+
+        # Call the function to install Docker on Windows
         install_docker_windows(files_path)
 
+        # Assert that the download_file function was called with the correct arguments
         mock_download_file.assert_called_once_with('https://desktop.docker.com/win/stable/Docker%20Desktop%20Installer.exe', os.path.join(files_path, 'DockerInstaller.exe'))
-        mock_popen.assert_called_once_with([os.path.join(files_path, 'DockerInstaller.exe'), 'install', '--accept-license', '--quiet'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, shell=True)
+
+        # Assert that subprocess.run was called with the correct arguments to install Docker
+        mock_run.assert_any_call(
+            [os.path.join(files_path, 'DockerInstaller.exe'), 'install', '--accept-license', '--quiet'],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            universal_newlines=True,
+            shell=True,
+            check=True
+        )
+
+        # Assert that subprocess.run was called with the correct arguments to launch Docker Desktop
+        mock_run.assert_any_call(
+            [os.path.join(os.getenv("ProgramFiles"), "Docker", "Docker", "Docker Desktop.exe")],
+            shell=True
+        )
+
+        # Assert that the installer executable was removed after installation
         mock_remove.assert_called_once_with(os.path.join(files_path, 'DockerInstaller.exe'))
+
+
 
     @patch('utils.fn_install_docker.download_file')
     @patch('utils.fn_install_docker.subprocess.run')
