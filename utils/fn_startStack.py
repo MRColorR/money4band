@@ -28,15 +28,15 @@ def main(app_config:dict,m4b_config:dict):
 
             run_command.append(app['image'])
             for i in app['flags']:
-                run_command.append(f'{app['flags'][i]['in_command']}')
+                run_command.append(f'{app['flags'][i]}')
                 run_command.append(f'{user_config["apps"][app_name][i]}')
             
             for i in app['additional_args']:
                 if i in extra_global:
-                    run_command.append(f'{app['additional_args'][i]['in_command']}')
+                    run_command.append(f'{app['additional_args'][i]}')
                     run_command.append(f'{user_config[extra_global[i]][i]}')
                 else:
-                    run_command.append(f'{app['additional_args'][i]['in_command']}')
+                    run_command.append(f'{app['additional_args'][i]}')
 
             print(run_command)
             subprocess.run(run_command,shell=True)
