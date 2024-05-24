@@ -5,9 +5,14 @@ import time
 import random
 import sys
 import json
+from typing import Dict, Any
+from colorama import Fore, Style, just_fix_windows_console
 from utils.cls import cls
 
-def main(app_config: dict, m4b_config: dict, user_config: dict):
+# Initialize colorama for Windows compatibility
+just_fix_windows_console()
+
+def main(app_config: Dict[str, Any], m4b_config: Dict[str, Any], user_config: Dict[str, Any]):
     """
     Quit the application gracefully with a farewell message.
 
@@ -17,12 +22,19 @@ def main(app_config: dict, m4b_config: dict, user_config: dict):
     user_config (dict): The user configuration dictionary.
     """
     cls()
-    print('Quitting the app')
+    print(f"{Fore.GREEN}Share this app with your friends thank you!{Style.RESET_ALL}")
+    print(Fore.CYAN + "Support the M4B development <3 check the donation options in the README, on GitHub or in our Discord. Every bit helps!" + Style.RESET_ALL)
+    print(Fore.GREEN + "Exiting the application...Bye!Bye!" + Style.RESET_ALL)
+
     sleep_time = m4b_config.get('system', {}).get('sleep_time', 1)
     time.sleep(sleep_time)
+
     farewell_messages = [
         'Have a great day........',
-        'Enjoy the rest of your day'
+        'If you see this then Sam probably succeeded in making this, yay!!!',
+        'Look into the eyes deeper, they never lie!!',
+        'Enjoy the rest of your day',
+        'The world will never be with you when you need it the most :('
     ]
     print(random.choice(farewell_messages))
     time.sleep(sleep_time)
