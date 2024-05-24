@@ -1,44 +1,62 @@
 import os
 import argparse
 import logging
+import json
 import time
 import random
 import sys
-import json
 from typing import Dict, Any
 from colorama import Fore, Style, just_fix_windows_console
+
+# Ensure the parent directory is in the sys.path
+script_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(script_dir)
+sys.path.append(parent_dir)
+# Import the module from the parent directory
 from utils.cls import cls
 
 # Initialize colorama for Windows compatibility
 just_fix_windows_console()
 
-def main(app_config: Dict[str, Any], m4b_config: Dict[str, Any], user_config: Dict[str, Any]):
+def fn_bye(m4b_config: Dict[str, Any]) -> None:
     """
     Quit the application gracefully with a farewell message.
 
-    Parameters:
-    app_config (dict): The application configuration dictionary.
-    m4b_config (dict): The m4b configuration dictionary.
-    user_config (dict): The user configuration dictionary.
+    Arguments:
+    m4b_config -- the m4b configuration dictionary
     """
-    cls()
-    print(f"{Fore.GREEN}Share this app with your friends thank you!{Style.RESET_ALL}")
-    print(Fore.CYAN + "Support the M4B development <3 check the donation options in the README, on GitHub or in our Discord. Every bit helps!" + Style.RESET_ALL)
-    print(Fore.GREEN + "Exiting the application...Bye!Bye!" + Style.RESET_ALL)
+    try:
+        logging.info("Exiting the application gracefully")
+        cls()
+        print(Fore.GREEN + "Thank you for using M4B! Please share this app with your friends!" + Style.RESET_ALL)
+        print(Fore.GREEN + "Exiting the application..." + Style.RESET_ALL)
 
-    sleep_time = m4b_config.get('system', {}).get('sleep_time', 1)
-    time.sleep(sleep_time)
+        sleep_time = m4b_config.get('system', {}).get('sleep_time', 1)
+        farewell_messages = m4b_config.get('farewell_messages', [
+            'Have a fantastic day!',
+            'Happy earning!',
+            'Goodbye!',
+            'Bye! Bye!',
+        ])
 
-    farewell_messages = [
-        'Have a great day........',
-        'If you see this then Sam probably succeeded in making this, yay!!!',
-        'Look into the eyes deeper, they never lie!!',
-        'Enjoy the rest of your day',
-        'The world will never be with you when you need it the most :('
-    ]
-    print(random.choice(farewell_messages))
-    time.sleep(sleep_time)
-    sys.exit()
+        time.sleep(sleep_time)
+        print(random.choice(farewell_messages))
+        time.sleep(sleep_time)
+        sys.exit(0)
+    except Exception as e:
+        logging.error(f"An error occurred in fn_bye: {str(e)}")
+        raise
+
+def main(app_config: Dict[str, Any] = None, m4b_config: Dict[str, Any] = None, user_config: Dict[str, Any] = None) -> None:
+    """
+    Main function to call the fn_bye function.
+
+    Arguments:
+    app_config -- the app config dictionary
+    m4b_config -- the m4b config dictionary
+    user_config -- the user config dictionary
+    """
+    fn_bye(m4b_config)
 
 if __name__ == '__main__':
     # Get the script absolute path and name

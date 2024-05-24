@@ -26,18 +26,7 @@
             "mingw": "MinGw",
             "msys": "Msys",
             "freebsd": "FreeBSD"
-        },
-        "farewell_messages": [
-            "Have a fantastic day!",
-            "Enjoy the rest of your day!",
-            "May your journey be filled with joy and success!",
-            "Happy earning!",
-            "Goodbye!",
-            "See you soon!",
-            "Take care and have a nice day!",
-            "Bye! Bye!",
-            "Until we meet again!"
-        ]
+        }
     },
     "menu": [
         {"label": "Show supported apps' links", "function": "fn_show_links"},
@@ -50,6 +39,17 @@
         {"label": "Reset .env File", "function": "fn_resetEnv"},
         {"label": "Reset docker-compose.yaml file", "function": "fn_resetDockerCompose"},
         {"label": "Quit", "function": "fn_bye"}
+    ],
+    "farewell_messages": [
+        "Have a fantastic day!",
+        "Enjoy the rest of your day!",
+        "May your journey be filled with joy and success!",
+        "Happy earning!",
+        "Goodbye!",
+        "See you soon!",
+        "Take care and have a nice day!",
+        "Bye! Bye!",
+        "Until we meet again!"
     ],
     "placeholders": {
         "device_name_placeholder": "yourDeviceName"
