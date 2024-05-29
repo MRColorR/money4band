@@ -63,7 +63,7 @@ def main(app_config: Dict[str, Any] = None, m4b_config: Dict[str, Any] = None, u
     m4b_config -- the m4b configuration dictionary
     user_config_path -- the path to the user configuration JSON file
     """
-    user_config = load.load_json_config(user_config_path)
+    user_config = loader.load_json_config(user_config_path)
 
     advance_setup = input('Do you want to go with advanced setup? (y/n): ').lower().strip()
     if advance_setup == 'y':

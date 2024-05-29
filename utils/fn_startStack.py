@@ -11,7 +11,7 @@ import json
 import subprocess
 
 def main(app_config:dict,m4b_config:dict):
-    user_config = load.load_json_config('./config/user-config.json')
+    user_config = loader.load_json_config('./config/user-config.json')
     for app in app_config['apps']:
 
         app_name = app['name'].lower()
