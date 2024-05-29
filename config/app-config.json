@@ -6,7 +6,7 @@
       "link": "https://earnapp.com/i/3zulx7k",
       "image": "fazalfarhan01/earnapp",
       "flags": {
-        "--uuid":{
+        "--uuid": {
           "length": 32
         }
       },
@@ -17,13 +17,13 @@
       "dashboard": "https://dashboard.honeygain.com/",
       "link": "https://r.honeygain.me/MINDL15721",
       "image": "honeygain/honeygain",
-      "flags":{
-        "email":"-email",
-        "password":"-pass"
+      "flags": {
+        "email": "-email",
+        "password": "-pass"
       },
-      "additional_args":{
-        "device_name":"-device",
-        "tos":"-tou-accept"
+      "additional_args": {
+        "device_name": "-device",
+        "tos": "-tou-accept"
       }
     },
     {
@@ -31,9 +31,9 @@
       "dashboard": "https://dashboard.pawns.app/",
       "link": "https://pawns.app?r=MiNe",
       "image": "iproyal/pawns-cli",
-      "flags":{
-        "email":{},
-        "password":{}
+      "flags": {
+        "email": {},
+        "password": {}
       }
     },
     {
@@ -42,7 +42,7 @@
       "link": "https://packetstream.io/?psr=3zSD",
       "image": "packetstream/psclient",
       "flags": {
-        "cid":{}
+        "cid": {}
       }
     },
     {
@@ -51,18 +51,21 @@
       "link": "https://traffmonetizer.com/?aff=366499",
       "image": "traffmonetizer/cli_v2",
       "flags": {
-        "token":"--token"
+        "token": "--token"
       },
-      "additional_args":{"start":"start","accept":"accept"}
+      "additional_args": {
+        "start": "start",
+        "accept": "accept"
+      }
     },
     {
       "name": "REPOCKET",
       "dashboard": "https://app.repocket.co/#home",
       "link": "https://link.repocket.co/hr8i",
       "image": "repocket/repocket",
-      "flags":{
-        "--email":{},
-        "--apikey":{}
+      "flags": {
+        "--email": {},
+        "--apikey": {}
       }
     },
     {
@@ -70,8 +73,8 @@
       "dashboard": "https://app.earn.fm/",
       "link": "https://earn.fm/ref/MATTTAV6",
       "image": "earnfm/earnfm-client",
-      "flags":{
-        "--apikey":{}
+      "flags": {
+        "--apikey": {}
       }
     },
     {
@@ -79,9 +82,9 @@
       "dashboard": "https://peer.proxyrack.com/dashboard",
       "link": "https://peer.proxyrack.com/ref/myoas6qttvhuvkzh8ffx90ns1ouhwgilfgamo5ex",
       "image": "proxyrack/pop",
-      "flags":{
-        "--apikey":{},
-        "--uuid":{
+      "flags": {
+        "--apikey": {},
+        "--uuid": {
           "length": 64
         }
       },
@@ -93,7 +96,7 @@
       "link": "https://proxylite.ru/?r=PJTKXWN3",
       "image": "proxylite/proxyservice",
       "flags": {
-        "--userid":{}
+        "--userid": {}
       }
     },
     {
@@ -102,43 +105,42 @@
       "link": "https://app.bitping.com?r=qm7mIuX3",
       "image": "mrcolorrain/bitping",
       "flags": {
-        "--email":{},
-        "--password":{}
-    }
-  },
-  {
-    "name": "SPEEDSHARE",
-    "dashboard": "https://dashboard.speedshare.app/",
-    "link": "https://speedshare.app/?ref=mindlessnerd",
-    "image": "mrcolorrain/speedshare",
-    "flags": {
-      "--code": {},
-      "--uuid": {
-        "length": 32
+        "--email": {},
+        "--password": {}
       }
     },
-    "claimURLBase": "Speedshare nodes are automatically claimed. After starting it, go to the app's dashboard to see it. Its UUID is: "
-  },
-  {
-    "name": "GRASS",
-    "dashboard": "https://app.getgrass.io/dashboard",
-    "link": "https://app.getgrass.io/register/?referralCode=qyvJmxgNUhcLo2f",
-    "image": "mrcolorrain/grass",
-    "flags": {
-      "--email":{},
-      "--password":{}
-  }
-}
-  
+    {
+      "name": "SPEEDSHARE",
+      "dashboard": "https://dashboard.speedshare.app/",
+      "link": "https://speedshare.app/?ref=mindlessnerd",
+      "image": "mrcolorrain/speedshare",
+      "flags": {
+        "--code": {},
+        "--uuid": {
+          "length": 32
+        }
+      },
+      "claimURLBase": "Speedshare nodes are automatically claimed. After starting it, go to the app's dashboard to see it. Its UUID is: "
+    },
+    {
+      "name": "GRASS",
+      "dashboard": "https://app.getgrass.io/dashboard",
+      "link": "https://app.getgrass.io/register/?referralCode=qyvJmxgNUhcLo2f",
+      "image": "mrcolorrain/grass",
+      "flags": {
+        "--email": {},
+        "--password": {}
+      }
+    }
   ],
-  "extra-apps":[
+  "extra-apps": [
     {
       "name": "MYSTNODE",
       "dashboard": "https://mystnodes.com/nodes",
       "link": "https://mystnodes.co/?referral_code=Tc7RaS7Fm12K3Xun6mlU9q9hbnjojjl9aRBW8ZA9",
       "image": "mysteriumnetwork/myst",
       "flags": {
-        "--manual":{
+        "--manual": {
           "instructions": "Log into your device's mystnode local webdashboard, navigate to the Myst Node page and follow the onscreen instruction to complete the setup.\n\nDisclaimer: If you want to further optimize UPnP and port forwarding, consider setting manually 'network: host' for mystnode in your Docker compose. This may improve mystnode performance, but do this only if you know what you are doing and you are aware of potential security implications."
         }
       }
@@ -149,14 +151,12 @@
       "link": "https://t.me/peer2profit_app_bot?start=165849012262da8d0aa13c8",
       "image": "mrcolorrain/peer2profit",
       "flags": {
-        "--email":{},
-        "--manual":{
+        "--email": {},
+        "--manual": {
           "instructions": "Use any VNC client to connect to localhost:5901 using the password money4band and follow the onscreen instruction to complete the setup"
         }
       }
     }
   ],
-  "removed-apps":[
-
-  ]
+  "removed-apps": []
 }
