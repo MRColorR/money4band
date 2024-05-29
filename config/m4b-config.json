@@ -29,15 +29,42 @@
         }
     },
     "menu": [
-        {"label": "Show supported apps' links", "function": "fn_show_links"},
-        {"label": "Install Docker", "function": "fn_install_docker"},
-        {"label": "Setup Apps", "function": "fn_setupApps"},
-        {"label": "Setup Extra Apps", "function": "fn_setupExtraApps"},
-        {"label": "Start apps stack", "function": "fn_startStack"},
-        {"label": "Stop apps stack", "function": "fn_stopStack"},
-        {"label": "Setup and manage multiproxy instances by list","function":"fn_setupmproxies"},
-        {"label": "Reset user-config File", "function": "fn_resetConfig"},
-        {"label": "Quit", "function": "fn_bye"}
+        {
+            "label": "Show supported apps' links",
+            "function": "fn_show_links"
+        },
+        {
+            "label": "Install Docker",
+            "function": "fn_install_docker"
+        },
+        {
+            "label": "Setup Apps",
+            "function": "fn_setupApps"
+        },
+        {
+            "label": "Setup Extra Apps",
+            "function": "fn_setupExtraApps"
+        },
+        {
+            "label": "Start apps stack",
+            "function": "fn_startStack"
+        },
+        {
+            "label": "Stop apps stack",
+            "function": "fn_stopStack"
+        },
+        {
+            "label": "Setup and manage multiproxy instances by list",
+            "function": "fn_setupmproxies"
+        },
+        {
+            "label": "Reset user-config File",
+            "function": "fn_resetConfig"
+        },
+        {
+            "label": "Quit",
+            "function": "fn_bye"
+        }
     ],
     "farewell_messages": [
         "Have a fantastic day!",
