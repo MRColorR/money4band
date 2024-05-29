@@ -18,22 +18,18 @@
       "link": "https://r.honeygain.me/MINDL15721",
       "image": "honeygain/honeygain",
       "flags":{
-        "email":"-email",
-        "password":"-pass"
-      },
-      "additional_args":{
-        "device_name":"-device",
-        "tos":"-tou-accept"
+        "--email":{},
+        "--password":{}
       }
     },
     {
-      "name": "PAWNS",
+      "name": "IPROYALPAWNS",
       "dashboard": "https://dashboard.pawns.app/",
       "link": "https://pawns.app?r=MiNe",
       "image": "iproyal/pawns-cli",
       "flags":{
-        "email":{},
-        "password":{}
+        "--email":{},
+        "--password":{}
       }
     },
     {
@@ -42,7 +38,7 @@
       "link": "https://packetstream.io/?psr=3zSD",
       "image": "packetstream/psclient",
       "flags": {
-        "cid":{}
+        "--cid":{}
       }
     },
     {
@@ -51,9 +47,8 @@
       "link": "https://traffmonetizer.com/?aff=366499",
       "image": "traffmonetizer/cli_v2",
       "flags": {
-        "token":"--token"
-      },
-      "additional_args":{"start":"start","accept":"accept"}
+        "--token":{}
+      }
     },
     {
       "name": "REPOCKET",
