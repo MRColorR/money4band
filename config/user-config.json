@@ -1,83 +1,82 @@
 {   "user":{
-    "Nickname": "yourNickname",
-    "email": "your@mail.com"
-},
-"device_info":{
-    "device_name": "yourDeviceName"
+        "Nickname": "yourNickname",
+        "email": "your@mail.com"
     },
-    
-"apps": {
-    "earnapp": {
-        "enabled": false,
-        "device_uuid": "sdk-node-yourEARNAPPDeviceUUID"
+    "device_info":{
+        "device_name": "yourDeviceName"
+        },
+        
+    "apps": {
+        "earnapp": {
+            "enabled": false,
+            "device_uuid": "sdk-node-yourEARNAPPDeviceUUID"
+        },
+        "honeygain": {
+            "enabled": false,
+            "email": "yourHONEYGAINMail",
+            "password": "yourHONEYGAINPw"
+        },
+        "iprooyalpawns": {
+            "enabled": false,
+            "email": "yourIPROYALPAWNSMail",
+            "password": "yourIPROYALPAWNSPw"
+        },
+        "peer2profit": {
+            "enabled": false,
+            "email": "yourPEER2PROFITMail"
+        },
+        "packetstream": {
+            "enabled": false,
+            "cid": "yourPACKETSTREAMCID"
+        },
+        "traffmonetizer": {
+            "enabled": false,
+            "token": "yourTRAFFMONETIZERToken"
+        },
+        "repocket": {
+            "enabled": false,
+            "email": "yourREPOCKETMail",
+            "apikey": "yourREPOCKETAPIKey"
+        },
+        "earnfm": {
+            "enabled": false,
+            "apikey": "yourEARNFMAPIKey"
+        },
+        "proxyrack": {
+            "enabled": false,
+            "apikey": "yourPROXYRACKAPIKey",
+            "device_uuid": "yourPROXYRACKDeviceUUID"
+        },
+        "proxylite": {
+            "enabled": false,
+            "user_id": "yourPROXYLITEUserID"
+        },
+        "bitping": {
+            "enabled": false,
+            "email": "yourBITPINGMail",
+            "password": "yourBITPINGPw"
+        },
+        "speedshare": {
+            "enabled": false,
+            "code": "yourSPEEDSHARECode",
+            "device_uuid": "yourSPEEDSHAREDeviceUUID"
+        },
+        "grass": {
+            "enabled": false,
+            "email": "yourGRASSMail",
+            "password": "yourGRASSPw"
+        },
+        "mystnode": {
+            "enabled": false,
+            "dashboard_port": 4449
+        }
     },
-    "honeygain": {
+    "proxies": {
         "enabled": false,
-        "email": "yourHONEYGAINMail",
-        "password": "yourHONEYGAINPw"
+        "stack_proxy": "yourProxy"
     },
-    "pawns": {
+    "notifications": {
         "enabled": false,
-        "email": "yourIPROYALPAWNSMail",
-        "password": "yourIPROYALPAWNSPw"
-    },
-    "peer2profit": {
-        "enabled": false,
-        "email": "yourPEER2PROFITMail"
-    },
-    "packetstream": {
-        "enabled": false,
-        "cid": "yourPACKETSTREAMCID"
-    },
-    "traffmonetizer": {
-        "enabled": false,
-        "token": "yourTRAFFMONETIZERToken"
-    },
-    "repocket": {
-        "enabled": false,
-        "email": "yourREPOCKETMail",
-        "apikey": "yourREPOCKETAPIKey"
-    },
-    "earnfm": {
-        "enabled": false,
-        "apikey": "yourEARNFMAPIKey"
-    },
-    "proxyrack": {
-        "enabled": false,
-        "apikey": "yourPROXYRACKAPIKey",
-        "device_uuid": "yourPROXYRACKDeviceUUID"
-    },
-    "proxylite": {
-        "enabled": false,
-        "user_id": "yourPROXYLITEUserID"
-    },
-    "bitping": {
-        "enabled": false,
-        "email": "yourBITPINGMail",
-        "password": "yourBITPINGPw"
-    },
-    "speedshare": {
-        "enabled": false,
-        "code": "yourSPEEDSHARECode",
-        "device_uuid": "yourSPEEDSHAREDeviceUUID"
-    },
-    "grass": {
-        "enabled": false,
-        "email": "yourGRASSMail",
-        "password": "yourGRASSPw"
-    },
-    "mystnode": {
-        "enabled": false,
-        "dashboard_port": 4449
+        "shoutrrr_url": "yourApp:yourToken@yourWebHook"
     }
-},
-"proxies": {
-    "enabled": false,
-    "multiproxy":false,
-    "stack_proxy": "yourProxy"
-},
-"notifications": {
-    "enabled": false,
-    "shoutrrr_url": "yourApp:yourToken@yourWebHook"
-}
 }
