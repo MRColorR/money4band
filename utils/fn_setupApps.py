@@ -6,22 +6,7 @@ from typing import Dict, Any
 from colorama import Fore, Back, Style, just_fix_windows_console
 from utils import load, detect
 from utils.cls import cls
-
-def write_json(data: Dict[str, Any], filename: str) -> None:
-    """
-    Write data to a JSON file.
-
-    Arguments:
-    data -- the data to write
-    filename -- the file to write the data to
-    """
-    try:
-        with open(filename, 'w') as json_file:
-            json.dump(data, json_file, indent=4)
-        logging.info(f"Data written to {filename} successfully!")
-    except Exception as e:
-        logging.error(f"Error writing to {filename}: {e}")
-        raise
+from utils.dumper import write_json
 
 def collect_user_info(user_config: Dict[str, Any]) -> None:
     """
