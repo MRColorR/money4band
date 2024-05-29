@@ -5,7 +5,7 @@ import locale
 import time
 from typing import Dict, Any
 from colorama import Fore, Back, Style, just_fix_windows_console
-from utils import load, detect
+from utils import loader, detector
 from utils.cls import cls
 import json
 import subprocess
