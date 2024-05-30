@@ -64,7 +64,10 @@ def proxy_container(proxy,id,client):
         print(container.logs().decode('utf-8'))
 
     except Exception as e:
+
         print(f"An error occurred: {e}")
+
+    return container_name
 
 def run_container(cmd,network_name,client,image_name,container_name,user_data,order):
     # Environment variables
