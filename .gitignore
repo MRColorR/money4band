@@ -9,4 +9,5 @@ m4b_proxy_instances
 !requirements.txt
 logs
 venv*
+tmp/*
 __pycache__
