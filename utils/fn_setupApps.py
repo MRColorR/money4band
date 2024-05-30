@@ -21,54 +21,55 @@ def write_json(data,filename):
     except Exception as e:
         print(f"Error writing to {filename}: {e}")
 
-def main(app_config:dict,m4b_config:dict):
+def main(app_config:dict,m4b_config:dict,user_config:dict):
     user_config = load.load_json_config('./config/user-config.json')
-    advance_setup = input('Do you want to go with advanced setup?(y/n)')
-    if advance_setup.lower().strip(' ') == 'y':
-        "For the pros who prefer quick setup"
-        pass
+    multiproxy = input('Do you want to run multiproxy(y/n)')
+    if multiproxy.lower().strip(' ') == 'y':
+        user_config['proxies']['multiproxies'] = True
+        # maybe automatically create a proxies.txt file
     else:
-        "The same previous setup method"
-
-        nickename = input('Enter your nickname')
-        #Dont think email is needed
-        device_name = input('Enter your device name')
-
-        user_config['user']['Nickname'] = nickename
-        user_config['device_info']['device_name'] = device_name
+        single_proxy = input('Do you want to set up a single proxy?')
 
 
-        #ask proxy info lazy to code rn
+    nickename = input('Enter your nickname')
+    #Dont think email is needed
+    device_name = input('Enter your device name')
 
-        #Set up apps now
-        asking = {
-            'enabled': 'Do you want to run {}: ',
-            'email': 'Enter your {} email : ',
-            'password': 'Enter your {} password : ',
-            'apikey': 'Enter your {} api key : ',
-            'cid': 'Enter your {} cid : ',
-            'token': 'Enter your {} token :',
-            'code': 'Enter your {} code : '
-        }
-        for app in user_config['apps']:
-            cls()
-            for property in user_config['apps'][app]:
-                if property in asking:
-                    user_input = input(asking[property].format(app.title()))
-                    print(user_input.lower().strip(' '))
-                    if property == 'enabled':
-                        if user_input.lower().strip(' ') !='y':
-                            print(f'skipping {app}')
-                            break
-                        else:
-                            user_config['apps'][app][property] = True
+    user_config['user']['Nickname'] = nickename
+    user_config['device_info']['device_name'] = device_name
+
+
+    #ask proxy info lazy to code rn
+
+    #Set up apps now
+    asking = {
+        'enabled': 'Do you want to run {}: ',
+        'email': 'Enter your {} email : ',
+        'password': 'Enter your {} password : ',
+        'apikey': 'Enter your {} api key : ',
+        'cid': 'Enter your {} cid : ',
+        'token': 'Enter your {} token :',
+        'code': 'Enter your {} code : '
+    }
+    for app in user_config['apps']:
+        cls()
+        for property in user_config['apps'][app]:
+            if property in asking:
+                user_input = input(asking[property].format(app.title()))
+                print(user_input.lower().strip(' '))
+                if property == 'enabled':
+                    if user_input.lower().strip(' ') !='y':
+                        print(f'skipping {app}')
+                        break
                     else:
-                        user_config['apps'][app][property] = user_input
+                        user_config['apps'][app][property] = True
+                else:
+                    user_config['apps'][app][property] = user_input
 
-        #ask additional config settings 
+    #ask additional config settings 
 
 
-        write_json(user_config,'./config/user-config.json')
+    write_json(user_config,'./config/user-config.json')
                     
 
 

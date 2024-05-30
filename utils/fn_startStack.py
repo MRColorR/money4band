@@ -121,7 +121,7 @@ def run_container(cmd,network_name,client,image_name,container_name,user_data,or
 
 def main(app_config: dict, m4b_config: dict, user_config: dict = load.load_json_config('./config/user-config.json')):
     user_config = load.load_json_config('./config/user-config.json')
-    if not user_config['user']['pro']:
+    if not user_config['proxies']['multiproxy']:
 
         for app in app_config['apps']:
 
