@@ -67,7 +67,7 @@ def proxy_container(proxy,id,client):
 
         print(f"An error occurred: {e}")
 
-    return container_name
+    return f'container:{container_name}'
 
 def run_container(cmd,network_name,client,image_name,container_name,user_data,order):
     # Environment variables
