@@ -25,7 +25,7 @@ def main(app_config:dict,m4b_config:dict,user_config:dict=load.load_json_config(
     user_config = load.load_json_config('./config/user-config.json')
     multiproxy = input('Do you want to run multiproxy(y/n)')
     if multiproxy.lower().strip(' ') == 'y':
-        user_config['proxies']['multiproxiy'] = True
+        user_config['proxies']['multiproxy'] = True
         # maybe automatically create a proxies.txt file
     else:
         single_proxy = input('Do you want to set up a single proxy?')
