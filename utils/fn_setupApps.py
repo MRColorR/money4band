@@ -21,7 +21,7 @@ def write_json(data,filename):
     except Exception as e:
         print(f"Error writing to {filename}: {e}")
 
-def main(app_config:dict,m4b_config:dict,user_config:dict):
+def main(app_config:dict,m4b_config:dict,user_config:dict=load.load_json_config('./config/user-config.json')):
     user_config = load.load_json_config('./config/user-config.json')
     multiproxy = input('Do you want to run multiproxy(y/n)')
     if multiproxy.lower().strip(' ') == 'y':
