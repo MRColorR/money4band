@@ -26,6 +26,7 @@ def mainmenu(m4b_config_path: str, apps_config_path: str, utils_dir_path: str) -
     except Exception as e:
         logging.error(f"Error initializing colorama: {str(e)}")
         raise
+
     while True:
         try:
             logging.debug("Loading m4b config from config file")
@@ -34,8 +35,8 @@ def mainmenu(m4b_config_path: str, apps_config_path: str, utils_dir_path: str) -
             logging.debug("Loading apps config from config file")
             apps_config = load.load_json_config(apps_config_path)
             logging.info(f"Successfully loaded apps config from {apps_config_path}")
-        except:
-            err_msg = "An error occurred while loading the config files"
+        except Exception as e:
+            err_msg = f"An error occurred while loading the config files: {e}"
             logging.error(err_msg)
             print(err_msg)
             raise
@@ -49,7 +50,6 @@ def mainmenu(m4b_config_path: str, apps_config_path: str, utils_dir_path: str) -
                 **detect.detect_architecture(m4b_config_path)
             }
             
-            # Load the functions from the passed tools dir
             logging.debug(f"Loading modules from {utils_dir_path}")
             m4b_tools_modules = load.load_modules_from_directory(utils_dir_path)
             logging.info(f"Successfully loaded modules from {utils_dir_path}")
@@ -62,40 +62,37 @@ def mainmenu(m4b_config_path: str, apps_config_path: str, utils_dir_path: str) -
             print("----------------------------------------------")
             print(f"Detected OS type: {system_info.get('os_type')}")
             print(f"Detected architecture: {system_info.get('arch')}")
-            print(f"Docker {system_info.get("dkarch")} image architecture will be used if the app's image permits it")
+            print(f"Docker {system_info.get('dkarch')} image architecture will be used if the app's image permits it")
             print("----------------------------------------------")
-        except:
-            err_msg = "An error occurred while loading the main menu"
+        except Exception as e:
+            err_msg = f"An error occurred while loading the main menu: {e}"
             logging.error(err_msg)
             print(err_msg)
             raise
+        
         try:
-            # Load menu options from the JSON file
             logging.debug("Loading menu options from config file")
             menu_options = m4b_config["menu"]
 
             for i, option in enumerate(menu_options, start=1):
-                print("{}. {}".format(i, option["label"]))
+                print(f"{i}. {option['label']}")
 
             choice = input("Select an option and press Enter: ")
 
             try:
-                # Convert the user's choice to an integer
                 choice = int(choice)
             except ValueError:
-                print("Invalid input. Please select a menu option between 1 and {}.".format(len(menu_options)))
+                print(f"Invalid input. Please select a menu option between 1 and {len(menu_options)}.")
                 time.sleep(sleep_time)
                 continue
 
             if 1 <= choice <= len(menu_options):
-                # Fetch the function name associated with the chosen menu item
                 function_label = menu_options[choice - 1]["label"]
                 function_name = menu_options[choice - 1]["function"]
                 logging.info(f"User selected menu option number {choice} that corresponds to menu item {function_label}")
                 m4b_tools_modules[function_name].main(apps_config, m4b_config)
-
             else:
-                print("Invalid input. Please select a menu option between 1 and {}.".format(len(menu_options)))
+                print(f"Invalid input. Please select a menu option between 1 and {len(menu_options)}.")
                 time.sleep(sleep_time)
         except Exception as e:
             err_msg = f"An error occurred: {e}"

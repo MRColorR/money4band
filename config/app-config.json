@@ -17,14 +17,8 @@
       "dashboard": "https://dashboard.honeygain.com/",
       "link": "https://r.honeygain.me/MINDL15721",
       "image": "honeygain/honeygain",
-      "flags":{
-        "email":"-email",
-        "password":"-pass"
-      },
-      "additional_args":{
-        "device_name":"-device",
-        "tos":"-tou-accept"
-      }
+      "cmd":"",
+      "order":[]
     },
     {
       "name": "PAWNS",
@@ -50,10 +44,8 @@
       "dashboard": "https://app.traffmonetizer.com/dashboard",
       "link": "https://traffmonetizer.com/?aff=366499",
       "image": "traffmonetizer/cli_v2",
-      "flags": {
-        "token":"--token"
-      },
-      "additional_args":{"start":"start","accept":"accept"}
+      "cmd":"start accept --token {}",
+      "order": ["token"]
     },
     {
       "name": "REPOCKET",
@@ -70,9 +62,8 @@
       "dashboard": "https://app.earn.fm/",
       "link": "https://earn.fm/ref/MATTTAV6",
       "image": "earnfm/earnfm-client",
-      "flags":{
-        "--apikey":{}
-      }
+      "cmd":"-e EARNFM_TOKEN",
+      "order":["apikey"]
     },
     {
       "name": "PROXYRACK",
