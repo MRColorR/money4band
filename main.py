@@ -73,33 +73,29 @@ def mainmenu(m4b_config_path: str, apps_config_path: str, user_config_path: str,
         except Exception as e:
             logging.error(f"An error occurred while setting up the menu: {str(e)}")
             raise
-
         try:
-            # Load menu options from the JSON file
             logging.debug("Loading menu options from config file")
             menu_options = m4b_config["menu"]
 
             for i, option in enumerate(menu_options, start=1):
-                print("{}. {}".format(i, option["label"]))
+                print(f"{i}. {option['label']}")
 
             choice = input("Select an option and press Enter: ")
 
             try:
-                # Convert the user's choice to an integer
                 choice = int(choice)
             except ValueError:
-                print("Invalid input. Please select a menu option between 1 and {}.".format(len(menu_options)))
+                print(f"Invalid input. Please select a menu option between 1 and {len(menu_options)}.")
                 time.sleep(sleep_time)
                 continue
 
             if 1 <= choice <= len(menu_options):
-                # Fetch the function name associated with the chosen menu item
                 function_label = menu_options[choice - 1]["label"]
                 function_name = menu_options[choice - 1]["function"]
                 logging.info(f"User selected menu option number {choice} that corresponds to menu item {function_label}")
                 m4b_tools_modules[function_name].main(apps_config, m4b_config, user_config)
             else:
-                print("Invalid input. Please select a menu option between 1 and {}.".format(len(menu_options)))
+                print(f"Invalid input. Please select a menu option between 1 and {len(menu_options)}.")
                 time.sleep(sleep_time)
         except Exception as e:
             logging.error(f"An error occurred while processing the menu: {str(e)}")

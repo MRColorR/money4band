@@ -54,10 +54,6 @@
             "function": "fn_stopStack"
         },
         {
-            "label": "Setup and manage multiproxy instances by list",
-            "function": "fn_setupmproxies"
-        },
-        {
             "label": "Reset user-config File",
             "function": "fn_resetConfig"
         },
