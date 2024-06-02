@@ -55,7 +55,7 @@
         },
         {
             "label": "Reset user-config File",
-            "function": "fn_resetConfig"
+            "function": "fn_reset_config"
         },
         {
             "label": "Quit",

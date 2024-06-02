@@ -52,10 +52,8 @@
       "dashboard": "https://app.repocket.co/#home",
       "link": "https://link.repocket.co/hr8i",
       "image": "repocket/repocket",
-      "flags": {
-        "--email": {},
-        "--apikey": {}
-      }
+      "cmd":"--name repocket -e RP_EMAIL -e RP_API_KEY",
+      "order":["email","apikey"]
     },
     {
       "name": "EARNFM",
