@@ -58,11 +58,11 @@ def proxy_container(proxy,id,client):
             dns=dns,
             environment=environment,
             volumes=volumes,
-            restart_policy={"Name": "always"}
+            restart_policy={"Name": "always"},
+            log_config={"type": "none"}
         )
 
         print(f"Container {container_name} started successfully.")
-        print(container.logs().decode('utf-8'))
 
     except Exception as e:
 
@@ -106,7 +106,6 @@ def run_container(cmd,network_name,client,image_name,container_name,user_data,or
         client.images.pull(image_name)
 
         # Run the container
-        print(environment)
         container = client.containers.run(
             image_name,
             detach=True,
@@ -114,17 +113,17 @@ def run_container(cmd,network_name,client,image_name,container_name,user_data,or
             network=network_name,
             environment=environment,
             restart_policy={"Name": "always"},
-            command = cmd
+            command = cmd,
+            log_config={"type": "none"}
         )
 
         print(f"Container {container_name} started successfully.")
-        print(container.logs().decode('utf-8'))
+        #print(container.logs().decode('utf-8'))
 
     except Exception as e:
         print(f"An error occurred: {e}")
 
-def main(app_config: dict, m4b_config: dict, user_config: dict = load.load_json_config('./config/user-config.json')):
-    user_config = load.load_json_config('./config/user-config.json')
+def main(app_config: dict, m4b_config: dict, user_config: dict = loader.load_json_config('./config/user-config.json')):
     if not user_config['proxies']['multiproxy']:
 
         for app in app_config['apps']:

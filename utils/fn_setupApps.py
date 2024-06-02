@@ -21,7 +21,7 @@ def collect_user_info(user_config: Dict[str, Any]) -> None:
     user_config['user']['Nickname'] = nickname
     user_config['device_info']['device_name'] = device_name
 
-def configure_apps(user_config: Dict[str, Any]) -> None:
+def configure_apps(user_config: Dict[str, Any],app_config:Dict) -> None:
     """
     Configure apps by collecting user inputs.
 
@@ -37,6 +37,14 @@ def configure_apps(user_config: Dict[str, Any]) -> None:
         'token': 'Enter your {} token: ',
         'code': 'Enter your {} code: '
     }
+
+    for i in app_config['apps']:
+        app_name = i['name']
+        user_input = input(f'Do you want to run {app_name.title()}?(y/n) : ')
+        if user_input.lower().strip() != 'y':
+            continue
+
+        user_config[app_name.up]
 
     for app, properties in user_config['apps'].items():
         cls()
@@ -68,6 +76,8 @@ def main(app_config: Dict[str, Any] = None, m4b_config: Dict[str, Any] = None, u
     advance_setup = input('Do you want to go with advanced setup? (y/n): ').lower().strip()
     if advance_setup == 'y':
         logging.info("Advanced setup selected")
+        #temporary will change stuff in future
+        configure_apps(user_config)
         # Advanced setup code can be added here if needed
     else:
         logging.info("Basic setup selected")
@@ -148,8 +158,7 @@ if __name__ == '__main__':
         logging.error(f"An unexpected error occurred: {str(e)}")
         raise
 
-def main(app_config:dict,m4b_config:dict,user_config:dict=load.load_json_config('./config/user-config.json')):
-    user_config = load.load_json_config('./config/user-config.json')
+def main(app_config:dict,m4b_config:dict,user_config:dict=loader.load_json_config('./config/user-config.json')):
     multiproxy = input('Do you want to run multiproxy(y/n)')
     if multiproxy.lower().strip(' ') == 'y':
         user_config['proxies']['multiproxy'] = True
