@@ -59,7 +59,7 @@ def proxy_container(proxy,id,client):
             environment=environment,
             volumes=volumes,
             restart_policy={"Name": "always"},
-            log_config={"type": "none"}
+            #log_config={"type": "none"}
         )
 
         print(f"Container {container_name} started successfully.")
@@ -189,6 +189,7 @@ def main(app_config: dict, m4b_config: dict, user_config: dict = loader.load_jso
          
                     run_container(cmd,network,client,app['image'],f'{app_name}_{id}',user_config['apps'][app_name],list(app['order']))
                     '''change to system default sleep time'''
-                    progress += 1
                     time.sleep(5)
                     cls()
+
+            progress += 1
