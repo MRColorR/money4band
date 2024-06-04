@@ -63,6 +63,8 @@ def proxy_container(proxy,id,client):
         )
 
         print(f"Container {container_name} started successfully.")
+        with open('containers.txt','a') as f:
+            f.write(f'{container_name}\n')
 
     except Exception as e:
 
@@ -118,12 +120,21 @@ def run_container(cmd,network_name,client,image_name,container_name,user_data,or
         )
 
         print(f"Container {container_name} started successfully.")
+        with open('containers.txt','a') as f:
+            f.write(f'{container_name}\n')
         #print(container.logs().decode('utf-8'))
 
     except Exception as e:
         print(f"An error occurred: {e}")
 
 def main(app_config: dict, m4b_config: dict, user_config: dict = loader.load_json_config('./config/user-config.json')):
+    # Check if the previous containers are still running 
+    with open('./container.txt') as f:
+        if len(i for i in f.readlines() if i != '') ==0:
+            print("* Note there ate already running containers you may want to stop em")
+            if input('Do you still wanna continey?? (y/n)').lower().strip() != 'y':return
+
+
     if not user_config['proxies']['multiproxy']:
 
         for app in app_config['apps']:
