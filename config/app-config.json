@@ -1,4 +1,5 @@
 {
+  "app_config_version":1.0,
   "apps": [
     {
       "name": "EARNAPP",
@@ -17,8 +18,8 @@
       "dashboard": "https://dashboard.honeygain.com/",
       "link": "https://r.honeygain.me/MINDL15721",
       "image": "honeygain/honeygain",
-      "cmd":"",
-      "order":[]
+      "cmd":"-tou-accept -email {} -pass {} -device {}",
+      "order":["email","password","device"]
     },
     {
       "name": "PAWNS",

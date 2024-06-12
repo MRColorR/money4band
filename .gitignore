@@ -10,4 +10,5 @@ m4b_proxy_instances
 logs
 venv*
 tmp/*
+tmp.py
 __pycache__
