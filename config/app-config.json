@@ -1,4 +1,5 @@
 {
+  "app_config_version":1.0,
   "apps": [
     {
       "name": "EARNAPP",
@@ -17,18 +18,16 @@
       "dashboard": "https://dashboard.honeygain.com/",
       "link": "https://r.honeygain.me/MINDL15721",
       "image": "honeygain/honeygain",
-      "cmd":"",
-      "order":[]
+      "cmd":"-tou-accept -email {} -pass {} -device {}",
+      "order":["email","password","device"]
     },
     {
       "name": "PAWNS",
       "dashboard": "https://dashboard.pawns.app/",
       "link": "https://pawns.app?r=MiNe",
       "image": "iproyal/pawns-cli",
-      "flags": {
-        "email": {},
-        "password": {}
-      }
+      "cmd":"-accept-tos -email= {} -password= {} -device-name= {} -device-id= {} ",
+      "order":["email","password","device_id","device_id"]
     },
     {
       "name": "PACKETSTREAM",
@@ -52,10 +51,8 @@
       "dashboard": "https://app.repocket.co/#home",
       "link": "https://link.repocket.co/hr8i",
       "image": "repocket/repocket",
-      "flags": {
-        "--email": {},
-        "--apikey": {}
-      }
+      "cmd":"-e RP_EMAIL -e RP_API_KEY",
+      "order":["email","apikey"]
     },
     {
       "name": "EARNFM",
@@ -115,10 +112,8 @@
       "dashboard": "https://app.getgrass.io/dashboard",
       "link": "https://app.getgrass.io/register/?referralCode=qyvJmxgNUhcLo2f",
       "image": "mrcolorrain/grass",
-      "flags": {
-        "--email": {},
-        "--password": {}
-      }
+      "cmd":"-e GRASS_USER -e GRASS_PASS",
+      "order":["email","password"]
     }
   ],
   "extra-apps": [

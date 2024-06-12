@@ -14,12 +14,14 @@
         "honeygain": {
             "enabled": false,
             "email": "yourHONEYGAINMail",
-            "password": "yourHONEYGAINPw"
+            "password": "yourHONEYGAINPw",
+            "device":""
         },
         "pawns": {
             "enabled": false,
             "email": "yourIPROYALPAWNSMail",
-            "password": "yourIPROYALPAWNSPw"
+            "password": "yourIPROYALPAWNSPw",
+            "device_id":""
         },
         "peer2profit": {
             "enabled": false,

@@ -7,6 +7,7 @@ from colorama import Fore, Back, Style, just_fix_windows_console
 from utils import loader, detector
 from utils.cls import cls
 from utils.dumper import write_json
+import time
 
 def collect_user_info(user_config: Dict[str, Any]) -> None:
     """
@@ -21,7 +22,7 @@ def collect_user_info(user_config: Dict[str, Any]) -> None:
     user_config['user']['Nickname'] = nickname
     user_config['device_info']['device_name'] = device_name
 
-def configure_apps(user_config: Dict[str, Any]) -> None:
+def configure_apps(user_config: Dict[str, Any],app_config:Dict) -> None:
     """
     Configure apps by collecting user inputs.
 
@@ -29,32 +30,35 @@ def configure_apps(user_config: Dict[str, Any]) -> None:
     user_config -- the user configuration dictionary
     """
     asking = {
-        'enabled': 'Do you want to run {}: ',
         'email': 'Enter your {} email: ',
         'password': 'Enter your {} password: ',
         'apikey': 'Enter your {} API key: ',
         'cid': 'Enter your {} CID: ',
         'token': 'Enter your {} token: ',
-        'code': 'Enter your {} code: '
+        'code': 'Enter your {} code: ',
+        "device":"Enter your {} device name(you can skip it ^^)"
     }
 
-    for app, properties in user_config['apps'].items():
-        cls()
-        for property, prompt in asking.items():
-            if property in properties:
-                user_input = input(prompt.format(app.title()))
-                user_input = user_input.lower().strip()
+    for i in app_config['apps']:
+        app_name = i['name']
+        user_input = input(f'Do you want to run {app_name.title()}?(y/n) : ')
+        if user_input == '404':
+            break
+        if user_input.lower().strip() != 'y':
+            continue
+        user_config['apps'][app_name.lower()]['enabled'] = True
+        for property in user_config['apps'][app_name.lower()]:
+            if property in asking:
+                player_input = input(asking[property].format(app_name.title()))
+                if player_input == '404':
+                    break
+                user_config['apps'][app_name.lower()][property] = player_input
 
-                if property == 'enabled':
-                    if user_input != 'y':
-                        logging.info(f'Skipping {app}')
-                        break
-                    else:
-                        user_config['apps'][app][property] = True
-                else:
-                    user_config['apps'][app][property] = user_input
+    return user_config
 
-def main(app_config: Dict[str, Any] = None, m4b_config: Dict[str, Any] = None, user_config_path: str = './config/user-config.json') -> None:
+    
+
+def main(app_config: Dict[str, Any] = None, m4b_config: Dict[str, Any] = None, user_config:dict=None) -> None:
     """
     Main function for setting up user configurations.
 
@@ -63,16 +67,24 @@ def main(app_config: Dict[str, Any] = None, m4b_config: Dict[str, Any] = None, u
     m4b_config -- the m4b configuration dictionary
     user_config_path -- the path to the user configuration JSON file
     """
+    user_config_path: dict = './config/user-config.json'
     user_config = loader.load_json_config(user_config_path)
 
-    advance_setup = input('Do you want to go with advanced setup? (y/n): ').lower().strip()
+    advance_setup = input('Do you want to go with Multiproxy setup? (y/n): ').lower().strip()
     if advance_setup == 'y':
-        logging.info("Advanced setup selected")
-        # Advanced setup code can be added here if needed
+        logging.info("Multiproxy setup selected")
+        print('Create a proxies.txt file in the smae folder add add proxies in the following format protocol://user:pass@ip:port one proxy each line')
+        user_config['proxies']['multiproxy'] = True
+        time.sleep(3)
     else:
         logging.info("Basic setup selected")
-        collect_user_info(user_config)
-        configure_apps(user_config)
+        single_proxy = input('Do you want to setup proxy for the apps??(y/n) ')
+        if single_proxy.strip().lower() == 'y':
+            user_config['proxies']['proxy'] = input('Enter proxy details \n').strip()
+
+    #doubt if its needed
+    #collect_user_info(user_config)
+    user_config = configure_apps(user_config,app_config)
 
     write_json(user_config, user_config_path)
 
@@ -148,52 +160,3 @@ if __name__ == '__main__':
         logging.error(f"An unexpected error occurred: {str(e)}")
         raise
 
-def main(app_config:dict,m4b_config:dict,user_config:dict=load.load_json_config('./config/user-config.json')):
-    user_config = load.load_json_config('./config/user-config.json')
-    multiproxy = input('Do you want to run multiproxy(y/n)')
-    if multiproxy.lower().strip(' ') == 'y':
-        user_config['proxies']['multiproxy'] = True
-        # maybe automatically create a proxies.txt file
-    else:
-        single_proxy = input('Do you want to set up a single proxy?')
-
-
-    nickename = input('Enter your nickname')
-    #Dont think email is needed
-    device_name = input('Enter your device name')
-
-    user_config['user']['Nickname'] = nickename
-    user_config['device_info']['device_name'] = device_name
-
-
-    #ask proxy info lazy to code rn
-
-    #Set up apps now
-    asking = {
-        'enabled': 'Do you want to run {}: ',
-        'email': 'Enter your {} email : ',
-        'password': 'Enter your {} password : ',
-        'apikey': 'Enter your {} api key : ',
-        'cid': 'Enter your {} cid : ',
-        'token': 'Enter your {} token :',
-        'code': 'Enter your {} code : '
-    }
-    for app in user_config['apps']:
-        cls()
-        for property in user_config['apps'][app]:
-            if property in asking:
-                user_input = input(asking[property].format(app.title()))
-                print(user_input.lower().strip(' '))
-                if property == 'enabled':
-                    if user_input.lower().strip(' ') !='y':
-                        print(f'skipping {app}')
-                        break
-                    else:
-                        user_config['apps'][app][property] = True
-                else:
-                    user_config['apps'][app][property] = user_input
-
-    #ask additional config settings 
-
-
-    write_json(user_config,'./config/user-config.json')
