@@ -21,6 +21,26 @@ def generate_salt(length:int=8):
         salt += random.choice(chars)
     return salt
 
+def generate_device_name():
+    words = [
+        "Panther", "Tiger", "Eagle", "Falcon", "Lion",
+        "Wolf", "Leopard", "Hawk", "Dragon", "Phoenix",
+        "Cheetah", "Jaguar", "Cougar", "Raptor", "Puma",
+        "Griffin", "Orca", "Shark", "Dolphin", "Whale"
+    ]
+    
+    # Choose two random words
+    word1 = random.choice(words)
+    word2 = random.choice(words)
+    
+    # Ensure the two words are not the same
+    while word1 == word2:
+        word2 = random.choice(words)
+    
+    # Combine them to form the device name
+    device_name = f"{word1}{word2}"
+    
+    return device_name
 
 def proxy_container(proxy,id,client):
     # Environment variables
@@ -72,7 +92,7 @@ def proxy_container(proxy,id,client):
 
     return f'container:{container_name}'
 
-def run_container(cmd,network_name,client,image_name,container_name,user_data,order):
+def run_container(cmd,client,image_name,container_name,user_data,order,network_name=None,log_level=None):
     # Environment variables
     environment = {}
 
@@ -83,6 +103,7 @@ def run_container(cmd,network_name,client,image_name,container_name,user_data,or
     cmd = ''
     last = False
     for index in range(len(cmd_list)):
+
         # makes sure the environmen variable does not gets added to cmd 
         if last:
             last = False
@@ -93,7 +114,11 @@ def run_container(cmd,network_name,client,image_name,container_name,user_data,or
             environment[cmd_list[index+1]] = user_data[order.pop(0)]
             last = True
         elif i == '{}':
-            cmd += user_data[order.pop(0)]
+            # assuming that you can always add some random stuff if its not availabe in userdata
+            if user_data[order[0]] == '':
+                cmd += generate_device_name()
+            else:
+                cmd += user_data[order.pop(0)]
         elif i == '-v':
             pass
         else:
@@ -107,21 +132,26 @@ def run_container(cmd,network_name,client,image_name,container_name,user_data,or
         # Pull the image
         client.images.pull(image_name)
 
+        kwargs = {
+            "image":image_name,
+            "detach":True,
+            "name":container_name,
+            "environment":environment,
+            "restart_policy":{"Name": "always"},
+            "command" : cmd,
+            }
+        if not log_level:
+            kwargs["log_config"]={"type": "none"}
+
+        if network_name:
+            kwargs["network"]=network_name
         # Run the container
-        container = client.containers.run(
-            image_name,
-            detach=True,
-            name=container_name,
-            network=network_name,
-            environment=environment,
-            restart_policy={"Name": "always"},
-            command = cmd,
-            log_config={"type": "none"}
-        )
+        container = client.containers.run(**kwargs)
 
         print(f"Container {container_name} started successfully.")
         with open('containers.txt','a') as f:
             f.write(f'{container_name}\n')
+
         #print(container.logs().decode('utf-8'))
 
     except Exception as e:
@@ -136,36 +166,30 @@ def main(app_config: dict, m4b_config: dict, user_config: dict = loader.load_jso
 
 
     if not user_config['proxies']['multiproxy']:
+        client = docker.from_env()
+        id = generate_salt()
+
+        if user_config['proxies']['enabled']:
+            network = proxy_container(user_config['proxies']['proxy'],client=client)
+        else:
+            network = None
 
         for app in app_config['apps']:
-
             app_name = app['name'].lower()
 
             if user_config['apps'][app_name]['enabled']:
+                print(f'running {app_name.title()} container')
 
-                print(f'Pulling {app_name.title()} container')
-                subprocess.run(f'docker pull {app["image"]}', shell=True)
-                time.sleep(m4b_config['system']['sleep_time'])
 
-                # now run the app with appropriate args
-                extra_global = {'device_name': 'device_info'}
-                run_command = ['docker', 'run', '-d', '--name', app_name]
+                # format the command with the needed variables
+                cmd = app['cmd']
+        
+                run_container(cmd=cmd,network_name=network,client=client,image_name=app['image'],container_name=f'{app_name}_{id}',user_data=user_config['apps'][app_name],order=list(app['order']))
 
-                run_command.append(app['image'])
-                for i in app['flags']:
-                    run_command.append(app['flags'][i])
-                    run_command.append(user_config['apps'][app_name][i])
+                '''change to system default sleep time'''
+                time.sleep(5)
+            cls()
 
-                for i in app['additional_args']:
-                    if i in extra_global:
-                        run_command.append(app['additional_args'][i])
-                        run_command.append(user_config[extra_global[i]][i])
-                    else:
-                        run_command.append(app['additional_args'][i])
-
-                print(run_command)
-                subprocess.run(run_command, shell=True)
-                cls()
     else:
         # Multi instancing
         client = docker.from_env()
@@ -193,12 +217,11 @@ def main(app_config: dict, m4b_config: dict, user_config: dict = loader.load_jso
                 if user_config['apps'][app_name]['enabled']:
                     print(f'running {app_name.title()} container')
 
-                    args = {'device_name': 'device_info', 'name': f'{app_name}_{id}', 'network': f'container:my_tun2socks2_{id}', 'img': app['image']}
 
                     # format the command with the needed variables
                     cmd = app['cmd']
          
-                    run_container(cmd,network,client,app['image'],f'{app_name}_{id}',user_config['apps'][app_name],list(app['order']))
+                    run_container(cmd=cmd,network_name=network,client=client,image_name=app['image'],container_name=f'{app_name}_{id}',user_data=user_config['apps'][app_name],order=list(app['order']))
                     '''change to system default sleep time'''
                     time.sleep(5)
                     cls()

@@ -35,7 +35,8 @@ def configure_apps(user_config: Dict[str, Any],app_config:Dict) -> None:
         'apikey': 'Enter your {} API key: ',
         'cid': 'Enter your {} CID: ',
         'token': 'Enter your {} token: ',
-        'code': 'Enter your {} code: '
+        'code': 'Enter your {} code: ',
+        "device":"Enter your {} device name(you can skip it ^^)"
     }
 
     for i in app_config['apps']:
@@ -75,10 +76,12 @@ def main(app_config: Dict[str, Any] = None, m4b_config: Dict[str, Any] = None, u
         time.sleep(3)
     else:
         logging.info("Basic setup selected")
-        single_proxy = input('I am lazy rn lol ')
-        user_config['proxies']['proxy'] = input('Enter proxy details ')
+        single_proxy = input('Do you want to setup proxy for the apps??(y/n) ')
+        if single_proxy.strip().lower()[0] == 'y':
+            user_config['proxies']['proxy'] = input('Enter proxy details \n').strip()
 
-    collect_user_info(user_config)
+    #doubt if its needed
+    #collect_user_info(user_config)
     configure_apps(user_config,app_config)
 
     write_json(user_config, user_config_path)

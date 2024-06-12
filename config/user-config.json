@@ -14,7 +14,8 @@
         "honeygain": {
             "enabled": false,
             "email": "yourHONEYGAINMail",
-            "password": "yourHONEYGAINPw"
+            "password": "yourHONEYGAINPw",
+            "device":""
         },
         "pawns": {
             "enabled": false,
@@ -73,9 +74,9 @@
         }
     },
     "proxies": {
-        "enabled": false,
+        "proxy": "",
         "multiproxy": true,
-        "stack_proxy": "yourProxy"
+        "enabled":false
     },
     "notifications": {
         "enabled": false,
