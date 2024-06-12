@@ -1,10 +1,10 @@
 {
     "user": {
-        "Nickname": "",
+        "Nickname": "yourNickname",
         "email": "your@mail.com"
     },
     "device_info": {
-        "device_name": ""
+        "device_name": "yourDeviceName"
     },
     "apps": {
         "earnapp": {
@@ -20,7 +20,8 @@
         "pawns": {
             "enabled": false,
             "email": "yourIPROYALPAWNSMail",
-            "password": "yourIPROYALPAWNSPw"
+            "password": "yourIPROYALPAWNSPw",
+            "device_id":""
         },
         "peer2profit": {
             "enabled": false,
@@ -36,9 +37,8 @@
         },
         "repocket": {
             "enabled": false,
-            "email": "terdt",
-            "apikey": "erwter",
-            "eanbled": true
+            "email": "yourREPOCKETMail",
+            "apikey": "yourREPOCKETAPIKey"
         },
         "earnfm": {
             "enabled": false,
@@ -74,9 +74,9 @@
         }
     },
     "proxies": {
-        "proxy": "",
-        "multiproxy": true,
-        "enabled":false
+        "enabled": false,
+        "multiproxy": false,
+        "stack_proxy": "yourProxy"
     },
     "notifications": {
         "enabled": false,

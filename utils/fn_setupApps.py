@@ -46,13 +46,15 @@ def configure_apps(user_config: Dict[str, Any],app_config:Dict) -> None:
             break
         if user_input.lower().strip() != 'y':
             continue
-        user_config['apps'][app_name.lower()]['eanbled'] = True
+        user_config['apps'][app_name.lower()]['enabled'] = True
         for property in user_config['apps'][app_name.lower()]:
             if property in asking:
                 player_input = input(asking[property].format(app_name.title()))
                 if player_input == '404':
                     break
                 user_config['apps'][app_name.lower()][property] = player_input
+
+    return user_config
 
     
 
@@ -77,12 +79,12 @@ def main(app_config: Dict[str, Any] = None, m4b_config: Dict[str, Any] = None, u
     else:
         logging.info("Basic setup selected")
         single_proxy = input('Do you want to setup proxy for the apps??(y/n) ')
-        if single_proxy.strip().lower()[0] == 'y':
+        if single_proxy.strip().lower() == 'y':
             user_config['proxies']['proxy'] = input('Enter proxy details \n').strip()
 
     #doubt if its needed
     #collect_user_info(user_config)
-    configure_apps(user_config,app_config)
+    user_config = configure_apps(user_config,app_config)
 
     write_json(user_config, user_config_path)
 

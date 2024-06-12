@@ -37,8 +37,8 @@ def fn_bye(m4b_config: Dict[str, Any]) -> None:
             'Happy earning!',
             'Goodbye!',
             'Bye! Bye!',
-            'Did you know if you simply click enter while setting up apps the app will be skipper ^^',
-            'Did you know typing 404 while seting up apps will g'
+            'Did you know \n if you simply click enter while setting up apps the app will be skipped ^^',
+            'Did you know typing 404 while seting up apps the rest of the setup process will be skipped '
         ])
 
         time.sleep(sleep_time)

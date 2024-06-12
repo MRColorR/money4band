@@ -23,10 +23,10 @@ def generate_salt(length:int=8):
 
 def generate_device_name():
     words = [
-        "Panther", "Tiger", "Eagle", "Falcon", "Lion",
-        "Wolf", "Leopard", "Hawk", "Dragon", "Phoenix",
-        "Cheetah", "Jaguar", "Cougar", "Raptor", "Puma",
-        "Griffin", "Orca", "Shark", "Dolphin", "Whale"
+        "Panther", "Tiger", "Eagle", "Falcon", "Lion","Sucks",
+        "Wolf", "Leopard", "Hawk", "Dragon", "Phoenix","Melon",
+        "Cheetah", "Jaguar", "Cougar", "Raptor", "Amazon","Musk",
+        "Griffin", "Orca", "Shark", "Dolphin", "Whale","Sam2029","Spiderman"
     ]
     
     # Choose two random words
@@ -38,7 +38,7 @@ def generate_device_name():
         word2 = random.choice(words)
     
     # Combine them to form the device name
-    device_name = f"{word1}{word2}"
+    device_name = f"{word1}_{word2}"
     
     return device_name
 
@@ -122,7 +122,7 @@ def run_container(cmd,client,image_name,container_name,user_data,order,network_n
         elif i == '-v':
             pass
         else:
-            cmd += i 
+            cmd += i.strip() 
         
         cmd += ' '
 
@@ -146,6 +146,8 @@ def run_container(cmd,client,image_name,container_name,user_data,order,network_n
         if network_name:
             kwargs["network"]=network_name
         # Run the container
+        print(kwargs)
+        time.sleep(10)
         container = client.containers.run(**kwargs)
 
         print(f"Container {container_name} started successfully.")
@@ -158,14 +160,18 @@ def run_container(cmd,client,image_name,container_name,user_data,order,network_n
         print(f"An error occurred: {e}")
 
 def main(app_config: dict, m4b_config: dict, user_config: dict = loader.load_json_config('./config/user-config.json')):
-    # Check if the previous containers are still running 
-    with open('./container.txt') as f:
-        if len(i for i in f.readlines() if i != '') ==0:
-            print("* Note there ate already running containers you may want to stop em")
-            if input('Do you still wanna continey?? (y/n)').lower().strip() != 'y':return
-
-
+    try:
+        with open('./containers.txt') as f:
+            lines = [line for line in f if line.strip()]
+            if lines:
+                print("* Note there are already running containers. You may want to stop them.")
+                if input('Do you still want to continue? (y/n): ').lower().strip() != 'y':
+                    return
+    except FileNotFoundError:
+        print('No previously running container found')
+    
     if not user_config['proxies']['multiproxy']:
+
         client = docker.from_env()
         id = generate_salt()
 
@@ -184,7 +190,7 @@ def main(app_config: dict, m4b_config: dict, user_config: dict = loader.load_jso
                 # format the command with the needed variables
                 cmd = app['cmd']
         
-                run_container(cmd=cmd,network_name=network,client=client,image_name=app['image'],container_name=f'{app_name}_{id}',user_data=user_config['apps'][app_name],order=list(app['order']))
+                run_container(cmd=cmd,network_name=network,client=client,image_name=app['image'],container_name=f'{app_name}_{id}',user_data=user_config['apps'][app_name],order=list(app['order']),log_level='Something')
 
                 '''change to system default sleep time'''
                 time.sleep(5)
