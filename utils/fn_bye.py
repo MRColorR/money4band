@@ -1,4 +1,5 @@
 import os
+import sys
 import argparse
 import logging
 import json
@@ -11,7 +12,9 @@ from colorama import Fore, Style, just_fix_windows_console
 # Ensure the parent directory is in the sys.path
 script_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(script_dir)
-sys.path.append(parent_dir)
+if parent_dir not in sys.path:
+    sys.path.append(parent_dir)
+
 # Import the module from the parent directory
 from utils.cls import cls
 from utils.loader import load_json_config
@@ -94,6 +97,7 @@ if __name__ == '__main__':
     logging.info(f"Starting {script_name} script...")
 
     try:
+        # Call the main function
         main(app_config_path=args.app_config, m4b_config_path=args.m4b_config, user_config_path=args.user_config)
         logging.info(f"{script_name} script completed successfully")
     except FileNotFoundError as e:
