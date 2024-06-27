@@ -12,3 +12,4 @@ venv*
 tmp/*
 tmp.py
 __pycache__
+config/user-config.json
