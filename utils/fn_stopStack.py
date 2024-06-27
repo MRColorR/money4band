@@ -24,23 +24,18 @@ def stop_all_containers():
         logging.error(f"An error occurred while stopping containers: {str(e)}")
         raise
 
-def main(app_config: dict, m4b_config: dict, user_config: dict):
+def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> None:
     """
     Main function to stop all running Docker containers.
 
     Parameters:
-    app_config -- The application configuration dictionary.
-    m4b_config -- The m4b configuration dictionary.
-    user_config -- The user configuration dictionary.
+    app_config_path -- The path to the app configuration file.
+    m4b_config_path -- The path to the m4b configuration file.
+    user_config_path -- The path to the user configuration file.
     """
-    try:
-        logging.info("Stopping all Docker containers")
-        cls()
-        stop_all_containers()
-        logging.info("All Docker containers stopped successfully")
-    except Exception as e:
-        logging.error(f"An error occurred while stopping Docker containers: {str(e)}")
-        raise
+    cls()
+    stop_all_containers()
+    logging.info("All Docker containers stopped successfully")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Run the module standalone.')
@@ -67,23 +62,7 @@ if __name__ == '__main__':
     logging.info("Starting fn_stopStack script...")
 
     try:
-        # Load the app_config JSON file
-        app_config = {}
-        if args.app_config:
-            with open(args.app_config, 'r') as f:
-                app_config = json.load(f)
-
-        # Load the m4b_config JSON file
-        with open(args.m4b_config, 'r') as f:
-            m4b_config = json.load(f)
-
-        # Load the user_config JSON file
-        user_config = {}
-        if args.user_config:
-            with open(args.user_config, 'r') as f:
-                user_config = json.load(f)
-
-        main(app_config=app_config, m4b_config=m4b_config, user_config=user_config)
+        main(app_config_path=args.app_config, m4b_config_path=args.m4b_config, user_config_path=args.user_config)
         logging.info("fn_stopStack script completed successfully")
     except FileNotFoundError as e:
         logging.error(f"File not found: {str(e)}")
