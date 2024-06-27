@@ -9,7 +9,6 @@ from colorama import Fore, Back, Style, just_fix_windows_console
 from utils import loader, detector
 from utils.cls import cls
 import json
-import subprocess
 import random
 import docker
 
@@ -22,10 +21,10 @@ def generate_salt(length:int=8):
 
 def generate_device_name():
     words = [
-        "Panther", "Tiger", "Eagle", "Falcon", "Lion","Sucks",
-        "Wolf", "Leopard", "Hawk", "Dragon", "Phoenix","Melon",
-        "Cheetah", "Jaguar", "Cougar", "Raptor", "Amazon","Musk",
-        "Griffin", "Orca", "Shark", "Dolphin", "Whale","Sam2029","Spiderman"
+        "Panther", "Tiger", "Eagle", "Falcon", "Lion", "Sucks",
+        "Wolf", "Leopard", "Hawk", "Dragon", "Phoenix", "Melon",
+        "Cheetah", "Jaguar", "Cougar", "Raptor", "Amazon", "Musk",
+        "Griffin", "Orca", "Shark", "Dolphin", "Whale", "Sam2029", "Spiderman"
     ]
     
     # Choose two random words
@@ -170,12 +169,19 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
     except FileNotFoundError:
         print('No previously running container found')
     
-    if not user_config['proxies']['multiproxy']:
+    try:
         client = docker.from_env()
+    except docker.errors.DockerException as e:
+        print("Docker does not seem to be running or is not reachable. Please check Docker and try again.")
+        logging.error(f"Docker is not running: {str(e)}")
+        time.sleep(3)
+        return
+
+    if not user_config['proxies']['multiproxy']:
         id = generate_salt()
 
         if user_config['proxies']['enabled']:
-            network = proxy_container(user_config['proxies']['proxy'],client=client)
+            network = proxy_container(user_config['proxies']['proxy'], client=client)
         else:
             network = None
 
@@ -193,8 +199,6 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
 
     else:
         # Multi instancing
-        client = docker.from_env()
-
         with open('./proxies.txt') as f:
             proxies = f.readlines()
             proxies = [i for i in proxies if i != '\n']
