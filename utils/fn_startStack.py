@@ -3,12 +3,10 @@ import argparse
 import logging
 import locale
 import time
-import subprocess
 from typing import Dict, Any
 from colorama import Fore, Back, Style, just_fix_windows_console
 from utils import loader, detector
 from utils.cls import cls
-import json
 import random
 import docker
 import secrets
@@ -81,7 +79,7 @@ def run_container(cmd, client, image_name, container_name, user_data, order, adj
     # Container name and network
     container_name = container_name
     network_name = network_name
-    cmd_list = cmd.split()
+    cmd_list = cmd.split() if cmd else []
     cmd = ''
     last = False
     for index in range(len(cmd_list)):
@@ -118,7 +116,7 @@ def run_container(cmd, client, image_name, container_name, user_data, order, adj
             "name": container_name,
             "environment": environment,
             "restart_policy": {"Name": "always"},
-            "command": cmd,
+            "command": cmd if cmd else None,
         }
         if not log_level:
             kwargs["log_config"] = {"type": "none"}
@@ -184,10 +182,9 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
 
             if user_config['apps'][app_name]['enabled']:
                 print(f'running {app_name.title()} container')
-
                 # format the command with the needed variables
-                cmd = app['cmd']
-                run_container(cmd=cmd, network_name=network, client=client, image_name=app['image'], container_name=f'{app_name}_{rand_id}', user_data=user_config['apps'][app_name], order=list(app['order']), adjectives=adjectives, animals=animals, log_level='INFO')
+                cmd = app.get('cmd', None)
+                run_container(cmd=cmd, network_name=network, client=client, image_name=app['image'], container_name=f'{app_name}_{rand_id}', user_data=user_config['apps'][app_name], order=list(app.get('order', [])), adjectives=adjectives, animals=animals, log_level='INFO')
                 time.sleep(sleep_time)
             cls()
 
@@ -216,9 +213,8 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
                 if user_config['apps'][app_name]['enabled']:
                     print(f'running {app_name.title()} container')
 
-                    # format the command with the needed variables
-                    cmd = app['cmd']
-                    run_container(cmd=cmd, network_name=network, client=client, image_name=app['image'], container_name=f'{app_name}_{rand_id}', user_data=user_config['apps'][app_name], order=list(app['order']), adjectives=adjectives, animals=animals)
+                    cmd = app.get('cmd', None)
+                    run_container(cmd=cmd, network_name=network, client=client, image_name=app['image'], container_name=f'{app_name}_{rand_id}', user_data=user_config['apps'][app_name], order=list(app.get('order', [])), adjectives=adjectives, animals=animals)
                     time.sleep(sleep_time)
                     cls()
 
