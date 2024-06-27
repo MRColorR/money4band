@@ -11,13 +11,13 @@ from utils.cls import cls
 import json
 import random
 import docker
+import secrets
+import string
 
-def generate_salt(length:int=8):
-    chars = 'abcdefghijklmnopqrstuvwxyz'
-    salt = ''
-    for i in range(length):
-        salt += random.choice(chars)
-    return salt
+def generate_salt(length: int = 8) -> str:
+    """Generate a secure random alphanumeric salt."""
+    alphabet = string.ascii_letters + string.digits
+    return ''.join(secrets.choice(alphabet) for _ in range(length))
 
 def generate_device_name():
     words = [
@@ -111,7 +111,7 @@ def run_container(cmd, client, image_name, container_name, user_data, order, net
             environment[cmd_list[index+1]] = user_data[order.pop(0)]
             last = True
         elif i == '{}':
-            # assuming that you can always add some random stuff if it is not available in userdata
+            # assuming that you can always add some random stuff if it's not available in userdata
             if user_data[order[0]] == '':
                 cmd += generate_device_name()
             else:
@@ -193,7 +193,7 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
 
                 # format the command with the needed variables
                 cmd = app['cmd']
-                run_container(cmd=cmd, network_name=network, client=client, image_name=app['image'], container_name=f'{app_name}_{rand_id}', user_data=user_config['apps'][app_name], order=list(app['order']), log_level='Something')
+                run_container(cmd=cmd, network_name=network, client=client, image_name=app['image'], container_name=f'{app_name}_{rand_id}', user_data=user_config['apps'][app_name], order=list(app['order']), log_level='INFO')
                 time.sleep(5)
             cls()
 
