@@ -14,6 +14,7 @@ if parent_dir not in sys.path:
 # Import the module from the parent directory
 from utils import detector, loader
 from utils.cls import cls
+from utils.fn_reset_config import main as reset_main
 
 def mainmenu(m4b_config_path: str, apps_config_path: str, user_config_path: str, utils_dir_path: str) -> None:
     """
@@ -116,6 +117,7 @@ def main():
     parser.add_argument('--log-level', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], default='INFO', help='Set the logging level')
     parser.add_argument('--log-dir', default=os.path.join(script_dir, 'logs'), help='Set the logging directory')
     parser.add_argument('--log-file', default='m4b.log', help='Set the logging file name')
+    parser.add_argument('--template-user-config-path', default=os.path.join(script_dir, 'template', 'user-config.json'), help='Set the template user config file path')
     args = parser.parse_args()
 
     # Address possible locale issues that use different notations for decimal numbers and so on
@@ -132,17 +134,29 @@ def main():
 
     logging.info(f"Starting {script_name} script...")
 
+    # Check if user config exists; if not, reset it from the template
+    user_config_path = os.path.join(args.config_dir, args.config_usr_file)
+    if not os.path.exists(user_config_path):
+        logging.info("User config not found. Resetting from template...")
+        # Call the reset_config main function
+        reset_main(
+            app_config_path=None,
+            m4b_config_path=None,
+            user_config_path=user_config_path,
+            src_path=args.template_user_config_path,
+            dest_path=user_config_path
+        )
+
     try:
         mainmenu(
             m4b_config_path=os.path.join(args.config_dir, args.config_m4b_file),
             apps_config_path=os.path.join(args.config_dir, args.config_app_file),
-            user_config_path=os.path.join(args.config_dir, args.config_usr_file),
+            user_config_path=user_config_path,
             utils_dir_path=args.utils_dir
         )
     except Exception as e:
         logging.error(f"An error occurred: {str(e)}")
         raise
-
 
 if __name__ == '__main__':
     main()
