@@ -44,8 +44,6 @@ def fn_bye(m4b_config: Dict[str, Any]) -> None:
             'Did you know \n if you simply click enter while setting up apps the app will be skipped ^^',
             'Did you know typing 404 while setting up apps the rest of the setup process will be skipped'
         ])
-
-        time.sleep(sleep_time)
         print(random.choice(farewell_messages))
         time.sleep(sleep_time)
         sys.exit(0)
