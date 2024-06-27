@@ -36,8 +36,6 @@ def mainmenu(m4b_config_path: str, apps_config_path: str, user_config_path: str,
         try:
             logging.info("Loading configurations")
             m4b_config = loader.load_json_config(m4b_config_path)
-            apps_config = loader.load_json_config(apps_config_path)
-            user_config = loader.load_json_config(user_config_path)
             logging.info("Configurations loaded successfully")
         except FileNotFoundError as e:
             logging.error(f"File not found: {str(e)}")
@@ -93,7 +91,7 @@ def mainmenu(m4b_config_path: str, apps_config_path: str, user_config_path: str,
                 function_label = menu_options[choice - 1]["label"]
                 function_name = menu_options[choice - 1]["function"]
                 logging.info(f"User selected menu option number {choice} that corresponds to menu item {function_label}")
-                m4b_tools_modules[function_name].main(apps_config, m4b_config, user_config)
+                m4b_tools_modules[function_name].main(apps_config_path, m4b_config_path, user_config_path)
             else:
                 print(f"Invalid input. Please select a menu option between 1 and {len(menu_options)}.")
                 time.sleep(sleep_time)
