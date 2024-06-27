@@ -5,7 +5,7 @@
         "ds_project_server_url": "https://discord.com/invite/Fq8eeazBAD"
     },
     "system": {
-        "sleep_time": 1.5,
+        "sleep_time": 2,
         "arch_map": {
             "x86_64": "amd64",
             "amd64": "amd64",
@@ -112,5 +112,28 @@
         "app_mem_limit_big": "512m",
         "app_mem_reserv_huge": "512m",
         "app_mem_limit_huge": "1024m"
-    }
+    },
+    "adjectives": [
+        "Swift", "Silent", "Brave", "Cunning", "Mighty", "Fierce", "Bold",
+        "Nimble", "Stealthy", "Valiant", "Gallant", "Fearless", "Eager", 
+        "Keen", "Lively", "Daring", "Energetic", "Dynamic", "Vigorous",
+        "Intrepid", "Stalwart", "Resolute", "Tenacious", "Dauntless", "Radiant",
+        "Blazing", "Roaring", "Thunderous", "Mystic", "Majestic", "Serene",
+        "Glorious", "Splendid", "Miraculous", "Enchanted", "Magnificent",
+        "Invincible", "Formidable", "Epic", "Legendary", "Mythic", "Supreme",
+        "Ultimate", "Immortal", "Divine", "Spectacular", "Amazing", "Wondrous"
+    ],
+    "animals": [
+        "Panther", "Tiger", "Eagle", "Falcon", "Lion", "Wolf", "Leopard", 
+        "Hawk", "Dragon", "Phoenix", "Cheetah", "Jaguar", "Cougar", "Raptor", 
+        "Griffin", "Orca", "Shark", "Dolphin", "Whale", "Bear", "Cobra", 
+        "Scorpion", "Python", "Lynx", "Mustang", "Viper", "Bison", "Raven",
+        "Owl", "Falcon", "Lynx", "Puma", "Gazelle", "Mongoose", "Jackal",
+        "Panther", "Kangaroo", "Otter", "Hedgehog", "Fox", "Eagle", "Badger",
+        "Squirrel", "Porcupine", "Beaver", "Wombat", "Koala", "Panda", "Tiger",
+        "Buffalo", "Mammoth", "Walrus", "Seal", "Penguin", "Parrot", "Flamingo",
+        "Pelican", "Stork", "Swan", "Peacock", "Crane", "Heron", "Ibis", "Kiwi",
+        "Toucan", "Macaw", "Chameleon", "Iguana", "Gecko", "Komodo", "Monitor",
+        "Anaconda", "Boa", "Crocodile", "Alligator", "Turtle", "Tortoise"
+    ]
 }
