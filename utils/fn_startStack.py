@@ -40,7 +40,7 @@ def generate_device_name():
     
     return device_name
 
-def proxy_container(proxy, id, client):
+def proxy_container(proxy, rand_id, client):
     # Environment variables
     environment = {
         'LOGLEVEL': 'info',
@@ -57,8 +57,8 @@ def proxy_container(proxy, id, client):
     }
 
     # Container name and hostname
-    container_name = f"my_tun2socks2_{id}"
-    hostname = f"my_tun2socks2_{id}"
+    container_name = f"my_tun2socks2_{rand_id}"
+    hostname = f"my_tun2socks2_{rand_id}"
 
     try:
         # Pull the image
@@ -101,7 +101,7 @@ def run_container(cmd, client, image_name, container_name, user_data, order, net
     last = False
     for index in range(len(cmd_list)):
 
-        # makes sure the environment variable does not gets added to cmd 
+        # makes sure the environment variable does not get added to cmd 
         if last:
             last = False
             continue
@@ -111,7 +111,7 @@ def run_container(cmd, client, image_name, container_name, user_data, order, net
             environment[cmd_list[index+1]] = user_data[order.pop(0)]
             last = True
         elif i == '{}':
-            # assuming that you can always add some random stuff if its not available in userdata
+            # assuming that you can always add some random stuff if it is not available in userdata
             if user_data[order[0]] == '':
                 cmd += generate_device_name()
             else:
@@ -174,14 +174,14 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
     except docker.errors.DockerException as e:
         print("Docker does not seem to be running or is not reachable. Please check Docker and try again.")
         logging.error(f"Docker is not running: {str(e)}")
-        time.sleep(3)
+        time.sleep(m4b_config['system'].get('sleep_time', 1.5))
         return
 
     if not user_config['proxies']['multiproxy']:
-        id = generate_salt()
+        rand_id = generate_salt()
 
         if user_config['proxies']['enabled']:
-            network = proxy_container(user_config['proxies']['proxy'], client=client)
+            network = proxy_container(user_config['proxies']['proxy'], rand_id, client=client)
         else:
             network = None
 
@@ -193,7 +193,7 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
 
                 # format the command with the needed variables
                 cmd = app['cmd']
-                run_container(cmd=cmd, network_name=network, client=client, image_name=app['image'], container_name=f'{app_name}_{id}', user_data=user_config['apps'][app_name], order=list(app['order']), log_level='Something')
+                run_container(cmd=cmd, network_name=network, client=client, image_name=app['image'], container_name=f'{app_name}_{rand_id}', user_data=user_config['apps'][app_name], order=list(app['order']), log_level='Something')
                 time.sleep(5)
             cls()
 
@@ -212,9 +212,9 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
             progress_bar = '█' * int((progress / total) * 40) + '.' * (40 - int(progress / total * 40))
             print(f'progress {progress}/{total} |{progress_bar}|')
             proxy = proxy.rstrip('\n')
-            id = generate_salt()
+            rand_id = generate_salt()
 
-            network = proxy_container(proxy, id, client)
+            network = proxy_container(proxy, rand_id, client)
 
             for app in app_config['apps']:
                 app_name = app['name'].lower()
@@ -224,7 +224,7 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
 
                     # format the command with the needed variables
                     cmd = app['cmd']
-                    run_container(cmd=cmd, network_name=network, client=client, image_name=app['image'], container_name=f'{app_name}_{id}', user_data=user_config['apps'][app_name], order=list(app['order']))
+                    run_container(cmd=cmd, network_name=network, client=client, image_name=app['image'], container_name=f'{app_name}_{rand_id}', user_data=user_config['apps'][app_name], order=list(app['order']))
                     time.sleep(5)
                     cls()
 
