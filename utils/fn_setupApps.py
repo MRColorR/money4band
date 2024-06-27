@@ -22,12 +22,13 @@ def collect_user_info(user_config: Dict[str, Any]) -> None:
     user_config['user']['Nickname'] = nickname
     user_config['device_info']['device_name'] = device_name
 
-def configure_apps(user_config: Dict[str, Any],app_config:Dict) -> None:
+def configure_apps(user_config: Dict[str, Any], app_config: Dict) -> None:
     """
     Configure apps by collecting user inputs.
 
     Arguments:
     user_config -- the user configuration dictionary
+    app_config -- the app configuration dictionary
     """
     asking = {
         'email': 'Enter your {} email: ',
@@ -36,12 +37,12 @@ def configure_apps(user_config: Dict[str, Any],app_config:Dict) -> None:
         'cid': 'Enter your {} CID: ',
         'token': 'Enter your {} token: ',
         'code': 'Enter your {} code: ',
-        "device":"Enter your {} device name(you can skip it ^^)"
+        "device": "Enter your {} device name (if you skip it a random one will be generated)"
     }
 
     for i in app_config['apps']:
         app_name = i['name']
-        user_input = input(f'Do you want to run {app_name.title()}?(y/n) : ')
+        user_input = input(f'Do you want to run {app_name.title()}? (y/n) : ')
         if user_input == '404':
             break
         if user_input.lower().strip() != 'y':
@@ -65,27 +66,24 @@ def main(app_config: Dict[str, Any] = None, m4b_config: Dict[str, Any] = None, u
     Arguments:
     app_config -- the app configuration dictionary
     m4b_config -- the m4b configuration dictionary
-    user_config_path -- the path to the user configuration JSON file
+    user_config -- the user configuration dictionary
     """
-    user_config_path: dict = './config/user-config.json'
-    user_config = loader.load_json_config(user_config_path)
+    user_config_path: dict = './config/user-config.json' # this should be passed or find the path from the dictionary
+    # user_config = loader.load_json_config(user_config_path) not needed es as it should be already passed its dictionary to the function
 
     advance_setup = input('Do you want to go with Multiproxy setup? (y/n): ').lower().strip()
     if advance_setup == 'y':
         logging.info("Multiproxy setup selected")
-        print('Create a proxies.txt file in the smae folder add add proxies in the following format protocol://user:pass@ip:port one proxy each line')
+        print('Create a proxies.txt file in the same folder and add proxies in the following format: protocol://user:pass@ip:port (one proxy per line)')
         user_config['proxies']['multiproxy'] = True
         time.sleep(3)
     else:
         logging.info("Basic setup selected")
-        single_proxy = input('Do you want to setup proxy for the apps??(y/n) ')
+        single_proxy = input('Do you want to setup proxy for the apps? (y/n) ')
         if single_proxy.strip().lower() == 'y':
             user_config['proxies']['proxy'] = input('Enter proxy details \n').strip()
 
-    #doubt if its needed
-    #collect_user_info(user_config)
-    user_config = configure_apps(user_config,app_config)
-
+    user_config = configure_apps(user_config, app_config)
     write_json(user_config, user_config_path)
 
 if __name__ == '__main__':
@@ -95,9 +93,9 @@ if __name__ == '__main__':
 
     # Parse command-line arguments
     parser = argparse.ArgumentParser(description='Run the module standalone.')
-    parser.add_argument('--app-config', type=str, required=False, help='Path to app_config JSON file')
-    parser.add_argument('--m4b-config', type=str, required=False, help='Path to m4b_config JSON file')
-    parser.add_argument('--user-config', type=str, default='./config/user-config.json', help='Path to user_config JSON file')
+    parser.add_argument('--app-config', type=str, required=True, help='Path to app_config JSON file')
+    parser.add_argument('--m4b-config', type=str, required=True, help='Path to m4b_config JSON file')
+    parser.add_argument('--user-config-path', type=str, default='./config/user-config.json', help='Path to user_config JSON file')
     parser.add_argument('--log-dir', default=os.path.join(script_dir, 'logs'), help='Set the logging directory')
     parser.add_argument('--log-file', default=f"{script_name}.log", help='Set the logging file name')
     parser.add_argument('--log-level', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], default='INFO', help='Set the logging level')
@@ -127,6 +125,8 @@ if __name__ == '__main__':
             with open(args.app_config, 'r') as f:
                 app_config = json.load(f)
             logging.info("app_config JSON file loaded successfully")
+        else:
+            logging.info("No app_config JSON file provided, proceeding without it")
 
         # Load the m4b_config JSON file if provided
         m4b_config = {}
@@ -140,15 +140,14 @@ if __name__ == '__main__':
 
         # Load the user_config JSON file
         user_config = {}
-        if args.user_config:
+        if args.user_config_path:
             logging.debug("Loading user_config JSON file")
-            with open(args.user_config, 'r') as f:
+            with open(args.user_config_path, 'r') as f:
                 user_config = json.load(f)
             logging.info("user_config JSON file loaded successfully")
 
         # Call the main function
-        main(app_config=app_config, m4b_config=m4b_config, user_config_path=args.user_config)
-
+        main(app_config=app_config, m4b_config=m4b_config, user_config=user_config)
         logging.info(f"{script_name} script completed successfully")
     except FileNotFoundError as e:
         logging.error(f"File not found: {str(e)}")
