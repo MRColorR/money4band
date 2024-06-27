@@ -19,26 +19,11 @@ def generate_salt(length: int = 8) -> str:
     alphabet = string.ascii_letters + string.digits
     return ''.join(secrets.choice(alphabet) for _ in range(length))
 
-def generate_device_name():
-    words = [
-        "Panther", "Tiger", "Eagle", "Falcon", "Lion", "Sucks",
-        "Wolf", "Leopard", "Hawk", "Dragon", "Phoenix", "Melon",
-        "Cheetah", "Jaguar", "Cougar", "Raptor", "Amazon", "Musk",
-        "Griffin", "Orca", "Shark", "Dolphin", "Whale", "Sam2029", "Spiderman"
-    ]
-    
-    # Choose two random words
-    word1 = random.choice(words)
-    word2 = random.choice(words)
-    
-    # Ensure the two words are not the same
-    while word1 == word2:
-        word2 = random.choice(words)
-    
-    # Combine them to form the device name
-    device_name = f"{word1}_{word2}"
-    
-    return device_name
+def generate_device_name(adjectives: list, animals: list) -> str:
+    """Generate a device name from given word lists."""
+    adjective = secrets.choice(adjectives)
+    animal = secrets.choice(animals)
+    return f"{adjective}_{animal}"
 
 def proxy_container(proxy, rand_id, client):
     # Environment variables
@@ -89,7 +74,7 @@ def proxy_container(proxy, rand_id, client):
 
     return f'container:{container_name}'
 
-def run_container(cmd, client, image_name, container_name, user_data, order, network_name=None, log_level=None):
+def run_container(cmd, client, image_name, container_name, user_data, order, adjectives, animals, network_name=None, log_level=None):
     # Environment variables
     environment = {}
 
@@ -113,7 +98,7 @@ def run_container(cmd, client, image_name, container_name, user_data, order, net
         elif i == '{}':
             # assuming that you can always add some random stuff if it's not available in userdata
             if user_data[order[0]] == '':
-                cmd += generate_device_name()
+                cmd += generate_device_name(adjectives, animals)
             else:
                 cmd += user_data[order.pop(0)]
         elif i == '-v':
@@ -142,7 +127,7 @@ def run_container(cmd, client, image_name, container_name, user_data, order, net
             kwargs["network"] = network_name
         # Run the container
         print(kwargs)
-        time.sleep(10)
+        time.sleep(5)
         container = client.containers.run(**kwargs)
 
         print(f"Container {container_name} started successfully.")
@@ -159,6 +144,15 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
     m4b_config = loader.load_json_config(m4b_config_path)
     user_config = loader.load_json_config(user_config_path)
 
+    adjectives = m4b_config['word_lists']['adjectives']
+    animals = m4b_config['word_lists']['animals']
+
+    # try to load sleep time and give it a default if not set
+    try:
+        sleep_time = m4b_config['system'].get('sleep_time', 2)
+    except KeyError:
+        sleep_time = 2
+
     try:
         with open('./containers.txt') as f:
             lines = [line for line in f if line.strip()]
@@ -174,7 +168,7 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
     except docker.errors.DockerException as e:
         print("Docker does not seem to be running or is not reachable. Please check Docker and try again.")
         logging.error(f"Docker is not running: {str(e)}")
-        time.sleep(m4b_config['system'].get('sleep_time', 1.5))
+        time.sleep(sleep_time)
         return
 
     if not user_config['proxies']['multiproxy']:
@@ -193,8 +187,8 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
 
                 # format the command with the needed variables
                 cmd = app['cmd']
-                run_container(cmd=cmd, network_name=network, client=client, image_name=app['image'], container_name=f'{app_name}_{rand_id}', user_data=user_config['apps'][app_name], order=list(app['order']), log_level='INFO')
-                time.sleep(5)
+                run_container(cmd=cmd, network_name=network, client=client, image_name=app['image'], container_name=f'{app_name}_{rand_id}', user_data=user_config['apps'][app_name], order=list(app['order']), adjectives=adjectives, animals=animals, log_level='INFO')
+                time.sleep(sleep_time)
             cls()
 
     else:
@@ -224,8 +218,8 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
 
                     # format the command with the needed variables
                     cmd = app['cmd']
-                    run_container(cmd=cmd, network_name=network, client=client, image_name=app['image'], container_name=f'{app_name}_{rand_id}', user_data=user_config['apps'][app_name], order=list(app['order']))
-                    time.sleep(5)
+                    run_container(cmd=cmd, network_name=network, client=client, image_name=app['image'], container_name=f'{app_name}_{rand_id}', user_data=user_config['apps'][app_name], order=list(app['order']), adjectives=adjectives, animals=animals)
+                    time.sleep(sleep_time)
                     cls()
 
             progress += 1
