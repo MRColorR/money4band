@@ -1,4 +1,5 @@
 import os
+import sys
 import argparse
 import logging
 import json
@@ -8,6 +9,12 @@ from utils import loader, detector
 from utils.cls import cls
 from utils.dumper import write_json
 import time
+
+# Ensure the parent directory is in the sys.path
+script_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(script_dir)
+if parent_dir not in sys.path:
+    sys.path.append(parent_dir)
 
 def collect_user_info(user_config: Dict[str, Any]) -> None:
     """
