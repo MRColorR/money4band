@@ -13,7 +13,6 @@ import subprocess
 import random
 import docker
 
-
 def generate_salt(length:int=8):
     chars = 'abcdefghijklmnopqrstuvwxyz'
     salt = ''
@@ -42,7 +41,7 @@ def generate_device_name():
     
     return device_name
 
-def proxy_container(proxy,id,client):
+def proxy_container(proxy, id, client):
     # Environment variables
     environment = {
         'LOGLEVEL': 'info',
@@ -83,16 +82,15 @@ def proxy_container(proxy,id,client):
         )
 
         print(f"Container {container_name} started successfully.")
-        with open('containers.txt','a') as f:
+        with open('containers.txt', 'a') as f:
             f.write(f'{container_name}\n')
 
     except Exception as e:
-
         print(f"An error occurred: {e}")
 
     return f'container:{container_name}'
 
-def run_container(cmd,client,image_name,container_name,user_data,order,network_name=None,log_level=None):
+def run_container(cmd, client, image_name, container_name, user_data, order, network_name=None, log_level=None):
     # Environment variables
     environment = {}
 
@@ -104,7 +102,7 @@ def run_container(cmd,client,image_name,container_name,user_data,order,network_n
     last = False
     for index in range(len(cmd_list)):
 
-        # makes sure the environmen variable does not gets added to cmd 
+        # makes sure the environment variable does not gets added to cmd 
         if last:
             last = False
             continue
@@ -114,7 +112,7 @@ def run_container(cmd,client,image_name,container_name,user_data,order,network_n
             environment[cmd_list[index+1]] = user_data[order.pop(0)]
             last = True
         elif i == '{}':
-            # assuming that you can always add some random stuff if its not availabe in userdata
+            # assuming that you can always add some random stuff if its not available in userdata
             if user_data[order[0]] == '':
                 cmd += generate_device_name()
             else:
@@ -126,32 +124,30 @@ def run_container(cmd,client,image_name,container_name,user_data,order,network_n
         
         cmd += ' '
 
-
-
     try:
         # Pull the image
         client.images.pull(image_name)
 
         kwargs = {
-            "image":image_name,
-            "detach":True,
-            "name":container_name,
-            "environment":environment,
-            "restart_policy":{"Name": "always"},
-            "command" : cmd,
-            }
+            "image": image_name,
+            "detach": True,
+            "name": container_name,
+            "environment": environment,
+            "restart_policy": {"Name": "always"},
+            "command": cmd,
+        }
         if not log_level:
-            kwargs["log_config"]={"type": "none"}
+            kwargs["log_config"] = {"type": "none"}
 
         if network_name:
-            kwargs["network"]=network_name
+            kwargs["network"] = network_name
         # Run the container
         print(kwargs)
         time.sleep(10)
         container = client.containers.run(**kwargs)
 
         print(f"Container {container_name} started successfully.")
-        with open('containers.txt','a') as f:
+        with open('containers.txt', 'a') as f:
             f.write(f'{container_name}\n')
 
         #print(container.logs().decode('utf-8'))
@@ -159,7 +155,11 @@ def run_container(cmd,client,image_name,container_name,user_data,order,network_n
     except Exception as e:
         print(f"An error occurred: {e}")
 
-def main(app_config: dict, m4b_config: dict, user_config: dict = loader.load_json_config('./config/user-config.json')):
+def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> None:
+    app_config = loader.load_json_config(app_config_path)
+    m4b_config = loader.load_json_config(m4b_config_path)
+    user_config = loader.load_json_config(user_config_path)
+
     try:
         with open('./containers.txt') as f:
             lines = [line for line in f if line.strip()]
@@ -171,7 +171,6 @@ def main(app_config: dict, m4b_config: dict, user_config: dict = loader.load_jso
         print('No previously running container found')
     
     if not user_config['proxies']['multiproxy']:
-
         client = docker.from_env()
         id = generate_salt()
 
@@ -186,13 +185,9 @@ def main(app_config: dict, m4b_config: dict, user_config: dict = loader.load_jso
             if user_config['apps'][app_name]['enabled']:
                 print(f'running {app_name.title()} container')
 
-
                 # format the command with the needed variables
                 cmd = app['cmd']
-        
-                run_container(cmd=cmd,network_name=network,client=client,image_name=app['image'],container_name=f'{app_name}_{id}',user_data=user_config['apps'][app_name],order=list(app['order']),log_level='Something')
-
-                '''change to system default sleep time'''
+                run_container(cmd=cmd, network_name=network, client=client, image_name=app['image'], container_name=f'{app_name}_{id}', user_data=user_config['apps'][app_name], order=list(app['order']), log_level='Something')
                 time.sleep(5)
             cls()
 
@@ -215,7 +210,7 @@ def main(app_config: dict, m4b_config: dict, user_config: dict = loader.load_jso
             proxy = proxy.rstrip('\n')
             id = generate_salt()
 
-            network = proxy_container(proxy,id,client)
+            network = proxy_container(proxy, id, client)
 
             for app in app_config['apps']:
                 app_name = app['name'].lower()
@@ -223,13 +218,47 @@ def main(app_config: dict, m4b_config: dict, user_config: dict = loader.load_jso
                 if user_config['apps'][app_name]['enabled']:
                     print(f'running {app_name.title()} container')
 
-
                     # format the command with the needed variables
                     cmd = app['cmd']
-         
-                    run_container(cmd=cmd,network_name=network,client=client,image_name=app['image'],container_name=f'{app_name}_{id}',user_data=user_config['apps'][app_name],order=list(app['order']))
-                    '''change to system default sleep time'''
+                    run_container(cmd=cmd, network_name=network, client=client, image_name=app['image'], container_name=f'{app_name}_{id}', user_data=user_config['apps'][app_name], order=list(app['order']))
                     time.sleep(5)
                     cls()
 
             progress += 1
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Run the module standalone.')
+    parser.add_argument('--app-config', type=str, required=True, help='Path to app_config JSON file')
+    parser.add_argument('--m4b-config', type=str, required=True, help='Path to m4b_config JSON file')
+    parser.add_argument('--user-config', type=str, required=True, help='Path to user_config JSON file')
+    parser.add_argument('--log-dir', default='./logs', help='Set the logging directory')
+    parser.add_argument('--log-file', default='fn_startStack.log', help='Set the logging file name')
+    parser.add_argument('--log-level', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], default='INFO', help='Set the logging level')
+    args = parser.parse_args()
+
+    log_level = getattr(logging, args.log_level.upper(), None)
+    if not isinstance(log_level, int):
+        raise ValueError(f'Invalid log level: {args.log_level}')
+
+    os.makedirs(args.log_dir, exist_ok=True)
+    logging.basicConfig(
+        filename=os.path.join(args.log_dir, args.log_file),
+        format='%(asctime)s - [%(levelname)s] - %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S',
+        level=log_level
+    )
+
+    logging.info("Starting fn_startStack script...")
+
+    try:
+        main(app_config_path=args.app_config, m4b_config_path=args.m4b_config, user_config_path=args.user_config)
+        logging.info("fn_startStack script completed successfully")
+    except FileNotFoundError as e:
+        logging.error(f"File not found: {str(e)}")
+        raise
+    except json.JSONDecodeError as e:
+        logging.error(f"Error decoding JSON: {str(e)}")
+        raise
+    except Exception as e:
+        logging.error(f"An unexpected error occurred: {str(e)}")
+        raise

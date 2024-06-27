@@ -14,6 +14,7 @@ parent_dir = os.path.dirname(script_dir)
 sys.path.append(parent_dir)
 # Import the module from the parent directory
 from utils.cls import cls
+from utils.loader import load_json_config
 
 # Initialize colorama for Windows compatibility
 just_fix_windows_console()
@@ -38,7 +39,7 @@ def fn_bye(m4b_config: Dict[str, Any]) -> None:
             'Goodbye!',
             'Bye! Bye!',
             'Did you know \n if you simply click enter while setting up apps the app will be skipped ^^',
-            'Did you know typing 404 while seting up apps the rest of the setup process will be skipped '
+            'Did you know typing 404 while setting up apps the rest of the setup process will be skipped'
         ])
 
         time.sleep(sleep_time)
@@ -49,15 +50,16 @@ def fn_bye(m4b_config: Dict[str, Any]) -> None:
         logging.error(f"An error occurred in fn_bye: {str(e)}")
         raise
 
-def main(app_config: Dict[str, Any] = None, m4b_config: Dict[str, Any] = None, user_config: Dict[str, Any] = None) -> None:
+def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> None:
     """
     Main function to call the fn_bye function.
 
     Arguments:
-    app_config -- the app config dictionary
-    m4b_config -- the m4b config dictionary
-    user_config -- the user config dictionary
+    app_config_path -- the path to the app configuration file
+    m4b_config_path -- the path to the m4b configuration file
+    user_config_path -- the path to the user configuration file
     """
+    m4b_config = load_json_config(m4b_config_path)
     fn_bye(m4b_config)
 
 if __name__ == '__main__':
@@ -68,7 +70,7 @@ if __name__ == '__main__':
     # Parse command-line arguments
     parser = argparse.ArgumentParser(description='Run the module standalone.')
     parser.add_argument('--app-config', type=str, required=False, help='Path to app_config JSON file')
-    parser.add_argument('--m4b-config', type=str, required=False, help='Path to m4b_config JSON file')
+    parser.add_argument('--m4b-config', type=str, required=True, help='Path to m4b_config JSON file')
     parser.add_argument('--user-config', type=str, required=False, help='Path to user_config JSON file')
     parser.add_argument('--log-dir', default=os.path.join(script_dir, 'logs'), help='Set the logging directory')
     parser.add_argument('--log-file', default=f"{script_name}.log", help='Set the logging file name')
@@ -92,37 +94,7 @@ if __name__ == '__main__':
     logging.info(f"Starting {script_name} script...")
 
     try:
-        # Load the app_config JSON file
-        app_config = {}
-        if args.app_config:
-            logging.debug("Loading app_config JSON file")
-            with open(args.app_config, 'r') as f:
-                app_config = json.load(f)
-            logging.info("app_config JSON file loaded successfully")
-
-        # Load the m4b_config JSON file if provided
-        m4b_config = {}
-        if args.m4b_config:
-            logging.debug("Loading m4b_config JSON file")
-            with open(args.m4b_config, 'r') as f:
-                m4b_config = json.load(f)
-            logging.info("m4b_config JSON file loaded successfully")
-        else:
-            logging.info("No m4b_config JSON file provided, proceeding without it")
-
-        # Load the user_config JSON file if provided
-        user_config = {}
-        if args.user_config:
-            logging.debug("Loading user_config JSON file")
-            with open(args.user_config, 'r') as f:
-                user_config = json.load(f)
-            logging.info("user_config JSON file loaded successfully")
-        else:
-            logging.info("No user_config JSON file provided, proceeding without it")
-
-        # Call the main function
-        main(app_config=app_config, m4b_config=m4b_config, user_config=user_config)
-
+        main(app_config_path=args.app_config, m4b_config_path=args.m4b_config, user_config_path=args.user_config)
         logging.info(f"{script_name} script completed successfully")
     except FileNotFoundError as e:
         logging.error(f"File not found: {str(e)}")

@@ -11,6 +11,7 @@ parent_dir = os.path.dirname(script_dir)
 sys.path.append(parent_dir)
 # Import the module from the parent directory
 from utils.cls import cls
+from utils.loader import load_json_config
 
 def fn_show_links(app_config: Dict) -> None:
     """
@@ -34,15 +35,16 @@ def fn_show_links(app_config: Dict) -> None:
         logging.error(f"An error occurred in fn_show_links: {str(e)}")
         raise
 
-def main(app_config: Dict = None, m4b_config: Dict = None, user_config: Dict = None) -> None:
+def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> None:
     """
     Main function to call the fn_show_links function.
 
     Arguments:
-    app_config -- the app config dictionary
-    m4b_config -- the m4b config dictionary
-    user_config -- the user config dictionary
+    app_config_path -- the path to the app configuration file
+    m4b_config_path -- the path to the m4b configuration file
+    user_config_path -- the path to the user configuration file
     """
+    app_config = load_json_config(app_config_path)
     fn_show_links(app_config)
 
 if __name__ == '__main__':
@@ -77,37 +79,7 @@ if __name__ == '__main__':
     logging.info(f"Starting {script_name} script...")
 
     try:
-        # Load the app_config JSON file
-        app_config = {}
-        if args.app_config:
-            logging.debug("Loading app_config JSON file")
-            with open(args.app_config, 'r') as f:
-                app_config = json.load(f)
-            logging.info("app_config JSON file loaded successfully")
-
-        # Load the m4b_config JSON file if provided
-        m4b_config = {}
-        if args.m4b_config:
-            logging.debug("Loading m4b_config JSON file")
-            with open(args.m4b_config, 'r') as f:
-                m4b_config = json.load(f)
-            logging.info("m4b_config JSON file loaded successfully")
-        else:
-            logging.info("No m4b_config JSON file provided, proceeding without it")
-
-        # Load the user_config JSON file if provided
-        user_config = {}
-        if args.user_config:
-            logging.debug("Loading user_config JSON file")
-            with open(args.user_config, 'r') as f:
-                user_config = json.load(f)
-            logging.info("user_config JSON file loaded successfully")
-        else:
-            logging.info("No user_config JSON file provided, proceeding without it")
-
-        # Call the main function
-        main(app_config=app_config, m4b_config=m4b_config, user_config=user_config)
-
+        main(app_config_path=args.app_config, m4b_config_path=args.m4b_config, user_config_path=args.user_config)
         logging.info(f"{script_name} script completed successfully")
     except FileNotFoundError as e:
         logging.error(f"File not found: {str(e)}")

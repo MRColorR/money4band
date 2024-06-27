@@ -16,6 +16,7 @@ sys.path.append(parent_dir)
 from utils.detector import detect_os, detect_architecture
 from utils.downloader import download_file
 from utils.cls import cls
+from utils.loader import load_json_config
 
 def is_docker_installed(m4b_config: Dict[str, Any]) -> bool:
     """Check if Docker is already installed."""
@@ -38,6 +39,7 @@ def is_docker_installed(m4b_config: Dict[str, Any]) -> bool:
     except Exception as e:
         logging.error(f"An unexpected error occurred: {str(e)}")
         raise
+
 def install_docker_linux(files_path: str):
     """Install Docker on a Linux system."""
     try:
@@ -135,55 +137,50 @@ def install_docker_macos(files_path: str, intel_cpu: bool):
         logging.error(f"An unexpected error occurred during Docker installation on macOS: {str(e)}")
         raise
 
-def main(app_config: dict, m4b_config: dict, user_config: dict):
+def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> None:
     """
     Main function to install Docker based on the operating system.
 
     Parameters:
-    app_config -- The application configuration dictionary.
-    m4b_config -- The m4b configuration dictionary.
-    user_config -- The user configuration dictionary.
+    app_config_path -- The path to the app configuration file.
+    m4b_config_path -- The path to the m4b configuration file.
+    user_config_path -- The path to the user configuration file.
     """
-    try:
-        logging.info("Docker installation function started")
-        cls()
+    m4b_config = load_json_config(m4b_config_path)
+    cls()
 
-        # Detect OS and architecture using the detect module
-        os_info = detect_os(m4b_config)
-        arch_info = detect_architecture(m4b_config)
-        
-        os_type = os_info["os_type"].lower()
-        dkarch = arch_info["dkarch"].lower()
-        files_path = m4b_config.get('files_path', os.path.join(parent_dir, 'tmp'))
+    # Detect OS and architecture using the detect module
+    os_info = detect_os(m4b_config)
+    arch_info = detect_architecture(m4b_config)
+    
+    os_type = os_info["os_type"].lower()
+    dkarch = arch_info["dkarch"].lower()
+    files_path = m4b_config.get('files_path', os.path.join(os.path.dirname(os.path.abspath(__file__)), 'tmp'))
 
-        # Check if Docker is already installed
-        if is_docker_installed(m4b_config):
-            return
+    # Check if Docker is already installed
+    if is_docker_installed(m4b_config):
+        return
 
-        yn = input(f"Do you wish to proceed with the Docker for {os_type} automatic installation? (Y/N): ").lower()
-        if yn not in ['y', 'yes']:
-            msg = "Docker installation canceled by user"
-            logging.info(msg)
-            print(msg)
-            return
+    yn = input(f"Do you wish to proceed with the Docker for {os_type} automatic installation? (Y/N): ").lower()
+    if yn not in ['y', 'yes']:
+        msg = "Docker installation canceled by user"
+        logging.info(msg)
+        print(msg)
+        return
 
-        if os_type == "linux":
-            install_docker_linux(files_path)
-        elif os_type == "windows":
-            install_docker_windows(files_path)
-        elif os_type == "darwin":  # macOS
-            if dkarch == "arm64":
-                install_docker_macos(files_path, intel_cpu=False)
-            elif dkarch == "amd64":
-                install_docker_macos(files_path, intel_cpu=True)
-            else:
-                logging.error("Unsupported architecture for macOS")
+    if os_type == "linux":
+        install_docker_linux(files_path)
+    elif os_type == "windows":
+        install_docker_windows(files_path)
+    elif os_type == "darwin":  # macOS
+        if dkarch == "arm64":
+            install_docker_macos(files_path, intel_cpu=False)
+        elif dkarch == "amd64":
+            install_docker_macos(files_path, intel_cpu=True)
         else:
-            logging.error(f"Unsupported operating system: {os_type}")
-
-    except Exception as e:
-        logging.error(f"An error occurred during Docker installation: {str(e)}")
-        raise
+            logging.error("Unsupported architecture for macOS")
+    else:
+        logging.error(f"Unsupported operating system: {os_type}")
 
 if __name__ == '__main__':
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -197,6 +194,7 @@ if __name__ == '__main__':
     parser.add_argument('--log-file', default=f"{script_name}.log", help='Set the logging file name')
     parser.add_argument('--log-level', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], default='INFO', help='Set the logging level')
     args = parser.parse_args()
+
     log_level = getattr(logging, args.log_level.upper(), None)
     if not isinstance(log_level, int):
         raise ValueError(f'Invalid log level: {args.log_level}')
@@ -212,37 +210,7 @@ if __name__ == '__main__':
     logging.info(f"Starting {script_name} script...")
 
     try:
-        # Load the app_config JSON file
-        app_config = {}
-        if args.app_config:
-            logging.debug("Loading app_config JSON file")
-            with open(args.app_config, 'r') as f:
-                app_config = json.load(f)
-            logging.info("app_config JSON file loaded successfully")
-
-        # Load the m4b_config JSON file if provided
-        m4b_config = {}
-        if args.m4b_config:
-            logging.debug("Loading m4b_config JSON file")
-            with open(args.m4b_config, 'r') as f:
-                m4b_config = json.load(f)
-            logging.info("m4b_config JSON file loaded successfully")
-        else:
-            logging.info("No m4b_config JSON file provided, proceeding without it")
-
-        # Load the user_config JSON file if provided
-        user_config = {}
-        if args.user_config:
-            logging.debug("Loading user_config JSON file")
-            with open(args.user_config, 'r') as f:
-                user_config = json.load(f)
-            logging.info("user_config JSON file loaded successfully")
-        else:
-            logging.info("No user_config JSON file provided, proceeding without it")
-
-        # Call the main function
-        main(app_config=app_config, m4b_config=m4b_config, user_config=user_config)
-
+        main(app_config_path=args.app_config, m4b_config_path=args.m4b_config, user_config_path=args.user_config)
         logging.info(f"{script_name} script completed successfully")
     except FileNotFoundError as e:
         logging.error(f"File not found: {str(e)}")
@@ -253,4 +221,3 @@ if __name__ == '__main__':
     except Exception as e:
         logging.error(f"An unexpected error occurred: {str(e)}")
         raise
-
