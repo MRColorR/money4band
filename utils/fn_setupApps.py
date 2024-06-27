@@ -44,7 +44,7 @@ def configure_apps(user_config: Dict[str, Any], app_config: Dict) -> None:
         'cid': 'Enter your {} CID: ',
         'token': 'Enter your {} token: ',
         'code': 'Enter your {} code: ',
-        "device": "Enter your {} device name (if you skip it a random one will be generated)"
+        "device": "Enter your {} device name (if you skip it a random one will be generated): "
     }
 
     for i in app_config['apps']:
