@@ -1,7 +1,6 @@
 import os
 import argparse
 import logging
-import locale
 import time
 from typing import Dict, Any
 from colorama import Fore, Back, Style, just_fix_windows_console
@@ -11,6 +10,7 @@ import random
 import docker
 import secrets
 import string
+import json
 
 def generate_salt(length: int = 8) -> str:
     """Generate a secure random alphanumeric salt."""
@@ -23,7 +23,25 @@ def generate_device_name(adjectives: list, animals: list) -> str:
     animal = secrets.choice(animals)
     return f"{adjective}_{animal}"
 
-def proxy_container(proxy, rand_id, client):
+def save_containers_to_file(containers_file: str, containers_data: dict):
+    with open(containers_file, 'w') as f:
+        json.dump(containers_data, f, indent=4)
+
+def load_containers_file(containers_file: str) -> dict:
+    if not os.path.exists(containers_file):
+        return {'containers': {}}
+
+    try:
+        with open(containers_file, 'r') as f:
+            data = json.load(f)
+            if isinstance(data, dict) and 'containers' in data:
+                return data
+            else:
+                return {'containers': {}}
+    except (json.JSONDecodeError, FileNotFoundError):
+        return {'containers': {}}
+
+def proxy_container(proxy, rand_id, client, containers_data):
     # Environment variables
     environment = {
         'LOGLEVEL': 'info',
@@ -60,19 +78,20 @@ def proxy_container(proxy, rand_id, client):
             environment=environment,
             volumes=volumes,
             restart_policy={"Name": "always"},
-            #log_config={"type": "none"}
         )
 
         print(f"Container {container_name} started successfully.")
-        with open('containers.txt', 'a') as f:
-            f.write(f'{container_name}\n')
+        containers_data['proxy'] = {
+            'container_id': container.id,
+            'container_name': container_name
+        }
 
     except Exception as e:
         print(f"An error occurred: {e}")
 
     return f'container:{container_name}'
 
-def run_container(cmd, client, image_name, container_name, user_data, order, adjectives, animals, network_name=None, log_level=None):
+def run_container(cmd, client, image_name, container_name, user_data, order, adjectives, animals, containers_data, network_name=None, log_level=None):
     # Environment variables
     environment = {}
 
@@ -129,21 +148,26 @@ def run_container(cmd, client, image_name, container_name, user_data, order, adj
         container = client.containers.run(**kwargs)
 
         print(f"Container {container_name} started successfully.")
-        with open('containers.txt', 'a') as f:
-            f.write(f'{container_name}\n')
-
-        #print(container.logs().decode('utf-8'))
+        app_name = container_name.split('_')[0]
+        if app_name not in containers_data['containers']:
+            containers_data['containers'][app_name] = []
+        containers_data['containers'][app_name].append({
+            'container_id': container.id,
+            'container_name': container_name
+        })
 
     except Exception as e:
         print(f"An error occurred: {e}")
 
-def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> None:
+def main(app_config_path: str, m4b_config_path: str, user_config_path: str, containers_file: str = './containers.json') -> None:
     app_config = loader.load_json_config(app_config_path)
     m4b_config = loader.load_json_config(m4b_config_path)
     user_config = loader.load_json_config(user_config_path)
 
     adjectives = m4b_config['word_lists']['adjectives']
     animals = m4b_config['word_lists']['animals']
+
+    containers_data = load_containers_file(containers_file)
 
     # try to load sleep time and give it a default if not set
     try:
@@ -152,9 +176,9 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
         sleep_time = 2
 
     try:
-        with open('./containers.txt') as f:
-            lines = [line for line in f if line.strip()]
-            if lines:
+        with open(containers_file) as f:
+            data = json.load(f)
+            if data.get('containers'):
                 print("* Note there are already running containers. You may want to stop them.")
                 if input('Do you still want to continue? (y/n): ').lower().strip() != 'y':
                     return
@@ -173,7 +197,7 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
         rand_id = generate_salt()
 
         if user_config['proxies']['enabled']:
-            network = proxy_container(user_config['proxies']['proxy'], rand_id, client=client)
+            network = proxy_container(user_config['proxies']['proxy'], rand_id, client=client, containers_data=containers_data)
         else:
             network = None
 
@@ -184,7 +208,7 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
                 print(f'running {app_name.title()} container')
                 # format the command with the needed variables
                 cmd = app.get('cmd', None)
-                run_container(cmd=cmd, network_name=network, client=client, image_name=app['image'], container_name=f'{app_name}_{rand_id}', user_data=user_config['apps'][app_name], order=list(app.get('order', [])), adjectives=adjectives, animals=animals, log_level='INFO')
+                run_container(cmd=cmd, network_name=network, client=client, image_name=app['image'], container_name=f'{app_name}_{rand_id}', user_data=user_config['apps'][app_name], order=list(app.get('order', [])), adjectives=adjectives, animals=animals, containers_data=containers_data, log_level='INFO')
                 time.sleep(sleep_time)
             cls()
 
@@ -205,7 +229,7 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
             proxy = proxy.rstrip('\n')
             rand_id = generate_salt()
 
-            network = proxy_container(proxy, rand_id, client)
+            network = proxy_container(proxy, rand_id, client, containers_data)
 
             for app in app_config['apps']:
                 app_name = app['name'].lower()
@@ -214,17 +238,20 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
                     print(f'running {app_name.title()} container')
 
                     cmd = app.get('cmd', None)
-                    run_container(cmd=cmd, network_name=network, client=client, image_name=app['image'], container_name=f'{app_name}_{rand_id}', user_data=user_config['apps'][app_name], order=list(app.get('order', [])), adjectives=adjectives, animals=animals)
+                    run_container(cmd=cmd, network_name=network, client=client, image_name=app['image'], container_name=f'{app_name}_{rand_id}', user_data=user_config['apps'][app_name], order=list(app.get('order', [])), adjectives=adjectives, animals=animals, containers_data=containers_data)
                     time.sleep(sleep_time)
                     cls()
 
             progress += 1
+
+    save_containers_to_file(containers_file, containers_data)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Run the module standalone.')
     parser.add_argument('--app-config', type=str, required=True, help='Path to app_config JSON file')
     parser.add_argument('--m4b-config', type=str, required=True, help='Path to m4b_config JSON file')
     parser.add_argument('--user-config', type=str, required=True, help='Path to user_config JSON file')
+    parser.add_argument('--containers-file', type=str, default='./containers.json', help='Path to containers JSON file')
     parser.add_argument('--log-dir', default='./logs', help='Set the logging directory')
     parser.add_argument('--log-file', default='fn_startStack.log', help='Set the logging file name')
     parser.add_argument('--log-level', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], default='INFO', help='Set the logging level')
@@ -245,7 +272,7 @@ if __name__ == '__main__':
     logging.info("Starting fn_startStack script...")
 
     try:
-        main(app_config_path=args.app_config, m4b_config_path=args.m4b_config, user_config_path=args.user_config)
+        main(app_config_path=args.app_config, m4b_config_path=args.m4b_config, user_config_path=args.user_config, containers_file=args.containers_file)
         logging.info("fn_startStack script completed successfully")
     except FileNotFoundError as e:
         logging.error(f"File not found: {str(e)}")

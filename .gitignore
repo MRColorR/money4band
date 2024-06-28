@@ -1,15 +1,16 @@
 .data
 *.txt
+!requirements.txt
 *.log
 .env
 docker-compose.yaml
 userconf.json
 *.bak
 m4b_proxy_instances
-!requirements.txt
 logs
 venv*
 tmp/*
 tmp.py
 __pycache__
 config/user-config.json
+containers.json
