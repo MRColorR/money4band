@@ -4,6 +4,7 @@ import argparse
 import logging
 import hashlib
 import uuid
+import random
 import json
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -11,18 +12,22 @@ parent_dir = os.path.dirname(script_dir)
 if parent_dir not in sys.path:
     sys.path.append(parent_dir)
 
-def generate_md5_uuid(device_name: str, length: int) -> str:
+def generate_md5_uuid(device_name: str, length: int, salt: str = None) -> str:
     """
-    Generate a MD5 UUID of the specified length.
+    Generate a MD5 UUID of the specified length with optional salting.
 
     Arguments:
     device_name -- the device name to include in the UUID generation
     length -- the length of the UUID to generate
+    salt -- an optional salt to add to the UUID generation
     """
     if length <= 0:
         raise ValueError("Length must be a positive integer")
-    
-    hash_input = (device_name + uuid.uuid4().hex).encode('utf-8')
+
+    if salt is None:
+        salt = str(random.randint(100000000000, 999999999999))  # Generate a random 12-digit salt
+
+    hash_input = (device_name + salt + uuid.uuid4().hex).encode('utf-8')
     md5_hash = hashlib.md5(hash_input).hexdigest()
     while len(md5_hash) < length:
         hash_input = (md5_hash + uuid.uuid4().hex).encode('utf-8')
