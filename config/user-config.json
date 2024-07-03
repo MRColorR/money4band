@@ -81,5 +81,6 @@
     "notifications": {
         "enabled": false,
         "shoutrrr_url": "yourApp:yourToken@yourWebHook"
-    }
+    },
+    "logs": true
 }

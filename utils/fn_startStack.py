@@ -227,7 +227,7 @@ def main(app_config: dict, m4b_config: dict, user_config: dict = loader.load_jso
                     # format the command with the needed variables
                     cmd = app['cmd']
          
-                    run_container(cmd=cmd,network_name=network,client=client,image_name=app['image'],container_name=f'{app_name}_{id}',user_data=user_config['apps'][app_name],order=list(app['order']))
+                    run_container(cmd=cmd,network_name=network,client=client,image_name=app['image'],container_name=f'{app_name}_{id}',user_data=user_config['apps'][app_name],order=list(app['order']),log_level=user_config['logs'])
                     '''change to system default sleep time'''
                     time.sleep(5)
                     cls()
