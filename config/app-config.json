@@ -26,7 +26,7 @@
       "dashboard": "https://dashboard.pawns.app/",
       "link": "https://pawns.app?r=MiNe",
       "image": "iproyal/pawns-cli",
-      "cmd":"-accept-tos -email= {} -password= {} -device-name= {} -device-id= {} ",
+      "cmd":"-email= {} -password= {} -device-name= {} -device-id= {} -accept-tos",
       "order":["email","password","device_id","device_id"]
     },
     {
@@ -34,9 +34,8 @@
       "dashboard": "https://packetstream.io/dashboard",
       "link": "https://packetstream.io/?psr=3zSD",
       "image": "packetstream/psclient",
-      "flags": {
-        "cid": {}
-      }
+      "cmd": "-e CID" ,
+      "order":["cid"]
     },
     {
       "name": "TRAFFMONETIZER",
