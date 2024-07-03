@@ -2,37 +2,37 @@ import os
 import sys
 import argparse
 import logging
-import hashlib
-import uuid
-import random
 import json
+import re
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(script_dir)
 if parent_dir not in sys.path:
     sys.path.append(parent_dir)
 
-def generate_md5_uuid(device_name: str, length: int, salt: str = None) -> str:
+def validate_uuid(uuid: str, length: int) -> bool:
     """
-    Generate a MD5 UUID of the specified length with optional salting.
+    Validate a UUID against the specified length.
+
+    Arguments:
+    uuid -- the UUID to validate
+    length -- the expected length of the UUID
+    """
+    if not isinstance(uuid, str) or len(uuid) != length or not re.match('[0-9a-f]{{{}}}'.format(length), uuid):
+        return False
+    return True
+    
+
+def generate_uuid(length: int) -> str:
+    """
+    Generate a UUID of the specified length.
 
     Arguments:
     device_name -- the device name to include in the UUID generation
     length -- the length of the UUID to generate
     salt -- an optional salt to add to the UUID generation
     """
-    if length <= 0:
-        raise ValueError("Length must be a positive integer")
-
-    if salt is None:
-        salt = str(random.randint(100000000000, 999999999999))  # Generate a random 12-digit salt
-
-    hash_input = (device_name + salt + uuid.uuid4().hex).encode('utf-8')
-    md5_hash = hashlib.md5(hash_input).hexdigest()
-    while len(md5_hash) < length:
-        hash_input = (md5_hash + uuid.uuid4().hex).encode('utf-8')
-        md5_hash += hashlib.md5(hash_input).hexdigest()
-    return md5_hash[:length]
+    return str(os.urandom(length//2+1).hex())[:length]
 
 def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> None:
     """
@@ -43,10 +43,8 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
     m4b_config_path -- the path to the m4b configuration file
     user_config_path -- the path to the user configuration file
     """
-    # Example usage for generating a UUID
-    device_name = "example_device"
     uuid_length = 32  # Change as needed
-    generated_uuid = generate_md5_uuid(device_name, uuid_length)
+    generated_uuid = generate_uuid(uuid_length)
     print(f"Generated UUID: {generated_uuid}")
 
 if __name__ == '__main__':
@@ -56,7 +54,7 @@ if __name__ == '__main__':
 
     # Parse command-line arguments
     parser = argparse.ArgumentParser(description='Run the UUID generator module standalone.')
-    parser.add_argument('--app-config', type=str, required=True, help='Path to app_config JSON file')
+    parser.add_argument('--app-config', type=str, required=False, help='Path to app_config JSON file')
     parser.add_argument('--m4b-config', type=str, required=False, help='Path to m4b_config JSON file')
     parser.add_argument('--user-config', type=str, required=False, help='Path to user_config JSON file')
     parser.add_argument('--log-dir', default=os.path.join(script_dir, 'logs'), help='Set the logging directory')

@@ -42,10 +42,6 @@
             "function": "fn_setupApps"
         },
         {
-            "label": "Setup Extra Apps",
-            "function": "fn_setupExtraApps"
-        },
-        {
             "label": "Start apps stack",
             "function": "fn_startStack"
         },
