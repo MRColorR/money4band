@@ -8,7 +8,7 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(script_dir)
 if parent_dir not in sys.path:
     sys.path.append(parent_dir)
-from utils.fn_uuid_generator import validate_uuid
+from utils.generator import validate_uuid
 
 
 def ask_question_yn(question, default=False) -> bool:

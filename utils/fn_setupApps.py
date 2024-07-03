@@ -17,7 +17,7 @@ from utils import loader, detector
 from utils.cls import cls
 from utils.dumper import write_json
 from utils.prompt_helper import ask_question_yn, ask_email, ask_string, ask_uuid
-from utils.fn_uuid_generator import generate_uuid
+from utils.generator import generate_uuid
 
 
 def configure_email(app: Dict, flag_config: Dict, config: Dict):
