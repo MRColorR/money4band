@@ -17,7 +17,7 @@
             "password": "yourHONEYGAINPw",
             "device":""
         },
-        "pawns": {
+        "iproyalpawns": {
             "enabled": false,
             "email": "yourIPROYALPAWNSMail",
             "password": "yourIPROYALPAWNSPw",
