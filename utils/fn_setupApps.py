@@ -3,9 +3,9 @@ import sys
 import argparse
 import logging
 import json
+import time
 from typing import Dict, Any
 from colorama import Fore, Back, Style, just_fix_windows_console
-import time
 
 # Ensure the parent directory is in the sys.path
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -17,8 +17,8 @@ from utils import loader, detector
 from utils.cls import cls
 from utils.dumper import write_json
 from utils.prompt_helper import ask_question_yn, ask_email, ask_string, ask_uuid
-from utils.generator import generate_uuid
-
+from utils.generator import generate_uuid, assemble_docker_compose, generate_env_file
+from utils.checker import fetch_docker_tags, check_img_arch_support
 
 def configure_email(app: Dict, flag_config: Dict, config: Dict):
     email = ask_email(f'{Fore.GREEN}Enter your email:{Style.RESET_ALL}')
@@ -188,13 +188,17 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
         configure_extra_apps(user_config, app_config, m4b_config)
     write_json(user_config, user_config_path)
 
+    # Generate the docker-compose.yaml and .env files
+    assemble_docker_compose(app_config, user_config, m4b_config)
+    generate_env_file(m4b_config, user_config)
+
 if __name__ == '__main__':
     # Get the script absolute path and name
     script_dir = os.path.dirname(os.path.abspath(__file__))
     script_name = os.path.basename(__file__)
 
     # Parse command-line arguments
-    parser = argparse.ArgumentParser(description='Run the module standalone.')
+    parser = argparse.ArgumentParser(description='Run the setup apps module standalone.')
     parser.add_argument('--app-config', type=str, required=True, help='Path to app_config JSON file')
     parser.add_argument('--m4b-config', type=str, required=True, help='Path to m4b_config JSON file')
     parser.add_argument('--user-config-path', type=str, default='./config/user-config.json', help='Path to user_config JSON file')

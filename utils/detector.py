@@ -3,6 +3,7 @@ import argparse
 import logging
 import json
 import platform
+import logging
 from typing import Dict, Any
 
 # Ensure the parent directory is in the sys.path
@@ -65,57 +66,4 @@ def detect_architecture(m4b_config_path_or_dict: Any) -> Dict[str, str]:
         return {"arch": arch, "dkarch": dkarch}
     except Exception as e:
         logging.error(f"An error occurred while detecting architecture: {str(e)}")
-        raise
-
-def main(m4b_config_path_or_dict: Any) -> None:
-    """
-    Main function to run the detect module standalone.
-
-    Arguments:
-    m4b_config_path_or_dict -- the path to the m4b config file or the config dictionary
-    """
-    try:
-        logging.info("Testing detect module function")
-        print(detect_os(m4b_config_path_or_dict))
-        print(detect_architecture(m4b_config_path_or_dict))
-        logging.info("Detect module test complete")
-    except Exception as e:
-        logging.error(f"An unexpected error occurred: {str(e)}")
-        raise
-
-if __name__ == "__main__":
-    # Get the script absolute path and name
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    script_name = os.path.basename(__file__)
-
-    # Parse command-line arguments
-    parser = argparse.ArgumentParser(description=f"Run the {script_name} module standalone.")
-    parser.add_argument('--m4b-config-path-or-dict', type=str, required=True, help='The m4b config file path or JSON string')
-    parser.add_argument('--log-dir', default=os.path.join(script_dir, 'logs'), help='Set the logging directory')
-    parser.add_argument('--log-file', default=f"{script_name}.log", help='Set the logging file name')
-    parser.add_argument('--log-level', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], default='INFO', help='Set the logging level')
-    args = parser.parse_args()
-
-    # Set logging level based on command-line arguments
-    log_level = getattr(logging, args.log_level.upper(), None)
-    if not isinstance(log_level, int):
-        raise ValueError(f'Invalid log level: {args.log_level}')
-
-    # Start logging
-    os.makedirs(args.log_dir, exist_ok=True)
-    logging.basicConfig(
-        filename=os.path.join(args.log_dir, args.log_file),
-        format='%(asctime)s - [%(levelname)s] - %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S',
-        level=log_level
-    )
-
-    logging.info(f"Starting {script_name} script...")
-
-    try:
-        # Call the main function
-        main(args.m4b_config_path_or_dict)
-        logging.info(f"{script_name} script completed successfully")
-    except Exception as e:
-        logging.error(f"An unexpected error occurred: {str(e)}")
         raise

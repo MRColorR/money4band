@@ -5,7 +5,20 @@
       "name": "EARNAPP",
       "dashboard": "https://earnapp.com/dashboard",
       "link": "https://earnapp.com/i/3zulx7k",
-      "image": "fazalfarhan01/earnapp",
+      "compose_config": {
+        "container_name": "${DEVICE_NAME}_earnapp",
+        "hostname": "${DEVICE_NAME}_earnapp",
+        "image": "fazalfarhan01/earnapp:lite",
+        "environment": [
+          "EARNAPP_UUID=$EARNAPP_DEVICE_UUID",
+          "EARNAPP_TERM=\"yes\""
+        ],
+        "volumes": ["earnapp-data:/etc/earnapp"],
+        "restart": "always",
+        "cpus": "${APP_CPU_LIMIT_MEDIUM}",
+        "mem_reservation": "${APP_MEM_RESERV_MEDIUM}",
+        "mem_limit": "${APP_MEM_LIMIT_MEDIUM}"
+      },
       "flags": {
         "uuid": {
           "length": 32,
@@ -17,7 +30,17 @@
       "name": "HONEYGAIN",
       "dashboard": "https://dashboard.honeygain.com/",
       "link": "https://r.honeygain.me/MINDL15721",
-      "image": "honeygain/honeygain",
+      "compose_config": {
+        "container_name": "${DEVICE_NAME}_honeygain",
+        "hostname": "${DEVICE_NAME}_honeygain",
+        "image": "honeygain/honeygain:latest",
+        "environment": ["HONEYGAIN_DUMMY=''"],
+        "command": "-tou-accept -email $HONEYGAIN_EMAIL -pass $HONEYGAIN_PASSWD -device $DEVICE_NAME",
+        "restart": "always",
+        "cpus": "${APP_CPU_LIMIT_MEDIUM}",
+        "mem_reservation": "${APP_MEM_RESERV_MEDIUM}",
+        "mem_limit": "${APP_MEM_LIMIT_MEDIUM}"
+      },
       "flags": {
         "email": {},
         "password": {}
@@ -27,7 +50,17 @@
       "name": "IPROYALPAWNS",
       "dashboard": "https://dashboard.pawns.app/",
       "link": "https://pawns.app?r=MiNe",
-      "image": "iproyal/pawns-cli",
+      "compose_config": {
+        "container_name": "${DEVICE_NAME}_iproyalpawns",
+        "hostname": "${DEVICE_NAME}_iproyalpawns",
+        "image": "iproyal/pawns-cli:latest",
+        "environment": ["IPROYALPAWNS_DUMMY=''"],
+        "command": "-accept-tos -email=$IPROYALPAWNS_EMAIL -password=$IPROYALPAWNS_PASSWD -device-name=$DEVICE_NAME -device-id=id_$DEVICE_NAME",
+        "restart": "always",
+        "cpus": "${APP_CPU_LIMIT_LITTLE}",
+        "mem_reservation": "${APP_MEM_RESERV_LITTLE}",
+        "mem_limit": "${APP_MEM_LIMIT_LITTLE}"
+      },
       "flags": {
         "email": {},
         "password": {}
@@ -37,7 +70,16 @@
       "name": "PACKETSTREAM",
       "dashboard": "https://packetstream.io/dashboard",
       "link": "https://packetstream.io/?psr=3zSD",
-      "image": "packetstream/psclient",
+      "compose_config": {
+        "container_name": "${DEVICE_NAME}_packetstream",
+        "hostname": "${DEVICE_NAME}_packetstream",
+        "image": "packetstream/psclient:latest",
+        "environment": ["CID=$PACKETSTREAM_CID"],
+        "restart": "always",
+        "cpus": "${APP_CPU_LIMIT_MEDIUM}",
+        "mem_reservation": "${APP_MEM_RESERV_MEDIUM}",
+        "mem_limit": "${APP_MEM_LIMIT_MEDIUM}"
+      },
       "flags": {
         "cid": {}
       }
@@ -46,7 +88,17 @@
       "name": "TRAFFMONETIZER",
       "dashboard": "https://app.traffmonetizer.com/dashboard",
       "link": "https://traffmonetizer.com/?aff=366499",
-      "image": "traffmonetizer/cli_v2",
+      "compose_config": {
+        "container_name": "${DEVICE_NAME}_traffmonetizer",
+        "hostname": "${DEVICE_NAME}_traffmonetizer",
+        "image": "traffmonetizer/cli_v2:latest",
+        "environment": ["TRAFFMONETIZER_DUMMY=''"],
+        "command": "start accept status --token $TRAFFMONETIZER_TOKEN --device-name $DEVICE_NAME",
+        "restart": "always",
+        "cpus": "${APP_CPU_LIMIT_LITTLE}",
+        "mem_reservation": "${APP_MEM_RESERV_LITTLE}",
+        "mem_limit": "${APP_MEM_LIMIT_LITTLE}"
+      },
       "flags": {
         "token": {}
       }
@@ -55,7 +107,16 @@
       "name": "REPOCKET",
       "dashboard": "https://app.repocket.co/#home",
       "link": "https://link.repocket.co/hr8i",
-      "image": "repocket/repocket",
+      "compose_config": {
+        "container_name": "${DEVICE_NAME}_repocket",
+        "hostname": "${DEVICE_NAME}_repocket",
+        "image": "repocket/repocket:latest",
+        "environment": ["RP_EMAIL=$REPOCKET_EMAIL", "RP_API_KEY=$REPOCKET_APIKEY"],
+        "restart": "always",
+        "cpus": "${APP_CPU_LIMIT_MEDIUM}",
+        "mem_reservation": "${APP_MEM_RESERV_MEDIUM}",
+        "mem_limit": "${APP_MEM_LIMIT_MEDIUM}"
+      },
       "flags": {
         "email": {},
         "apikey": {}
@@ -65,7 +126,16 @@
       "name": "EARNFM",
       "dashboard": "https://app.earn.fm/",
       "link": "https://earn.fm/ref/MATTTAV6",
-      "image": "earnfm/earnfm-client",
+      "compose_config": {
+        "container_name": "${DEVICE_NAME}_earnfm",
+        "hostname": "${DEVICE_NAME}_earnfm",
+        "image": "earnfm/earnfm-client:latest",
+        "environment": ["EARNFM_TOKEN=$EARNFM_APIKEY"],
+        "restart": "always",
+        "cpus": "${APP_CPU_LIMIT_MEDIUM}",
+        "mem_reservation": "${APP_MEM_RESERV_MEDIUM}",
+        "mem_limit": "${APP_MEM_LIMIT_MEDIUM}"
+      },
       "flags": {
         "apikey": {}
       }
@@ -74,7 +144,16 @@
       "name": "PROXYRACK",
       "dashboard": "https://peer.proxyrack.com/dashboard",
       "link": "https://peer.proxyrack.com/ref/myoas6qttvhuvkzh8ffx90ns1ouhwgilfgamo5ex",
-      "image": "proxyrack/pop",
+      "compose_config": {
+        "container_name": "${DEVICE_NAME}_proxyrack",
+        "hostname": "${DEVICE_NAME}_proxyrack",
+        "image": "proxyrack/pop:latest",
+        "environment": ["api_key=$PROXYRACK_APIKEY", "device_name=$DEVICE_NAME", "UUID=$PROXYRACK_DEVICE_UUID"],
+        "restart": "always",
+        "cpus": "${APP_CPU_LIMIT_BIG}",
+        "mem_reservation": "${APP_MEM_RESERV_BIG}",
+        "mem_limit": "${APP_MEM_LIMIT_BIG}"
+      },
       "flags": {
         "apikey": {},
         "uuid": {
@@ -87,7 +166,16 @@
       "name": "PROXYLITE",
       "dashboard": "https://proxylite.ru/",
       "link": "https://proxylite.ru/?r=PJTKXWN3",
-      "image": "proxylite/proxyservice",
+      "compose_config": {
+        "container_name": "${DEVICE_NAME}_proxylite",
+        "hostname": "${DEVICE_NAME}_proxylite",
+        "image": "proxylite/proxyservice:latest",
+        "environment": ["USER_ID=$PROXYLITE_USER_ID"],
+        "restart": "always",
+        "cpus": "${APP_CPU_LIMIT_BIG}",
+        "mem_reservation": "${APP_MEM_RESERV_BIG}",
+        "mem_limit": "${APP_MEM_LIMIT_BIG}"
+      },
       "flags": {
         "userid": {}
       }
@@ -96,7 +184,17 @@
       "name": "BITPING",
       "dashboard": "https://app.bitping.com/earnings",
       "link": "https://app.bitping.com?r=qm7mIuX3",
-      "image": "mrcolorrain/bitping",
+      "compose_config": {
+        "container_name": "${DEVICE_NAME}_bitping",
+        "hostname": "${DEVICE_NAME}_bitping",
+        "image": "mrcolorrain/bitping:latest",
+        "environment": ["BITPING_EMAIL=$BITPING_EMAIL", "BITPING_PASSWD=$BITPING_PASSWD"],
+        "volumes": [".data/.bitpingd:/root/.bitpingd"],
+        "restart": "always",
+        "cpus": "${APP_CPU_LIMIT_BIG}",
+        "mem_reservation": "${APP_MEM_RESERV_BIG}",
+        "mem_limit": "${APP_MEM_LIMIT_BIG}"
+      },
       "flags": {
         "email": {},
         "password": {}
@@ -106,7 +204,16 @@
       "name": "SPEEDSHARE",
       "dashboard": "https://dashboard.speedshare.app/",
       "link": "https://speedshare.app/?ref=mindlessnerd",
-      "image": "mrcolorrain/speedshare",
+      "compose_config": {
+        "container_name": "${DEVICE_NAME}_speedshare",
+        "hostname": "${DEVICE_NAME}_speedshare",
+        "image": "mrcolorrain/speedshare:latest",
+        "environment": ["CODE=$SPEEDSHARE_CODE", "SPEEDSHARE_UUID=$SPEEDSHARE_DEVICE_UUID"],
+        "restart": "always",
+        "cpus": "${APP_CPU_LIMIT_BIG}",
+        "mem_reservation": "${APP_MEM_RESERV_BIG}",
+        "mem_limit": "${APP_MEM_LIMIT_BIG}"
+      },
       "flags": {
         "code": {},
         "uuid": {
@@ -119,7 +226,16 @@
       "name": "GRASS",
       "dashboard": "https://app.getgrass.io/dashboard",
       "link": "https://app.getgrass.io/register/?referralCode=qyvJmxgNUhcLo2f",
-      "image": "mrcolorrain/grass",
+      "compose_config": {
+        "container_name": "${DEVICE_NAME}_grass",
+        "hostname": "${DEVICE_NAME}_grass",
+        "image": "mrcolorrain/grass:latest",
+        "environment": ["GRASS_USER=$GRASS_EMAIL", "GRASS_PASS=$GRASS_PASSWD"],
+        "restart": "always",
+        "cpus": "${APP_CPU_LIMIT_BIG}",
+        "mem_reservation": "${APP_MEM_RESERV_BIG}",
+        "mem_limit": "${APP_MEM_LIMIT_BIG}"
+      },
       "flags": {
         "email": {},
         "password": {}
@@ -131,7 +247,20 @@
       "name": "MYSTNODE",
       "dashboard": "https://mystnodes.com/nodes",
       "link": "https://mystnodes.co/?referral_code=Tc7RaS7Fm12K3Xun6mlU9q9hbnjojjl9aRBW8ZA9",
-      "image": "mysteriumnetwork/myst",
+      "compose_config": {
+        "container_name": "${DEVICE_NAME}_mystnode",
+        "hostname": "${DEVICE_NAME}_mystnode",
+        "image": "mysteriumnetwork/myst:latest",
+        "environment": ["MYSTNODE_DUMMY=''"],
+        "command": "service --agreed-terms-and-conditions",
+        "cap_add": ["NET_ADMIN"],
+        "ports": ["${MYSTNODE_DASHBOARD_PORT}:4449"],
+        "volumes": [".data/mysterium-node:/var/lib/mysterium-node"],
+        "restart": "always",
+        "cpus": "${APP_CPU_LIMIT_HUGE}",
+        "mem_reservation": "${APP_MEM_RESERV_HUGE}",
+        "mem_limit": "${APP_MEM_LIMIT_HUGE}"
+      },
       "flags": {
         "manual": {
           "instructions": "Log into your device's mystnode local webdashboard, navigate to the Myst Node page and follow the onscreen instruction to complete the setup.\n\nDisclaimer: If you want to further optimize UPnP and port forwarding, consider setting manually 'network: host' for mystnode in your Docker compose. This may improve mystnode performance, but do this only if you know what you are doing and you are aware of potential security implications."
@@ -142,7 +271,17 @@
       "name": "PEER2PROFIT",
       "dashboard": "https://t.me/peer2profit_app_bot",
       "link": "https://t.me/peer2profit_app_bot?start=165849012262da8d0aa13c8",
-      "image": "mrcolorrain/peer2profit",
+      "compose_config": {
+        "container_name": "${DEVICE_NAME}_peer2profit",
+        "hostname": "${DEVICE_NAME}_peer2profit",
+        "image": "mrcolorrain/peer2profit:latest",
+        "environment": ["P2P_EMAIL=$PEER2PROFIT_EMAIL"],
+        "ports": ["5901:5900"],
+        "restart": "always",
+        "cpus": "${APP_CPU_LIMIT_HUGE}",
+        "mem_reservation": "${APP_MEM_RESERV_HUGE}",
+        "mem_limit": "${APP_MEM_LIMIT_HUGE}"
+      },
       "flags": {
         "email": {},
         "manual": {
