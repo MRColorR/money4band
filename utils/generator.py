@@ -77,7 +77,6 @@ def assemble_docker_compose(app_config_path_or_dict: Any, user_config_path_or_di
             services[app_name] = app['compose_config']
 
     compose_dict = {
-        'version': '3',
         'services': services
     }
 
