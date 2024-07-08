@@ -1,3 +1,4 @@
 colorama
 docker
 requests
+pyyaml
