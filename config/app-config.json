@@ -13,7 +13,7 @@
           "EARNAPP_UUID=$EARNAPP_DEVICE_UUID",
           "EARNAPP_TERM=\"yes\""
         ],
-        "volumes": ["earnapp-data:/etc/earnapp"],
+        "volumes": [".data/.earnapp:/etc/earnapp"],
         "restart": "always",
         "cpus": "${APP_CPU_LIMIT_MEDIUM}",
         "mem_reservation": "${APP_MEM_RESERV_MEDIUM}",
