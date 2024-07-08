@@ -5,6 +5,9 @@ import logging
 import json
 import re
 from typing import Dict, Any
+import yaml  # Import PyYAML
+
+
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(script_dir)
@@ -40,7 +43,7 @@ def generate_uuid(length: int) -> str:
     """
     return str(os.urandom(length // 2 + 1).hex())[:length]
 
-def assemble_docker_compose(app_config_path_or_dict: Any, user_config_path_or_dict: Any, m4b_config_path_or_dict: Any, compose_output_path: str = str(os.path.join(os.getcwd(), 'compose.yaml'))) -> None:
+def assemble_docker_compose(app_config_path_or_dict: Any, user_config_path_or_dict: Any, m4b_config_path_or_dict: Any, compose_output_path: str = str(os.path.join(os.getcwd(), 'docker-compose.yaml'))) -> None:
     """
     Assemble a Docker Compose file based on the app and user configuration.
 
@@ -79,7 +82,7 @@ def assemble_docker_compose(app_config_path_or_dict: Any, user_config_path_or_di
     }
 
     with open(compose_output_path, 'w') as f:
-        json.dump(compose_dict, f, indent=2)
+        yaml.dump(compose_dict, f, default_flow_style=False)
     logging.info(f"Docker Compose file assembled and saved to {compose_output_path}")
 
 def generate_env_file(m4b_config_path_or_dict: Any, user_config_path_or_dict: Any, env_output_path: str = str(os.path.join(os.getcwd(), '.env'))) -> None:
