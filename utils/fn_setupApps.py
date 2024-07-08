@@ -188,9 +188,8 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
         configure_extra_apps(user_config, app_config, m4b_config)
     write_json(user_config, user_config_path)
 
-    # Generate the docker-compose.yaml and .env files
-    assemble_docker_compose(app_config, user_config, m4b_config)
-    generate_env_file(m4b_config, user_config)
+    assemble_docker_compose(app_config_path, user_config_path, m4b_config_path, compose_output_path='./docker-compose.yaml')
+    generate_env_file(m4b_config_path, user_config_path, env_output_path='./.env')
 
 if __name__ == '__main__':
     # Get the script absolute path and name
