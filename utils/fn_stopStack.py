@@ -7,7 +7,7 @@ from colorama import Fore, Style, just_fix_windows_console
 from utils.cls import cls
 import time
 
-def stop_stack(compose_file: str) -> None:
+def stop_stack(compose_file: str = './docker-compose.yaml') -> None:
     """
     Stop the Docker Compose stack using the provided compose file.
 
@@ -27,6 +27,7 @@ def stop_stack(compose_file: str) -> None:
                     text=True
                 )
                 print(f"{Fore.GREEN}All Apps stopped and stack deleted.{Style.RESET_ALL}")
+                time.sleep(2)
                 logging.info(result.stdout)
             except subprocess.CalledProcessError as e:
                 print(f"{Fore.RED}Error stopping and deleting Docker stack. Please check the configuration and try again.{Style.RESET_ALL}")
@@ -34,14 +35,13 @@ def stop_stack(compose_file: str) -> None:
             break
         elif response in ['n', 'no']:
             print(f"{Fore.BLUE}Docker stack removal canceled.{Style.RESET_ALL}")
-            time.sleep(1)
+            time.sleep(2)
             break
         else:
             print(f"{Fore.RED}Please answer yes or no.{Style.RESET_ALL}")
 
 def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> None:
-    compose_file = './docker-compose.yaml'
-    stop_stack(compose_file)
+    stop_stack()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Stop the Docker Compose stack.')
