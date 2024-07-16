@@ -1,257 +1,66 @@
+import json
 import os
 import argparse
 import logging
+import subprocess
 import time
-from typing import Dict, Any
-from colorama import Fore, Back, Style, just_fix_windows_console
-from utils import loader, detector
+from colorama import Fore, Style, just_fix_windows_console
 from utils.cls import cls
-import random
-import docker
-import secrets
-import string
-import json
 
-def generate_salt(length: int = 8) -> str:
-    """Generate a secure random alphanumeric salt."""
-    alphabet = string.ascii_letters + string.digits
-    return ''.join(secrets.choice(alphabet) for _ in range(length))
+def start_stack(compose_file: str, env_file: str) -> None:
+    """
+    Start the Docker Compose stack using the provided compose and env files.
 
-def generate_device_name(adjectives: list, animals: list) -> str:
-    """Generate a device name from given word lists."""
-    adjective = secrets.choice(adjectives)
-    animal = secrets.choice(animals)
-    return f"{adjective}_{animal}"
+    Arguments:
+    compose_file -- the path to the Docker Compose file
+    env_file -- the path to the environment file
+    """
+    just_fix_windows_console()
 
-def save_containers_to_file(containers_file: str, containers_data: dict):
-    with open(containers_file, 'w') as f:
-        json.dump(containers_data, f, indent=4)
+    while True:
+        response = input(f"{Fore.YELLOW}This will launch all the apps using the configured .env file and the docker-compose.yaml file (Docker must be already installed and running). Do you wish to proceed (Y/N)?{Style.RESET_ALL} ").strip().lower()
+        if response in ['y', 'yes']:
+            try:
+                result = subprocess.run(
+                    ["docker","compose" ,"-f", compose_file, "--env-file", env_file, "up", "-d"],
+                    check=True,
+                    capture_output=True,
+                    text=True
+                )
+                print(f"{Fore.GREEN}All Apps started successfully.{Style.RESET_ALL}")
+                logging.info(result.stdout)
 
-def load_containers_file(containers_file: str) -> dict:
-    if not os.path.exists(containers_file):
-        return {'containers': {}}
+                dashboard_urls_script = "./generate_dashboard_urls.sh"
+                if os.path.isfile(dashboard_urls_script):
+                    os.chmod(dashboard_urls_script, 0o755)
+                    result = subprocess.run([dashboard_urls_script], check=True, capture_output=True, text=True)
+                    print(f"{Fore.GREEN}All Apps dashboards URLs generated. Check the generated dashboards file for the URLs.{Style.RESET_ALL}")
+                    logging.info(result.stdout)
+                else:
+                    logging.error(f"{dashboard_urls_script} not found")
 
-    try:
-        with open(containers_file, 'r') as f:
-            data = json.load(f)
-            if isinstance(data, dict) and 'containers' in data:
-                return data
-            else:
-                return {'containers': {}}
-    except (json.JSONDecodeError, FileNotFoundError):
-        return {'containers': {}}
-
-def proxy_container(proxy, rand_id, client, containers_data):
-    # Environment variables
-    environment = {
-        'LOGLEVEL': 'info',
-        'PROXY': proxy,
-        'EXTRA_COMMANDS': 'ip rule add iif lo ipproto udp dport 53 lookup main;'
-    }
-
-    # DNS settings
-    dns = ["1.1.1.1", "8.8.8.8", "1.0.0.1", "8.8.4.4"]
-
-    # Volume mappings
-    volumes = {
-        '/dev/net/tun': {'bind': '/dev/net/tun', 'mode': 'rw'}
-    }
-
-    # Container name and hostname
-    container_name = f"my_tun2socks2_{rand_id}"
-    hostname = f"my_tun2socks2_{rand_id}"
-
-    try:
-        # Pull the image
-        image = 'xjasonlyu/tun2socks'
-        client.images.pull(image)
-
-        # Run the container
-        container = client.containers.run(
-            image,
-            detach=True,
-            name=container_name,
-            hostname=hostname,
-            cap_add=["NET_ADMIN"],
-            network="bridge",
-            dns=dns,
-            environment=environment,
-            volumes=volumes,
-            restart_policy={"Name": "always"},
-        )
-
-        print(f"Container {container_name} started successfully.")
-        containers_data['proxy'] = {
-            'container_id': container.id,
-            'container_name': container_name
-        }
-
-    except Exception as e:
-        print(f"An error occurred: {e}")
-
-    return f'container:{container_name}'
-
-def run_container(cmd, client, image_name, container_name, user_data, order, adjectives, animals, containers_data, network_name=None, log_level=None):
-    # Environment variables
-    environment = {}
-
-    # Container name and network
-    container_name = container_name
-    network_name = network_name
-    cmd_list = cmd.split() if cmd else []
-    cmd = ''
-    last = False
-    for index in range(len(cmd_list)):
-
-        # makes sure the environment variable does not get added to cmd 
-        if last:
-            last = False
-            continue
-        i = cmd_list[index]
-
-        if i == '-e':
-            environment[cmd_list[index+1]] = user_data[order.pop(0)]
-            last = True
-        elif i == '{}':
-            # assuming that you can always add some random stuff if it's not available in userdata
-            if user_data[order[0]] == '':
-                cmd += generate_device_name(adjectives, animals)
-            else:
-                cmd += user_data[order.pop(0)]
-        elif i == '-v':
-            pass
+                print(f"{Fore.YELLOW}Use the previously generated apps nodes URLs to add your device in any apps dashboard that require node claiming/registration (e.g., Earnapp, ProxyRack, etc.){Style.RESET_ALL}")
+            except subprocess.CalledProcessError as e:
+                print(f"{Fore.RED}Error starting Docker stack. Please check the configuration and try again.{Style.RESET_ALL}")
+                logging.error(e.stderr)
+            break
+        elif response in ['n', 'no']:
+            print(f"{Fore.BLUE}Docker stack startup canceled.{Style.RESET_ALL}")
+            time.sleep(1)
+            break
         else:
-            cmd += i.strip() 
-        
-        cmd += ' '
+            print(f"{Fore.RED}Please answer yes or no.{Style.RESET_ALL}")
 
-    try:
-        # Pull the image
-        client.images.pull(image_name)
-
-        kwargs = {
-            "image": image_name,
-            "detach": True,
-            "name": container_name,
-            "environment": environment,
-            "restart_policy": {"Name": "always"},
-            "command": cmd if cmd else None,
-        }
-        if not log_level:
-            kwargs["log_config"] = {"type": "none"}
-
-        if network_name:
-            kwargs["network"] = network_name
-        # Run the container
-        print(kwargs)
-        time.sleep(5)
-        container = client.containers.run(**kwargs)
-
-        print(f"Container {container_name} started successfully.")
-        app_name = container_name.split('_')[0]
-        if app_name not in containers_data['containers']:
-            containers_data['containers'][app_name] = []
-        containers_data['containers'][app_name].append({
-            'container_id': container.id,
-            'container_name': container_name
-        })
-
-    except Exception as e:
-        print(f"An error occurred: {e}")
-
-def main(app_config_path: str, m4b_config_path: str, user_config_path: str, containers_file: str = './containers.json') -> None:
-    app_config = loader.load_json_config(app_config_path)
-    m4b_config = loader.load_json_config(m4b_config_path)
-    user_config = loader.load_json_config(user_config_path)
-
-    adjectives = m4b_config['word_lists']['adjectives']
-    animals = m4b_config['word_lists']['animals']
-
-    containers_data = load_containers_file(containers_file)
-
-    # try to load sleep time and give it a default if not set
-    try:
-        sleep_time = m4b_config['system'].get('sleep_time', 2)
-    except KeyError:
-        sleep_time = 2
-
-    try:
-        with open(containers_file) as f:
-            data = json.load(f)
-            if data.get('containers'):
-                print("* Note there are already running containers. You may want to stop them.")
-                if input('Do you still want to continue? (y/n): ').lower().strip() != 'y':
-                    return
-    except FileNotFoundError:
-        print('No previously running container found')
-    
-    try:
-        client = docker.from_env()
-    except docker.errors.DockerException as e:
-        print("Docker does not seem to be running or is not reachable. Please check Docker and try again.")
-        logging.error(f"Docker is not running: {str(e)}")
-        time.sleep(sleep_time)
-        return
-
-    if not user_config['proxies']['multiproxy']:
-        rand_id = generate_salt()
-
-        if user_config['proxies']['enabled']:
-            network = proxy_container(user_config['proxies']['proxy'], rand_id, client=client, containers_data=containers_data)
-        else:
-            network = None
-
-        for app in app_config['apps']:
-            app_name = app['name'].lower()
-
-            if user_config['apps'][app_name]['enabled']:
-                print(f'running {app_name.title()} container')
-                # format the command with the needed variables
-                cmd = app.get('cmd', None)
-                run_container(cmd=cmd, network_name=network, client=client, image_name=app['image'], container_name=f'{app_name}_{rand_id}', user_data=user_config['apps'][app_name], order=list(app.get('order', [])), adjectives=adjectives, animals=animals, containers_data=containers_data, log_level='INFO')
-                time.sleep(sleep_time)
-            cls()
-
-    else:
-        # Multi instancing
-        with open('./proxies.txt') as f:
-            proxies = f.readlines()
-            proxies = [i for i in proxies if i != '\n']
-
-        # custom progress bar
-        progress = 0
-        total = len(proxies)
-
-        for proxy in proxies:
-            cls()
-            progress_bar = '█' * int((progress / total) * 40) + '.' * (40 - int(progress / total * 40))
-            print(f'progress {progress}/{total} |{progress_bar}|')
-            proxy = proxy.rstrip('\n')
-            rand_id = generate_salt()
-
-            network = proxy_container(proxy, rand_id, client, containers_data)
-
-            for app in app_config['apps']:
-                app_name = app['name'].lower()
-
-                if user_config['apps'][app_name]['enabled']:
-                    print(f'running {app_name.title()} container')
-
-                    cmd = app.get('cmd', None)
-                    run_container(cmd=cmd, network_name=network, client=client, image_name=app['image'], container_name=f'{app_name}_{rand_id}', user_data=user_config['apps'][app_name], order=list(app.get('order', [])), adjectives=adjectives, animals=animals, containers_data=containers_data)
-                    time.sleep(sleep_time)
-                    cls()
-
-            progress += 1
-
-    save_containers_to_file(containers_file, containers_data)
+def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> None:
+    compose_file = './docker-compose.yaml'
+    env_file = './.env'
+    start_stack(compose_file, env_file)
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Run the module standalone.')
+    parser = argparse.ArgumentParser(description='Start the Docker Compose stack.')
     parser.add_argument('--app-config', type=str, required=True, help='Path to app_config JSON file')
     parser.add_argument('--m4b-config', type=str, required=True, help='Path to m4b_config JSON file')
     parser.add_argument('--user-config', type=str, required=True, help='Path to user_config JSON file')
-    parser.add_argument('--containers-file', type=str, default='./containers.json', help='Path to containers JSON file')
     parser.add_argument('--log-dir', default='./logs', help='Set the logging directory')
     parser.add_argument('--log-file', default='fn_startStack.log', help='Set the logging file name')
     parser.add_argument('--log-level', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], default='INFO', help='Set the logging level')
@@ -272,7 +81,7 @@ if __name__ == '__main__':
     logging.info("Starting fn_startStack script...")
 
     try:
-        main(app_config_path=args.app_config, m4b_config_path=args.m4b_config, user_config_path=args.user_config, containers_file=args.containers_file)
+        main(app_config_path=args.app_config, m4b_config_path=args.m4b_config, user_config_path=args.user_config)
         logging.info("fn_startStack script completed successfully")
     except FileNotFoundError as e:
         logging.error(f"File not found: {str(e)}")
