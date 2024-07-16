@@ -5,10 +5,9 @@ import argparse
 import logging
 import json
 import re
-import secrets
 from typing import Dict, Any
 import yaml  # Import PyYAML
-
+import secrets
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(script_dir)
@@ -43,28 +42,6 @@ def generate_uuid(length: int) -> str:
     str -- The generated UUID.
     """
     return str(os.urandom(length // 2 + 1).hex())[:length]
-
-def generate_device_name(adjectives: list, animals: list, add_rand_uuid_suffix: bool = False) -> str:
-    """
-    Generate a device name from given word lists.
-
-    Arguments:
-    adjectives -- a list of adjectives
-    animals -- a list of animals
-    use_uuid_suffix -- whether to add a random combination of 8 chars and numbers at the end
-
-    Returns:
-    str -- The generated device name.
-    """
-    adjective = secrets.choice(adjectives)
-    animal = secrets.choice(animals)
-    device_name = f"{adjective}_{animal}"
-
-    if add_rand_uuid_suffix:
-        uuid_suffix = generate_uuid(8)
-        device_name = f"{device_name}_{uuid_suffix}"
-
-    return device_name
 
 def assemble_docker_compose(app_config_path_or_dict: Any, user_config_path_or_dict: Any, m4b_config_path_or_dict: Any, compose_output_path: str = str(os.path.join(os.getcwd(), 'docker-compose.yaml'))) -> None:
     """
@@ -206,3 +183,28 @@ def generate_dashboard_urls(compose_project_name: str, device_name: str, env_fil
                 f.write(f"If enabled you can visit the {container_info} web dashboard on http://localhost:{port_mapping.group(1)}\n")
 
     logging.info(f"Dashboard URLs have been written to {dashboard_file}")
+
+def generate_device_name(adjectives: list, animals: list, device_name: str = "", use_uuid_suffix: bool = False) -> str:
+    """
+    Generate a device name from given word lists. If a device name is provided, it will be used.
+    Optionally, a random UUID suffix can be added.
+
+    Arguments:
+    adjectives -- list of adjectives
+    animals -- list of animals
+    device_name -- optional device name to use
+    use_uuid_suffix -- flag to determine whether to add a UUID suffix
+
+    Returns:
+    str -- The generated or provided device name.
+    """
+    if not device_name:
+        adjective = secrets.choice(adjectives)
+        animal = secrets.choice(animals)
+        device_name = f"{adjective}_{animal}"
+    
+    if use_uuid_suffix:
+        uuid_suffix = generate_uuid(4)
+        device_name = f"{device_name}_{uuid_suffix}"
+    
+    return device_name

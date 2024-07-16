@@ -17,7 +17,7 @@ from utils import loader, detector
 from utils.cls import cls
 from utils.dumper import write_json
 from utils.prompt_helper import ask_question_yn, ask_email, ask_string, ask_uuid
-from utils.generator import generate_uuid, assemble_docker_compose, generate_env_file
+from utils.generator import generate_uuid, assemble_docker_compose, generate_env_file, generate_device_name
 from utils.checker import fetch_docker_tags, check_img_arch_support
 
 def configure_email(app: Dict, flag_config: Dict, config: Dict):
@@ -101,15 +101,23 @@ flag_function_mapper = {
     'manual': configure_manual
 }
 
-def collect_user_info(user_config: Dict[str, Any]) -> None:
+def collect_user_info(user_config: Dict[str, Any], m4b_config: Dict[str, Any]) -> None:
     """
     Collect user information and update the user configuration.
 
     Arguments:
     user_config -- the user configuration dictionary
+    m4b_config -- the m4b configuration dictionary
     """
     nickname = input('Enter your nickname: ')
-    device_name = input('Enter your device name: ')
+    device_name = input('Enter your device name: Or leave it blank to generate a random one:').strip()
+    
+    device_name = generate_device_name(
+        m4b_config['word_lists']['adjectives'], 
+        m4b_config['word_lists']['animals'], 
+        device_name=device_name, 
+        use_uuid_suffix=True
+    )
 
     user_config['user']['Nickname'] = nickname
     user_config['device_info']['device_name'] = device_name
@@ -183,6 +191,7 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
         if ask_question_yn('Do you want to setup proxy for the apps? (y/n)'):
             user_config['proxies']['proxy'] = input('Enter proxy details \n').strip()
 
+    collect_user_info(user_config, m4b_config)
     configure_apps(user_config, app_config, m4b_config)
     if ask_question_yn('Do you want to configure extra apps? (y/n)'):
         configure_extra_apps(user_config, app_config, m4b_config)
