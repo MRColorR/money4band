@@ -5,9 +5,9 @@ import argparse
 import logging
 import json
 import re
+import secrets
 from typing import Dict, Any
 import yaml  # Import PyYAML
-
 
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -44,6 +44,28 @@ def generate_uuid(length: int) -> str:
     """
     return str(os.urandom(length // 2 + 1).hex())[:length]
 
+def generate_device_name(adjectives: list, animals: list, add_rand_uuid_suffix: bool = False) -> str:
+    """
+    Generate a device name from given word lists.
+
+    Arguments:
+    adjectives -- a list of adjectives
+    animals -- a list of animals
+    use_uuid_suffix -- whether to add a random combination of 8 chars and numbers at the end
+
+    Returns:
+    str -- The generated device name.
+    """
+    adjective = secrets.choice(adjectives)
+    animal = secrets.choice(animals)
+    device_name = f"{adjective}_{animal}"
+
+    if add_rand_uuid_suffix:
+        uuid_suffix = generate_uuid(8)
+        device_name = f"{device_name}_{uuid_suffix}"
+
+    return device_name
+
 def assemble_docker_compose(app_config_path_or_dict: Any, user_config_path_or_dict: Any, m4b_config_path_or_dict: Any, compose_output_path: str = str(os.path.join(os.getcwd(), 'docker-compose.yaml'))) -> None:
     """
     Assemble a Docker Compose file based on the app and user configuration.
@@ -67,7 +89,6 @@ def assemble_docker_compose(app_config_path_or_dict: Any, user_config_path_or_di
         if user_config['apps'][app_name]['enabled']:
             image = app['compose_config']['image']
             image_name, image_tag = image.split(':')
-            
             if not check_img_arch_support(image_name, image_tag, dkarch):
                 compatible_tag = get_compatible_tag(image_name, dkarch)
                 if compatible_tag:
