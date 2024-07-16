@@ -6,6 +6,7 @@ import subprocess
 import time
 from colorama import Fore, Style, just_fix_windows_console
 from utils.cls import cls
+from utils.generator import generate_dashboard_urls
 
 def start_stack(compose_file: str = './docker-compose.yaml', env_file: str = './.env') -> None:
     """
@@ -31,14 +32,7 @@ def start_stack(compose_file: str = './docker-compose.yaml', env_file: str = './
                 time.sleep(2)
                 logging.info(result.stdout)
 
-                dashboard_urls_script = "./generate_dashboard_urls.sh"
-                if os.path.isfile(dashboard_urls_script):
-                    os.chmod(dashboard_urls_script, 0o755)
-                    result = subprocess.run([dashboard_urls_script], check=True, capture_output=True, text=True)
-                    print(f"{Fore.GREEN}All Apps dashboards URLs generated. Check the generated dashboards file for the URLs.{Style.RESET_ALL}")
-                    logging.info(result.stdout)
-                else:
-                    logging.error(f"{dashboard_urls_script} not found")
+                generate_dashboard_urls(None, None, env_file)
 
                 print(f"{Fore.YELLOW}Use the previously generated apps nodes URLs to add your device in any apps dashboard that require node claiming/registration (e.g., Earnapp, ProxyRack, etc.){Style.RESET_ALL}")
             except subprocess.CalledProcessError as e:

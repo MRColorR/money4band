@@ -1,4 +1,5 @@
 import os
+import subprocess
 import sys
 import argparse
 import logging
@@ -143,3 +144,44 @@ def generate_env_file(m4b_config_path_or_dict: Any, user_config_path_or_dict: An
         f.write('\n'.join(lines))
     logging.info(f".env file generated and saved to {env_output_path}")
 
+def generate_dashboard_urls(compose_project_name: str, device_name: str, env_file: str = ".env") -> None:
+    """
+    Generate dashboard URLs based on the provided compose project name and device name.
+    If the parameters are not provided, it tries to read them from the .env file.
+    The generated dashboard URLs are written to a file named "dashboards_URLs_<compose_project_name>-<device_name>.txt".
+
+    Arguments:
+    compose_project_name -- the name of the compose project
+    device_name -- the name of the device
+    env_file -- the path to the environment file
+    """
+    if not compose_project_name or not device_name:
+        if os.path.isfile(env_file):
+            logging.info("Reading COMPOSE_PROJECT_NAME and DEVICE_NAME from .env file...")
+            with open(env_file, 'r') as f:
+                for line in f:
+                    if 'COMPOSE_PROJECT_NAME' in line:
+                        compose_project_name = line.split('=')[1].strip()
+                    if 'DEVICE_NAME' in line:
+                        device_name = line.split('=')[1].strip()
+        else:
+            logging.error("Error: Parameters not provided and .env file not found.")
+            return
+
+    if not compose_project_name or not device_name:
+        logging.error("Error: COMPOSE_PROJECT_NAME and DEVICE_NAME must be provided.")
+        return
+
+    dashboard_file = f"dashboards_URLs_{compose_project_name}-{device_name}.txt"
+    with open(dashboard_file, 'w') as f:
+        f.write(f"------ Dashboards {compose_project_name}-{device_name} ------\n")
+
+    result = subprocess.run(["docker", "ps", "--format", "{{.Ports}} {{.Names}}"], capture_output=True, text=True)
+    for line in result.stdout.splitlines():
+        container_info = line.split()[-1]
+        port_mapping = re.search(r'0.0.0.0:(\d+)->', line)
+        if port_mapping:
+            with open(dashboard_file, 'a') as f:
+                f.write(f"If enabled you can visit the {container_info} web dashboard on http://localhost:{port_mapping.group(1)}\n")
+
+    logging.info(f"Dashboard URLs have been written to {dashboard_file}")
