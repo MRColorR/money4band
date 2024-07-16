@@ -7,7 +7,7 @@ import time
 from colorama import Fore, Style, just_fix_windows_console
 from utils.cls import cls
 
-def start_stack(compose_file: str, env_file: str) -> None:
+def start_stack(compose_file: str = './docker-compose.yaml', env_file: str = './.env') -> None:
     """
     Start the Docker Compose stack using the provided compose and env files.
 
@@ -22,12 +22,13 @@ def start_stack(compose_file: str, env_file: str) -> None:
         if response in ['y', 'yes']:
             try:
                 result = subprocess.run(
-                    ["docker","compose" ,"-f", compose_file, "--env-file", env_file, "up", "-d"],
+                    ["docker", "compose", "-f", compose_file, "--env-file", env_file, "up", "-d"],
                     check=True,
                     capture_output=True,
                     text=True
                 )
                 print(f"{Fore.GREEN}All Apps started successfully.{Style.RESET_ALL}")
+                time.sleep(2)
                 logging.info(result.stdout)
 
                 dashboard_urls_script = "./generate_dashboard_urls.sh"
@@ -46,15 +47,13 @@ def start_stack(compose_file: str, env_file: str) -> None:
             break
         elif response in ['n', 'no']:
             print(f"{Fore.BLUE}Docker stack startup canceled.{Style.RESET_ALL}")
-            time.sleep(1)
+            time.sleep(2)
             break
         else:
             print(f"{Fore.RED}Please answer yes or no.{Style.RESET_ALL}")
 
 def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> None:
-    compose_file = './docker-compose.yaml'
-    env_file = './.env'
-    start_stack(compose_file, env_file)
+    start_stack()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Start the Docker Compose stack.')
