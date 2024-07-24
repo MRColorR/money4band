@@ -133,5 +133,12 @@
             "Toucan", "Macaw", "Chameleon", "Iguana", "Gecko", "Komodo", "Monitor",
             "Anaconda", "Boa", "Crocodile", "Alligator", "Turtle", "Tortoise"
         ]
+    },
+    "compose_config_common": {
+      "network": {
+        "driver": "${NETWORK_DRIVER}",
+        "subnet": "${NETWORK_SUBNET}",
+        "netmask": "${NETWORK_NETMASK}"
+      }
     }
 }
