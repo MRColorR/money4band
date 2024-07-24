@@ -36,8 +36,9 @@ def start_stack(compose_file: str = './docker-compose.yaml', env_file: str = './
 
                 print(f"{Fore.YELLOW}Use the previously generated apps nodes URLs to add your device in any apps dashboard that require node claiming/registration (e.g., Earnapp, ProxyRack, etc.){Style.RESET_ALL}")
             except subprocess.CalledProcessError as e:
-                print(f"{Fore.RED}Error starting Docker stack. Please check the configuration and try again.{Style.RESET_ALL}")
+                print(f"{Fore.RED}Error starting Docker stack. Please check that docker is running and that the configuration is complete then try again.{Style.RESET_ALL}")
                 logging.error(e.stderr)
+                time.sleep(2)
             break
         elif response in ['n', 'no']:
             print(f"{Fore.BLUE}Docker stack startup canceled.{Style.RESET_ALL}")

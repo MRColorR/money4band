@@ -4,6 +4,7 @@ import argparse
 import logging
 import json
 import time
+import getpass
 from typing import Dict, Any
 from colorama import Fore, Back, Style, just_fix_windows_console
 
@@ -109,7 +110,10 @@ def collect_user_info(user_config: Dict[str, Any], m4b_config: Dict[str, Any]) -
     user_config -- the user configuration dictionary
     m4b_config -- the m4b configuration dictionary
     """
-    nickname = input('Enter your nickname: ')
+    try:
+        nickname = getpass.getuser()
+    except Exception:
+        nickname = "user"
     device_name = input('Enter your device name: Or leave it blank to generate a random one:').strip()
     
     device_name = generate_device_name(
@@ -197,8 +201,9 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
         configure_extra_apps(user_config, app_config, m4b_config)
     write_json(user_config, user_config_path)
 
-    assemble_docker_compose(app_config_path, user_config_path, m4b_config_path, compose_output_path='./docker-compose.yaml')
-    generate_env_file(m4b_config_path, user_config_path, env_output_path='./.env')
+    assemble_docker_compose(m4b_config_path, app_config_path, user_config_path, compose_output_path='./docker-compose.yaml')
+    generate_env_file(m4b_config_path, app_config_path, user_config_path, env_output_path='./.env')
+
 
 if __name__ == '__main__':
     # Get the script absolute path and name

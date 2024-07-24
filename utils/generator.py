@@ -8,6 +8,7 @@ import re
 from typing import Dict, Any
 import yaml  # Import PyYAML
 import secrets
+import getpass
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(script_dir)
@@ -17,6 +18,7 @@ if parent_dir not in sys.path:
 from utils.checker import check_img_arch_support, get_compatible_tag
 from utils.detector import detect_architecture
 from utils.loader import load_json_config
+from utils.dumper import write_json
 
 def validate_uuid(uuid: str, length: int) -> bool:
     """
@@ -43,19 +45,19 @@ def generate_uuid(length: int) -> str:
     """
     return str(os.urandom(length // 2 + 1).hex())[:length]
 
-def assemble_docker_compose(app_config_path_or_dict: Any, user_config_path_or_dict: Any, m4b_config_path_or_dict: Any, compose_output_path: str = str(os.path.join(os.getcwd(), 'docker-compose.yaml'))) -> None:
+def assemble_docker_compose(m4b_config_path_or_dict: Any, app_config_path_or_dict: Any, user_config_path_or_dict: Any, compose_output_path: str = str(os.path.join(os.getcwd(), 'docker-compose.yaml'))) -> None:
     """
     Assemble a Docker Compose file based on the app and user configuration.
 
     Arguments:
+    m4b_config_path_or_dict -- the path to the m4b configuration file or the config dictionary
     app_config_path_or_dict -- the path to the app configuration file or the config dictionary
     user_config_path_or_dict -- the path to the user configuration file or the config dictionary
-    m4b_config_path_or_dict -- the path to the m4b configuration file or the config dictionary
     compose_output_path -- the path to save the assembled docker-compose.yaml file
     """
+    m4b_config = load_json_config(m4b_config_path_or_dict)
     app_config = load_json_config(app_config_path_or_dict)
     user_config = load_json_config(user_config_path_or_dict)
-    m4b_config = load_json_config(m4b_config_path_or_dict)
 
     arch_info = detect_architecture(m4b_config)
     dkarch = arch_info['dkarch']
@@ -64,83 +66,130 @@ def assemble_docker_compose(app_config_path_or_dict: Any, user_config_path_or_di
     for app in app_config['apps']:
         app_name = app['name'].lower()
         if user_config['apps'][app_name]['enabled']:
-            image = app['compose_config']['image']
+            app_compose_config = app['compose_config']
+            image = app_compose_config['image']
             image_name, image_tag = image.split(':')
+
             if not check_img_arch_support(image_name, image_tag, dkarch):
                 compatible_tag = get_compatible_tag(image_name, dkarch)
                 if compatible_tag:
-                    app['compose_config']['image'] = f"{image_name}:{compatible_tag}"
+                    app_compose_config['image'] = f"{image_name}:{compatible_tag}"
+                    # Update the user_config with the new image tag
+                    user_config['apps'][app_name]['image'] = app_compose_config['image']
                 else:
                     logging.warning(f"No compatible tag found for {image_name} with architecture {dkarch}. Using default tag {image_tag}.")
 
-            services[app_name] = app['compose_config']
+            services[app_name] = app_compose_config
 
+    # Define network configuration using confi json and environment variables
+    # this is an hbrid approcah to prove that it could be possible to ditch the env fiel and generate all compose file parts from config json
+
+    compose_config_common = m4b_config.get('compose_config_common', {}) 
+    network_config = {
+        'networks': {
+            'default': {
+                'driver': compose_config_common['network']['driver'],
+                'ipam': {
+                    'config': [
+                        {
+                            'subnet': f"{compose_config_common['network']['subnet']}/{compose_config_common['network']['netmask']}"
+                        }
+                    ]
+                }
+            }
+        }
+    }
+
+    # Create the compose dictionary
     compose_dict = {
         'services': services
     }
 
+    # Append network configuration at the bottom
+    compose_dict.update(network_config)
+
     with open(compose_output_path, 'w') as f:
-        yaml.dump(compose_dict, f, default_flow_style=False)
+        yaml.dump(compose_dict, f, sort_keys=False, default_flow_style=False)
     logging.info(f"Docker Compose file assembled and saved to {compose_output_path}")
 
-def generate_env_file(m4b_config_path_or_dict: Any, user_config_path_or_dict: Any, env_output_path: str = str(os.path.join(os.getcwd(), '.env'))) -> None:
+    # Write updated user_config back to file
+    write_json(user_config, user_config_path_or_dict)
+
+
+def generate_env_file(m4b_config_path_or_dict: Any, app_config_path_or_dict: Any, user_config_path_or_dict: Any, env_output_path: str = './.env') -> None:
     """
     Generate a .env file based on the m4b and user configuration.
 
     Arguments:
     m4b_config_path_or_dict -- the path to the m4b configuration file or the config dictionary
+    app_config_path_or_dict -- the path to the app configuration file or the config dictionary
     user_config_path_or_dict -- the path to the user configuration file or the config dictionary
     env_output_path -- the path to save the generated .env file
     """
     m4b_config = load_json_config(m4b_config_path_or_dict)
+    app_config = load_json_config(app_config_path_or_dict)
     user_config = load_json_config(user_config_path_or_dict)
 
-    lines = [
-        f"PROJECT_VERSION={m4b_config['project']['project_version']}",
-        f"DS_PROJECT_SERVER_URL={m4b_config['project']['ds_project_server_url']}",
-        f"M4B_DASHBOARD_PORT={m4b_config['dashboards']['m4b_dashboard_port']}",
-        f"APP_CPU_LIMIT_LITTLE={m4b_config['resource_limits']['app_cpu_limit_little']}",
-        f"APP_CPU_LIMIT_MEDIUM={m4b_config['resource_limits']['app_cpu_limit_medium']}",
-        f"APP_CPU_LIMIT_BIG={m4b_config['resource_limits']['app_cpu_limit_big']}",
-        f"APP_CPU_LIMIT_HUGE={m4b_config['resource_limits']['app_cpu_limit_huge']}",
-        f"RAM_CAP_MB_DEFAULT={m4b_config['resource_limits']['ram_cap_mb_default']}",
-        f"APP_MEM_RESERV_LITTLE={m4b_config['resource_limits']['app_mem_reserv_little']}",
-        f"APP_MEM_LIMIT_LITTLE={m4b_config['resource_limits']['app_mem_limit_little']}",
-        f"APP_MEM_RESERV_MEDIUM={m4b_config['resource_limits']['app_mem_reserv_medium']}",
-        f"APP_MEM_LIMIT_MEDIUM={m4b_config['resource_limits']['app_mem_limit_medium']}",
-        f"APP_MEM_RESERV_BIG={m4b_config['resource_limits']['app_mem_reserv_big']}",
-        f"APP_MEM_LIMIT_BIG={m4b_config['resource_limits']['app_mem_limit_big']}",
-        f"APP_MEM_RESERV_HUGE={m4b_config['resource_limits']['app_mem_reserv_huge']}",
-        f"APP_MEM_LIMIT_HUGE={m4b_config['resource_limits']['app_mem_limit_huge']}",
-        f"COMPOSE_PROJECT_NAME={m4b_config['project']['compose_project_name']}",
-        f"DEVICE_NAME={user_config['device_info']['device_name']}",
-        f"STACK_PROXY={user_config['proxies']['stack_proxy']}",
-        f"EARNAPP_DEVICE_UUID={user_config['apps']['earnapp']['uuid']}",
-        f"HONEYGAIN_EMAIL={user_config['apps']['honeygain']['email']}",
-        f"HONEYGAIN_PASSWD={user_config['apps']['honeygain']['password']}",
-        f"IPROYALPAWNS_EMAIL={user_config['apps']['iproyalpawns']['email']}",
-        f"IPROYALPAWNS_PASSWD={user_config['apps']['iproyalpawns']['password']}",
-        f"PEER2PROFIT_EMAIL={user_config['apps']['peer2profit']['email']}",
-        f"PACKETSTREAM_CID={user_config['apps']['packetstream']['cid']}",
-        f"TRAFFMONETIZER_TOKEN={user_config['apps']['traffmonetizer']['token']}",
-        f"REPOCKET_EMAIL={user_config['apps']['repocket']['email']}",
-        f"REPOCKET_APIKEY={user_config['apps']['repocket']['apikey']}",
-        f"EARNFM_APIKEY={user_config['apps']['earnfm']['apikey']}",
-        f"PROXYRACK_APIKEY={user_config['apps']['proxyrack']['apikey']}",
-        f"PROXYRACK_DEVICE_UUID={user_config['apps']['proxyrack']['uuid']}",
-        f"PROXYLITE_USER_ID={user_config['apps']['proxylite']['userid']}",
-        f"BITPING_EMAIL={user_config['apps']['bitping']['email']}",
-        f"BITPING_PASSWD={user_config['apps']['bitping']['password']}",
-        f"SPEEDSHARE_CODE={user_config['apps']['speedshare']['code']}",
-        f"SPEEDSHARE_DEVICE_UUID={user_config['apps']['speedshare']['uuid']}",
-        f"GRASS_EMAIL={user_config['apps']['grass']['email']}",
-        f"GRASS_PASSWD={user_config['apps']['grass']['password']}",
-        f"MYSTNODE_DASHBOARD_PORT={m4b_config['dashboards']['mystnode_dashboard_port']}"
-    ]
+    env_lines = []
 
+    # Add project and system configurations
+    project_config = m4b_config.get('project', {})
+    for key, value in project_config.items():
+        env_lines.append(f"{key.upper()}={value}")
+
+    # system_config = m4b_config.get('system', {})
+    # for key, value in system_config.items():
+    #     if isinstance(value, dict):
+    #         for sub_key, sub_value in value.items():
+    #             env_lines.append(f"{key.upper()}_{sub_key.upper()}={sub_value}")
+    #     else:
+    #         env_lines.append(f"{key.upper()}={value}")
+
+    # Add dashboards configurations
+    dashboards_config = m4b_config.get('dashboards', {})
+    for key, value in dashboards_config.items():
+        env_lines.append(f"{key.upper()}={value}")
+
+    # Add resource limits configurations
+    resource_limits_config = m4b_config.get('resource_limits', {})
+    for key, value in resource_limits_config.items():
+        env_lines.append(f"{key.upper()}={value}")
+
+    # Add user and device configurations
+    # user_info = user_config.get('user', {})
+    # for key, value in user_info.items():
+    #     env_lines.append(f"{key.upper()}={value}")
+
+    device_info = user_config.get('device_info', {})
+    for key, value in device_info.items():
+        env_lines.append(f"{key.upper()}={value}")
+
+    # Add network configurations
+    network_config = user_config.get('network', {})
+    for key, value in network_config.items():
+        env_lines.append(f"NETWORK_{key.upper()}={value}")
+
+    # Add proxy configurations
+    proxy_config = user_config.get('proxies', {})
+    for key, value in proxy_config.items():
+        env_lines.append(f"PROXY_{key.upper()}={value}")
+
+    # Add app-specific configurations
+    for app in app_config.get('apps', []):
+        app_name = app['name'].upper()
+        app_flags = app.get('flags', {})
+        app_user_config = user_config['apps'].get(app['name'].lower(), {})
+        for flag_name in app_flags.keys():
+            if flag_name in app_user_config:
+                env_var_name = f"{app_name}_{flag_name.upper()}"
+                env_var_value = app_user_config[flag_name]
+                env_lines.append(f"{env_var_name}={env_var_value}")
+
+    # Write to .env file
     with open(env_output_path, 'w') as f:
-        f.write('\n'.join(lines))
+        f.write('\n'.join(env_lines))
     logging.info(f".env file generated and saved to {env_output_path}")
+
 
 def generate_dashboard_urls(compose_project_name: str, device_name: str, env_file: str = ".env") -> None:
     """
