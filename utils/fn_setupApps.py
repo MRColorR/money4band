@@ -22,22 +22,22 @@ from utils.generator import generate_uuid, assemble_docker_compose, generate_env
 from utils.checker import fetch_docker_tags, check_img_arch_support
 
 def configure_email(app: Dict, flag_config: Dict, config: Dict):
-    email = ask_email(f'{Fore.GREEN}Enter your email:{Style.RESET_ALL}')
+    email = ask_email(f'Enter your {app["name"].lower().title()} email:', default=config.get("email"))
     config['email'] = email
 
 def configure_password(app: Dict, flag_config: Dict, config: Dict):
     print(f'Note: If you are using login with Google, remember to set also a password for your {app["name"].lower().title()} account!')
-    password = ask_string(f'{Fore.GREEN}Enter your {app["name"].lower().title()} password:{Style.RESET_ALL}')
+    password = ask_string(f'Enter your {app["name"].lower().title()} password:', default=config.get("password"))
     config['password'] = password
 
 def configure_apikey(app: Dict, flag_config: Dict, config: Dict):
     print(f'Find/Generate your APIKey inside your {app["name"].lower().title()} dashboard/profile.')
-    apikey = ask_string(f'{Fore.GREEN}Enter your {app["name"].lower().title()} APIKey:{Style.RESET_ALL}')
+    apikey = ask_string(f'Enter your {app["name"].lower().title()} APIKey:', default=config.get("apikey"))
     config['apikey'] = apikey
 
 def configure_userid(app: Dict, flag_config: Dict, config: Dict):
     print(f'Find your UserID inside your {app["name"].lower().title()} dashboard/profile.')
-    userid = ask_string(f'{Fore.GREEN}Enter your {app["name"].lower().title()} UserID:{Style.RESET_ALL}')
+    userid = ask_string(f'Enter your {app["name"].lower().title()} UserID:', default=config.get("userid"))
     config['userid'] = userid
 
 def configure_uuid(app: Dict, flag_config: Dict, config: Dict):
@@ -53,10 +53,10 @@ def configure_uuid(app: Dict, flag_config: Dict, config: Dict):
         logging.error(f'Invalid length for UUID generation/import: {length}')
         return
 
-    if ask_question_yn(f'Do you want to use a previously registered uuid for {app["name"].lower().title()}? (y/n):'):
+    if ask_question_yn(f'Do you want to use a previously registered uuid for {app["name"].lower().title()} (current: {config.get("uuid", "not set")})?'):
         print(f'{Fore.GREEN}Please enter the alphanumeric part of the existing uuid for {app["name"].lower().title()}, it should be {length} characters long.')
         print('E.g. if existing registered node is sdk-node-b86301656baefekba8917349bdf0f3g4 then enter just b86301656baefekba8917349bdf0f3g4')
-        uuid = ask_uuid('Insert uuid:', length)
+        uuid = ask_uuid('Insert uuid:', length, default=config.get("uuid"))
     else:
         uuid = generate_uuid(length)
         print(f'{Fore.GREEN}Generated UUID: {uuid}{Style.RESET_ALL}')
@@ -79,17 +79,17 @@ def configure_uuid(app: Dict, flag_config: Dict, config: Dict):
 def configure_cid(app: Dict, flag_config: Dict, config: Dict):
     print(f'Find your CID inside your {app["name"].lower().title()} dashboard/profile.')
     print("Example: For packetstream you can fetch it from your dashboard https://packetstream.io/dashboard/download?linux# then click on -> Looking for linux app -> now search for CID= in the code shown in the page, you need to enter the code after -e CID= (e.g. if in the code CID=6aTk, just enter 6aTk)")
-    cid = ask_string(f'{Fore.GREEN}Enter your {app["name"].lower().title()} CID:{Style.RESET_ALL}')
+    cid = ask_string(f'Enter your {app["name"].lower().title()} CID:', default=config.get("cid"))
     config['cid'] = cid
 
 def configure_code(app: Dict, flag_config: Dict, config: Dict):
     print(f'Find your code inside your {app["name"].lower().title()} dashboard/profile.')
-    code = ask_string(f'{Fore.GREEN}Enter your {app["name"].lower().title()} code:{Style.RESET_ALL}')
+    code = ask_string(f'Enter your {app["name"].lower().title()} code:', default=config.get("code"))
     config['code'] = code
 
 def configure_token(app: Dict, flag_config: Dict, config: Dict):
     print(f'Find your token inside your {app["name"].lower().title()} dashboard/profile.')
-    token = ask_string(f'{Fore.GREEN}Enter your {app["name"].lower().title()} token:{Style.RESET_ALL}')
+    token = ask_string(f'Enter your {app["name"].lower().title()} token:', default=config.get("token"))
     config['token'] = token
 
 def configure_manual(app: Dict, flag_config: Dict, config: Dict):
@@ -125,14 +125,18 @@ def collect_user_info(user_config: Dict[str, Any], m4b_config: Dict[str, Any]) -
         nickname = getpass.getuser()
     except Exception:
         nickname = "user"
-    device_name = input('Enter your device name: Or leave it blank to generate a random one:').strip()
     
-    # TO-DO: check if is simple setup or multiproxy and proceed accordingly. Append same suffix of devicename to project env var to make it unique (project/network/so on) when running multiproxy 
+    device_name = user_config['device_info'].get('device_name', '')
+    if device_name:
+        if not ask_question_yn(f'The current device name is {device_name}. Do you want to change it?'):
+            return
+
+    device_name = input('Enter your device name: Or leave it blank to generate a random one:').strip()
     device_name = generate_device_name(
         m4b_config['word_lists']['adjectives'], 
         m4b_config['word_lists']['animals'], 
         device_name=device_name, 
-        use_uuid_suffix=False # Set this to true passing the original devicename to generate similar ones with a random suffix
+        use_uuid_suffix=False 
     )
 
     user_config['user']['Nickname'] = nickname
@@ -148,13 +152,25 @@ def _configure_apps(user_config: Dict[str, Any], apps: Dict, m4b_config: Dict):
         m4b_config (dict): The m4b configuration dictionary.
     """
     for app in apps:
-        app_name = app['name']
-        config = user_config['apps'][app_name.lower()]
+        app_name = app['name'].lower()
+        config = user_config['apps'].get(app_name, {})
         cls()
-        config['enabled'] = ask_question_yn(f'Do you want to run {app_name.title()}? (y/n):')
+        if config.get('enabled'):
+            print(f'The app {app_name} is currently enabled.')
+            if ask_question_yn('Do you want to disable it?'):
+                config['enabled'] = False
+                continue
+            print('Do you want to change the current configuration?')
+            for key, value in config.items():
+                if key != 'enabled':
+                    print(f'{key}: {value}')
+            if not ask_question_yn(''):
+                continue
+        
+        config['enabled'] = ask_question_yn(f'Do you want to run {app["name"].title()}?')
         if not config['enabled']:
             continue
-        print(f'{Fore.CYAN}Go to {app_name.title()} {app["link"]} and register{Style.RESET_ALL}')
+        print(f'{Fore.CYAN}Go to {app["name"].title()} {app["link"]} and register{Style.RESET_ALL}')
         print(f'{Fore.GREEN}Use CTRL+Click to open links or copy them:{Style.RESET_ALL}')
         input('When you are done press Enter to continue')
         for flag_name, flag_config in app.get('flags', {}).items():
@@ -162,6 +178,7 @@ def _configure_apps(user_config: Dict[str, Any], apps: Dict, m4b_config: Dict):
                 flag_function_mapper[flag_name](app, flag_config, config)
             else:
                 logging.error(f'Flag {flag_name} not recognized')
+        user_config['apps'][app_name] = config
         time.sleep(m4b_config['system']['sleep_time'])
 
 def configure_apps(user_config: Dict[str, Any], app_config: Dict, m4b_config: Dict) -> None:
@@ -200,7 +217,7 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
         user_config = loader.load_json_config(user_config_path)
         m4b_config = loader.load_json_config(m4b_config_path)
 
-        advance_setup = ask_question_yn('Do you want to go with Multiproxy setup? (y/n):')
+        advance_setup = ask_question_yn('Do you want to go with Multiproxy setup?')
         if advance_setup:
             logging.info("Multiproxy setup selected")
             print('Create a proxies.txt file in the same folder and add proxies in the following format: protocol://user:pass@ip:port (one proxy per line)')
@@ -208,12 +225,12 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
             time.sleep(m4b_config['system']['sleep_time'])
         else:
             logging.info("Basic setup selected")
-            if ask_question_yn('Do you want to setup proxy for the apps? (y/n)'):
-                user_config['proxies']['proxy'] = input('Enter proxy details \n').strip()
+            if ask_question_yn('Do you want to setup proxy for the apps?'):
+                user_config['proxies']['proxy'] = ask_string('Enter proxy details:', default="").strip()
 
         collect_user_info(user_config, m4b_config)
         configure_apps(user_config, app_config, m4b_config)
-        if ask_question_yn('Do you want to configure extra apps? (y/n)'):
+        if ask_question_yn('Do you want to configure extra apps?'):
             configure_extra_apps(user_config, app_config, m4b_config)
         write_json(user_config, user_config_path)
 
