@@ -41,14 +41,13 @@ def ask_question_yn(question: str, default: bool = False) -> bool:
     return done
 
 
-def ask_string(prompt: str, default: str = "", empty_allowed: bool = False, show_default: bool = True) -> str:
+def ask_string(prompt: str, default: str = "", show_default: bool = True) -> str:
     """
     Ask the user for a string and return it.
 
     Args:
         prompt (str): The prompt to display to the user.
         default (str, optional): The default value if the user enters an empty string. Defaults to "".
-        empty_allowed (bool, optional): Whether to allow empty input. Defaults to False.
         show_default (bool, optional): Whether to show the default value in the prompt. Defaults to True.
 
     Returns:
@@ -62,23 +61,21 @@ def ask_string(prompt: str, default: str = "", empty_allowed: bool = False, show
     while True:
         response = input(prompt_text).strip()
         if not response:
-            if empty_allowed:
-                response = default
-            else:
-                print(f"{Fore.RED}Input cannot be empty.{Style.RESET_ALL}")
-                continue
+            response = default
+        if not response: # As default is empty if not specified then we throw this error
+            print(f"{Fore.RED}Input cannot be empty.{Style.RESET_ALL}")
+            continue
         logging.info(f"User response to '{prompt}': {response}")
         return response
 
 
-def ask_email(prompt: str, default: str = "", empty_allowed: bool = False, show_default: bool = True) -> str:
+def ask_email(prompt: str, default: str = "", show_default: bool = True) -> str:
     """
     Ask the user for an email address and validate it.
 
     Args:
         prompt (str): The prompt to display to the user.
         default (str, optional): The default value if the user enters an empty string. Defaults to "".
-        empty_allowed (bool, optional): Whether to allow empty input. Defaults to False.
         show_default (bool, optional): Whether to show the default value in the prompt. Defaults to True.
 
     Returns:
@@ -92,11 +89,10 @@ def ask_email(prompt: str, default: str = "", empty_allowed: bool = False, show_
     while True:
         email = input(prompt_text).strip()
         if not email:
-            if empty_allowed:
-                email = default
-            else:
-                print(f"{Fore.RED}Email address cannot be empty.{Style.RESET_ALL}")
-                continue
+            email = default
+        if not email: # As default is empty if not specified then we throw this error
+            print(f"{Fore.RED}Email address cannot be empty.{Style.RESET_ALL}")
+            continue
         elif not re.match(r"[^@]+@[^@]+\.[^@]+", email):
             print(f"{Fore.RED}Invalid email address.{Style.RESET_ALL}")
             continue
@@ -105,7 +101,7 @@ def ask_email(prompt: str, default: str = "", empty_allowed: bool = False, show_
             return email
 
 
-def ask_uuid(prompt: str, length: int, default: str = "", empty_allowed: bool = False, show_default: bool = True) -> str:
+def ask_uuid(prompt: str, length: int, default: str = "", show_default: bool = True) -> str:
     """
     Ask the user for a UUID and validate it.
 
@@ -113,7 +109,6 @@ def ask_uuid(prompt: str, length: int, default: str = "", empty_allowed: bool = 
         prompt (str): The prompt to display to the user.
         length (int): The expected length of the UUID.
         default (str, optional): The default value if the user enters an empty string. Defaults to "".
-        empty_allowed (bool, optional): Whether to allow empty input. Defaults to False.
         show_default (bool, optional): Whether to show the default value in the prompt. Defaults to True.
 
     Returns:
@@ -127,11 +122,10 @@ def ask_uuid(prompt: str, length: int, default: str = "", empty_allowed: bool = 
     while True:
         uuid = input(prompt_text).lower().strip()
         if not uuid:
-            if empty_allowed:
-                uuid = default
-            else:
-                print(f"{Fore.RED}UUID cannot be empty.{Style.RESET_ALL}")
-                continue
+            uuid = default
+        if not uuid: # As default is empty if not specified then we throw this error
+            print(f"{Fore.RED}UUID cannot be empty.{Style.RESET_ALL}")
+            continue
         elif len(uuid) != length:
             print(f"{Fore.RED}Invalid UUID length.{Style.RESET_ALL}")
             logging.warning(f"Invalid UUID length. Expected: {length}, Got: {len(uuid)}")
