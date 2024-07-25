@@ -24,24 +24,26 @@ def validate_uuid(uuid: str, length: int) -> bool:
     """
     Validate a UUID against the specified length.
 
-    Arguments:
-    uuid -- the UUID to validate
-    length -- the expected length of the UUID
+    Args:
+        uuid (str): The UUID to validate.
+        length (int): The expected length of the UUID.
+
+    Returns:
+        bool: True if the UUID is valid, False otherwise.
     """
     if not isinstance(uuid, str) or len(uuid) != length or not re.match('[0-9a-f]{{{}}}'.format(length), uuid):
         return False
     return True
-    
 
 def generate_uuid(length: int) -> str:
     """
     Generate a UUID of the specified length.
 
-    Arguments:
-    length -- the length of the UUID to generate
+    Args:
+        length (int): The length of the UUID to generate.
 
     Returns:
-    str -- The generated UUID.
+        str: The generated UUID.
     """
     return str(os.urandom(length // 2 + 1).hex())[:length]
 
@@ -49,11 +51,14 @@ def assemble_docker_compose(m4b_config_path_or_dict: Any, app_config_path_or_dic
     """
     Assemble a Docker Compose file based on the app and user configuration.
 
-    Arguments:
-    m4b_config_path_or_dict -- the path to the m4b configuration file or the config dictionary
-    app_config_path_or_dict -- the path to the app configuration file or the config dictionary
-    user_config_path_or_dict -- the path to the user configuration file or the config dictionary
-    compose_output_path -- the path to save the assembled docker-compose.yaml file
+    Args:
+        m4b_config_path_or_dict (Any): The path to the m4b configuration file or the config dictionary.
+        app_config_path_or_dict (Any): The path to the app configuration file or the config dictionary.
+        user_config_path_or_dict (Any): The path to the user configuration file or the config dictionary.
+        compose_output_path (str, optional): The path to save the assembled docker-compose.yaml file. Defaults to './docker-compose.yaml'.
+
+    Raises:
+        Exception: If an error occurs during the assembly process.
     """
     m4b_config = load_json_config(m4b_config_path_or_dict)
     app_config = load_json_config(app_config_path_or_dict)
@@ -63,28 +68,27 @@ def assemble_docker_compose(m4b_config_path_or_dict: Any, app_config_path_or_dic
     dkarch = arch_info['dkarch']
 
     services = {}
-    for app in app_config['apps']:
-        app_name = app['name'].lower()
-        if user_config['apps'][app_name]['enabled']:
-            app_compose_config = app['compose_config']
-            image = app_compose_config['image']
-            image_name, image_tag = image.split(':')
+    for category in ['apps', 'extra-apps']:
+        for app in app_config.get(category, []):
+            app_name = app['name'].lower()
+            if user_config['apps'].get(app_name, {}).get('enabled'):
+                app_compose_config = app['compose_config']
+                image = app_compose_config['image']
+                image_name, image_tag = image.split(':')
 
-            if not check_img_arch_support(image_name, image_tag, dkarch):
-                compatible_tag = get_compatible_tag(image_name, dkarch)
-                if compatible_tag:
-                    app_compose_config['image'] = f"{image_name}:{compatible_tag}"
-                    # Update the user_config with the new image tag
-                    user_config['apps'][app_name]['image'] = app_compose_config['image']
-                else:
-                    logging.warning(f"No compatible tag found for {image_name} with architecture {dkarch}. Using default tag {image_tag}.")
+                if not check_img_arch_support(image_name, image_tag, dkarch):
+                    compatible_tag = get_compatible_tag(image_name, dkarch)
+                    if compatible_tag:
+                        app_compose_config['image'] = f"{image_name}:{compatible_tag}"
+                    else:
+                        logging.warning(f"No compatible tag found for {image_name} with architecture {dkarch}. Using default tag {image_tag}.")
 
-            services[app_name] = app_compose_config
+                services[app_name] = app_compose_config
 
-    # Define network configuration using confi json and environment variables
-    # this is an hbrid approcah to prove that it could be possible to ditch the env fiel and generate all compose file parts from config json
+    # Define network configuration using config json and environment variables
+    # This is an hybrid solution to remember that it could be possible to ditch the env file and generate all compose file parts from config json
 
-    compose_config_common = m4b_config.get('compose_config_common', {}) 
+    compose_config_common = m4b_config.get('compose_config_common', {})
     network_config = {
         'networks': {
             'default': {
@@ -112,19 +116,18 @@ def assemble_docker_compose(m4b_config_path_or_dict: Any, app_config_path_or_dic
         yaml.dump(compose_dict, f, sort_keys=False, default_flow_style=False)
     logging.info(f"Docker Compose file assembled and saved to {compose_output_path}")
 
-    # Write updated user_config back to file
-    write_json(user_config, user_config_path_or_dict)
-
-
-def generate_env_file(m4b_config_path_or_dict: Any, app_config_path_or_dict: Any, user_config_path_or_dict: Any, env_output_path: str = './.env') -> None:
+def generate_env_file(m4b_config_path_or_dict: Any, app_config_path_or_dict: Any, user_config_path_or_dict: Any, env_output_path: str = str(os.path.join(os.getcwd(), '.env'))) -> None:
     """
     Generate a .env file based on the m4b and user configuration.
 
-    Arguments:
-    m4b_config_path_or_dict -- the path to the m4b configuration file or the config dictionary
-    app_config_path_or_dict -- the path to the app configuration file or the config dictionary
-    user_config_path_or_dict -- the path to the user configuration file or the config dictionary
-    env_output_path -- the path to save the generated .env file
+    Args:
+        m4b_config_path_or_dict (Any): The path to the m4b configuration file or the config dictionary.
+        app_config_path_or_dict (Any): The path to the app configuration file or the config dictionary.
+        user_config_path_or_dict (Any): The path to the user configuration file or the config dictionary.
+        env_output_path (str, optional): The path to save the generated .env file. Defaults to './.env'.
+
+    Raises:
+        Exception: If an error occurs during the file generation process.
     """
     m4b_config = load_json_config(m4b_config_path_or_dict)
     app_config = load_json_config(app_config_path_or_dict)
@@ -154,6 +157,11 @@ def generate_env_file(m4b_config_path_or_dict: Any, app_config_path_or_dict: Any
     resource_limits_config = m4b_config.get('resource_limits', {})
     for key, value in resource_limits_config.items():
         env_lines.append(f"{key.upper()}={value}")
+    
+    # Add network configurations
+    network_config = m4b_config.get('network', {})
+    for key, value in network_config.items():
+        env_lines.append(f"NETWORK_{key.upper()}={value}")
 
     # Add user and device configurations
     # user_info = user_config.get('user', {})
@@ -164,26 +172,22 @@ def generate_env_file(m4b_config_path_or_dict: Any, app_config_path_or_dict: Any
     for key, value in device_info.items():
         env_lines.append(f"{key.upper()}={value}")
 
-    # Add network configurations
-    network_config = user_config.get('network', {})
-    for key, value in network_config.items():
-        env_lines.append(f"NETWORK_{key.upper()}={value}")
-
     # Add proxy configurations
     proxy_config = user_config.get('proxies', {})
     for key, value in proxy_config.items():
         env_lines.append(f"PROXY_{key.upper()}={value}")
 
     # Add app-specific configurations
-    for app in app_config.get('apps', []):
-        app_name = app['name'].upper()
-        app_flags = app.get('flags', {})
-        app_user_config = user_config['apps'].get(app['name'].lower(), {})
-        for flag_name in app_flags.keys():
-            if flag_name in app_user_config:
-                env_var_name = f"{app_name}_{flag_name.upper()}"
-                env_var_value = app_user_config[flag_name]
-                env_lines.append(f"{env_var_name}={env_var_value}")
+    for category in ['apps', 'extra-apps']:
+        for app in app_config.get(category, []):
+            app_name = app['name'].upper()
+            app_flags = app.get('flags', {})
+            app_user_config = user_config['apps'].get(app['name'].lower(), {})
+            for flag_name in app_flags.keys():
+                if flag_name in app_user_config:
+                    env_var_name = f"{app_name}_{flag_name.upper()}"
+                    env_var_value = app_user_config[flag_name]
+                    env_lines.append(f"{env_var_name}={env_var_value}")
 
     # Write to .env file
     with open(env_output_path, 'w') as f:
@@ -191,16 +195,19 @@ def generate_env_file(m4b_config_path_or_dict: Any, app_config_path_or_dict: Any
     logging.info(f".env file generated and saved to {env_output_path}")
 
 
-def generate_dashboard_urls(compose_project_name: str, device_name: str, env_file: str = ".env") -> None:
+def generate_dashboard_urls(compose_project_name: str, device_name: str, env_file: str = str(os.path.join(os.getcwd(), ".env"))) -> None:
     """
     Generate dashboard URLs based on the provided compose project name and device name.
     If the parameters are not provided, it tries to read them from the .env file.
     The generated dashboard URLs are written to a file named "dashboards_URLs_<compose_project_name>-<device_name>.txt".
 
-    Arguments:
-    compose_project_name -- the name of the compose project
-    device_name -- the name of the device
-    env_file -- the path to the environment file
+    Args:
+        compose_project_name (str): The name of the compose project.
+        device_name (str): The name of the device.
+        env_file (str, optional): The path to the environment file. Defaults to ".env".
+
+    Raises:
+        Exception: If an error occurs during the URL generation process.
     """
     if not compose_project_name or not device_name:
         if os.path.isfile(env_file):
@@ -238,14 +245,14 @@ def generate_device_name(adjectives: list, animals: list, device_name: str = "",
     Generate a device name from given word lists. If a device name is provided, it will be used.
     Optionally, a random UUID suffix can be added.
 
-    Arguments:
-    adjectives -- list of adjectives
-    animals -- list of animals
-    device_name -- optional device name to use
-    use_uuid_suffix -- flag to determine whether to add a UUID suffix
+    Args:
+        adjectives (list): List of adjectives.
+        animals (list): List of animals.
+        device_name (str, optional): Optional device name to use. Defaults to "".
+        use_uuid_suffix (bool, optional): Flag to determine whether to add a UUID suffix. Defaults to False.
 
     Returns:
-    str -- The generated or provided device name.
+        str: The generated or provided device name.
     """
     if not device_name:
         adjective = secrets.choice(adjectives)

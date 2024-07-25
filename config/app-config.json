@@ -11,7 +11,7 @@
         "image": "fazalfarhan01/earnapp:lite",
         "environment": [
           "EARNAPP_UUID=$EARNAPP_UUID",
-          "EARNAPP_TERM=\"yes\""
+          "EARNAPP_TERM=yes"
         ],
         "volumes": [".data/.earnapp:/etc/earnapp"],
         "restart": "always",
@@ -22,7 +22,8 @@
       "flags": {
         "uuid": {
           "length": 32,
-          "claimURLBase": "To claim your node, after starting it, go to the app's dashboard and then visit the following link: https://earnapp.com/r/sdk-node-"
+          "claimURLBase": "To claim your node, after starting it, go to the app's dashboard and then visit the following link: https://earnapp.com/r/sdk-node-",
+          "prefix": "sdk-node-"
         }
       }
     },
@@ -111,7 +112,10 @@
         "container_name": "${DEVICE_NAME}_repocket",
         "hostname": "${DEVICE_NAME}_repocket",
         "image": "repocket/repocket:latest",
-        "environment": ["RP_EMAIL=$REPOCKET_EMAIL", "RP_API_KEY=$REPOCKET_APIKEY"],
+        "environment": [
+          "RP_EMAIL=$REPOCKET_EMAIL",
+          "RP_API_KEY=$REPOCKET_APIKEY"
+        ],
         "restart": "always",
         "cpus": "${APP_CPU_LIMIT_MEDIUM}",
         "mem_reservation": "${APP_MEM_RESERV_MEDIUM}",
@@ -148,7 +152,11 @@
         "container_name": "${DEVICE_NAME}_proxyrack",
         "hostname": "${DEVICE_NAME}_proxyrack",
         "image": "proxyrack/pop:latest",
-        "environment": ["api_key=$PROXYRACK_APIKEY", "device_name=$DEVICE_NAME", "UUID=$PROXYRACK_UUID"],
+        "environment": [
+          "api_key=$PROXYRACK_APIKEY",
+          "device_name=$DEVICE_NAME",
+          "UUID=$PROXYRACK_UUID"
+        ],
         "restart": "always",
         "cpus": "${APP_CPU_LIMIT_BIG}",
         "mem_reservation": "${APP_MEM_RESERV_BIG}",
@@ -188,7 +196,10 @@
         "container_name": "${DEVICE_NAME}_bitping",
         "hostname": "${DEVICE_NAME}_bitping",
         "image": "mrcolorrain/bitping:latest",
-        "environment": ["BITPING_EMAIL=$BITPING_EMAIL", "BITPING_PASSWD=$BITPING_PASSWORD"],
+        "environment": [
+          "BITPING_EMAIL=$BITPING_EMAIL",
+          "BITPING_PASSWD=$BITPING_PASSWORD"
+        ],
         "volumes": [".data/.bitpingd:/root/.bitpingd"],
         "restart": "always",
         "cpus": "${APP_CPU_LIMIT_BIG}",
@@ -208,7 +219,10 @@
         "container_name": "${DEVICE_NAME}_speedshare",
         "hostname": "${DEVICE_NAME}_speedshare",
         "image": "mrcolorrain/speedshare:latest",
-        "environment": ["CODE=$SPEEDSHARE_CODE", "SPEEDSHARE_UUID=$SPEEDSHARE_UUID"],
+        "environment": [
+          "CODE=$SPEEDSHARE_CODE",
+          "SPEEDSHARE_UUID=$SPEEDSHARE_UUID"
+        ],
         "restart": "always",
         "cpus": "${APP_CPU_LIMIT_BIG}",
         "mem_reservation": "${APP_MEM_RESERV_BIG}",
@@ -229,8 +243,11 @@
       "compose_config": {
         "container_name": "${DEVICE_NAME}_grass",
         "hostname": "${DEVICE_NAME}_grass",
-        "image": "mrcolorrain/grass:latest",
-        "environment": ["GRASS_USER=$GRASS_EMAIL", "GRASS_PASS=$GRASS_PASSWORD"],
+        "image": "mrcolorrain/grass-node:latest",
+        "environment": [
+          "USER_EMAIL=$GRASS_EMAIL",
+          "USER_PASSWORD=$GRASS_PASSWORD"
+        ],
         "restart": "always",
         "cpus": "${APP_CPU_LIMIT_BIG}",
         "mem_reservation": "${APP_MEM_RESERV_BIG}",
