@@ -6,27 +6,20 @@
   "device_info": {
     "device_name": "yourDeviceName"
   },
-  "network": {
-    "driver": "bridge",
-    "subnet": "172.19.7.0",
-    "netmask": "27"
-  },
   "apps": {
     "earnapp": {
       "enabled": false,
-      "device_uuid": "sdk-node-yourEARNAPPDeviceUUID"
+      "uuid": "sdk-node-yourEARNAPPDeviceUUID"
     },
     "honeygain": {
       "enabled": false,
       "email": "yourHONEYGAINMail",
-      "password": "yourHONEYGAINPw",
-      "device": ""
+      "password": "yourHONEYGAINPw"
     },
     "iproyalpawns": {
       "enabled": false,
       "email": "yourIPROYALPAWNSMail",
-      "password": "yourIPROYALPAWNSPw",
-      "device_id": ""
+      "password": "yourIPROYALPAWNSPw"
     },
     "peer2profit": {
       "enabled": false,
@@ -52,7 +45,7 @@
     "proxyrack": {
       "enabled": false,
       "apikey": "yourPROXYRACKAPIKey",
-      "device_uuid": "yourPROXYRACKDeviceUUID"
+      "uuid": "yourPROXYRACKDeviceUUID"
     },
     "proxylite": {
       "enabled": false,
@@ -66,7 +59,7 @@
     "speedshare": {
       "enabled": false,
       "code": "yourSPEEDSHARECode",
-      "device_uuid": "yourSPEEDSHAREDeviceUUID"
+      "uuid": "yourSPEEDSHAREDeviceUUID"
     },
     "grass": {
       "enabled": false,

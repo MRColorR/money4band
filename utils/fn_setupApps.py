@@ -44,7 +44,15 @@ def configure_uuid(app: Dict, flag_config: Dict, config: Dict):
     print(f'Starting UUID generation/import for {app["name"].lower().title()}')
     if 'length' not in flag_config:
         print(f'{Fore.RED}Error: Length not specified for UUID generation/import{Style.RESET_ALL}')
+        logging.error('Length not specified for UUID generation/import')
+        return
+
     length = flag_config['length']
+    if not isinstance(length, int) or length <= 0:
+        print(f'{Fore.RED}Error: Invalid length for UUID generation/import{Style.RESET_ALL}')
+        logging.error(f'Invalid length for UUID generation/import: {length}')
+        return
+
     if ask_question_yn(f'Do you want to use a previously registered uuid for {app["name"].lower().title()}? (y/n):'):
         print(f'{Fore.GREEN}Please enter the alphanumeric part of the existing uuid for {app["name"].lower().title()}, it should be {length} characters long.')
         print('E.g. if existing registered node is sdk-node-b86301656baefekba8917349bdf0f3g4 then enter just b86301656baefekba8917349bdf0f3g4')
@@ -63,6 +71,9 @@ def configure_uuid(app: Dict, flag_config: Dict, config: Dict):
         except Exception as e:
             logging.error(f'Error writing claim instructions to file: {e}')
         input('Press enter to continue...')
+    
+    prefix = flag_config.get('prefix', '')
+    uuid = f'{prefix}{uuid}'
     config['uuid'] = uuid
 
 def configure_cid(app: Dict, flag_config: Dict, config: Dict):
@@ -106,9 +117,9 @@ def collect_user_info(user_config: Dict[str, Any], m4b_config: Dict[str, Any]) -
     """
     Collect user information and update the user configuration.
 
-    Arguments:
-    user_config -- the user configuration dictionary
-    m4b_config -- the m4b configuration dictionary
+    Args:
+        user_config (dict): The user configuration dictionary.
+        m4b_config (dict): The m4b configuration dictionary.
     """
     try:
         nickname = getpass.getuser()
@@ -116,11 +127,12 @@ def collect_user_info(user_config: Dict[str, Any], m4b_config: Dict[str, Any]) -
         nickname = "user"
     device_name = input('Enter your device name: Or leave it blank to generate a random one:').strip()
     
+    # TO-DO: check if is simple setup or multiproxy and proceed accordingly. Append same suffix of devicename to project env var to make it unique (project/network/so on) when running multiproxy 
     device_name = generate_device_name(
         m4b_config['word_lists']['adjectives'], 
         m4b_config['word_lists']['animals'], 
         device_name=device_name, 
-        use_uuid_suffix=True
+        use_uuid_suffix=False # Set this to true passing the original devicename to generate similar ones with a random suffix
     )
 
     user_config['user']['Nickname'] = nickname
@@ -130,9 +142,10 @@ def _configure_apps(user_config: Dict[str, Any], apps: Dict, m4b_config: Dict):
     """
     Configure apps by collecting user inputs.
 
-    Arguments:
-    user_config -- the user configuration dictionary
-    app_config -- the app configuration dictionary
+    Args:
+        user_config (dict): The user configuration dictionary.
+        apps (dict): The app configuration dictionary.
+        m4b_config (dict): The m4b configuration dictionary.
     """
     for app in apps:
         app_name = app['name']
@@ -155,19 +168,21 @@ def configure_apps(user_config: Dict[str, Any], app_config: Dict, m4b_config: Di
     """
     Configure apps by collecting user inputs.
 
-    Arguments:
-    user_config -- the user configuration dictionary
-    app_config -- the app configuration dictionary
+    Args:
+        user_config (dict): The user configuration dictionary.
+        app_config (dict): The app configuration dictionary.
+        m4b_config (dict): The m4b configuration dictionary.
     """
     _configure_apps(user_config, app_config['apps'], m4b_config)
 
 def configure_extra_apps(user_config: Dict[str, Any], app_config: Dict, m4b_config: Dict) -> None:
     """
-    Configure apps by collecting user inputs.
+    Configure extra apps by collecting user inputs.
 
-    Arguments:
-    user_config -- the user configuration dictionary
-    app_config -- the app configuration dictionary
+    Args:
+        user_config (dict): The user configuration dictionary.
+        app_config (dict): The app configuration dictionary.
+        m4b_config (dict): The m4b configuration dictionary.
     """
     _configure_apps(user_config, app_config['extra-apps'], m4b_config)
 
@@ -175,35 +190,44 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
     """
     Main function for setting up user configurations.
 
-    Arguments:
-    app_config_path -- the path to the app configuration file
-    m4b_config_path -- the path to the m4b configuration file
-    user_config_path -- the path to the user configuration file
+    Args:
+        app_config_path (str): Path to the app configuration file.
+        m4b_config_path (str): Path to the m4b configuration file.
+        user_config_path (str): Path to the user configuration file.
     """
-    app_config = loader.load_json_config(app_config_path)
-    user_config = loader.load_json_config(user_config_path)
-    m4b_config = loader.load_json_config(m4b_config_path)
+    try:
+        app_config = loader.load_json_config(app_config_path)
+        user_config = loader.load_json_config(user_config_path)
+        m4b_config = loader.load_json_config(m4b_config_path)
 
-    advance_setup = ask_question_yn('Do you want to go with Multiproxy setup? (y/n):')
-    if advance_setup == 'y':
-        logging.info("Multiproxy setup selected")
-        print('Create a proxies.txt file in the same folder and add proxies in the following format: protocol://user:pass@ip:port (one proxy per line)')
-        user_config['proxies']['multiproxy'] = True
-        time.sleep(m4b_config['system']['sleep_time'])
-    else:
-        logging.info("Basic setup selected")
-        if ask_question_yn('Do you want to setup proxy for the apps? (y/n)'):
-            user_config['proxies']['proxy'] = input('Enter proxy details \n').strip()
+        advance_setup = ask_question_yn('Do you want to go with Multiproxy setup? (y/n):')
+        if advance_setup:
+            logging.info("Multiproxy setup selected")
+            print('Create a proxies.txt file in the same folder and add proxies in the following format: protocol://user:pass@ip:port (one proxy per line)')
+            user_config['proxies']['multiproxy'] = True
+            time.sleep(m4b_config['system']['sleep_time'])
+        else:
+            logging.info("Basic setup selected")
+            if ask_question_yn('Do you want to setup proxy for the apps? (y/n)'):
+                user_config['proxies']['proxy'] = input('Enter proxy details \n').strip()
 
-    collect_user_info(user_config, m4b_config)
-    configure_apps(user_config, app_config, m4b_config)
-    if ask_question_yn('Do you want to configure extra apps? (y/n)'):
-        configure_extra_apps(user_config, app_config, m4b_config)
-    write_json(user_config, user_config_path)
+        collect_user_info(user_config, m4b_config)
+        configure_apps(user_config, app_config, m4b_config)
+        if ask_question_yn('Do you want to configure extra apps? (y/n)'):
+            configure_extra_apps(user_config, app_config, m4b_config)
+        write_json(user_config, user_config_path)
 
-    assemble_docker_compose(m4b_config_path, app_config_path, user_config_path, compose_output_path='./docker-compose.yaml')
-    generate_env_file(m4b_config_path, app_config_path, user_config_path, env_output_path='./.env')
-
+        assemble_docker_compose(m4b_config_path, app_config_path, user_config_path, compose_output_path='./docker-compose.yaml')
+        generate_env_file(m4b_config_path, app_config_path, user_config_path, env_output_path='./.env')
+    except FileNotFoundError as e:
+        logging.error(f"File not found: {str(e)}")
+        raise
+    except json.JSONDecodeError as e:
+        logging.error(f"Error decoding JSON: {str(e)}")
+        raise
+    except Exception as e:
+        logging.error(f"An error occurred in main setup apps process: {str(e)}")
+        raise
 
 if __name__ == '__main__':
     # Get the script absolute path and name

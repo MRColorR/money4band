@@ -11,9 +11,10 @@ def stop_stack(compose_file: str = './docker-compose.yaml') -> None:
     """
     Stop the Docker Compose stack using the provided compose file.
 
-    Arguments:
-    compose_file -- the path to the Docker Compose file
+    Args:
+        compose_file (str): The path to the Docker Compose file.
     """
+    logging.info(f"Stopping stack with compose file: {compose_file}")
     just_fix_windows_console()
 
     while True:

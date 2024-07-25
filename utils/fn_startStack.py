@@ -12,10 +12,11 @@ def start_stack(compose_file: str = './docker-compose.yaml', env_file: str = './
     """
     Start the Docker Compose stack using the provided compose and env files.
 
-    Arguments:
-    compose_file -- the path to the Docker Compose file
-    env_file -- the path to the environment file
+    Args:
+        compose_file (str): The path to the Docker Compose file.
+        env_file (str): The path to the environment file.
     """
+    logging.info(f"Starting stack with compose file: {compose_file} and env file: {env_file}")
     just_fix_windows_console()
 
     while True:

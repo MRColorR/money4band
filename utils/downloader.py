@@ -4,16 +4,16 @@ import logging
 import argparse
 from typing import Any
 
-def download_file(url: str, dest_path: str):
+def download_file(url: str, dest_path: str) -> None:
     """
     Download a file from a given URL and save it to the specified destination path.
 
-    Parameters:
-    url (str): The URL of the file to download.
-    dest_path (str): The local path where the file will be saved.
+    Args:
+        url (str): The URL of the file to download.
+        dest_path (str): The local path where the file will be saved.
 
     Raises:
-    requests.RequestException: If there is an issue with the request.
+        requests.RequestException: If there is an issue with the request.
     """
     try:
         logging.info(f"Starting download from {url}")
@@ -30,6 +30,9 @@ def download_file(url: str, dest_path: str):
         logging.info(f"File downloaded successfully from {url} to {dest_path}")
     except requests.RequestException as e:
         logging.error(f"An error occurred while downloading the file from {url}: {str(e)}")
+        raise
+    except OSError as e:
+        logging.error(f"An error occurred while writing the file to {dest_path}: {str(e)}")
         raise
 
 if __name__ == "__main__":
