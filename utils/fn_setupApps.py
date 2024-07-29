@@ -5,6 +5,8 @@ import logging
 import json
 import time
 import getpass
+import shutil
+from copy import deepcopy
 from typing import Dict, Any
 from colorama import Fore, Back, Style, just_fix_windows_console
 
@@ -203,6 +205,52 @@ def configure_extra_apps(user_config: Dict[str, Any], app_config: Dict, m4b_conf
     """
     _configure_apps(user_config, app_config['extra-apps'], m4b_config)
 
+def setup_multiproxy_instances(user_config: Dict[str, Any], app_config: Dict[str, Any], m4b_config: Dict[str, Any], proxies: list) -> None:
+    """
+    Setup multiple proxy instances based on the given proxies list.
+
+    Args:
+        user_config (dict): The user configuration dictionary.
+        app_config (dict): The app configuration dictionary.
+        m4b_config (dict): The m4b configuration dictionary.
+        proxies (list): List of proxy configurations.
+    """
+    instances_dir = 'm4b_multi_instances'
+    os.makedirs(instances_dir, exist_ok=True)
+
+    base_device_name = user_config['device_info']['device_name']
+    base_project_name = m4b_config.get('project', {}).get('compose_project_name', 'm4b_project')
+
+    for i, proxy in enumerate(proxies):
+        instance_dir = os.path.join(instances_dir, f'instance_{i+1}')
+        os.makedirs(instance_dir, exist_ok=True)
+
+        instance_user_config = deepcopy(user_config)
+        instance_m4b_config = deepcopy(m4b_config)
+
+        suffix = generate_uuid(4)
+        instance_device_name = f"{base_device_name}_{suffix}"
+        instance_project_name = f"{base_project_name}_{suffix}"
+
+        instance_user_config['device_info']['device_name'] = instance_device_name
+        instance_m4b_config['project']['compose_project_name'] = instance_project_name
+
+        instance_user_config['proxies']['stack_proxy'] = proxy
+        instance_user_config['proxies']['enabled'] = True
+
+        instance_user_config_path = os.path.join(instance_dir, 'user-config.json')
+        instance_m4b_config_path = os.path.join(instance_dir, 'm4b-config.json')
+        instance_app_config_path = os.path.join(instance_dir, 'app-config.json')
+
+        write_json(instance_user_config, instance_user_config_path)
+        write_json(instance_m4b_config, instance_m4b_config_path)
+        write_json(app_config, instance_app_config_path)
+
+        assemble_docker_compose(instance_m4b_config_path, instance_app_config_path, instance_user_config_path, compose_output_path=os.path.join(instance_dir, 'docker-compose.yaml'))
+        generate_env_file(instance_m4b_config_path, instance_app_config_path, instance_user_config_path, env_output_path=os.path.join(instance_dir, '.env'))
+
+    print(f"{Fore.GREEN}Multiproxy instances setup completed.{Style.RESET_ALL}")
+
 def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> None:
     """
     Main function for setting up user configurations.
@@ -216,26 +264,28 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
         app_config = loader.load_json_config(app_config_path)
         user_config = loader.load_json_config(user_config_path)
         m4b_config = loader.load_json_config(m4b_config_path)
-
-        advance_setup = ask_question_yn('Do you want to go with Multiproxy setup?')
-        if advance_setup:
-            logging.info("Multiproxy setup selected")
-            print('Create a proxies.txt file in the same folder and add proxies in the following format: protocol://user:pass@ip:port (one proxy per line)')
-            user_config['proxies']['multiproxy'] = True
-            time.sleep(m4b_config['system']['sleep_time'])
-        else:
-            logging.info("Basic setup selected")
-            if ask_question_yn('Do you want to setup proxy for the apps?'):
-                user_config['proxies']['proxy'] = ask_string('Enter proxy details:', default="").strip()
+        logging.info("Setup apps started")
 
         collect_user_info(user_config, m4b_config)
         configure_apps(user_config, app_config, m4b_config)
         if ask_question_yn('Do you want to configure extra apps?'):
+            logging.info("Extra apps setup selected")
             configure_extra_apps(user_config, app_config, m4b_config)
         write_json(user_config, user_config_path)
 
-        assemble_docker_compose(m4b_config_path, app_config_path, user_config_path, compose_output_path='./docker-compose.yaml')
+        assemble_docker_compose(m4b_config_path, app_config_path, user_config_path, compose_output_path='./docker-compose.yaml', is_main_instance=True)
         generate_env_file(m4b_config_path, app_config_path, user_config_path, env_output_path='./.env')
+
+        proxy_setup = ask_question_yn('Do you want to enable (multi)proxy?')
+        if proxy_setup:
+            logging.info("Multiproxy setup selected")
+            print('Create a proxies.txt file in the same folder and add proxies in the following format: protocol://user:pass@ip:port (one proxy per line)')
+            input('Press enter to continue...')
+            time.sleep(m4b_config['system']['sleep_time'])
+            with open('proxies.txt', 'r') as file:
+                proxies = [line.strip() for line in file if line.strip()]
+            setup_multiproxy_instances(user_config, app_config, m4b_config, proxies)
+
     except FileNotFoundError as e:
         logging.error(f"File not found: {str(e)}")
         raise

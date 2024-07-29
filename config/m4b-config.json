@@ -250,6 +250,58 @@
       "driver": "${NETWORK_DRIVER}",
       "subnet": "${NETWORK_SUBNET}",
       "netmask": "${NETWORK_NETMASK}"
+    },
+    "proxy_service": {
+      "container_name": "${DEVICE_NAME}_tun2socks",
+      "hostname": "${DEVICE_NAME}_tun2socks",
+      "image": "xjasonlyu/tun2socks",
+      "environment": [
+        "LOGLEVEL=info",
+        "PROXY=${STACK_PROXY}",
+        "EXTRA_COMMANDS=ip rule add iif lo ipproto udp dport 53 lookup main;"
+      ],
+      "cap_add": ["NET_ADMIN"],
+      "network_mode": "bridge",
+      "dns": ["1.1.1.1", "8.8.8.8", "1.0.0.1", "8.8.4.4"],
+      "ports": [
+        "${M4B_DASHBOARD_PORT}:80",
+        "${MYSTNODE_DASHBOARD_PORT}:4449"
+      ],
+      "volumes": ["/dev/net/tun:/dev/net/tun"],
+      "restart": "always",
+      "cpus": "${APP_CPU_LIMIT_BIG}",
+      "mem_reservation": "${APP_MEM_RESERV_BIG}",
+      "mem_limit": "${APP_MEM_LIMIT_BIG}"
+    },
+    "watchtower_service": {
+      "container_name": "${DEVICE_NAME}_watchtower",
+      "hostname": "${DEVICE_NAME}_watchtower",
+      "image": "containrrr/watchtower:latest",
+      "environment": [
+        "WATCHTOWER_POLL_INTERVAL=14400",
+        "WATCHTOWER_ROLLING_RESTART=true",
+        "WATCHTOWER_NO_STARTUP_MESSAGE=true",
+        "WATCHTOWER_CLEANUP=true",
+        "WATCHTOWER_NOTIFICATIONS=${WATCHTOWER_NOTIFICATIONS}",
+        "WATCHTOWER_NOTIFICATION_URL=${WATCHTOWER_NOTIFICATION_URL}"
+      ],
+      "volumes": ["/var/run/docker.sock:/var/run/docker.sock"],
+      "restart": "always",
+      "cpus": "${APP_CPU_LIMIT_MEDIUM}",
+      "mem_reservation": "${APP_MEM_RESERV_MEDIUM}",
+      "mem_limit": "${APP_MEM_LIMIT_MEDIUM}"
+    },
+    "dashboard_service": {
+      "container_name": "${DEVICE_NAME}_webdashboard",
+      "hostname": "${DEVICE_NAME}_webdashboard",
+      "image": "nginx:alpine-slim",
+      "volumes": [
+        "./.resources/.www:/usr/share/nginx/html:ro"
+      ],
+      "restart": "always",
+      "cpus": "${APP_CPU_LIMIT_LITTLE}",
+      "mem_reservation": "${APP_MEM_RESERV_LITTLE}",
+      "mem_limit": "${APP_MEM_LIMIT_LITTLE}"
     }
   }
 }

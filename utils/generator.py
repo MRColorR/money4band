@@ -47,7 +47,7 @@ def generate_uuid(length: int) -> str:
     """
     return str(os.urandom(length // 2 + 1).hex())[:length]
 
-def assemble_docker_compose(m4b_config_path_or_dict: Any, app_config_path_or_dict: Any, user_config_path_or_dict: Any, compose_output_path: str = str(os.path.join(os.getcwd(), 'docker-compose.yaml'))) -> None:
+def assemble_docker_compose(m4b_config_path_or_dict: Any, app_config_path_or_dict: Any, user_config_path_or_dict: Any, compose_output_path: str = str(os.path.join(os.getcwd(), 'docker-compose.yaml')), is_main_instance: bool = False) -> None:
     """
     Assemble a Docker Compose file based on the app and user configuration.
 
@@ -56,6 +56,7 @@ def assemble_docker_compose(m4b_config_path_or_dict: Any, app_config_path_or_dic
         app_config_path_or_dict (Any): The path to the app configuration file or the config dictionary.
         user_config_path_or_dict (Any): The path to the user configuration file or the config dictionary.
         compose_output_path (str, optional): The path to save the assembled docker-compose.yaml file. Defaults to './docker-compose.yaml'.
+        is_main_instance (bool, optional): Whether this is the main instance. Defaults to False.
 
     Raises:
         Exception: If an error occurs during the assembly process.
@@ -85,10 +86,16 @@ def assemble_docker_compose(m4b_config_path_or_dict: Any, app_config_path_or_dic
 
                 services[app_name] = app_compose_config
 
+    # Add common services only if this is the main instance
+    compose_config_common = m4b_config.get('compose_config_common', {})
+    if is_main_instance:
+        services['watchtower'] = compose_config_common['watchtower_service']
+        services['m4bwebdashboard'] = compose_config_common['dashboard_service']
+    if user_config['proxies']['enabled']:
+        services['proxy'] = compose_config_common['proxy_service']
+
     # Define network configuration using config json and environment variables
     # This is an hybrid solution to remember that it could be possible to ditch the env file and generate all compose file parts from config json
-
-    compose_config_common = m4b_config.get('compose_config_common', {})
     network_config = {
         'networks': {
             'default': {
@@ -175,7 +182,12 @@ def generate_env_file(m4b_config_path_or_dict: Any, app_config_path_or_dict: Any
     # Add proxy configurations
     proxy_config = user_config.get('proxies', {})
     for key, value in proxy_config.items():
-        env_lines.append(f"PROXY_{key.upper()}={value}")
+        env_lines.append(f"STACK_PROXY_{key.upper()}={value}")
+
+    # Add notification configurations
+    notifications_config = user_config.get('notifications', {})
+    for key, value in notifications_config.items():
+        env_lines.append(f"WATCHTOWER_{key.upper()}={value}")
 
     # Add app-specific configurations
     for category in ['apps', 'extra-apps']:
