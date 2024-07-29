@@ -215,22 +215,22 @@ def setup_multiproxy_instances(user_config: Dict[str, Any], app_config: Dict[str
         m4b_config (dict): The m4b configuration dictionary.
         proxies (list): List of proxy configurations.
     """
-    instances_dir = 'm4b_multi_instances'
+    instances_dir = 'm4b_proxy_instances'
     os.makedirs(instances_dir, exist_ok=True)
 
     base_device_name = user_config['device_info']['device_name']
     base_project_name = m4b_config.get('project', {}).get('compose_project_name', 'm4b_project')
 
     for i, proxy in enumerate(proxies):
-        instance_dir = os.path.join(instances_dir, f'instance_{i+1}')
-        os.makedirs(instance_dir, exist_ok=True)
-
         instance_user_config = deepcopy(user_config)
         instance_m4b_config = deepcopy(m4b_config)
 
         suffix = generate_uuid(4)
         instance_device_name = f"{base_device_name}_{suffix}"
         instance_project_name = f"{base_project_name}_{suffix}"
+
+        instance_dir = os.path.join(instances_dir, instance_project_name)
+        os.makedirs(instance_dir, exist_ok=True)
 
         instance_user_config['device_info']['device_name'] = instance_device_name
         instance_m4b_config['project']['compose_project_name'] = instance_project_name

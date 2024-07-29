@@ -49,7 +49,7 @@
     },
     "proxylite": {
       "enabled": false,
-      "user_id": "yourPROXYLITEUserID"
+      "userid": "yourPROXYLITEUserID"
     },
     "bitping": {
       "enabled": false,
