@@ -18,7 +18,7 @@ def ask_question_yn(question: str, default: bool = False) -> bool:
 
     Args:
         question (str): The question to ask the user.
-        default (bool, optional): The default value if the user enters an empty string. Defaults to False.
+        default (bool, optional): The default response value if the user enters an empty string. Defaults to False.
 
     Returns:
         bool: True if the user answered yes, False if the user answered no.

@@ -6,6 +6,7 @@ import subprocess
 from colorama import Fore, Style, just_fix_windows_console
 from utils.cls import cls
 import time
+from utils.prompt_helper import ask_question_yn
 
 def stop_stack(compose_file: str = './docker-compose.yaml') -> None:
     """
@@ -17,29 +18,25 @@ def stop_stack(compose_file: str = './docker-compose.yaml') -> None:
     logging.info(f"Stopping stack with compose file: {compose_file}")
     just_fix_windows_console()
 
-    while True:
-        response = input(f"{Fore.YELLOW}This will stop all the apps and delete the docker stack previously created using the configured docker-compose.yaml file. Do you wish to proceed (Y/N)?{Style.RESET_ALL} ").strip().lower()
-        if response in ['y', 'yes']:
-            try:
-                result = subprocess.run(
-                    ["docker", "compose", "-f", compose_file, "down"],
-                    check=True,
-                    capture_output=True,
-                    text=True
-                )
-                print(f"{Fore.GREEN}All Apps stopped and stack deleted.{Style.RESET_ALL}")
-                time.sleep(2)
-                logging.info(result.stdout)
-            except subprocess.CalledProcessError as e:
-                print(f"{Fore.RED}Error stopping and deleting Docker stack. Please check the configuration and try again.{Style.RESET_ALL}")
-                logging.error(e.stderr)
-            break
-        elif response in ['n', 'no']:
-            print(f"{Fore.BLUE}Docker stack removal canceled.{Style.RESET_ALL}")
-            time.sleep(2)
-            break
-        else:
-            print(f"{Fore.RED}Please answer yes or no.{Style.RESET_ALL}")
+    if not ask_question_yn("This will stop all the apps and delete the docker stack previously created using the configured docker-compose.yaml file. Do you wish to proceed?"):
+        print(f"{Fore.BLUE}Docker stack removal canceled.{Style.RESET_ALL}")
+        time.sleep(2)
+        return
+
+    try:
+        result = subprocess.run(
+            ["docker", "compose", "-f", compose_file, "down"],
+            check=True,
+            capture_output=True,
+            text=True
+        )
+        print(f"{Fore.GREEN}All Apps stopped and stack deleted.{Style.RESET_ALL}")
+        time.sleep(2)
+        logging.info(result.stdout)
+    except subprocess.CalledProcessError as e:
+        print(f"{Fore.RED}Error stopping and deleting Docker stack. Please check the configuration and try again.{Style.RESET_ALL}")
+        logging.error(e.stderr)
+
 
 def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> None:
     stop_stack()
