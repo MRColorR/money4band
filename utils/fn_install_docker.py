@@ -17,6 +17,7 @@ from utils.detector import detect_os, detect_architecture
 from utils.downloader import download_file
 from utils.cls import cls
 from utils.loader import load_json_config
+from utils.prompt_helper import ask_question_yn
 
 def is_docker_installed(m4b_config: Dict[str, Any]) -> bool:
     """Check if Docker is already installed."""
@@ -161,8 +162,7 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
     if is_docker_installed(m4b_config):
         return
 
-    yn = input(f"Do you wish to proceed with the Docker for {os_type} automatic installation? (Y/N): ").lower()
-    if yn not in ['y', 'yes']:
+    if not ask_question_yn(f"Do you wish to proceed with the Docker for {os_type} automatic installation?"):
         msg = "Docker installation canceled by user"
         logging.info(msg)
         print(msg)

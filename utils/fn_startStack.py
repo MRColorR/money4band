@@ -7,6 +7,7 @@ import time
 from colorama import Fore, Style, just_fix_windows_console
 from utils.cls import cls
 from utils.generator import generate_dashboard_urls
+from utils.prompt_helper import ask_question_yn
 
 def start_stack(compose_file: str = './docker-compose.yaml', env_file: str = './.env') -> None:
     """
@@ -19,34 +20,30 @@ def start_stack(compose_file: str = './docker-compose.yaml', env_file: str = './
     logging.info(f"Starting stack with compose file: {compose_file} and env file: {env_file}")
     just_fix_windows_console()
 
-    while True:
-        response = input(f"{Fore.YELLOW}This will launch all the apps using the configured .env file and the docker-compose.yaml file (Docker must be already installed and running). Do you wish to proceed (Y/N)?{Style.RESET_ALL} ").strip().lower()
-        if response in ['y', 'yes']:
-            try:
-                result = subprocess.run(
-                    ["docker", "compose", "-f", compose_file, "--env-file", env_file, "up", "-d"],
-                    check=True,
-                    capture_output=True,
-                    text=True
-                )
-                print(f"{Fore.GREEN}All Apps started successfully.{Style.RESET_ALL}")
-                time.sleep(2)
-                logging.info(result.stdout)
+    if not ask_question_yn("This will launch all the apps using the configured .env file and the docker-compose.yaml file (Docker must be already installed and running). Do you wish to proceed?"):
+        print(f"{Fore.BLUE}Docker stack startup canceled.{Style.RESET_ALL}")
+        time.sleep(2)
+        return
 
-                generate_dashboard_urls(None, None, env_file)
+    try:
+        result = subprocess.run(
+            ["docker", "compose", "-f", compose_file, "--env-file", env_file, "up", "-d"],
+            check=True,
+            capture_output=True,
+            text=True
+        )
+        print(f"{Fore.GREEN}All Apps started successfully.{Style.RESET_ALL}")
+        time.sleep(2)
+        logging.info(result.stdout)
 
-                print(f"{Fore.YELLOW}Use the previously generated apps nodes URLs to add your device in any apps dashboard that require node claiming/registration (e.g., Earnapp, ProxyRack, etc.){Style.RESET_ALL}")
-            except subprocess.CalledProcessError as e:
-                print(f"{Fore.RED}Error starting Docker stack. Please check that docker is running and that the configuration is complete then try again.{Style.RESET_ALL}")
-                logging.error(e.stderr)
-                time.sleep(2)
-            break
-        elif response in ['n', 'no']:
-            print(f"{Fore.BLUE}Docker stack startup canceled.{Style.RESET_ALL}")
-            time.sleep(2)
-            break
-        else:
-            print(f"{Fore.RED}Please answer yes or no.{Style.RESET_ALL}")
+        generate_dashboard_urls(None, None, env_file)
+
+        print(f"{Fore.YELLOW}Use the previously generated apps nodes URLs to add your device in any apps dashboard that require node claiming/registration (e.g., Earnapp, ProxyRack, etc.){Style.RESET_ALL}")
+    except subprocess.CalledProcessError as e:
+        print(f"{Fore.RED}Error starting Docker stack. Please check that docker is running and that the configuration is complete then try again.{Style.RESET_ALL}")
+        logging.error(e.stderr)
+        time.sleep(2)
+
 
 def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> None:
     start_stack()
