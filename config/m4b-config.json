@@ -1,6 +1,6 @@
 {
   "project": {
-    "project_version": "4.0.0",
+    "project_version": "4.0.1",
     "compose_project_name": "money4band",
     "ds_project_server_url": "https://discord.com/invite/Fq8eeazBAD"
   },
@@ -257,7 +257,7 @@
       "image": "xjasonlyu/tun2socks",
       "environment": [
         "LOGLEVEL=info",
-        "PROXY=${STACK_PROXY}",
+        "PROXY=${STACK_PROXY_URL}",
         "EXTRA_COMMANDS=ip rule add iif lo ipproto udp dport 53 lookup main;"
       ],
       "cap_add": ["NET_ADMIN"],
@@ -282,8 +282,8 @@
         "WATCHTOWER_ROLLING_RESTART=true",
         "WATCHTOWER_NO_STARTUP_MESSAGE=true",
         "WATCHTOWER_CLEANUP=true",
-        "WATCHTOWER_NOTIFICATIONS=${WATCHTOWER_NOTIFICATIONS}",
-        "WATCHTOWER_NOTIFICATION_URL=${WATCHTOWER_NOTIFICATION_URL}"
+        "WATCHTOWER_NOTIFICATIONS=${NOTIFICATIONS_METHOD}",
+        "WATCHTOWER_NOTIFICATION_URL=${NOTIFICATIONS_URL}"
       ],
       "volumes": ["/var/run/docker.sock:/var/run/docker.sock"],
       "restart": "always",
