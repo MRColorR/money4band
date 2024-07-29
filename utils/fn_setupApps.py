@@ -274,7 +274,7 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
         write_json(user_config, user_config_path)
 
         assemble_docker_compose(m4b_config_path, app_config_path, user_config_path, compose_output_path='./docker-compose.yaml', is_main_instance=True)
-        generate_env_file(m4b_config_path, app_config_path, user_config_path, env_output_path='./.env')
+        generate_env_file(m4b_config_path, app_config_path, user_config_path, env_output_path='./.env', is_main_instance=True)
 
         proxy_setup = ask_question_yn('Do you want to enable (multi)proxy?')
         if proxy_setup:
@@ -290,7 +290,7 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
             user_config['proxies']['enabled'] = True
             write_json(user_config, user_config_path)
             assemble_docker_compose(m4b_config_path_or_dict=m4b_config, app_config_path_or_dict=app_config, user_config_path_or_dict=user_config, compose_output_path='./docker-compose.yaml', is_main_instance=True)
-            generate_env_file(m4b_config_path_or_dict=m4b_config, app_config_path_or_dict=app_config, user_config_path_or_dict=user_config, env_output_path='./.env')
+            generate_env_file(m4b_config_path_or_dict=m4b_config, app_config_path_or_dict=app_config, user_config_path_or_dict=user_config, env_output_path='./.env', is_main_instance=True)
     
             setup_multiproxy_instances(user_config, app_config, m4b_config, proxies)
 
