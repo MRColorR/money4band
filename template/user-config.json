@@ -73,11 +73,13 @@
   },
   "proxies": {
     "enabled": false,
-    "stack_proxy": "yourProxy"
+    "url": "yourProxy"
   },
   "notifications": {
     "enabled": false,
-    "watchtower_notifications": "shoutrrr",
-    "watchtower_notification_url": "yourApp:yourToken@yourWebHook"
+    "method": "shoutrrr",
+    "url": "",
+    "url_example": "yourApp:yourToken@yourWebHook"
+
   }
 }
