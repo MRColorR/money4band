@@ -284,6 +284,14 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
             time.sleep(m4b_config['system']['sleep_time'])
             with open('proxies.txt', 'r') as file:
                 proxies = [line.strip() for line in file if line.strip()]
+
+            # Use the user config first proxy to update the base money4band docker compose and env file adding proxy
+            user_config['proxies']['stack_proxy'] = proxies.pop(-1)
+            user_config['proxies']['enabled'] = True
+            write_json(user_config, user_config_path)
+            assemble_docker_compose(m4b_config_path_or_dict=m4b_config, app_config_path_or_dict=app_config, user_config_path_or_dict=user_config, compose_output_path='./docker-compose.yaml', is_main_instance=True)
+            generate_env_file(m4b_config_path_or_dict=m4b_config, app_config_path_or_dict=app_config, user_config_path_or_dict=user_config, env_output_path='./.env')
+    
             setup_multiproxy_instances(user_config, app_config, m4b_config, proxies)
 
     except FileNotFoundError as e:
