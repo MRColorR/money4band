@@ -69,7 +69,10 @@ def assemble_docker_compose(m4b_config_path_or_dict: Any, app_config_path_or_dic
     dkarch = arch_info['dkarch']
 
     services = {}
-    for category in ['apps', 'extra-apps']:
+    apps_categories = ['apps']
+    if is_main_instance:
+        apps_categories.append('extra-apps')
+    for category in apps_categories:
         for app in app_config.get(category, []):
             app_name = app['name'].lower()
             if user_config['apps'].get(app_name, {}).get('enabled'):
@@ -123,7 +126,8 @@ def assemble_docker_compose(m4b_config_path_or_dict: Any, app_config_path_or_dic
         yaml.dump(compose_dict, f, sort_keys=False, default_flow_style=False)
     logging.info(f"Docker Compose file assembled and saved to {compose_output_path}")
 
-def generate_env_file(m4b_config_path_or_dict: Any, app_config_path_or_dict: Any, user_config_path_or_dict: Any, env_output_path: str = str(os.path.join(os.getcwd(), '.env'))) -> None:
+
+def generate_env_file(m4b_config_path_or_dict: Any, app_config_path_or_dict: Any, user_config_path_or_dict: Any, env_output_path: str = str(os.path.join(os.getcwd(), '.env')), is_main_instance: bool = False) -> None:
     """
     Generate a .env file based on the m4b and user configuration.
 
@@ -132,6 +136,7 @@ def generate_env_file(m4b_config_path_or_dict: Any, app_config_path_or_dict: Any
         app_config_path_or_dict (Any): The path to the app configuration file or the config dictionary.
         user_config_path_or_dict (Any): The path to the user configuration file or the config dictionary.
         env_output_path (str, optional): The path to save the generated .env file. Defaults to './.env'.
+        is_main_instance (bool, optional): Whether this is the main instance. Defaults to False.
 
     Raises:
         Exception: If an error occurs during the file generation process.
@@ -190,7 +195,10 @@ def generate_env_file(m4b_config_path_or_dict: Any, app_config_path_or_dict: Any
         env_lines.append(f"NOTIFICATIONS_{key.upper()}={value}")
 
     # Add app-specific configurations
-    for category in ['apps', 'extra-apps']:
+    apps_categories = ['apps']
+    if is_main_instance:
+        apps_categories.append('extra-apps')
+    for category in apps_categories:
         for app in app_config.get(category, []):
             app_name = app['name'].upper()
             app_flags = app.get('flags', {})
