@@ -68,6 +68,8 @@ def assemble_docker_compose(m4b_config_path_or_dict: Any, app_config_path_or_dic
     arch_info = detect_architecture(m4b_config)
     dkarch = arch_info['dkarch']
 
+    proxy_enabled = user_config['proxies']['enabled']
+
     services = {}
     apps_categories = ['apps']
     if is_main_instance:
@@ -87,14 +89,23 @@ def assemble_docker_compose(m4b_config_path_or_dict: Any, app_config_path_or_dic
                     else:
                         logging.warning(f"No compatible tag found for {image_name} with architecture {dkarch}. Using default tag {image_tag}.")
 
+                if proxy_enabled:
+                    app_proxy_compose = app['compose_config_proxy']
+                    for key, value in app_proxy_compose.items():
+                        app_compose_config[key] = value
+                        if app_compose_config[key] is None:
+                            del app_compose_config[key]
+
                 services[app_name] = app_compose_config
+
+
 
     # Add common services only if this is the main instance
     compose_config_common = m4b_config.get('compose_config_common', {})
     if is_main_instance:
         services['watchtower'] = compose_config_common['watchtower_service']
         services['m4bwebdashboard'] = compose_config_common['dashboard_service']
-    if user_config['proxies']['enabled']:
+    if proxy_enabled:
         services['proxy'] = compose_config_common['proxy_service']
 
     # Define network configuration using config json and environment variables
