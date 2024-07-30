@@ -235,7 +235,7 @@ def setup_multiproxy_instances(user_config: Dict[str, Any], app_config: Dict[str
         instance_user_config['device_info']['device_name'] = instance_device_name
         instance_m4b_config['project']['compose_project_name'] = instance_project_name
 
-        instance_user_config['proxies']['stack_proxy'] = proxy
+        instance_user_config['proxies']['url'] = proxy
         instance_user_config['proxies']['enabled'] = True
 
         instance_user_config_path = os.path.join(instance_dir, 'user-config.json')
@@ -271,10 +271,12 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
         if ask_question_yn('Do you want to configure extra apps?'):
             logging.info("Extra apps setup selected")
             configure_extra_apps(user_config, app_config, m4b_config)
-        write_json(user_config, user_config_path)
+        else: # if there are extra-apps enabled disable them
+            for app in app_config['extra-apps']:
+                app_name = app['name'].lower()
+                user_config['apps'][app_name]['enabled'] = False
 
-        assemble_docker_compose(m4b_config_path, app_config_path, user_config_path, compose_output_path='./docker-compose.yaml', is_main_instance=True)
-        generate_env_file(m4b_config_path, app_config_path, user_config_path, env_output_path='./.env', is_main_instance=True)
+        write_json(user_config, user_config_path)
 
         proxy_setup = ask_question_yn('Do you want to enable (multi)proxy?')
         if proxy_setup:
@@ -286,13 +288,24 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
                 proxies = [line.strip() for line in file if line.strip()]
 
             # Use the user config first proxy to update the base money4band docker compose and env file adding proxy
-            user_config['proxies']['stack_proxy'] = proxies.pop(-1)
+            user_config['proxies']['url'] = proxies.pop(-1)
             user_config['proxies']['enabled'] = True
             write_json(user_config, user_config_path)
             assemble_docker_compose(m4b_config_path_or_dict=m4b_config, app_config_path_or_dict=app_config, user_config_path_or_dict=user_config, compose_output_path='./docker-compose.yaml', is_main_instance=True)
             generate_env_file(m4b_config_path_or_dict=m4b_config, app_config_path_or_dict=app_config, user_config_path_or_dict=user_config, env_output_path='./.env', is_main_instance=True)
     
             setup_multiproxy_instances(user_config, app_config, m4b_config, proxies)
+            logging.info("Multiproxy instances setup completed")
+        else:
+            # Disable proxy if proxy setup is not selected
+            logging.info("Multiproxy setup not selected")
+            if user_config['proxies'].get('enabled'):
+                user_config['proxies']['url'] = ''
+                user_config['proxies']['enabled'] = False
+                write_json(user_config, user_config_path)
+            assemble_docker_compose(m4b_config_path, app_config_path, user_config_path, compose_output_path='./docker-compose.yaml', is_main_instance=True)
+            generate_env_file(m4b_config_path, app_config_path, user_config_path, env_output_path='./.env', is_main_instance=True)
+        logging.info("Setup completed")
 
     except FileNotFoundError as e:
         logging.error(f"File not found: {str(e)}")

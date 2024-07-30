@@ -21,10 +21,6 @@
       "email": "yourIPROYALPAWNSMail",
       "password": "yourIPROYALPAWNSPw"
     },
-    "peer2profit": {
-      "enabled": false,
-      "email": "yourPEER2PROFITMail"
-    },
     "packetstream": {
       "enabled": false,
       "cid": "yourPACKETSTREAMCID"
@@ -69,17 +65,22 @@
     "mystnode": {
       "enabled": false,
       "dashboard_port": 4449
+    },
+    "peer2profit": {
+      "enabled": false,
+      "email": "yourPEER2PROFITMail"
     }
   },
   "proxies": {
-    "enabled": false,
-    "url": "yourProxy"
-  },
-  "notifications": {
-    "enabled": false,
-    "method": "shoutrrr",
-    "url": "",
-    "url_example": "yourApp:yourToken@yourWebHook"
-
-  }
+      "enabled": false,
+      "url": "",
+      "url_example": "protocol://username:password@ip:port"
+    },
+    "notifications": {
+      "enabled": false,
+      "method": "shoutrrr",
+      "url": "",
+      "url_example": "yourApp:yourToken@yourWebHook"
+  
+    }
 }

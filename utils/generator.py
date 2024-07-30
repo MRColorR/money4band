@@ -194,7 +194,7 @@ def generate_env_file(m4b_config_path_or_dict: Any, app_config_path_or_dict: Any
     for key, value in notifications_config.items():
         env_lines.append(f"NOTIFICATIONS_{key.upper()}={value}")
 
-    # Add app-specific configurations
+    # Add app-specific configurations only if the app is enabled
     apps_categories = ['apps']
     if is_main_instance:
         apps_categories.append('extra-apps')
@@ -203,11 +203,12 @@ def generate_env_file(m4b_config_path_or_dict: Any, app_config_path_or_dict: Any
             app_name = app['name'].upper()
             app_flags = app.get('flags', {})
             app_user_config = user_config['apps'].get(app['name'].lower(), {})
-            for flag_name in app_flags.keys():
-                if flag_name in app_user_config:
-                    env_var_name = f"{app_name}_{flag_name.upper()}"
-                    env_var_value = app_user_config[flag_name]
-                    env_lines.append(f"{env_var_name}={env_var_value}")
+            if app_user_config.get('enabled'):
+                for flag_name in app_flags.keys():
+                    if flag_name in app_user_config:
+                        env_var_name = f"{app_name}_{flag_name.upper()}"
+                        env_var_value = app_user_config[flag_name]
+                        env_lines.append(f"{env_var_name}={env_var_value}")
 
     # Write to .env file
     with open(env_output_path, 'w') as f:
