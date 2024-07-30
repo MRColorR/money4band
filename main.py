@@ -1,6 +1,7 @@
 import os
 import argparse
 import logging
+from logging.handlers import RotatingFileHandler
 import locale
 import time
 from typing import Dict, Any
@@ -130,9 +131,14 @@ def main():
     if not isinstance(log_level, int):
         raise ValueError(f'Invalid log level: {args.log_level}')
 
-    # Setup logging reporting date time, error level, and message
+    # Setup logging with rotation and reporting date time, error level, and message
     os.makedirs(args.log_dir, exist_ok=True)
-    logging.basicConfig(filename=os.path.join(args.log_dir, args.log_file), format='%(asctime)s - [%(levelname)s] - %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=log_level)
+    log_file_path = os.path.join(args.log_dir, args.log_file)
+    rotating_handler = RotatingFileHandler(log_file_path, maxBytes=1*1024*1024, backupCount=3)  # 1 MB per file, keep 3 backups
+    rotating_handler.setFormatter(logging.Formatter('%(asctime)s - [%(levelname)s] - %(message)s', datefmt='%Y-%m-%d %H:%M:%S'))
+    rotating_handler.setLevel(log_level)
+
+    logging.basicConfig(level=log_level, handlers=[rotating_handler])
 
     logging.info(f"Starting {script_name} script...")
 
