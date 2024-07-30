@@ -65,7 +65,7 @@ def ask_string(prompt: str, default: str = "", show_default: bool = True) -> str
         if not response: # As default is empty if not specified then we throw this error
             print(f"{Fore.RED}Input cannot be empty.{Style.RESET_ALL}")
             continue
-        logging.info(f"User response to '{prompt}': {response}")
+        logging.debug(f"User response to '{prompt}': {response}")
         return response
 
 
@@ -97,7 +97,7 @@ def ask_email(prompt: str, default: str = "", show_default: bool = True) -> str:
             print(f"{Fore.RED}Invalid email address.{Style.RESET_ALL}")
             continue
         else:
-            logging.info(f"User entered email: {email}")
+            logging.debug(f"User entered email: {email}")
             return email
 
 
@@ -132,7 +132,7 @@ def ask_uuid(prompt: str, length: int, default: str = "", show_default: bool = T
         elif not validate_uuid(uuid, length):
             print(f"{Fore.RED}Invalid UUID format.{Style.RESET_ALL}")
         else:
-            logging.info(f"User entered UUID: {uuid}")
+            logging.debug(f"User entered UUID: {uuid}")
             return uuid
 
 
