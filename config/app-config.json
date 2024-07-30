@@ -19,6 +19,10 @@
         "mem_reservation": "${APP_MEM_RESERV_MEDIUM}",
         "mem_limit": "${APP_MEM_LIMIT_MEDIUM}"
       },
+      "compose_config_proxy": {
+        "network_mode": "service:proxy",
+        "hostname": null
+      },
       "flags": {
         "uuid": {
           "length": 32,
@@ -42,6 +46,10 @@
         "mem_reservation": "${APP_MEM_RESERV_MEDIUM}",
         "mem_limit": "${APP_MEM_LIMIT_MEDIUM}"
       },
+      "compose_config_proxy": {
+        "network_mode": "service:proxy",
+        "hostname": null
+      },
       "flags": {
         "email": {},
         "password": {}
@@ -62,6 +70,10 @@
         "mem_reservation": "${APP_MEM_RESERV_LITTLE}",
         "mem_limit": "${APP_MEM_LIMIT_LITTLE}"
       },
+      "compose_config_proxy": {
+        "network_mode": "service:proxy",
+        "hostname": null
+      },
       "flags": {
         "email": {},
         "password": {}
@@ -81,6 +93,10 @@
         "mem_reservation": "${APP_MEM_RESERV_MEDIUM}",
         "mem_limit": "${APP_MEM_LIMIT_MEDIUM}"
       },
+      "compose_config_proxy": {
+        "network_mode": "service:proxy",
+        "hostname": null
+      },
       "flags": {
         "cid": {}
       }
@@ -99,6 +115,10 @@
         "cpus": "${APP_CPU_LIMIT_LITTLE}",
         "mem_reservation": "${APP_MEM_RESERV_LITTLE}",
         "mem_limit": "${APP_MEM_LIMIT_LITTLE}"
+      },
+      "compose_config_proxy": {
+        "network_mode": "service:proxy",
+        "hostname": null
       },
       "flags": {
         "token": {}
@@ -121,6 +141,10 @@
         "mem_reservation": "${APP_MEM_RESERV_MEDIUM}",
         "mem_limit": "${APP_MEM_LIMIT_MEDIUM}"
       },
+      "compose_config_proxy": {
+        "network_mode": "service:proxy",
+        "hostname": null
+      },
       "flags": {
         "email": {},
         "apikey": {}
@@ -139,6 +163,10 @@
         "cpus": "${APP_CPU_LIMIT_MEDIUM}",
         "mem_reservation": "${APP_MEM_RESERV_MEDIUM}",
         "mem_limit": "${APP_MEM_LIMIT_MEDIUM}"
+      },
+      "compose_config_proxy": {
+        "network_mode": "service:proxy",
+        "hostname": null
       },
       "flags": {
         "apikey": {}
@@ -162,6 +190,10 @@
         "mem_reservation": "${APP_MEM_RESERV_BIG}",
         "mem_limit": "${APP_MEM_LIMIT_BIG}"
       },
+      "compose_config_proxy": {
+        "network_mode": "service:proxy",
+        "hostname": null
+      },
       "flags": {
         "apikey": {},
         "uuid": {
@@ -183,6 +215,10 @@
         "cpus": "${APP_CPU_LIMIT_BIG}",
         "mem_reservation": "${APP_MEM_RESERV_BIG}",
         "mem_limit": "${APP_MEM_LIMIT_BIG}"
+      },
+      "compose_config_proxy": {
+        "network_mode": "service:proxy",
+        "hostname": null
       },
       "flags": {
         "userid": {}
@@ -206,6 +242,10 @@
         "mem_reservation": "${APP_MEM_RESERV_BIG}",
         "mem_limit": "${APP_MEM_LIMIT_BIG}"
       },
+      "compose_config_proxy": {
+        "network_mode": "service:proxy",
+        "hostname": null
+      },
       "flags": {
         "email": {},
         "password": {}
@@ -227,6 +267,10 @@
         "cpus": "${APP_CPU_LIMIT_BIG}",
         "mem_reservation": "${APP_MEM_RESERV_BIG}",
         "mem_limit": "${APP_MEM_LIMIT_BIG}"
+      },
+      "compose_config_proxy": {
+        "network_mode": "service:proxy",
+        "hostname": null
       },
       "flags": {
         "code": {},
@@ -253,6 +297,10 @@
         "mem_reservation": "${APP_MEM_RESERV_BIG}",
         "mem_limit": "${APP_MEM_LIMIT_BIG}"
       },
+      "compose_config_proxy": {
+        "network_mode": "service:proxy",
+        "hostname": null
+      },
       "flags": {
         "email": {},
         "password": {}
@@ -278,6 +326,10 @@
         "mem_reservation": "${APP_MEM_RESERV_HUGE}",
         "mem_limit": "${APP_MEM_LIMIT_HUGE}"
       },
+      "compose_config_proxy": {
+        "network_mode": "service:proxy",
+        "hostname": null
+      },
       "flags": {
         "manual": {
           "instructions": "Log into your device's mystnode local webdashboard, navigate to the Myst Node page and follow the onscreen instruction to complete the setup.\n\nDisclaimer: If you want to further optimize UPnP and port forwarding, consider setting manually 'network: host' for mystnode in your Docker compose. This may improve mystnode performance, but do this only if you know what you are doing and you are aware of potential security implications."
@@ -298,6 +350,10 @@
         "cpus": "${APP_CPU_LIMIT_HUGE}",
         "mem_reservation": "${APP_MEM_RESERV_HUGE}",
         "mem_limit": "${APP_MEM_LIMIT_HUGE}"
+      },
+      "compose_config_proxy": {
+        "network_mode": "service:proxy",
+        "hostname": null
       },
       "flags": {
         "email": {},

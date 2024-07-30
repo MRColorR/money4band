@@ -7,6 +7,7 @@ import json
 import time
 import getpass
 import shutil
+import re
 from copy import deepcopy
 from typing import Dict, Any
 from colorama import Fore, Back, Style, just_fix_windows_console
@@ -23,6 +24,7 @@ from utils.dumper import write_json
 from utils.prompt_helper import ask_question_yn, ask_email, ask_string, ask_uuid
 from utils.generator import generate_uuid, assemble_docker_compose, generate_env_file, generate_device_name
 from utils.checker import fetch_docker_tags, check_img_arch_support
+import ipaddress
 
 def configure_email(app: Dict, flag_config: Dict, config: Dict):
     email = ask_email(f'Enter your {app["name"].lower().title()} email:', default=config.get("email"))
@@ -230,6 +232,14 @@ def setup_multiproxy_instances(user_config: Dict[str, Any], app_config: Dict[str
     base_device_name = user_config['device_info']['device_name']
     base_project_name = m4b_config.get('project', {}).get('compose_project_name', 'money4band')
 
+    base_subnet = m4b_config['network']['subnet']
+    base_subnet_match = re.match(r'(\d+)\.(\d+)\.(\d+)\.(\d+)', base_subnet)
+    base_subnet = int(base_subnet_match[1]).to_bytes(1, 'big') + int(base_subnet_match[2]).to_bytes(1, 'big') \
+                + int(base_subnet_match[3]).to_bytes(1, 'big') + int(base_subnet_match[4]).to_bytes(1, 'big')
+    base_subnet = int.from_bytes(base_subnet, byteorder='big')
+    base_netmask = int(m4b_config['network']['netmask'])
+    base_subnet = ((pow(2,base_netmask) - 1) << (32 - base_netmask)) & base_subnet
+    
     for i, proxy in enumerate(proxies):
         instance_user_config = deepcopy(user_config)
         instance_m4b_config = deepcopy(m4b_config)
@@ -246,6 +256,13 @@ def setup_multiproxy_instances(user_config: Dict[str, Any], app_config: Dict[str
 
         instance_user_config['proxies']['url'] = proxy
         instance_user_config['proxies']['enabled'] = True
+        
+        new_subnet = base_subnet + ((i+1) << (32 - base_netmask))
+        new_subnet = new_subnet.to_bytes(4, 'big', signed=False)
+        new_subnet = str(new_subnet[0]) + '.' + str(new_subnet[1]) \
+            + '.' + str(new_subnet[2]) + '.' + str(new_subnet[3])
+        
+        instance_m4b_config['network']['subnet'] = new_subnet
 
         instance_user_config_path = os.path.join(instance_dir, 'user-config.json')
         instance_m4b_config_path = os.path.join(instance_dir, 'm4b-config.json')
@@ -259,6 +276,7 @@ def setup_multiproxy_instances(user_config: Dict[str, Any], app_config: Dict[str
         generate_env_file(instance_m4b_config_path, instance_app_config_path, instance_user_config_path, env_output_path=os.path.join(instance_dir, '.env'))
 
     print(f"{Fore.GREEN}Multiproxy instances setup completed.{Style.RESET_ALL}")
+    time.sleep(m4b_config['system']['sleep_time'])
 
 def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> None:
     """
