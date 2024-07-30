@@ -1,4 +1,5 @@
 import os
+import platform
 import sys
 import argparse
 import logging
@@ -55,7 +56,7 @@ def configure_uuid(app: Dict, flag_config: Dict, config: Dict):
         logging.error(f'Invalid length for UUID generation/import: {length}')
         return
 
-    if ask_question_yn(f'Do you want to use a previously registered uuid for {app["name"].lower().title()} (current: {config.get("uuid", "not set")})?'):
+    if ask_question_yn(f'Do you want to use a previously registered uuid for {app["name"].lower().title()} (current: {Fore.YELLOW}{config.get("uuid", "not set")}{Fore.GREEN})?'):
         print(f'{Fore.GREEN}Please enter the alphanumeric part of the existing uuid for {app["name"].lower().title()}, it should be {length} characters long.')
         print('E.g. if existing registered node is sdk-node-b86301656baefekba8917349bdf0f3g4 then enter just b86301656baefekba8917349bdf0f3g4')
         uuid = ask_uuid('Insert uuid:', length, default=config.get("uuid"))
@@ -67,9 +68,9 @@ def configure_uuid(app: Dict, flag_config: Dict, config: Dict):
               f'node/device after completing the setup and starting the apps stack:{Style.RESET_ALL}')
         print(f'{Fore.BLUE}{Style.BRIGHT}{flag_config["claimURLBase"]}{uuid}{Style.RESET_ALL}')
         try:
-            with open(f'{app["name"].lower()}_claim_instructions.txt', 'w') as f:
+            with open(f'claim_instructions_{app["name"].lower()}.txt', 'w') as f:
                 f.write(f'{flag_config["claimURLBase"]}{uuid}')
-            print(f'{Fore.GREEN}Claim instructions written to {app["name"].lower()}_claim_instructions.txt{Style.RESET_ALL}')
+            print(f'{Fore.GREEN}Claim instructions written to claim_instructions_{app["name"].lower()}.txt{Style.RESET_ALL}')
         except Exception as e:
             logging.error(f'Error writing claim instructions to file: {e}')
         input('Press enter to continue...')
@@ -127,8 +128,17 @@ def collect_user_info(user_config: Dict[str, Any], m4b_config: Dict[str, Any]) -
         nickname = getpass.getuser()
     except Exception:
         nickname = "user"
+    user_config['user']['Nickname'] = nickname
     
-    device_name = user_config['device_info'].get('device_name', '')
+    # If the device_name is equal to the placeholder then take the hostname as default device_name and ask user if wants to change it 
+    device_name = user_config['device_info'].get('device_name')
+    if device_name and device_name.lower() == ('yourDeviceName').lower():
+        try:
+            device_name = platform.node()
+        except Exception:
+            logging.warning('Unable to get hostname for devicename')
+            pass
+
     if device_name:
         if not ask_question_yn(f'The current device name is {device_name}. Do you want to change it?'):
             return
@@ -141,7 +151,6 @@ def collect_user_info(user_config: Dict[str, Any], m4b_config: Dict[str, Any]) -
         use_uuid_suffix=False 
     )
 
-    user_config['user']['Nickname'] = nickname
     user_config['device_info']['device_name'] = device_name
 
 def _configure_apps(user_config: Dict[str, Any], apps: Dict, m4b_config: Dict):
@@ -219,7 +228,7 @@ def setup_multiproxy_instances(user_config: Dict[str, Any], app_config: Dict[str
     os.makedirs(instances_dir, exist_ok=True)
 
     base_device_name = user_config['device_info']['device_name']
-    base_project_name = m4b_config.get('project', {}).get('compose_project_name', 'm4b_project')
+    base_project_name = m4b_config.get('project', {}).get('compose_project_name', 'money4band')
 
     for i, proxy in enumerate(proxies):
         instance_user_config = deepcopy(user_config)

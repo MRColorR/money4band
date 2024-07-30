@@ -72,12 +72,6 @@
   "placeholders": {
     "device_name_placeholder": "yourDeviceName"
   },
-  "proxies": {
-    "proxy_conf": "false",
-    "current_proxy": "",
-    "new_stack_proxy": "",
-    "stack_proxy": ""
-  },
   "files": {
     "env_template_filename": ".env.template",
     "env_filename": ".env",
@@ -86,7 +80,7 @@
     "dkcom_template_filename": "docker-compose.yaml.template",
     "dkcom_filename": "docker-compose.yaml",
     "resources_dir": ".resources",
-    "config_dir": ".resources/.www/.configs",
+    "config_dir": ".resources/.www/config",
     "scripts_dir": ".resources/.scripts",
     "files_dir": ".resources/.files"
   },
@@ -296,7 +290,12 @@
       "hostname": "${DEVICE_NAME}_webdashboard",
       "image": "nginx:alpine-slim",
       "volumes": [
-        "./.resources/.www:/usr/share/nginx/html:ro"
+        "./.resources/.www:/usr/share/nginx/html",
+        "./.resources/.assets:/usr/share/nginx/html/.images:ro",
+        "./config/app-config.json:/usr/share/nginx/html/.config/app-config.json:ro"
+      ],
+      "ports": [
+        "${M4B_DASHBOARD_PORT}:80"
       ],
       "restart": "always",
       "cpus": "${APP_CPU_LIMIT_LITTLE}",
