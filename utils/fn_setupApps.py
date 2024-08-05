@@ -10,6 +10,7 @@ import shutil
 import re
 from copy import deepcopy
 from typing import Dict, Any
+import socket
 from colorama import Fore, Back, Style, just_fix_windows_console
 
 # Ensure the parent directory is in the sys.path
@@ -24,7 +25,7 @@ from utils.dumper import write_json
 from utils.prompt_helper import ask_question_yn, ask_email, ask_string, ask_uuid
 from utils.generator import generate_uuid, assemble_docker_compose, generate_env_file, generate_device_name
 from utils.checker import fetch_docker_tags, check_img_arch_support
-import ipaddress
+from utils.fn_stopStack import stop_stack, stop_all_stacks
 
 def configure_email(app: Dict, flag_config: Dict, config: Dict):
     email = ask_email(f'Enter your {app["name"].lower().title()} email:', default=config.get("email"))
@@ -173,7 +174,7 @@ def _configure_apps(user_config: Dict[str, Any], apps: Dict, m4b_config: Dict):
             if ask_question_yn('Do you want to disable it?'):
                 config['enabled'] = False
                 continue
-            print('Do you want to change the current configuration?')
+            print(f'Do you want to change the current {app_name} configuration?')
             for key, value in config.items():
                 if key != 'enabled':
                     print(f'{key}: {value}')
@@ -216,6 +217,21 @@ def configure_extra_apps(user_config: Dict[str, Any], app_config: Dict, m4b_conf
     """
     _configure_apps(user_config, app_config['extra-apps'], m4b_config)
 
+
+def is_port_in_use(port):
+    """Check if a port is already in use."""
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        return sock.connect_ex(('localhost', port)) == 0
+
+
+def find_next_available_port(starting_port):
+    """Find the next available port starting from the given port."""
+    port = starting_port
+    while is_port_in_use(port):
+        port += 1
+    return port
+
+
 def setup_multiproxy_instances(user_config: Dict[str, Any], app_config: Dict[str, Any], m4b_config: Dict[str, Any], proxies: list) -> None:
     """
     Setup multiple proxy instances based on the given proxies list.
@@ -238,11 +254,20 @@ def setup_multiproxy_instances(user_config: Dict[str, Any], app_config: Dict[str
                 + int(base_subnet_match[3]).to_bytes(1, 'big') + int(base_subnet_match[4]).to_bytes(1, 'big')
     base_subnet = int.from_bytes(base_subnet, byteorder='big')
     base_netmask = int(m4b_config['network']['netmask'])
-    base_subnet = ((pow(2,base_netmask) - 1) << (32 - base_netmask)) & base_subnet
-    
+    base_subnet = ((pow(2, base_netmask) - 1) << (32 - base_netmask)) & base_subnet
+
+    if os.listdir(instances_dir):
+        if ask_question_yn(f"Existing proxy instances found in '{instances_dir}'. Do you want to delete them?", default=True):
+            stop_all_stacks(instances_dir, skip_questions=True)
+            shutil.rmtree(instances_dir)
+            os.makedirs(instances_dir, exist_ok=True)
+        else:
+            print(f"{Fore.YELLOW}Keeping existing instances alongside new ones.{Style.RESET_ALL}")
+
     for i, proxy in enumerate(proxies):
         instance_user_config = deepcopy(user_config)
         instance_m4b_config = deepcopy(m4b_config)
+        instance_app_config = deepcopy(app_config)
 
         suffix = generate_uuid(4)
         instance_device_name = f"{base_device_name}_{suffix}"
@@ -257,12 +282,19 @@ def setup_multiproxy_instances(user_config: Dict[str, Any], app_config: Dict[str
         instance_user_config['proxies']['url'] = proxy
         instance_user_config['proxies']['enabled'] = True
         
-        new_subnet = base_subnet + ((i+1) << (32 - base_netmask))
+        new_subnet = base_subnet + ((i + 1) << (32 - base_netmask))
         new_subnet = new_subnet.to_bytes(4, 'big', signed=False)
         new_subnet = str(new_subnet[0]) + '.' + str(new_subnet[1]) \
             + '.' + str(new_subnet[2]) + '.' + str(new_subnet[3])
         
         instance_m4b_config['network']['subnet'] = new_subnet
+
+        # Update apps dashboard ports to avoid conflicts
+        for app in instance_user_config['apps'].keys():
+            app_details = instance_user_config['apps'].get(app, {})
+            if app_details.get('enabled') and app_details.get('dashboard_port'):
+                logging.info(f"{app} is enabled and it has a dashboard port atribute, staring port update to avoid conflicts")
+                app_details['dashboard_port'] = find_next_available_port(app_details['dashboard_port'] + (i + 1))
 
         instance_user_config_path = os.path.join(instance_dir, 'user-config.json')
         instance_m4b_config_path = os.path.join(instance_dir, 'm4b-config.json')
@@ -270,13 +302,14 @@ def setup_multiproxy_instances(user_config: Dict[str, Any], app_config: Dict[str
 
         write_json(instance_user_config, instance_user_config_path)
         write_json(instance_m4b_config, instance_m4b_config_path)
-        write_json(app_config, instance_app_config_path)
+        write_json(instance_app_config, instance_app_config_path)
 
         assemble_docker_compose(instance_m4b_config_path, instance_app_config_path, instance_user_config_path, compose_output_path=os.path.join(instance_dir, 'docker-compose.yaml'))
         generate_env_file(instance_m4b_config_path, instance_app_config_path, instance_user_config_path, env_output_path=os.path.join(instance_dir, '.env'))
 
     print(f"{Fore.GREEN}Multiproxy instances setup completed.{Style.RESET_ALL}")
     time.sleep(m4b_config['system']['sleep_time'])
+
 
 def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> None:
     """
@@ -344,6 +377,7 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
         logging.error(f"An error occurred in main setup apps process: {str(e)}")
         raise
 
+
 if __name__ == '__main__':
     # Get the script absolute path and name
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -388,3 +422,4 @@ if __name__ == '__main__':
     except Exception as e:
         logging.error(f"An unexpected error occurred: {str(e)}")
         raise
+

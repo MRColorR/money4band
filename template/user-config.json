@@ -71,16 +71,98 @@
       "email": "yourPEER2PROFITMail"
     }
   },
+  "m4b_dashboard":{
+    "enabled": true,
+    "dashboard_port":8081
+  },
   "proxies": {
-      "enabled": false,
-      "url": "",
-      "url_example": "protocol://username:password@ip:port"
+    "enabled": false,
+    "url": "",
+    "url_example": "protocol://username:password@ip:port"
+  },
+  "notifications": {
+    "enabled": false,
+    "method": "shoutrrr",
+    "url": "",
+    "url_example": "yourApp:yourToken@yourWebHook"
+  },
+  "compose_config_common": {
+    "network": {
+      "driver": "${NETWORK_DRIVER}",
+      "subnet": "${NETWORK_SUBNET}",
+      "netmask": "${NETWORK_NETMASK}"
     },
-    "notifications": {
-      "enabled": false,
-      "method": "shoutrrr",
-      "url": "",
-      "url_example": "yourApp:yourToken@yourWebHook"
-  
+    "proxy_service": {
+      "container_name": "${DEVICE_NAME}_tun2socks",
+      "hostname": "${DEVICE_NAME}_tun2socks",
+      "image": "xjasonlyu/tun2socks",
+      "environment": [
+        "LOGLEVEL=info",
+        "PROXY=${STACK_PROXY_URL}",
+        "EXTRA_COMMANDS=ip rule add iif lo ipproto udp dport 53 lookup main;"
+      ],
+      "cap_add": ["NET_ADMIN"],
+      "network_mode": "bridge",
+      "dns": ["1.1.1.1", "8.8.8.8", "1.0.0.1", "8.8.4.4"],
+      "ports": ["${MYSTNODE_DASHBOARD_PORT}:4449"],
+      "volumes": ["/dev/net/tun:/dev/net/tun"],
+      "restart": "always",
+      "cpus": "${APP_CPU_LIMIT_BIG}",
+      "mem_reservation": "${APP_MEM_RESERV_BIG}",
+      "mem_limit": "${APP_MEM_LIMIT_BIG}"
+    },
+    "watchtower_service": {
+      "proxy_disabled": {
+        "container_name": "${DEVICE_NAME}_watchtower",
+        "hostname": "${DEVICE_NAME}_watchtower",
+        "image": "containrrr/watchtower:latest",
+        "environment": [
+          "WATCHTOWER_POLL_INTERVAL=14400",
+          "WATCHTOWER_ROLLING_RESTART=true",
+          "WATCHTOWER_NO_STARTUP_MESSAGE=true",
+          "WATCHTOWER_CLEANUP=true",
+          "WATCHTOWER_NOTIFICATIONS=${NOTIFICATIONS_METHOD}",
+          "WATCHTOWER_NOTIFICATION_URL=${NOTIFICATIONS_URL}"
+        ],
+        "volumes": ["/var/run/docker.sock:/var/run/docker.sock"],
+        "restart": "always",
+        "cpus": "${APP_CPU_LIMIT_MEDIUM}",
+        "mem_reservation": "${APP_MEM_RESERV_MEDIUM}",
+        "mem_limit": "${APP_MEM_LIMIT_MEDIUM}"
+      },
+      "proxy_enabled": {
+        "container_name": "${DEVICE_NAME}_watchtower",
+        "hostname": "${DEVICE_NAME}_watchtower",
+        "image": "containrrr/watchtower:latest",
+        "environment": [
+          "WATCHTOWER_POLL_INTERVAL=14400",
+          "WATCHTOWER_ROLLING_RESTART=false",
+          "WATCHTOWER_NO_STARTUP_MESSAGE=true",
+          "WATCHTOWER_CLEANUP=true",
+          "WATCHTOWER_NOTIFICATIONS=${NOTIFICATIONS_METHOD}",
+          "WATCHTOWER_NOTIFICATION_URL=${NOTIFICATIONS_URL}"
+        ],
+        "volumes": ["/var/run/docker.sock:/var/run/docker.sock"],
+        "restart": "always",
+        "cpus": "${APP_CPU_LIMIT_MEDIUM}",
+        "mem_reservation": "${APP_MEM_RESERV_MEDIUM}",
+        "mem_limit": "${APP_MEM_LIMIT_MEDIUM}"
+      }
+    },
+    "m4b_dashboard_service": {
+      "container_name": "${DEVICE_NAME}_m4b_dashboard",
+      "hostname": "${DEVICE_NAME}_m4b_dashboard",
+      "image": "nginx:alpine-slim",
+      "volumes": [
+        "./.resources/.www:/usr/share/nginx/html",
+        "./.resources/.assets:/usr/share/nginx/html/.images:ro",
+        "./config/app-config.json:/usr/share/nginx/html/.config/app-config.json:ro"
+      ],
+      "ports": ["${M4B_DASHBOARD_DASHBOARD_PORT}:80"],
+      "restart": "always",
+      "cpus": "${APP_CPU_LIMIT_LITTLE}",
+      "mem_reservation": "${APP_MEM_RESERV_LITTLE}",
+      "mem_limit": "${APP_MEM_LIMIT_LITTLE}"
     }
+  }
 }
