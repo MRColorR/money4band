@@ -328,7 +328,8 @@
       },
       "compose_config_proxy": {
         "network_mode": "service:proxy",
-        "hostname": null
+        "hostname": null,
+        "ports": null
       },
       "flags": {
         "manual": {
@@ -353,7 +354,8 @@
       },
       "compose_config_proxy": {
         "network_mode": "service:proxy",
-        "hostname": null
+        "hostname": null,
+        "ports": null
       },
       "flags": {
         "email": {},

@@ -68,10 +68,11 @@ def assemble_docker_compose(m4b_config_path_or_dict: Any, app_config_path_or_dic
     arch_info = detect_architecture(m4b_config)
     dkarch = arch_info['dkarch']
 
-    proxy_enabled = user_config['proxies']['enabled']
+    proxy_enabled = user_config['proxies'].get('enabled', False)
 
     services = {}
     apps_categories = ['apps']
+    apps_categories.append('extra-apps') # Overrides extra apps exclusion from m4b proxies instances
     if is_main_instance:
         apps_categories.append('extra-apps')
     for category in apps_categories:
@@ -90,7 +91,7 @@ def assemble_docker_compose(m4b_config_path_or_dict: Any, app_config_path_or_dic
                         logging.warning(f"No compatible tag found for {image_name} with architecture {dkarch}. Using default tag {image_tag}.")
 
                 if proxy_enabled:
-                    app_proxy_compose = app['compose_config_proxy']
+                    app_proxy_compose = app.get('compose_config_proxy', {})
                     for key, value in app_proxy_compose.items():
                         app_compose_config[key] = value
                         if app_compose_config[key] is None:
@@ -98,18 +99,18 @@ def assemble_docker_compose(m4b_config_path_or_dict: Any, app_config_path_or_dic
 
                 services[app_name] = app_compose_config
 
-
-
     # Add common services only if this is the main instance
-    compose_config_common = m4b_config.get('compose_config_common', {})
+    compose_config_common = user_config.get('compose_config_common', {})
     if is_main_instance:
-        services['watchtower'] = compose_config_common['watchtower_service']
-        services['m4bwebdashboard'] = compose_config_common['dashboard_service']
+        watchtower_service_key = 'proxy_enabled' if proxy_enabled else 'proxy_disabled'
+        watchtower_service = compose_config_common['watchtower_service'][watchtower_service_key]
+        services['watchtower'] = watchtower_service
+        services['m4bwebdashboard'] = compose_config_common['m4b_dashboard_service']
     if proxy_enabled:
         services['proxy'] = compose_config_common['proxy_service']
 
     # Define network configuration using config json and environment variables
-    # This is an hybrid solution to remember that it could be possible to ditch the env file and generate all compose file parts from config json
+    # This is a hybrid solution to remember that it could be possible to ditch the env file and generate all compose file parts from config json
     network_config = {
         'networks': {
             'default': {
@@ -170,12 +171,6 @@ def generate_env_file(m4b_config_path_or_dict: Any, app_config_path_or_dict: Any
     #             env_lines.append(f"{key.upper()}_{sub_key.upper()}={sub_value}")
     #     else:
     #         env_lines.append(f"{key.upper()}={value}")
-
-    # Add dashboards configurations
-    dashboards_config = m4b_config.get('dashboards', {})
-    for key, value in dashboards_config.items():
-        env_lines.append(f"{key.upper()}={value}")
-
     # Add resource limits configurations
     resource_limits_config = m4b_config.get('resource_limits', {})
     for key, value in resource_limits_config.items():
@@ -194,6 +189,11 @@ def generate_env_file(m4b_config_path_or_dict: Any, app_config_path_or_dict: Any
     device_info = user_config.get('device_info', {})
     for key, value in device_info.items():
         env_lines.append(f"{key.upper()}={value}")
+    
+    # Add m4b_dashboard configurations
+    m4b_dashboard_config = user_config.get('m4b_dashboard', {})
+    for key, value in m4b_dashboard_config.items():
+        env_lines.append(f"M4B_DASHBOARD_{key.upper()}={value}")
 
     # Add proxy configurations
     proxy_config = user_config.get('proxies', {})
@@ -207,6 +207,7 @@ def generate_env_file(m4b_config_path_or_dict: Any, app_config_path_or_dict: Any
 
     # Add app-specific configurations only if the app is enabled
     apps_categories = ['apps']
+    apps_categories.append('extra-apps') # Overrides extra apps exclusion from m4b proxies instances
     if is_main_instance:
         apps_categories.append('extra-apps')
     for category in apps_categories:
@@ -214,12 +215,16 @@ def generate_env_file(m4b_config_path_or_dict: Any, app_config_path_or_dict: Any
             app_name = app['name'].upper()
             app_flags = app.get('flags', {})
             app_user_config = user_config['apps'].get(app['name'].lower(), {})
-            if app_user_config.get('enabled'):
+            if app_user_config.get('enabled', False):
                 for flag_name in app_flags.keys():
                     if flag_name in app_user_config:
                         env_var_name = f"{app_name}_{flag_name.upper()}"
                         env_var_value = app_user_config[flag_name]
                         env_lines.append(f"{env_var_name}={env_var_value}")
+
+                # Add app dashboard port if it exists
+                if 'dashboard_port' in app_user_config:
+                    env_lines.append(f"{app_name.upper()}_DASHBOARD_PORT={app_user_config['dashboard_port']}")
 
     # Write to .env file
     with open(env_output_path, 'w') as f:

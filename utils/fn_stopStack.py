@@ -9,7 +9,7 @@ import time
 from utils.prompt_helper import ask_question_yn
 from utils.loader import load_json_config
 
-def stop_stack(compose_file: str = './docker-compose.yaml', instance_name: str = 'money4band', skip_questions: bool = False) -> None:
+def stop_stack(compose_file: str = './docker-compose.yaml', instance_name: str = 'money4band', skip_questions: bool = False) -> bool:
     """
     Stop the Docker Compose stack using the provided compose file.
 
@@ -45,15 +45,22 @@ def stop_stack(compose_file: str = './docker-compose.yaml', instance_name: str =
         logging.error(f"Unexpected error: {str(e)}")
         time.sleep(2)
 
-
-def stop_multi_proxy_instances(instances_dir: str = 'm4b_proxy_instances', skip_questions: bool = False) -> None:
+def stop_all_stacks(main_compose_file: str = './docker-compose.yaml', main_instance_name: str = 'money4band', instances_dir: str = 'm4b_proxy_instances', skip_questions: bool = False) -> None:
     """
-    Stop all multi-proxy instances by iterating through the instances directory.
+    Stop the main stack and all multi-proxy instances.
 
     Args:
+        main_compose_file (str): The path to the main Docker Compose file.
+        main_instance_name (str): The name of the main instance.
         instances_dir (str): The directory containing the proxy instances.
         skip_questions (bool): Whether to skip the confirmation question.
     """
+    if not skip_questions and not ask_question_yn(f"This will stop all the apps for '{main_instance_name}' and any multi-proxy instances and delete the docker stacks previously created. Do you wish to proceed?"):
+        print(f"{Fore.BLUE}Docker stack removal canceled.{Style.RESET_ALL}")
+        time.sleep(2)
+        return
+
+    stop_stack(main_compose_file, main_instance_name, skip_questions=True)
     if os.path.isdir(instances_dir):
         print(f"{Fore.YELLOW}Stopping multi-proxy instances...{Style.RESET_ALL}")
         for instance in os.listdir(instances_dir):
@@ -61,22 +68,20 @@ def stop_multi_proxy_instances(instances_dir: str = 'm4b_proxy_instances', skip_
             compose_file = os.path.join(instance_dir, 'docker-compose.yaml')
             if os.path.isfile(compose_file):
                 try:
-                    stop_stack(compose_file, instance, skip_questions=skip_questions)
+                    stop_stack(compose_file, instance, skip_questions=True)
                 except Exception as e:
                     logging.error(f"Failed to stop instance '{instance}': {str(e)}")
         print(f"{Fore.GREEN}All multi-proxy instances stopped successfully.{Style.RESET_ALL}")
     else:
         logging.warning(f"Multi-proxy instances directory '{instances_dir}' does not exist.")
 
-
 def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> None:
     try:
         m4b_config = load_json_config(m4b_config_path)
         user_config = load_json_config(user_config_path)
         base_instance_name = m4b_config.get('project', {}).get('compose_project_name', 'money4band')
-        stop_stack(instance_name=base_instance_name, skip_questions=False)
-        if user_config['proxies'].get('enabled', False):
-            stop_multi_proxy_instances(skip_questions=True)
+
+        stop_all_stacks(main_instance_name=base_instance_name)
     except FileNotFoundError as e:
         logging.error(f"File not found: {str(e)}")
         print(f"{Fore.RED}File not found: {str(e)}{Style.RESET_ALL}")
@@ -87,12 +92,11 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
         logging.error(f"An unexpected error occurred in main function: {str(e)}")
         print(f"{Fore.RED}An unexpected error occurred: {str(e)}{Style.RESET_ALL}")
 
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Stop the Docker Compose stack.')
-    parser.add_argument('--app-config', type=str, required=False, help='Path to app_config JSON file')
+    parser.add_argument('--app-config', type=str, required=True, help='Path to app_config JSON file')
     parser.add_argument('--m4b-config', type=str, required=True, help='Path to m4b_config JSON file')
-    parser.add_argument('--user-config', type=str, required=False, help='Path to user_config JSON file')
+    parser.add_argument('--user-config', type=str, required=True, help='Path to user_config JSON file')
     parser.add_argument('--log-dir', default='./logs', help='Set the logging directory')
     parser.add_argument('--log-file', default='fn_stopStack.log', help='Set the logging file name')
     parser.add_argument('--log-level', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], default='INFO', help='Set the logging level')
@@ -114,7 +118,7 @@ if __name__ == '__main__':
     logging.info("Starting fn_stopStack script...")
 
     try:
-        main(app_config_path=args.app_config, m4b_config_path=args.m4b_config, user_config_path=args.user_config, skip_questions=args.skip_questions)
+        main(app_config_path=args.app_config, m4b_config_path=args.m4b_config, user_config_path=args.user_config)
         logging.info("fn_stopStack script completed successfully")
     except FileNotFoundError as e:
         logging.error(f"File not found: {str(e)}")
