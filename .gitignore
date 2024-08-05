@@ -13,4 +13,5 @@ docker-compose.yaml
 venv*
 tmp/*
 tmp.py
+*.old
 __pycache__
