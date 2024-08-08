@@ -18,6 +18,7 @@ if parent_dir not in sys.path:
 from utils import detector, loader
 from utils.cls import cls
 from utils.fn_reset_config import main as reset_main
+from utils.updater import check_update_available
 
 def mainmenu(m4b_config_path: str, apps_config_path: str, user_config_path: str, utils_dir_path: str) -> None:
     """
@@ -66,8 +67,9 @@ def mainmenu(m4b_config_path: str, apps_config_path: str, user_config_path: str,
             logging.info(f"Successfully loaded modules from {utils_dir_path}")
             cls()
             print(f"{Fore.GREEN}----------------------------------------------")
-            print(f"{Back.GREEN}MONEY4BAND AUTOMATIC GUIDED SETUP v{m4b_config.get('project')['project_version']}{Back.RESET}")
-            print(f"----------------------------------------------{Style.RESET_ALL}")
+            print(f"{Back.GREEN}MONEY4BAND AUTOMATIC GUIDED SETUP v{m4b_config.get('project')['project_version']}{Style.RESET_ALL}")
+            check_update_available(m4b_config)
+            print(f"{Fore.GREEN}----------------------------------------------{Style.RESET_ALL}")
             print(f"{Fore.YELLOW}Support the M4B development <3 check the donation options in the README, on GitHub or in our Discord. Every bit helps!")
             print(f"{Fore.MAGENTA}Join our Discord community for updates, help and discussions: {m4b_config.get('project')['ds_project_server_url']}{Style.RESET_ALL}")
             print("----------------------------------------------")
