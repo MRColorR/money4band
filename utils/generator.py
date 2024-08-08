@@ -172,7 +172,7 @@ def generate_env_file(m4b_config_path_or_dict: Any, app_config_path_or_dict: Any
     #     else:
     #         env_lines.append(f"{key.upper()}={value}")
     # Add resource limits configurations
-    resource_limits_config = m4b_config.get('resource_limits', {})
+    resource_limits_config = user_config.get('resource_limits', {})
     for key, value in resource_limits_config.items():
         env_lines.append(f"{key.upper()}={value}")
     

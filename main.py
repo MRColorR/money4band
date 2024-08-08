@@ -57,6 +57,8 @@ def mainmenu(m4b_config_path: str, apps_config_path: str, user_config_path: str,
                 **detector.detect_os(m4b_config_path),
                 **detector.detect_architecture(m4b_config_path)
             }
+            logging.debug("Calculating resources limits based on system")
+            detector.calculate_resource_limits(user_config_path_or_dict=user_config_path)
 
             # Load the functions from the passed tools dir
             logging.debug(f"Loading modules from {utils_dir_path}")

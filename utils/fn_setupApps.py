@@ -26,6 +26,7 @@ from utils.prompt_helper import ask_question_yn, ask_email, ask_string, ask_uuid
 from utils.generator import generate_uuid, assemble_docker_compose, generate_env_file, generate_device_name
 from utils.checker import fetch_docker_tags, check_img_arch_support
 from utils.fn_stopStack import stop_stack, stop_all_stacks
+from utils.networker import find_next_available_port
 
 def configure_email(app: Dict, flag_config: Dict, config: Dict):
     email = ask_email(f'Enter your {app["name"].lower().title()} email:', default=config.get("email"))
@@ -216,20 +217,6 @@ def configure_extra_apps(user_config: Dict[str, Any], app_config: Dict, m4b_conf
         m4b_config (dict): The m4b configuration dictionary.
     """
     _configure_apps(user_config, app_config['extra-apps'], m4b_config)
-
-
-def is_port_in_use(port):
-    """Check if a port is already in use."""
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-        return sock.connect_ex(('localhost', port)) == 0
-
-
-def find_next_available_port(starting_port):
-    """Find the next available port starting from the given port."""
-    port = starting_port
-    while is_port_in_use(port):
-        port += 1
-    return port
 
 
 def setup_multiproxy_instances(user_config: Dict[str, Any], app_config: Dict[str, Any], m4b_config: Dict[str, Any], proxies: list) -> None:

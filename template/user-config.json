@@ -71,9 +71,9 @@
       "email": "yourPEER2PROFITMail"
     }
   },
-  "m4b_dashboard":{
+  "m4b_dashboard": {
     "enabled": true,
-    "dashboard_port":8081
+    "dashboard_port": 8081
   },
   "proxies": {
     "enabled": false,
@@ -164,5 +164,20 @@
       "mem_reservation": "${APP_MEM_RESERV_LITTLE}",
       "mem_limit": "${APP_MEM_LIMIT_LITTLE}"
     }
+  },
+  "resource_limits": {
+    "app_cpu_limit_little": 0.8,
+    "app_cpu_limit_medium": 1,
+    "app_cpu_limit_big": 2,
+    "app_cpu_limit_huge": 4,
+    "ram_cap_mb_default": 6144,
+    "app_mem_reserv_little": "64m",
+    "app_mem_limit_little": "128m",
+    "app_mem_reserv_medium": "128m",
+    "app_mem_limit_medium": "256m",
+    "app_mem_reserv_big": "256m",
+    "app_mem_limit_big": "512m",
+    "app_mem_reserv_huge": "512m",
+    "app_mem_limit_huge": "1024m"
   }
 }
