@@ -67,7 +67,7 @@ def mainmenu(m4b_config_path: str, apps_config_path: str, user_config_path: str,
             logging.info(f"Successfully loaded modules from {utils_dir_path}")
             cls()
             print(f"{Fore.GREEN}----------------------------------------------")
-            print(f"{Back.GREEN}MONEY4BAND AUTOMATIC GUIDED SETUP v{m4b_config.get('project')['project_version']}{Style.RESET_ALL}")
+            print(f"{Fore.GREEN}MONEY4BAND AUTOMATIC GUIDED SETUP v{m4b_config.get('project')['project_version']}{Style.RESET_ALL}")
             check_update_available(m4b_config)
             print(f"{Fore.GREEN}----------------------------------------------{Style.RESET_ALL}")
             print(f"{Fore.YELLOW}Support the M4B development <3 check the donation options in the README, on GitHub or in our Discord. Every bit helps!")
