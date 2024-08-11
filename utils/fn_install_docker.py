@@ -54,7 +54,9 @@ def install_docker_linux(files_path: str):
 
         # Install Docker
         subprocess.run(["sudo", "sh", installer_path], check=True)
+        print("Docker should now be successfully installed on Linux")
         logging.info("Docker installed successfully on Linux")
+        time.sleep(2)
 
         # Clean-up
         os.remove(installer_path)
