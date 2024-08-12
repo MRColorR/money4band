@@ -1,4 +1,3 @@
-# helper.py
 import os
 import platform
 import subprocess
@@ -60,3 +59,66 @@ def run_docker_command(command, use_sudo=False):
     if use_sudo and platform.system().lower() == 'linux':
         command.insert(0, "sudo")
     return subprocess.run(command, check=True, capture_output=True, text=True)
+
+def setup_service(service_name="docker.binfmt", service_file_path='./docker.binfmt.service'):
+    """
+    Set up a service on Linux systems, defaulting to setting up the Docker binfmt service.
+
+    Args:
+        service_name (str): The name of the service to set up. Default is "docker.binfmt".
+        service_file_path (str): The path to the service file. Default is "./docker.binfmt.service".
+    """
+    systemd_service_file = f"/etc/systemd/system/{service_name}.service"
+    sysv_init_file = f"/etc/init.d/{service_name}"
+
+    try:
+        # Check if the service is already enabled and running
+        if platform.system().lower() == 'linux':
+            if os.path.exists("/etc/systemd/system"):
+                result = subprocess.run(["systemctl", "is-active", service_name], capture_output=True, text=True)
+                if "active" in result.stdout:
+                    logging.info(f"{Fore.GREEN}{service_name} is already active and running.{Style.RESET_ALL}")
+                    return
+            elif os.path.exists("/etc/init.d"):
+                result = subprocess.run(["service", service_name, "status"], capture_output=True, text=True)
+                if "running" in result.stdout:
+                    logging.info(f"{Fore.GREEN}{service_name} is already active and running.{Style.RESET_ALL}")
+                    return
+
+        # Copy service file and enable service
+        if os.path.exists("/etc/systemd/system"):
+            if not os.path.exists(systemd_service_file):
+                logging.info(f"Copying service file to {systemd_service_file}")
+                subprocess.run(["sudo", "cp", service_file_path, systemd_service_file], check=True)
+                subprocess.run(["sudo", "systemctl", "daemon-reload"], check=True)
+                subprocess.run(["sudo", "systemctl", "enable", service_name], check=True)
+            subprocess.run(["sudo", "systemctl", "start", service_name], check=True)
+        elif os.path.exists("/etc/init.d"):
+            if not os.path.exists(sysv_init_file):
+                logging.info(f"Copying service file to {sysv_init_file}")
+                subprocess.run(["sudo", "cp", service_file_path, sysv_init_file], check=True)
+                subprocess.run(["sudo", "chmod", "+x", sysv_init_file], check=True)
+                subprocess.run(["sudo", "update-rc.d", service_name, "defaults"], check=True)
+            subprocess.run(["sudo", "service", service_name, "start"], check=True)
+
+        logging.info(f"{Fore.GREEN}{service_name} setup and started successfully.{Style.RESET_ALL}")
+
+    except subprocess.CalledProcessError as e:
+        logging.error(f"Failed to setup {service_name}: {str(e)}")
+        raise RuntimeError(f"Failed to setup {service_name}: {str(e)}")
+
+def ensure_service(service_name="docker.binfmt", service_file_path='./docker.binfmt.service'):
+    """
+    Ensure that a service is installed and running, defaulting to the Docker binfmt service.
+
+    Args:
+        service_name (str): The name of the service to ensure. Default is "docker.binfmt".
+        service_file_path (str): The path to the service file. Default is './docker.binfmt.service'.
+    """
+    logging.info(f"Ensuring {service_name} service is installed and running.")
+    try:
+        setup_service(service_name=service_name, service_file_path=service_file_path)
+        logging.info(f"{Fore.GREEN}{service_name} setup completed successfully.{Style.RESET_ALL}")
+    except Exception as e:
+        logging.error(f"Failed to ensure {service_name} service: {str(e)}")
+        raise RuntimeError(f"Failed to ensure {service_name} service: {str(e)}")
