@@ -88,7 +88,7 @@ def assemble_docker_compose(m4b_config_path_or_dict: Any, app_config_path_or_dic
                     if compatible_tag:
                         app_compose_config['image'] = f"{image_name}:{compatible_tag}"
                     else:
-                        logging.warning(f"No compatible tag found for {image_name} with architecture {dkarch}. Using default tag {image_tag}.")
+                        logging.warning(f"No compatible tag found for {image_name} with architecture {dkarch}. Using default tag {image_tag} for image {image_name} with architecture {dkarch} under binfmt emulation.")
 
                 if proxy_enabled:
                     app_proxy_compose = app.get('compose_config_proxy', {})
