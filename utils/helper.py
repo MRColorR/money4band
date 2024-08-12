@@ -60,13 +60,13 @@ def run_docker_command(command, use_sudo=False):
         command.insert(0, "sudo")
     return subprocess.run(command, check=True, capture_output=True, text=True)
 
-def setup_service(service_name="docker.binfmt", service_file_path='./docker.binfmt.service'):
+def setup_service(service_name="docker.binfmt", service_file_path='./.resources/.files/docker.binfmt.service'):
     """
     Set up a service on Linux systems, defaulting to setting up the Docker binfmt service.
 
     Args:
         service_name (str): The name of the service to set up. Default is "docker.binfmt".
-        service_file_path (str): The path to the service file. Default is "./docker.binfmt.service".
+        service_file_path (str): The path to the service file. Default is "./.resources/.files/docker.binfmt.service".
     """
     systemd_service_file = f"/etc/systemd/system/{service_name}.service"
     sysv_init_file = f"/etc/init.d/{service_name}"
@@ -107,13 +107,13 @@ def setup_service(service_name="docker.binfmt", service_file_path='./docker.binf
         logging.error(f"Failed to setup {service_name}: {str(e)}")
         raise RuntimeError(f"Failed to setup {service_name}: {str(e)}")
 
-def ensure_service(service_name="docker.binfmt", service_file_path='./docker.binfmt.service'):
+def ensure_service(service_name="docker.binfmt", service_file_path='./.resources/.files/docker.binfmt.service'):
     """
     Ensure that a service is installed and running, defaulting to the Docker binfmt service.
 
     Args:
         service_name (str): The name of the service to ensure. Default is "docker.binfmt".
-        service_file_path (str): The path to the service file. Default is './docker.binfmt.service'.
+        service_file_path (str): The path to the service file. Default is './.resources/.files/docker.binfmt.service'.
     """
     logging.info(f"Ensuring {service_name} service is installed and running.")
     try:
