@@ -78,9 +78,9 @@ def get_compatible_tag(image: str, arch: str) -> Optional[str]:
     )
 
     if compatible_tag:
-        logging.info(f"Found compatible tag {compatible_tag} for architecture {arch}.")
+        logging.info(f"Found compatible tag {compatible_tag} for {image} on {arch} architecture.")
     else:
-        logging.info(f"No compatible tag found for {image} with architecture {arch}.")
+        logging.info(f"No compatible tag found for {image} on {arch} architecture.")
 
         # Construct the path to the docker.binfmt.service file
         service_file_path = os.path.join(os.getcwd(), '.resources', '.files', 'docker.binfmt.service')
