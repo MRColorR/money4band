@@ -20,63 +20,7 @@ from utils.cls import cls
 from utils.generator import generate_dashboard_urls
 from utils.prompt_helper import ask_question_yn
 from utils.loader import load_json_config
-from utils.detector import detect_os
-
-def is_user_root():
-    """
-    Check if the current user is the root user on Linux.
-    On macOS and Windows, it always returns False since we don't manage Docker groups and user should be able to run commnds without special privileges.
-    """
-    return os.geteuid() == 0 if platform.system().lower() == 'linux' else False
-
-def is_user_in_docker_group():
-    """
-    Check if the current user is in the Docker group on Linux.
-    This function is skipped on Windows and macOS.
-    """
-    if platform.system().lower() != 'linux':
-        return True
-
-    user = os.getlogin()
-    groups = subprocess.run(["groups", user], capture_output=True, text=True)
-    return "docker" in groups.stdout
-
-def create_docker_group_if_needed():
-    """
-    Create the Docker group if it doesn't exist and add the current user to it on Linux.
-    This function is skipped on Windows and macOS.
-    """
-    if platform.system().lower() != 'linux':
-        return
-
-    try:
-        if subprocess.run(["getent", "group", "docker"], capture_output=True).returncode != 0:
-            logging.info(f"{Fore.YELLOW}Docker group does not exist. Creating it...{Style.RESET_ALL}")
-            subprocess.run(["sudo", "groupadd", "docker"], check=True)
-            logging.info(f"{Fore.GREEN}Docker group created successfully.{Style.RESET_ALL}")
-
-        user = os.getlogin()
-        logging.info(f"Adding user '{user}' to Docker group...")
-        subprocess.run(["sudo", "usermod", "-aG", "docker", user], check=True)
-        logging.info(f"{Fore.GREEN}User '{user}' added to Docker group. Please log out and log back in.{Style.RESET_ALL}")
-    except subprocess.CalledProcessError as e:
-        logging.error(f"{Fore.RED}Failed to add user to Docker group: {e}{Style.RESET_ALL}")
-        raise RuntimeError("Failed to add user to Docker group.") from e
-
-def run_docker_command(command, use_sudo=False):
-    """
-    Run a Docker command, optionally using sudo.
-
-    Args:
-        command (list): The Docker command to run.
-        use_sudo (bool): Whether to prepend 'sudo' to the command.
-
-    Returns:
-        subprocess.CompletedProcess: The result of the subprocess run.
-    """
-    if use_sudo and platform.system().lower() == 'linux':
-        command.insert(0, "sudo")
-    return subprocess.run(command, check=True, capture_output=True, text=True)
+from utils.helper import is_user_root, is_user_in_docker_group, create_docker_group_if_needed, run_docker_command
 
 def start_stack(compose_file: str = './docker-compose.yaml', env_file: str = './.env', instance_name: str = 'money4band', skip_questions: bool = False) -> bool:
     """

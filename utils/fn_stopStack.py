@@ -2,12 +2,23 @@ import json
 import os
 import argparse
 import logging
+import platform
 import subprocess
-from colorama import Fore, Style, just_fix_windows_console
-from utils.cls import cls
 import time
+from colorama import Fore, Style, just_fix_windows_console
+
+# Ensure the parent directory is in the sys.path
+import sys
+
+script_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(script_dir)
+if parent_dir not in sys.path:
+    sys.path.append(parent_dir)
+
+from utils.cls import cls
 from utils.prompt_helper import ask_question_yn
 from utils.loader import load_json_config
+from utils.helper import is_user_root, is_user_in_docker_group, create_docker_group_if_needed, run_docker_command
 
 def stop_stack(compose_file: str = './docker-compose.yaml', instance_name: str = 'money4band', skip_questions: bool = False) -> bool:
     """
@@ -17,6 +28,9 @@ def stop_stack(compose_file: str = './docker-compose.yaml', instance_name: str =
         compose_file (str): The path to the Docker Compose file.
         instance_name (str): The name of the instance.
         skip_questions (bool): Whether to skip the confirmation question.
+
+    Returns:
+        bool: True if the stack stopped successfully, False otherwise.
     """
     logging.info(f"Stopping stack for '{instance_name}' instance with compose file: {compose_file}")
     just_fix_windows_console()
@@ -24,18 +38,16 @@ def stop_stack(compose_file: str = './docker-compose.yaml', instance_name: str =
     if not skip_questions and not ask_question_yn(f"This will stop all the apps for '{instance_name}' instance and delete the docker stack previously created using the configured docker-compose.yaml file. Do you wish to proceed?"):
         print(f"{Fore.BLUE}Docker stack removal for '{instance_name}' instance canceled.{Style.RESET_ALL}")
         time.sleep(2)
-        return
+        return False
 
+    use_sudo = not is_user_root() and platform.system().lower() == 'linux'
     try:
-        result = subprocess.run(
-            ["docker", "compose", "-f", compose_file, "down"],
-            check=True,
-            capture_output=True,
-            text=True
-        )
+        command = ["docker", "compose", "-f", compose_file, "down"]
+        result = run_docker_command(command, use_sudo=use_sudo)
         print(f"{Fore.GREEN}All Apps for '{instance_name}' instance stopped and stack deleted.{Style.RESET_ALL}")
         time.sleep(2)
         logging.info(result.stdout)
+        return True
     except subprocess.CalledProcessError as e:
         print(f"{Fore.RED}Error stopping and deleting Docker stack for '{instance_name}' instance. Please check the configuration and try again.{Style.RESET_ALL}")
         logging.error(e.stderr)
@@ -44,6 +56,7 @@ def stop_stack(compose_file: str = './docker-compose.yaml', instance_name: str =
         print(f"{Fore.RED}An unexpected error occurred while stopping the stack for '{instance_name}' instance.{Style.RESET_ALL}")
         logging.error(f"Unexpected error: {str(e)}")
         time.sleep(2)
+    return False
 
 def stop_all_stacks(main_compose_file: str = './docker-compose.yaml', main_instance_name: str = 'money4band', instances_dir: str = 'm4b_proxy_instances', skip_questions: bool = False) -> None:
     """
@@ -59,6 +72,9 @@ def stop_all_stacks(main_compose_file: str = './docker-compose.yaml', main_insta
         print(f"{Fore.BLUE}Docker stack removal canceled.{Style.RESET_ALL}")
         time.sleep(2)
         return
+
+    if platform.system().lower() == 'linux' and not is_user_in_docker_group():
+        create_docker_group_if_needed()
 
     stop_stack(main_compose_file, main_instance_name, skip_questions=True)
     if os.path.isdir(instances_dir):
