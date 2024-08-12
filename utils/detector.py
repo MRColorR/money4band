@@ -21,7 +21,7 @@ from utils.dumper import write_json
 
 def detect_os(m4b_config_path_or_dict: Any) -> Dict[str, str]:
     """
-    Detect the operating system and return its type.
+    Detect the operating system based on the system's platform and map it according to the m4b configuration.
 
     Args:
         m4b_config_path_or_dict (Any): The path to the m4b config file or the config dictionary.
@@ -30,17 +30,30 @@ def detect_os(m4b_config_path_or_dict: Any) -> Dict[str, str]:
         Dict[str, str]: A dictionary containing the detected OS type.
 
     Raises:
-        Exception: If an error occurs during OS detection.
+        Exception: If an error occurs during OS detection or if the OS is not recognized.
     """
     try:
         m4b_config = load_json_config(m4b_config_path_or_dict)
 
         logging.debug("Detecting OS type")
         os_map = m4b_config.get("system", {}).get("os_map", {})
-        os_type = platform.system().lower()
-        os_type = os_map.get(os_type, "unknown")
-        logging.info(f"OS type detected: {os_type}")
-        return {"os_type": os_type}
+        
+        # Get the OS type from the platform module and convert it to lowercase
+        detected_os = platform.system().lower()
+        logging.info(f"Detected OS: {detected_os}")
+
+        # Map the detected OS using the os_map from the config
+        mapped_os = os_map.get(detected_os, "unknown")
+
+        if mapped_os == "unknown":
+            raise ValueError(f"OS type '{detected_os}' is not recognized in the provided os_map.")
+
+        logging.info(f"Mapped OS: {mapped_os}")
+        return {"os_type": mapped_os}
+    
+    except KeyError as e:
+        logging.error(f"KeyError in configuration: {str(e)}")
+        raise
     except Exception as e:
         logging.error(f"An error occurred while detecting OS: {str(e)}")
         raise
