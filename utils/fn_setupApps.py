@@ -220,25 +220,26 @@ def configure_extra_apps(user_config: Dict[str, Any], app_config: Dict, m4b_conf
 
 # Supported services and their URL patterns
 SUPPORTED_NOTIFICATION_SERVICES = {
-    'bark': r'^bark://[a-zA-Z0-9]+@.+$',
-    'discord': r'^discord://[a-zA-Z0-9]+@[a-zA-Z0-9]+$',
-    'email': r'^smtp://[a-zA-Z0-9]+:[a-zA-Z0-9]+@.+:\d+/\?from=.*&to=.*$',
+    'bark': r'^bark://[\w\-]+@.+$',
+    'discord': r'^discord://[\w\-\._]+@[\w\-\._]+$',
+    'email': r'^smtp://[\w\-]+:[\w\-]+@.+:\d+/\?from=.*&to=.*$',
     'gotify': r'^gotify://.+/token$',
     'googlechat': r'^googlechat://chat\.googleapis\.com/v1/spaces/.+/messages\?key=.*&token=.*$',
     'ifttt': r'^ifttt://.+/\?events=.*$',
-    'join': r'^join://shoutrrr:[a-zA-Z0-9]+@join/\?devices=.*$',
-    'mattermost': r'^mattermost://(?:[a-zA-Z0-9]+@)?.+/token(?:/channel)?$',
+    'join': r'^join://shoutrrr:[\w\-]+@join/\?devices=.*$',
+    'mattermost': r'^mattermost://(?:[\w\-]+@)?.+/token(?:/channel)?$',
     'matrix': r'^matrix://.+:.+@.+:\d+/\?rooms=.*$',
-    'ntfy': r'^ntfy://(?:[a-zA-Z0-9]+:[a-zA-Z0-9]+@)?.+/topic$',
+    'ntfy': r'^ntfy://(?:[\w\-]+:[\w\-]+@)?.+/topic$',
     'opsgenie': r'^opsgenie://.+/token\?responders=.*$',
-    'pushbullet': r'^pushbullet://[a-zA-Z0-9]+(?:/device/#channel/[a-zA-Z0-9]+)?$',
-    'pushover': r'^pushover://shoutrrr:[a-zA-Z0-9]+@[a-zA-Z0-9]+/\?devices=.*$',
-    'rocketchat': r'^rocketchat://(?:[a-zA-Z0-9]+@)?.+/token(?:/channel)?$',
-    'slack': r'^slack://(?:[a-zA-Z0-9]+@)?.+/token-a/token-b/token-c$',
-    'teams': r'^teams://[a-zA-Z0-9]+@[a-zA-Z0-9]+/.+/groupOwner\?host=.*$',
+    'pushbullet': r'^pushbullet://[\w\-]+(?:/device/#channel/[\w\-]+)?$',
+    'pushover': r'^pushover://shoutrrr:[\w\-]+@[\w\-]+/\?devices=.*$',
+    'rocketchat': r'^rocketchat://(?:[\w\-]+@)?.+/token(?:/channel)?$',
+    'slack': r'^slack://(?:[\w\-]+@)?.+/token-a/token-b/token-c$',
+    'teams': r'^teams://[\w\-]+@[\w\-]+/.+/groupOwner\?host=.*$',
     'telegram': r'^telegram://.+@telegram\?chats=.*$',
     'zulip': r'^zulip://.+:.+@zulip-domain/\?stream=.*&topic=.*$',
 }
+
 
 def validate_notification_url(url: str) -> bool:
     """
