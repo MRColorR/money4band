@@ -76,7 +76,7 @@ def setup_service(service_name="docker.binfmt", service_file_path='./.resources/
         if platform.system().lower() == 'linux':
             if os.path.exists("/etc/systemd/system"):
                 result = subprocess.run(["systemctl", "is-active", service_name], capture_output=True, text=True)
-                if "active" in result.stdout:
+                if result.stdout.strip() == "active":
                     logging.info(f"{Fore.GREEN}{service_name} is already active and running.{Style.RESET_ALL}")
                     return
             elif os.path.exists("/etc/init.d"):
@@ -106,6 +106,7 @@ def setup_service(service_name="docker.binfmt", service_file_path='./.resources/
     except subprocess.CalledProcessError as e:
         logging.error(f"Failed to setup {service_name}: {str(e)}")
         raise RuntimeError(f"Failed to setup {service_name}: {str(e)}")
+
 
 def ensure_service(service_name="docker.binfmt", service_file_path='./.resources/.files/docker.binfmt.service'):
     """
