@@ -218,6 +218,90 @@ def configure_extra_apps(user_config: Dict[str, Any], app_config: Dict, m4b_conf
     """
     _configure_apps(user_config, app_config['extra-apps'], m4b_config)
 
+# Supported services and their URL patterns
+SUPPORTED_NOTIFICATION_SERVICES = {
+    'bark': r'^bark://[a-zA-Z0-9]+@.+$',
+    'discord': r'^discord://[a-zA-Z0-9]+@[a-zA-Z0-9]+$',
+    'email': r'^smtp://[a-zA-Z0-9]+:[a-zA-Z0-9]+@.+:\d+/\?from=.*&to=.*$',
+    'gotify': r'^gotify://.+/token$',
+    'googlechat': r'^googlechat://chat\.googleapis\.com/v1/spaces/.+/messages\?key=.*&token=.*$',
+    'ifttt': r'^ifttt://.+/\?events=.*$',
+    'join': r'^join://shoutrrr:[a-zA-Z0-9]+@join/\?devices=.*$',
+    'mattermost': r'^mattermost://(?:[a-zA-Z0-9]+@)?.+/token(?:/channel)?$',
+    'matrix': r'^matrix://.+:.+@.+:\d+/\?rooms=.*$',
+    'ntfy': r'^ntfy://(?:[a-zA-Z0-9]+:[a-zA-Z0-9]+@)?.+/topic$',
+    'opsgenie': r'^opsgenie://.+/token\?responders=.*$',
+    'pushbullet': r'^pushbullet://[a-zA-Z0-9]+(?:/device/#channel/[a-zA-Z0-9]+)?$',
+    'pushover': r'^pushover://shoutrrr:[a-zA-Z0-9]+@[a-zA-Z0-9]+/\?devices=.*$',
+    'rocketchat': r'^rocketchat://(?:[a-zA-Z0-9]+@)?.+/token(?:/channel)?$',
+    'slack': r'^slack://(?:[a-zA-Z0-9]+@)?.+/token-a/token-b/token-c$',
+    'teams': r'^teams://[a-zA-Z0-9]+@[a-zA-Z0-9]+/.+/groupOwner\?host=.*$',
+    'telegram': r'^telegram://.+@telegram\?chats=.*$',
+    'zulip': r'^zulip://.+:.+@zulip-domain/\?stream=.*&topic=.*$',
+}
+
+def validate_notification_url(url: str) -> bool:
+    """
+    Validate the notification URL against supported services.
+
+    Args:
+        url (str): The URL to validate.
+
+    Returns:
+        bool: True if the URL is valid, False otherwise.
+    """
+    for service, pattern in SUPPORTED_NOTIFICATION_SERVICES.items():
+        if re.match(pattern, url):
+            logging.info(f"Given URL {url} matches notification service {service}")
+            return True
+    logging.error(f"Given URL {url} does not match any supported notification service")
+    return False
+
+def setup_notifications(user_config: Dict[str, Any]) -> None:
+    """
+    Set up notifications for app updates using a supported service.
+
+    Args:
+        user_config (dict): The user configuration dictionary.
+    """
+    notifications_config = user_config.get('notifications', {})
+
+    # Check if notifications are already set up
+    if notifications_config.get('enabled'):
+        print(f"Notifications are currently enabled with the following URL: {notifications_config.get('url')}")
+        if not ask_question_yn('Do you want to change the current notification settings?'):
+            print("Keeping existing notification settings.")
+            logging.info("User chose to keep existing notification settings.")
+            return
+
+    # Proceed to set up or change the notification settings
+    if ask_question_yn('Do you want to enable notifications about apps images updates?'):
+        logging.info("User decided to set up notifications about apps images updates.")
+        print("Setting-up notifications for images updates using Shoutrrr.")
+        print("Format WATCHTOWER_NOTIFICATION_URL as: <app>://<token>@<webhook>.")
+        print("<app> is a supported messaging app (e.g., Discord), <token> and <webhook> are app-specific.")
+        print("Create a webhook for your app and format its URL accordingly.")
+        print("For details, visit https://containrrr.dev/shoutrrr/ and select your app.")
+        print("You can also specify multiple URLs separated by spaces (e.g., 'discord://token@channel slack://watchtower@token-a/token-b/token-c').")
+        input("Press Enter to continue...")
+
+        while True:
+            notification_url = ask_string('Enter the notification URL (e.g., discord://token@id):', default=notifications_config.get('url', ''))
+            if validate_notification_url(notification_url):
+                user_config['notifications']['enabled'] = True
+                user_config['notifications']['url'] = notification_url
+                logging.info(f"Notification URL set to: {notification_url}")
+                break
+            else:
+                print("Invalid URL format. Please ensure it matches one of the supported formats.")
+                if not ask_question_yn('Do you want to try again?'):
+                    logging.info("User chose to skip notification setup.")
+                    break
+    else:
+        user_config['notifications']['enabled'] = False
+        print("Noted: All updates will be applied automatically and silently.")
+        logging.info("User chose not to enable notifications.")
+
 
 def setup_multiproxy_instances(user_config: Dict[str, Any], app_config: Dict[str, Any], m4b_config: Dict[str, Any], proxies: list) -> None:
     """
@@ -280,7 +364,7 @@ def setup_multiproxy_instances(user_config: Dict[str, Any], app_config: Dict[str
         for app in instance_user_config['apps'].keys():
             app_details = instance_user_config['apps'].get(app, {})
             if app_details.get('enabled') and app_details.get('dashboard_port'):
-                logging.info(f"{app} is enabled and it has a dashboard port atribute, staring port update to avoid conflicts")
+                logging.info(f"{app} is enabled and it has a dashboard port attribute, staring port update to avoid conflicts")
                 app_details['dashboard_port'] = find_next_available_port(app_details['dashboard_port'] + (i + 1))
 
         instance_user_config_path = os.path.join(instance_dir, 'user-config.json')
@@ -313,8 +397,11 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
         m4b_config = loader.load_json_config(m4b_config_path)
         logging.info("Setup apps started")
 
+        # Step 1: Collect user information
         collect_user_info(user_config, m4b_config)
+        # Step 2: Configure apps
         configure_apps(user_config, app_config, m4b_config)
+        # Step 3: Configure extra apps if the user chooses to
         if ask_question_yn('Do you want to configure extra apps?'):
             logging.info("Extra apps setup selected")
             configure_extra_apps(user_config, app_config, m4b_config)
@@ -322,9 +409,11 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
             for app in app_config['extra-apps']:
                 app_name = app['name'].lower()
                 user_config['apps'][app_name]['enabled'] = False
-
+        # Step 4: Set up notifications
+        setup_notifications(user_config)
+        # Step 5: Save the user configuration
         write_json(user_config, user_config_path)
-
+        # Step 6: Set up proxy if the user chooses to
         proxy_setup = ask_question_yn('Do you want to enable (multi)proxy?')
         if proxy_setup:
             logging.info("Multiproxy setup selected")

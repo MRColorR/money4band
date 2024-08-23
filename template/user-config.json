@@ -82,7 +82,6 @@
   },
   "notifications": {
     "enabled": false,
-    "method": "shoutrrr",
     "url": "",
     "url_example": "yourApp:yourToken@yourWebHook"
   },
@@ -121,10 +120,11 @@
           "WATCHTOWER_ROLLING_RESTART=true",
           "WATCHTOWER_NO_STARTUP_MESSAGE=true",
           "WATCHTOWER_CLEANUP=true",
-          "WATCHTOWER_NOTIFICATIONS=${NOTIFICATIONS_METHOD}",
-          "WATCHTOWER_NOTIFICATION_URL=${NOTIFICATIONS_URL}"
+          "WATCHTOWER_NOTIFICATION_URL=${WATCHTOWER_NOTIFICATION_URL}"
         ],
-        "volumes": ["/var/run/docker.sock:/var/run/docker.sock"],
+        "volumes": [
+          "/var/run/docker.sock:/var/run/docker.sock"
+        ],
         "restart": "always",
         "cpus": "${APP_CPU_LIMIT_MEDIUM}",
         "mem_reservation": "${APP_MEM_RESERV_MEDIUM}",
@@ -139,10 +139,11 @@
           "WATCHTOWER_ROLLING_RESTART=false",
           "WATCHTOWER_NO_STARTUP_MESSAGE=true",
           "WATCHTOWER_CLEANUP=true",
-          "WATCHTOWER_NOTIFICATIONS=${NOTIFICATIONS_METHOD}",
-          "WATCHTOWER_NOTIFICATION_URL=${NOTIFICATIONS_URL}"
+          "WATCHTOWER_NOTIFICATION_URL=${WATCHTOWER_NOTIFICATION_URL}"
         ],
-        "volumes": ["/var/run/docker.sock:/var/run/docker.sock"],
+        "volumes": [
+          "/var/run/docker.sock:/var/run/docker.sock"
+        ],
         "restart": "always",
         "cpus": "${APP_CPU_LIMIT_MEDIUM}",
         "mem_reservation": "${APP_MEM_RESERV_MEDIUM}",

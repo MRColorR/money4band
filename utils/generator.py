@@ -200,10 +200,11 @@ def generate_env_file(m4b_config_path_or_dict: Any, app_config_path_or_dict: Any
     for key, value in proxy_config.items():
         env_lines.append(f"STACK_PROXY_{key.upper()}={value}")
 
-    # Add notification configurations
+    # Add notification configurations if enabled
     notifications_config = user_config.get('notifications', {})
-    for key, value in notifications_config.items():
-        env_lines.append(f"NOTIFICATIONS_{key.upper()}={value}")
+    if notifications_config.get('enabled'):
+            for key, value in notifications_config.items():
+                env_lines.append(f"WATCHTOWER_NOTIFICATION_{key.upper()}={value}")
 
     # Add app-specific configurations only if the app is enabled
     apps_categories = ['apps']
