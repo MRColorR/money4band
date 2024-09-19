@@ -151,35 +151,20 @@ Register an account on the app's sites clicking each apps' names in the followin
   
 
 | App Name & Link | Residential/Home/Mobile IP or equivalent Proxy's IP | VPS/Datacenter/Hosting/Cloud IP or equivalent Proxy's IP | Max devices per Account | Max Devices per IP |
-
-| :--- | :---: | :---: | :---: | :---: |
-
+| :---: | :---: | :---: | :---: | :---: |
 | Go to [Earnapp](https://earnapp.com/i/3zulx7k) | :white_check_mark: | :x: | 15|1|
-
 | Go to [HoneyGain](https://r.honeygain.me/MINDL15721) | :white_check_mark: | :x: |10|1|
-
 | Go to [IPROYAL](https://pawns.app?r=MiNe) | :white_check_mark: | :x: |Unlimited|1|
-
 | Go to [PEER2PROFIT](https://t.me/peer2profit_app_bot?start=165849012262da8d0aa13c8) | :white_check_mark: | :white_check_mark: | Unlimited|Unlimited|
-
 | Go to [PACKETSTREAM](https://packetstream.io/?psr=3zSD) | :white_check_mark: | :x: |Unlimited|1|
-
 | Go to [TRAFFMONETIZER](https://traffmonetizer.com/?aff=366499) | :white_check_mark: | :white_check_mark: |Unlimited|Unlimited|
-
 | Go to [REPOCKET](https://link.repocket.co/hr8i) | :white_check_mark: | :white_check_mark: |Unlimited|2|
-
 | Go to [EARNFM](https://earn.fm/ref/MATTTAV6) | :white_check_mark: | :x: |Unlimited|1|
-
 | Go to [PROXYRACK](https://peer.proxyrack.com/ref/myoas6qttvhuvkzh8ffx90ns1ouhwgilfgamo5ex) | :white_check_mark: | :white_check_mark: |500|1|
-
 | Go to [PROXYLITE](https://proxylite.ru/?r=PJTKXWN3) | :white_check_mark: | :white_check_mark: |Unlimited|1|
-
 | Go to [BITPING](https://app.bitping.com?r=qm7mIuX3) | :white_check_mark: | :white_check_mark: |Unlimited|1|
-
 | Go to [SPEEDSHARE](https://speedshare.app/?ref=mindlessnerd) | :white_check_mark: | :x: | Unlimited | 1 |
-
 | Go to [GRASS](https://app.getgrass.io/register/?referralCode=qyvJmxgNUhcLo2f) | :white_check_mark: | :x: | Unlimited | 1 |
-
 | Go to [MYSTNODE](https://mystnodes.co/?referral_code=Tc7RaS7Fm12K3Xun6mlU9q9hbnjojjl9aRBW8ZA9) | :white_check_mark: | :white_check_mark: |Unlimited|Unlimited|
 
   
@@ -211,11 +196,8 @@ Register an account on the app's sites clicking each apps' names in the followin
 This Docker Stack should work on anything that may have docker installed. In particular, it has been tested on:
 
 | | Windows 11 x86_64\amd64 | Linux Ubuntu x86_64\amd64 | Raspbian OS arm64 | MacOS Intel x86_64 | MacOS silicon arm64 |
-
 | :---: | :---: | :---: | :---: | :---: | :---: |
-
 | Tested | :green_circle: | :green_circle: | :green_circle: | :green_circle: | :green_circle:|
-
 | on device | Desktop/Laptop PC | Desktop/Laptop PC | Raspberry Pi3/Pi4 | MacBook Pro | MacBook Air |
 
   
