@@ -1,0 +1,5 @@
+colorama
+docker
+requests
+pyyaml
+psutil

@@ -1,0 +1,371 @@
+{
+  "app_config_version": 1.0,
+  "apps": [
+    {
+      "name": "EARNAPP",
+      "dashboard": "https://earnapp.com/dashboard",
+      "link": "https://earnapp.com/i/3zulx7k",
+      "compose_config": {
+        "container_name": "${DEVICE_NAME}_earnapp",
+        "hostname": "${DEVICE_NAME}_earnapp",
+        "image": "fazalfarhan01/earnapp:lite",
+        "environment": [
+          "EARNAPP_UUID=$EARNAPP_UUID",
+          "EARNAPP_TERM=yes"
+        ],
+        "volumes": [".data/.earnapp:/etc/earnapp"],
+        "restart": "always",
+        "cpus": "${APP_CPU_LIMIT_MEDIUM}",
+        "mem_reservation": "${APP_MEM_RESERV_MEDIUM}",
+        "mem_limit": "${APP_MEM_LIMIT_MEDIUM}"
+      },
+      "compose_config_proxy": {
+        "network_mode": "service:proxy",
+        "hostname": null
+      },
+      "flags": {
+        "uuid": {
+          "length": 32,
+          "claimURLBase": "To claim your node, after starting it, go to the app's dashboard and then visit the following link: https://earnapp.com/r/sdk-node-",
+          "prefix": "sdk-node-"
+        }
+      }
+    },
+    {
+      "name": "HONEYGAIN",
+      "dashboard": "https://dashboard.honeygain.com/",
+      "link": "https://r.honeygain.me/MINDL15721",
+      "compose_config": {
+        "container_name": "${DEVICE_NAME}_honeygain",
+        "hostname": "${DEVICE_NAME}_honeygain",
+        "image": "honeygain/honeygain:latest",
+        "environment": ["HONEYGAIN_DUMMY=''"],
+        "command": "-tou-accept -email $HONEYGAIN_EMAIL -pass $HONEYGAIN_PASSWORD -device $DEVICE_NAME",
+        "restart": "always",
+        "cpus": "${APP_CPU_LIMIT_MEDIUM}",
+        "mem_reservation": "${APP_MEM_RESERV_MEDIUM}",
+        "mem_limit": "${APP_MEM_LIMIT_MEDIUM}"
+      },
+      "compose_config_proxy": {
+        "network_mode": "service:proxy",
+        "hostname": null
+      },
+      "flags": {
+        "email": {},
+        "password": {}
+      }
+    },
+    {
+      "name": "IPROYALPAWNS",
+      "dashboard": "https://dashboard.pawns.app/",
+      "link": "https://pawns.app?r=MiNe",
+      "compose_config": {
+        "container_name": "${DEVICE_NAME}_iproyalpawns",
+        "hostname": "${DEVICE_NAME}_iproyalpawns",
+        "image": "iproyal/pawns-cli:latest",
+        "environment": ["IPROYALPAWNS_DUMMY=''"],
+        "command": "-accept-tos -email=$IPROYALPAWNS_EMAIL -password=$IPROYALPAWNS_PASSWORD -device-name=$DEVICE_NAME -device-id=id_$DEVICE_NAME",
+        "restart": "always",
+        "cpus": "${APP_CPU_LIMIT_LITTLE}",
+        "mem_reservation": "${APP_MEM_RESERV_LITTLE}",
+        "mem_limit": "${APP_MEM_LIMIT_LITTLE}"
+      },
+      "compose_config_proxy": {
+        "network_mode": "service:proxy",
+        "hostname": null
+      },
+      "flags": {
+        "email": {},
+        "password": {}
+      }
+    },
+    {
+      "name": "PACKETSTREAM",
+      "dashboard": "https://packetstream.io/dashboard",
+      "link": "https://packetstream.io/?psr=3zSD",
+      "compose_config": {
+        "container_name": "${DEVICE_NAME}_packetstream",
+        "hostname": "${DEVICE_NAME}_packetstream",
+        "image": "packetstream/psclient:latest",
+        "environment": ["CID=$PACKETSTREAM_CID"],
+        "restart": "always",
+        "cpus": "${APP_CPU_LIMIT_MEDIUM}",
+        "mem_reservation": "${APP_MEM_RESERV_MEDIUM}",
+        "mem_limit": "${APP_MEM_LIMIT_MEDIUM}"
+      },
+      "compose_config_proxy": {
+        "network_mode": "service:proxy",
+        "hostname": null
+      },
+      "flags": {
+        "cid": {}
+      }
+    },
+    {
+      "name": "TRAFFMONETIZER",
+      "dashboard": "https://app.traffmonetizer.com/dashboard",
+      "link": "https://traffmonetizer.com/?aff=366499",
+      "compose_config": {
+        "container_name": "${DEVICE_NAME}_traffmonetizer",
+        "hostname": "${DEVICE_NAME}_traffmonetizer",
+        "image": "traffmonetizer/cli_v2:latest",
+        "environment": ["TRAFFMONETIZER_DUMMY=''"],
+        "command": "start accept status --token $TRAFFMONETIZER_TOKEN --device-name $DEVICE_NAME",
+        "restart": "always",
+        "cpus": "${APP_CPU_LIMIT_LITTLE}",
+        "mem_reservation": "${APP_MEM_RESERV_LITTLE}",
+        "mem_limit": "${APP_MEM_LIMIT_LITTLE}"
+      },
+      "compose_config_proxy": {
+        "network_mode": "service:proxy",
+        "hostname": null
+      },
+      "flags": {
+        "token": {}
+      }
+    },
+    {
+      "name": "REPOCKET",
+      "dashboard": "https://app.repocket.co/#home",
+      "link": "https://link.repocket.co/hr8i",
+      "compose_config": {
+        "container_name": "${DEVICE_NAME}_repocket",
+        "hostname": "${DEVICE_NAME}_repocket",
+        "image": "repocket/repocket:latest",
+        "environment": [
+          "RP_EMAIL=$REPOCKET_EMAIL",
+          "RP_API_KEY=$REPOCKET_APIKEY"
+        ],
+        "restart": "always",
+        "cpus": "${APP_CPU_LIMIT_MEDIUM}",
+        "mem_reservation": "${APP_MEM_RESERV_MEDIUM}",
+        "mem_limit": "${APP_MEM_LIMIT_MEDIUM}"
+      },
+      "compose_config_proxy": {
+        "network_mode": "service:proxy",
+        "hostname": null
+      },
+      "flags": {
+        "email": {},
+        "apikey": {}
+      }
+    },
+    {
+      "name": "EARNFM",
+      "dashboard": "https://app.earn.fm/",
+      "link": "https://earn.fm/ref/MATTTAV6",
+      "compose_config": {
+        "container_name": "${DEVICE_NAME}_earnfm",
+        "hostname": "${DEVICE_NAME}_earnfm",
+        "image": "earnfm/earnfm-client:latest",
+        "environment": ["EARNFM_TOKEN=$EARNFM_APIKEY"],
+        "restart": "always",
+        "cpus": "${APP_CPU_LIMIT_MEDIUM}",
+        "mem_reservation": "${APP_MEM_RESERV_MEDIUM}",
+        "mem_limit": "${APP_MEM_LIMIT_MEDIUM}"
+      },
+      "compose_config_proxy": {
+        "network_mode": "service:proxy",
+        "hostname": null
+      },
+      "flags": {
+        "apikey": {}
+      }
+    },
+    {
+      "name": "PROXYRACK",
+      "dashboard": "https://peer.proxyrack.com/dashboard",
+      "link": "https://peer.proxyrack.com/ref/myoas6qttvhuvkzh8ffx90ns1ouhwgilfgamo5ex",
+      "compose_config": {
+        "container_name": "${DEVICE_NAME}_proxyrack",
+        "hostname": "${DEVICE_NAME}_proxyrack",
+        "image": "proxyrack/pop:latest",
+        "environment": [
+          "api_key=$PROXYRACK_APIKEY",
+          "device_name=$DEVICE_NAME",
+          "UUID=$PROXYRACK_UUID"
+        ],
+        "restart": "always",
+        "cpus": "${APP_CPU_LIMIT_BIG}",
+        "mem_reservation": "${APP_MEM_RESERV_BIG}",
+        "mem_limit": "${APP_MEM_LIMIT_BIG}"
+      },
+      "compose_config_proxy": {
+        "network_mode": "service:proxy",
+        "hostname": null
+      },
+      "flags": {
+        "apikey": {},
+        "uuid": {
+          "length": 64,
+          "claimURLBase": "To claim your node, after starting it, go to the app's dashboard and then add the device using the following UUID: "
+        }
+      }
+    },
+    {
+      "name": "PROXYLITE",
+      "dashboard": "https://proxylite.ru/",
+      "link": "https://proxylite.ru/?r=PJTKXWN3",
+      "compose_config": {
+        "container_name": "${DEVICE_NAME}_proxylite",
+        "hostname": "${DEVICE_NAME}_proxylite",
+        "image": "proxylite/proxyservice:latest",
+        "environment": ["USER_ID=$PROXYLITE_USERID"],
+        "restart": "always",
+        "cpus": "${APP_CPU_LIMIT_BIG}",
+        "mem_reservation": "${APP_MEM_RESERV_BIG}",
+        "mem_limit": "${APP_MEM_LIMIT_BIG}"
+      },
+      "compose_config_proxy": {
+        "network_mode": "service:proxy",
+        "hostname": null
+      },
+      "flags": {
+        "userid": {}
+      }
+    },
+    {
+      "name": "BITPING",
+      "dashboard": "https://app.bitping.com/earnings",
+      "link": "https://app.bitping.com?r=qm7mIuX3",
+      "compose_config": {
+        "container_name": "${DEVICE_NAME}_bitping",
+        "hostname": "${DEVICE_NAME}_bitping",
+        "image": "mrcolorrain/bitping:latest",
+        "environment": [
+          "BITPING_EMAIL=$BITPING_EMAIL",
+          "BITPING_PASSWD=$BITPING_PASSWORD"
+        ],
+        "volumes": [".data/.bitpingd:/root/.bitpingd"],
+        "restart": "always",
+        "cpus": "${APP_CPU_LIMIT_BIG}",
+        "mem_reservation": "${APP_MEM_RESERV_BIG}",
+        "mem_limit": "${APP_MEM_LIMIT_BIG}"
+      },
+      "compose_config_proxy": {
+        "network_mode": "service:proxy",
+        "hostname": null
+      },
+      "flags": {
+        "email": {},
+        "password": {}
+      }
+    },
+    {
+      "name": "SPEEDSHARE",
+      "dashboard": "https://dashboard.speedshare.app/",
+      "link": "https://speedshare.app/?ref=mindlessnerd",
+      "compose_config": {
+        "container_name": "${DEVICE_NAME}_speedshare",
+        "hostname": "${DEVICE_NAME}_speedshare",
+        "image": "mrcolorrain/speedshare:latest",
+        "environment": [
+          "CODE=$SPEEDSHARE_CODE",
+          "SPEEDSHARE_UUID=$SPEEDSHARE_UUID"
+        ],
+        "restart": "always",
+        "cpus": "${APP_CPU_LIMIT_BIG}",
+        "mem_reservation": "${APP_MEM_RESERV_BIG}",
+        "mem_limit": "${APP_MEM_LIMIT_BIG}"
+      },
+      "compose_config_proxy": {
+        "network_mode": "service:proxy",
+        "hostname": null
+      },
+      "flags": {
+        "code": {},
+        "uuid": {
+          "length": 32,
+          "claimURLBase": "Speedshare nodes are automatically claimed. After starting it, go to the app's dashboard to see it. Its UUID is: "
+        }
+      }
+    },
+    {
+      "name": "GRASS",
+      "dashboard": "https://app.getgrass.io/dashboard",
+      "link": "https://app.getgrass.io/register/?referralCode=qyvJmxgNUhcLo2f",
+      "compose_config": {
+        "container_name": "${DEVICE_NAME}_grass",
+        "hostname": "${DEVICE_NAME}_grass",
+        "image": "mrcolorrain/grass-node:latest",
+        "environment": [
+          "USER_EMAIL=$GRASS_EMAIL",
+          "USER_PASSWORD=$GRASS_PASSWORD"
+        ],
+        "restart": "always",
+        "cpus": "${APP_CPU_LIMIT_BIG}",
+        "mem_reservation": "${APP_MEM_RESERV_BIG}",
+        "mem_limit": "${APP_MEM_LIMIT_BIG}"
+      },
+      "compose_config_proxy": {
+        "network_mode": "service:proxy",
+        "hostname": null
+      },
+      "flags": {
+        "email": {},
+        "password": {}
+      }
+    }
+  ],
+  "extra-apps": [
+    {
+      "name": "MYSTNODE",
+      "dashboard": "https://mystnodes.com/nodes",
+      "link": "https://mystnodes.co/?referral_code=Tc7RaS7Fm12K3Xun6mlU9q9hbnjojjl9aRBW8ZA9",
+      "compose_config": {
+        "container_name": "${DEVICE_NAME}_mystnode",
+        "hostname": "${DEVICE_NAME}_mystnode",
+        "image": "mysteriumnetwork/myst:latest",
+        "environment": ["MYSTNODE_DUMMY=''"],
+        "command": "service --agreed-terms-and-conditions",
+        "cap_add": ["NET_ADMIN"],
+        "ports": ["${MYSTNODE_DASHBOARD_PORT}:4449"],
+        "volumes": [".data/mysterium-node:/var/lib/mysterium-node"],
+        "restart": "always",
+        "cpus": "${APP_CPU_LIMIT_HUGE}",
+        "mem_reservation": "${APP_MEM_RESERV_HUGE}",
+        "mem_limit": "${APP_MEM_LIMIT_HUGE}"
+      },
+      "compose_config_proxy": {
+        "network_mode": "service:proxy",
+        "hostname": null,
+        "ports": null
+      },
+      "flags": {
+        "manual": {
+          "instructions": "Log into your device's mystnode local webdashboard, navigate to the Myst Node page and follow the onscreen instruction to complete the setup.\n\nDisclaimer: If you want to further optimize UPnP and port forwarding, consider setting manually 'network: host' for mystnode in your Docker compose. This may improve mystnode performance, but do this only if you know what you are doing and you are aware of potential security implications."
+        }
+      }
+    },
+    {
+      "name": "PEER2PROFIT",
+      "dashboard": "https://t.me/peer2profit_app_bot",
+      "link": "https://t.me/peer2profit_app_bot?start=165849012262da8d0aa13c8",
+      "compose_config": {
+        "container_name": "${DEVICE_NAME}_peer2profit",
+        "hostname": "${DEVICE_NAME}_peer2profit",
+        "image": "mrcolorrain/peer2profit:latest",
+        "environment": ["P2P_EMAIL=$PEER2PROFIT_EMAIL"],
+        "ports": ["5901:5900"],
+        "restart": "always",
+        "cpus": "${APP_CPU_LIMIT_HUGE}",
+        "mem_reservation": "${APP_MEM_RESERV_HUGE}",
+        "mem_limit": "${APP_MEM_LIMIT_HUGE}"
+      },
+      "compose_config_proxy": {
+        "network_mode": "service:proxy",
+        "hostname": null,
+        "ports": null
+      },
+      "flags": {
+        "email": {},
+        "manual": {
+          "instructions": "Use any VNC client to connect to localhost:5901 using the password money4band and follow the onscreen instruction to complete the setup"
+        }
+      }
+    }
+  ],
+  "removed-apps": [
+    
+  ]
+}
