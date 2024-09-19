@@ -15,3 +15,7 @@ tmp/*
 tmp.py
 *.old
 __pycache__
+# pyinstaller folders
+build
+dist
+*.spec
