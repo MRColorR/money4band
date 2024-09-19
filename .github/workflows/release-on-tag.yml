@@ -22,6 +22,8 @@ jobs:
     steps:
       - name: Checkout the code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for all branches and tags
 
       - name: Set up Python 3.12
         uses: actions/setup-python@v5
@@ -30,47 +32,52 @@ jobs:
           cache: 'pip'  # Enables caching for pip dependencies
 
       - name: Install dependencies
+        shell: bash  # Use bash shell for consistency
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install pyinstaller
+          pip install pyinstaller  # Install PyInstaller
 
       - name: Build with PyInstaller
+        shell: bash
         run: |
-          pyinstaller --onedir --name Money4Band main.py \
-          --hidden-import colorama \
-          --hidden-import docker \
-          --hidden-import requests \
-          --hidden-import pyyaml \
-          --hidden-import psutil \
-          --hidden-import yaml \
-          --hidden-import secrets \
-          --add-data ".resources:.resources" \
-          --add-data "config:config" \
-          --add-data "utils:utils" \
-          --add-data "legacy_money4bandv3x:legacy_money4bandv3x" \
-          --add-data "template:template" \
-          --add-data "LICENSE:LICENSE" \
-          --add-data "README.md:README.md" \
-          --contents-directory "." -y
+          pyinstaller --onedir \
+            --name Money4Band \
+            main.py \
+            --hidden-import colorama \
+            --hidden-import docker \
+            --hidden-import requests \
+            --hidden-import pyyaml \
+            --hidden-import psutil \
+            --hidden-import yaml \
+            --hidden-import secrets \
+            --add-data ".resources:.resources" \
+            --add-data "config:config" \
+            --add-data "utils:utils" \
+            --add-data "legacy_money4bandv3x:legacy_money4bandv3x" \
+            --add-data "template:template" \
+            --add-data "LICENSE:LICENSE" \
+            --add-data "README.md:README.md" \
+            --contents-directory "." \
+            -y
 
-      - name: Archive build artifacts for release (Windows)
-        if: runner.os == 'Windows'
+      - name: Archive build artifacts for release
+        shell: bash
         run: |
-          Compress-Archive -Path 'dist\Money4Band\*' -DestinationPath "Money4Band-${{ matrix.os }}-${{ matrix.architecture }}-${{ github.ref_name }}.zip"
-
-      - name: Archive build artifacts for release (Unix)
-        if: runner.os != 'Windows'
-        run: |
-          tar -czvf Money4Band-${{ matrix.os }}-${{ matrix.architecture }}-${{ github.ref_name }}.tar.gz dist/Money4Band
+          if [ "${{ runner.os }}" == "Windows" ]; then
+            zip -r "Money4Band-${{ matrix.os }}-${{ matrix.architecture }}-${{ github.ref_name }}.zip" dist/Money4Band
+          else
+            tar -czvf "Money4Band-${{ matrix.os }}-${{ matrix.architecture }}-${{ github.ref_name }}.tar.gz" dist/Money4Band
+          fi
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: Money4Band-${{ matrix.os }}-${{ matrix.architecture }}-${{ github.ref_name }}
+          name: "Money4Band-${{ matrix.os }}-${{ matrix.architecture }}-${{ github.ref_name }}"
           path: |
             Money4Band-${{ matrix.os }}-${{ matrix.architecture }}-${{ github.ref_name }}.zip
             Money4Band-${{ matrix.os }}-${{ matrix.architecture }}-${{ github.ref_name }}.tar.gz
+          if-no-files-found: error  # Fail if no files are found
 
   release:
     runs-on: ubuntu-latest
@@ -79,20 +86,18 @@ jobs:
       - name: Checkout the code
         uses: actions/checkout@v4
 
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+
       - name: Create a GitHub release
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          name: Money4Band ${{ github.ref_name }}
-          tag_name: ${{ github.ref_name }}
-          files: |
-            Money4Band-ubuntu-latest-x64-${{ github.ref_name }}.tar.gz
-            Money4Band-ubuntu-latest-arm64-${{ github.ref_name }}.tar.gz
-            Money4Band-ubuntu-latest-armv7-${{ github.ref_name }}.tar.gz
-            Money4Band-macos-latest-x64-${{ github.ref_name }}.tar.gz
-            Money4Band-macos-latest-arm64-${{ github.ref_name }}.tar.gz
-            Money4Band-windows-latest-x64-${{ github.ref_name }}.zip
-            Money4Band-windows-latest-arm64-${{ github.ref_name }}.zip
+          name: "Money4Band ${{ github.ref_name }}"
+          tag_name: "${{ github.ref_name }}"
+          files: "./artifacts/**/*"
           body: |
             Release version ${{ github.ref_name }} of Money4Band
         env:
