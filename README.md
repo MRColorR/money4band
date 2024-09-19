@@ -123,7 +123,7 @@ If you prefer to clone the repository or contribute to the project:
   
   
 
-### M4B v3 legacy Setup Guide
+#### M4B v3 legacy Setup Guide
 
 1.  **Download** the latest version of Money4Band from the [Releases](https://github.com/MRColorR/money4band/releases) or git clone the project.
 2.  **Register** accounts on the application websites. [Here's a list of availabe apps](#app-compatibility-and-sign-up-links-)
