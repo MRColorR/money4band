@@ -37,15 +37,32 @@ jobs:
 
       - name: Build with PyInstaller
         run: |
-          pyinstaller --onedir --name Money4Band main.py --hidden-import colorama --hidden-import docker --hidden-import requests --hidden-import pyyaml --hidden-import psutil --hidden-import yaml --hidden-import secrets --add-data ".resources:.resources" --add-data "config:config" --add-data "utils:utils" --add-data "legacy_money4bandv3x:legacy_money4bandv3x" --add-data "template:template" --add-data "LICENSE:LICENSE" --add-data "README.md:README.md" --contents-directory "." -y
+          pyinstaller --onedir --name Money4Band main.py \
+          --hidden-import colorama \
+          --hidden-import docker \
+          --hidden-import requests \
+          --hidden-import pyyaml \
+          --hidden-import psutil \
+          --hidden-import yaml \
+          --hidden-import secrets \
+          --add-data ".resources:.resources" \
+          --add-data "config:config" \
+          --add-data "utils:utils" \
+          --add-data "legacy_money4bandv3x:legacy_money4bandv3x" \
+          --add-data "template:template" \
+          --add-data "LICENSE:LICENSE" \
+          --add-data "README.md:README.md" \
+          --contents-directory "." -y
 
-      - name: Archive build artifacts for release
+      - name: Archive build artifacts for release (Windows)
+        if: runner.os == 'Windows'
         run: |
-          if [ "${{ matrix.os }}" == "windows-latest" ]; then
-            zip -r Money4Band-${{ matrix.os }}-${{ matrix.architecture }}-${{ github.ref_name }}.zip dist/Money4Band;
-          else
-            tar -czvf Money4Band-${{ matrix.os }}-${{ matrix.architecture }}-${{ github.ref_name }}.tar.gz dist/Money4Band;
-          fi
+          Compress-Archive -Path 'dist\Money4Band\*' -DestinationPath "Money4Band-${{ matrix.os }}-${{ matrix.architecture }}-${{ github.ref_name }}.zip"
+
+      - name: Archive build artifacts for release (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          tar -czvf Money4Band-${{ matrix.os }}-${{ matrix.architecture }}-${{ github.ref_name }}.tar.gz dist/Money4Band
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v3
