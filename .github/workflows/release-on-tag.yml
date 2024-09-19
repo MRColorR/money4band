@@ -62,14 +62,18 @@ jobs:
             --contents-directory "." \
             -y
 
-      - name: Archive build artifacts for release
+      - name: Archive build artifacts for release (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Compress-Archive -Path "dist\Money4Band\*" -DestinationPath "Money4Band-${{ matrix.os }}-${{ matrix.architecture }}-${{ github.ref_name }}.zip"
+
+      - name: Archive build artifacts for release (Unix)
+        if: runner.os != 'Windows'
         shell: bash
         run: |
-          if [ "${{ runner.os }}" == "Windows" ]; then
-            zip -r "Money4Band-${{ matrix.os }}-${{ matrix.architecture }}-${{ github.ref_name }}.zip" dist/Money4Band
-          else
-            tar -czvf "Money4Band-${{ matrix.os }}-${{ matrix.architecture }}-${{ github.ref_name }}.tar.gz" dist/Money4Band
-          fi
+          tar -czvf "Money4Band-${{ matrix.os }}-${{ matrix.architecture }}-${{ github.ref_name }}.tar.gz" dist/Money4Band
+
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
