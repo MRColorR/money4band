@@ -23,7 +23,7 @@ jobs:
       - name: Checkout the code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Fetch all history for all branches and tags
+          fetch-depth: 0  # Fetch all history for generating changelogs
 
       - name: Set up Python 3.12
         uses: actions/setup-python@v5
@@ -61,14 +61,17 @@ jobs:
             --contents-directory "." \
             -y
 
-      - name: Archive build artifacts for release
+      - name: Archive build artifacts for release (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Compress-Archive -Path "dist\Money4Band\*" -DestinationPath "Money4Band-${{ matrix.os }}-${{ matrix.architecture }}-${{ github.ref_name }}.zip"
+
+      - name: Archive build artifacts for release (Unix)
+        if: runner.os != 'Windows'
         shell: bash
         run: |
-          if [ "${{ runner.os }}" == "Windows" ]; then
-            zip -r "Money4Band-${{ matrix.os }}-${{ matrix.architecture }}-${{ github.ref_name }}.zip" dist/Money4Band
-          else
-            tar -czvf "Money4Band-${{ matrix.os }}-${{ matrix.architecture }}-${{ github.ref_name }}.tar.gz" dist/Money4Band
-          fi
+          tar -czvf "Money4Band-${{ matrix.os }}-${{ matrix.architecture }}-${{ github.ref_name }}.tar.gz" dist/Money4Band
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -85,11 +88,23 @@ jobs:
     steps:
       - name: Checkout the code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for generating changelogs
 
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
           path: ./artifacts
+
+      - name: Generate Changelog
+        shell: bash
+        run: |
+          git fetch --tags
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          previous_tag=$(git tag --sort=-creatordate | sed -n 2p)
+          current_tag=${GITHUB_REF#refs/tags/}
+          echo "Generating changelog from $previous_tag to $current_tag"
+          git log "$previous_tag..$current_tag" --pretty=format:"- %s (%h)" > CHANGELOG.md
 
       - name: Create a GitHub release
         uses: softprops/action-gh-release@v2
@@ -97,8 +112,7 @@ jobs:
         with:
           name: "Money4Band ${{ github.ref_name }}"
           tag_name: "${{ github.ref_name }}"
+          body_path: "./CHANGELOG.md"
           files: "./artifacts/**/*"
-          body: |
-            Release version ${{ github.ref_name }} of Money4Band
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
