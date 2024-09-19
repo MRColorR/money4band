@@ -1,0 +1,184 @@
+{
+  "user": {
+    "Nickname": "yourNickname",
+    "email": "your@mail.com"
+  },
+  "device_info": {
+    "device_name": "yourDeviceName"
+  },
+  "apps": {
+    "earnapp": {
+      "enabled": false,
+      "uuid": "sdk-node-yourEARNAPPDeviceUUID"
+    },
+    "honeygain": {
+      "enabled": false,
+      "email": "yourHONEYGAINMail",
+      "password": "yourHONEYGAINPw"
+    },
+    "iproyalpawns": {
+      "enabled": false,
+      "email": "yourIPROYALPAWNSMail",
+      "password": "yourIPROYALPAWNSPw"
+    },
+    "packetstream": {
+      "enabled": false,
+      "cid": "yourPACKETSTREAMCID"
+    },
+    "traffmonetizer": {
+      "enabled": false,
+      "token": "yourTRAFFMONETIZERToken"
+    },
+    "repocket": {
+      "enabled": false,
+      "email": "yourREPOCKETMail",
+      "apikey": "yourREPOCKETAPIKey"
+    },
+    "earnfm": {
+      "enabled": false,
+      "apikey": "yourEARNFMAPIKey"
+    },
+    "proxyrack": {
+      "enabled": false,
+      "apikey": "yourPROXYRACKAPIKey",
+      "uuid": "yourPROXYRACKDeviceUUID"
+    },
+    "proxylite": {
+      "enabled": false,
+      "userid": "yourPROXYLITEUserID"
+    },
+    "bitping": {
+      "enabled": false,
+      "email": "yourBITPINGMail",
+      "password": "yourBITPINGPw"
+    },
+    "speedshare": {
+      "enabled": false,
+      "code": "yourSPEEDSHARECode",
+      "uuid": "yourSPEEDSHAREDeviceUUID"
+    },
+    "grass": {
+      "enabled": false,
+      "email": "yourGRASSMail",
+      "password": "yourGRASSPw"
+    },
+    "mystnode": {
+      "enabled": false,
+      "dashboard_port": 4449
+    },
+    "peer2profit": {
+      "enabled": false,
+      "email": "yourPEER2PROFITMail"
+    }
+  },
+  "m4b_dashboard": {
+    "enabled": true,
+    "dashboard_port": 8081
+  },
+  "proxies": {
+    "enabled": false,
+    "url": "",
+    "url_example": "protocol://username:password@ip:port"
+  },
+  "notifications": {
+    "enabled": false,
+    "url": "",
+    "url_example": "yourApp:yourToken@yourWebHook"
+  },
+  "compose_config_common": {
+    "network": {
+      "driver": "${NETWORK_DRIVER}",
+      "subnet": "${NETWORK_SUBNET}",
+      "netmask": "${NETWORK_NETMASK}"
+    },
+    "proxy_service": {
+      "container_name": "${DEVICE_NAME}_tun2socks",
+      "hostname": "${DEVICE_NAME}_tun2socks",
+      "image": "xjasonlyu/tun2socks",
+      "environment": [
+        "LOGLEVEL=info",
+        "PROXY=${STACK_PROXY_URL}",
+        "EXTRA_COMMANDS=ip rule add iif lo ipproto udp dport 53 lookup main;"
+      ],
+      "cap_add": ["NET_ADMIN"],
+      "network_mode": "bridge",
+      "dns": ["1.1.1.1", "8.8.8.8", "1.0.0.1", "8.8.4.4"],
+      "ports": ["${MYSTNODE_DASHBOARD_PORT}:4449"],
+      "volumes": ["/dev/net/tun:/dev/net/tun"],
+      "restart": "always",
+      "cpus": "${APP_CPU_LIMIT_BIG}",
+      "mem_reservation": "${APP_MEM_RESERV_BIG}",
+      "mem_limit": "${APP_MEM_LIMIT_BIG}"
+    },
+    "watchtower_service": {
+      "proxy_disabled": {
+        "container_name": "${DEVICE_NAME}_watchtower",
+        "hostname": "${DEVICE_NAME}_watchtower",
+        "image": "containrrr/watchtower:latest",
+        "environment": [
+          "WATCHTOWER_POLL_INTERVAL=14400",
+          "WATCHTOWER_ROLLING_RESTART=true",
+          "WATCHTOWER_NO_STARTUP_MESSAGE=true",
+          "WATCHTOWER_CLEANUP=true",
+          "WATCHTOWER_NOTIFICATION_URL=${WATCHTOWER_NOTIFICATION_URL}"
+        ],
+        "volumes": [
+          "/var/run/docker.sock:/var/run/docker.sock"
+        ],
+        "restart": "always",
+        "cpus": "${APP_CPU_LIMIT_MEDIUM}",
+        "mem_reservation": "${APP_MEM_RESERV_MEDIUM}",
+        "mem_limit": "${APP_MEM_LIMIT_MEDIUM}"
+      },
+      "proxy_enabled": {
+        "container_name": "${DEVICE_NAME}_watchtower",
+        "hostname": "${DEVICE_NAME}_watchtower",
+        "image": "containrrr/watchtower:latest",
+        "environment": [
+          "WATCHTOWER_POLL_INTERVAL=14400",
+          "WATCHTOWER_ROLLING_RESTART=false",
+          "WATCHTOWER_NO_STARTUP_MESSAGE=true",
+          "WATCHTOWER_CLEANUP=true",
+          "WATCHTOWER_NOTIFICATION_URL=${WATCHTOWER_NOTIFICATION_URL}"
+        ],
+        "volumes": [
+          "/var/run/docker.sock:/var/run/docker.sock"
+        ],
+        "restart": "always",
+        "cpus": "${APP_CPU_LIMIT_MEDIUM}",
+        "mem_reservation": "${APP_MEM_RESERV_MEDIUM}",
+        "mem_limit": "${APP_MEM_LIMIT_MEDIUM}"
+      }
+    },
+    "m4b_dashboard_service": {
+      "container_name": "${DEVICE_NAME}_m4b_dashboard",
+      "hostname": "${DEVICE_NAME}_m4b_dashboard",
+      "image": "nginx:alpine-slim",
+      "volumes": [
+        "./.resources/.www:/usr/share/nginx/html",
+        "./.resources/.assets:/usr/share/nginx/html/.images:ro",
+        "./config/app-config.json:/usr/share/nginx/html/.config/app-config.json:ro"
+      ],
+      "ports": ["${M4B_DASHBOARD_DASHBOARD_PORT}:80"],
+      "restart": "always",
+      "cpus": "${APP_CPU_LIMIT_LITTLE}",
+      "mem_reservation": "${APP_MEM_RESERV_LITTLE}",
+      "mem_limit": "${APP_MEM_LIMIT_LITTLE}"
+    }
+  },
+  "resource_limits": {
+    "app_cpu_limit_little": 0.8,
+    "app_cpu_limit_medium": 1,
+    "app_cpu_limit_big": 2,
+    "app_cpu_limit_huge": 4,
+    "ram_cap_mb_default": 6144,
+    "app_mem_reserv_little": "64m",
+    "app_mem_limit_little": "128m",
+    "app_mem_reserv_medium": "128m",
+    "app_mem_limit_medium": "256m",
+    "app_mem_reserv_big": "256m",
+    "app_mem_limit_big": "512m",
+    "app_mem_reserv_huge": "512m",
+    "app_mem_limit_huge": "1024m"
+  }
+}
