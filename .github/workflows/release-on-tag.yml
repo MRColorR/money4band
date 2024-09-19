@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - "*.*.*"  # Matches tags like 1.0.0, 2.1.1, etc.
+  workflow_dispatch:
 
 jobs:
   build:
