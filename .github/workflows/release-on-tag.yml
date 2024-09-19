@@ -65,7 +65,7 @@ jobs:
           tar -czvf Money4Band-${{ matrix.os }}-${{ matrix.architecture }}-${{ github.ref_name }}.tar.gz dist/Money4Band
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Money4Band-${{ matrix.os }}-${{ matrix.architecture }}-${{ github.ref_name }}
           path: |
