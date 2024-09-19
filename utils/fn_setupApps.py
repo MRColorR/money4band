@@ -129,33 +129,46 @@ def collect_user_info(user_config: Dict[str, Any], m4b_config: Dict[str, Any]) -
         m4b_config (dict): The m4b configuration dictionary.
     """
     try:
+        # Get the system's current username (fallback to 'user' on exception)
         nickname = getpass.getuser()
     except Exception:
         nickname = "user"
+
+    # Store the username in the user configuration
     user_config['user']['Nickname'] = nickname
-    
-    # If the device_name is equal to the placeholder then take the hostname as default device_name and ask user if wants to change it 
-    device_name = user_config['device_info'].get('device_name')
-    if device_name and device_name.lower() == ('yourDeviceName').lower():
+
+    # Fetch the existing device name from the configuration, use 'yourDeviceName' as placeholder
+    device_name = user_config['device_info'].get('device_name', 'yourDeviceName')
+
+    # If the device name is 'yourDeviceName', try using the system's hostname, otherwise generate a random name
+    if device_name.lower() == ('yourDeviceName').lower():
         try:
-            device_name = platform.node()
+            device_name = platform.node()  # Default to system hostname
         except Exception:
-            logging.warning('Unable to get hostname for devicename')
-            pass
+            logging.warning('Unable to retrieve hostname for device name.')
+            device_name = generate_device_name(  # Generate random name if hostname is not available
+                m4b_config['word_lists']['adjectives'], 
+                m4b_config['word_lists']['animals'], 
+                use_uuid_suffix=False
+            )
 
-    if device_name:
-        if not ask_question_yn(f'The current device name is {device_name}. Do you want to change it?'):
-            return
+    # Ask the user if they want to keep the current device name or change it
+    if ask_question_yn(f'The current device name is "{device_name}". Do you want to change it?'):
+        # Prompt for new device name or leave blank to auto-generate
+        new_device_name = input('Enter your new device name (or leave blank to generate one randomly): ').strip()
 
-    device_name = input('Enter your device name: Or leave it blank to generate a random one:').strip()
-    device_name = generate_device_name(
-        m4b_config['word_lists']['adjectives'], 
-        m4b_config['word_lists']['animals'], 
-        device_name=device_name, 
-        use_uuid_suffix=False 
-    )
+        # Generate the device name based on input or generate randomly
+        device_name = generate_device_name(
+            m4b_config['word_lists']['adjectives'],
+            m4b_config['word_lists']['animals'],
+            device_name=new_device_name,
+            use_uuid_suffix=False
+        )
 
+    # Set the final device name in the user configuration
     user_config['device_info']['device_name'] = device_name
+    logging.info(f"Device name set to: {device_name}")
+
 
 def _configure_apps(user_config: Dict[str, Any], apps: Dict, m4b_config: Dict):
     """
