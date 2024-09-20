@@ -71,7 +71,7 @@
 
 		- Extract the tar.gz file:```tar -xvzf Money4Band-ubuntu-latest-x64-<version>.tar.gz```
 
-		- Navigate to the extracted folder and run the script:```./money4bandchmod +x money4band``` 
+		- Navigate to the extracted folder and run the script:```./money4band``` 
 		- **Note:** You can make sure it is executable on your OS with ```chmod +x money4band```
 
 	-  **macOS Users:**
@@ -80,7 +80,7 @@
 
 		- Extract the tar.gz file:```tar -xvzf Money4Band-macos-latest-x64-<version>.tar.gz```
 
-		- Navigate to the extracted folder and run the script:```./money4bandchmod +x money4band``` 
+		- Navigate to the extracted folder and run the script:```./money4band``` 
 		- **Note:** You can make sure it is executable on your OS with ```chmod +x money4band```
 
 	-  **ARM Devices (e.g., Raspberry Pi):**
@@ -115,9 +115,10 @@ If you prefer to clone the repository or contribute to the project:
 
 1.  **Clone** the project:```git clone https://github.com/MRColorR/money4band.git && cd money4band```
 
--  **OR** download the ZIP and extract it using one of the options below:
-	- ```wget https://github.com/MRColorR/money4band/archive/refs/heads/main.zip && unzip main.zip && cd money4band-main```
-	- ```Invoke-WebRequest -Uri https://github.com/MRColorR/money4band/archive/refs/heads/main.zip -OutFile main.zip; Expand-Archive -Path main.zip -DestinationPath .\ ; cd money4band*```
+	-  **OR** download the ZIP and extract it using one of the options below:
+		- ```wget https://github.com/MRColorR/money4band/archive/refs/heads/main.zip && unzip main.zip && cd money4band-main```
+		- ```Invoke-WebRequest -Uri https://github.com/MRColorR/money4band/archive/refs/heads/main.zip -OutFile main.zip; Expand-Archive -Path main.zip -DestinationPath .\ ; cd money4band*```
+2.  **Run** the project from source code:```pip install -r requirements.txt && python main.py```
 
   
   
