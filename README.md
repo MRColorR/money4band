@@ -118,7 +118,11 @@ If you prefer to clone the repository or contribute to the project:
 	-  **OR** download the ZIP and extract it using one of the options below:
 		- ```wget https://github.com/MRColorR/money4band/archive/refs/heads/main.zip && unzip main.zip && cd money4band-main```
 		- ```Invoke-WebRequest -Uri https://github.com/MRColorR/money4band/archive/refs/heads/main.zip -OutFile main.zip; Expand-Archive -Path main.zip -DestinationPath .\ ; cd money4band*```
-2.  **Run** the project from source code:```pip install -r requirements.txt && python main.py```
+2.  **Run** the project from source code:```pip install -r requirements.txt && python3 main.py```
+	- Feel free to create a virtual environment first if you want to keep your OS Python installation cleaner: `python3 -m venv venvm4b`
+ 	- Remember to activate the virtual environment by using:
+	  - (Linux/Mac):  ```source venvm4b/bin/activate```
+	  - (Windows): ```venvm4b\.Scripts\activate```
 
   
   
