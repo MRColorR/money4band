@@ -185,6 +185,9 @@ Register an account on the app's sites clicking each apps' names in the followin
 ### Getting Started with Multi-Proxy
 
 1.  **Prepare Proxies**: Create a `proxies.txt` file in the root folder of M4B, listing each proxy on a separate line and ending with a new line.
+	- Proxy entries can be formatted in one of the following ways:
+ 		- **With Authentication:** `protocol://proxyUsername:proxyPassword@proxy_url:proxy_port`
+   		-  **Without Authentication:** `protocol://proxy_url:proxy_port`
 2. **Start M4B and do the Setup**: During the setup Money4Band will ask you if you want to setup mutiplroxy, reply yes and follow the steps.
 
 ### Getting Started with Multi-Proxy (Legacy M4B v3)
@@ -194,7 +197,9 @@ Register an account on the app's sites clicking each apps' names in the followin
 
 >  **Notice:** While using multiple proxies, be aware that only certain apps permit proxy usage per their Terms of Service. We recommend using personal, private proxies with IPs not flagged as proxies and always respecting the ToS of each app.
 
-  
+> **Notice:** Proxy entries can be formatted in one of the following ways:
+>	- **With Authentication:** `protocol://proxyUsername:proxyPassword@proxy_url:proxy_port`
+> 	-  **Without Authentication:** `protocol://proxy_url:proxy_port`
 
 ## Compatibility and tested environments
 
