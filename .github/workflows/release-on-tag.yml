@@ -91,7 +91,7 @@ jobs:
       - name: Build with Docker for ARM architectures
         if: matrix.os == 'ubuntu-latest' && (matrix.architecture == 'arm64' || matrix.architecture == 'arm/v7')
         run: |
-          docker build --file workflow-linux-arm64.dockerfile --platform linux/${{ matrix.architecture }} -t money4band-builder .
+          docker build --file workflow-linux-arm64.dockerfile --platform linux/${{ matrix.architecture }} -t money4band-builder --cache-from type=inline --cache-to type=inline .
           docker run --platform linux/${{ matrix.architecture }} --rm -v $(pwd)/dist:/app/dist money4band-builder
 
       # Archive build artifacts for Windows
