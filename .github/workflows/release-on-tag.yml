@@ -40,19 +40,10 @@ jobs:
           echo "Python detected arch: $(python3 -m platform)"
           echo "Expected runner architecture: ${{ matrix.architecture }}"
 
-      # Setup QEMU and Docker Buildx only for Ubuntu runners targeting arm/arm64 architectures
-      - name: Set up QEMU for cross-compilation
-        if: matrix.os == 'ubuntu-latest' && (matrix.architecture == 'arm64' || matrix.architecture == 'armv7')
-        uses: docker/setup-qemu-action@v3
-        with:
-          platforms: all
-
-      - name: Set up Docker Buildx
-        if: matrix.os == 'ubuntu-latest' && (matrix.architecture == 'arm64' || matrix.architecture == 'armv7')
-        uses: docker/setup-buildx-action@v3
-
+    # Runners supported architectures use normal build process
       # Step: Install dependencies
       - name: Install dependencies
+        if: matrix.os != 'ubuntu-latest' || (matrix.architecture != 'arm64' && matrix.architecture != 'armv7')
         shell: bash  # Use bash shell for consistency
         run: |
           python -m pip install --upgrade pip
@@ -61,6 +52,7 @@ jobs:
 
       # Step: Build with PyInstaller
       - name: Build with PyInstaller
+        if: matrix.os != 'ubuntu-latest' || (matrix.architecture != 'arm64' && matrix.architecture != 'armv7')
         shell: bash
         run: |
           pyinstaller --onedir \
@@ -82,6 +74,25 @@ jobs:
             --add-data "README.md:README.md" \
             --contents-directory "." \
             -y
+
+    # Runners unsupported architectures use docker build process
+      # Setup QEMU and Docker Buildx only for Ubuntu runners for arch not supported by runners
+      - name: Set up QEMU for cross-compilation
+        if: matrix.os == 'ubuntu-latest' && (matrix.architecture == 'arm64' || matrix.architecture == 'armv7')
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: all
+
+      - name: Set up Docker Buildx
+        if: matrix.os == 'ubuntu-latest' && (matrix.architecture == 'arm64' || matrix.architecture == 'armv7')
+        uses: docker/setup-buildx-action@v3
+
+      # Use Docker for cross-architecture builds for arch not supported by runners
+      - name: Build with Docker for ARM architectures
+        if: matrix.os == 'ubuntu-latest' && (matrix.architecture == 'arm64' || matrix.architecture == 'armv7')
+        run: |
+          docker build --file workflow-linux-arm64.dockerfile --platform linux/${{ matrix.architecture }} -t money4band-builder .
+          docker run --platform linux/${{ matrix.architecture }} --rm -v $(pwd)/dist:/app/dist money4band-builder
 
       # Archive build artifacts for Windows
       - name: Archive build artifacts for release (Windows)
