@@ -32,6 +32,14 @@ jobs:
           python-version: '3.12'
           cache: 'pip'  # Enables caching for pip dependencies
 
+      # Step to print platform details for diagnostic purposes
+      - name: Check Python platform info
+        shell: bash  # Use bash shell for consistency
+        run: |
+          echo "Runner OS detected arch: $(uname -a)"
+          echo "Python detected arch: $(python3 -m platform)"
+          echo "Expected runner architecture: ${{ matrix.architecture }}"
+
       - name: Install dependencies
         shell: bash  # Use bash shell for consistency
         run: |
