@@ -45,7 +45,7 @@ def start_stack(compose_file: str = './docker-compose.yaml', env_file: str = './
 
     use_sudo = not is_user_root() and platform.system().lower() == 'linux'
     try:
-        command = ["docker", "compose", "-f", compose_file, "--env-file", env_file, "up", "-d"]
+        command = ["docker", "compose", "-f", compose_file, "--env-file", env_file, "up", "-d", "--remove-orphans"]
         result = run_docker_command(command, use_sudo=use_sudo)
         print(f"{Fore.GREEN}All Apps for '{instance_name}' instance started successfully.{Style.RESET_ALL}")
         time.sleep(2)
