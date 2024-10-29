@@ -1,8 +1,10 @@
 import os
+import getpass
 import platform
 import subprocess
 import logging
 from colorama import Fore, Style
+
 
 def is_user_root():
     """
@@ -11,6 +13,7 @@ def is_user_root():
     """
     return os.geteuid() == 0 if platform.system().lower() == 'linux' else False
 
+
 def is_user_in_docker_group():
     """
     Check if the current user is in the Docker group on Linux.
@@ -18,10 +21,13 @@ def is_user_in_docker_group():
     """
     if platform.system().lower() != 'linux':
         return True
-
-    user = os.getlogin()
+    # use getpass.getuser() instead of os.getlogin() as it is more robust
+    user = getpass.getuser()
+    logging.info(f"Detected user: {user}")
+    logging.info(f"Checking if user '{user}' is in the Docker group...")
     groups = subprocess.run(["groups", user], capture_output=True, text=True)
     return "docker" in groups.stdout
+
 
 def create_docker_group_if_needed():
     """
@@ -37,13 +43,15 @@ def create_docker_group_if_needed():
             subprocess.run(["sudo", "groupadd", "docker"], check=True)
             logging.info(f"{Fore.GREEN}Docker group created successfully.{Style.RESET_ALL}")
 
-        user = os.getlogin()
+        # use getpass.getuser() instead of os.getlogin() as it is more robust
+        user = getpass.getuser()
         logging.info(f"Adding user '{user}' to Docker group...")
         subprocess.run(["sudo", "usermod", "-aG", "docker", user], check=True)
         logging.info(f"{Fore.GREEN}User '{user}' added to Docker group. Please log out and log back in.{Style.RESET_ALL}")
     except subprocess.CalledProcessError as e:
         logging.error(f"{Fore.RED}Failed to add user to Docker group: {e}{Style.RESET_ALL}")
         raise RuntimeError("Failed to add user to Docker group.") from e
+
 
 def run_docker_command(command, use_sudo=False):
     """
@@ -59,6 +67,7 @@ def run_docker_command(command, use_sudo=False):
     if use_sudo and platform.system().lower() == 'linux':
         command.insert(0, "sudo")
     return subprocess.run(command, check=True, capture_output=True, text=True)
+
 
 def setup_service(service_name="docker.binfmt", service_file_path='./.resources/.files/docker.binfmt.service'):
     """
