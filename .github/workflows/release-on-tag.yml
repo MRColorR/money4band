@@ -30,7 +30,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-          cache: 'pip'  # Enables caching for pip dependencies
+          #cache: 'pip'  # Enables caching for pip dependencies , it seems to fail in DinD containers for arm builds
 
       # Step to print platform details for diagnostic purposes
       - name: Check Python platform info
