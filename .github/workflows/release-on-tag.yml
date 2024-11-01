@@ -32,10 +32,6 @@ jobs:
           python-version: '3.12'
           cache: 'pip'  # Enables caching for pip dependencies
 
-      # Prevents the post python step to fail if cache folder has not been created
-      - name: Ensure cache directory exists
-        run: mkdir -p /home/runner/.cache/pip
-
       # Step to print platform details for diagnostic purposes
       - name: Check Python platform info
         shell: bash  # Use bash shell for consistency
