@@ -305,7 +305,34 @@
         "email": {},
         "password": {}
       }
+    },
+    {
+      "name": "PACKETSHARE",
+      "dashboard": "https://packetshare.io/ucenter.html",
+      "link": "https://www.packetshare.io/?code=DD5F38F163EEA97D",
+      "compose_config": {
+        "container_name": "${DEVICE_NAME}_packetshare",
+        "hostname": "${DEVICE_NAME}_packetshare",
+        "image": "packetshare/packetshare:latest",
+        "command": "-accept-tos -email $PACKETSHARE_EMAIL -password $PACKETSHARE_PASSWORD",
+        "environment": [
+          "PACKETSHARE_DUMMY=''"
+        ],
+        "restart": "always",
+        "cpus": "${APP_CPU_LIMIT_MEDIUM}",
+        "mem_reservation": "${APP_MEM_RESERV_MEDIUM}",
+        "mem_limit": "${APP_MEM_LIMIT_MEDIUM}"
+      },
+      "compose_config_proxy": {
+        "network_mode": "service:proxy",
+        "hostname": null
+      },
+      "flags": {
+        "email": {},
+        "password": {}
+      }
     }
+    
   ],
   "extra-apps": [
     {
