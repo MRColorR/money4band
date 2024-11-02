@@ -309,7 +309,7 @@
     {
       "name": "PACKETSHARE",
       "dashboard": "https://packetshare.io/ucenter.html",
-      "link": "https://www.packetshare.io/?code=DD5F38F163EEA97D",
+      "link": "https://www.packetshare.io/?code=A260871CFD822E35",
       "compose_config": {
         "container_name": "${DEVICE_NAME}_packetshare",
         "hostname": "${DEVICE_NAME}_packetshare",
