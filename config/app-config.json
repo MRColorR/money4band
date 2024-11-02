@@ -314,7 +314,7 @@
         "container_name": "${DEVICE_NAME}_packetshare",
         "hostname": "${DEVICE_NAME}_packetshare",
         "image": "packetshare/packetshare:latest",
-        "command": "-accept-tos -email $PACKETSHARE_EMAIL -password $PACKETSHARE_PASSWORD",
+        "command": "-accept-tos -email=${PACKETSHARE_EMAIL} -password=${PACKETSHARE_PASSWORD}",
         "environment": [
           "PACKETSHARE_DUMMY=''"
         ],
