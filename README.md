@@ -3,6 +3,8 @@
 
 <img  src="./.resources/.assets/M4B_logo_small.png?raw=true"  width="96"> - **Leave a star ⭐ if you like this project 🙂 thank you.**
 
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/MRColorR/money4band/release-on-tag.yml?style=flat-square&link=https%3A%2F%2Fgithub.com%2FMRColorR%2Fmoney4band)
+
   
 
 **|Easy automatic multi-app passive income project with Web Dashboard, Auto Updater, and Proxy Support :dollar::satisfied::+1:|**
