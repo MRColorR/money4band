@@ -306,10 +306,10 @@
         "password": {}
       }
     },
-        {
+    {
       "name": "GRADIENT",
-      "dashboard": "https://app.getgrass.io/dashboard",
-      "link": "https://app.getgrass.io/register/?referralCode=qyvJmxgNUhcLo2f",
+      "dashboard": "https://app.gradient.network/dashboard",
+      "link": "https://app.gradient.network/signup?code=2WEG9X",
       "compose_config": {
         "container_name": "${DEVICE_NAME}_gradient",
         "hostname": "${DEVICE_NAME}_gradient",
@@ -358,7 +358,6 @@
         "password": {}
       }
     }
-    
   ],
   "extra-apps": [
     {
