@@ -307,6 +307,32 @@
       }
     },
     {
+      "name": "GRADIENT",
+      "dashboard": "https://app.gradient.network/dashboard",
+      "link": "https://app.gradient.network/signup?code=2WEG9X",
+      "compose_config": {
+        "container_name": "${DEVICE_NAME}_gradient",
+        "hostname": "${DEVICE_NAME}_gradient",
+        "image": "carbon2029/dockweb:latest",
+        "environment": [
+          "GRADIENT_EMAIL=$GRADIENT_EMAIL",
+          "GRADIENT_PASS=$GRADIENT_PASSWORD"
+        ],
+        "restart": "always",
+        "cpus": "${APP_CPU_LIMIT_BIG}",
+        "mem_reservation": "${APP_MEM_RESERV_BIG}",
+        "mem_limit": "${APP_MEM_LIMIT_BIG}"
+      },
+      "compose_config_proxy": {
+        "network_mode": "service:proxy",
+        "hostname": null
+      },
+      "flags": {
+        "email": {},
+        "password": {}
+      }
+    },
+    {
       "name": "PACKETSHARE",
       "dashboard": "https://packetshare.io/ucenter.html",
       "link": "https://www.packetshare.io/?code=A260871CFD822E35",
@@ -332,7 +358,6 @@
         "password": {}
       }
     }
-    
   ],
   "extra-apps": [
     {
