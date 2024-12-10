@@ -28,24 +28,29 @@ from utils.checker import fetch_docker_tags, check_img_arch_support
 from utils.fn_stopStack import stop_stack, stop_all_stacks
 from utils.networker import find_next_available_port
 
+
 def configure_email(app: Dict, flag_config: Dict, config: Dict):
     email = ask_email(f'Enter your {app["name"].lower().title()} email:', default=config.get("email"))
     config['email'] = email
+
 
 def configure_password(app: Dict, flag_config: Dict, config: Dict):
     print(f'Note: If you are using login with Google, remember to set also a password for your {app["name"].lower().title()} account!')
     password = ask_string(f'Enter your {app["name"].lower().title()} password:', default=config.get("password"))
     config['password'] = password
 
+
 def configure_apikey(app: Dict, flag_config: Dict, config: Dict):
     print(f'Find/Generate your APIKey inside your {app["name"].lower().title()} dashboard/profile.')
     apikey = ask_string(f'Enter your {app["name"].lower().title()} APIKey:', default=config.get("apikey"))
     config['apikey'] = apikey
 
+
 def configure_userid(app: Dict, flag_config: Dict, config: Dict):
     print(f'Find your UserID inside your {app["name"].lower().title()} dashboard/profile.')
     userid = ask_string(f'Enter your {app["name"].lower().title()} UserID:', default=config.get("userid"))
     config['userid'] = userid
+
 
 def configure_uuid(app: Dict, flag_config: Dict, config: Dict):
     print(f'Starting UUID generation/import for {app["name"].lower().title()}')
@@ -83,21 +88,25 @@ def configure_uuid(app: Dict, flag_config: Dict, config: Dict):
     uuid = f'{prefix}{uuid}'
     config['uuid'] = uuid
 
+
 def configure_cid(app: Dict, flag_config: Dict, config: Dict):
     print(f'Find your CID inside your {app["name"].lower().title()} dashboard/profile.')
     print("Example: For packetstream you can fetch it from your dashboard https://packetstream.io/dashboard/download?linux# then click on -> Looking for linux app -> now search for CID= in the code shown in the page, you need to enter the code after -e CID= (e.g. if in the code CID=6aTk, just enter 6aTk)")
     cid = ask_string(f'Enter your {app["name"].lower().title()} CID:', default=config.get("cid"))
     config['cid'] = cid
 
+
 def configure_code(app: Dict, flag_config: Dict, config: Dict):
     print(f'Find your code inside your {app["name"].lower().title()} dashboard/profile.')
     code = ask_string(f'Enter your {app["name"].lower().title()} code:', default=config.get("code"))
     config['code'] = code
 
+
 def configure_token(app: Dict, flag_config: Dict, config: Dict):
     print(f'Find your token inside your {app["name"].lower().title()} dashboard/profile.')
     token = ask_string(f'Enter your {app["name"].lower().title()} token:', default=config.get("token"))
     config['token'] = token
+
 
 def configure_manual(app: Dict, flag_config: Dict, config: Dict):
     if 'instructions' not in flag_config:
@@ -107,6 +116,7 @@ def configure_manual(app: Dict, flag_config: Dict, config: Dict):
     print(f'{Fore.YELLOW}{flag_config["instructions"]}{Style.RESET_ALL}')
     print(f'{Fore.YELLOW}Please after completing this automated setup check also the app\'s website for further instructions if there are any.{Style.RESET_ALL}')
     input('Press enter to continue...')
+
 
 flag_function_mapper = {
     'email': configure_email,
@@ -119,6 +129,7 @@ flag_function_mapper = {
     'token': configure_token,
     'manual': configure_manual
 }
+
 
 def collect_user_info(user_config: Dict[str, Any], m4b_config: Dict[str, Any]) -> None:
     """
@@ -209,6 +220,7 @@ def _configure_apps(user_config: Dict[str, Any], apps: Dict, m4b_config: Dict):
         user_config['apps'][app_name] = config
         time.sleep(m4b_config['system']['sleep_time'])
 
+
 def configure_apps(user_config: Dict[str, Any], app_config: Dict, m4b_config: Dict) -> None:
     """
     Configure apps by collecting user inputs.
@@ -220,6 +232,7 @@ def configure_apps(user_config: Dict[str, Any], app_config: Dict, m4b_config: Di
     """
     _configure_apps(user_config, app_config['apps'], m4b_config)
 
+
 def configure_extra_apps(user_config: Dict[str, Any], app_config: Dict, m4b_config: Dict) -> None:
     """
     Configure extra apps by collecting user inputs.
@@ -230,6 +243,7 @@ def configure_extra_apps(user_config: Dict[str, Any], app_config: Dict, m4b_conf
         m4b_config (dict): The m4b configuration dictionary.
     """
     _configure_apps(user_config, app_config['extra-apps'], m4b_config)
+
 
 # Supported services and their URL patterns
 SUPPORTED_NOTIFICATION_SERVICES = {
@@ -270,6 +284,7 @@ def validate_notification_url(url: str) -> bool:
             return True
     logging.error(f"Given URL {url} does not match any supported notification service")
     return False
+
 
 def setup_notifications(user_config: Dict[str, Any]) -> None:
     """
@@ -512,4 +527,3 @@ if __name__ == '__main__':
     except Exception as e:
         logging.error(f"An unexpected error occurred: {str(e)}")
         raise
-

@@ -5,6 +5,7 @@ import argparse
 import json
 from typing import Dict, Any, Optional
 
+
 def reset_config(src_path: str, dest_path: str) -> None:
     """
     Resets a configuration file by copying from the source path to the destination path.
@@ -40,7 +41,8 @@ def reset_config(src_path: str, dest_path: str) -> None:
         logger.error(f"An unexpected error occurred: {str(e)}")
         raise
 
-def main(app_config_path: str, m4b_config_path: str, user_config_path: str, src_path: str, dest_path: str) -> None:
+
+def main(app_config_path: str, m4b_config_path: str, user_config_path: str, src_path: str = './template/user-config.json', dest_path: str = './config/user-config.json') -> None:
     """
     Main function to call the reset_config function.
 
@@ -52,6 +54,7 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str, src_
     dest_path -- the destination file path
     """
     reset_config(src_path=src_path, dest_path=dest_path)
+
 
 if __name__ == '__main__':
     # Get the script absolute path and name
