@@ -20,6 +20,7 @@ from utils.cls import cls
 from utils.fn_reset_config import main as reset_main
 from utils.updater import check_update_available
 
+
 def mainmenu(m4b_config_path: str, apps_config_path: str, user_config_path: str, utils_dir_path: str) -> None:
     """
     Main menu of the script.
@@ -108,6 +109,7 @@ def mainmenu(m4b_config_path: str, apps_config_path: str, user_config_path: str,
             logging.error(f"An error occurred while processing the menu: {str(e)}")
             raise
 
+
 def main():
     # Get the script absolute path and name
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -169,6 +171,7 @@ def main():
     except Exception as e:
         logging.error(f"An error occurred: {str(e)}")
         raise
+
 
 if __name__ == '__main__':
     main()
