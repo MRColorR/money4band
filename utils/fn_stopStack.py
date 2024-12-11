@@ -3,7 +3,6 @@ import os
 import argparse
 import logging
 import platform
-import subprocess
 import time
 from colorama import Fore, Style, just_fix_windows_console
 
@@ -19,6 +18,7 @@ from utils.cls import cls
 from utils.prompt_helper import ask_question_yn
 from utils.loader import load_json_config
 from utils.helper import is_user_root, is_user_in_docker_group, create_docker_group_if_needed, run_docker_command
+
 
 def stop_stack(compose_file: str = './docker-compose.yaml', instance_name: str = 'money4band', skip_questions: bool = False) -> bool:
     """
@@ -43,20 +43,21 @@ def stop_stack(compose_file: str = './docker-compose.yaml', instance_name: str =
     use_sudo = not is_user_root() and platform.system().lower() == 'linux'
     try:
         command = ["docker", "compose", "-f", compose_file, "down"]
-        result = run_docker_command(command, use_sudo=use_sudo)
-        print(f"{Fore.GREEN}All Apps for '{instance_name}' instance stopped and stack deleted.{Style.RESET_ALL}")
+        exit_code = run_docker_command(command, use_sudo=use_sudo)
+        if exit_code == 0:
+            print(f"{Fore.GREEN}All Apps for '{instance_name}' instance stopped and stack deleted.{Style.RESET_ALL}")
+            logging.info(f"Stack for '{instance_name}' stopped successfully.")
+        else:
+            print(f"{Fore.RED}Error stopping and deleting Docker stack for '{instance_name}' instance. Please check the configuration and try again.{Style.RESET_ALL}")
+            logging.error(f"Stack for '{instance_name}' failed to stop with exit code {exit_code}.")
         time.sleep(2)
-        logging.info(result.stdout)
-        return True
-    except subprocess.CalledProcessError as e:
-        print(f"{Fore.RED}Error stopping and deleting Docker stack for '{instance_name}' instance. Please check the configuration and try again.{Style.RESET_ALL}")
-        logging.error(e.stderr)
-        time.sleep(2)
+        return exit_code == 0
     except Exception as e:
         print(f"{Fore.RED}An unexpected error occurred while stopping the stack for '{instance_name}' instance.{Style.RESET_ALL}")
         logging.error(f"Unexpected error: {str(e)}")
         time.sleep(2)
     return False
+
 
 def stop_all_stacks(main_compose_file: str = './docker-compose.yaml', main_instance_name: str = 'money4band', instances_dir: str = 'm4b_proxy_instances', skip_questions: bool = False) -> None:
     """
@@ -91,6 +92,7 @@ def stop_all_stacks(main_compose_file: str = './docker-compose.yaml', main_insta
     else:
         logging.warning(f"Multi-proxy instances directory '{instances_dir}' does not exist.")
 
+
 def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> None:
     try:
         m4b_config = load_json_config(m4b_config_path)
@@ -121,7 +123,7 @@ if __name__ == '__main__':
 
     log_level = getattr(logging, args.log_level.upper(), None)
     if not isinstance(log_level, int):
-        raise ValueError(f'Invalid log level: {args.log_level}')
+        raise ValueError(f"Invalid log level: {args.log_level}")
 
     os.makedirs(args.log_dir, exist_ok=True)
     logging.basicConfig(

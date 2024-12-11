@@ -47,15 +47,15 @@ def start_stack(compose_file: str = './docker-compose.yaml', env_file: str = './
     use_sudo = not is_user_root() and platform.system().lower() == 'linux'
     try:
         command = ["docker", "compose", "-f", compose_file, "--env-file", env_file, "up", "-d", "--remove-orphans"]
-        result = run_docker_command(command, use_sudo=use_sudo)
-        print(f"{Fore.GREEN}All Apps for '{instance_name}' instance started successfully.{Style.RESET_ALL}")
+        exit_code = run_docker_command(command, use_sudo=use_sudo)
+        if exit_code == 0:
+            print(f"{Fore.GREEN}All Apps for '{instance_name}' instance started successfully.{Style.RESET_ALL}")
+            logging.info(f"Stack for '{instance_name}' started successfully.")
+        else:
+            print(f"{Fore.RED}Error starting Docker stack for '{instance_name}' instance. Please check that Docker is running and that the configuration is complete, then try again.{Style.RESET_ALL}")
+            logging.error(f"Stack for '{instance_name}' failed to start with exit code {exit_code}.")
         time.sleep(2)
-        logging.info(result.stdout)
-        return True
-    except subprocess.CalledProcessError as e:
-        print(f"{Fore.RED}Error starting Docker stack for '{instance_name}' instance. Please check that Docker is running and that the configuration is complete, then try again.{Style.RESET_ALL}")
-        logging.error(e.stderr)
-        time.sleep(2)
+        return exit_code == 0
     except Exception as e:
         print(f"{Fore.RED}An unexpected error occurred while starting the stack for '{instance_name}' instance.{Style.RESET_ALL}")
         logging.error(f"Unexpected error: {str(e)}")
@@ -126,7 +126,7 @@ if __name__ == '__main__':
 
     log_level = getattr(logging, args.log_level.upper(), None)
     if not isinstance(log_level, int):
-        raise ValueError(f'Invalid log level: {args.log_level}')
+        raise ValueError(f"Invalid log level: {args.log_level}")
 
     os.makedirs(args.log_dir, exist_ok=True)
     logging.basicConfig(
