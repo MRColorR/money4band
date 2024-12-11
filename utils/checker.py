@@ -56,6 +56,7 @@ def check_img_arch_support(image: str, tag: str, arch: str) -> bool:
 
     return any(image_info['architecture'] == arch for image_info in tag_info['images'])
 
+
 def get_compatible_tag(image: str, arch: str) -> Optional[str]:
     """
     Get a compatible tag for the given architecture if the default tag is not supported.

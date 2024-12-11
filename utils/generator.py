@@ -20,6 +20,7 @@ from utils.detector import detect_architecture
 from utils.loader import load_json_config
 from utils.dumper import write_json
 
+
 def validate_uuid(uuid: str, length: int) -> bool:
     """
     Validate a UUID against the specified length.
@@ -35,6 +36,7 @@ def validate_uuid(uuid: str, length: int) -> bool:
         return False
     return True
 
+
 def generate_uuid(length: int) -> str:
     """
     Generate a UUID of the specified length.
@@ -46,6 +48,7 @@ def generate_uuid(length: int) -> str:
         str: The generated UUID.
     """
     return str(os.urandom(length // 2 + 1).hex())[:length]
+
 
 def assemble_docker_compose(m4b_config_path_or_dict: Any, app_config_path_or_dict: Any, user_config_path_or_dict: Any, compose_output_path: str = str(os.path.join(os.getcwd(), 'docker-compose.yaml')), is_main_instance: bool = False) -> None:
     """
