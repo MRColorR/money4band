@@ -62,6 +62,16 @@
       "email": "yourGRASSMail",
       "password": "yourGRASSPw"
     },
+    "gradient": {
+      "enabled": false,
+      "email": "yourGRADIENTMail",
+      "password": "yourGRADIENTPw"
+    },
+    "packetshare": {
+      "enabled": false,
+      "email": "yourPACKETSHAREMail",
+      "password": "yourPACKETSHAREPw"
+    },
     "mystnode": {
       "enabled": false,
       "dashboard_port": 4449

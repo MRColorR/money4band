@@ -22,6 +22,7 @@ from utils.prompt_helper import ask_question_yn
 from utils.loader import load_json_config
 from utils.helper import is_user_root, is_user_in_docker_group, create_docker_group_if_needed, run_docker_command
 
+
 def start_stack(compose_file: str = './docker-compose.yaml', env_file: str = './.env', instance_name: str = 'money4band', skip_questions: bool = False) -> bool:
     """
     Start the Docker Compose stack using the provided compose and env files.
@@ -60,6 +61,7 @@ def start_stack(compose_file: str = './docker-compose.yaml', env_file: str = './
         logging.error(f"Unexpected error: {str(e)}")
         time.sleep(2)
     return False
+
 
 def start_all_stacks(main_compose_file: str = './docker-compose.yaml', main_env_file: str = './.env', main_instance_name: str = 'money4band', instances_dir: str = 'm4b_proxy_instances', skip_questions: bool = False) -> None:
     """
