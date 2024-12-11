@@ -55,18 +55,44 @@ def create_docker_group_if_needed():
 
 def run_docker_command(command, use_sudo=False):
     """
-    Run a Docker command, optionally using sudo.
+    Run a Docker command, optionally using sudo, and show real-time output.
 
     Args:
         command (list): The Docker command to run.
         use_sudo (bool): Whether to prepend 'sudo' to the command.
 
     Returns:
-        subprocess.CompletedProcess: The result of the subprocess run.
+        int: The exit code of the command.
     """
     if use_sudo and platform.system().lower() == 'linux':
         command.insert(0, "sudo")
-    return subprocess.run(command, check=True, capture_output=True, text=True)
+
+    logging.info(f"Running command: {' '.join(command)}")
+
+    try:
+        process = subprocess.Popen(
+            command,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True
+        )
+
+        # Stream the output in real-time
+        for line in process.stdout:
+            print(line)
+        for line in process.stderr:
+            print(line)
+
+        process.wait()
+        if process.returncode != 0:
+            logging.error(f"Command failed with exit code {process.returncode}")
+            stderr_output = process.stderr.read()
+            if stderr_output:
+                logging.error(f"Command error output: {stderr_output}")
+        return process.returncode
+    except Exception as e:
+        logging.error(f"{Fore.RED}Failed to run command: {e}{Style.RESET_ALL}")
+        raise RuntimeError(f"Command failed: {e}")
 
 
 def setup_service(service_name="docker.binfmt", service_file_path='./.resources/.files/docker.binfmt.service'):
