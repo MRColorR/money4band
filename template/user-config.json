@@ -4,7 +4,10 @@
     "email": "your@mail.com"
   },
   "device_info": {
-    "device_name": "yourDeviceName"
+    "device_name": "yourDeviceName",
+    "os_type": "Linux",
+    "detected_architecture": "amd64",
+    "detected_docker_arch": "amd64"
   },
   "apps": {
     "earnapp": {

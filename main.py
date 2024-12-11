@@ -15,7 +15,7 @@ if parent_dir not in sys.path:
     sys.path.append(parent_dir)
 
 # Import the module from the parent directory
-from utils import detector, loader
+from utils import detector, loader, dumper
 from utils.cls import cls
 from utils.fn_reset_config import main as reset_main
 from utils.updater import check_update_available
@@ -43,6 +43,7 @@ def mainmenu(m4b_config_path: str, apps_config_path: str, user_config_path: str,
         try:
             logging.info("Loading configurations")
             m4b_config = loader.load_json_config(m4b_config_path)
+            user_config = loader.load_json_config(user_config_path)
             logging.info("Configurations loaded successfully")
         except FileNotFoundError as e:
             logging.error(f"File not found: {str(e)}")
@@ -53,12 +54,21 @@ def mainmenu(m4b_config_path: str, apps_config_path: str, user_config_path: str,
 
         try:
             logging.debug("Loading main menu")
-            sleep_time = m4b_config.get("system").get("sleep_time", 2)
-            logging.debug("Loading OS and architecture maps from config file")
+            sleep_time = m4b_config.get("system", {}).get("sleep_time", 2)
+
+            logging.debug("Detecting OS and architecture")
             system_info = {
                 **detector.detect_os(m4b_config_path),
                 **detector.detect_architecture(m4b_config_path)
             }
+
+            # Update user_config with detected OS, architecture, and docker architecture
+            user_config.setdefault("device_info", {})["os_type"] = system_info.get("os_type")
+            user_config["device_info"]["detected_architecture"] = system_info.get("arch")
+            user_config["device_info"]["detected_docker_arch"] = system_info.get("dkarch")
+            dumper.write_json(user_config, user_config_path)
+            logging.info(f"System info stored: OS={system_info.get('os_type')}, Architecture={system_info.get('arch')}, Docker Arch={system_info.get('dkarch')}")
+
             logging.debug("Calculating resources limits based on system")
             detector.calculate_resource_limits(user_config_path_or_dict=user_config_path)
 

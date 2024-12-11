@@ -58,6 +58,7 @@ def detect_os(m4b_config_path_or_dict: Any) -> Dict[str, str]:
         logging.error(f"An error occurred while detecting OS: {str(e)}")
         raise
 
+
 def detect_architecture(m4b_config_path_or_dict: Any) -> Dict[str, str]:
     """
     Detect the system architecture and return its type.
@@ -84,12 +85,14 @@ def detect_architecture(m4b_config_path_or_dict: Any) -> Dict[str, str]:
         logging.error(f"An error occurred while detecting architecture: {str(e)}")
         raise
 
+
 def get_system_memory_and_cores():
     logging.debug("Retrieving system memory and cores")
     total_memory = psutil.virtual_memory().total / (1024 ** 2)
     cores = psutil.cpu_count(logical=False)
     logging.debug(f"Total RAM: {total_memory:.2f} MB, CPU cores: {cores}")
     return total_memory, cores
+
 
 def calculate_resource_limits(user_config_path_or_dict: Any) -> None:
     logging.debug("Determining resource limits")
