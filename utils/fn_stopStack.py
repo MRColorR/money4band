@@ -4,6 +4,7 @@ import argparse
 import logging
 import platform
 import time
+import threading
 from colorama import Fore, Style, just_fix_windows_console
 
 # Ensure the parent directory is in the sys.path
@@ -17,7 +18,7 @@ if parent_dir not in sys.path:
 from utils import loader
 from utils.cls import cls
 from utils.prompt_helper import ask_question_yn
-from utils.helper import is_user_root, is_user_in_docker_group, create_docker_group_if_needed, run_docker_command
+from utils.helper import is_user_root, is_user_in_docker_group, create_docker_group_if_needed, run_docker_command, show_spinner
 
 # Global config loading and global variables 
 m4b_config_path = os.path.join(parent_dir, "config", "m4b-config.json")
@@ -51,22 +52,27 @@ def stop_stack(compose_file: str = './docker-compose.yaml', instance_name: str =
         time.sleep(sleep_time)
         return False
 
+    event = threading.Event()
+    spinner_thread = threading.Thread(target=show_spinner, args=(f"Stopping stack for '{instance_name}'...", event))
+    spinner_thread.start()
+
     use_sudo = not is_user_root() and platform.system().lower() == 'linux'
     try:
         command = ["docker", "compose", "-f", compose_file, "down"]
-        exit_code = run_docker_command(command, use_sudo=use_sudo)
-        if exit_code == 0:
+        result = run_docker_command(command, use_sudo=use_sudo)
+        if result == 0:
             print(f"{Fore.GREEN}All Apps for '{instance_name}' instance stopped and stack deleted.{Style.RESET_ALL}")
             logging.info(f"Stack for '{instance_name}' stopped successfully.")
         else:
             print(f"{Fore.RED}Error stopping and deleting Docker stack for '{instance_name}' instance. Please check the configuration and try again.{Style.RESET_ALL}")
-            logging.error(f"Stack for '{instance_name}' failed to stop with exit code {exit_code}.")
-        time.sleep(sleep_time)
-        return exit_code == 0
+            logging.error(f"Stack for '{instance_name}' failed to stop with exit code {result}.")
+        return result == 0
     except Exception as e:
         print(f"{Fore.RED}An unexpected error occurred while stopping the stack for '{instance_name}' instance.{Style.RESET_ALL}")
         logging.error(f"Unexpected error: {str(e)}")
-        time.sleep(sleep_time)
+    finally:
+        event.set()
+        spinner_thread.join()
     return False
 
 
@@ -88,20 +94,23 @@ def stop_all_stacks(main_compose_file: str = './docker-compose.yaml', main_insta
     if platform.system().lower() == 'linux' and not is_user_in_docker_group():
         create_docker_group_if_needed()
 
-    stop_stack(main_compose_file, main_instance_name, skip_questions=True)
-    if os.path.isdir(instances_dir):
-        print(f"{Fore.YELLOW}Stopping multi-proxy instances...{Style.RESET_ALL}")
-        for instance in os.listdir(instances_dir):
-            instance_dir = os.path.join(instances_dir, instance)
-            compose_file = os.path.join(instance_dir, 'docker-compose.yaml')
-            if os.path.isfile(compose_file):
-                try:
-                    stop_stack(compose_file, instance, skip_questions=True)
-                except Exception as e:
-                    logging.error(f"Failed to stop instance '{instance}': {str(e)}")
-        print(f"{Fore.GREEN}All multi-proxy instances stopped successfully.{Style.RESET_ALL}")
-    else:
-        logging.warning(f"Multi-proxy instances directory '{instances_dir}' does not exist.")
+    try:
+        stop_stack(main_compose_file, main_instance_name, skip_questions=True)
+        if os.path.isdir(instances_dir):
+            print(f"{Fore.YELLOW}Stopping multi-proxy instances...{Style.RESET_ALL}")
+            for instance in os.listdir(instances_dir):
+                instance_dir = os.path.join(instances_dir, instance)
+                compose_file = os.path.join(instance_dir, 'docker-compose.yaml')
+                if os.path.isfile(compose_file):
+                    try:
+                        stop_stack(compose_file, instance, skip_questions=True)
+                    except Exception as e:
+                        logging.error(f"Failed to stop instance '{instance}': {str(e)}")
+            print(f"{Fore.GREEN}All multi-proxy instances stopped successfully.{Style.RESET_ALL}")
+        else:
+            logging.warning(f"Multi-proxy instances directory '{instances_dir}' does not exist.")
+    finally:
+        time.sleep(sleep_time)
 
 
 def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> None:
@@ -120,6 +129,7 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
     except Exception as e:
         logging.error(f"An unexpected error occurred in main function: {str(e)}")
         print(f"{Fore.RED}An unexpected error occurred: {str(e)}{Style.RESET_ALL}")
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Stop the Docker Compose stack.')
