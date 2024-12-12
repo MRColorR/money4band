@@ -107,11 +107,11 @@
 
   
 
-#### Alternative Method: Cloning the Repository 🔀
+#### Alternative Method (any OS): Cloning the Repository / running from source code 🔀
 
   
 
-If you prefer to clone the repository or contribute to the project:
+If you prefer to clone the repository (or contribute to the project):
 
   
 
