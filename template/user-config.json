@@ -130,6 +130,7 @@
         "EXTRA_COMMANDS=ip rule add iif lo ipproto udp dport 53 lookup main;"
       ],
       "cap_add": ["NET_ADMIN"],
+      "privileged": true,
       "network_mode": "bridge",
       "dns": ["1.1.1.1", "8.8.8.8", "1.0.0.1", "8.8.4.4"],
       "ports": ["${MYSTNODE_DASHBOARD_PORT}:4449"],
