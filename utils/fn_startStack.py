@@ -16,11 +16,22 @@ if parent_dir not in sys.path:
     sys.path.append(parent_dir)
 
 # Import the module from the parent directory
+from utils import loader
 from utils.cls import cls
 from utils.generator import generate_dashboard_urls
 from utils.prompt_helper import ask_question_yn
-from utils.loader import load_json_config
 from utils.helper import is_user_root, is_user_in_docker_group, create_docker_group_if_needed, run_docker_command
+
+# Global config loading and global variables 
+m4b_config_path = os.path.join(parent_dir, "config", "m4b-config.json")
+try:
+    m4b_config = loader.load_json_config(m4b_config_path)
+except FileNotFoundError:
+    m4b_config = {}  # Fallback to empty config if not found
+    logging.warning("Configuration file not found. Using default values.")
+
+# Set global sleep time
+sleep_time = m4b_config.get("system", {}).get("sleep_time", 3)  # Default to 3 seconds if not specified
 
 
 def start_stack(compose_file: str = './docker-compose.yaml', env_file: str = './.env', instance_name: str = 'money4band', skip_questions: bool = False) -> bool:
@@ -41,7 +52,7 @@ def start_stack(compose_file: str = './docker-compose.yaml', env_file: str = './
 
     if not skip_questions and not ask_question_yn(f"This will launch all the apps for '{instance_name}' instance using the configured .env file and the docker-compose.yaml file (Docker must be already installed and running). Do you wish to proceed?"):
         print(f"{Fore.BLUE}Docker stack startup for '{instance_name}' instance canceled.{Style.RESET_ALL}")
-        time.sleep(2)
+        time.sleep(sleep_time)
         return False
 
     use_sudo = not is_user_root() and platform.system().lower() == 'linux'
@@ -54,12 +65,12 @@ def start_stack(compose_file: str = './docker-compose.yaml', env_file: str = './
         else:
             print(f"{Fore.RED}Error starting Docker stack for '{instance_name}' instance. Please check that Docker is running and that the configuration is complete, then try again.{Style.RESET_ALL}")
             logging.error(f"Stack for '{instance_name}' failed to start with exit code {exit_code}.")
-        time.sleep(2)
+        time.sleep(sleep_time)
         return exit_code == 0
     except Exception as e:
         print(f"{Fore.RED}An unexpected error occurred while starting the stack for '{instance_name}' instance.{Style.RESET_ALL}")
         logging.error(f"Unexpected error: {str(e)}")
-        time.sleep(2)
+        time.sleep(sleep_time)
     return False
 
 
@@ -76,7 +87,7 @@ def start_all_stacks(main_compose_file: str = './docker-compose.yaml', main_env_
     """
     if not skip_questions and not ask_question_yn(f"This will launch all the apps for '{main_instance_name}' and any multi-proxy instances using the configured .env files and docker-compose.yaml files. Docker must be already installed and running. Do you wish to proceed?"):
         print(f"{Fore.BLUE}Docker stack startup canceled.{Style.RESET_ALL}")
-        time.sleep(2)
+        time.sleep(sleep_time)
         return
 
     if platform.system().lower() == 'linux' and not is_user_in_docker_group():
@@ -94,13 +105,13 @@ def start_all_stacks(main_compose_file: str = './docker-compose.yaml', main_env_
     if all_started:
         generate_dashboard_urls(None, None, main_env_file)
         print(f"{Fore.YELLOW}Use the previously generated apps nodes URLs to add your device in any apps dashboard that require node claiming/registration (e.g., Earnapp, ProxyRack, etc.){Style.RESET_ALL}")
-        time.sleep(2)
+        time.sleep(sleep_time)
 
 
 def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> None:
     try:
-        m4b_config = load_json_config(m4b_config_path)
-        user_config = load_json_config(user_config_path)
+        m4b_config = loader.load_json_config(m4b_config_path)
+        user_config = loader.load_json_config(user_config_path)
         base_instance_name = m4b_config.get('project', {}).get('compose_project_name', 'money4band')
 
         start_all_stacks(main_instance_name=base_instance_name)

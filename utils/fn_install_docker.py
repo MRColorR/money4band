@@ -13,11 +13,24 @@ parent_dir = os.path.dirname(script_dir)
 sys.path.append(parent_dir)
 
 # Import the module from the parent directory
+from utils import loader
 from utils.detector import detect_os, detect_architecture
 from utils.downloader import download_file
 from utils.cls import cls
 from utils.loader import load_json_config
 from utils.prompt_helper import ask_question_yn
+
+# Global config loading and global variables 
+m4b_config_path = os.path.join(parent_dir, "config", "m4b-config.json")
+try:
+    m4b_config = loader.load_json_config(m4b_config_path)
+except FileNotFoundError:
+    m4b_config = {}  # Fallback to empty config if not found
+    logging.warning("Configuration file not found. Using default values.")
+
+# Set global sleep time
+sleep_time = m4b_config.get("system", {}).get("sleep_time", 3)  # Default to 3 seconds if not specified
+
 
 def is_docker_installed(m4b_config: Dict[str, Any]) -> bool:
     """Check if Docker is already installed."""
@@ -27,7 +40,6 @@ def is_docker_installed(m4b_config: Dict[str, Any]) -> bool:
         arch_info = detect_architecture(m4b_config)
         os_type = os_info["os_type"]
         dkarch = arch_info["dkarch"]
-        sleep_time = m4b_config.get("system", {}).get("sleep_time", 1)
         msg = f"Docker is already installed on {os_type} with {dkarch} architecture"
         logging.info(msg)
         print(msg)
@@ -40,6 +52,7 @@ def is_docker_installed(m4b_config: Dict[str, Any]) -> bool:
     except Exception as e:
         logging.error(f"An unexpected error occurred: {str(e)}")
         raise
+
 
 def install_docker_linux(files_path: str):
     """Install Docker on a Linux system."""
@@ -56,7 +69,7 @@ def install_docker_linux(files_path: str):
         subprocess.run(["sudo", "sh", installer_path], check=True)
         print("Docker should now be successfully installed on Linux")
         logging.info("Docker installed successfully on Linux")
-        time.sleep(2)
+        time.sleep(sleep_time)
 
         # Clean-up
         os.remove(installer_path)
@@ -66,6 +79,7 @@ def install_docker_linux(files_path: str):
     except Exception as e:
         logging.error(f"An unexpected error occurred during Docker installation on Linux: {str(e)}")
         raise
+
 
 def install_docker_windows(files_path: str):
     """Install Docker on a Windows system."""

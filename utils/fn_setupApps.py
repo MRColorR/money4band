@@ -28,6 +28,17 @@ from utils.checker import fetch_docker_tags, check_img_arch_support
 from utils.fn_stopStack import stop_stack, stop_all_stacks
 from utils.networker import find_next_available_port
 
+# Global config loading and global variables 
+m4b_config_path = os.path.join(parent_dir, "config", "m4b-config.json")
+try:
+    m4b_config = loader.load_json_config(m4b_config_path)
+except FileNotFoundError:
+    m4b_config = {}  # Fallback to empty config if not found
+    logging.warning("Configuration file not found. Using default values.")
+
+# Set global sleep time
+sleep_time = m4b_config.get("system", {}).get("sleep_time", 3)  # Default to 3 seconds if not specified
+
 
 def configure_email(app: Dict, flag_config: Dict, config: Dict):
     email = ask_email(f'Enter your {app["name"].lower().title()} email:', default=config.get("email"))
@@ -218,7 +229,6 @@ def _configure_apps(user_config: Dict[str, Any], apps: Dict, m4b_config: Dict):
             else:
                 logging.error(f'Flag {flag_name} not recognized')
         user_config['apps'][app_name] = config
-        time.sleep(m4b_config['system']['sleep_time'])
 
 
 def configure_apps(user_config: Dict[str, Any], app_config: Dict, m4b_config: Dict) -> None:
@@ -408,7 +418,7 @@ def setup_multiproxy_instances(user_config: Dict[str, Any], app_config: Dict[str
         generate_env_file(instance_m4b_config_path, instance_app_config_path, instance_user_config_path, env_output_path=os.path.join(instance_dir, '.env'))
 
     print(f"{Fore.GREEN}Multiproxy instances setup completed.{Style.RESET_ALL}")
-    time.sleep(m4b_config['system']['sleep_time'])
+    time.sleep(sleep_time)
 
 
 def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> None:
@@ -448,7 +458,6 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
             logging.info("Multiproxy setup selected")
             print('Create a proxies.txt file in the same folder and add proxies in the following format: protocol://user:pass@ip:port (one proxy per line)')
             input('Press enter to continue...')
-            time.sleep(m4b_config['system']['sleep_time'])
             with open('proxies.txt', 'r') as file:
                 proxies = [line.strip() for line in file if line.strip()]
 

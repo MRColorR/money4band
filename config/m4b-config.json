@@ -5,7 +5,7 @@
     "ds_project_server_url": "https://discord.com/invite/Fq8eeazBAD"
   },
   "system": {
-    "sleep_time": 2,
+    "sleep_time": 3,
     "arch_map": {
       "x86_64": "amd64",
       "amd64": "amd64",
