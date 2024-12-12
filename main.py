@@ -63,11 +63,18 @@ def mainmenu(m4b_config_path: str, apps_config_path: str, user_config_path: str,
             }
 
             # Update user_config with detected OS, architecture, and docker architecture
-            user_config.setdefault("device_info", {})["os_type"] = system_info.get("os_type")
-            user_config["device_info"]["detected_architecture"] = system_info.get("arch")
-            user_config["device_info"]["detected_docker_arch"] = system_info.get("dkarch")
+            device_info = user_config.setdefault("device_info", {})
+            device_info["os_type"] = system_info.get("os_type")
+            device_info["detected_architecture"] = system_info.get("arch")
+            device_info["detected_docker_arch"] = system_info.get("dkarch")
+
+            # Add default platform for apps if not already present
+            for app_name in user_config.get("apps", {}):
+                app_config = user_config["apps"].setdefault(app_name, {})
+                app_config["docker_platform"] = f"linux/{device_info['detected_docker_arch']}"
+
             dumper.write_json(user_config, user_config_path)
-            logging.info(f"System info stored: OS={system_info.get('os_type')}, Architecture={system_info.get('arch')}, Docker Arch={system_info.get('dkarch')}")
+            logging.info(f"System info and default platform stored: {device_info}")
 
             logging.debug("Calculating resources limits based on system")
             detector.calculate_resource_limits(user_config_path_or_dict=user_config_path)

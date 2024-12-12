@@ -26,7 +26,8 @@
       "mingw": "MinGw",
       "msys": "Msys",
       "freebsd": "FreeBSD"
-    }
+    },
+    "default_docker_platform": "linux/amd64"
   },
   "menu": [
     {

@@ -68,9 +68,7 @@ def assemble_docker_compose(m4b_config_path_or_dict: Any, app_config_path_or_dic
     app_config = load_json_config(app_config_path_or_dict)
     user_config = load_json_config(user_config_path_or_dict)
 
-    arch_info = detect_architecture(m4b_config)
-    dkarch = arch_info['dkarch']
-
+    default_docker_platform = m4b_config['system'].get('default_docker_platform', 'linux/amd64')
     proxy_enabled = user_config['proxies'].get('enabled', False)
 
     services = {}
@@ -78,21 +76,37 @@ def assemble_docker_compose(m4b_config_path_or_dict: Any, app_config_path_or_dic
     apps_categories.append('extra-apps') # Overrides extra apps exclusion from m4b proxies instances
     if is_main_instance:
         apps_categories.append('extra-apps')
+
     for category in apps_categories:
         for app in app_config.get(category, []):
             app_name = app['name'].lower()
-            if user_config['apps'].get(app_name, {}).get('enabled'):
+            user_app_config = user_config['apps'].get(app_name, {})
+            if user_app_config.get('enabled'):
                 app_compose_config = app['compose_config']
                 image = app_compose_config['image']
                 image_name, image_tag = image.split(':')
+                docker_platform = user_app_config.get('docker_platform', default_docker_platform)
 
-                if not check_img_arch_support(image_name, image_tag, dkarch):
-                    compatible_tag = get_compatible_tag(image_name, dkarch)
+                if not check_img_arch_support(image_name, image_tag, docker_platform):
+                    compatible_tag = get_compatible_tag(image_name, docker_platform)
                     if compatible_tag:
                         app_compose_config['image'] = f"{image_name}:{compatible_tag}"
+                        logging.info(f"Updated {app_name} to compatible tag: {compatible_tag}")
                     else:
-                        logging.warning(f"No compatible tag found for {image_name} with architecture {dkarch}. Using default tag {image_tag} for image {image_name} with architecture {dkarch} under binfmt emulation.")
-
+                        logging.warning(f"No compatible tag found for {image_name} with architecture {docker_platform}. Searching for a suitable tag for default emulation architecture {default_docker_platform}.")
+                        # find a compatibile tag with default docker platform
+                        compatible_tag = get_compatible_tag(image_name, default_docker_platform)
+                        if compatible_tag:
+                            app_compose_config['image'] = f"{image_name}:{compatible_tag}"
+                            # Add platform to the compose configuration to force image pull for emulation
+                            app_compose_config['platform'] = docker_platform
+                            logging.warning(f"Compatible tag found to run {image_name} with emulation on {default_docker_platform} architecture. Using binfmt emulation for {app_name} with image {image_name}:{image_tag}")
+                        else:
+                            logging.error(f"No compatible tag found for {image_name} with default architecture {default_docker_platform}.")
+                            logging.error(f"Please check the image tag and architecture compatibility on the registry. Skipping {app_name}...")
+                            continue # Do not add the app to the compose file
+                else:
+                    app_compose_config['platform'] = docker_platform
                 if proxy_enabled:
                     app_proxy_compose = app.get('compose_config_proxy', {})
                     for key, value in app_proxy_compose.items():
@@ -167,32 +181,21 @@ def generate_env_file(m4b_config_path_or_dict: Any, app_config_path_or_dict: Any
     for key, value in project_config.items():
         env_lines.append(f"{key.upper()}={value}")
 
-    # system_config = m4b_config.get('system', {})
-    # for key, value in system_config.items():
-    #     if isinstance(value, dict):
-    #         for sub_key, sub_value in value.items():
-    #             env_lines.append(f"{key.upper()}_{sub_key.upper()}={sub_value}")
-    #     else:
-    #         env_lines.append(f"{key.upper()}={value}")
     # Add resource limits configurations
     resource_limits_config = user_config.get('resource_limits', {})
     for key, value in resource_limits_config.items():
         env_lines.append(f"{key.upper()}={value}")
-    
+
     # Add network configurations
     network_config = m4b_config.get('network', {})
     for key, value in network_config.items():
         env_lines.append(f"NETWORK_{key.upper()}={value}")
 
     # Add user and device configurations
-    # user_info = user_config.get('user', {})
-    # for key, value in user_info.items():
-    #     env_lines.append(f"{key.upper()}={value}")
-
     device_info = user_config.get('device_info', {})
     for key, value in device_info.items():
         env_lines.append(f"{key.upper()}={value}")
-    
+
     # Add m4b_dashboard configurations
     m4b_dashboard_config = user_config.get('m4b_dashboard', {})
     for key, value in m4b_dashboard_config.items():
@@ -206,12 +209,11 @@ def generate_env_file(m4b_config_path_or_dict: Any, app_config_path_or_dict: Any
     # Add notification configurations if enabled
     notifications_config = user_config.get('notifications', {})
     if notifications_config.get('enabled'):
-            for key, value in notifications_config.items():
-                env_lines.append(f"WATCHTOWER_NOTIFICATION_{key.upper()}={value}")
+        for key, value in notifications_config.items():
+            env_lines.append(f"WATCHTOWER_NOTIFICATION_{key.upper()}={value}")
 
     # Add app-specific configurations only if the app is enabled
     apps_categories = ['apps']
-    apps_categories.append('extra-apps') # Overrides extra apps exclusion from m4b proxies instances
     if is_main_instance:
         apps_categories.append('extra-apps')
     for category in apps_categories:
@@ -234,7 +236,6 @@ def generate_env_file(m4b_config_path_or_dict: Any, app_config_path_or_dict: Any
     with open(env_output_path, 'w') as f:
         f.write('\n'.join(env_lines))
     logging.info(f".env file generated and saved to {env_output_path}")
-
 
 def generate_dashboard_urls(compose_project_name: str, device_name: str, env_file: str = str(os.path.join(os.getcwd(), ".env"))) -> None:
     """
@@ -299,9 +300,9 @@ def generate_device_name(adjectives: list, animals: list, device_name: str = "",
         adjective = secrets.choice(adjectives)
         animal = secrets.choice(animals)
         device_name = f"{adjective}_{animal}"
-    
+
     if use_uuid_suffix:
         uuid_suffix = generate_uuid(4)
         device_name = f"{device_name}_{uuid_suffix}"
-    
+
     return device_name
