@@ -96,6 +96,7 @@ def start_all_stacks(main_compose_file: str = './docker-compose.yaml', main_env_
         print(f"{Fore.YELLOW}Use the previously generated apps nodes URLs to add your device in any apps dashboard that require node claiming/registration (e.g., Earnapp, ProxyRack, etc.){Style.RESET_ALL}")
         time.sleep(2)
 
+
 def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> None:
     try:
         m4b_config = load_json_config(m4b_config_path)
@@ -112,6 +113,7 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
     except Exception as e:
         logging.error(f"An unexpected error occurred in main function: {str(e)}")
         print(f"{Fore.RED}An unexpected error occurred: {str(e)}{Style.RESET_ALL}")
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Start the Docker Compose stack.')

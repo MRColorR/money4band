@@ -12,75 +12,91 @@
   "apps": {
     "earnapp": {
       "enabled": false,
+      "docker_platform": "linux/amd64",
       "uuid": "sdk-node-yourEARNAPPDeviceUUID"
     },
     "honeygain": {
       "enabled": false,
+      "docker_platform": "linux/amd64",
       "email": "yourHONEYGAINMail",
       "password": "yourHONEYGAINPw"
     },
     "iproyalpawns": {
       "enabled": false,
+      "docker_platform": "linux/amd64",
       "email": "yourIPROYALPAWNSMail",
       "password": "yourIPROYALPAWNSPw"
     },
     "packetstream": {
       "enabled": false,
+      "docker_platform": "linux/amd64",
       "cid": "yourPACKETSTREAMCID"
     },
     "traffmonetizer": {
       "enabled": false,
+      "docker_platform": "linux/amd64",
       "token": "yourTRAFFMONETIZERToken"
     },
     "repocket": {
       "enabled": false,
+      "docker_platform": "linux/amd64",
       "email": "yourREPOCKETMail",
       "apikey": "yourREPOCKETAPIKey"
     },
     "earnfm": {
       "enabled": false,
+      "docker_platform": "linux/amd64",
       "apikey": "yourEARNFMAPIKey"
     },
     "proxyrack": {
       "enabled": false,
+      "docker_platform": "linux/amd64",
       "apikey": "yourPROXYRACKAPIKey",
       "uuid": "yourPROXYRACKDeviceUUID"
     },
     "proxylite": {
       "enabled": false,
+      "docker_platform": "linux/amd64",
       "userid": "yourPROXYLITEUserID"
     },
     "bitping": {
       "enabled": false,
+      "docker_platform": "linux/amd64",
       "email": "yourBITPINGMail",
       "password": "yourBITPINGPw"
     },
     "speedshare": {
       "enabled": false,
+      "docker_platform": "linux/amd64",
       "code": "yourSPEEDSHARECode",
       "uuid": "yourSPEEDSHAREDeviceUUID"
     },
     "grass": {
       "enabled": false,
+      "docker_platform": "linux/amd64",
       "email": "yourGRASSMail",
       "password": "yourGRASSPw"
     },
     "gradient": {
       "enabled": false,
+      "docker_platform": "linux/amd64",
       "email": "yourGRADIENTMail",
       "password": "yourGRADIENTPw"
     },
     "packetshare": {
       "enabled": false,
+      "docker_platform": "linux/amd64",
       "email": "yourPACKETSHAREMail",
       "password": "yourPACKETSHAREPw"
     },
     "mystnode": {
       "enabled": false,
+      "docker_platform": "linux/amd64",
       "dashboard_port": 4449
     },
     "peer2profit": {
       "enabled": false,
+      "docker_platform": "linux/amd64",
       "email": "yourPEER2PROFITMail"
     }
   },
