@@ -5,6 +5,7 @@ import logging
 import platform
 import subprocess
 import time
+import threading
 from colorama import Fore, Style, just_fix_windows_console
 
 # Ensure the parent directory is in the sys.path
@@ -20,7 +21,7 @@ from utils import loader
 from utils.cls import cls
 from utils.generator import generate_dashboard_urls
 from utils.prompt_helper import ask_question_yn
-from utils.helper import is_user_root, is_user_in_docker_group, create_docker_group_if_needed, run_docker_command
+from utils.helper import is_user_root, is_user_in_docker_group, create_docker_group_if_needed, run_docker_command, show_spinner
 
 # Global config loading and global variables 
 m4b_config_path = os.path.join(parent_dir, "config", "m4b-config.json")
@@ -55,22 +56,29 @@ def start_stack(compose_file: str = './docker-compose.yaml', env_file: str = './
         time.sleep(sleep_time)
         return False
 
+    event = threading.Event()
+    spinner_thread = threading.Thread(target=show_spinner, args=(f"Starting stack for '{instance_name}'...", event))
+    spinner_thread.start()
+
     use_sudo = not is_user_root() and platform.system().lower() == 'linux'
     try:
         command = ["docker", "compose", "-f", compose_file, "--env-file", env_file, "up", "-d", "--remove-orphans"]
-        exit_code = run_docker_command(command, use_sudo=use_sudo)
-        if exit_code == 0:
+        result = run_docker_command(command, use_sudo=use_sudo)
+        if result == 0:
             print(f"{Fore.GREEN}All Apps for '{instance_name}' instance started successfully.{Style.RESET_ALL}")
             logging.info(f"Stack for '{instance_name}' started successfully.")
         else:
             print(f"{Fore.RED}Error starting Docker stack for '{instance_name}' instance. Please check that Docker is running and that the configuration is complete, then try again.{Style.RESET_ALL}")
-            logging.error(f"Stack for '{instance_name}' failed to start with exit code {exit_code}.")
-        time.sleep(sleep_time)
-        return exit_code == 0
+            logging.error(f"Stack for '{instance_name}' failed to start with exit code {result}.")
+            time.sleep(sleep_time)
+        return result == 0
     except Exception as e:
         print(f"{Fore.RED}An unexpected error occurred while starting the stack for '{instance_name}' instance.{Style.RESET_ALL}")
         logging.error(f"Unexpected error: {str(e)}")
         time.sleep(sleep_time)
+    finally:
+        event.set()
+        spinner_thread.join()
     return False
 
 
@@ -93,18 +101,21 @@ def start_all_stacks(main_compose_file: str = './docker-compose.yaml', main_env_
     if platform.system().lower() == 'linux' and not is_user_in_docker_group():
         create_docker_group_if_needed()
 
-    all_started = start_stack(main_compose_file, main_env_file, main_instance_name, skip_questions=True)
-    if all_started and os.path.isdir(instances_dir):
-        for instance in os.listdir(instances_dir):
-            instance_dir = os.path.join(instances_dir, instance)
-            compose_file = os.path.join(instance_dir, 'docker-compose.yaml')
-            env_file = os.path.join(instance_dir, '.env')
-            if os.path.isfile(compose_file) and os.path.isfile(env_file):
-                all_started &= start_stack(compose_file, env_file, instance, skip_questions=True)
-    
-    if all_started:
-        generate_dashboard_urls(None, None, main_env_file)
-        print(f"{Fore.YELLOW}Use the previously generated apps nodes URLs to add your device in any apps dashboard that require node claiming/registration (e.g., Earnapp, ProxyRack, etc.){Style.RESET_ALL}")
+    try:
+        all_started = start_stack(main_compose_file, main_env_file, main_instance_name, skip_questions=True)
+        if all_started and os.path.isdir(instances_dir):
+            for instance in os.listdir(instances_dir):
+                instance_dir = os.path.join(instances_dir, instance)
+                compose_file = os.path.join(instance_dir, 'docker-compose.yaml')
+                env_file = os.path.join(instance_dir, '.env')
+                if os.path.isfile(compose_file) and os.path.isfile(env_file):
+                    all_started &= start_stack(compose_file, env_file, instance, skip_questions=True)
+
+        if all_started:
+            generate_dashboard_urls(None, None, main_env_file)
+            print(f"{Fore.YELLOW}Use the previously generated apps nodes URLs to add your device in any apps dashboard that require node claiming/registration (e.g., Earnapp, ProxyRack, etc.){Style.RESET_ALL}")
+            logging.info("All stacks started successfully.")
+    finally:
         time.sleep(sleep_time)
 
 

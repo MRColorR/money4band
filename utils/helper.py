@@ -59,7 +59,7 @@ def create_docker_group_if_needed():
 
 def run_docker_command(command, use_sudo=False):
     """
-    Run a Docker command, optionally using sudo, and show real-time output.
+    Run a Docker command, optionally using sudo, and handle errors gracefully.
 
     Args:
         command (list): The Docker command to run.
@@ -74,28 +74,17 @@ def run_docker_command(command, use_sudo=False):
     logging.info(f"Running command: {' '.join(command)}")
 
     try:
-        process = subprocess.Popen(
-            command,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True
-        )
-
-        # Stream the output in real-time
-        for line in process.stdout:
-            print(line)
-        for line in process.stderr:
-            print(line)
-
-        process.wait()
-        if process.returncode != 0:
-            logging.error(f"Command failed with exit code {process.returncode}")
-            stderr_output = process.stderr.read()
-            if stderr_output:
-                logging.error(f"Command error output: {stderr_output}")
-        return process.returncode
+        result = subprocess.run(command, capture_output=True, text=True, check=False)
+        if result.returncode == 0:
+            logging.info(result.stdout)
+        else:
+            logging.error(f"Command failed with exit code {result.returncode}")
+            logging.error(result.stderr)
+            print(f"{Fore.RED}Error: {result.stderr.strip()}{Style.RESET_ALL}")
+        return result.returncode
     except Exception as e:
         logging.error(f"{Fore.RED}Failed to run command: {e}{Style.RESET_ALL}")
+        print(f"{Fore.RED}Unexpected error: {e}{Style.RESET_ALL}")
         raise RuntimeError(f"Command failed: {e}")
 
 
