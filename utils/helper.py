@@ -3,6 +3,10 @@ import getpass
 import platform
 import subprocess
 import logging
+import threading
+from itertools import cycle
+import sys
+import time
 from colorama import Fore, Style
 
 
@@ -158,3 +162,24 @@ def ensure_service(service_name="docker.binfmt", service_file_path='./.resources
     except Exception as e:
         logging.error(f"Failed to ensure {service_name} service: {str(e)}")
         raise RuntimeError(f"Failed to ensure {service_name} service: {str(e)}")
+
+
+def show_spinner(message: str, event: threading.Event):
+    """
+    Display a spinner animation in the console to indicate progress.
+
+    Args:
+        message (str): The message to display alongside the spinner.
+        event (threading.Event): A threading event to stop the spinner.
+    """
+    spinner = cycle(['|', '/', '-', '\\'])
+    sys.stdout.write(f"{message} ")
+    sys.stdout.flush()
+    while not event.is_set():
+        sys.stdout.write(next(spinner))
+        sys.stdout.flush()
+        time.sleep(0.1)
+        sys.stdout.write('\b')  # Remove the spinner character
+    sys.stdout.write('\b')  # Clear the spinner when stopping
+    sys.stdout.write("Done\n")  # Print a completion message
+    sys.stdout.flush()
