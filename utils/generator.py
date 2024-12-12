@@ -91,6 +91,8 @@ def assemble_docker_compose(m4b_config_path_or_dict: Any, app_config_path_or_dic
                     compatible_tag = get_compatible_tag(image_name, docker_platform)
                     if compatible_tag:
                         app_compose_config['image'] = f"{image_name}:{compatible_tag}"
+                        # Add platform also on all already compatible images tags
+                        app_compose_config['platform'] = docker_platform
                         logging.info(f"Updated {app_name} to compatible tag: {compatible_tag}")
                     else:
                         logging.warning(f"No compatible tag found for {image_name} with architecture {docker_platform}. Searching for a suitable tag for default emulation architecture {default_docker_platform}.")
@@ -99,14 +101,14 @@ def assemble_docker_compose(m4b_config_path_or_dict: Any, app_config_path_or_dic
                         if compatible_tag:
                             app_compose_config['image'] = f"{image_name}:{compatible_tag}"
                             # Add platform to the compose configuration to force image pull for emulation
-                            app_compose_config['platform'] = docker_platform
+                            app_compose_config['platform'] = default_docker_platform
                             logging.warning(f"Compatible tag found to run {image_name} with emulation on {default_docker_platform} architecture. Using binfmt emulation for {app_name} with image {image_name}:{image_tag}")
                         else:
                             logging.error(f"No compatible tag found for {image_name} with default architecture {default_docker_platform}.")
                             logging.error(f"Please check the image tag and architecture compatibility on the registry. Skipping {app_name}...")
                             continue # Do not add the app to the compose file
                 else:
-                    app_compose_config['platform'] = docker_platform
+                    app_compose_config['platform'] = docker_platform # Add platform also on all already compatible images tags
                 if proxy_enabled:
                     app_proxy_compose = app.get('compose_config_proxy', {})
                     for key, value in app_proxy_compose.items():
