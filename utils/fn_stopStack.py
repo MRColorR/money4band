@@ -14,10 +14,21 @@ parent_dir = os.path.dirname(script_dir)
 if parent_dir not in sys.path:
     sys.path.append(parent_dir)
 
+from utils import loader
 from utils.cls import cls
 from utils.prompt_helper import ask_question_yn
-from utils.loader import load_json_config
 from utils.helper import is_user_root, is_user_in_docker_group, create_docker_group_if_needed, run_docker_command
+
+# Global config loading and global variables 
+m4b_config_path = os.path.join(parent_dir, "config", "m4b-config.json")
+try:
+    m4b_config = loader.load_json_config(m4b_config_path)
+except FileNotFoundError:
+    m4b_config = {}  # Fallback to empty config if not found
+    logging.warning("Configuration file not found. Using default values.")
+
+# Set global sleep time
+sleep_time = m4b_config.get("system", {}).get("sleep_time", 3)  # Default to 3 seconds if not specified
 
 
 def stop_stack(compose_file: str = './docker-compose.yaml', instance_name: str = 'money4band', skip_questions: bool = False) -> bool:
@@ -37,7 +48,7 @@ def stop_stack(compose_file: str = './docker-compose.yaml', instance_name: str =
 
     if not skip_questions and not ask_question_yn(f"This will stop all the apps for '{instance_name}' instance and delete the docker stack previously created using the configured docker-compose.yaml file. Do you wish to proceed?"):
         print(f"{Fore.BLUE}Docker stack removal for '{instance_name}' instance canceled.{Style.RESET_ALL}")
-        time.sleep(2)
+        time.sleep(sleep_time)
         return False
 
     use_sudo = not is_user_root() and platform.system().lower() == 'linux'
@@ -50,12 +61,12 @@ def stop_stack(compose_file: str = './docker-compose.yaml', instance_name: str =
         else:
             print(f"{Fore.RED}Error stopping and deleting Docker stack for '{instance_name}' instance. Please check the configuration and try again.{Style.RESET_ALL}")
             logging.error(f"Stack for '{instance_name}' failed to stop with exit code {exit_code}.")
-        time.sleep(2)
+        time.sleep(sleep_time)
         return exit_code == 0
     except Exception as e:
         print(f"{Fore.RED}An unexpected error occurred while stopping the stack for '{instance_name}' instance.{Style.RESET_ALL}")
         logging.error(f"Unexpected error: {str(e)}")
-        time.sleep(2)
+        time.sleep(sleep_time)
     return False
 
 
@@ -71,7 +82,7 @@ def stop_all_stacks(main_compose_file: str = './docker-compose.yaml', main_insta
     """
     if not skip_questions and not ask_question_yn(f"This will stop all the apps for '{main_instance_name}' and any multi-proxy instances and delete the docker stacks previously created. Do you wish to proceed?"):
         print(f"{Fore.BLUE}Docker stack removal canceled.{Style.RESET_ALL}")
-        time.sleep(2)
+        time.sleep(sleep_time)
         return
 
     if platform.system().lower() == 'linux' and not is_user_in_docker_group():
@@ -95,8 +106,8 @@ def stop_all_stacks(main_compose_file: str = './docker-compose.yaml', main_insta
 
 def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> None:
     try:
-        m4b_config = load_json_config(m4b_config_path)
-        user_config = load_json_config(user_config_path)
+        m4b_config = loader.load_json_config(m4b_config_path)
+        user_config = loader.load_json_config(user_config_path)
         base_instance_name = m4b_config.get('project', {}).get('compose_project_name', 'money4band')
 
         stop_all_stacks(main_instance_name=base_instance_name)

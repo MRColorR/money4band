@@ -51,6 +51,7 @@ def fn_bye(m4b_config: Dict[str, Any]) -> None:
         logging.error(f"An error occurred in fn_bye: {str(e)}")
         raise
 
+
 def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> None:
     """
     Main function to call the fn_bye function.
