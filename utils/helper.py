@@ -120,14 +120,14 @@ def setup_service(service_name="docker.binfmt", service_file_path='./.resources/
                 subprocess.run(["sudo", "cp", service_file_path, systemd_service_file], check=True)
                 subprocess.run(["sudo", "systemctl", "daemon-reload"], check=True)
                 subprocess.run(["sudo", "systemctl", "enable", service_name], check=True)
-            subprocess.run(["sudo", "systemctl", "start", service_name], check=True)
+            subprocess.run(["sudo", "systemctl", "start", service_name])
         elif os.path.exists("/etc/init.d"):
             if not os.path.exists(sysv_init_file):
                 logging.info(f"Copying service file to {sysv_init_file}")
                 subprocess.run(["sudo", "cp", service_file_path, sysv_init_file], check=True)
                 subprocess.run(["sudo", "chmod", "+x", sysv_init_file], check=True)
                 subprocess.run(["sudo", "update-rc.d", service_name, "defaults"], check=True)
-            subprocess.run(["sudo", "service", service_name, "start"], check=True)
+            subprocess.run(["sudo", "service", service_name, "start"])
 
         logging.info(f"{Fore.GREEN}{service_name} setup and started successfully.{Style.RESET_ALL}")
 
