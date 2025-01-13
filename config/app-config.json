@@ -1,5 +1,5 @@
 {
-  "app_config_version": 1.0,
+  "app_config_version": 1.1,
   "apps": [
     {
       "name": "EARNAPP",
@@ -17,7 +17,14 @@
         "restart": "always",
         "cpus": "${APP_CPU_LIMIT_MEDIUM}",
         "mem_reservation": "${APP_MEM_RESERV_MEDIUM}",
-        "mem_limit": "${APP_MEM_LIMIT_MEDIUM}"
+        "mem_limit": "${APP_MEM_LIMIT_MEDIUM}",
+        "logging": {
+          "driver": "json-file",
+          "options": {
+            "max-size": "10m",
+            "max-file": "3"
+          }
+        }
       },
       "compose_config_proxy": {
         "network_mode": "service:proxy",
@@ -44,7 +51,14 @@
         "restart": "always",
         "cpus": "${APP_CPU_LIMIT_MEDIUM}",
         "mem_reservation": "${APP_MEM_RESERV_MEDIUM}",
-        "mem_limit": "${APP_MEM_LIMIT_MEDIUM}"
+        "mem_limit": "${APP_MEM_LIMIT_MEDIUM}",
+        "logging": {
+          "driver": "json-file",
+          "options": {
+            "max-size": "10m",
+            "max-file": "3"
+          }
+        }
       },
       "compose_config_proxy": {
         "network_mode": "service:proxy",
@@ -68,7 +82,14 @@
         "restart": "always",
         "cpus": "${APP_CPU_LIMIT_LITTLE}",
         "mem_reservation": "${APP_MEM_RESERV_LITTLE}",
-        "mem_limit": "${APP_MEM_LIMIT_LITTLE}"
+        "mem_limit": "${APP_MEM_LIMIT_LITTLE}",
+        "logging": {
+          "driver": "json-file",
+          "options": {
+            "max-size": "10m",
+            "max-file": "3"
+          }
+        }
       },
       "compose_config_proxy": {
         "network_mode": "service:proxy",
@@ -91,7 +112,14 @@
         "restart": "always",
         "cpus": "${APP_CPU_LIMIT_MEDIUM}",
         "mem_reservation": "${APP_MEM_RESERV_MEDIUM}",
-        "mem_limit": "${APP_MEM_LIMIT_MEDIUM}"
+        "mem_limit": "${APP_MEM_LIMIT_MEDIUM}",
+        "logging": {
+          "driver": "json-file",
+          "options": {
+            "max-size": "10m",
+            "max-file": "3"
+          }
+        }
       },
       "compose_config_proxy": {
         "network_mode": "service:proxy",
@@ -114,7 +142,14 @@
         "restart": "always",
         "cpus": "${APP_CPU_LIMIT_LITTLE}",
         "mem_reservation": "${APP_MEM_RESERV_LITTLE}",
-        "mem_limit": "${APP_MEM_LIMIT_LITTLE}"
+        "mem_limit": "${APP_MEM_LIMIT_LITTLE}",
+        "logging": {
+          "driver": "json-file",
+          "options": {
+            "max-size": "10m",
+            "max-file": "3"
+          }
+        }
       },
       "compose_config_proxy": {
         "network_mode": "service:proxy",
@@ -139,7 +174,14 @@
         "restart": "always",
         "cpus": "${APP_CPU_LIMIT_MEDIUM}",
         "mem_reservation": "${APP_MEM_RESERV_MEDIUM}",
-        "mem_limit": "${APP_MEM_LIMIT_MEDIUM}"
+        "mem_limit": "${APP_MEM_LIMIT_MEDIUM}",
+        "logging": {
+          "driver": "json-file",
+          "options": {
+            "max-size": "10m",
+            "max-file": "3"
+          }
+        }
       },
       "compose_config_proxy": {
         "network_mode": "service:proxy",
@@ -162,7 +204,14 @@
         "restart": "always",
         "cpus": "${APP_CPU_LIMIT_MEDIUM}",
         "mem_reservation": "${APP_MEM_RESERV_MEDIUM}",
-        "mem_limit": "${APP_MEM_LIMIT_MEDIUM}"
+        "mem_limit": "${APP_MEM_LIMIT_MEDIUM}",
+        "logging": {
+          "driver": "json-file",
+          "options": {
+            "max-size": "10m",
+            "max-file": "3"
+          }
+        }
       },
       "compose_config_proxy": {
         "network_mode": "service:proxy",
@@ -188,7 +237,14 @@
         "restart": "always",
         "cpus": "${APP_CPU_LIMIT_BIG}",
         "mem_reservation": "${APP_MEM_RESERV_BIG}",
-        "mem_limit": "${APP_MEM_LIMIT_BIG}"
+        "mem_limit": "${APP_MEM_LIMIT_BIG}",
+        "logging": {
+          "driver": "json-file",
+          "options": {
+            "max-size": "10m",
+            "max-file": "3"
+          }
+        }
       },
       "compose_config_proxy": {
         "network_mode": "service:proxy",
@@ -214,7 +270,14 @@
         "restart": "always",
         "cpus": "${APP_CPU_LIMIT_BIG}",
         "mem_reservation": "${APP_MEM_RESERV_BIG}",
-        "mem_limit": "${APP_MEM_LIMIT_BIG}"
+        "mem_limit": "${APP_MEM_LIMIT_BIG}",
+        "logging": {
+          "driver": "json-file",
+          "options": {
+            "max-size": "10m",
+            "max-file": "3"
+          }
+        }
       },
       "compose_config_proxy": {
         "network_mode": "service:proxy",
@@ -240,7 +303,14 @@
         "restart": "always",
         "cpus": "${APP_CPU_LIMIT_BIG}",
         "mem_reservation": "${APP_MEM_RESERV_BIG}",
-        "mem_limit": "${APP_MEM_LIMIT_BIG}"
+        "mem_limit": "${APP_MEM_LIMIT_BIG}",
+        "logging": {
+          "driver": "json-file",
+          "options": {
+            "max-size": "10m",
+            "max-file": "3"
+          }
+        }
       },
       "compose_config_proxy": {
         "network_mode": "service:proxy",
@@ -249,35 +319,6 @@
       "flags": {
         "email": {},
         "password": {}
-      }
-    },
-    {
-      "name": "SPEEDSHARE",
-      "dashboard": "https://dashboard.speedshare.app/",
-      "link": "https://speedshare.app/?ref=mindlessnerd",
-      "compose_config": {
-        "container_name": "${DEVICE_NAME}_speedshare",
-        "hostname": "${DEVICE_NAME}_speedshare",
-        "image": "mrcolorrain/speedshare:latest",
-        "environment": [
-          "CODE=$SPEEDSHARE_CODE",
-          "SPEEDSHARE_UUID=$SPEEDSHARE_UUID"
-        ],
-        "restart": "always",
-        "cpus": "${APP_CPU_LIMIT_BIG}",
-        "mem_reservation": "${APP_MEM_RESERV_BIG}",
-        "mem_limit": "${APP_MEM_LIMIT_BIG}"
-      },
-      "compose_config_proxy": {
-        "network_mode": "service:proxy",
-        "hostname": null
-      },
-      "flags": {
-        "code": {},
-        "uuid": {
-          "length": 32,
-          "claimURLBase": "Speedshare nodes are automatically claimed. After starting it, go to the app's dashboard to see it. Its UUID is: "
-        }
       }
     },
     {
@@ -295,7 +336,14 @@
         "restart": "always",
         "cpus": "${APP_CPU_LIMIT_BIG}",
         "mem_reservation": "${APP_MEM_RESERV_BIG}",
-        "mem_limit": "${APP_MEM_LIMIT_BIG}"
+        "mem_limit": "${APP_MEM_LIMIT_BIG}",
+        "logging": {
+          "driver": "json-file",
+          "options": {
+            "max-size": "10m",
+            "max-file": "3"
+          }
+        }
       },
       "compose_config_proxy": {
         "network_mode": "service:proxy",
@@ -321,7 +369,14 @@
         "restart": "always",
         "cpus": "${APP_CPU_LIMIT_BIG}",
         "mem_reservation": "${APP_MEM_RESERV_BIG}",
-        "mem_limit": "${APP_MEM_LIMIT_BIG}"
+        "mem_limit": "${APP_MEM_LIMIT_BIG}",
+        "logging": {
+          "driver": "json-file",
+          "options": {
+            "max-size": "10m",
+            "max-file": "3"
+          }
+        }
       },
       "compose_config_proxy": {
         "network_mode": "service:proxy",
@@ -341,13 +396,18 @@
         "hostname": "${DEVICE_NAME}_packetshare",
         "image": "packetshare/packetshare:latest",
         "command": "-accept-tos -email=${PACKETSHARE_EMAIL} -password=${PACKETSHARE_PASSWORD}",
-        "environment": [
-          "PACKETSHARE_DUMMY=''"
-        ],
+        "environment": ["PACKETSHARE_DUMMY=''"],
         "restart": "always",
         "cpus": "${APP_CPU_LIMIT_MEDIUM}",
         "mem_reservation": "${APP_MEM_RESERV_MEDIUM}",
-        "mem_limit": "${APP_MEM_LIMIT_MEDIUM}"
+        "mem_limit": "${APP_MEM_LIMIT_MEDIUM}",
+        "logging": {
+          "driver": "json-file",
+          "options": {
+            "max-size": "10m",
+            "max-file": "3"
+          }
+        }
       },
       "compose_config_proxy": {
         "network_mode": "service:proxy",
@@ -376,7 +436,14 @@
         "restart": "always",
         "cpus": "${APP_CPU_LIMIT_HUGE}",
         "mem_reservation": "${APP_MEM_RESERV_HUGE}",
-        "mem_limit": "${APP_MEM_LIMIT_HUGE}"
+        "mem_limit": "${APP_MEM_LIMIT_HUGE}",
+        "logging": {
+          "driver": "json-file",
+          "options": {
+            "max-size": "10m",
+            "max-file": "3"
+          }
+        }
       },
       "compose_config_proxy": {
         "network_mode": "service:proxy",
@@ -402,7 +469,14 @@
         "restart": "always",
         "cpus": "${APP_CPU_LIMIT_HUGE}",
         "mem_reservation": "${APP_MEM_RESERV_HUGE}",
-        "mem_limit": "${APP_MEM_LIMIT_HUGE}"
+        "mem_limit": "${APP_MEM_LIMIT_HUGE}",
+        "logging": {
+          "driver": "json-file",
+          "options": {
+            "max-size": "10m",
+            "max-file": "3"
+          }
+        }
       },
       "compose_config_proxy": {
         "network_mode": "service:proxy",
@@ -418,6 +492,34 @@
     }
   ],
   "removed-apps": [
-    
+    {
+      "name": "SPEEDSHARE",
+      "dashboard": "https://dashboard.speedshare.app/",
+      "link": "https://speedshare.app/?ref=mindlessnerd",
+      "compose_config": {
+        "container_name": "${DEVICE_NAME}_speedshare",
+        "hostname": "${DEVICE_NAME}_speedshare",
+        "image": "mrcolorrain/speedshare:latest",
+        "environment": [
+          "CODE=$SPEEDSHARE_CODE",
+          "SPEEDSHARE_UUID=$SPEEDSHARE_UUID"
+        ],
+        "restart": "always",
+        "cpus": "${APP_CPU_LIMIT_BIG}",
+        "mem_reservation": "${APP_MEM_RESERV_BIG}",
+        "mem_limit": "${APP_MEM_LIMIT_BIG}"
+      },
+      "compose_config_proxy": {
+        "network_mode": "service:proxy",
+        "hostname": null
+      },
+      "flags": {
+        "code": {},
+        "uuid": {
+          "length": 32,
+          "claimURLBase": "Speedshare nodes are automatically claimed. After starting it, go to the app's dashboard to see it. Its UUID is: "
+        }
+      }
+    }
   ]
 }
