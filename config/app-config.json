@@ -294,10 +294,10 @@
       "compose_config": {
         "container_name": "${DEVICE_NAME}_bitping",
         "hostname": "${DEVICE_NAME}_bitping",
-        "image": "mrcolorrain/bitping:latest",
+        "image": "bitping/bitpingd:latest",
         "environment": [
           "BITPING_EMAIL=$BITPING_EMAIL",
-          "BITPING_PASSWD=$BITPING_PASSWORD"
+          "BITPING_PASSWORD=$BITPING_PASSWORD"
         ],
         "volumes": [".data/.bitpingd:/root/.bitpingd"],
         "restart": "always",
@@ -318,7 +318,8 @@
       },
       "flags": {
         "email": {},
-        "password": {}
+        "password": {},
+        "mfa": {}
       }
     },
     {
