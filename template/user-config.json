@@ -65,6 +65,12 @@
       "email": "yourBITPINGMail",
       "password": "yourBITPINGPw"
     },
+    "packetshare": {
+      "enabled": false,
+      "docker_platform": "linux/amd64",
+      "email": "yourPACKETSHAREMail",
+      "password": "yourPACKETSHAREPw"
+    },
     "speedshare": {
       "enabled": false,
       "docker_platform": "linux/amd64",
@@ -83,11 +89,19 @@
       "email": "yourGRADIENTMail",
       "password": "yourGRADIENTPw"
     },
-    "packetshare": {
+    "dawn": {
       "enabled": false,
       "docker_platform": "linux/amd64",
-      "email": "yourPACKETSHAREMail",
-      "password": "yourPACKETSHAREPw"
+      "email": "yourDAWNMail",
+      "password": "yourDAWNPw",
+      "ports": 5000
+
+    },
+    "teneo": {
+      "enabled": false,
+      "docker_platform": "linux/amd64",
+      "email": "yourTENEOMail",
+      "password": "yourTENEOPw"
     },
     "mystnode": {
       "enabled": false,

@@ -94,7 +94,7 @@ def configure_uuid(app: Dict, flag_config: Dict, config: Dict):
         except Exception as e:
             logging.error(f'Error writing claim instructions to file: {e}')
         input('Press enter to continue...')
-    
+
     prefix = flag_config.get('prefix', '')
     uuid = f'{prefix}{uuid}'
     config['uuid'] = uuid
@@ -216,7 +216,7 @@ def _configure_apps(user_config: Dict[str, Any], apps: Dict, m4b_config: Dict):
                     print(f'{key}: {value}')
             if not ask_question_yn(''):
                 continue
-        
+
         config['enabled'] = ask_question_yn(f'Do you want to run {app["name"].title()}?')
         if not config['enabled']:
             continue
@@ -228,6 +228,14 @@ def _configure_apps(user_config: Dict[str, Any], apps: Dict, m4b_config: Dict):
                 flag_function_mapper[flag_name](app, flag_config, config)
             else:
                 logging.error(f'Flag {flag_name} not recognized')
+
+        # Port configuration for apps with defined ports (should have a 'ports' key in the compose_config and a <app_name>_port key in the user_config)
+        if 'ports' in app['compose_config']:
+            starting_port = config.get('ports', 50000)
+            available_port = find_next_available_port(starting_port)
+            config['ports'] = available_port
+            logging.info(f"Port for {app_name} set to: {available_port}")
+
         user_config['apps'][app_name] = config
 
 

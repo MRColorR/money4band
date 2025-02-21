@@ -245,9 +245,11 @@ def generate_env_file(m4b_config_path_or_dict: Any, app_config_path_or_dict: Any
                             env_var_value = app_user_config[flag_name]
                             env_lines.append(f"{env_var_name}={env_var_value}")
 
-                    # Add app dashboard port if it exists
+                    # Add ports configurations for apps that have them
                     if 'dashboard_port' in app_user_config:
                         env_lines.append(f"{app_name.upper()}_DASHBOARD_PORT={app_user_config['dashboard_port']}")
+                    if 'ports' in app_user_config:
+                        env_lines.append(f"{app_name.upper()}_PORT={app_user_config['ports']}")
 
         # Write to .env file
         with open(env_output_path, 'w') as f:
