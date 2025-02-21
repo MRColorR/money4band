@@ -1,5 +1,6 @@
 import socket
 
+
 def is_port_in_use(port):
     """Check if a port is already in use."""
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
