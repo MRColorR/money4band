@@ -175,6 +175,8 @@ Register an account on the app's sites clicking each apps' names in the followin
 | Go to [PACKETSHARE](https://www.packetshare.io/?code=A260871CFD822E35) | :white_check_mark: | :x: | Unlimited | 1 |
 | Go to [GRADIENT](https://app.gradient.network/signup?code=2WEG9X) | :white_check_mark: | :x: | Unlimited | 1 |
 | Go to [MYSTNODE](https://mystnodes.co/?referral_code=Tc7RaS7Fm12K3Xun6mlU9q9hbnjojjl9aRBW8ZA9) | :white_check_mark: | :white_check_mark: |Unlimited|Unlimited|
+| Go to [DAWN](https://dawninternet.com?code=xo23vynw) using code: `xo23vynw` | :white_check_mark: | :x: | Unlimited | 1 |
+| Go to [TENEO](https://dashboard.teneo.pro/?code=qPgLn) using code: `qPgLn` | :white_check_mark: | :x: | Unlimited | 1 |
 
   
 
