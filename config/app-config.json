@@ -503,7 +503,7 @@
         "environment": ["MYSTNODE_DUMMY=''"],
         "command": "service --agreed-terms-and-conditions",
         "cap_add": ["NET_ADMIN"],
-        "ports": ["${MYSTNODE_DASHBOARD_PORT}:4449"],
+        "ports": ["${MYSTNODE_PORT}:4449"],
         "volumes": [".data/mysterium-node:/var/lib/mysterium-node"],
         "restart": "always",
         "cpus": "${APP_CPU_LIMIT_HUGE}",
