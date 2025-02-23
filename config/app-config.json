@@ -465,8 +465,8 @@
         "hostname": "${DEVICE_NAME}_teneo",
         "image": "carbon2029/dockweb:latest",
         "environment": [
-          "TENO_EMAIL=$TENEO_EMAIL",
-          "TENO_PASS=$TENEO_PASSWORD"
+          "TENEO_EMAIL=$TENEO_EMAIL",
+          "TENEO_PASS=$TENEO_PASSWORD"
         ],
         "volumes": [".data/.teneo:/app/chrome_user_data"],
         "restart": "always",
