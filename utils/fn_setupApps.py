@@ -229,7 +229,7 @@ def _configure_apps(user_config: Dict[str, Any], apps: Dict, m4b_config: Dict):
             else:
                 logging.error(f'Flag {flag_name} not recognized')
 
-        # Port configuration for apps with defined ports (should have a 'ports' key in the compose_config and a <app_name>_port key in the user_config)
+        # Port configuration for apps with defined ports (should have a 'ports' key in the compose_config and a <app_name>_ports key in the user_config)
         if 'ports' in app['compose_config']:
             starting_port = config.get('ports', 50000)
             available_port = find_next_available_port(starting_port)
@@ -399,20 +399,20 @@ def setup_multiproxy_instances(user_config: Dict[str, Any], app_config: Dict[str
 
         instance_user_config['proxies']['url'] = proxy
         instance_user_config['proxies']['enabled'] = True
-        
+
         new_subnet = base_subnet + ((i + 1) << (32 - base_netmask))
         new_subnet = new_subnet.to_bytes(4, 'big', signed=False)
         new_subnet = str(new_subnet[0]) + '.' + str(new_subnet[1]) \
             + '.' + str(new_subnet[2]) + '.' + str(new_subnet[3])
-        
+
         instance_m4b_config['network']['subnet'] = new_subnet
 
         # Update apps dashboard ports to avoid conflicts
         for app in instance_user_config['apps'].keys():
             app_details = instance_user_config['apps'].get(app, {})
-            if app_details.get('enabled') and app_details.get('dashboard_port'):
-                logging.info(f"{app} is enabled and it has a dashboard port attribute, staring port update to avoid conflicts")
-                app_details['dashboard_port'] = find_next_available_port(app_details['dashboard_port'] + (i + 1))
+            if app_details.get('enabled') and app_details.get('ports'):
+                logging.info(f"{app} is enabled and it has a port attribute, staring port update to avoid conflicts")
+                app_details['ports'] = find_next_available_port(app_details['ports'] + (i + 1))
 
         instance_user_config_path = os.path.join(instance_dir, 'user-config.json')
         instance_m4b_config_path = os.path.join(instance_dir, 'm4b-config.json')
@@ -452,7 +452,7 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
         if ask_question_yn('Do you want to configure extra apps?'):
             logging.info("Extra apps setup selected")
             configure_extra_apps(user_config, app_config, m4b_config)
-        else: # if there are extra-apps enabled disable them
+        else:  # if there are extra-apps enabled disable them
             for app in app_config['extra-apps']:
                 app_name = app['name'].lower()
                 user_config['apps'][app_name]['enabled'] = False
