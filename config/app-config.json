@@ -294,16 +294,48 @@
       "compose_config": {
         "container_name": "${DEVICE_NAME}_bitping",
         "hostname": "${DEVICE_NAME}_bitping",
-        "image": "mrcolorrain/bitping:latest",
+        "image": "bitping/bitpingd:latest",
         "environment": [
           "BITPING_EMAIL=$BITPING_EMAIL",
-          "BITPING_PASSWD=$BITPING_PASSWORD"
+          "BITPING_PASSWORD=$BITPING_PASSWORD"
         ],
         "volumes": [".data/.bitpingd:/root/.bitpingd"],
         "restart": "always",
         "cpus": "${APP_CPU_LIMIT_BIG}",
         "mem_reservation": "${APP_MEM_RESERV_BIG}",
         "mem_limit": "${APP_MEM_LIMIT_BIG}",
+        "logging": {
+          "driver": "json-file",
+          "options": {
+            "max-size": "10m",
+            "max-file": "3"
+          }
+        }
+      },
+      "compose_config_proxy": {
+        "network_mode": "service:proxy",
+        "hostname": null
+      },
+      "flags": {
+        "email": {},
+        "password": {},
+        "mfa": {}
+      }
+    },
+    {
+      "name": "PACKETSHARE",
+      "dashboard": "https://packetshare.io/ucenter.html",
+      "link": "https://www.packetshare.io/?code=A260871CFD822E35",
+      "compose_config": {
+        "container_name": "${DEVICE_NAME}_packetshare",
+        "hostname": "${DEVICE_NAME}_packetshare",
+        "image": "packetshare/packetshare:latest",
+        "command": "-accept-tos -email=${PACKETSHARE_EMAIL} -password=${PACKETSHARE_PASSWORD}",
+        "environment": ["PACKETSHARE_DUMMY=''"],
+        "restart": "always",
+        "cpus": "${APP_CPU_LIMIT_MEDIUM}",
+        "mem_reservation": "${APP_MEM_RESERV_MEDIUM}",
+        "mem_limit": "${APP_MEM_LIMIT_MEDIUM}",
         "logging": {
           "driver": "json-file",
           "options": {
@@ -333,6 +365,7 @@
           "USER_EMAIL=$GRASS_EMAIL",
           "USER_PASSWORD=$GRASS_PASSWORD"
         ],
+        "volumes": [".data/.grass:/app/chrome_user_data"],
         "restart": "always",
         "cpus": "${APP_CPU_LIMIT_BIG}",
         "mem_reservation": "${APP_MEM_RESERV_BIG}",
@@ -366,6 +399,7 @@
           "GRADIENT_EMAIL=$GRADIENT_EMAIL",
           "GRADIENT_PASS=$GRADIENT_PASSWORD"
         ],
+        "volumes": [".data/.gradient:/app/chrome_user_data"],
         "restart": "always",
         "cpus": "${APP_CPU_LIMIT_BIG}",
         "mem_reservation": "${APP_MEM_RESERV_BIG}",
@@ -388,19 +422,57 @@
       }
     },
     {
-      "name": "PACKETSHARE",
-      "dashboard": "https://packetshare.io/ucenter.html",
-      "link": "https://www.packetshare.io/?code=A260871CFD822E35",
+      "name": "DAWN",
+      "dashboard": "https://dawninternet.com",
+      "link": "https://dawninternet.com?code=xo23vynw",
       "compose_config": {
-        "container_name": "${DEVICE_NAME}_packetshare",
-        "hostname": "${DEVICE_NAME}_packetshare",
-        "image": "packetshare/packetshare:latest",
-        "command": "-accept-tos -email=${PACKETSHARE_EMAIL} -password=${PACKETSHARE_PASSWORD}",
-        "environment": ["PACKETSHARE_DUMMY=''"],
+        "container_name": "${DEVICE_NAME}_dawn",
+        "hostname": "${DEVICE_NAME}_dawn",
+        "image": "carbon2029/dockweb:latest",
+        "environment": [
+          "DAWN_EMAIL=$DAWN_EMAIL",
+          "DAWN_PASS=$DAWN_PASSWORD"
+        ],
+        "volumes": [".data/.dawn:/app/chrome_user_data"],
+        "ports": ["${DAWN_PORT}:5000"],
         "restart": "always",
-        "cpus": "${APP_CPU_LIMIT_MEDIUM}",
-        "mem_reservation": "${APP_MEM_RESERV_MEDIUM}",
-        "mem_limit": "${APP_MEM_LIMIT_MEDIUM}",
+        "cpus": "${APP_CPU_LIMIT_BIG}",
+        "mem_reservation": "${APP_MEM_RESERV_BIG}",
+        "mem_limit": "${APP_MEM_LIMIT_BIG}",
+        "logging": {
+          "driver": "json-file",
+          "options": {
+            "max-size": "10m",
+            "max-file": "3"
+          }
+        }
+      },
+      "compose_config_proxy": {
+        "network_mode": "service:proxy",
+        "hostname": null
+      },
+      "flags": {
+        "email": {},
+        "password": {}
+      }
+    },
+    {
+      "name": "TENEO",
+      "dashboard": "https://dashboard.teneo.pro/",
+      "link": "https://dashboard.teneo.pro/?code=qPgLn",
+      "compose_config": {
+        "container_name": "${DEVICE_NAME}_teneo",
+        "hostname": "${DEVICE_NAME}_teneo",
+        "image": "carbon2029/dockweb:latest",
+        "environment": [
+          "TENEO_EMAIL=$TENEO_EMAIL",
+          "TENEO_PASS=$TENEO_PASSWORD"
+        ],
+        "volumes": [".data/.teneo:/app/chrome_user_data"],
+        "restart": "always",
+        "cpus": "${APP_CPU_LIMIT_BIG}",
+        "mem_reservation": "${APP_MEM_RESERV_BIG}",
+        "mem_limit": "${APP_MEM_LIMIT_BIG}",
         "logging": {
           "driver": "json-file",
           "options": {
@@ -431,7 +503,7 @@
         "environment": ["MYSTNODE_DUMMY=''"],
         "command": "service --agreed-terms-and-conditions",
         "cap_add": ["NET_ADMIN"],
-        "ports": ["${MYSTNODE_DASHBOARD_PORT}:4449"],
+        "ports": ["${MYSTNODE_PORT}:4449"],
         "volumes": [".data/mysterium-node:/var/lib/mysterium-node"],
         "restart": "always",
         "cpus": "${APP_CPU_LIMIT_HUGE}",
