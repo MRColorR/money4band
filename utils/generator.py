@@ -214,9 +214,13 @@ def generate_env_file(m4b_config_path_or_dict: Any, app_config_path_or_dict: Any
             env_lines.append(f"{key.upper()}={value}")
 
         # Add m4b_dashboard configurations
-        m4b_dashboard_config = user_config.get('m4b_dashboard', {})
+        m4b_dashboard_name = 'm4b_dashboard'
+        m4b_dashboard_config = user_config.get(m4b_dashboard_name, {})
         for key, value in m4b_dashboard_config.items():
-            env_lines.append(f"M4B_DASHBOARD_{key.upper()}={value}")
+            if key == 'ports':
+                env_lines.append(f"{m4b_dashboard_name.upper()}_PORT={value}")
+            else:
+                env_lines.append(f"{m4b_dashboard_name.upper()}_{key.upper()}={value}")
 
         # Add proxy configurations
         proxy_config = user_config.get('proxies', {})
@@ -245,9 +249,11 @@ def generate_env_file(m4b_config_path_or_dict: Any, app_config_path_or_dict: Any
                             env_var_value = app_user_config[flag_name]
                             env_lines.append(f"{env_var_name}={env_var_value}")
 
-                    # Add app dashboard port if it exists
-                    if 'dashboard_port' in app_user_config:
+                    # Add ports configurations for apps that have them
+                    if 'dashboard_port' in app_user_config: # TODO: remove dashboard_port from here and user config and use ports instead
                         env_lines.append(f"{app_name.upper()}_DASHBOARD_PORT={app_user_config['dashboard_port']}")
+                    if 'ports' in app_user_config:
+                        env_lines.append(f"{app_name.upper()}_PORT={app_user_config['ports']}")
 
         # Write to .env file
         with open(env_output_path, 'w') as f:

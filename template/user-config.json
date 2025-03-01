@@ -65,6 +65,12 @@
       "email": "yourBITPINGMail",
       "password": "yourBITPINGPw"
     },
+    "packetshare": {
+      "enabled": false,
+      "docker_platform": "linux/amd64",
+      "email": "yourPACKETSHAREMail",
+      "password": "yourPACKETSHAREPw"
+    },
     "speedshare": {
       "enabled": false,
       "docker_platform": "linux/amd64",
@@ -83,16 +89,23 @@
       "email": "yourGRADIENTMail",
       "password": "yourGRADIENTPw"
     },
-    "packetshare": {
+    "dawn": {
       "enabled": false,
       "docker_platform": "linux/amd64",
-      "email": "yourPACKETSHAREMail",
-      "password": "yourPACKETSHAREPw"
+      "email": "yourDAWNMail",
+      "password": "yourDAWNPw",
+      "ports": 5000
+    },
+    "teneo": {
+      "enabled": false,
+      "docker_platform": "linux/amd64",
+      "email": "yourTENEOMail",
+      "password": "yourTENEOPw"
     },
     "mystnode": {
       "enabled": false,
       "docker_platform": "linux/amd64",
-      "dashboard_port": 4449
+      "ports": 4449
     },
     "peer2profit": {
       "enabled": false,
@@ -102,7 +115,7 @@
   },
   "m4b_dashboard": {
     "enabled": true,
-    "dashboard_port": 8081
+    "ports": 8081
   },
   "proxies": {
     "enabled": false,
@@ -133,7 +146,7 @@
       "privileged": true,
       "network_mode": "bridge",
       "dns": ["1.1.1.1", "8.8.8.8", "1.0.0.1", "8.8.4.4"],
-      "ports": ["${MYSTNODE_DASHBOARD_PORT}:4449"],
+      "ports": ["${MYSTNODE_PORT}:4449"],
       "volumes": ["/dev/net/tun:/dev/net/tun"],
       "restart": "always",
       "cpus": "${APP_CPU_LIMIT_BIG}",
@@ -189,7 +202,7 @@
         "./.resources/.assets:/usr/share/nginx/html/.images:ro",
         "./config/app-config.json:/usr/share/nginx/html/.config/app-config.json:ro"
       ],
-      "ports": ["${M4B_DASHBOARD_DASHBOARD_PORT}:80"],
+      "ports": ["${M4B_DASHBOARD_PORT}:80"],
       "restart": "always",
       "cpus": "${APP_CPU_LIMIT_LITTLE}",
       "mem_reservation": "${APP_MEM_RESERV_LITTLE}",
