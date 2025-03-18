@@ -146,7 +146,7 @@
       "privileged": true,
       "network_mode": "bridge",
       "dns": ["1.1.1.1", "8.8.8.8", "1.0.0.1", "8.8.4.4"],
-      "ports": ["${MYSTNODE_PORT}:4449"],
+      "ports": [],
       "volumes": ["/dev/net/tun:/dev/net/tun"],
       "restart": "always",
       "cpus": "${APP_CPU_LIMIT_BIG}",
@@ -165,9 +165,7 @@
           "WATCHTOWER_CLEANUP=true",
           "WATCHTOWER_NOTIFICATION_URL=${WATCHTOWER_NOTIFICATION_URL}"
         ],
-        "volumes": [
-          "/var/run/docker.sock:/var/run/docker.sock"
-        ],
+        "volumes": ["/var/run/docker.sock:/var/run/docker.sock"],
         "restart": "always",
         "cpus": "${APP_CPU_LIMIT_MEDIUM}",
         "mem_reservation": "${APP_MEM_RESERV_MEDIUM}",
@@ -184,9 +182,7 @@
           "WATCHTOWER_CLEANUP=true",
           "WATCHTOWER_NOTIFICATION_URL=${WATCHTOWER_NOTIFICATION_URL}"
         ],
-        "volumes": [
-          "/var/run/docker.sock:/var/run/docker.sock"
-        ],
+        "volumes": ["/var/run/docker.sock:/var/run/docker.sock"],
         "restart": "always",
         "cpus": "${APP_CPU_LIMIT_MEDIUM}",
         "mem_reservation": "${APP_MEM_RESERV_MEDIUM}",

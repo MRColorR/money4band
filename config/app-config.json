@@ -9,10 +9,7 @@
         "container_name": "${DEVICE_NAME}_earnapp",
         "hostname": "${DEVICE_NAME}_earnapp",
         "image": "fazalfarhan01/earnapp:lite",
-        "environment": [
-          "EARNAPP_UUID=$EARNAPP_UUID",
-          "EARNAPP_TERM=yes"
-        ],
+        "environment": ["EARNAPP_UUID=$EARNAPP_UUID", "EARNAPP_TERM=yes"],
         "volumes": [".data/.earnapp:/etc/earnapp"],
         "restart": "always",
         "cpus": "${APP_CPU_LIMIT_MEDIUM}",
@@ -429,10 +426,7 @@
         "container_name": "${DEVICE_NAME}_dawn",
         "hostname": "${DEVICE_NAME}_dawn",
         "image": "carbon2029/dockweb:latest",
-        "environment": [
-          "DAWN_EMAIL=$DAWN_EMAIL",
-          "DAWN_PASS=$DAWN_PASSWORD"
-        ],
+        "environment": ["DAWN_EMAIL=$DAWN_EMAIL", "DAWN_PASS=$DAWN_PASSWORD"],
         "volumes": [".data/.dawn:/app/chrome_user_data"],
         "ports": ["${DAWN_PORT}:5000"],
         "restart": "always",
@@ -449,7 +443,8 @@
       },
       "compose_config_proxy": {
         "network_mode": "service:proxy",
-        "hostname": null
+        "hostname": null,
+        "ports": null
       },
       "flags": {
         "email": {},
