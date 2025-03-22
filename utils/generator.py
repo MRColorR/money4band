@@ -215,18 +215,35 @@ def assemble_docker_compose(m4b_config_path_or_dict: Any, app_config_path_or_dic
                     # If it's not a list, convert it to one
                     proxy_service['ports'] = [proxy_service['ports']]
 
+                # IMPORTANT: Remove any existing dashboard port from the proxy service ports
+                dashboard_port = "${M4B_DASHBOARD_PORT}:80"
+                if dashboard_port in proxy_service['ports']:
+                    proxy_service['ports'].remove(dashboard_port)
+                    logging.info(
+                        "Removed existing dashboard port mapping from proxy service")
+
                 # Add required ports from enabled apps
                 for port_mapping in proxy_ports:
                     if port_mapping not in proxy_service['ports']:
                         proxy_service['ports'].append(port_mapping)
 
-                # Always ensure m4b_dashboard port is included if enabled
-                if user_config['m4b_dashboard'].get('enabled') and not app_ports_transferred.get('m4bwebdashboard'):
-                    dashboard_port = "${M4B_DASHBOARD_PORT}:80"
-                    if dashboard_port not in proxy_service['ports']:
+                # Dashboard port handling based on instance type
+                if is_main_instance and user_config['m4b_dashboard'].get('enabled'):
+                    # Only add dashboard port to proxy service if using proxy AND dashboard is enabled
+                    if proxy_enabled and not app_ports_transferred.get('m4bwebdashboard'):
+                        # Add the dashboard port to proxy service
                         proxy_service['ports'].append(dashboard_port)
                         logging.info(
-                            "Added M4B dashboard port mapping to proxy service")
+                            "Added M4B dashboard port mapping to proxy service for main instance")
+
+                        # If we're adding dashboard port to proxy, we should remove 'ports' entirely from the dashboard service
+                        if 'm4bwebdashboard' in services and 'ports' in services['m4bwebdashboard']:
+                            del services['m4bwebdashboard']['ports']
+                            logging.info(
+                                "Removed ports key from m4bwebdashboard service as it's handled by proxy")
+                else:
+                    logging.info(
+                        "Skipping dashboard port mapping for multiproxy instance to avoid conflicts")
 
                 logging.info(
                     f"Added {len(proxy_ports)} port mappings to the proxy service from apps using its network")
@@ -343,9 +360,9 @@ def generate_env_file(m4b_config_path_or_dict: Any, app_config_path_or_dict: Any
         for category in apps_categories:
             for app in app_config.get(category, []):
                 app_name = app['name'].upper()
+                app_lower = app['name'].lower()
                 app_flags = app.get('flags', {})
-                app_user_config = user_config['apps'].get(
-                    app['name'].lower(), {})
+                app_user_config = user_config['apps'].get(app_lower, {})
                 if app_user_config.get('enabled', False):
                     for flag_name in app_flags.keys():
                         if flag_name in app_user_config:
@@ -354,13 +371,25 @@ def generate_env_file(m4b_config_path_or_dict: Any, app_config_path_or_dict: Any
                             env_lines.append(f"{env_var_name}={env_var_value}")
 
                     # Add ports configurations for apps that have them
-                    # TODO: remove dashboard_port from here and user config and use ports instead
                     if 'dashboard_port' in app_user_config:
                         env_lines.append(
                             f"{app_name.upper()}_DASHBOARD_PORT={app_user_config['dashboard_port']}")
                     if 'ports' in app_user_config:
-                        env_lines.append(
-                            f"{app_name.upper()}_PORT={app_user_config['ports']}")
+                        # Handle both single port and list of ports
+                        if isinstance(app_user_config['ports'], list):
+                            for i, port in enumerate(app_user_config['ports']):
+                                env_lines.append(
+                                    f"{app_name.upper()}_PORT_{i+1}={port}")
+                        else:
+                            # Add standard app port variable
+                            env_lines.append(
+                                f"{app_name.upper()}_PORT={app_user_config['ports']}")
+                            
+                            # Add app-specific port variable (for backward compatibility)
+                            # This ensures services that explicitly reference ${APPNAME_PORT} in docker-compose
+                            # continue to work without modifications
+                            env_lines.append(
+                                f"{app_lower.upper()}_PORT={app_user_config['ports']}")
 
         # Write to .env file
         with open(env_output_path, 'w') as f:
