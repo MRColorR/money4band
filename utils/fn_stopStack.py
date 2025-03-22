@@ -32,6 +32,32 @@ except FileNotFoundError:
 sleep_time = m4b_config.get("system", {}).get("sleep_time", 3)  # Default to 3 seconds if not specified
 
 
+def get_compose_project_name(env_file: str) -> str:
+    """
+    Extract the COMPOSE_PROJECT_NAME from an environment file.
+    
+    Args:
+        env_file (str): Path to the .env file
+        
+    Returns:
+        str: The COMPOSE_PROJECT_NAME value, or None if not found
+    """
+    project_name = None
+    env_file = env_file.replace('docker-compose.yaml', '.env')  # Handle if compose file was passed
+    
+    try:
+        if os.path.isfile(env_file):
+            with open(env_file, 'r') as f:
+                for line in f:
+                    if line.startswith('COMPOSE_PROJECT_NAME='):
+                        project_name = line.strip().split('=', 1)[1]
+                        logging.info(f"Found COMPOSE_PROJECT_NAME in {env_file}: {project_name}")
+                        break
+    except Exception as e:
+        logging.error(f"Error reading COMPOSE_PROJECT_NAME from {env_file}: {str(e)}")
+    
+    return project_name
+
 def stop_stack(compose_file: str = './docker-compose.yaml', instance_name: str = 'money4band', skip_questions: bool = False) -> bool:
     """
     Stop the Docker Compose stack using the provided compose file.
@@ -58,7 +84,26 @@ def stop_stack(compose_file: str = './docker-compose.yaml', instance_name: str =
 
     use_sudo = not is_user_root() and platform.system().lower() == 'linux'
     try:
-        command = ["docker", "compose", "-f", compose_file, "down"]
+        # Get the env file path based on the compose file directory
+        compose_dir = os.path.dirname(compose_file)
+        if compose_dir == '':
+            compose_dir = '.'
+        env_file = os.path.join(compose_dir, '.env')
+        
+        # Read COMPOSE_PROJECT_NAME from the .env file
+        project_name = get_compose_project_name(env_file)
+        
+        # Build the docker compose command, adding -p flag if project_name was found
+        command = ["docker", "compose"]
+        
+        if project_name:
+            command.extend(["-p", project_name])
+            logging.info(f"Using project name '{project_name}' for stopping instance '{instance_name}'")
+        else:
+            logging.warning(f"COMPOSE_PROJECT_NAME not found in {env_file}, relying on Docker Compose defaults")
+            
+        command.extend(["-f", compose_file, "down"])
+        
         result = run_docker_command(command, use_sudo=use_sudo)
         if result == 0:
             print(f"{Fore.GREEN}All Apps for '{instance_name}' instance stopped and stack deleted.{Style.RESET_ALL}")
@@ -106,7 +151,7 @@ def stop_all_stacks(main_compose_file: str = './docker-compose.yaml', main_insta
                         stop_stack(compose_file, instance, skip_questions=True)
                     except Exception as e:
                         logging.error(f"Failed to stop instance '{instance}': {str(e)}")
-            print(f"{Fore.GREEN}All multi-proxy instances stopped successfully.{Style.RESET_ALL}")
+            print(f"{Fore.GREEN}All multi-proxy instances stopped.{Style.RESET_ALL}")
         else:
             logging.warning(f"Multi-proxy instances directory '{instances_dir}' does not exist.")
     finally:
