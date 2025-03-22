@@ -1,3 +1,4 @@
+from utils.helper import ensure_service
 import requests
 import logging
 import sys
@@ -10,7 +11,6 @@ parent_dir = os.path.dirname(script_dir)
 if parent_dir not in sys.path:
     sys.path.append(parent_dir)
 
-from utils.helper import ensure_service
 
 # Store the Docker Hub base URL in a variable
 DOCKERHUB_BASE_URL = "https://registry.hub.docker.com/v2/"
@@ -27,7 +27,8 @@ def fetch_docker_tags(image: str) -> Optional[Dict]:
         Optional[Dict]: A dictionary containing tag information if successful, None otherwise.
     """
     try:
-        response = requests.get(f"{DOCKERHUB_BASE_URL}repositories/{image}/tags")
+        response = requests.get(
+            f"{DOCKERHUB_BASE_URL}repositories/{image}/tags")
         response.raise_for_status()
         return response.json()
     except requests.RequestException as e:
@@ -52,7 +53,8 @@ def check_img_arch_support(image: str, tag: str, docker_platform: str) -> bool:
     if tags_info is None:
         return False
 
-    tag_info = next((t for t in tags_info.get('results', []) if t['name'] == tag), None)
+    tag_info = next((t for t in tags_info.get(
+        'results', []) if t['name'] == tag), None)
     if not tag_info:
         logging.error(f"Tag {tag} not found for image {image}")
         return False
@@ -78,20 +80,25 @@ def get_compatible_tag(image: str, docker_platform: str) -> Optional[str]:
         return None
 
     compatible_tag = next(
-        (t['name'] for t in tags_info.get('results', []) if any(image_info['architecture'] == arch for image_info in t['images'])),
+        (t['name'] for t in tags_info.get('results', []) if any(
+            image_info['architecture'] == arch for image_info in t['images'])),
         None
     )
 
     if not compatible_tag:
         # Construct the path to the docker.binfmt.service file
-        service_file_path = os.path.join(os.getcwd(), '.resources', '.files', 'docker.binfmt.service')
-        
+        service_file_path = os.path.join(
+            os.getcwd(), '.resources', '.files', 'docker.binfmt.service')
+
         # Ensure multi-arch emulation support with binfmt if no compatible tag is found
-        ensure_service(service_name="docker.binfmt", service_file_path=service_file_path)
+        ensure_service(service_name="docker.binfmt",
+                       service_file_path=service_file_path)
 
         # Log and inform the user that no compatible tag for the architecture was found
-        logging.warning(f"No compatible tag found for {image} on platform {docker_platform}. The software will attempt to run the app using binfmt multi-arch emulation.")
+        logging.warning(
+            f"No compatible tag found for {image} on platform {docker_platform}. The software will attempt to run the app using binfmt multi-arch emulation.")
     else:
-        logging.info(f"Found compatible tag {compatible_tag} for {image} on platform {docker_platform}")
+        logging.info(
+            f"Found compatible tag {compatible_tag} for {image} on platform {docker_platform}")
 
     return compatible_tag

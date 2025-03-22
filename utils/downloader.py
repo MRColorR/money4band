@@ -4,6 +4,7 @@ import logging
 import argparse
 from typing import Any
 
+
 def download_file(url: str, dest_path: str) -> None:
     """
     Download a file from a given URL and save it to the specified destination path.
@@ -29,11 +30,14 @@ def download_file(url: str, dest_path: str) -> None:
                     file.write(chunk)
         logging.info(f"File downloaded successfully from {url} to {dest_path}")
     except requests.RequestException as e:
-        logging.error(f"An error occurred while downloading the file from {url}: {str(e)}")
+        logging.error(
+            f"An error occurred while downloading the file from {url}: {str(e)}")
         raise
     except OSError as e:
-        logging.error(f"An error occurred while writing the file to {dest_path}: {str(e)}")
+        logging.error(
+            f"An error occurred while writing the file to {dest_path}: {str(e)}")
         raise
+
 
 if __name__ == "__main__":
     # Get the script absolute path and name
@@ -41,12 +45,18 @@ if __name__ == "__main__":
     script_name = os.path.basename(__file__)
 
     # Parse command-line arguments
-    parser = argparse.ArgumentParser(description=f"Run the {script_name} module standalone.")
-    parser.add_argument('--url', type=str, required=True, help='URL of the file to download')
-    parser.add_argument('--dest-path', type=str, required=True, help='Destination path where the file will be saved')
-    parser.add_argument('--log-dir', default=os.path.join(script_dir, 'logs'), help='Set the logging directory')
-    parser.add_argument('--log-file', default=f"{script_name}.log", help='Set the logging file name')
-    parser.add_argument('--log-level', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], default='INFO', help='Set the logging level')
+    parser = argparse.ArgumentParser(
+        description=f"Run the {script_name} module standalone.")
+    parser.add_argument('--url', type=str, required=True,
+                        help='URL of the file to download')
+    parser.add_argument('--dest-path', type=str, required=True,
+                        help='Destination path where the file will be saved')
+    parser.add_argument('--log-dir', default=os.path.join(script_dir,
+                        'logs'), help='Set the logging directory')
+    parser.add_argument(
+        '--log-file', default=f"{script_name}.log", help='Set the logging file name')
+    parser.add_argument('--log-level', choices=['DEBUG', 'INFO', 'WARNING',
+                        'ERROR', 'CRITICAL'], default='INFO', help='Set the logging level')
     args = parser.parse_args()
 
     # Set logging level based on command-line arguments

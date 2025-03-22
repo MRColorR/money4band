@@ -38,10 +38,10 @@ sleep_time = m4b_config.get("system", {}).get(
 def get_compose_project_name(env_file: str) -> str:
     """
     Extract the COMPOSE_PROJECT_NAME from an environment file.
-    
+
     Args:
         env_file (str): Path to the .env file
-        
+
     Returns:
         str: The COMPOSE_PROJECT_NAME value, or None if not found
     """
@@ -52,21 +52,23 @@ def get_compose_project_name(env_file: str) -> str:
                 for line in f:
                     if line.startswith('COMPOSE_PROJECT_NAME='):
                         project_name = line.strip().split('=', 1)[1]
-                        logging.info(f"Found COMPOSE_PROJECT_NAME in {env_file}: {project_name}")
+                        logging.info(
+                            f"Found COMPOSE_PROJECT_NAME in {env_file}: {project_name}")
                         break
     except Exception as e:
-        logging.error(f"Error reading COMPOSE_PROJECT_NAME from {env_file}: {str(e)}")
-    
+        logging.error(
+            f"Error reading COMPOSE_PROJECT_NAME from {env_file}: {str(e)}")
+
     return project_name
 
 
 def get_device_name_from_env(env_file: str) -> str:
     """
     Extract the DEVICE_NAME from an environment file.
-    
+
     Args:
         env_file (str): Path to the .env file
-        
+
     Returns:
         str: The DEVICE_NAME value, or None if not found
     """
@@ -77,11 +79,12 @@ def get_device_name_from_env(env_file: str) -> str:
                 for line in f:
                     if line.startswith('DEVICE_NAME='):
                         device_name = line.strip().split('=', 1)[1]
-                        logging.info(f"Found DEVICE_NAME in {env_file}: {device_name}")
+                        logging.info(
+                            f"Found DEVICE_NAME in {env_file}: {device_name}")
                         break
     except Exception as e:
         logging.error(f"Error reading DEVICE_NAME from {env_file}: {str(e)}")
-    
+
     return device_name
 
 
@@ -118,21 +121,25 @@ def start_stack(compose_file: str = './docker-compose.yaml', env_file: str = './
         # Read COMPOSE_PROJECT_NAME from the .env file
         project_name = get_compose_project_name(env_file)
         device_name = get_device_name_from_env(env_file)
-        
+
         if device_name:
-            logging.info(f"Using device name '{device_name}' for instance '{instance_name}'")
-        
+            logging.info(
+                f"Using device name '{device_name}' for instance '{instance_name}'")
+
         # Build the docker compose command, adding -p flag if project_name was found
         command = ["docker", "compose"]
-        
+
         if project_name:
             command.extend(["-p", project_name])
-            logging.info(f"Using project name '{project_name}' for instance '{instance_name}'")
+            logging.info(
+                f"Using project name '{project_name}' for instance '{instance_name}'")
         else:
-            logging.warning(f"COMPOSE_PROJECT_NAME not found in {env_file}, relying on Docker Compose defaults")
-            
-        command.extend(["-f", compose_file, "--env-file", env_file, "up", "-d", "--remove-orphans"])
-        
+            logging.warning(
+                f"COMPOSE_PROJECT_NAME not found in {env_file}, relying on Docker Compose defaults")
+
+        command.extend(["-f", compose_file, "--env-file",
+                       env_file, "up", "-d", "--remove-orphans"])
+
         result = run_docker_command(command, use_sudo=use_sudo)
         if result == 0:
             print(
@@ -179,21 +186,22 @@ def start_all_stacks(main_compose_file: str = './docker-compose.yaml', main_env_
         if not skip_questions and not ask_question_yn("This will stop ALL running Docker containers. Continue?"):
             print(f"{Fore.BLUE}Docker stack startup canceled.{Style.RESET_ALL}")
             return
-            
+
         print(f"{Fore.YELLOW}Stopping all Docker containers...{Style.RESET_ALL}")
         subprocess.run(["docker", "stop", "$(docker ps -q)"], shell=True)
         print(f"{Fore.GREEN}All containers stopped.{Style.RESET_ALL}")
 
     # Check for any running containers that might conflict
-    result = subprocess.run(["docker", "ps", "--format", "{{.Names}}"], capture_output=True, text=True)
+    result = subprocess.run(
+        ["docker", "ps", "--format", "{{.Names}}"], capture_output=True, text=True)
     running_containers = result.stdout.splitlines()
-    
+
     # Print warning if any containers already exist
     if running_containers:
         print(f"{Fore.YELLOW}Warning: Found {len(running_containers)} running containers. Check for conflicts:{Style.RESET_ALL}")
         for container in running_containers:
             print(f" - {container}")
-        
+
         if not skip_questions and not ask_question_yn("Continue despite existing containers?"):
             print(f"{Fore.BLUE}Docker stack startup canceled.{Style.RESET_ALL}")
             return
@@ -202,7 +210,7 @@ def start_all_stacks(main_compose_file: str = './docker-compose.yaml', main_env_
         # First verify each instance has unique container names
         container_names = {}
         device_names = set()
-        
+
         # Check main instance container names
         main_device_name = None
         with open(main_env_file, 'r') as f:
@@ -211,13 +219,14 @@ def start_all_stacks(main_compose_file: str = './docker-compose.yaml', main_env_
                     main_device_name = line.strip().split('=', 1)[1]
                     device_names.add(main_device_name)
                     break
-        
+
         if main_device_name:
-            print(f"{Fore.CYAN}Main instance device name: {main_device_name}{Style.RESET_ALL}")
+            print(
+                f"{Fore.CYAN}Main instance device name: {main_device_name}{Style.RESET_ALL}")
             main_containers = get_container_names_from_env(main_env_file)
             for container in main_containers:
                 container_names[container] = "main instance"
-        
+
         # Check proxy instances container names and device names
         has_conflicts = False
         if os.path.isdir(instances_dir):
@@ -230,58 +239,71 @@ def start_all_stacks(main_compose_file: str = './docker-compose.yaml', main_env_
                     with open(env_file, 'r') as f:
                         for line in f:
                             if line.startswith('DEVICE_NAME='):
-                                instance_device_name = line.strip().split('=', 1)[1]
+                                instance_device_name = line.strip().split('=', 1)[
+                                    1]
                                 break
-                    
+
                     if instance_device_name:
                         if instance_device_name in device_names:
-                            print(f"{Fore.RED}Duplicate device name detected: '{instance_device_name}' is already used by another instance!{Style.RESET_ALL}")
-                            print(f"{Fore.RED}This will cause container name conflicts. Please run the validator to fix this issue.{Style.RESET_ALL}")
+                            print(
+                                f"{Fore.RED}Duplicate device name detected: '{instance_device_name}' is already used by another instance!{Style.RESET_ALL}")
+                            print(
+                                f"{Fore.RED}This will cause container name conflicts. Please run the validator to fix this issue.{Style.RESET_ALL}")
                             has_conflicts = True
                         else:
                             device_names.add(instance_device_name)
-                            print(f"{Fore.GREEN}Instance {instance} device name: {instance_device_name}{Style.RESET_ALL}")
-                    
-                    instance_containers = get_container_names_from_env(env_file)
+                            print(
+                                f"{Fore.GREEN}Instance {instance} device name: {instance_device_name}{Style.RESET_ALL}")
+
+                    instance_containers = get_container_names_from_env(
+                        env_file)
                     for container in instance_containers:
                         if container in container_names:
-                            print(f"{Fore.RED}Container name conflict detected: '{container}' is used in both {container_names[container]} and {instance}{Style.RESET_ALL}")
-                            print(f"{Fore.RED}This conflict occurs because your docker-compose.yaml files explicitly name containers using DEVICE_NAME{Style.RESET_ALL}")
-                            print(f"{Fore.RED}For example: container_name: ${{DEVICE_NAME}}_earnapp{Style.RESET_ALL}")
-                            logging.error(f"Container name conflict: '{container}' in {container_names[container]} and {instance}")
+                            print(
+                                f"{Fore.RED}Container name conflict detected: '{container}' is used in both {container_names[container]} and {instance}{Style.RESET_ALL}")
+                            print(
+                                f"{Fore.RED}This conflict occurs because your docker-compose.yaml files explicitly name containers using DEVICE_NAME{Style.RESET_ALL}")
+                            print(
+                                f"{Fore.RED}For example: container_name: ${{DEVICE_NAME}}_earnapp{Style.RESET_ALL}")
+                            logging.error(
+                                f"Container name conflict: '{container}' in {container_names[container]} and {instance}")
                             has_conflicts = True
                         container_names[container] = instance
-        
+
         if has_conflicts:
-            print(f"{Fore.RED}Container name conflicts detected! These must be fixed before starting.{Style.RESET_ALL}")
-            print(f"{Fore.YELLOW}Please run the validator tool: python utils/validate_instances.py --fix{Style.RESET_ALL}")
+            print(
+                f"{Fore.RED}Container name conflicts detected! These must be fixed before starting.{Style.RESET_ALL}")
+            print(
+                f"{Fore.YELLOW}Please run the validator tool: python utils/validate_instances.py --fix{Style.RESET_ALL}")
             if not skip_questions and not ask_question_yn("Continue anyway? (Conflicts will cause failures)"):
                 return
             print(f"{Fore.YELLOW}Continuing despite container name conflicts. This may lead to unpredictable behavior.{Style.RESET_ALL}")
-        
+
         # Start main stack
         all_started = start_stack(
             main_compose_file, main_env_file, main_instance_name, skip_questions=True)
-        
+
         # Wait a moment for main stack to initialize
         time.sleep(3)
-        
+
         # Start proxy instances
         if all_started and os.path.isdir(instances_dir):
             for instance in os.listdir(instances_dir):
                 instance_dir = os.path.join(instances_dir, instance)
-                compose_file = os.path.join(instance_dir, 'docker-compose.yaml')
+                compose_file = os.path.join(
+                    instance_dir, 'docker-compose.yaml')
                 env_file = os.path.join(instance_dir, '.env')
                 if os.path.isfile(compose_file) and os.path.isfile(env_file):
                     try:
-                        print(f"{Fore.YELLOW}Starting instance: {instance}{Style.RESET_ALL}")
+                        print(
+                            f"{Fore.YELLOW}Starting instance: {instance}{Style.RESET_ALL}")
                         instance_started = start_stack(
                             compose_file, env_file, instance, skip_questions=True)
                         all_started &= instance_started
                         if not instance_started:
                             logging.error(
                                 f"Failed to start instance '{instance}'")
-                        
+
                         # Add small delay between instance starts to prevent race conditions
                         time.sleep(2)
                     except Exception as e:
@@ -301,10 +323,10 @@ def get_container_names_from_env(env_file):
     """
     Extract the potential container names from an env file by reading the DEVICE_NAME
     and generating the standard container name patterns used in the compose files.
-    
+
     Args:
         env_file (str): Path to the .env file
-        
+
     Returns:
         list: List of predicted container names
     """
@@ -312,50 +334,52 @@ def get_container_names_from_env(env_file):
     try:
         with open(env_file, 'r') as f:
             env_content = f.read()
-            
+
         # Find the DEVICE_NAME value
         match = re.search(r'DEVICE_NAME=([^\s#]+)', env_content)
         if match:
             device_name = match.group(1)
             # Common app names used in container names
             app_names = [
-                "earnapp", "iproyalpawns", "packetstream", "traffmonetizer", 
-                "repocket", "earnfm", "proxyrack", "bitping", "packetshare", 
+                "earnapp", "iproyalpawns", "packetstream", "traffmonetizer",
+                "repocket", "earnfm", "proxyrack", "bitping", "packetshare",
                 "grass", "gradient", "dawn", "teneo", "mystnode", "peer2profit",
                 "watchtower", "m4bwebdashboard", "tun2socks"
             ]
-            
+
             # Generate container names based on pattern
             for app in app_names:
                 container_names.append(f"{device_name}_{app}")
-                
-            logging.info(f"Extracted potential container names for {env_file}: {len(container_names)} names")
+
+            logging.info(
+                f"Extracted potential container names for {env_file}: {len(container_names)} names")
         else:
             logging.warning(f"Could not find DEVICE_NAME in {env_file}")
     except Exception as e:
-        logging.error(f"Error extracting container names from {env_file}: {str(e)}")
-    
+        logging.error(
+            f"Error extracting container names from {env_file}: {str(e)}")
+
     return container_names
 
 
 def validate_env_files(main_env_file: str, instances_dir: str) -> bool:
     """
     Validate .env files to ensure DEVICE_NAME values are unique.
-    
+
     Args:
         main_env_file (str): Path to the main .env file
         instances_dir (str): Directory containing proxy instances
-    
+
     Returns:
         bool: True if all DEVICE_NAME values are unique, False otherwise
     """
     device_names = {}
-    
+
     # Check main .env file
     main_device_name = get_device_name_from_env(main_env_file)
     if main_device_name:
         device_names[main_device_name] = "main"
-    
+
     # Check instance .env files
     if os.path.isdir(instances_dir):
         for instance in os.listdir(instances_dir):
@@ -365,10 +389,11 @@ def validate_env_files(main_env_file: str, instances_dir: str) -> bool:
                 device_name = get_device_name_from_env(env_file)
                 if device_name:
                     if device_name in device_names:
-                        print(f"{Fore.RED}Duplicate DEVICE_NAME '{device_name}' found in {instance} and {device_names[device_name]}{Style.RESET_ALL}")
+                        print(
+                            f"{Fore.RED}Duplicate DEVICE_NAME '{device_name}' found in {instance} and {device_names[device_name]}{Style.RESET_ALL}")
                         return False
                     device_names[device_name] = instance
-    
+
     return True
 
 

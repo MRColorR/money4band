@@ -2,6 +2,7 @@ import os
 import argparse
 import logging
 
+
 def cls():
     """
     Clear the console.
@@ -13,16 +14,21 @@ def cls():
         logging.error(f"Error clearing console: {str(e)}")
         raise
 
+
 if __name__ == "__main__":
     # Get the script absolute path and name
     script_dir = os.path.dirname(os.path.abspath(__file__))
     script_name = os.path.basename(__file__)
 
     # Parse command-line arguments
-    parser = argparse.ArgumentParser(description=f"Run the {script_name} module standalone.")
-    parser.add_argument('--log-dir', default=os.path.join(script_dir, 'logs'), help='Set the logging directory')
-    parser.add_argument('--log-file', default=f"{script_name}.log", help='Set the logging file name')
-    parser.add_argument('--log-level', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], default='INFO', help='Set the logging level')
+    parser = argparse.ArgumentParser(
+        description=f"Run the {script_name} module standalone.")
+    parser.add_argument('--log-dir', default=os.path.join(script_dir,
+                        'logs'), help='Set the logging directory')
+    parser.add_argument(
+        '--log-file', default=f"{script_name}.log", help='Set the logging file name')
+    parser.add_argument('--log-level', choices=['DEBUG', 'INFO', 'WARNING',
+                        'ERROR', 'CRITICAL'], default='INFO', help='Set the logging level')
     args = parser.parse_args()
 
     # Set logging level based on command-line arguments
