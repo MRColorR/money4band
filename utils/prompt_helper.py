@@ -1,3 +1,4 @@
+from utils.generator import validate_uuid
 import os
 import sys
 import re
@@ -9,7 +10,6 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(script_dir)
 if parent_dir not in sys.path:
     sys.path.append(parent_dir)
-from utils.generator import validate_uuid
 
 
 def ask_question_yn(question: str, default: bool = False) -> bool:
@@ -28,7 +28,8 @@ def ask_question_yn(question: str, default: bool = False) -> bool:
     done = None
 
     while done is None:
-        choice = input(f"{Fore.GREEN}{question} (y/n) (default: {Fore.YELLOW}{'yes' if default else 'no'}{Fore.GREEN}):{Style.RESET_ALL} ").lower().strip()
+        choice = input(
+            f"{Fore.GREEN}{question} (y/n) (default: {Fore.YELLOW}{'yes' if default else 'no'}{Fore.GREEN}):{Style.RESET_ALL} ").lower().strip()
         if not choice:
             done = default
         elif choice in yes:
@@ -62,7 +63,7 @@ def ask_string(prompt: str, default: str = "", show_default: bool = True) -> str
         response = input(prompt_text).strip()
         if not response:
             response = default
-        if not response: # As default is empty if not specified then we throw this error
+        if not response:  # As default is empty if not specified then we throw this error
             print(f"{Fore.RED}Input cannot be empty.{Style.RESET_ALL}")
             continue
         logging.debug(f"User response to '{prompt}': {response}")
@@ -90,7 +91,7 @@ def ask_email(prompt: str, default: str = "", show_default: bool = True) -> str:
         email = input(prompt_text).strip()
         if not email:
             email = default
-        if not email: # As default is empty if not specified then we throw this error
+        if not email:  # As default is empty if not specified then we throw this error
             print(f"{Fore.RED}Email address cannot be empty.{Style.RESET_ALL}")
             continue
         elif not re.match(r"[^@]+@[^@]+\.[^@]+", email):
@@ -123,12 +124,13 @@ def ask_uuid(prompt: str, length: int, default: str = "", show_default: bool = T
         uuid = input(prompt_text).lower().strip()
         if not uuid:
             uuid = default
-        if not uuid: # As default is empty if not specified then we throw this error
+        if not uuid:  # As default is empty if not specified then we throw this error
             print(f"{Fore.RED}UUID cannot be empty.{Style.RESET_ALL}")
             continue
         elif len(uuid) != length:
             print(f"{Fore.RED}Invalid UUID length.{Style.RESET_ALL}")
-            logging.warning(f"Invalid UUID length. Expected: {length}, Got: {len(uuid)}")
+            logging.warning(
+                f"Invalid UUID length. Expected: {length}, Got: {len(uuid)}")
         elif not validate_uuid(uuid, length):
             print(f"{Fore.RED}Invalid UUID format.{Style.RESET_ALL}")
         else:

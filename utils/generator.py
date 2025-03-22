@@ -384,7 +384,7 @@ def generate_env_file(m4b_config_path_or_dict: Any, app_config_path_or_dict: Any
                             # Add standard app port variable
                             env_lines.append(
                                 f"{app_name.upper()}_PORT={app_user_config['ports']}")
-                            
+
                             # Add app-specific port variable (for backward compatibility)
                             # This ensures services that explicitly reference ${APPNAME_PORT} in docker-compose
                             # continue to work without modifications

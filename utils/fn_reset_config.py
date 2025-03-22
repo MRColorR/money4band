@@ -17,7 +17,8 @@ def reset_config(src_path: str, dest_path: str) -> None:
     try:
         # Configure logging
         logger = logging.getLogger(__name__)
-        logger.info(f"Starting the process of resetting {os.path.basename(dest_path)}...")
+        logger.info(
+            f"Starting the process of resetting {os.path.basename(dest_path)}...")
 
         # Check if source file exists
         if not os.path.exists(src_path):
@@ -26,7 +27,7 @@ def reset_config(src_path: str, dest_path: str) -> None:
         # Create destination directory if it does not exist
         dest_dir = os.path.dirname(dest_path)
         os.makedirs(dest_dir, exist_ok=True)
-        
+
         # Copy the file
         shutil.copyfile(src_path, dest_path)
         logger.info(f"Successfully copied {src_path} to {dest_path}.")
@@ -63,14 +64,22 @@ if __name__ == '__main__':
 
     # Parse command-line arguments
     parser = argparse.ArgumentParser(description='Run the module standalone.')
-    parser.add_argument('--app-config', type=str, required=False, help='Path to app_config JSON file')
-    parser.add_argument('--m4b-config', type=str, required=False, help='Path to m4b_config JSON file')
-    parser.add_argument('--user-config', type=str, required=False, help='Path to user_config JSON file')
-    parser.add_argument('--log-dir', default=os.path.join(script_dir, 'logs'), help='Set the logging directory')
-    parser.add_argument('--log-file', default=f"{script_name}.log", help='Set the logging file name')
-    parser.add_argument('--log-level', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], default='INFO', help='Set the logging level')
-    parser.add_argument('--src-path', type=str, default='./template/user-config.json', help='Set the source file path')
-    parser.add_argument('--dest-path', type=str, default='./config/user-config.json', help='Set the destination file path')
+    parser.add_argument('--app-config', type=str,
+                        required=False, help='Path to app_config JSON file')
+    parser.add_argument('--m4b-config', type=str,
+                        required=False, help='Path to m4b_config JSON file')
+    parser.add_argument('--user-config', type=str,
+                        required=False, help='Path to user_config JSON file')
+    parser.add_argument('--log-dir', default=os.path.join(script_dir,
+                        'logs'), help='Set the logging directory')
+    parser.add_argument(
+        '--log-file', default=f"{script_name}.log", help='Set the logging file name')
+    parser.add_argument('--log-level', choices=['DEBUG', 'INFO', 'WARNING',
+                        'ERROR', 'CRITICAL'], default='INFO', help='Set the logging level')
+    parser.add_argument('--src-path', type=str,
+                        default='./template/user-config.json', help='Set the source file path')
+    parser.add_argument('--dest-path', type=str,
+                        default='./config/user-config.json', help='Set the destination file path')
     args = parser.parse_args()
 
     # Set logging level based on command-line arguments
@@ -90,7 +99,8 @@ if __name__ == '__main__':
     logging.info(f"Starting {script_name} script...")
 
     try:
-        main(app_config_path=args.app_config, m4b_config_path=args.m4b_config, user_config_path=args.user_config, src_path=args.src_path, dest_path=args.dest_path)
+        main(app_config_path=args.app_config, m4b_config_path=args.m4b_config,
+             user_config_path=args.user_config, src_path=args.src_path, dest_path=args.dest_path)
         logging.info(f"{script_name} script completed successfully")
     except FileNotFoundError as e:
         logging.error(f"File not found: {str(e)}")
