@@ -1,3 +1,5 @@
+from utils.loader import load_json_config
+from utils.cls import cls
 import os
 import sys
 import argparse
@@ -16,11 +18,10 @@ if parent_dir not in sys.path:
     sys.path.append(parent_dir)
 
 # Import the module from the parent directory
-from utils.cls import cls
-from utils.loader import load_json_config
 
 # Initialize colorama for Windows compatibility
 just_fix_windows_console()
+
 
 def fn_bye(m4b_config: Dict[str, Any]) -> None:
     """
@@ -64,6 +65,7 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
     m4b_config = load_json_config(m4b_config_path)
     fn_bye(m4b_config)
 
+
 if __name__ == '__main__':
     # Get the script absolute path and name
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -71,12 +73,18 @@ if __name__ == '__main__':
 
     # Parse command-line arguments
     parser = argparse.ArgumentParser(description='Run the module standalone.')
-    parser.add_argument('--app-config', type=str, required=False, help='Path to app_config JSON file')
-    parser.add_argument('--m4b-config', type=str, required=True, help='Path to m4b_config JSON file')
-    parser.add_argument('--user-config', type=str, required=False, help='Path to user_config JSON file')
-    parser.add_argument('--log-dir', default=os.path.join(script_dir, 'logs'), help='Set the logging directory')
-    parser.add_argument('--log-file', default=f"{script_name}.log", help='Set the logging file name')
-    parser.add_argument('--log-level', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], default='INFO', help='Set the logging level')
+    parser.add_argument('--app-config', type=str,
+                        required=False, help='Path to app_config JSON file')
+    parser.add_argument('--m4b-config', type=str, required=True,
+                        help='Path to m4b_config JSON file')
+    parser.add_argument('--user-config', type=str,
+                        required=False, help='Path to user_config JSON file')
+    parser.add_argument('--log-dir', default=os.path.join(script_dir,
+                        'logs'), help='Set the logging directory')
+    parser.add_argument(
+        '--log-file', default=f"{script_name}.log", help='Set the logging file name')
+    parser.add_argument('--log-level', choices=['DEBUG', 'INFO', 'WARNING',
+                        'ERROR', 'CRITICAL'], default='INFO', help='Set the logging level')
     args = parser.parse_args()
 
     # Set logging level based on command-line arguments
@@ -97,7 +105,8 @@ if __name__ == '__main__':
 
     try:
         # Call the main function
-        main(app_config_path=args.app_config, m4b_config_path=args.m4b_config, user_config_path=args.user_config)
+        main(app_config_path=args.app_config,
+             m4b_config_path=args.m4b_config, user_config_path=args.user_config)
         logging.info(f"{script_name} script completed successfully")
     except FileNotFoundError as e:
         logging.error(f"File not found: {str(e)}")

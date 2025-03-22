@@ -1,3 +1,5 @@
+from utils.dumper import write_json
+from utils.loader import load_json_config
 import os
 import argparse
 import logging
@@ -16,8 +18,6 @@ if parent_dir not in sys.path:
     sys.path.append(parent_dir)
 
 # Import the module from the parent directory
-from utils.loader import load_json_config
-from utils.dumper import write_json
 
 
 def detect_os(m4b_config_path_or_dict: Any) -> Dict[str, str]:
@@ -38,7 +38,7 @@ def detect_os(m4b_config_path_or_dict: Any) -> Dict[str, str]:
 
         logging.debug("Detecting OS type")
         os_map = m4b_config.get("system", {}).get("os_map", {})
-        
+
         # Get the OS type from the platform module and convert it to lowercase
         detected_os = platform.system().lower()
         logging.info(f"Detected OS: {detected_os}")
@@ -47,11 +47,12 @@ def detect_os(m4b_config_path_or_dict: Any) -> Dict[str, str]:
         mapped_os = os_map.get(detected_os, "unknown")
 
         if mapped_os == "unknown":
-            raise ValueError(f"OS type '{detected_os}' is not recognized in the provided os_map.")
+            raise ValueError(
+                f"OS type '{detected_os}' is not recognized in the provided os_map.")
 
         logging.info(f"Mapped OS: {mapped_os}")
         return {"os_type": mapped_os}
-    
+
     except KeyError as e:
         logging.error(f"KeyError in configuration: {str(e)}")
         raise
@@ -80,10 +81,12 @@ def detect_architecture(m4b_config_path_or_dict: Any) -> Dict[str, str]:
         arch_map = m4b_config.get("system", {}).get("arch_map", {})
         arch = platform.machine().lower()
         dkarch = arch_map.get(arch, "unknown")
-        logging.info(f"System architecture detected: {arch}, Docker architecture has been set to {dkarch}")
+        logging.info(
+            f"System architecture detected: {arch}, Docker architecture has been set to {dkarch}")
         return {"arch": arch, "dkarch": dkarch}
     except Exception as e:
-        logging.error(f"An error occurred while detecting architecture: {str(e)}")
+        logging.error(
+            f"An error occurred while detecting architecture: {str(e)}")
         raise
 
 
@@ -99,9 +102,11 @@ def calculate_resource_limits(user_config_path_or_dict: Any) -> None:
     logging.debug("Determining resource limits")
     user_config = load_json_config(user_config_path_or_dict)
     total_memory, cores = get_system_memory_and_cores()
-    memory_cap = user_config.get("resource_limits", {}).get("ram_cap_mb_default")
+    memory_cap = user_config.get(
+        "resource_limits", {}).get("ram_cap_mb_default")
     if memory_cap > total_memory:
-        logging.debug(f"Memory cap {memory_cap} MB is greater than total system memory {total_memory} MB. Using total memory as cap.")
+        logging.debug(
+            f"Memory cap {memory_cap} MB is greater than total system memory {total_memory} MB. Using total memory as cap.")
         memory_cap = total_memory
 
     resource_limits = {}
@@ -122,4 +127,3 @@ def calculate_resource_limits(user_config_path_or_dict: Any) -> None:
     user_config.get("resource_limits", {}).update(resource_limits)
     write_json(user_config, user_config_path_or_dict)
     logging.debug("Resource limits updated")
-
