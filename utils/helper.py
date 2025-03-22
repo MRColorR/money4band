@@ -45,7 +45,7 @@ def create_docker_group_if_needed():
         if subprocess.run(["getent", "group", "docker"], capture_output=True).returncode != 0:
             logging.info(f"{Fore.YELLOW}Docker group does not exist. Creating it...{Style.RESET_ALL}")
             subprocess.run(["sudo", "groupadd", "docker"], check=True)
-            logging.info(f"{Fore.GREEN}Docker group created successfully.{Style.RESET_ALL}")
+            logging.info(f"{Fore.GREEN}Docker group created .{Style.RESET_ALL}")
 
         # use getpass.getuser() instead of os.getlogin() as it is more robust
         user = getpass.getuser()
@@ -129,7 +129,7 @@ def setup_service(service_name="docker.binfmt", service_file_path='./.resources/
                 subprocess.run(["sudo", "update-rc.d", service_name, "defaults"], check=True)
             subprocess.run(["sudo", "service", service_name, "start"])
 
-        logging.info(f"{Fore.GREEN}{service_name} setup and started successfully.{Style.RESET_ALL}")
+        logging.info(f"{Fore.GREEN}{service_name} setup and started.{Style.RESET_ALL}")
 
     except subprocess.CalledProcessError as e:
         logging.error(f"Failed to setup {service_name}: {str(e)}")
@@ -147,7 +147,7 @@ def ensure_service(service_name="docker.binfmt", service_file_path='./.resources
     logging.info(f"Ensuring {service_name} service is installed and running.")
     try:
         setup_service(service_name=service_name, service_file_path=service_file_path)
-        logging.info(f"{Fore.GREEN}{service_name} setup completed successfully.{Style.RESET_ALL}")
+        logging.info(f"{Fore.GREEN}{service_name} setup completed .{Style.RESET_ALL}")
     except Exception as e:
         logging.error(f"Failed to ensure {service_name} service: {str(e)}")
         raise RuntimeError(f"Failed to ensure {service_name} service: {str(e)}")
