@@ -4,6 +4,7 @@ import logging
 import json
 from typing import Dict, Any
 
+
 def write_json(data: Dict[str, Any], filename: str) -> None:
     """
     Write data to a JSON file.
@@ -20,6 +21,7 @@ def write_json(data: Dict[str, Any], filename: str) -> None:
         logging.error(f"Error writing to {filename}: {e}")
         raise
 
+
 if __name__ == '__main__':
     # Get the script absolute path and name
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -27,11 +29,16 @@ if __name__ == '__main__':
 
     # Parse command-line arguments
     parser = argparse.ArgumentParser(description='Write data to a JSON file.')
-    parser.add_argument('--data', type=str, required=True, help='The data to write in JSON format')
-    parser.add_argument('--filename', type=str, required=True, help='The filename to write the data to')
-    parser.add_argument('--log-dir', default=os.path.join(script_dir, 'logs'), help='Set the logging directory')
-    parser.add_argument('--log-file', default=f"{script_name}.log", help='Set the logging file name')
-    parser.add_argument('--log-level', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], default='INFO', help='Set the logging level')
+    parser.add_argument('--data', type=str, required=True,
+                        help='The data to write in JSON format')
+    parser.add_argument('--filename', type=str, required=True,
+                        help='The filename to write the data to')
+    parser.add_argument('--log-dir', default=os.path.join(script_dir,
+                        'logs'), help='Set the logging directory')
+    parser.add_argument(
+        '--log-file', default=f"{script_name}.log", help='Set the logging file name')
+    parser.add_argument('--log-level', choices=['DEBUG', 'INFO', 'WARNING',
+                        'ERROR', 'CRITICAL'], default='INFO', help='Set the logging level')
     args = parser.parse_args()
 
     # Set logging level based on command-line arguments

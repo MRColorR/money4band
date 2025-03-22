@@ -1,3 +1,5 @@
+from utils.loader import load_json_config
+from utils.cls import cls
 import os
 import argparse
 import logging
@@ -11,8 +13,7 @@ parent_dir = os.path.dirname(script_dir)
 if parent_dir not in sys.path:
     sys.path.append(parent_dir)
 # Import the module from the parent directory
-from utils.cls import cls
-from utils.loader import load_json_config
+
 
 def fn_show_links(app_config: Dict) -> None:
     """
@@ -37,7 +38,8 @@ def fn_show_links(app_config: Dict) -> None:
 
             print(f"{Back.YELLOW}---{category.upper()}---{Back.RESET}")
             for app in apps:
-                print(f"{Fore.GREEN}{app['name'].upper()}: {Fore.CYAN}{app['link']}{Style.RESET_ALL}")
+                print(
+                    f"{Fore.GREEN}{app['name'].upper()}: {Fore.CYAN}{app['link']}{Style.RESET_ALL}")
             print("\n")
 
         print("Info: Use CTRL+Click to open links or copy them")
@@ -45,6 +47,7 @@ def fn_show_links(app_config: Dict) -> None:
     except Exception as e:
         logging.error(f"An error occurred in fn_show_links: {str(e)}")
         raise
+
 
 def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> None:
     """
@@ -58,6 +61,7 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
     app_config = load_json_config(app_config_path)
     fn_show_links(app_config)
 
+
 if __name__ == '__main__':
     # Get the script absolute path and name
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -65,12 +69,18 @@ if __name__ == '__main__':
 
     # Parse command-line arguments
     parser = argparse.ArgumentParser(description='Run the module standalone.')
-    parser.add_argument('--app-config', type=str, required=True, help='Path to app_config JSON file')
-    parser.add_argument('--m4b-config', type=str, required=False, help='Path to m4b_config JSON file')
-    parser.add_argument('--user-config', type=str, required=False, help='Path to user_config JSON file')
-    parser.add_argument('--log-dir', default=os.path.join(script_dir, 'logs'), help='Set the logging directory')
-    parser.add_argument('--log-file', default=f"{script_name}.log", help='Set the logging file name')
-    parser.add_argument('--log-level', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], default='INFO', help='Set the logging level')
+    parser.add_argument('--app-config', type=str, required=True,
+                        help='Path to app_config JSON file')
+    parser.add_argument('--m4b-config', type=str,
+                        required=False, help='Path to m4b_config JSON file')
+    parser.add_argument('--user-config', type=str,
+                        required=False, help='Path to user_config JSON file')
+    parser.add_argument('--log-dir', default=os.path.join(script_dir,
+                        'logs'), help='Set the logging directory')
+    parser.add_argument(
+        '--log-file', default=f"{script_name}.log", help='Set the logging file name')
+    parser.add_argument('--log-level', choices=['DEBUG', 'INFO', 'WARNING',
+                        'ERROR', 'CRITICAL'], default='INFO', help='Set the logging level')
     args = parser.parse_args()
 
     # Set logging level based on command-line arguments
@@ -90,7 +100,8 @@ if __name__ == '__main__':
     logging.info(f"Starting {script_name} script...")
 
     try:
-        main(app_config_path=args.app_config, m4b_config_path=args.m4b_config, user_config_path=args.user_config)
+        main(app_config_path=args.app_config,
+             m4b_config_path=args.m4b_config, user_config_path=args.user_config)
         logging.info(f"{script_name} script completed successfully")
     except FileNotFoundError as e:
         logging.error(f"File not found: {str(e)}")

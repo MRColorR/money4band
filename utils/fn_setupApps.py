@@ -402,8 +402,9 @@ def setup_multiproxy_instances(user_config: Dict[str, Any], app_config: Dict[str
 
     # Track used device names to ensure uniqueness
     used_device_names = {base_device_name}  # Start with the main device name
-    used_project_names = {base_project_name}  # Start with the main project name
-    
+    # Start with the main project name
+    used_project_names = {base_project_name}
+
     print(f"{Fore.BLUE}Base device name for instances: {base_device_name}{Style.RESET_ALL}")
     logging.info(f"Base device name for proxy instances: {base_device_name}")
 
@@ -438,15 +439,16 @@ def setup_multiproxy_instances(user_config: Dict[str, Any], app_config: Dict[str
             suffix = generate_uuid(4)
             instance_device_name = f"{base_device_name}_{suffix}"
             instance_project_name = f"{base_project_name}_{suffix}"
-            
+
             # Ensure the device name and project name are unique
             if instance_device_name not in used_device_names and instance_project_name not in used_project_names:
                 used_device_names.add(instance_device_name)
                 used_project_names.add(instance_project_name)
                 break
-        
+
         print(f"{Fore.GREEN}Created proxy instance {i+1} with device name: {instance_device_name}{Style.RESET_ALL}")
-        logging.info(f"Created proxy instance with unique device name: {instance_device_name}")
+        logging.info(
+            f"Created proxy instance with unique device name: {instance_device_name}")
 
         instance_dir = os.path.join(instances_dir, instance_project_name)
         os.makedirs(instance_dir, exist_ok=True)
@@ -468,42 +470,49 @@ def setup_multiproxy_instances(user_config: Dict[str, Any], app_config: Dict[str
         for app_category in ['apps', 'extra-apps']:
             for app_details in instance_app_config.get(app_category, []):
                 app_name = app_details['name'].lower()
-                app_config_entry = instance_user_config['apps'].get(app_name, {})
-                
+                app_config_entry = instance_user_config['apps'].get(
+                    app_name, {})
+
                 # Only process enabled apps
                 if app_details.get('enabled', False) or (app_config_entry and app_config_entry.get('enabled', False)):
-                    logging.info(f"Processing port assignments for {app_name} in instance {instance_project_name}")
-                    
+                    logging.info(
+                        f"Processing port assignments for {app_name} in instance {instance_project_name}")
+
                     # If app isn't in user_config yet, initialize it
                     if not app_config_entry:
-                        instance_user_config['apps'][app_name] = {'enabled': True}
+                        instance_user_config['apps'][app_name] = {
+                            'enabled': True}
                         app_config_entry = instance_user_config['apps'][app_name]
-                    
+
                     # Check if this app has ports defined in compose_config
                     has_ports = False
                     if 'compose_config' in app_details and 'ports' in app_details['compose_config']:
                         has_ports = True
-                    
+
                     # Or check if it already has ports in user_config
                     if 'ports' in app_config_entry:
                         has_ports = True
-                        
+
                     # If app uses ports, ensure they're unique for this instance
                     if has_ports:
                         # Get base port from user config or use default (50000 + app index * 100)
-                        base_port = app_config_entry.get('ports', 50000 + app_category.index(app_category) * 100)
+                        base_port = app_config_entry.get(
+                            'ports', 50000 + app_category.index(app_category) * 100)
                         if isinstance(base_port, list):
                             # Handle list of ports
                             app_config_entry['ports'] = [
-                                find_next_available_port(port + (i + 1) * 10) 
+                                find_next_available_port(port + (i + 1) * 10)
                                 for port in base_port
                             ]
-                            logging.info(f"Updated ports for {app_name} in instance {instance_project_name} to {app_config_entry['ports']}")
+                            logging.info(
+                                f"Updated ports for {app_name} in instance {instance_project_name} to {app_config_entry['ports']}")
                         else:
                             # Handle single port
-                            unique_port = find_next_available_port(base_port + (i + 1) * 10)
+                            unique_port = find_next_available_port(
+                                base_port + (i + 1) * 10)
                             app_config_entry['ports'] = unique_port
-                            logging.info(f"Updated port for {app_name} in instance {instance_project_name} to {unique_port}")
+                            logging.info(
+                                f"Updated port for {app_name} in instance {instance_project_name} to {unique_port}")
 
         # Properly disable dashboard for multiproxy instances to avoid port conflicts
         if 'm4b_dashboard' in instance_user_config:
