@@ -489,6 +489,40 @@
         "email": {},
         "password": {}
       }
+    },
+    {
+      "name": "PROXYBASE",
+      "dashboard": "https://dash.proxybase.org/",
+      "link": "http://dash.proxybase.org/signup?ref=bml0cm9nZW",
+      "compose_config": {
+        "container_name": "${DEVICE_NAME}_proxybase",
+        "hostname": "${DEVICE_NAME}_proxybase",
+        "image": "proxybase/proxybase:latest",
+        "environment": [
+          "device_id=$PROXYBASE_UUID"
+        ],
+        "restart": "always",
+        "cpus": "${APP_CPU_LIMIT_BIG}",
+        "mem_reservation": "${APP_MEM_RESERV_BIG}",
+        "mem_limit": "${APP_MEM_LIMIT_BIG}",
+        "logging": {
+          "driver": "json-file",
+          "options": {
+            "max-size": "10m",
+            "max-file": "3"
+          }
+        }
+      },
+      "compose_config_proxy": {
+        "network_mode": "service:proxy",
+        "hostname": null
+      },
+      "flags": {
+        "uuid": {
+          "length": 32,
+          "claimURLBase": "To claim your node, after starting it, go to the app's dashboard and then add the device using the following device_id: "
+        }
+      }
     }
   ],
   "extra-apps": [
