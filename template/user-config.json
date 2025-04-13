@@ -111,6 +111,11 @@
       "enabled": false,
       "docker_platform": "linux/amd64",
       "email": "yourPEER2PROFITMail"
+    },
+    "proxybase": {
+      "enabled": false,
+      "docker_platform": "linux/amd64",
+      "uuid": "yourPROXYBASEDeviceUUID"
     }
   },
   "m4b_dashboard": {
