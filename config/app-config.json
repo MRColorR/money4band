@@ -493,7 +493,7 @@
     {
       "name": "PROXYBASE",
       "dashboard": "https://dash.proxybase.org/",
-      "link": "http://dash.proxybase.org/signup?ref=bml0cm9nZW",
+      "link": "http://dash.proxybase.org/signup?ref=XfOz3zeURm",
       "compose_config": {
         "container_name": "${DEVICE_NAME}_proxybase",
         "hostname": "${DEVICE_NAME}_proxybase",
