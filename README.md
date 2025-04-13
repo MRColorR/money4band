@@ -177,6 +177,7 @@ Register an account on the app's sites clicking each apps' names in the followin
 | Go to [MYSTNODE](https://mystnodes.co/?referral_code=Tc7RaS7Fm12K3Xun6mlU9q9hbnjojjl9aRBW8ZA9) | :white_check_mark: | :white_check_mark: |Unlimited|Unlimited|
 | Go to [DAWN](https://dawninternet.com?code=xo23vynw) using code: `xo23vynw` | :white_check_mark: | :x: | Unlimited | 1 |
 | Go to [TENEO](https://dashboard.teneo.pro/?code=qPgLn) using code: `qPgLn` | :white_check_mark: | :x: | Unlimited | 1 |
+| Go to [PROXYBASE](http://dash.proxybase.org/signup?ref=XfOz3zeURm) | :white_check_mark: | :white_check_mark: | Unlimited | 1 |
 
   
 
@@ -214,7 +215,7 @@ This Docker Stack should work on anything that may have docker installed. In par
 | | Windows 11 x86_64\amd64 | Linux Ubuntu x86_64\amd64 | Raspbian OS arm64 | MacOS Intel x86_64 | MacOS silicon arm64 |
 | :---: | :---: | :---: | :---: | :---: | :---: |
 | Tested | :green_circle: | :green_circle: | :green_circle: | :green_circle: | :green_circle:|
-| on device | Desktop/Laptop PC | Desktop/Laptop PC | Raspberry Pi3/Pi4 | MacBook Pro | MacBook Air |
+| on device | Desktop/Laptop PC | Desktop/Laptop PC | Raspberry Pi | MacBook Pro | MacBook Air |
 
   
 
