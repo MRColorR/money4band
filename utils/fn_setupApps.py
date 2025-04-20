@@ -540,6 +540,9 @@ def setup_multiproxy_instances(user_config: Dict[str, Any], app_config: Dict[str
             logging.info(
                 f"Completely disabled dashboard for multiproxy instance {instance_project_name} to avoid port conflicts")
 
+        # Regenerate UUIDs for apps that require them
+        regenerate_uuids_for_apps(instance_user_config, instance_app_config)
+
         instance_user_config_path = os.path.join(
             instance_dir, 'user-config.json')
         instance_m4b_config_path = os.path.join(
@@ -559,6 +562,33 @@ def setup_multiproxy_instances(user_config: Dict[str, Any], app_config: Dict[str
     print(f"{Fore.GREEN}Created {len(proxies)} proxy instances with unique device names.{Style.RESET_ALL}")
     print(f"{Fore.GREEN}Multiproxy instances setup completed.{Style.RESET_ALL}")
     time.sleep(sleep_time)
+
+
+def regenerate_uuids_for_apps(user_config: Dict[str, Any], app_config: Dict[str, Any]) -> None:
+    """
+    Regenerate UUIDs for apps that require them, preserving prefixes or postfixes if defined.
+
+    Args:
+        user_config (dict): The user configuration dictionary.
+        app_config (dict): The app configuration dictionary.
+    """
+    for app_category in ['apps', 'extra-apps']:
+        for app in app_config.get(app_category, []):
+            app_name = app['name'].lower()
+            app_user_config = user_config['apps'].get(app_name, {})
+
+            # Check if the app has a UUID flag and is enabled
+            if app_user_config.get('enabled') and 'uuid' in app.get('flags', {}):
+                uuid_length = app['flags']['uuid'].get('length', 32)  # Default to 32 if not specified
+                prefix = app['flags']['uuid'].get('prefix', '')
+                postfix = app['flags']['uuid'].get('postfix', '')
+
+                # Generate the new UUID part
+                new_uuid_part = generate_uuid(uuid_length)
+                new_uuid = f"{prefix}{new_uuid_part}{postfix}"
+
+                app_user_config['uuid'] = new_uuid
+                logging.info(f"Generated new UUID for {app_name}: {new_uuid}")
 
 
 def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> None:
