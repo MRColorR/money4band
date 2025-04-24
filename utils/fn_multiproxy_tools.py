@@ -179,6 +179,7 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
         user_config_path (str): Path to the user-config file.
     """
     logging.info("Starting multiproxy tools...")
+    just_fix_windows_console()
 
     # Load sleep time from configuration
     m4b_config = load_json_config(m4b_config_path)
