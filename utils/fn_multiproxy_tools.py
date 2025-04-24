@@ -8,6 +8,7 @@ from utils.fn_startStack import start_all_stacks
 from utils.generator import assemble_docker_compose, generate_env_file
 from utils.dumper import write_json
 from utils.loader import load_json_config
+from utils.prompt_helper import ask_question_yn
 
 
 def update_multiproxy_instances(proxies_file: str = 'proxies.txt', instances_dir: str = 'm4b_proxy_instances', user_config_path: str = './config/user-config.json', m4b_config_path: str = './config/m4b-config.json', app_config_path: str = './config/app-config.json', sleep_time: int = 3) -> None:
@@ -22,6 +23,13 @@ def update_multiproxy_instances(proxies_file: str = 'proxies.txt', instances_dir
         app_config_path (str): Path to the main app-config file.
         sleep_time (int): Time to wait between operations.
     """
+
+    # Ask for confirmation using prompt_helper
+    if not ask_question_yn("This will update all multiproxy instances with new proxies. Do you want to proceed?", default=False):
+        print("Operation canceled.")
+        logging.info("User canceled the update of multiproxy instances.")
+        time.sleep(sleep_time)
+        return
 
     # Ensure proxies.txt exists
     if not os.path.isfile(proxies_file):
@@ -156,7 +164,7 @@ def update_multiproxy_instances(proxies_file: str = 'proxies.txt', instances_dir
 
 def submenu_multiproxy_tools():
     return [
-        {"label": "Update Multiproxy Instances",
+        {"label": "Update Proxies for Multiproxy Instances",
             "function": "update_multiproxy_instances"},
         {"label": "Exit", "function": "exit_submenu"}
     ]
@@ -165,7 +173,6 @@ def submenu_multiproxy_tools():
 def exit_submenu(*args, **kwargs):
     print("Exiting Multiproxy Tools.")
     logging.info("User exited the Multiproxy Tools menu.")
-    time.sleep(3)
     return False
 
 
