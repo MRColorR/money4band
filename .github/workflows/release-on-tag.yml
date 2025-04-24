@@ -165,5 +165,6 @@ jobs:
           tag_name: "${{ github.ref_name }}"
           body_path: "./CHANGELOG.md"
           files: "./artifacts/**/*"
+          prerelease: true # Set to true so that the release is marked as a pre-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
