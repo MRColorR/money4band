@@ -32,9 +32,9 @@
 
 - (Optional) On Windows, ensure the Virtualization Platform and Windows Subsystem for Linux are active as Docker requires these features. Even though the script can assist with the installation, we recommend users enable these Windows functions by themselves following the [Wiki](https://github.com/MRColorR/money4band/wiki) guide.
 
-### Quick Setup Guide 🧑‍💻
+### Download and Run ⬇️
 
-#### Using Release Artifacts 📦
+#### Opt 1 - Using Release Artifacts 📦
 
 1.  **Download** the latest release of Money4Band for your operating system from the [Releases Page](https://github.com/MRColorR/money4band/releases).
 
@@ -72,15 +72,7 @@
 
       - Follow the same steps as Linux users.
 
-2.  **Register** accounts on the application websites. [Here's a list of available apps](#app-compatibility-and-sign-up-links-).
-
-3.  **Run** the guided setup through the Money4Band application:
-
-    - Follow the on-screen instructions to configure and start the services.
-
-4.  **Start Earning** passively and monitor your performance through the web dashboard.
-
-#### Alternative Method (any OS): Cloning the Repository / running from source code 🔀
+#### Opt 2 - Cloning the Repository / running from source code 🔀
 
 If you prefer to clone the repository (or contribute to the project):
 
@@ -95,6 +87,20 @@ If you prefer to clone the repository (or contribute to the project):
     - Remember to activate the virtual environment by using:
       - (Linux/Mac): `source venvm4b/bin/activate`
       - (Windows): `venvm4b\.Scripts\activate`
+
+### Setup and Configuration 🛠️
+
+After downloading and starting the application with one of the above methods, follow these steps to set up and configure your Money4Band instance:
+
+1.  **Register** accounts on the application websites. [Here's a list of available apps](#app-compatibility-and-sign-up-links-).
+
+2.  **Start the apps setup** menu within the Money4Band app and follow the instructions to set up each app. You can choose to set up all apps or only the ones you want to use.
+
+    - Follow the on-screen instructions to configure and start the services.
+
+3.  **Start the stack**: After completing the setup, start the stack.
+
+4.  **Enjoy Earnings** passively and monitor your performance through the web dashboard.
 
 #### M4B v3 legacy Setup Guide 🧓
 
