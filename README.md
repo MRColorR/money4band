@@ -29,11 +29,9 @@
 ### 🛠️ Requirements
 
 - 64-bit Operating System with Docker installed and running
-  > 💡**Note:** Turn on the `auto-start on system boot` in Docker settings to ensure the stack starts automatically when your system boots.
+> 💡**Note:** Turn on the `auto-start on system boot` in Docker settings to ensure the stack starts automatically when your system boots.
 
 > 💡**Note:** For ARM devices like Raspberry Pi, installing an emulation layer for non-ARM native Docker images is recommended. Even though the script can assist with the installation, we recommend users install an emulation layer by themselves.
-
-> 💡**Note:** On Windows, ensure the Virtualization Platform and Windows Subsystem for Linux are active as Docker requires these features. Even though the script can assist with the installation, we recommend users enable these Windows functions by themselves.
 
 ### ⬇️ Download and Run
 
@@ -58,7 +56,6 @@ If you want to run the project from source code, you can do so by following thes
 2.  **Install dependencies and run:** `pip install -r requirements.txt && python3 main.py`
     > 💡**Optional:** create a virtual environment to avoid affecting your system Python: `python3 -m venv venvm4b`
     > Remember to activate the virtual environment by using:
-    >
     > - (Linux/Mac): `source venvm4b/bin/activate`
     > - (Windows): `venvm4b\.Scripts\activate`
 
