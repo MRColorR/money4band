@@ -43,15 +43,10 @@ If you want to run the project from source code, you can do so by following thes
 
 > ℹ️**Note:** This method requires Python 3.8 or higher.
 
-1.  **Clone or download** the source code:
-
-    - Option A: Use git
-
-      - `git clone https://github.com/MRColorR/money4band.git && cd money4band`
-
-    - Option B: download the ZIP and extract it using one of the options below
-      - `wget https://github.com/MRColorR/money4band/archive/refs/heads/main.zip && unzip main.zip && cd money4band-main`
-      - `Invoke-WebRequest -Uri https://github.com/MRColorR/money4band/archive/refs/heads/main.zip -OutFile main.zip; Expand-Archive -Path main.zip -DestinationPath .\ ; cd money4band*`
+1.  **Clone or download** the source code using one of the following methods:
+    - Option A: `git clone https://github.com/MRColorR/money4band.git && cd money4band`
+    - Option B: `wget https://github.com/MRColorR/money4band/archive/refs/heads/main.zip && unzip main.zip && cd money4band-main`
+    - Option C: `Invoke-WebRequest -Uri https://github.com/MRColorR/money4band/archive/refs/heads/main.zip -OutFile main.zip; Expand-Archive -Path main.zip -DestinationPath .\ ; cd money4band*`
 
 2.  **Install dependencies and run:** `pip install -r requirements.txt && python3 main.py`
     > 💡**Optional:** create a virtual environment to avoid affecting your system Python: `python3 -m venv venvm4b`
