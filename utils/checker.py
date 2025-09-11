@@ -3,6 +3,7 @@ import requests
 import logging
 import sys
 import os
+import time
 from typing import Dict, Optional
 
 # Ensure the parent directory is in the sys.path
@@ -11,10 +12,11 @@ parent_dir = os.path.dirname(script_dir)
 if parent_dir not in sys.path:
     sys.path.append(parent_dir)
 
-
 # Store the Docker Hub base URL in a variable
 DOCKERHUB_BASE_URL = "https://registry.hub.docker.com/v2/"
 
+# STore the GitHub Container Registry base URL in a variable
+GHCR_BASE_URL = "https://ghcr.io/v2/"
 
 def fetch_docker_tags(image: str) -> Optional[Dict]:
     """
@@ -27,10 +29,23 @@ def fetch_docker_tags(image: str) -> Optional[Dict]:
         Optional[Dict]: A dictionary containing tag information if successful, None otherwise.
     """
     try:
-        response = requests.get(
-            f"{DOCKERHUB_BASE_URL}repositories/{image}/tags")
-        response.raise_for_status()
-        return response.json()
+        # Detect GHCR images (ghcr.io/owner/image)
+        if image.startswith("ghcr.io/"):
+            # Remove 'ghcr.io/' prefix for API
+            ghcr_image = image.replace("ghcr.io/", "")
+            url = f"{GHCR_BASE_URL}{ghcr_image}/tags/list"
+            response = requests.get(url)
+            response.raise_for_status()
+            # GHCR returns tags in 'tags' key, but does not provide architecture info
+            tags = response.json().get('tags', [])
+            # Return a Docker Hub-like structure for compatibility
+            return {'results': [{'name': tag, 'images': []} for tag in tags]}
+        else:
+            # Docker Hub image (owner/image or library/image)
+            url = f"{DOCKERHUB_BASE_URL}repositories/{image}/tags"
+            response = requests.get(url)
+            response.raise_for_status()
+            return response.json()
     except requests.RequestException as e:
         logging.error(f"Error fetching Docker tags for {image}: {str(e)}")
         return None
@@ -48,6 +63,11 @@ def check_img_arch_support(image: str, tag: str, docker_platform: str) -> bool:
     Returns:
         bool: True if the architecture is supported, False otherwise.
     """
+    if image.startswith("ghcr.io/"):
+        logging.warning(f"Skipping architecture/tag compatibility check for GHCR image: {image}. (As it would require a GH PAT). Using provided tag '{tag}' as compatible.")
+        print(f"\n[WARNING] Cannot check architecture/tag for GHCR image {image}. (As it would require a GH PAT). Using provided tag '{tag}'.")
+        time.sleep(4)
+        return True
     arch = docker_platform.split('/')[1]
     tags_info = fetch_docker_tags(image)
     if tags_info is None:

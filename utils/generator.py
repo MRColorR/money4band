@@ -10,6 +10,7 @@ import argparse
 import logging
 import json
 import re
+import time
 from typing import Dict, Any, List
 import yaml  # Import PyYAML
 import secrets
@@ -80,6 +81,7 @@ def assemble_docker_compose(m4b_config_path_or_dict: Any, app_config_path_or_dic
         proxy_enabled = user_config['proxies'].get('enabled', False)
 
         services = {}
+        disabled_apps_due_to_incompatibility = []
         apps_categories = ['apps']
         # Overrides extra apps exclusion from m4b proxies instances
         apps_categories.append('extra-apps')
@@ -98,6 +100,26 @@ def assemble_docker_compose(m4b_config_path_or_dict: Any, app_config_path_or_dic
                 if user_app_config.get('enabled'):
                     # Copy the app's compose configuration to avoid modifying the original
                     app_compose_config = app['compose_config'].copy()
+                    # Substitute port placeholders with actual values
+                    if 'ports' in app_compose_config and 'ports' in user_app_config:
+                        port_placeholders = app_compose_config['ports']
+                        actual_ports = user_app_config['ports']
+                        new_ports = []
+                        for idx, port_placeholder in enumerate(port_placeholders):
+                            # Extract env var name from placeholder
+                            match = re.match(r"\$\{([^}]+)\}:(\d+)", port_placeholder)
+                            if match:
+                                env_var = match.group(1)
+                                container_port = match.group(2)
+                                if isinstance(actual_ports, list) and idx < len(actual_ports):
+                                    host_port = actual_ports[idx]
+                                else:
+                                    host_port = actual_ports
+                                new_ports.append(f"{host_port}:{container_port}")
+                            else:
+                                # If not a placeholder, keep as is
+                                new_ports.append(port_placeholder)
+                        app_compose_config['ports'] = new_ports
                     image = app_compose_config['image']
                     image_name, image_tag = image.split(':')
                     docker_platform = user_app_config.get(
@@ -126,9 +148,14 @@ def assemble_docker_compose(m4b_config_path_or_dict: Any, app_config_path_or_dic
                                     f"Compatible tag found to run {image_name} with emulation on {default_docker_platform} architecture. Using binfmt emulation for {app_name} with image {image_name}:{image_tag}")
                             else:
                                 logging.error(
-                                    f"No compatible tag found for {image_name} with default architecture {default_docker_platform}.")
+                                    f"No compatible tag found for {image_name} neither with specified architecture {docker_platform} nor with default architecture {default_docker_platform}.") 
                                 logging.error(
-                                    f"Please check the image tag and architecture compatibility on the registry. Skipping {app_name}...")
+                                    f"Please check the image tag and architecture compatibility on the registry. Disabling {app_name}...")
+                                user_app_config['enabled'] = False
+                                user_config['apps'][app_name] = user_app_config
+                                write_json(user_config, user_config_path_or_dict)
+                                logging.info(f"{app_name} has been disabled in user-config.json due to lack of compatible image tag.")
+                                disabled_apps_due_to_incompatibility.append(app_name)
                                 continue  # Do not add the app to the compose file
                     else:
                         # Add platform also on all already compatible images tags
@@ -280,6 +307,17 @@ def assemble_docker_compose(m4b_config_path_or_dict: Any, app_config_path_or_dic
                       default_flow_style=False)
         logging.info(
             f"Docker Compose file assembled and saved to {compose_output_path}")
+        if disabled_apps_due_to_incompatibility:
+            # disable the apps and save updated config
+            
+
+            # infomr the user
+            print("\nThe following apps were disabled due to image tag/architecture incompatibility with this device:")
+            for app in disabled_apps_due_to_incompatibility:
+                print(f"- {app}")
+            time.sleep(2*m4b_config.get("system", {}).get("sleep_time", 2))
+    except Exception as e:
+        logging.error(f"Error during Docker Compose assembly: {e}")
     finally:
         event.set()
         spinner_thread.join()

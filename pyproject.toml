@@ -1,0 +1,19 @@
+[project]
+
+name = "money4band"
+description = "Multi-app Docker orchestrator for passive income apps"
+version = "0.1.0"
+authors = [
+    { name = "MRColorR" }
+]
+requires-python = ">=3.8"
+dependencies = [
+    "colorama",
+    "docker",
+    "requests",
+    "pyyaml",
+    "psutil"
+]
+
+[tool.uv]
+# Optional: add uv-specific settings here
