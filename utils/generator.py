@@ -369,15 +369,16 @@ def generate_env_file(m4b_config_path_or_dict: Any, app_config_path_or_dict: Any
         for key, value in device_info.items():
             env_lines.append(f"{key.upper()}={value}")
 
-        # Add m4b_dashboard configurations
-        m4b_dashboard_name = 'm4b_dashboard'
-        m4b_dashboard_config = user_config.get(m4b_dashboard_name, {})
-        for key, value in m4b_dashboard_config.items():
-            if key == 'ports':
-                env_lines.append(f"{m4b_dashboard_name.upper()}_PORT={value}")
-            else:
-                env_lines.append(
-                    f"{m4b_dashboard_name.upper()}_{key.upper()}={value}")
+            # Add m4b_dashboard configurations ONLY if enabled
+            m4b_dashboard_name = 'm4b_dashboard'
+            m4b_dashboard_config = user_config.get(m4b_dashboard_name, {})
+            if m4b_dashboard_config.get('enabled', False):
+                for key, value in m4b_dashboard_config.items():
+                    if key == 'ports':
+                        env_lines.append(f"{m4b_dashboard_name.upper()}_PORT={value}")
+                    else:
+                        env_lines.append(
+                            f"{m4b_dashboard_name.upper()}_{key.upper()}={value}")
 
         # Add proxy configurations
         proxy_config = user_config.get('proxies', {})
