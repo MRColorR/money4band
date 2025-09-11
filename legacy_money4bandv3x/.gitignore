@@ -1,9 +1,0 @@
-.data
-*.txt
-*.log
-.env
-docker-compose.yaml
-userconf.json
-*.bak
-m4b_proxy_instances
-!requirements.txt

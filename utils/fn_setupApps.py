@@ -258,10 +258,22 @@ def _configure_apps(user_config: Dict[str, Any], apps: Dict, m4b_config: Dict):
 
         # Port configuration for apps with defined ports (should have a 'ports' key in the compose_config and a <app_name>_ports key in the user_config)
         if 'ports' in app['compose_config']:
-            starting_port = config.get('ports', 50000)
-            available_port = find_next_available_port(starting_port)
-            config['ports'] = available_port
-            logging.info(f"Port for {app_name} set to: {available_port}")
+            port_count = len(app['compose_config']['ports'])
+            assigned_ports = []
+            for i in range(port_count):
+                starting_port = config.get('ports', [50000 + j for j in range(port_count)])
+                # If starting_port is a list, use its value for this index, else use default
+                if isinstance(starting_port, list) and i < len(starting_port):
+                    port_base = starting_port[i]
+                else:
+                    port_base = 50000 + i
+                available_port = find_next_available_port(port_base)
+                assigned_ports.append(available_port)
+                # Use the actual port placeholder name from compose_config
+                port_placeholder = app['compose_config']['ports'][i] if 'ports' in app['compose_config'] and i < len(app['compose_config']['ports']) else f"port_{i+1}"
+                logging.info(f"Port {port_placeholder} for {app_name} set to: {available_port}")
+            config['ports'] = assigned_ports
+            logging.info(f"Ports for {app_name} set to: {assigned_ports}")
 
         user_config['apps'][app_name] = config
 
@@ -360,7 +372,7 @@ def setup_notifications(user_config: Dict[str, Any]) -> None:
         print("<app> is a supported messaging app (e.g., Discord), <token> and <webhook> are app-specific.")
         print("Create a webhook for your app and format its URL accordingly.")
         print("For details, visit https://containrrr.dev/shoutrrr/ and select your app.")
-        print("You can also specify multiple URLs separated by spaces (e.g., 'discord://token@channel slack://watchtower@token-a/token-b/token-c').")
+        print("You can also specify multiple URLs separated by spaces (e.g., 'discord://token@id slack://watchtower@token-a/token-b/token-c').")
         input("Press Enter to continue...")
 
         while True:

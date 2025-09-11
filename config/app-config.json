@@ -106,17 +106,17 @@
         "hostname": "${DEVICE_NAME}_packetstream",
         "image": "packetstream/psclient:latest",
         "environment": ["CID=$PACKETSTREAM_CID"],
-        "restart": "always",
-        "cpus": "${APP_CPU_LIMIT_MEDIUM}",
-        "mem_reservation": "${APP_MEM_RESERV_MEDIUM}",
-        "mem_limit": "${APP_MEM_LIMIT_MEDIUM}",
-        "logging": {
-          "driver": "json-file",
-          "options": {
-            "max-size": "10m",
-            "max-file": "3"
+          "restart": "always",
+          "cpus": "${APP_CPU_LIMIT_MEDIUM}",
+          "mem_reservation": "${APP_MEM_RESERV_MEDIUM}",
+          "mem_limit": "${APP_MEM_LIMIT_MEDIUM}",
+          "logging": {
+            "driver": "json-file",
+            "options": {
+              "max-size": "10m",
+              "max-file": "3"
+            }
           }
-        }
       },
       "compose_config_proxy": {
         "network_mode": "service:proxy",
@@ -518,7 +518,46 @@
           "claimURLBase": "To claim your node, after starting it, go to the app's dashboard and then add the device using the following device_id: "
         }
       }
+    },
+    {
+      "name": "WIPTER",
+      "dashboard": "https://wipter.com/dashboard",
+      "link": "https://wipter.com/signup?ref=money4band",
+      "compose_config": {
+        "container_name": "${DEVICE_NAME}_wipter",
+        "hostname": "${DEVICE_NAME}_wipter",
+        "image": "ghcr.io/techroy23/docker-wipter:latest",
+        "environment": [
+          "WIPTER_EMAIL=$WIPTER_EMAIL",
+          "WIPTER_PASSWORD=$WIPTER_PASSWORD"
+        ],
+        "ports": [
+          "${WIPTER_PORT_1}:5900",
+          "${WIPTER_PORT_2}:6080"
+        ],
+        "restart": "always",
+        "cpus": "${APP_CPU_LIMIT_MEDIUM}",
+        "mem_reservation": "${APP_MEM_RESERV_MEDIUM}",
+        "mem_limit": "${APP_MEM_LIMIT_MEDIUM}",
+        "logging": {
+          "driver": "json-file",
+          "options": {
+            "max-size": "10m",
+            "max-file": "3"
+          }
+        }
+      },
+      "compose_config_proxy": {
+        "network_mode": "service:proxy",
+        "hostname": null,
+        "ports": null
+      },
+      "flags": {
+        "email": {},
+        "password": {}
+      }
     }
+    
   ],
   "extra-apps": [
     {
