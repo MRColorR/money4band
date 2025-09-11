@@ -227,7 +227,10 @@ def assemble_docker_compose(m4b_config_path_or_dict: Any, app_config_path_or_dic
             watchtower_service_key = 'proxy_enabled' if proxy_enabled else 'proxy_disabled'
             watchtower_service = compose_config_common['watchtower_service'][watchtower_service_key]
             services['watchtower'] = watchtower_service
-            services['m4bwebdashboard'] = compose_config_common['m4b_dashboard_service']
+            # Only add m4bwebdashboard if dashboard is enabled
+            m4b_dashboard_config = user_config.get('m4b_dashboard', {})
+            if m4b_dashboard_config.get('enabled', False):
+                services['m4bwebdashboard'] = compose_config_common['m4b_dashboard_service']
 
         if proxy_enabled:
             # Get the base proxy service configuration
