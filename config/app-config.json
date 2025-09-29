@@ -495,7 +495,7 @@
         "image": "proxybase/proxybase:latest",
         "environment": [
           "USER_ID=$PROXYBASE_USERID",
-          "DEVICE_NAME=${DEVICE_NAME}_proxybase"
+          "DEVICE_NAME=${DEVICE_NAME}"
         ],
         "restart": "always",
         "cpus": "${APP_CPU_LIMIT_BIG}",
