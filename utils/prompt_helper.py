@@ -154,6 +154,7 @@ def main() -> None:
     """
     Main function to run the prompt helper standalone.
     """
+    pass
 
 
 if __name__ == "__main__":
