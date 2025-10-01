@@ -170,7 +170,7 @@ def assemble_docker_compose(
                                 )
                             else:
                                 logging.error(
-                                    f"No compatible tag found for {image_name} neither with specified architecture {docker_platform} nor with default architecture {default_docker_platform}."
+                                    f"No compatible tag found for {image_name} either with specified architecture {docker_platform} or with default architecture {default_docker_platform}."
                                 )
                                 logging.error(
                                     f"Please check the image tag and architecture compatibility on the registry. Disabling {app_name}..."
