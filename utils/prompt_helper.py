@@ -23,13 +23,18 @@ def ask_question_yn(question: str, default: bool = False) -> bool:
     Returns:
         bool: True if the user answered yes, False if the user answered no.
     """
-    yes = {'yes', 'y'}
-    no = {'no', 'n'}
+    yes = {"yes", "y"}
+    no = {"no", "n"}
     done = None
 
     while done is None:
-        choice = input(
-            f"{Fore.GREEN}{question} (y/n) (default: {Fore.YELLOW}{'yes' if default else 'no'}{Fore.GREEN}):{Style.RESET_ALL} ").lower().strip()
+        choice = (
+            input(
+                f"{Fore.GREEN}{question} (y/n) (default: {Fore.YELLOW}{'yes' if default else 'no'}{Fore.GREEN}):{Style.RESET_ALL} "
+            )
+            .lower()
+            .strip()
+        )
         if not choice:
             done = default
         elif choice in yes:
@@ -63,7 +68,9 @@ def ask_string(prompt: str, default: str = "", show_default: bool = True) -> str
         response = input(prompt_text).strip()
         if not response:
             response = default
-        if not response:  # As default is empty if not specified then we throw this error
+        if (
+            not response
+        ):  # As default is empty if not specified then we throw this error
             print(f"{Fore.RED}Input cannot be empty.{Style.RESET_ALL}")
             continue
         logging.debug(f"User response to '{prompt}': {response}")
@@ -102,7 +109,9 @@ def ask_email(prompt: str, default: str = "", show_default: bool = True) -> str:
             return email
 
 
-def ask_uuid(prompt: str, length: int, default: str = "", show_default: bool = True) -> str:
+def ask_uuid(
+    prompt: str, length: int, default: str = "", show_default: bool = True
+) -> str:
     """
     Ask the user for a UUID and validate it.
 
@@ -130,7 +139,8 @@ def ask_uuid(prompt: str, length: int, default: str = "", show_default: bool = T
         elif len(uuid) != length:
             print(f"{Fore.RED}Invalid UUID length.{Style.RESET_ALL}")
             logging.warning(
-                f"Invalid UUID length. Expected: {length}, Got: {len(uuid)}")
+                f"Invalid UUID length. Expected: {length}, Got: {len(uuid)}"
+            )
         elif not validate_uuid(uuid, length):
             print(f"{Fore.RED}Invalid UUID format.{Style.RESET_ALL}")
         else:

@@ -3,10 +3,10 @@ from unittest.mock import patch, MagicMock
 import platform
 from utils.detector import detect_os, detect_architecture
 
-class TestDetector(unittest.TestCase):
 
-    @patch('utils.loader.load_json_config')
-    @patch('platform.system', return_value='Linux')
+class TestDetector(unittest.TestCase):
+    @patch("utils.loader.load_json_config")
+    @patch("platform.system", return_value="Linux")
     def test_detect_os(self, mock_platform_system, mock_load_json_config):
         """
         Test detecting the operating system type.
@@ -26,7 +26,7 @@ class TestDetector(unittest.TestCase):
                     "cygwin": "Cygwin",
                     "mingw": "MinGw",
                     "msys": "Msys",
-                    "freebsd": "FreeBSD"
+                    "freebsd": "FreeBSD",
                 }
             }
         }
@@ -36,8 +36,8 @@ class TestDetector(unittest.TestCase):
         self.assertEqual(result, {"os_type": expected_os_type})
         mock_platform_system.assert_called_once()
 
-    @patch('utils.loader.load_json_config')
-    @patch('platform.machine', return_value='x86_64')
+    @patch("utils.loader.load_json_config")
+    @patch("platform.machine", return_value="x86_64")
     def test_detect_architecture(self, mock_platform_machine, mock_load_json_config):
         """
         Test detecting the system architecture.
@@ -48,7 +48,7 @@ class TestDetector(unittest.TestCase):
                     "x86_64": "amd64",
                     "amd64": "amd64",
                     "aarch64": "arm64",
-                    "arm64": "arm64"
+                    "arm64": "arm64",
                 }
             }
         }
@@ -59,5 +59,6 @@ class TestDetector(unittest.TestCase):
         self.assertEqual(result, {"arch": expected_arch, "dkarch": expected_dkarch})
         mock_platform_machine.assert_called_once()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

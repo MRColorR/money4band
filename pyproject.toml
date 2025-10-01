@@ -15,5 +15,63 @@ dependencies = [
     "psutil"
 ]
 
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.12.0",
+    # Add other dev tools as needed
+]
+
+# Tool configurations
+
 [tool.uv]
 # Optional: add uv-specific settings here
+
+# Ruff configuration
+[tool.ruff]
+line-length = 88
+
+[tool.ruff.lint]
+# Enable specific linting rules:
+# E - pycodestyle errors
+# W - pycodestyle warnings (Omit if using formatter to avoid rules overlap)
+# F - pyflakes (undefined names, unused imports)
+# I - isort import sorting
+# B - flake8-bugbear (likely bugs, design issues)
+# UP - pyupgrade (syntax modernization)
+# C4 - flake8-comprehensions
+# PIE - miscellaneous lints
+# TID - flake8-tidy-imports
+# S - flake8-bandit (security checks)
+# N - pep8-naming (naming conventions)
+# T20 - flake8-print (detect print/debug)
+# PL - pylint subset (advanced static analysis)
+select = [
+    "E",
+    "F",
+    "I",
+    "B",
+    "UP",
+    "C4",
+    "PIE",
+    "TID",
+    "S",
+    "N",
+    "T20",
+    "PL",
+]
+
+# Ignore rules that conflict with formatter or are too strict:
+# W191, E111, E114, E117 - indentation errors handled by formatter
+# D206, D300 - docstring styles that can conflict
+# Q000, Q001, Q002, Q003 - quote styles managed by formatter
+# COM812, COM819 - trailing comma conflicts
+# ISC002 - implicit string concat warnings
+ignore = [
+    "W191", "E111", "E114", "E117",
+    "D206", "D300",
+    "Q000", "Q001", "Q002", "Q003",
+    "COM812", "COM819",
+    "ISC002"
+]
+
+# Add other tool configurations as needed
