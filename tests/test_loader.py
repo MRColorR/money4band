@@ -1,7 +1,7 @@
-import unittest
-from unittest.mock import patch, mock_open, MagicMock, call
-import json
 import os
+import unittest
+from unittest.mock import MagicMock, mock_open, patch
+
 from utils.loader import (
     load_json_config,
     load_module_from_file,

@@ -1,24 +1,25 @@
+import argparse
+import json
+import logging
+import os
+import platform
+
+# Ensure the parent directory is in the sys.path
+import sys
+import threading
+import time
+
+from colorama import Fore, Style, just_fix_windows_console
+
+from utils import loader
 from utils.helper import (
-    is_user_root,
-    is_user_in_docker_group,
     create_docker_group_if_needed,
+    is_user_in_docker_group,
+    is_user_root,
     run_docker_command,
     show_spinner,
 )
 from utils.prompt_helper import ask_question_yn
-from utils.cls import cls
-from utils import loader
-import json
-import os
-import argparse
-import logging
-import platform
-import time
-import threading
-from colorama import Fore, Style, just_fix_windows_console
-
-# Ensure the parent directory is in the sys.path
-import sys
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(script_dir)
@@ -56,7 +57,7 @@ def get_compose_project_name(env_file: str) -> str:
 
     try:
         if os.path.isfile(env_file):
-            with open(env_file, "r") as f:
+            with open(env_file) as f:
                 for line in f:
                     if line.startswith("COMPOSE_PROJECT_NAME="):
                         project_name = line.strip().split("=", 1)[1]

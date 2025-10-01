@@ -1,16 +1,15 @@
-from utils.dumper import write_json
-from utils.loader import load_json_config
+import logging
 import os
-import argparse
-import logging
-import json
 import platform
-import logging
-from typing import Dict, Any
-import psutil
 
 # Ensure the parent directory is in the sys.path
 import sys
+from typing import Any, Dict
+
+import psutil
+
+from utils.dumper import write_json
+from utils.loader import load_json_config
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(script_dir)

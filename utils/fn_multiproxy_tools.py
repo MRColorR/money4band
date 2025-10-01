@@ -1,12 +1,14 @@
-import os
 import logging
+import os
 import time
+
 from colorama import Fore, Style, just_fix_windows_console
+
 from utils.cls import cls
-from utils.fn_stopStack import stop_all_stacks
-from utils.fn_startStack import start_all_stacks
-from utils.generator import assemble_docker_compose, generate_env_file
 from utils.dumper import write_json
+from utils.fn_startStack import start_all_stacks
+from utils.fn_stopStack import stop_all_stacks
+from utils.generator import assemble_docker_compose, generate_env_file
 from utils.loader import load_json_config
 from utils.prompt_helper import ask_question_yn
 
@@ -50,7 +52,7 @@ def update_multiproxy_instances(
         return
 
     # Load proxies from file
-    with open(proxies_file, "r") as file:
+    with open(proxies_file) as file:
         proxies = [line.strip() for line in file if line.strip()]
 
     if not proxies:

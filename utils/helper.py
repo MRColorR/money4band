@@ -1,12 +1,13 @@
-import os
 import getpass
+import logging
+import os
 import platform
 import subprocess
-import logging
-import threading
-from itertools import cycle
 import sys
+import threading
 import time
+from itertools import cycle
+
 from colorama import Fore, Style
 
 
@@ -29,7 +30,7 @@ def is_user_in_docker_group():
     user = getpass.getuser()
     logging.info(f"Detected user: {user}")
     logging.info(f"Checking if user '{user}' is in the Docker group...")
-    groups = subprocess.run(["groups", user], capture_output=True, text=True)
+    groups = subprocess.run(["groups", user], check=False, capture_output=True, text=True)
     return "docker" in groups.stdout
 
 
@@ -44,7 +45,7 @@ def create_docker_group_if_needed():
     try:
         if (
             subprocess.run(
-                ["getent", "group", "docker"], capture_output=True
+                ["getent", "group", "docker"], check=False, capture_output=True
             ).returncode
             != 0
         ):
@@ -119,7 +120,7 @@ def setup_service(
             if os.path.exists("/etc/systemd/system"):
                 result = subprocess.run(
                     ["systemctl", "is-active", service_name],
-                    capture_output=True,
+                    check=False, capture_output=True,
                     text=True,
                 )
                 if result.stdout.strip() == "active":
@@ -129,7 +130,7 @@ def setup_service(
                     return
             elif os.path.exists("/etc/init.d"):
                 result = subprocess.run(
-                    ["service", service_name, "status"], capture_output=True, text=True
+                    ["service", service_name, "status"], check=False, capture_output=True, text=True
                 )
                 if "running" in result.stdout:
                     logging.info(
@@ -148,7 +149,7 @@ def setup_service(
                 subprocess.run(
                     ["sudo", "systemctl", "enable", service_name], check=True
                 )
-            subprocess.run(["sudo", "systemctl", "start", service_name])
+            subprocess.run(["sudo", "systemctl", "start", service_name], check=False)
         elif os.path.exists("/etc/init.d"):
             if not os.path.exists(sysv_init_file):
                 logging.info(f"Copying service file to {sysv_init_file}")
@@ -159,7 +160,7 @@ def setup_service(
                 subprocess.run(
                     ["sudo", "update-rc.d", service_name, "defaults"], check=True
                 )
-            subprocess.run(["sudo", "service", service_name, "start"])
+            subprocess.run(["sudo", "service", service_name, "start"], check=False)
 
         logging.info(f"{Fore.GREEN}{service_name} setup and started.{Style.RESET_ALL}")
 

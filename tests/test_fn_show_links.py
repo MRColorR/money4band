@@ -1,7 +1,7 @@
-import unittest
-from unittest.mock import patch, MagicMock
-import logging
 import re
+import unittest
+from unittest.mock import patch
+
 from utils.fn_show_links import fn_show_links
 
 

@@ -1,17 +1,18 @@
-from utils.prompt_helper import ask_question_yn
-from utils.loader import load_json_config
-from utils.cls import cls
-from utils.downloader import download_file
-from utils.detector import detect_os, detect_architecture
-from utils import loader
-import os
-import subprocess
-import logging
 import argparse
 import json
-from typing import Dict, Any
+import logging
+import os
+import subprocess
 import sys
 import time
+from typing import Any, Dict
+
+from utils import loader
+from utils.cls import cls
+from utils.detector import detect_architecture, detect_os
+from utils.downloader import download_file
+from utils.loader import load_json_config
+from utils.prompt_helper import ask_question_yn
 
 # Ensure the parent directory is in the sys.path
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -42,7 +43,7 @@ def is_docker_installed(m4b_config: Dict[str, Any]) -> bool:
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             check=True,
-            universal_newlines=True,
+            text=True,
         )
         os_info = detect_os(m4b_config)
         arch_info = detect_architecture(m4b_config)
@@ -112,7 +113,7 @@ def install_docker_windows(files_path: str):
             [installer_path, "install", "--accept-license", "--quiet"],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            universal_newlines=True,
+            text=True,
             shell=True,
             check=True,  # Raise error if the subprocess returns non-zero exit code
         )
@@ -138,7 +139,7 @@ def install_docker_windows(files_path: str):
                     os.getenv("ProgramFiles"), "Docker", "Docker", "Docker Desktop.exe"
                 )
             ],
-            shell=True,
+            check=False, shell=True,
         )
 
     except subprocess.CalledProcessError as e:

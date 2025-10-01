@@ -1,5 +1,6 @@
 import unittest
-from utils.generator import validate_uuid, generate_uuid, generate_device_name
+
+from utils.generator import generate_device_name, generate_uuid, validate_uuid
 
 
 class TestGeneratorFunctions(unittest.TestCase):

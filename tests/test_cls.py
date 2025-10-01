@@ -1,6 +1,7 @@
-import unittest
-from unittest.mock import patch, call
 import os
+import unittest
+from unittest.mock import patch
+
 from utils.cls import cls
 
 

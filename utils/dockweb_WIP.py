@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import Any, Dict
 
 
 def enable_dockweb_if_needed(user_config: Dict[str, Any]) -> Dict[str, Any]:

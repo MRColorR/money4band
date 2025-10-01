@@ -1,8 +1,8 @@
-import os
-import requests
-import logging
 import argparse
-from typing import Any
+import logging
+import os
+
+import requests
 
 
 def download_file(url: str, dest_path: str) -> None:

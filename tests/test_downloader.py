@@ -1,6 +1,8 @@
 import unittest
-from unittest.mock import patch, mock_open, MagicMock
+from unittest.mock import MagicMock, mock_open, patch
+
 import requests
+
 from utils.downloader import download_file
 
 

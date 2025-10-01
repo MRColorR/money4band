@@ -1,7 +1,7 @@
 import unittest
-from unittest.mock import patch, MagicMock
-import platform
-from utils.detector import detect_os, detect_architecture
+from unittest.mock import patch
+
+from utils.detector import detect_architecture, detect_os
 
 
 class TestDetector(unittest.TestCase):

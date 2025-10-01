@@ -1,8 +1,8 @@
-import os
 import argparse
-import logging
 import json
-from typing import Dict, Any
+import logging
+import os
+from typing import Any, Dict
 
 
 def write_json(data: Dict[str, Any], filename: str) -> None:

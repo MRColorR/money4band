@@ -1,14 +1,16 @@
-from utils.loader import load_json_config
-from utils.cls import cls
-import os
 import argparse
-import logging
 import json
-from typing import Dict
-from colorama import Fore, Back, Style, just_fix_windows_console
+import logging
+import os
 
 # Ensure the parent directory is in the sys.path
 import sys
+from typing import Dict
+
+from colorama import Back, Fore, Style, just_fix_windows_console
+
+from utils.cls import cls
+from utils.loader import load_json_config
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(script_dir)

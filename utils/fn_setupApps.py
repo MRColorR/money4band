@@ -1,30 +1,30 @@
-from utils.networker import find_next_available_port
-from utils.fn_stopStack import stop_stack, stop_all_stacks
-from utils.checker import fetch_docker_tags, check_img_arch_support
-from utils.generator import (
-    generate_uuid,
-    assemble_docker_compose,
-    generate_env_file,
-    generate_device_name,
-)
-from utils.prompt_helper import ask_question_yn, ask_email, ask_string, ask_uuid
-from utils.dumper import write_json
-from utils.cls import cls
-from utils import loader, detector
+import argparse
+import getpass
+import json
+import logging
 import os
 import platform
-import sys
-import argparse
-import logging
-import json
-import time
-import getpass
-import shutil
 import re
+import shutil
+import sys
+import time
 from copy import deepcopy
-from typing import Dict, Any
-import socket
-from colorama import Fore, Back, Style, just_fix_windows_console
+from typing import Any, Dict
+
+from colorama import Fore, Style
+
+from utils import loader
+from utils.cls import cls
+from utils.dumper import write_json
+from utils.fn_stopStack import stop_all_stacks
+from utils.generator import (
+    assemble_docker_compose,
+    generate_device_name,
+    generate_env_file,
+    generate_uuid,
+)
+from utils.networker import find_next_available_port
+from utils.prompt_helper import ask_email, ask_question_yn, ask_string, ask_uuid
 
 # Ensure the parent directory is in the sys.path
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -760,7 +760,7 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
                 "Create a proxies.txt file in the same folder and add proxies in the following format: protocol://user:pass@ip:port (one proxy per line)"
             )
             input("Press enter to continue...")
-            with open("proxies.txt", "r") as file:
+            with open("proxies.txt") as file:
                 proxies = [line.strip() for line in file if line.strip()]
 
             # Use the user config first proxy to update the base money4band docker compose and env file adding proxy

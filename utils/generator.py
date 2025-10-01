@@ -1,21 +1,19 @@
-from utils.helper import show_spinner
-from utils.dumper import write_json
-from utils.loader import load_json_config
-from utils.detector import detect_architecture
-from utils.checker import check_img_arch_support, get_compatible_tag
+import logging
 import os
+import re
+import secrets
 import subprocess
 import sys
-import argparse
-import logging
-import json
-import re
-import time
-from typing import Dict, Any, List
-import yaml  # Import PyYAML
-import secrets
-import getpass
 import threading
+import time
+from typing import Any
+
+import yaml  # Import PyYAML
+
+from utils.checker import check_img_arch_support, get_compatible_tag
+from utils.dumper import write_json
+from utils.helper import show_spinner
+from utils.loader import load_json_config
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(script_dir)
@@ -37,7 +35,7 @@ def validate_uuid(uuid: str, length: int) -> bool:
     if (
         not isinstance(uuid, str)
         or len(uuid) != length
-        or not re.match("[0-9a-f]{{{}}}".format(length), uuid)
+        or not re.match(f"[0-9a-f]{{{length}}}", uuid)
     ):
         return False
     return True
@@ -540,7 +538,7 @@ def generate_dashboard_urls(
                 logging.info(
                     "Reading COMPOSE_PROJECT_NAME and DEVICE_NAME from .env file..."
                 )
-                with open(env_file, "r") as f:
+                with open(env_file) as f:
                     for line in f:
                         if "COMPOSE_PROJECT_NAME" in line:
                             compose_project_name = line.split("=")[1].strip()
@@ -562,7 +560,7 @@ def generate_dashboard_urls(
 
         result = subprocess.run(
             ["docker", "ps", "--format", "{{.Ports}} {{.Names}}"],
-            capture_output=True,
+            check=False, capture_output=True,
             text=True,
         )
         for line in result.stdout.splitlines():

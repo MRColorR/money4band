@@ -1,27 +1,28 @@
+import argparse
+import json
+import logging
+import os
+import platform
+import re
+import subprocess
+
+# Ensure the parent directory is in the sys.path
+import sys
+import threading
+import time
+
+from colorama import Fore, Style, just_fix_windows_console
+
+from utils import loader
+from utils.generator import generate_dashboard_urls
 from utils.helper import (
-    is_user_root,
-    is_user_in_docker_group,
     create_docker_group_if_needed,
+    is_user_in_docker_group,
+    is_user_root,
     run_docker_command,
     show_spinner,
 )
 from utils.prompt_helper import ask_question_yn
-from utils.generator import generate_dashboard_urls
-from utils.cls import cls
-from utils import loader
-import json
-import os
-import argparse
-import logging
-import platform
-import subprocess
-import time
-import threading
-from colorama import Fore, Style, just_fix_windows_console
-import re
-
-# Ensure the parent directory is in the sys.path
-import sys
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(script_dir)
@@ -55,7 +56,7 @@ def get_compose_project_name(env_file: str) -> str:
     project_name = None
     try:
         if os.path.isfile(env_file):
-            with open(env_file, "r") as f:
+            with open(env_file) as f:
                 for line in f:
                     if line.startswith("COMPOSE_PROJECT_NAME="):
                         project_name = line.strip().split("=", 1)[1]
@@ -82,7 +83,7 @@ def get_device_name_from_env(env_file: str) -> str:
     device_name = None
     try:
         if os.path.isfile(env_file):
-            with open(env_file, "r") as f:
+            with open(env_file) as f:
                 for line in f:
                     if line.startswith("DEVICE_NAME="):
                         device_name = line.strip().split("=", 1)[1]
@@ -225,12 +226,12 @@ def start_all_stacks(
             return
 
         print(f"{Fore.YELLOW}Stopping all Docker containers...{Style.RESET_ALL}")
-        subprocess.run(["docker", "stop", "$(docker ps -q)"], shell=True)
+        subprocess.run(["docker", "stop", "$(docker ps -q)"], check=False, shell=True)
         print(f"{Fore.GREEN}All containers stopped.{Style.RESET_ALL}")
 
     # Check for any running containers that might conflict
     result = subprocess.run(
-        ["docker", "ps", "--format", "{{.Names}}"], capture_output=True, text=True
+        ["docker", "ps", "--format", "{{.Names}}"], check=False, capture_output=True, text=True
     )
     running_containers = result.stdout.splitlines()
 
@@ -255,7 +256,7 @@ def start_all_stacks(
 
         # Check main instance container names
         main_device_name = None
-        with open(main_env_file, "r") as f:
+        with open(main_env_file) as f:
             for line in f:
                 if line.startswith("DEVICE_NAME="):
                     main_device_name = line.strip().split("=", 1)[1]
@@ -279,7 +280,7 @@ def start_all_stacks(
                 if os.path.isfile(env_file):
                     # Get device name from this instance
                     instance_device_name = None
-                    with open(env_file, "r") as f:
+                    with open(env_file) as f:
                         for line in f:
                             if line.startswith("DEVICE_NAME="):
                                 instance_device_name = line.strip().split("=", 1)[1]
@@ -388,7 +389,7 @@ def get_container_names_from_env(env_file):
     """
     container_names = []
     try:
-        with open(env_file, "r") as f:
+        with open(env_file) as f:
             env_content = f.read()
 
         # Find the DEVICE_NAME value
