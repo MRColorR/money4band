@@ -227,8 +227,8 @@
         "hostname": "${DEVICE_NAME}_proxyrack",
         "image": "proxyrack/pop:latest",
         "environment": [
-          "api_key=$PROXYRACK_APIKEY",
-          "device_name=$DEVICE_NAME",
+          "API_KEY=$PROXYRACK_APIKEY",
+          "DEVICE_NAME=$DEVICE_NAME",
           "UUID=$PROXYRACK_UUID"
         ],
         "restart": "always",
@@ -494,7 +494,8 @@
         "hostname": "${DEVICE_NAME}_proxybase",
         "image": "proxybase/proxybase:latest",
         "environment": [
-          "device_id=$PROXYBASE_UUID"
+          "USER_ID=$PROXYBASE_USERID",
+          "DEVICE_NAME=${DEVICE_NAME}"
         ],
         "restart": "always",
         "cpus": "${APP_CPU_LIMIT_BIG}",
@@ -513,10 +514,7 @@
         "hostname": null
       },
       "flags": {
-        "uuid": {
-          "length": 32,
-          "claimURLBase": "To claim your node, after starting it, go to the app's dashboard and then add the device using the following device_id: "
-        }
+        "userid": {}
       }
     },
     {

@@ -115,7 +115,7 @@
     "proxybase": {
       "enabled": false,
       "docker_platform": "linux/amd64",
-      "uuid": "yourPROXYBASEDeviceUUID"
+      "userid": "yourPROXYBASEUserID"
     },
     "wipter": {
         "enabled": false,
