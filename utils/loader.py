@@ -24,9 +24,8 @@ def load_json_config(config_path_or_dict: Any) -> Dict[str, Any]:
     if isinstance(config_path_or_dict, str):
         # If config is a string, assume it's a file path and load the JSON file
         try:
-            with open(config_path_or_dict, 'r') as f:
-                logging.debug(
-                    f"Loading config from file: {config_path_or_dict}")
+            with open(config_path_or_dict, "r") as f:
+                logging.debug(f"Loading config from file: {config_path_or_dict}")
                 return json.load(f)
         except FileNotFoundError:
             logging.error(f"Config file {config_path_or_dict} not found.")
@@ -36,7 +35,8 @@ def load_json_config(config_path_or_dict: Any) -> Dict[str, Any]:
             raise
         except Exception as e:
             logging.error(
-                f"An unexpected error occurred when loading {config_path_or_dict}: {str(e)}")
+                f"An unexpected error occurred when loading {config_path_or_dict}: {str(e)}"
+            )
             raise
     elif isinstance(config_path_or_dict, dict):
         # If config is a dictionary, assume it's already loaded and return it directly
@@ -44,7 +44,8 @@ def load_json_config(config_path_or_dict: Any) -> Dict[str, Any]:
         return config_path_or_dict
     else:
         raise ValueError(
-            "Invalid config type. Config must be a file path or a dictionary.")
+            "Invalid config type. Config must be a file path or a dictionary."
+        )
 
 
 def load_module_from_file(module_name: str, file_path: str):
@@ -68,7 +69,8 @@ def load_module_from_file(module_name: str, file_path: str):
         return module
     except Exception as e:
         logging.error(
-            f"Failed to load module: {module_name} from {file_path}. Error: {str(e)}")
+            f"Failed to load module: {module_name} from {file_path}. Error: {str(e)}"
+        )
         raise
 
 
@@ -84,15 +86,14 @@ def load_modules_from_directory(directory_path: str):
     """
     modules = {}
     for filename in os.listdir(directory_path):
-        if filename.endswith('.py') and filename != '__init__.py':
+        if filename.endswith(".py") and filename != "__init__.py":
             path = os.path.join(directory_path, filename)
             module_name = filename[:-3]  # remove .py extension
             try:
                 modules[module_name] = load_module_from_file(module_name, path)
-                logging.info(f'Successfully loaded module: {module_name}')
+                logging.info(f"Successfully loaded module: {module_name}")
             except Exception as e:
-                logging.error(
-                    f'Failed to load module: {module_name}. Error: {str(e)}')
+                logging.error(f"Failed to load module: {module_name}. Error: {str(e)}")
                 raise
     return modules
 
@@ -120,31 +121,48 @@ if __name__ == "__main__":
 
     # Parse command-line arguments
     parser = argparse.ArgumentParser(
-        description=f"Run the {script_name} module standalone.")
-    parser.add_argument('--config-path', type=str, required=True,
-                        help='The config file path or JSON string')
-    parser.add_argument('--module-dir-path', type=str, required=True,
-                        help='The directory containing the modules')
-    parser.add_argument('--log-dir', default=os.path.join(script_dir,
-                        'logs'), help='Set the logging directory')
+        description=f"Run the {script_name} module standalone."
+    )
     parser.add_argument(
-        '--log-file', default=f"{script_name}.log", help='Set the logging file name')
-    parser.add_argument('--log-level', choices=['DEBUG', 'INFO', 'WARNING',
-                        'ERROR', 'CRITICAL'], default='INFO', help='Set the logging level')
+        "--config-path",
+        type=str,
+        required=True,
+        help="The config file path or JSON string",
+    )
+    parser.add_argument(
+        "--module-dir-path",
+        type=str,
+        required=True,
+        help="The directory containing the modules",
+    )
+    parser.add_argument(
+        "--log-dir",
+        default=os.path.join(script_dir, "logs"),
+        help="Set the logging directory",
+    )
+    parser.add_argument(
+        "--log-file", default=f"{script_name}.log", help="Set the logging file name"
+    )
+    parser.add_argument(
+        "--log-level",
+        choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+        default="INFO",
+        help="Set the logging level",
+    )
     args = parser.parse_args()
 
     # Set logging level based on command-line arguments
     log_level = getattr(logging, args.log_level.upper(), None)
     if not isinstance(log_level, int):
-        raise ValueError(f'Invalid log level: {args.log_level}')
+        raise ValueError(f"Invalid log level: {args.log_level}")
 
     # Start logging
     os.makedirs(args.log_dir, exist_ok=True)
     logging.basicConfig(
         filename=os.path.join(args.log_dir, args.log_file),
-        format='%(asctime)s - [%(levelname)s] - %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S',
-        level=log_level
+        format="%(asctime)s - [%(levelname)s] - %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+        level=log_level,
     )
 
     logging.info(f"Starting {script_name} script...")

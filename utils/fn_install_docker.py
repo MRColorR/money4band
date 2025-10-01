@@ -30,14 +30,20 @@ except FileNotFoundError:
 
 # Set global sleep time
 sleep_time = m4b_config.get("system", {}).get(
-    "sleep_time", 3)  # Default to 3 seconds if not specified
+    "sleep_time", 3
+)  # Default to 3 seconds if not specified
 
 
 def is_docker_installed(m4b_config: Dict[str, Any]) -> bool:
     """Check if Docker is already installed."""
     try:
-        result = subprocess.run(["docker", "--version"], stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE, check=True, universal_newlines=True)
+        result = subprocess.run(
+            ["docker", "--version"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=True,
+            universal_newlines=True,
+        )
         os_info = detect_os(m4b_config)
         arch_info = detect_architecture(m4b_config)
         os_type = os_info["os_type"]
@@ -77,11 +83,13 @@ def install_docker_linux(files_path: str):
         os.remove(installer_path)
     except subprocess.CalledProcessError as e:
         logging.error(
-            f"An error occurred during Docker installation on Linux: {str(e)}")
+            f"An error occurred during Docker installation on Linux: {str(e)}"
+        )
         raise
     except Exception as e:
         logging.error(
-            f"An unexpected error occurred during Docker installation on Linux: {str(e)}")
+            f"An unexpected error occurred during Docker installation on Linux: {str(e)}"
+        )
         raise
 
 
@@ -90,7 +98,9 @@ def install_docker_windows(files_path: str):
     try:
         logging.info("Starting Docker for Windows auto installation script")
 
-        installer_url = "https://desktop.docker.com/win/stable/Docker%20Desktop%20Installer.exe"
+        installer_url = (
+            "https://desktop.docker.com/win/stable/Docker%20Desktop%20Installer.exe"
+        )
         installer_path = os.path.join(files_path, "DockerInstaller.exe")
 
         # Download Docker Installer
@@ -104,7 +114,7 @@ def install_docker_windows(files_path: str):
             stderr=subprocess.PIPE,
             universal_newlines=True,
             shell=True,
-            check=True  # Raise error if the subprocess returns non-zero exit code
+            check=True,  # Raise error if the subprocess returns non-zero exit code
         )
 
         # Print stdout and stderr
@@ -116,20 +126,30 @@ def install_docker_windows(files_path: str):
         # Print installation success message
         msg = "Docker installed successfully on Windows"
         logging.info(msg)
-        print(f"{msg}\nPlease ensure that Docker autostarts with your system by checking it in the Docker settings")
+        print(
+            f"{msg}\nPlease ensure that Docker autostarts with your system by checking it in the Docker settings"
+        )
 
         # Clean-up
         os.remove(installer_path)
-        subprocess.run([os.path.join(os.getenv("ProgramFiles"),
-                       "Docker", "Docker", "Docker Desktop.exe")], shell=True)
+        subprocess.run(
+            [
+                os.path.join(
+                    os.getenv("ProgramFiles"), "Docker", "Docker", "Docker Desktop.exe"
+                )
+            ],
+            shell=True,
+        )
 
     except subprocess.CalledProcessError as e:
         logging.error(
-            f"An error occurred during Docker installation on Windows: {str(e)}")
+            f"An error occurred during Docker installation on Windows: {str(e)}"
+        )
         raise
     except Exception as e:
         logging.error(
-            f"An unexpected error occurred during Docker installation on Windows: {str(e)}")
+            f"An unexpected error occurred during Docker installation on Windows: {str(e)}"
+        )
         raise
 
 
@@ -151,19 +171,29 @@ def install_docker_macos(files_path: str, intel_cpu: bool):
         # Mount DMG and Install Docker
         subprocess.run(["hdiutil", "attach", installer_path], check=True)
         subprocess.run(
-            ["sudo", "/Volumes/Docker/Docker.app/Contents/MacOS/install", "--accept-license"], check=True)
+            [
+                "sudo",
+                "/Volumes/Docker/Docker.app/Contents/MacOS/install",
+                "--accept-license",
+            ],
+            check=True,
+        )
         subprocess.run(["hdiutil", "detach", "/Volumes/Docker"], check=True)
         subprocess.run(["open", "/Applications/Docker.app"], check=True)
         msg = "Docker installed successfully on macOS"
         logging.info(msg)
-        print(f"{msg}\nPlease ensure that Docker autostarts with your system by checking it in the Docker settings")
+        print(
+            f"{msg}\nPlease ensure that Docker autostarts with your system by checking it in the Docker settings"
+        )
     except subprocess.CalledProcessError as e:
         logging.error(
-            f"An error occurred during Docker installation on macOS: {str(e)}")
+            f"An error occurred during Docker installation on macOS: {str(e)}"
+        )
         raise
     except Exception as e:
         logging.error(
-            f"An unexpected error occurred during Docker installation on macOS: {str(e)}")
+            f"An unexpected error occurred during Docker installation on macOS: {str(e)}"
+        )
         raise
 
 
@@ -185,14 +215,17 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
 
     os_type = os_info["os_type"].lower()
     dkarch = arch_info["dkarch"].lower()
-    files_path = m4b_config.get('files_path', os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), 'tmp'))
+    files_path = m4b_config.get(
+        "files_path", os.path.join(os.path.dirname(os.path.abspath(__file__)), "tmp")
+    )
 
     # Check if Docker is already installed
     if is_docker_installed(m4b_config):
         return
 
-    if not ask_question_yn(f"Do you wish to proceed with the Docker for {os_type} automatic installation?"):
+    if not ask_question_yn(
+        f"Do you wish to proceed with the Docker for {os_type} automatic installation?"
+    ):
         msg = "Docker installation canceled by user"
         logging.info(msg)
         print(msg)
@@ -213,42 +246,56 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
         logging.error(f"Unsupported operating system: {os_type}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     script_dir = os.path.dirname(os.path.abspath(__file__))
     script_name = os.path.basename(__file__)
 
-    parser = argparse.ArgumentParser(description='Run the module standalone.')
-    parser.add_argument('--app-config', type=str,
-                        required=False, help='Path to app_config JSON file')
-    parser.add_argument('--m4b-config', type=str, required=True,
-                        help='Path to m4b_config JSON file')
-    parser.add_argument('--user-config', type=str,
-                        required=False, help='Path to user_config JSON file')
-    parser.add_argument('--log-dir', default=os.path.join(script_dir,
-                        'logs'), help='Set the logging directory')
+    parser = argparse.ArgumentParser(description="Run the module standalone.")
     parser.add_argument(
-        '--log-file', default=f"{script_name}.log", help='Set the logging file name')
-    parser.add_argument('--log-level', choices=['DEBUG', 'INFO', 'WARNING',
-                        'ERROR', 'CRITICAL'], default='INFO', help='Set the logging level')
+        "--app-config", type=str, required=False, help="Path to app_config JSON file"
+    )
+    parser.add_argument(
+        "--m4b-config", type=str, required=True, help="Path to m4b_config JSON file"
+    )
+    parser.add_argument(
+        "--user-config", type=str, required=False, help="Path to user_config JSON file"
+    )
+    parser.add_argument(
+        "--log-dir",
+        default=os.path.join(script_dir, "logs"),
+        help="Set the logging directory",
+    )
+    parser.add_argument(
+        "--log-file", default=f"{script_name}.log", help="Set the logging file name"
+    )
+    parser.add_argument(
+        "--log-level",
+        choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+        default="INFO",
+        help="Set the logging level",
+    )
     args = parser.parse_args()
 
     log_level = getattr(logging, args.log_level.upper(), None)
     if not isinstance(log_level, int):
-        raise ValueError(f'Invalid log level: {args.log_level}')
+        raise ValueError(f"Invalid log level: {args.log_level}")
 
     os.makedirs(args.log_dir, exist_ok=True)
     logging.basicConfig(
         filename=os.path.join(args.log_dir, args.log_file),
-        format='%(asctime)s - [%(levelname)s] - %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S',
-        level=log_level
+        format="%(asctime)s - [%(levelname)s] - %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+        level=log_level,
     )
 
     logging.info(f"Starting {script_name} script...")
 
     try:
-        main(app_config_path=args.app_config,
-             m4b_config_path=args.m4b_config, user_config_path=args.user_config)
+        main(
+            app_config_path=args.app_config,
+            m4b_config_path=args.m4b_config,
+            user_config_path=args.user_config,
+        )
         logging.info(f"{script_name} script completed successfully")
     except FileNotFoundError as e:
         logging.error(f"File not found: {str(e)}")

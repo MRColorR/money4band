@@ -1,8 +1,8 @@
 import unittest
 from utils.generator import validate_uuid, generate_uuid, generate_device_name
 
-class TestGeneratorFunctions(unittest.TestCase):
 
+class TestGeneratorFunctions(unittest.TestCase):
     def test_validate_uuid(self):
         valid_uuid = "1234567890abcdef1234567890abcdef"
         invalid_uuid = "12345"
@@ -20,5 +20,6 @@ class TestGeneratorFunctions(unittest.TestCase):
         self.assertIn(device_name.split("_")[0], adjectives)
         self.assertIn(device_name.split("_")[1], animals)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

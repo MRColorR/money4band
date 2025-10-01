@@ -6,8 +6,10 @@ import logging
 import json
 from typing import Dict
 from colorama import Fore, Back, Style, just_fix_windows_console
+
 # Ensure the parent directory is in the sys.path
 import sys
+
 script_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(script_dir)
 if parent_dir not in sys.path:
@@ -39,7 +41,8 @@ def fn_show_links(app_config: Dict) -> None:
             print(f"{Back.YELLOW}---{category.upper()}---{Back.RESET}")
             for app in apps:
                 print(
-                    f"{Fore.GREEN}{app['name'].upper()}: {Fore.CYAN}{app['link']}{Style.RESET_ALL}")
+                    f"{Fore.GREEN}{app['name'].upper()}: {Fore.CYAN}{app['link']}{Style.RESET_ALL}"
+                )
             print("\n")
 
         print("Info: Use CTRL+Click to open links or copy them")
@@ -62,46 +65,60 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
     fn_show_links(app_config)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Get the script absolute path and name
     script_dir = os.path.dirname(os.path.abspath(__file__))
     script_name = os.path.basename(__file__)
 
     # Parse command-line arguments
-    parser = argparse.ArgumentParser(description='Run the module standalone.')
-    parser.add_argument('--app-config', type=str, required=True,
-                        help='Path to app_config JSON file')
-    parser.add_argument('--m4b-config', type=str,
-                        required=False, help='Path to m4b_config JSON file')
-    parser.add_argument('--user-config', type=str,
-                        required=False, help='Path to user_config JSON file')
-    parser.add_argument('--log-dir', default=os.path.join(script_dir,
-                        'logs'), help='Set the logging directory')
+    parser = argparse.ArgumentParser(description="Run the module standalone.")
     parser.add_argument(
-        '--log-file', default=f"{script_name}.log", help='Set the logging file name')
-    parser.add_argument('--log-level', choices=['DEBUG', 'INFO', 'WARNING',
-                        'ERROR', 'CRITICAL'], default='INFO', help='Set the logging level')
+        "--app-config", type=str, required=True, help="Path to app_config JSON file"
+    )
+    parser.add_argument(
+        "--m4b-config", type=str, required=False, help="Path to m4b_config JSON file"
+    )
+    parser.add_argument(
+        "--user-config", type=str, required=False, help="Path to user_config JSON file"
+    )
+    parser.add_argument(
+        "--log-dir",
+        default=os.path.join(script_dir, "logs"),
+        help="Set the logging directory",
+    )
+    parser.add_argument(
+        "--log-file", default=f"{script_name}.log", help="Set the logging file name"
+    )
+    parser.add_argument(
+        "--log-level",
+        choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+        default="INFO",
+        help="Set the logging level",
+    )
     args = parser.parse_args()
 
     # Set logging level based on command-line arguments
     log_level = getattr(logging, args.log_level.upper(), None)
     if not isinstance(log_level, int):
-        raise ValueError(f'Invalid log level: {args.log_level}')
+        raise ValueError(f"Invalid log level: {args.log_level}")
 
     # Start logging
     os.makedirs(args.log_dir, exist_ok=True)
     logging.basicConfig(
         filename=os.path.join(args.log_dir, args.log_file),
-        format='%(asctime)s - [%(levelname)s] - %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S',
-        level=log_level
+        format="%(asctime)s - [%(levelname)s] - %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+        level=log_level,
     )
 
     logging.info(f"Starting {script_name} script...")
 
     try:
-        main(app_config_path=args.app_config,
-             m4b_config_path=args.m4b_config, user_config_path=args.user_config)
+        main(
+            app_config_path=args.app_config,
+            m4b_config_path=args.m4b_config,
+            user_config_path=args.user_config,
+        )
         logging.info(f"{script_name} script completed successfully")
     except FileNotFoundError as e:
         logging.error(f"File not found: {str(e)}")
