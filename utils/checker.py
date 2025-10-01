@@ -1,10 +1,12 @@
-from utils.helper import ensure_service
-import requests
 import logging
-import sys
 import os
+import sys
 import time
 from typing import Dict, Optional
+
+import requests
+
+from utils.helper import ensure_service
 
 # Ensure the parent directory is in the sys.path
 script_dir = os.path.dirname(os.path.abspath(__file__))

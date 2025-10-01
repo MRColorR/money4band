@@ -1,9 +1,9 @@
-import os
 import argparse
-import logging
-import json
 import importlib.util
-from typing import Dict, Any
+import json
+import logging
+import os
+from typing import Any, Dict
 
 
 def load_json_config(config_path_or_dict: Any) -> Dict[str, Any]:
@@ -24,7 +24,7 @@ def load_json_config(config_path_or_dict: Any) -> Dict[str, Any]:
     if isinstance(config_path_or_dict, str):
         # If config is a string, assume it's a file path and load the JSON file
         try:
-            with open(config_path_or_dict, "r") as f:
+            with open(config_path_or_dict) as f:
                 logging.debug(f"Loading config from file: {config_path_or_dict}")
                 return json.load(f)
         except FileNotFoundError:

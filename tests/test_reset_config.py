@@ -1,7 +1,7 @@
-import unittest
-import tempfile
-import shutil
 import os
+import tempfile
+import unittest
+
 from utils.fn_reset_config import main as reset_config_main
 
 
@@ -34,7 +34,7 @@ class TestResetConfig(unittest.TestCase):
         )
 
         self.assertTrue(os.path.exists(dest_path))
-        with open(dest_path, "r") as f:
+        with open(dest_path) as f:
             data = f.read()
             self.assertIn("test_key", data)
             self.assertIn("test_value", data)

@@ -1,9 +1,8 @@
-import os
-import shutil
-import logging
 import argparse
 import json
-from typing import Dict, Any, Optional
+import logging
+import os
+import shutil
 
 
 def reset_config(src_path: str, dest_path: str) -> None:

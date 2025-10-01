@@ -1,13 +1,15 @@
-from utils.loader import load_json_config
-import os
-import sys
-from typing import List, Dict
-import urllib.request
 import json
 import logging
-from datetime import datetime
+import os
 import re
-from colorama import Fore, Back, Style, just_fix_windows_console
+import sys
+import urllib.request
+from datetime import datetime
+from typing import Dict, List
+
+from colorama import Fore, Style, just_fix_windows_console
+
+from utils.loader import load_json_config
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(script_dir)
@@ -64,13 +66,12 @@ class Version:
             return True
         elif self.major > other.major:
             return False
-        else:  # major is equal
-            if self.minor < other.minor:
-                return True
-            elif self.minor > other.minor:
-                return False
-            else:  # minor is equal
-                return self.patch < other.patch
+        elif self.minor < other.minor:
+            return True
+        elif self.minor > other.minor:
+            return False
+        else:  # minor is equal
+            return self.patch < other.patch
 
     def __gt__(self, other):
         if not isinstance(other, Version):

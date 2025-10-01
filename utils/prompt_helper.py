@@ -1,9 +1,11 @@
-from utils.generator import validate_uuid
-import os
-import sys
-import re
 import logging
+import os
+import re
+import sys
+
 from colorama import Fore, Style
+
+from utils.generator import validate_uuid
 
 # Ensure the parent directory is in the sys.path
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -152,7 +154,6 @@ def main() -> None:
     """
     Main function to run the prompt helper standalone.
     """
-    pass
 
 
 if __name__ == "__main__":

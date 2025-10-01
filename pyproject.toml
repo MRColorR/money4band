@@ -66,12 +66,14 @@ select = [
 # Q000, Q001, Q002, Q003 - quote styles managed by formatter
 # COM812, COM819 - trailing comma conflicts
 # ISC002 - implicit string concat warnings
+# T201 - print statements are needed for CLI user interaction
 ignore = [
     "W191", "E111", "E114", "E117",
     "D206", "D300",
     "Q000", "Q001", "Q002", "Q003",
     "COM812", "COM819",
-    "ISC002"
+    "ISC002",
+    "T201"
 ]
 
 # Add other tool configurations as needed

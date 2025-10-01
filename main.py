@@ -1,18 +1,19 @@
-from utils.updater import check_update_available
-from utils.fn_reset_config import main as reset_main
-from utils.cls import cls
-from utils import detector, loader, dumper
-import os
 import argparse
-import logging
-from logging.handlers import RotatingFileHandler
 import locale
-import time
-from typing import Dict, Any
-from colorama import Fore, Back, Style, just_fix_windows_console
+import logging
+import os
 
 # Ensure the parent directory is in the sys.path
 import sys
+import time
+from logging.handlers import RotatingFileHandler
+
+from colorama import Fore, Style, just_fix_windows_console
+
+from utils import detector, dumper, loader
+from utils.cls import cls
+from utils.fn_reset_config import main as reset_main
+from utils.updater import check_update_available
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(script_dir)

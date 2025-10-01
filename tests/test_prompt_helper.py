@@ -1,6 +1,7 @@
 import unittest
 from unittest.mock import patch
-from utils.prompt_helper import ask_email, ask_string, ask_question_yn, ask_uuid
+
+from utils.prompt_helper import ask_email, ask_question_yn, ask_string, ask_uuid
 
 
 class TestPromptHelper(unittest.TestCase):

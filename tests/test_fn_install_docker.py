@@ -1,8 +1,8 @@
-import unittest
-from unittest.mock import patch, call, MagicMock
-import subprocess
 import os
+import subprocess
 import sys
+import unittest
+from unittest.mock import call, patch
 
 # Ensure the parent directory is in the sys.path
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -10,11 +10,11 @@ parent_dir = os.path.dirname(script_dir)
 sys.path.append(parent_dir)
 
 from utils.fn_install_docker import (
-    main,
-    is_docker_installed,
     install_docker_linux,
-    install_docker_windows,
     install_docker_macos,
+    install_docker_windows,
+    is_docker_installed,
+    main,
 )
 
 
