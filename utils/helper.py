@@ -53,7 +53,7 @@ def create_docker_group_if_needed():
                 f"{Fore.YELLOW}Docker group does not exist. Creating it...{Style.RESET_ALL}"
             )
             subprocess.run(["sudo", "groupadd", "docker"], check=True)
-            logging.info(f"{Fore.GREEN}Docker group created .{Style.RESET_ALL}")
+            logging.info(f"{Fore.GREEN}Docker group created successfully.{Style.RESET_ALL}")
 
         # use getpass.getuser() instead of os.getlogin() as it is more robust
         user = getpass.getuser()
@@ -183,7 +183,7 @@ def ensure_service(
     logging.info(f"Ensuring {service_name} service is installed and running.")
     try:
         setup_service(service_name=service_name, service_file_path=service_file_path)
-        logging.info(f"{Fore.GREEN}{service_name} setup completed .{Style.RESET_ALL}")
+        logging.info(f"{Fore.GREEN}{service_name} setup completed successfully.{Style.RESET_ALL}")
     except Exception as e:
         logging.error(f"Failed to ensure {service_name} service: {str(e)}")
         raise RuntimeError(f"Failed to ensure {service_name} service: {str(e)}")
