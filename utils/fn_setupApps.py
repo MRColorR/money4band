@@ -301,9 +301,10 @@ def _configure_apps(user_config: Dict[str, Any], apps: Dict, m4b_config: Dict):
         if "ports" in app["compose_config"]:
             port_count = len(app["compose_config"]["ports"])
             assigned_ports = []
+            default_ports = [50000 + j for j in range(port_count)]
             for i in range(port_count):
                 starting_port = config.get(
-                    "ports", [50000 + j for j in range(port_count)]
+                    "ports", default_ports
                 )
                 # If starting_port is a list, use its value for this index, else use default
                 if isinstance(starting_port, list) and i < len(starting_port):

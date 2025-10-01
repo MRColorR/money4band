@@ -17,7 +17,7 @@ if parent_dir not in sys.path:
 # Store the Docker Hub base URL in a variable
 DOCKERHUB_BASE_URL = "https://registry.hub.docker.com/v2/"
 
-# STore the GitHub Container Registry base URL in a variable
+# Store the GitHub Container Registry base URL in a variable
 GHCR_BASE_URL = "https://ghcr.io/v2/"
 
 
