@@ -158,6 +158,50 @@ def calculate_subnet(base_subnet: str, base_netmask: int, offset: int) -> str:
     return int_to_ipv4(new_subnet_int)
 
 
+def assign_app_ports(app_name: str, app: dict, config: dict) -> list[int]:
+    """
+    Assign available ports for an app based on its configuration.
+
+    Args:
+        app_name (str): Name of the app
+        app (dict): App configuration containing compose_config
+        config (dict): User configuration for the app
+
+    Returns:
+        list[int]: List of assigned available ports
+    """
+    port_count = len(app["compose_config"]["ports"])
+    assigned_ports = []
+    default_ports = [50000 + j for j in range(port_count)]
+
+    for i in range(port_count):
+        starting_port = config.get("ports", default_ports)
+        # Determine the base port for this index
+        if isinstance(starting_port, list):
+            port_base = (
+                starting_port[i] if i < len(starting_port) else 50000 + i
+            )
+        else:
+            port_base = 50000 + i
+
+        # Find next available port and assign it
+        available_port = find_next_available_port(port_base)
+        assigned_ports.append(available_port)
+
+        # Log the port assignment
+        port_placeholder = (
+            app["compose_config"]["ports"][i]
+            if "ports" in app["compose_config"]
+            and i < len(app["compose_config"]["ports"])
+            else f"port_{i + 1}"
+        )
+        logging.info(
+            f"Port {port_placeholder} for {app_name} set to: {available_port}"
+        )
+
+    return assigned_ports
+
+
 def configure_email(app: dict, flag_config: dict, config: dict):
     email = ask_email(
         f"Enter your {app['name'].lower().title()} email:", default=config.get("email")
@@ -410,31 +454,7 @@ def _configure_apps(user_config: dict[str, Any], apps: dict, m4b_config: dict):
 
         # Port configuration for apps with defined ports (should have a 'ports' key in the compose_config and a <app_name>_ports key in the user_config)
         if "ports" in app["compose_config"]:
-            port_count = len(app["compose_config"]["ports"])
-            assigned_ports = []
-            default_ports = [50000 + j for j in range(port_count)]
-            for i in range(port_count):
-                starting_port = config.get("ports", default_ports)
-                # If starting_port is a list, use its value for this index, else use default
-                if isinstance(starting_port, list):
-                    if i < len(starting_port):
-                        port_base = starting_port[i]
-                    else:
-                        port_base = 50000 + i
-                else:
-                    port_base = 50000 + i
-                available_port = find_next_available_port(port_base)
-                assigned_ports.append(available_port)
-                # Use the actual port placeholder name from compose_config
-                port_placeholder = (
-                    app["compose_config"]["ports"][i]
-                    if "ports" in app["compose_config"]
-                    and i < len(app["compose_config"]["ports"])
-                    else f"port_{i + 1}"
-                )
-                logging.info(
-                    f"Port {port_placeholder} for {app_name} set to: {available_port}"
-                )
+            assigned_ports = assign_app_ports(app_name, app, config)
             config["ports"] = assigned_ports
             logging.info(f"Ports for {app_name} set to: {assigned_ports}")
 
