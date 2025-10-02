@@ -21,13 +21,15 @@ if parent_dir not in sys.path:
     sys.path.append(parent_dir)
 
 
-def substitute_port_placeholders(port_placeholders: list, actual_ports: Any) -> list:
+def substitute_port_placeholders(
+    port_placeholders: list, actual_ports: list[int]
+) -> list:
     """
     Substitute port placeholders with actual port values.
 
     Args:
         port_placeholders (list): List of port placeholders in format "${ENV_VAR}:container_port".
-        actual_ports (Any): Actual port values (int or list of ints).
+        actual_ports (list[int]): List of actual port values.
 
     Returns:
         list: List of port mappings in format "host_port:container_port".
@@ -38,10 +40,8 @@ def substitute_port_placeholders(port_placeholders: list, actual_ports: Any) -> 
         match = re.match(r"\$\{([^}]+)\}:(\d+)", port_placeholder)
         if match:
             container_port = match.group(2)
-            if isinstance(actual_ports, list) and idx < len(actual_ports):
-                host_port = actual_ports[idx]
-            else:
-                host_port = actual_ports
+            # actual_ports is always a list now
+            host_port = actual_ports[idx] if idx < len(actual_ports) else actual_ports[0]
             new_ports.append(f"{host_port}:{container_port}")
         else:
             # If not a placeholder, keep as is
@@ -496,24 +496,20 @@ def generate_env_file(
                             f"{app_name.upper()}_DASHBOARD_PORT={app_user_config['dashboard_port']}"
                         )
                     if "ports" in app_user_config:
-                        # Handle both single port and list of ports
-                        if isinstance(app_user_config["ports"], list):
-                            for i, port in enumerate(app_user_config["ports"]):
+                        # Ports are always stored as a list
+                        ports = app_user_config["ports"]
+                        if not isinstance(ports, list):
+                            ports = [ports]  # Convert to list for consistency
+                        for i, port in enumerate(ports):
+                            env_lines.append(f"{app_name.upper()}_PORT_{i + 1}={port}")
+                            # For backward compatibility, also add non-indexed variable for single port
+                            if len(ports) == 1:
                                 env_lines.append(
-                                    f"{app_name.upper()}_PORT_{i + 1}={port}"
+                                    f"{app_name.upper()}_PORT={port}"
                                 )
-                        else:
-                            # Add standard app port variable
-                            env_lines.append(
-                                f"{app_name.upper()}_PORT={app_user_config['ports']}"
-                            )
-
-                            # Add app-specific port variable (for backward compatibility)
-                            # This ensures services that explicitly reference ${APPNAME_PORT} in docker-compose
-                            # continue to work without modifications
-                            env_lines.append(
-                                f"{app_lower.upper()}_PORT={app_user_config['ports']}"
-                            )
+                                env_lines.append(
+                                    f"{app_lower.upper()}_PORT={port}"
+                                )
 
         # Write to .env file
         with open(env_output_path, "w") as f:
