@@ -707,7 +707,6 @@ def setup_multiproxy_instances(
                         base_port = app_config_entry.get(
                             "ports", 50000 + app_index * 100
                         )
-                        app_index += 1
                         if isinstance(base_port, list):
                             # Handle list of ports
                             app_config_entry["ports"] = [
@@ -726,6 +725,9 @@ def setup_multiproxy_instances(
                             logging.info(
                                 f"Updated port for {app_name} in instance {instance_project_name} to {unique_port}"
                             )
+
+                    # Increment app index for each enabled app processed
+                    app_index += 1
 
         # Properly disable dashboard for multiproxy instances to avoid port conflicts
         if "m4b_dashboard" in instance_user_config:
