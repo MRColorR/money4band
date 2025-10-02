@@ -94,7 +94,7 @@
       "docker_platform": "linux/amd64",
       "email": "yourDAWNMail",
       "password": "yourDAWNPw",
-      "ports": 5000
+      "ports": [5000]
     },
     "teneo": {
       "enabled": false,
@@ -105,7 +105,7 @@
     "mystnode": {
       "enabled": false,
       "docker_platform": "linux/amd64",
-      "ports": 4449
+      "ports": [4449]
     },
     "peer2profit": {
       "enabled": false,
@@ -116,11 +116,18 @@
       "enabled": false,
       "docker_platform": "linux/amd64",
       "userid": "yourPROXYBASEUserID"
+    },
+    "wipter": {
+      "enabled": false,
+      "docker_platform": "linux/amd64",
+      "email": "yourWIPTERMail",
+      "password": "yourWIPTERPw",
+      "ports": [5900, 6080]
     }
   },
   "m4b_dashboard": {
     "enabled": true,
-    "ports": 8081
+    "ports": [8081]
   },
   "proxies": {
     "enabled": false,
