@@ -22,14 +22,15 @@ if parent_dir not in sys.path:
 
 
 def substitute_port_placeholders(
-    port_placeholders: list, actual_ports: list[int]
+    port_placeholders: list[str], actual_ports: list[int]
 ) -> list[str]:
     """
     Substitute port placeholders with actual port values.
 
     Args:
-        port_placeholders (list): List of port placeholders in format "${ENV_VAR}:container_port".
-        actual_ports (list[int]): List of actual port values.
+        port_placeholders (list[str]): List of port placeholders in format
+            "${ENV_VAR}:container_port".
+        actual_ports (list[int]): List of actual port numbers to use.
 
     Returns:
         list[str]: List of port mappings in format "host_port:container_port".

@@ -169,14 +169,16 @@ def calculate_subnet(base_subnet: str, base_netmask: int, offset: int) -> str:
     return int_to_ipv4(new_subnet_int)
 
 
-def assign_app_ports(app_name: str, app: dict, config: dict) -> list[int]:
+def assign_app_ports(
+    app_name: str, app: dict[str, Any], config: dict[str, Any]
+) -> list[int]:
     """
     Assign available ports for an app based on its configuration.
 
     Args:
         app_name (str): Name of the app
-        app (dict): App configuration containing compose_config
-        config (dict): User configuration for the app
+        app (dict[str, Any]): App configuration containing compose_config
+        config (dict[str, Any]): User configuration for the app
 
     Returns:
         list[int]: List of assigned available ports
@@ -737,7 +739,7 @@ def setup_multiproxy_instances(
                         base_port = app_config_entry.get(
                             "ports", [DEFAULT_PORT_BASE + app_index * PORT_OFFSET_PER_APP]
                         )
-                        # Always ensure we have a list
+                        # Ensure we have a list (handles legacy configs with int)
                         if not isinstance(base_port, list):
                             base_port = [base_port]
                         
