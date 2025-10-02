@@ -18,18 +18,14 @@ class TestPortLogic(unittest.TestCase):
     def test_assign_app_ports_single_port(self):
         """Test assigning a single port to an app."""
         app_name = "dawn"
-        app = {
-            "compose_config": {
-                "ports": ["${DAWN_PORT}:5000"]
-            }
-        }
+        app = {"compose_config": {"ports": ["${DAWN_PORT}:5000"]}}
         config = {"ports": [5000]}
-        
+
         with patch("utils.fn_setupApps.find_next_available_port") as mock_find_port:
             mock_find_port.side_effect = lambda x: x  # Return the same port
-            
+
             result = assign_app_ports(app_name, app, config)
-            
+
             self.assertIsInstance(result, list)
             self.assertEqual(len(result), 1)
             self.assertEqual(result, [5000])
@@ -39,19 +35,16 @@ class TestPortLogic(unittest.TestCase):
         app_name = "wipter"
         app = {
             "compose_config": {
-                "ports": [
-                    "${WIPTER_PORT_1}:5900",
-                    "${WIPTER_PORT_2}:6080"
-                ]
+                "ports": ["${WIPTER_PORT_1}:5900", "${WIPTER_PORT_2}:6080"]
             }
         }
         config = {"ports": [5900, 6080]}
-        
+
         with patch("utils.fn_setupApps.find_next_available_port") as mock_find_port:
             mock_find_port.side_effect = lambda x: x  # Return the same port
-            
+
             result = assign_app_ports(app_name, app, config)
-            
+
             self.assertIsInstance(result, list)
             self.assertEqual(len(result), 2)
             self.assertEqual(result, [5900, 6080])
@@ -59,18 +52,14 @@ class TestPortLogic(unittest.TestCase):
     def test_assign_app_ports_default_when_no_config(self):
         """Test default port assignment when config doesn't have ports."""
         app_name = "mystnode"
-        app = {
-            "compose_config": {
-                "ports": ["${MYSTNODE_PORT}:4449"]
-            }
-        }
+        app = {"compose_config": {"ports": ["${MYSTNODE_PORT}:4449"]}}
         config = {}  # No ports in config
-        
+
         with patch("utils.fn_setupApps.find_next_available_port") as mock_find_port:
             mock_find_port.side_effect = lambda x: x  # Return the same port
-            
+
             result = assign_app_ports(app_name, app, config)
-            
+
             self.assertIsInstance(result, list)
             self.assertEqual(len(result), 1)
             self.assertEqual(result[0], 50000)  # Default starting port
@@ -79,21 +68,18 @@ class TestPortLogic(unittest.TestCase):
         """Test substituting a single port placeholder."""
         port_placeholders = ["${DAWN_PORT}:5000"]
         actual_ports = [8080]
-        
+
         result = substitute_port_placeholders(port_placeholders, actual_ports)
-        
+
         self.assertEqual(result, ["8080:5000"])
 
     def test_substitute_port_placeholders_multiple(self):
         """Test substituting multiple port placeholders."""
-        port_placeholders = [
-            "${WIPTER_PORT_1}:5900",
-            "${WIPTER_PORT_2}:6080"
-        ]
+        port_placeholders = ["${WIPTER_PORT_1}:5900", "${WIPTER_PORT_2}:6080"]
         actual_ports = [5901, 6081]
-        
+
         result = substitute_port_placeholders(port_placeholders, actual_ports)
-        
+
         self.assertEqual(result, ["5901:5900", "6081:6080"])
 
     def test_substitute_port_placeholders_uses_first_when_insufficient(self):
@@ -101,43 +87,39 @@ class TestPortLogic(unittest.TestCase):
         port_placeholders = [
             "${APP_PORT_1}:5000",
             "${APP_PORT_2}:5001",
-            "${APP_PORT_3}:5002"
+            "${APP_PORT_3}:5002",
         ]
         actual_ports = [8080]  # Only one port provided
-        
+
         result = substitute_port_placeholders(port_placeholders, actual_ports)
-        
+
         self.assertEqual(result, ["8080:5000", "8080:5001", "8080:5002"])
 
     def test_substitute_port_placeholders_empty_raises_error(self):
         """Test that empty actual_ports raises ValueError."""
         port_placeholders = ["${APP_PORT}:5000"]
         actual_ports = []  # Empty list
-        
+
         with self.assertRaises(ValueError) as context:
             substitute_port_placeholders(port_placeholders, actual_ports)
-        
+
         self.assertIn("cannot be empty", str(context.exception))
 
     def test_config_ports_always_list(self):
         """Test that ports are always stored as list in config."""
         # Simulate the setup flow
         app_name = "dawn"
-        app = {
-            "compose_config": {
-                "ports": ["${DAWN_PORT}:5000"]
-            }
-        }
+        app = {"compose_config": {"ports": ["${DAWN_PORT}:5000"]}}
         config = {"ports": [5000]}  # Should be list
-        
+
         with patch("utils.fn_setupApps.find_next_available_port") as mock_find_port:
             mock_find_port.return_value = 5000
-            
+
             assigned_ports = assign_app_ports(app_name, app, config)
-            
+
             # Verify it returns a list
             self.assertIsInstance(assigned_ports, list)
-            
+
             # Verify we would store it as list
             config["ports"] = assigned_ports
             self.assertIsInstance(config["ports"], list)
@@ -147,31 +129,26 @@ class TestPortLogic(unittest.TestCase):
         # Mock configurations
         m4b_config = {
             "network": {"subnet": "172.19.7.0", "netmask": "27"},
-            "system": {"sleep_time": 3}
+            "system": {"sleep_time": 3},
         }
-        
+
         app_config = {
             "apps": [
                 {
                     "name": "DAWN",
                     "flags": {"email": {}, "password": {}},
-                    "compose_config": {
-                        "ports": ["${DAWN_PORT}:5000"]
-                    }
+                    "compose_config": {"ports": ["${DAWN_PORT}:5000"]},
                 },
                 {
                     "name": "WIPTER",
                     "flags": {"email": {}, "password": {}},
                     "compose_config": {
-                        "ports": [
-                            "${WIPTER_PORT_1}:5900",
-                            "${WIPTER_PORT_2}:6080"
-                        ]
-                    }
-                }
+                        "ports": ["${WIPTER_PORT_1}:5900", "${WIPTER_PORT_2}:6080"]
+                    },
+                },
             ]
         }
-        
+
         user_config = {
             "device_info": {"device_name": "test_device"},
             "resource_limits": {},
@@ -180,20 +157,18 @@ class TestPortLogic(unittest.TestCase):
                     "enabled": True,
                     "email": "test@test.com",
                     "password": "pass",
-                    "ports": [8080]  # List with single element
+                    "ports": [8080],  # List with single element
                 },
                 "wipter": {
                     "enabled": True,
                     "email": "test@test.com",
                     "password": "pass",
-                    "ports": [5901, 6081]  # List with multiple elements
-                }
-            }
+                    "ports": [5901, 6081],  # List with multiple elements
+                },
+            },
         }
-        
-        with tempfile.NamedTemporaryFile(
-            mode="w", delete=False, suffix=".env"
-        ) as f:
+
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".env") as f:
             env_path = f.name
 
         try:

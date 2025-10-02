@@ -118,11 +118,11 @@
       "userid": "yourPROXYBASEUserID"
     },
     "wipter": {
-        "enabled": false,
-        "docker_platform": "linux/amd64",
-        "email": "yourWIPTERMail",
-        "password": "yourWIPTERPw",
-        "ports": [5900, 6080]
+      "enabled": false,
+      "docker_platform": "linux/amd64",
+      "email": "yourWIPTERMail",
+      "password": "yourWIPTERPw",
+      "ports": [5900, 6080]
     }
   },
   "m4b_dashboard": {

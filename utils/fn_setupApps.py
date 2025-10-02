@@ -737,12 +737,13 @@ def setup_multiproxy_instances(
                     if has_ports:
                         # Get base port from user config or default
                         base_port = app_config_entry.get(
-                            "ports", [DEFAULT_PORT_BASE + app_index * PORT_OFFSET_PER_APP]
+                            "ports",
+                            [DEFAULT_PORT_BASE + app_index * PORT_OFFSET_PER_APP],
                         )
                         # Ensure we have a list (handles legacy configs with int)
                         if not isinstance(base_port, list):
                             base_port = [base_port]
-                        
+
                         # Update all ports with unique values for this instance
                         app_config_entry["ports"] = [
                             find_next_available_port(
