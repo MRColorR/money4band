@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """
 Manual verification script to test port assignment logic.
 This script simulates the port assignment flow to verify production readiness.

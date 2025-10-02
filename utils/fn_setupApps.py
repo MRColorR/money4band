@@ -47,6 +47,11 @@ sleep_time = m4b_config.get("system", {}).get(
     "sleep_time", 3
 )  # Default to 3 seconds if not specified
 
+# Port assignment constants
+DEFAULT_PORT_BASE = 50000  # Base port for default assignments
+PORT_OFFSET_PER_APP = 100  # Port offset multiplier per app
+PORT_OFFSET_PER_INSTANCE = 10  # Port offset for multiproxy instances
+
 
 def remove_readonly(func, path, excinfo):
     """
@@ -172,15 +177,17 @@ def assign_app_ports(app_name: str, app: dict, config: dict) -> list[int]:
     """
     port_count = len(app["compose_config"]["ports"])
     assigned_ports = []
-    default_ports = [50000 + j for j in range(port_count)]
+    default_ports = [DEFAULT_PORT_BASE + j for j in range(port_count)]
 
     for i in range(port_count):
         starting_port = config.get("ports", default_ports)
         # Determine the base port for this index
         if isinstance(starting_port, list):
-            port_base = starting_port[i] if i < len(starting_port) else 50000 + i
+            port_base = (
+                starting_port[i] if i < len(starting_port) else DEFAULT_PORT_BASE + i
+            )
         else:
-            port_base = 50000 + i
+            port_base = DEFAULT_PORT_BASE + i
 
         # Find next available port and assign it
         available_port = find_next_available_port(port_base)
@@ -720,9 +727,9 @@ def setup_multiproxy_instances(
 
                     # If app uses ports, ensure they're unique for this instance
                     if has_ports:
-                        # Get base port from user config or default (50000 + app index * 100)
+                        # Get base port from user config or default
                         base_port = app_config_entry.get(
-                            "ports", [50000 + app_index * 100]
+                            "ports", [DEFAULT_PORT_BASE + app_index * PORT_OFFSET_PER_APP]
                         )
                         # Always ensure we have a list
                         if not isinstance(base_port, list):
@@ -730,7 +737,9 @@ def setup_multiproxy_instances(
                         
                         # Update all ports with unique values for this instance
                         app_config_entry["ports"] = [
-                            find_next_available_port(port + (i + 1) * 10)
+                            find_next_available_port(
+                                port + (i + 1) * PORT_OFFSET_PER_INSTANCE
+                            )
                             for port in base_port
                         ]
                         logging.info(

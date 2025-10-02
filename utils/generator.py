@@ -23,7 +23,7 @@ if parent_dir not in sys.path:
 
 def substitute_port_placeholders(
     port_placeholders: list, actual_ports: list[int]
-) -> list:
+) -> list[str]:
     """
     Substitute port placeholders with actual port values.
 
