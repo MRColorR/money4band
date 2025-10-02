@@ -451,8 +451,9 @@ def _configure_apps(user_config: dict[str, Any], apps: dict, m4b_config: dict):
         # Port configuration for apps with defined ports (should have a 'ports' key in the compose_config and a <app_name>_ports key in the user_config)
         if "ports" in app["compose_config"]:
             assigned_ports = assign_app_ports(app_name, app, config)
+            # Always store as list for consistency
             config["ports"] = assigned_ports
-            logging.info(f"Ports for {app_name} set to: {assigned_ports}")
+            logging.info(f"Ports for {app_name} set to: {config['ports']}")
 
         user_config["apps"][app_name] = config
 
@@ -719,28 +720,23 @@ def setup_multiproxy_instances(
 
                     # If app uses ports, ensure they're unique for this instance
                     if has_ports:
-                        # Get base port from user config or use default (50000 + app index * 100)
+                        # Get base port from user config or default (50000 + app index * 100)
                         base_port = app_config_entry.get(
-                            "ports", 50000 + app_index * 100
+                            "ports", [50000 + app_index * 100]
                         )
-                        if isinstance(base_port, list):
-                            # Handle list of ports
-                            app_config_entry["ports"] = [
-                                find_next_available_port(port + (i + 1) * 10)
-                                for port in base_port
-                            ]
-                            logging.info(
-                                f"Updated ports for {app_name} in instance {instance_project_name} to {app_config_entry['ports']}"
-                            )
-                        else:
-                            # Handle single port
-                            unique_port = find_next_available_port(
-                                base_port + (i + 1) * 10
-                            )
-                            app_config_entry["ports"] = unique_port
-                            logging.info(
-                                f"Updated port for {app_name} in instance {instance_project_name} to {unique_port}"
-                            )
+                        # Always ensure we have a list
+                        if not isinstance(base_port, list):
+                            base_port = [base_port]
+                        
+                        # Update all ports with unique values for this instance
+                        app_config_entry["ports"] = [
+                            find_next_available_port(port + (i + 1) * 10)
+                            for port in base_port
+                        ]
+                        logging.info(
+                            f"Updated ports for {app_name} in instance "
+                            f"{instance_project_name} to {app_config_entry['ports']}"
+                        )
 
                     # Increment app index for each enabled app processed
                     app_index += 1
