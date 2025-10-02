@@ -178,9 +178,7 @@ def assign_app_ports(app_name: str, app: dict, config: dict) -> list[int]:
         starting_port = config.get("ports", default_ports)
         # Determine the base port for this index
         if isinstance(starting_port, list):
-            port_base = (
-                starting_port[i] if i < len(starting_port) else 50000 + i
-            )
+            port_base = starting_port[i] if i < len(starting_port) else 50000 + i
         else:
             port_base = 50000 + i
 
@@ -195,9 +193,7 @@ def assign_app_ports(app_name: str, app: dict, config: dict) -> list[int]:
             and i < len(app["compose_config"]["ports"])
             else f"port_{i + 1}"
         )
-        logging.info(
-            f"Port {port_placeholder} for {app_name} set to: {available_port}"
-        )
+        logging.info(f"Port {port_placeholder} for {app_name} set to: {available_port}")
 
     return assigned_ports
 
