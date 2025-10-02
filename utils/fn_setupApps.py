@@ -898,7 +898,9 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
         else:  # if there are extra-apps enabled disable them
             for app in app_config["extra-apps"]:
                 app_name = app["name"].lower()
-                user_config["apps"][app_name]["enabled"] = False
+                # Ensure app exists in user_config before disabling
+                if app_name in user_config["apps"]:
+                    user_config["apps"][app_name]["enabled"] = False
         # Step 4: Set up notifications
         setup_notifications(user_config)
         # Step 5: Save the user configuration
