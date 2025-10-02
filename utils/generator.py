@@ -21,6 +21,34 @@ if parent_dir not in sys.path:
     sys.path.append(parent_dir)
 
 
+def substitute_port_placeholders(port_placeholders: list, actual_ports: Any) -> list:
+    """
+    Substitute port placeholders with actual port values.
+
+    Args:
+        port_placeholders (list): List of port placeholders in format "${ENV_VAR}:container_port".
+        actual_ports (Any): Actual port values (int or list of ints).
+
+    Returns:
+        list: List of port mappings in format "host_port:container_port".
+    """
+    new_ports = []
+    for idx, port_placeholder in enumerate(port_placeholders):
+        # Extract env var name from placeholder
+        match = re.match(r"\$\{([^}]+)\}:(\d+)", port_placeholder)
+        if match:
+            container_port = match.group(2)
+            if isinstance(actual_ports, list) and idx < len(actual_ports):
+                host_port = actual_ports[idx]
+            else:
+                host_port = actual_ports
+            new_ports.append(f"{host_port}:{container_port}")
+        else:
+            # If not a placeholder, keep as is
+            new_ports.append(port_placeholder)
+    return new_ports
+
+
 def validate_uuid(uuid: str, length: int) -> bool:
     """
     Validate a UUID against the specified length.
@@ -112,26 +140,9 @@ def assemble_docker_compose(
                     app_compose_config = app["compose_config"].copy()
                     # Substitute port placeholders with actual values
                     if "ports" in app_compose_config and "ports" in user_app_config:
-                        port_placeholders = app_compose_config["ports"]
-                        actual_ports = user_app_config["ports"]
-                        new_ports = []
-                        for idx, port_placeholder in enumerate(port_placeholders):
-                            # Extract env var name from placeholder
-                            match = re.match(r"\$\{([^}]+)\}:(\d+)", port_placeholder)
-                            if match:
-                                env_var = match.group(1)
-                                container_port = match.group(2)
-                                if isinstance(actual_ports, list) and idx < len(
-                                    actual_ports
-                                ):
-                                    host_port = actual_ports[idx]
-                                else:
-                                    host_port = actual_ports
-                                new_ports.append(f"{host_port}:{container_port}")
-                            else:
-                                # If not a placeholder, keep as is
-                                new_ports.append(port_placeholder)
-                        app_compose_config["ports"] = new_ports
+                        app_compose_config["ports"] = substitute_port_placeholders(
+                            app_compose_config["ports"], user_app_config["ports"]
+                        )
                     image = app_compose_config["image"]
                     image_name, image_tag = image.split(":")
                     docker_platform = user_app_config.get(
@@ -169,11 +180,15 @@ def assemble_docker_compose(
                                     f"Compatible tag found to run {image_name} with emulation on {default_docker_platform} architecture. Using binfmt emulation for {app_name} with image {image_name}:{image_tag}"
                                 )
                             else:
-                                logging.error(
-                                    f"No compatible tag found for {image_name} either with specified architecture {docker_platform} or with default architecture {default_docker_platform}."
+                                error_msg = (
+                                    f"No compatible tag found for {image_name} either with "
+                                    f"specified architecture {docker_platform} or with default "
+                                    f"architecture {default_docker_platform}."
                                 )
+                                logging.error(error_msg)
                                 logging.error(
-                                    f"Please check the image tag and architecture compatibility on the registry. Disabling {app_name}..."
+                                    f"Please check the image tag and architecture compatibility "
+                                    f"on the registry. Disabling {app_name}..."
                                 )
                                 user_app_config["enabled"] = False
                                 user_config["apps"][app_name] = user_app_config
@@ -560,7 +575,8 @@ def generate_dashboard_urls(
 
         result = subprocess.run(
             ["docker", "ps", "--format", "{{.Ports}} {{.Names}}"],
-            check=False, capture_output=True,
+            check=False,
+            capture_output=True,
             text=True,
         )
         for line in result.stdout.splitlines():

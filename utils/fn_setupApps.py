@@ -6,10 +6,11 @@ import os
 import platform
 import re
 import shutil
+import stat
 import sys
 import time
 from copy import deepcopy
-from typing import Any, Dict
+from typing import Any
 
 from colorama import Fore, Style
 
@@ -47,14 +48,124 @@ sleep_time = m4b_config.get("system", {}).get(
 )  # Default to 3 seconds if not specified
 
 
-def configure_email(app: Dict, flag_config: Dict, config: Dict):
+def remove_readonly(func, path, excinfo):
+    """
+    Error handler for Windows readonly file removal.
+
+    Args:
+        func: The function that raised the exception
+        path: The path to the file/directory
+        excinfo: Exception information
+    """
+    # Clear the readonly bit and reattempt the removal
+    try:
+        os.chmod(path, stat.S_IWRITE)
+        func(path)
+    except Exception as e:
+        logging.warning(f"Could not remove {path}: {str(e)}")
+
+
+def safe_rmtree(directory: str) -> bool:
+    """
+    Safely remove a directory tree, handling Windows permission issues.
+
+    Args:
+        directory (str): Path to the directory to remove
+
+    Returns:
+        bool: True if successful, False otherwise
+    """
+    try:
+        if platform.system().lower() == "windows":
+            # On Windows, use onerror callback to handle readonly files
+            shutil.rmtree(directory, onerror=remove_readonly)
+        else:
+            shutil.rmtree(directory)
+        logging.info(f"Successfully removed directory: {directory}")
+        return True
+    except PermissionError as e:
+        logging.error(f"Permission denied when removing {directory}: {str(e)}")
+        print(
+            f"{Fore.RED}Permission denied when removing {directory}. Please ensure no files are in use and you have proper permissions.{Style.RESET_ALL}"
+        )
+        return False
+    except Exception as e:
+        logging.error(f"Failed to remove directory {directory}: {str(e)}")
+        print(
+            f"{Fore.RED}Failed to remove directory {directory}: {str(e)}{Style.RESET_ALL}"
+        )
+        return False
+
+
+def ipv4_to_int(ip_address: str) -> int:
+    """
+    Convert an IPv4 address string to an integer representation.
+
+    Args:
+        ip_address (str): IPv4 address in dotted decimal notation (e.g., "192.168.1.0").
+
+    Returns:
+        int: Integer representation of the IP address.
+    """
+    octets = ip_address.split(".")
+    return sum(int(octet) << (8 * (3 - i)) for i, octet in enumerate(octets))
+
+
+def int_to_ipv4(ip_int: int) -> str:
+    """
+    Convert an integer to an IPv4 address string.
+
+    Args:
+        ip_int (int): Integer representation of an IP address.
+
+    Returns:
+        str: IPv4 address in dotted decimal notation (e.g., "192.168.1.0").
+    """
+    return ".".join(str((ip_int >> (8 * (3 - i))) & 0xFF) for i in range(4))
+
+
+def calculate_subnet(base_subnet: str, base_netmask: int, offset: int) -> str:
+    """
+    Calculate a new subnet by applying an offset to a base subnet.
+
+    This function converts the base subnet to an integer, applies a subnet mask,
+    adds an offset, and converts back to dotted decimal notation. It's used to
+    generate unique subnets for multiple proxy instances.
+
+    Args:
+        base_subnet (str): Base subnet in dotted decimal notation (e.g., "172.18.0.0").
+        base_netmask (int): Network mask in CIDR notation (e.g., 16 for /16).
+        offset (int): Offset to add to the base subnet (typically instance number).
+
+    Returns:
+        str: New subnet address in dotted decimal notation.
+
+    Example:
+        >>> calculate_subnet("172.18.0.0", 16, 1)
+        "172.19.0.0"
+    """
+    # Convert base subnet to integer
+    base_subnet_int = ipv4_to_int(base_subnet)
+
+    # Apply subnet mask to ensure base is correctly aligned
+    subnet_mask = (pow(2, base_netmask) - 1) << (32 - base_netmask)
+    base_subnet_int = subnet_mask & base_subnet_int
+
+    # Add offset to generate new subnet
+    new_subnet_int = base_subnet_int + (offset << (32 - base_netmask))
+
+    # Convert back to dotted decimal notation
+    return int_to_ipv4(new_subnet_int)
+
+
+def configure_email(app: dict, flag_config: dict, config: dict):
     email = ask_email(
         f"Enter your {app['name'].lower().title()} email:", default=config.get("email")
     )
     config["email"] = email
 
 
-def configure_password(app: Dict, flag_config: Dict, config: Dict):
+def configure_password(app: dict, flag_config: dict, config: dict):
     print(
         f"Note: If you are using login with Google, remember to set also a password for your {app['name'].lower().title()} account!"
     )
@@ -65,7 +176,7 @@ def configure_password(app: Dict, flag_config: Dict, config: Dict):
     config["password"] = password
 
 
-def configure_apikey(app: Dict, flag_config: Dict, config: Dict):
+def configure_apikey(app: dict, flag_config: dict, config: dict):
     print(
         f"Find/Generate your APIKey inside your {app['name'].lower().title()} dashboard/profile."
     )
@@ -76,7 +187,7 @@ def configure_apikey(app: Dict, flag_config: Dict, config: Dict):
     config["apikey"] = apikey
 
 
-def configure_userid(app: Dict, flag_config: Dict, config: Dict):
+def configure_userid(app: dict, flag_config: dict, config: dict):
     print(
         f"Find your UserID inside your {app['name'].lower().title()} dashboard/profile."
     )
@@ -87,7 +198,7 @@ def configure_userid(app: Dict, flag_config: Dict, config: Dict):
     config["userid"] = userid
 
 
-def configure_uuid(app: Dict, flag_config: Dict, config: Dict):
+def configure_uuid(app: dict, flag_config: dict, config: dict):
     print(f"Starting UUID generation/import for {app['name'].lower().title()}")
     if "length" not in flag_config:
         print(
@@ -140,7 +251,7 @@ def configure_uuid(app: Dict, flag_config: Dict, config: Dict):
     config["uuid"] = uuid
 
 
-def configure_cid(app: Dict, flag_config: Dict, config: Dict):
+def configure_cid(app: dict, flag_config: dict, config: dict):
     print(f"Find your CID inside your {app['name'].lower().title()} dashboard/profile.")
     print(
         "Example: For packetstream you can fetch it from your dashboard https://packetstream.io/dashboard/download?linux# then click on -> Looking for linux app -> now search for CID= in the code shown in the page, you need to enter the code after -e CID= (e.g. if in the code CID=6aTk, just enter 6aTk)"
@@ -151,7 +262,7 @@ def configure_cid(app: Dict, flag_config: Dict, config: Dict):
     config["cid"] = cid
 
 
-def configure_code(app: Dict, flag_config: Dict, config: Dict):
+def configure_code(app: dict, flag_config: dict, config: dict):
     print(
         f"Find your code inside your {app['name'].lower().title()} dashboard/profile."
     )
@@ -161,7 +272,7 @@ def configure_code(app: Dict, flag_config: Dict, config: Dict):
     config["code"] = code
 
 
-def configure_token(app: Dict, flag_config: Dict, config: Dict):
+def configure_token(app: dict, flag_config: dict, config: dict):
     print(
         f"Find your token inside your {app['name'].lower().title()} dashboard/profile."
     )
@@ -171,7 +282,7 @@ def configure_token(app: Dict, flag_config: Dict, config: Dict):
     config["token"] = token
 
 
-def configure_manual(app: Dict, flag_config: Dict, config: Dict):
+def configure_manual(app: dict, flag_config: dict, config: dict):
     if "instructions" not in flag_config:
         print(
             f"{Fore.RED}Error: Instructions not provided for manual configuration{Style.RESET_ALL}"
@@ -200,7 +311,7 @@ flag_function_mapper = {
 }
 
 
-def collect_user_info(user_config: Dict[str, Any], m4b_config: Dict[str, Any]) -> None:
+def collect_user_info(user_config: dict[str, Any], m4b_config: dict[str, Any]) -> None:
     """
     Collect user information and update the user configuration.
 
@@ -254,7 +365,7 @@ def collect_user_info(user_config: Dict[str, Any], m4b_config: Dict[str, Any]) -
     logging.info(f"Device name set to: {device_name}")
 
 
-def _configure_apps(user_config: Dict[str, Any], apps: Dict, m4b_config: Dict):
+def _configure_apps(user_config: dict[str, Any], apps: dict, m4b_config: dict):
     """
     Configure apps by collecting user inputs.
 
@@ -303,9 +414,7 @@ def _configure_apps(user_config: Dict[str, Any], apps: Dict, m4b_config: Dict):
             assigned_ports = []
             default_ports = [50000 + j for j in range(port_count)]
             for i in range(port_count):
-                starting_port = config.get(
-                    "ports", default_ports
-                )
+                starting_port = config.get("ports", default_ports)
                 # If starting_port is a list, use its value for this index, else use default
                 if isinstance(starting_port, list) and i < len(starting_port):
                     port_base = starting_port[i]
@@ -330,7 +439,7 @@ def _configure_apps(user_config: Dict[str, Any], apps: Dict, m4b_config: Dict):
 
 
 def configure_apps(
-    user_config: Dict[str, Any], app_config: Dict, m4b_config: Dict
+    user_config: dict[str, Any], app_config: dict, m4b_config: dict
 ) -> None:
     """
     Configure apps by collecting user inputs.
@@ -344,7 +453,7 @@ def configure_apps(
 
 
 def configure_extra_apps(
-    user_config: Dict[str, Any], app_config: Dict, m4b_config: Dict
+    user_config: dict[str, Any], app_config: dict, m4b_config: dict
 ) -> None:
     """
     Configure extra apps by collecting user inputs.
@@ -398,7 +507,7 @@ def validate_notification_url(url: str) -> bool:
     return False
 
 
-def setup_notifications(user_config: Dict[str, Any]) -> None:
+def setup_notifications(user_config: dict[str, Any]) -> None:
     """
     Set up notifications for app updates using a supported service.
 
@@ -462,9 +571,9 @@ def setup_notifications(user_config: Dict[str, Any]) -> None:
 
 
 def setup_multiproxy_instances(
-    user_config: Dict[str, Any],
-    app_config: Dict[str, Any],
-    m4b_config: Dict[str, Any],
+    user_config: dict[str, Any],
+    app_config: dict[str, Any],
+    m4b_config: dict[str, Any],
     proxies: list,
 ) -> None:
     """
@@ -495,16 +604,7 @@ def setup_multiproxy_instances(
     logging.info(f"Base device name for proxy instances: {base_device_name}")
 
     base_subnet = m4b_config["network"]["subnet"]
-    base_subnet_match = re.match(r"(\d+)\.(\d+)\.(\d+)\.(\d+)", base_subnet)
-    base_subnet = (
-        int(base_subnet_match[1]).to_bytes(1, "big")
-        + int(base_subnet_match[2]).to_bytes(1, "big")
-        + int(base_subnet_match[3]).to_bytes(1, "big")
-        + int(base_subnet_match[4]).to_bytes(1, "big")
-    )
-    base_subnet = int.from_bytes(base_subnet, byteorder="big")
     base_netmask = int(m4b_config["network"]["netmask"])
-    base_subnet = ((pow(2, base_netmask) - 1) << (32 - base_netmask)) & base_subnet
 
     if os.listdir(instances_dir):
         if ask_question_yn(
@@ -512,7 +612,12 @@ def setup_multiproxy_instances(
             default=True,
         ):
             stop_all_stacks(instances_dir, skip_questions=True)
-            shutil.rmtree(instances_dir)
+            if not safe_rmtree(instances_dir):
+                print(
+                    f"{Fore.RED}Failed to remove existing instances. Aborting setup.{Style.RESET_ALL}"
+                )
+                time.sleep(sleep_time)
+                return
             os.makedirs(instances_dir, exist_ok=True)
         else:
             print(
@@ -556,17 +661,8 @@ def setup_multiproxy_instances(
         instance_user_config["proxies"]["url"] = proxy
         instance_user_config["proxies"]["enabled"] = True
 
-        new_subnet = base_subnet + ((i + 1) << (32 - base_netmask))
-        new_subnet = new_subnet.to_bytes(4, "big", signed=False)
-        new_subnet = (
-            str(new_subnet[0])
-            + "."
-            + str(new_subnet[1])
-            + "."
-            + str(new_subnet[2])
-            + "."
-            + str(new_subnet[3])
-        )
+        # Calculate unique subnet for this instance
+        new_subnet = calculate_subnet(base_subnet, base_netmask, i + 1)
 
         instance_m4b_config["network"]["subnet"] = new_subnet
 
@@ -692,7 +788,7 @@ def setup_multiproxy_instances(
 
 
 def regenerate_uuids_for_apps(
-    user_config: Dict[str, Any], app_config: Dict[str, Any]
+    user_config: dict[str, Any], app_config: dict[str, Any]
 ) -> None:
     """
     Regenerate UUIDs for apps that require them, preserving prefixes or postfixes if defined.

@@ -5,7 +5,7 @@ import os
 import subprocess
 import sys
 import time
-from typing import Any, Dict
+from typing import Any
 
 from utils import loader
 from utils.cls import cls
@@ -35,7 +35,7 @@ sleep_time = m4b_config.get("system", {}).get(
 )  # Default to 3 seconds if not specified
 
 
-def is_docker_installed(m4b_config: Dict[str, Any]) -> bool:
+def is_docker_installed(m4b_config: dict[str, Any]) -> bool:
     """Check if Docker is already installed."""
     try:
         result = subprocess.run(
@@ -139,7 +139,8 @@ def install_docker_windows(files_path: str):
                     os.getenv("ProgramFiles"), "Docker", "Docker", "Docker Desktop.exe"
                 )
             ],
-            check=False, shell=True,
+            check=False,
+            shell=True,
         )
 
     except subprocess.CalledProcessError as e:

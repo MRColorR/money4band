@@ -5,7 +5,6 @@ import os
 
 # Ensure the parent directory is in the sys.path
 import sys
-from typing import Dict
 
 from colorama import Back, Fore, Style, just_fix_windows_console
 
@@ -19,7 +18,7 @@ if parent_dir not in sys.path:
 # Import the module from the parent directory
 
 
-def fn_show_links(app_config: Dict) -> None:
+def fn_show_links(app_config: dict) -> None:
     """
     Show the links of the apps.
 

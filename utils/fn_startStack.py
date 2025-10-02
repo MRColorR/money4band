@@ -231,7 +231,10 @@ def start_all_stacks(
 
     # Check for any running containers that might conflict
     result = subprocess.run(
-        ["docker", "ps", "--format", "{{.Names}}"], check=False, capture_output=True, text=True
+        ["docker", "ps", "--format", "{{.Names}}"],
+        check=False,
+        capture_output=True,
+        text=True,
     )
     running_containers = result.stdout.splitlines()
 

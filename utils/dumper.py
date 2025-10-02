@@ -2,10 +2,10 @@ import argparse
 import json
 import logging
 import os
-from typing import Any, Dict
+from typing import Any
 
 
-def write_json(data: Dict[str, Any], filename: str) -> None:
+def write_json(data: dict[str, Any], filename: str) -> None:
     """
     Write data to a JSON file.
 

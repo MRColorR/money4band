@@ -4,7 +4,7 @@ import platform
 
 # Ensure the parent directory is in the sys.path
 import sys
-from typing import Any, Dict
+from typing import Any
 
 import psutil
 
@@ -19,7 +19,7 @@ if parent_dir not in sys.path:
 # Import the module from the parent directory
 
 
-def detect_os(m4b_config_path_or_dict: Any) -> Dict[str, str]:
+def detect_os(m4b_config_path_or_dict: Any) -> dict[str, str]:
     """
     Detect the operating system based on the system's platform and map it according to the m4b configuration.
 
@@ -61,7 +61,7 @@ def detect_os(m4b_config_path_or_dict: Any) -> Dict[str, str]:
         raise
 
 
-def detect_architecture(m4b_config_path_or_dict: Any) -> Dict[str, str]:
+def detect_architecture(m4b_config_path_or_dict: Any) -> dict[str, str]:
     """
     Detect the system architecture and return its type.
 

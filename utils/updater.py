@@ -5,7 +5,6 @@ import re
 import sys
 import urllib.request
 from datetime import datetime
-from typing import Dict, List
 
 from colorama import Fore, Style, just_fix_windows_console
 
@@ -92,7 +91,7 @@ class Version:
         return not self.__eq__(other)
 
 
-def get_latest_releases(count: int = 5) -> List[Dict]:
+def get_latest_releases(count: int = 5) -> list[dict]:
     owner = "MRColorR"
     repo = "money4band"
     url = f"https://api.github.com/repos/{owner}/{repo}/releases"

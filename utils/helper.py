@@ -30,7 +30,9 @@ def is_user_in_docker_group():
     user = getpass.getuser()
     logging.info(f"Detected user: {user}")
     logging.info(f"Checking if user '{user}' is in the Docker group...")
-    groups = subprocess.run(["groups", user], check=False, capture_output=True, text=True)
+    groups = subprocess.run(
+        ["groups", user], check=False, capture_output=True, text=True
+    )
     return "docker" in groups.stdout
 
 
@@ -53,7 +55,9 @@ def create_docker_group_if_needed():
                 f"{Fore.YELLOW}Docker group does not exist. Creating it...{Style.RESET_ALL}"
             )
             subprocess.run(["sudo", "groupadd", "docker"], check=True)
-            logging.info(f"{Fore.GREEN}Docker group created successfully.{Style.RESET_ALL}")
+            logging.info(
+                f"{Fore.GREEN}Docker group created successfully.{Style.RESET_ALL}"
+            )
 
         # use getpass.getuser() instead of os.getlogin() as it is more robust
         user = getpass.getuser()
@@ -120,7 +124,8 @@ def setup_service(
             if os.path.exists("/etc/systemd/system"):
                 result = subprocess.run(
                     ["systemctl", "is-active", service_name],
-                    check=False, capture_output=True,
+                    check=False,
+                    capture_output=True,
                     text=True,
                 )
                 if result.stdout.strip() == "active":
@@ -130,7 +135,10 @@ def setup_service(
                     return
             elif os.path.exists("/etc/init.d"):
                 result = subprocess.run(
-                    ["service", service_name, "status"], check=False, capture_output=True, text=True
+                    ["service", service_name, "status"],
+                    check=False,
+                    capture_output=True,
+                    text=True,
                 )
                 if "running" in result.stdout:
                     logging.info(
@@ -183,7 +191,9 @@ def ensure_service(
     logging.info(f"Ensuring {service_name} service is installed and running.")
     try:
         setup_service(service_name=service_name, service_file_path=service_file_path)
-        logging.info(f"{Fore.GREEN}{service_name} setup completed successfully.{Style.RESET_ALL}")
+        logging.info(
+            f"{Fore.GREEN}{service_name} setup completed successfully.{Style.RESET_ALL}"
+        )
     except Exception as e:
         logging.error(f"Failed to ensure {service_name} service: {str(e)}")
         raise RuntimeError(f"Failed to ensure {service_name} service: {str(e)}")
