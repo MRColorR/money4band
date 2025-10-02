@@ -513,12 +513,8 @@ def generate_env_file(
                             env_lines.append(f"{app_name.upper()}_PORT_{i + 1}={port}")
                             # For backward compatibility, also add non-indexed variable for single port
                             if len(ports) == 1:
-                                env_lines.append(
-                                    f"{app_name.upper()}_PORT={port}"
-                                )
-                                env_lines.append(
-                                    f"{app_lower.upper()}_PORT={port}"
-                                )
+                                env_lines.append(f"{app_name.upper()}_PORT={port}")
+                                env_lines.append(f"{app_lower.upper()}_PORT={port}")
 
         # Write to .env file
         with open(env_output_path, "w") as f:
