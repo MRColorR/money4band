@@ -5,7 +5,7 @@ import os
 import random
 import sys
 import time
-from typing import Any, Dict
+from typing import Any
 
 from colorama import Fore, Style, just_fix_windows_console
 
@@ -24,7 +24,7 @@ if parent_dir not in sys.path:
 just_fix_windows_console()
 
 
-def fn_bye(m4b_config: Dict[str, Any]) -> None:
+def fn_bye(m4b_config: dict[str, Any]) -> None:
     """
     Quit the application gracefully with a farewell message.
 

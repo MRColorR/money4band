@@ -3,10 +3,10 @@ import importlib.util
 import json
 import logging
 import os
-from typing import Any, Dict
+from typing import Any
 
 
-def load_json_config(config_path_or_dict: Any) -> Dict[str, Any]:
+def load_json_config(config_path_or_dict: Any) -> dict[str, Any]:
     """
     Load JSON config variables from a file or dictionary.
 

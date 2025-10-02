@@ -2,7 +2,6 @@ import logging
 import os
 import sys
 import time
-from typing import Dict, Optional
 
 import requests
 
@@ -15,13 +14,18 @@ if parent_dir not in sys.path:
     sys.path.append(parent_dir)
 
 # Store the Docker Hub base URL in a variable
+# This constant stores the base URL for the Docker Hub Registry API.
+# It is used to construct API requests for fetching image tags from Docker Hub.
 DOCKERHUB_BASE_URL = "https://registry.hub.docker.com/v2/"
 
 # Store the GitHub Container Registry base URL in a variable
+# This constant stores the base URL for the GitHub Container Registry (GHCR) API.
+# It is used to construct API requests for fetching image tags from GHCR.
+# Note: GHCR requires authentication (GitHub PAT) for tag compatibility checks.
 GHCR_BASE_URL = "https://ghcr.io/v2/"
 
 
-def fetch_docker_tags(image: str) -> Optional[Dict]:
+def fetch_docker_tags(image: str) -> dict | None:
     """
     Fetch the tags of a Docker image from Docker Hub.
 
@@ -88,7 +92,7 @@ def check_img_arch_support(image: str, tag: str, docker_platform: str) -> bool:
     return any(image_info["architecture"] == arch for image_info in tag_info["images"])
 
 
-def get_compatible_tag(image: str, docker_platform: str) -> Optional[str]:
+def get_compatible_tag(image: str, docker_platform: str) -> str | None:
     """
     Get a compatible tag for the given architecture if the default tag is not supported.
     If no compatible tag is found, ensure multi-arch emulation support with binfmt.
