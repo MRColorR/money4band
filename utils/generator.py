@@ -32,16 +32,24 @@ def substitute_port_placeholders(
         actual_ports (list[int]): List of actual port values.
 
     Returns:
-        list: List of port mappings in format "host_port:container_port".
+        list[str]: List of port mappings in format "host_port:container_port".
+
+    Raises:
+        ValueError: If actual_ports is empty.
     """
+    if not actual_ports:
+        raise ValueError("actual_ports cannot be empty")
+
     new_ports = []
     for idx, port_placeholder in enumerate(port_placeholders):
         # Extract env var name from placeholder
         match = re.match(r"\$\{([^}]+)\}:(\d+)", port_placeholder)
         if match:
             container_port = match.group(2)
-            # actual_ports is always a list now
-            host_port = actual_ports[idx] if idx < len(actual_ports) else actual_ports[0]
+            # Use indexed port if available, otherwise fallback to first port
+            host_port = (
+                actual_ports[idx] if idx < len(actual_ports) else actual_ports[0]
+            )
             new_ports.append(f"{host_port}:{container_port}")
         else:
             # If not a placeholder, keep as is

@@ -2,6 +2,7 @@
 Test port assignment logic to ensure production readiness.
 """
 
+import json
 import os
 import tempfile
 import unittest
@@ -108,6 +109,16 @@ class TestPortLogic(unittest.TestCase):
         
         self.assertEqual(result, ["8080:5000", "8080:5001", "8080:5002"])
 
+    def test_substitute_port_placeholders_empty_raises_error(self):
+        """Test that empty actual_ports raises ValueError."""
+        port_placeholders = ["${APP_PORT}:5000"]
+        actual_ports = []  # Empty list
+        
+        with self.assertRaises(ValueError) as context:
+            substitute_port_placeholders(port_placeholders, actual_ports)
+        
+        self.assertIn("cannot be empty", str(context.exception))
+
     def test_config_ports_always_list(self):
         """Test that ports are always stored as list in config."""
         # Simulate the setup flow
@@ -209,7 +220,7 @@ class TestPortLogic(unittest.TestCase):
         """Test that multiproxy instances maintain port list consistency."""
         # Simulate the multiproxy setup flow
         base_config = {"ports": [4449]}  # Already a list
-        
+
         # When creating multiple instances, ports should remain lists
         instance_configs = []
         for i in range(3):
@@ -228,6 +239,72 @@ class TestPortLogic(unittest.TestCase):
                 config["ports"], list, f"Instance {i} ports should be list"
             )
             self.assertEqual(len(config["ports"]), 1)
+
+
+class TestConfigPortFormat(unittest.TestCase):
+    """Test suite to verify config files use list format for ports."""
+
+    def test_user_config_template_ports_are_lists(self):
+        """Verify all port definitions in user-config template are lists."""
+        config_path = os.path.join(
+            os.path.dirname(os.path.dirname(__file__)),
+            "template",
+            "user-config.json",
+        )
+
+        with open(config_path) as f:
+            config = json.load(f)
+
+        apps_with_ports = {}
+
+        # Check apps
+        for app_name, app_config in config.get("apps", {}).items():
+            if "ports" in app_config:
+                apps_with_ports[app_name] = app_config["ports"]
+
+        # Check m4b_dashboard
+        if "m4b_dashboard" in config and "ports" in config["m4b_dashboard"]:
+            apps_with_ports["m4b_dashboard"] = config["m4b_dashboard"]["ports"]
+
+        # Verify all are lists
+        for app_name, port_value in apps_with_ports.items():
+            with self.subTest(app=app_name):
+                self.assertIsInstance(
+                    port_value,
+                    list,
+                    f"{app_name} ports should be a list, got {type(port_value)}",
+                )
+
+    def test_m4b_config_has_port_settings(self):
+        """Verify m4b-config.json has configurable port settings."""
+        config_path = os.path.join(
+            os.path.dirname(os.path.dirname(__file__)),
+            "config",
+            "m4b-config.json",
+        )
+
+        with open(config_path) as f:
+            config = json.load(f)
+
+        # Check port configuration exists
+        self.assertIn("ports", config, "m4b-config.json should have ports section")
+
+        port_config = config["ports"]
+
+        # Check required keys
+        self.assertIn("default_port_base", port_config)
+        self.assertIn("port_offset_per_app", port_config)
+        self.assertIn("port_offset_per_instance", port_config)
+
+        # Check values are integers
+        self.assertIsInstance(port_config["default_port_base"], int)
+        self.assertIsInstance(port_config["port_offset_per_app"], int)
+        self.assertIsInstance(port_config["port_offset_per_instance"], int)
+
+        # Check reasonable defaults
+        self.assertGreaterEqual(port_config["default_port_base"], 1024)
+        self.assertGreater(port_config["port_offset_per_app"], 0)
+        self.assertGreater(port_config["port_offset_per_instance"], 0)
 
 
 if __name__ == "__main__":
