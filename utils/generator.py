@@ -391,6 +391,7 @@ def assemble_docker_compose(
             time.sleep(2 * m4b_config.get("system", {}).get("sleep_time", 2))
     except Exception as e:
         logging.error(f"Error during Docker Compose assembly: {e}")
+        raise
     finally:
         event.set()
         spinner_thread.join()
