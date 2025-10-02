@@ -416,8 +416,11 @@ def _configure_apps(user_config: dict[str, Any], apps: dict, m4b_config: dict):
             for i in range(port_count):
                 starting_port = config.get("ports", default_ports)
                 # If starting_port is a list, use its value for this index, else use default
-                if isinstance(starting_port, list) and i < len(starting_port):
-                    port_base = starting_port[i]
+                if isinstance(starting_port, list):
+                    if i < len(starting_port):
+                        port_base = starting_port[i]
+                    else:
+                        port_base = 50000 + i
                 else:
                     port_base = 50000 + i
                 available_port = find_next_available_port(port_base)
@@ -667,6 +670,7 @@ def setup_multiproxy_instances(
         instance_m4b_config["network"]["subnet"] = new_subnet
 
         # Update all enabled apps with unique ports to avoid conflicts
+        app_index = 0
         for app_category in ["apps", "extra-apps"]:
             for app_details in instance_app_config.get(app_category, []):
                 app_name = app_details["name"].lower()
@@ -701,8 +705,9 @@ def setup_multiproxy_instances(
                     if has_ports:
                         # Get base port from user config or use default (50000 + app index * 100)
                         base_port = app_config_entry.get(
-                            "ports", 50000 + app_category.index(app_category) * 100
+                            "ports", 50000 + app_index * 100
                         )
+                        app_index += 1
                         if isinstance(base_port, list):
                             # Handle list of ports
                             app_config_entry["ports"] = [
