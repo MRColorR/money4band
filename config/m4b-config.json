@@ -6,8 +6,8 @@
   },
   "ports": {
     "default_port_base": 50000,
-    "port_offset_per_app": 100,
-    "port_offset_per_instance": 10
+    "port_offset_per_app": 1000,
+    "port_offset_per_instance": 3
   },
   "system": {
     "sleep_time": 3,

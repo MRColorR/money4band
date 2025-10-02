@@ -170,35 +170,44 @@ def calculate_subnet(base_subnet: str, base_netmask: int, offset: int) -> str:
 
 
 def assign_app_ports(
-    app_name: str, app: dict[str, Any], config: dict[str, Any]
+    app_name: str,
+    app: dict[str, Any],
+    config: dict[str, Any],
+    app_index: int = 0,
+    instance_number: int = 0,
 ) -> list[int]:
     """
-    Assign available ports for an app based on its configuration.
+    Assign available ports for an app based on its configuration using consistent offset logic.
+
+    This function uses a unified formula for both main and multiproxy instances:
+    port = DEFAULT_PORT_BASE + (app_index * PORT_OFFSET_PER_APP) + (instance_number * PORT_OFFSET_PER_INSTANCE) + port_within_app_offset
 
     Args:
         app_name (str): Name of the app
         app (dict[str, Any]): App configuration containing compose_config
         config (dict[str, Any]): User configuration for the app
+        app_index (int, optional): Zero-based index of the app in the apps list. Defaults to 0.
+        instance_number (int, optional): Instance number (0 for main, 1+ for multiproxy). Defaults to 0.
 
     Returns:
         list[int]: List of assigned available ports
     """
     port_count = len(app["compose_config"]["ports"])
     assigned_ports = []
-    default_ports = [DEFAULT_PORT_BASE + j for j in range(port_count)]
+
+    # Calculate the base port for this specific app and instance using the unified formula
+    base_port_for_app_instance = (
+        DEFAULT_PORT_BASE
+        + (app_index * PORT_OFFSET_PER_APP)
+        + (instance_number * PORT_OFFSET_PER_INSTANCE)
+    )
 
     for i in range(port_count):
-        starting_port = config.get("ports", default_ports)
-        # Determine the base port for this index
-        if isinstance(starting_port, list):
-            port_base = (
-                starting_port[i] if i < len(starting_port) else DEFAULT_PORT_BASE + i
-            )
-        else:
-            port_base = DEFAULT_PORT_BASE + i
+        # For apps with multiple ports, add a small offset for each additional port
+        port_candidate = base_port_for_app_instance + i
 
-        # Find next available port and assign it
-        available_port = find_next_available_port(port_base)
+        # Find next available port starting from the calculated candidate
+        available_port = find_next_available_port(port_candidate)
         assigned_ports.append(available_port)
 
         # Log the port assignment
@@ -208,7 +217,9 @@ def assign_app_ports(
             and i < len(app["compose_config"]["ports"])
             else f"port_{i + 1}"
         )
-        logging.info(f"Port {port_placeholder} for {app_name} set to: {available_port}")
+        logging.info(
+            f"Port {port_placeholder} for {app_name} (app_index={app_index}, instance={instance_number}) set to: {available_port}"
+        )
 
     return assigned_ports
 
@@ -420,7 +431,12 @@ def collect_user_info(user_config: dict[str, Any], m4b_config: dict[str, Any]) -
     logging.info(f"Device name set to: {device_name}")
 
 
-def _configure_apps(user_config: dict[str, Any], apps: dict, m4b_config: dict):
+def _configure_apps(
+    user_config: dict[str, Any],
+    apps: dict,
+    m4b_config: dict,
+    app_index_offset: int = 0,
+):
     """
     Configure apps by collecting user inputs.
 
@@ -428,7 +444,12 @@ def _configure_apps(user_config: dict[str, Any], apps: dict, m4b_config: dict):
         user_config (dict): The user configuration dictionary.
         apps (dict): The app configuration dictionary.
         m4b_config (dict): The m4b configuration dictionary.
+        app_index_offset (int): Starting port_app_index for this category.
+            Defaults to 0. Only counts apps WITH ports.
     """
+    # Track port_app_index separately - only incremented for apps WITH ports
+    port_app_index = app_index_offset
+    
     for app in apps:
         app_name = app["name"].lower()
         config = user_config["apps"].get(app_name, {})
@@ -463,12 +484,16 @@ def _configure_apps(user_config: dict[str, Any], apps: dict, m4b_config: dict):
             else:
                 logging.error(f"Flag {flag_name} not recognized")
 
-        # Port configuration for apps with defined ports (should have a 'ports' key in the compose_config and a <app_name>_ports key in the user_config)
+        # Port configuration with unified offset logic (instance 0 = main)
         if "ports" in app["compose_config"]:
-            assigned_ports = assign_app_ports(app_name, app, config)
+            assigned_ports = assign_app_ports(
+                app_name, app, config, app_index=port_app_index, instance_number=0
+            )
             # Always store as list for consistency
             config["ports"] = assigned_ports
             logging.info(f"Ports for {app_name} set to: {config['ports']}")
+            # Only increment port_app_index for apps that actually have ports
+            port_app_index += 1
 
         user_config["apps"][app_name] = config
 
@@ -484,7 +509,7 @@ def configure_apps(
         app_config (dict): The app configuration dictionary.
         m4b_config (dict): The m4b configuration dictionary.
     """
-    _configure_apps(user_config, app_config["apps"], m4b_config)
+    _configure_apps(user_config, app_config["apps"], m4b_config, app_index_offset=0)
 
 
 def configure_extra_apps(
@@ -498,7 +523,14 @@ def configure_extra_apps(
         app_config (dict): The app configuration dictionary.
         m4b_config (dict): The m4b configuration dictionary.
     """
-    _configure_apps(user_config, app_config["extra-apps"], m4b_config)
+    # Extra apps port_app_index starts AFTER regular apps WITH ports
+    # Count only apps that have ports in compose_config
+    port_consuming_apps = sum(
+        1 for app in app_config.get("apps", []) if "ports" in app.get("compose_config", {})
+    )
+    _configure_apps(
+        user_config, app_config["extra-apps"], m4b_config, app_index_offset=port_consuming_apps
+    )
 
 
 # Supported services and their URL patterns
@@ -701,8 +733,9 @@ def setup_multiproxy_instances(
 
         instance_m4b_config["network"]["subnet"] = new_subnet
 
-        # Update all enabled apps with unique ports to avoid conflicts
-        app_index = 0
+        # Update all enabled apps with unique ports using the unified assignment logic
+        # Track port_app_index separately - only incremented for apps WITH ports
+        port_app_index = 0
         for app_category in ["apps", "extra-apps"]:
             for app_details in instance_app_config.get(app_category, []):
                 app_name = app_details["name"].lower()
@@ -713,7 +746,8 @@ def setup_multiproxy_instances(
                     app_config_entry and app_config_entry.get("enabled", False)
                 ):
                     logging.info(
-                        f"Processing port assignments for {app_name} in instance {instance_project_name}"
+                        f"Processing port assignments for {app_name} "
+                        f"in instance {instance_project_name}"
                     )
 
                     # If app isn't in user_config yet, initialize it
@@ -722,42 +756,25 @@ def setup_multiproxy_instances(
                         app_config_entry = instance_user_config["apps"][app_name]
 
                     # Check if this app has ports defined in compose_config
-                    has_ports = False
                     if (
                         "compose_config" in app_details
                         and "ports" in app_details["compose_config"]
                     ):
-                        has_ports = True
-
-                    # Or check if it already has ports in user_config
-                    if "ports" in app_config_entry:
-                        has_ports = True
-
-                    # If app uses ports, ensure they're unique for this instance
-                    if has_ports:
-                        # Get base port from user config or default
-                        base_port = app_config_entry.get(
-                            "ports",
-                            [DEFAULT_PORT_BASE + app_index * PORT_OFFSET_PER_APP],
+                        # Use unified port assignment logic (instance number = i+1)
+                        assigned_ports = assign_app_ports(
+                            app_name,
+                            app_details,
+                            app_config_entry,
+                            app_index=port_app_index,
+                            instance_number=i + 1,
                         )
-                        # Ensure we have a list (handles legacy configs with int)
-                        if not isinstance(base_port, list):
-                            base_port = [base_port]
-
-                        # Update all ports with unique values for this instance
-                        app_config_entry["ports"] = [
-                            find_next_available_port(
-                                port + (i + 1) * PORT_OFFSET_PER_INSTANCE
-                            )
-                            for port in base_port
-                        ]
+                        app_config_entry["ports"] = assigned_ports
                         logging.info(
-                            f"Updated ports for {app_name} in instance "
-                            f"{instance_project_name} to {app_config_entry['ports']}"
+                            f"Assigned ports for {app_name} in instance "
+                            f"{instance_project_name}: {assigned_ports}"
                         )
-
-                    # Increment app index for each enabled app processed
-                    app_index += 1
+                        # Only increment port_app_index for apps that have ports
+                        port_app_index += 1
 
         # Properly disable dashboard for multiproxy instances to avoid port conflicts
         if "m4b_dashboard" in instance_user_config:
