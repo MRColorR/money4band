@@ -47,10 +47,16 @@ sleep_time = m4b_config.get("system", {}).get(
     "sleep_time", 3
 )  # Default to 3 seconds if not specified
 
-# Port assignment constants
-DEFAULT_PORT_BASE = 50000  # Base port for default assignments
-PORT_OFFSET_PER_APP = 100  # Port offset multiplier per app
-PORT_OFFSET_PER_INSTANCE = 10  # Port offset for multiproxy instances
+# Port assignment constants (configurable via m4b-config.json)
+DEFAULT_PORT_BASE = m4b_config.get("ports", {}).get(
+    "default_port_base", 50000
+)  # Base port for default assignments
+PORT_OFFSET_PER_APP = m4b_config.get("ports", {}).get(
+    "port_offset_per_app", 100
+)  # Port offset multiplier per app
+PORT_OFFSET_PER_INSTANCE = m4b_config.get("ports", {}).get(
+    "port_offset_per_instance", 10
+)  # Port offset for multiproxy instances
 
 
 def remove_readonly(func, path, excinfo):
