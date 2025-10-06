@@ -8,7 +8,7 @@
 
 ## 🔍 Quick Overview
 
-**Money4Band (M4B)** leverages unused internet bandwidth, allowing you to make money with something you have and would otherwise be wasted. It utilizes containerized versions of apps like EarnApp, Honeygain, IPRoyal Pawns, PacketStream, Peer2Profit, Repocket, Earnfm, Proxyrack, Proxylite, Bitping, Grass, Packetshare, Gradient and more. It's also safer than installing and using these native apps on your host system. - all managed through a single tool with:
+**Money4Band (M4B)** leverages unused internet bandwidth, allowing you to make money with something you have and would otherwise be wasted. It utilizes containerized versions of apps like EarnApp, Honeygain, IPRoyal Pawns, PacketStream, Peer2Profit, Repocket, Earnfm, Proxyrack, Proxylite, Bitping, Grass, Packetshare, Gradient, Wipter and more. It's also safer than installing and using these native apps on your host system. - all managed through a single tool with:
 
 ✨ **Key Features:**
 
@@ -110,6 +110,7 @@ Register an account on the app's sites clicking each apps' names in the followin
 |            Go to [DAWN](https://dawninternet.com?code=xo23vynw) using code: `xo23vynw`            |                 :white_check_mark:                  |                           :x:                            |        Unlimited        |
 |            Go to [TENEO](https://dashboard.teneo.pro/?code=qPgLn) using code: `qPgLn`             |                 :white_check_mark:                  |                           :x:                            |        Unlimited        |
 |                Go to [PROXYBASE](http://dash.proxybase.org/signup?ref=XfOz3zeURm)                 |                 :white_check_mark:                  |                    :white_check_mark:                    |        Unlimited        |
+|                          Go to [Wipter](https://wipter.com/)                                     |                 :white_check_mark:                  |                           :x:                            |        Unlimited        |
 
 ## 🌐 Scale Up with Multi-Proxy Support
 

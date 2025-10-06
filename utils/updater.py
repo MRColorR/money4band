@@ -1,13 +1,14 @@
-from utils.loader import load_json_config
-import os
-import sys
-from typing import List, Dict
-import urllib.request
 import json
 import logging
-from datetime import datetime
+import os
 import re
-from colorama import Fore, Back, Style, just_fix_windows_console
+import sys
+import urllib.request
+from datetime import datetime
+
+from colorama import Fore, Style, just_fix_windows_console
+
+from utils.loader import load_json_config
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(script_dir)
@@ -22,7 +23,8 @@ class Version:
     """
 
     version_regex = re.compile(
-        r'(?:(?:v|version)?\s*)?(\d+)\.(\d+)\.(\d+)', re.IGNORECASE)
+        r"(?:(?:v|version)?\s*)?(\d+)\.(\d+)\.(\d+)", re.IGNORECASE
+    )
 
     @staticmethod
     def from_string(version_str: str):
@@ -63,13 +65,12 @@ class Version:
             return True
         elif self.major > other.major:
             return False
-        else:  # major is equal
-            if self.minor < other.minor:
-                return True
-            elif self.minor > other.minor:
-                return False
-            else:  # minor is equal
-                return self.patch < other.patch
+        elif self.minor < other.minor:
+            return True
+        elif self.minor > other.minor:
+            return False
+        else:  # minor is equal
+            return self.patch < other.patch
 
     def __gt__(self, other):
         if not isinstance(other, Version):
@@ -90,9 +91,9 @@ class Version:
         return not self.__eq__(other)
 
 
-def get_latest_releases(count: int = 5) -> List[Dict]:
-    owner = 'MRColorR'
-    repo = 'money4band'
+def get_latest_releases(count: int = 5) -> list[dict]:
+    owner = "MRColorR"
+    repo = "money4band"
     url = f"https://api.github.com/repos/{owner}/{repo}/releases"
     try:
         with urllib.request.urlopen(url) as response:
@@ -100,33 +101,34 @@ def get_latest_releases(count: int = 5) -> List[Dict]:
             releases = json.loads(data)
             stripped_releases = []
             for release in releases:
-                if release['prerelease']:
+                if release["prerelease"]:
                     continue
-                if release['draft']:
+                if release["draft"]:
                     continue
-                name = release['name']
+                name = release["name"]
                 if not name:
-                    name = release['tag_name']
+                    name = release["tag_name"]
                 if not name:
                     continue
                 try:
                     version = Version.from_string(name)
                 except ValueError:
                     logging.warning(
-                        f"Skipping release with unparseable version: '{name}'")
+                        f"Skipping release with unparseable version: '{name}'"
+                    )
                     continue
-                url = release['html_url']
-                published_at = release['published_at']
-                published_at = datetime.strptime(
-                    published_at, '%Y-%m-%dT%H:%M:%SZ')
-                stripped_releases.append({
-                    'name': name,
-                    'version': version,
-                    'url': url,
-                    'published_at': published_at
-                })
-            stripped_releases.sort(
-                key=lambda x: x['version'], reverse=True)
+                url = release["html_url"]
+                published_at = release["published_at"]
+                published_at = datetime.strptime(published_at, "%Y-%m-%dT%H:%M:%SZ")
+                stripped_releases.append(
+                    {
+                        "name": name,
+                        "version": version,
+                        "url": url,
+                        "published_at": published_at,
+                    }
+                )
+            stripped_releases.sort(key=lambda x: x["version"], reverse=True)
             return stripped_releases[:count]
     except urllib.error.HTTPError as e:
         raise Exception(f"Failed to fetch releases. HTTP Error: {e.code}")
@@ -142,17 +144,19 @@ def check_update_available(m4b_config_path_or_dict: str | dict) -> None:
     just_fix_windows_console()
     m4b_config = load_json_config(m4b_config_path_or_dict)
     try:
-        current_version_str = m4b_config.get('project', {}).get(
-            'project_version', "0.0.0")
+        current_version_str = m4b_config.get("project", {}).get(
+            "project_version", "0.0.0"
+        )
         current_version = Version.from_string(current_version_str)
         latest_releases = get_latest_releases()
         if not latest_releases:
             print(f"{Fore.YELLOW}No releases found.")
             return
         latest_release = latest_releases[0]
-        if current_version < latest_release['version']:
+        if current_version < latest_release["version"]:
             print(
-                f"{Fore.YELLOW}New version available: {latest_release['version']}, published at {latest_release['published_at']}")
+                f"{Fore.YELLOW}New version available: {latest_release['version']}, published at {latest_release['published_at']}"
+            )
             print(f"Download URL: {Style.RESET_ALL}{latest_release['url']}")
     except Exception as e:
         logging.error(e)
@@ -165,5 +169,5 @@ def main():
         print(release)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
