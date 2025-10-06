@@ -1,8 +1,13 @@
 {
   "project": {
-    "project_version": "4.8.1",
+    "project_version": "4.10.0",
     "compose_project_name": "money4band",
     "ds_project_server_url": "https://discord.com/invite/Fq8eeazBAD"
+  },
+  "ports": {
+    "default_port_base": 50000,
+    "port_offset_per_app": 1000,
+    "port_offset_per_instance": 3
   },
   "system": {
     "sleep_time": 3,
