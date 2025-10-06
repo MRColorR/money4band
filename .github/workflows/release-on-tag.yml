@@ -68,7 +68,6 @@ jobs:
             --add-data ".resources:.resources" \
             --add-data "config:config" \
             --add-data "utils:utils" \
-            --add-data "legacy_money4bandv3x:legacy_money4bandv3x" \
             --add-data "template:template" \
             --add-data "LICENSE:LICENSE" \
             --add-data "README.md:README.md" \

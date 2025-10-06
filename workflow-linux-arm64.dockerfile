@@ -28,4 +28,4 @@ COPY . .
 RUN pip install -r requirements.txt
 
 # Build the project using PyInstaller
-CMD ["pyinstaller", "--onedir", "--name", "Money4Band", "main.py", "--hidden-import", "colorama", "--hidden-import", "docker", "--hidden-import", "requests", "--hidden-import", "pyyaml", "--hidden-import", "psutil", "--hidden-import", "yaml", "--hidden-import", "secrets", "--add-data", ".resources:.resources", "--add-data", "config:config", "--add-data", "utils:utils", "--add-data", "legacy_money4bandv3x:legacy_money4bandv3x", "--add-data", "template:template", "--add-data", "LICENSE:LICENSE", "--add-data", "README.md:README.md", "--contents-directory", ".", "-y"]
+CMD ["pyinstaller", "--onedir", "--name", "Money4Band", "main.py", "--hidden-import", "colorama", "--hidden-import", "docker", "--hidden-import", "requests", "--hidden-import", "pyyaml", "--hidden-import", "psutil", "--hidden-import", "yaml", "--hidden-import", "secrets", "--add-data", ".resources:.resources", "--add-data", "config:config", "--add-data", "utils:utils", "--add-data", "template:template", "--add-data", "LICENSE:LICENSE", "--add-data", "README.md:README.md", "--contents-directory", ".", "-y"]
