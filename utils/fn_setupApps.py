@@ -637,6 +637,62 @@ def setup_notifications(user_config: dict[str, Any]) -> None:
         logging.info("User chose not to enable notifications.")
 
 
+def setup_m4b_dashboard(user_config: dict[str, Any]) -> None:
+    """
+    Set up the M4B dashboard configuration.
+
+    Asks the user if they want to enable the M4B web dashboard and assigns
+    an available port starting from 8081.
+
+    Args:
+        user_config (dict): The user configuration dictionary.
+    """
+    dashboard_config = user_config["m4b_dashboard"]
+    current_enabled = dashboard_config.get("enabled", False)
+    current_port = None
+    if dashboard_config.get("ports"):
+        ports = dashboard_config["ports"]
+        current_port = ports[0] if isinstance(ports, list) else ports
+
+    # Show current status
+    if current_enabled and current_port:
+        print(f"The M4B web dashboard is currently enabled on port {current_port}.")
+        if not ask_question_yn("Do you want to change the dashboard settings?"):
+            print("Keeping existing dashboard settings.")
+            logging.info("User chose to keep existing dashboard settings.")
+            return
+
+    # Ask if user wants to enable the dashboard
+    if ask_question_yn(
+        "Do you want to enable the M4B web dashboard? "
+        "(A simple local web page to access apps dashboards)"
+    ):
+        logging.info("User decided to enable the M4B web dashboard.")
+
+        # Find an available port starting from 8081 (same logic as other apps)
+        default_dashboard_port = 8081
+        dashboard_port = find_next_available_port(default_dashboard_port)
+
+        if dashboard_port != default_dashboard_port:
+            print(
+                f"{Fore.YELLOW}Port {default_dashboard_port} is in use. "
+                f"Using next available port: {dashboard_port}{Style.RESET_ALL}"
+            )
+
+        dashboard_config["enabled"] = True
+        dashboard_config["ports"] = [dashboard_port]
+        logging.info(f"M4B dashboard enabled on port {dashboard_port}")
+        print(
+            f"{Fore.GREEN}M4B dashboard will be available at "
+            f"http://localhost:{dashboard_port} after starting the stack.{Style.RESET_ALL}"
+        )
+    else:
+        dashboard_config["enabled"] = False
+        dashboard_config["ports"] = []
+        print("M4B dashboard disabled.")
+        logging.info("User chose not to enable the M4B dashboard.")
+
+
 def setup_multiproxy_instances(
     user_config: dict[str, Any],
     app_config: dict[str, Any],
@@ -903,9 +959,11 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
                     user_config["apps"][app_name]["enabled"] = False
         # Step 4: Set up notifications
         setup_notifications(user_config)
-        # Step 5: Save the user configuration
+        # Step 5: Set up M4B dashboard
+        setup_m4b_dashboard(user_config)
+        # Step 6: Save the user configuration
         write_json(user_config, user_config_path)
-        # Step 6: Set up proxy if the user chooses to
+        # Step 7: Set up proxy if the user chooses to
         proxy_setup = ask_question_yn("Do you want to enable (multi)proxy?")
         if proxy_setup:
             logging.info("Multiproxy setup selected")

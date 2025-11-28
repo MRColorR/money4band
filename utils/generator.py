@@ -465,7 +465,9 @@ def generate_env_file(
         if m4b_dashboard_config.get("enabled", False):
             for key, value in m4b_dashboard_config.items():
                 if key == "ports":
-                    env_lines.append(f"{m4b_dashboard_name.upper()}_PORT={value}")
+                    # Ports are stored as a list, extract the first port for M4B_DASHBOARD_PORT
+                    port_value = value[0] if isinstance(value, list) and value else value
+                    env_lines.append(f"{m4b_dashboard_name.upper()}_PORT={port_value}")
                 else:
                     env_lines.append(
                         f"{m4b_dashboard_name.upper()}_{key.upper()}={value}"
