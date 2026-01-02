@@ -627,3 +627,212 @@ def generate_device_name(
         device_name = f"{device_name}_{uuid_suffix}"
 
     return device_name
+
+
+def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> None:
+    """
+    Regenerate docker-compose.yaml and .env files from existing configuration.
+
+    This is the menu entry point for regenerating files without going through
+    the full setup wizard.
+
+    Args:
+        app_config_path: Path to the app configuration file.
+        m4b_config_path: Path to the m4b configuration file.
+        user_config_path: Path to the user configuration file.
+    """
+    import shutil
+
+    from colorama import Fore, Style
+
+    from utils.prompt_helper import ask_question_yn
+
+    print(f"\n{Fore.CYAN}=== Regenerate Files from Configuration ==={Style.RESET_ALL}")
+    print("This will regenerate docker-compose.yaml and .env files")
+    print("based on your current configuration.")
+
+    if not os.path.exists(user_config_path):
+        print(f"{Fore.RED}Error: User config not found.{Style.RESET_ALL}")
+        print("Please run 'Setup Apps' first to create the initial configuration.")
+        input("\nPress Enter to go back to main menu...")
+        return
+
+    try:
+        m4b_config = load_json_config(m4b_config_path)
+        app_config = load_json_config(app_config_path)
+        user_config = load_json_config(user_config_path)
+    except Exception as e:
+        print(f"{Fore.RED}Error loading config files: {e}{Style.RESET_ALL}")
+        input("\nPress Enter to go back to main menu...")
+        return
+
+    # Show summary
+    print(f"\n{Fore.BLUE}Current Configuration:{Style.RESET_ALL}")
+    device = user_config.get("device_info", {}).get("device_name", "Unknown")
+    proxy = user_config.get("proxies", {}).get("enabled", False)
+    dash = user_config.get("m4b_dashboard", {})
+    dash_on = dash.get("enabled", False)
+    dash_port = dash.get("ports", [8081])[0] if dash.get("ports") else 8081
+
+    print(f"  Device: {device}")
+    print(f"  Proxy: {'Enabled' if proxy else 'Disabled'}")
+    print(f"  Dashboard: {'Port ' + str(dash_port) if dash_on else 'Disabled'}")
+
+    # Count enabled apps
+    enabled = []
+    for cat in ["apps", "extra-apps"]:
+        apps = user_config.get(cat, {})
+        if isinstance(apps, dict):
+            for name, cfg in apps.items():
+                if isinstance(cfg, dict) and cfg.get("enabled"):
+                    enabled.append(name)
+    print(f"  Enabled Apps ({len(enabled)}): {', '.join(enabled) if enabled else 'None'}")
+
+    # Check for multiproxy instances
+    instances_dir = "m4b_proxy_instances"
+    has_instances = os.path.exists(instances_dir) and os.listdir(instances_dir)
+    instance_dirs = []
+    if has_instances:
+        instance_dirs = [
+            d for d in os.listdir(instances_dir)
+            if os.path.isdir(os.path.join(instances_dir, d))
+        ]
+        print(f"  Multiproxy Instances: {len(instance_dirs)}")
+
+    # Check if containers are running
+    containers_running = False
+    try:
+        result = subprocess.run(
+            ["docker", "ps", "--filter", f"name={device}", "--format", "{{.Names}}"],
+            capture_output=True, text=True, timeout=10
+        )
+        if result.returncode == 0 and result.stdout.strip():
+            containers_running = True
+            running_count = len(result.stdout.strip().split('\n'))
+            print(f"\n{Fore.YELLOW}⚠ {running_count} container(s) currently running{Style.RESET_ALL}")
+    except Exception:
+        pass  # Docker check failed, continue anyway
+
+    print()
+    if not ask_question_yn("Regenerate files with this configuration?"):
+        print("Cancelled.")
+        input("\nPress Enter to go back to main menu...")
+        return
+
+    # Create backup of existing files
+    backup_dir = ".backup"
+    os.makedirs(backup_dir, exist_ok=True)
+    files_to_backup = ["docker-compose.yaml", ".env"]
+    backed_up = []
+
+    for filename in files_to_backup:
+        if os.path.exists(filename):
+            backup_path = os.path.join(backup_dir, filename)
+            try:
+                shutil.copy2(filename, backup_path)
+                backed_up.append(filename)
+            except Exception as e:
+                logging.warning(f"Could not backup {filename}: {e}")
+
+    if backed_up:
+        print(f"{Fore.BLUE}Backed up: {', '.join(backed_up)} → {backup_dir}/{Style.RESET_ALL}")
+
+    try:
+        # Regenerate main instance files
+        print(f"\n{Fore.CYAN}Regenerating docker-compose.yaml...{Style.RESET_ALL}")
+        assemble_docker_compose(
+            m4b_config_path_or_dict=m4b_config,
+            app_config_path_or_dict=app_config,
+            user_config_path_or_dict=user_config,
+            compose_output_path="./docker-compose.yaml",
+            is_main_instance=True,
+        )
+        print(f"{Fore.GREEN}✓ docker-compose.yaml regenerated{Style.RESET_ALL}")
+
+        print(f"{Fore.CYAN}Regenerating .env file...{Style.RESET_ALL}")
+        generate_env_file(
+            m4b_config_path_or_dict=m4b_config,
+            app_config_path_or_dict=app_config,
+            user_config_path_or_dict=user_config,
+            env_output_path="./.env",
+            is_main_instance=True,
+        )
+        print(f"{Fore.GREEN}✓ .env file regenerated{Style.RESET_ALL}")
+
+        # Handle multiproxy instances
+        if has_instances and instance_dirs:
+            print(f"\n{Fore.YELLOW}Multiproxy instances detected: {len(instance_dirs)}{Style.RESET_ALL}")
+            if ask_question_yn("Regenerate multiproxy instance files too?", default=True):
+                for instance_name in instance_dirs:
+                    instance_path = os.path.join(instances_dir, instance_name)
+                    instance_user_config = os.path.join(instance_path, "user-config.json")
+                    instance_app_config = os.path.join(instance_path, "app-config.json")
+                    instance_m4b_config = os.path.join(instance_path, "m4b-config.json")
+                    instance_compose = os.path.join(instance_path, "docker-compose.yaml")
+                    instance_env = os.path.join(instance_path, ".env")
+
+                    if not os.path.exists(instance_user_config):
+                        print(f"{Fore.YELLOW}  Skipping {instance_name}: no user-config.json{Style.RESET_ALL}")
+                        continue
+
+                    # Backup instance files
+                    instance_backup = os.path.join(instance_path, ".backup")
+                    os.makedirs(instance_backup, exist_ok=True)
+                    for f in ["docker-compose.yaml", ".env"]:
+                        src = os.path.join(instance_path, f)
+                        if os.path.exists(src):
+                            try:
+                                shutil.copy2(src, os.path.join(instance_backup, f))
+                            except Exception:
+                                pass
+
+                    try:
+                        # Use main configs if instance-specific ones don't exist
+                        i_app_cfg = instance_app_config if os.path.exists(instance_app_config) else app_config_path
+                        i_m4b_cfg = instance_m4b_config if os.path.exists(instance_m4b_config) else m4b_config_path
+
+                        print(f"{Fore.CYAN}  Regenerating {instance_name}...{Style.RESET_ALL}")
+                        assemble_docker_compose(
+                            m4b_config_path_or_dict=i_m4b_cfg,
+                            app_config_path_or_dict=i_app_cfg,
+                            user_config_path_or_dict=instance_user_config,
+                            compose_output_path=instance_compose,
+                            is_main_instance=False,
+                        )
+                        generate_env_file(
+                            m4b_config_path_or_dict=i_m4b_cfg,
+                            app_config_path_or_dict=i_app_cfg,
+                            user_config_path_or_dict=instance_user_config,
+                            env_output_path=instance_env,
+                            is_main_instance=False,
+                        )
+                        print(f"{Fore.GREEN}  ✓ {instance_name} regenerated{Style.RESET_ALL}")
+                    except Exception as e:
+                        print(f"{Fore.RED}  ✗ {instance_name} failed: {e}{Style.RESET_ALL}")
+                        logging.error(f"Error regenerating instance {instance_name}: {e}")
+
+        print(f"\n{Fore.GREEN}Done!{Style.RESET_ALL}")
+
+        # Offer to restart if containers are running
+        if containers_running:
+            print(f"\n{Fore.YELLOW}Containers are running with old configuration.{Style.RESET_ALL}")
+            if ask_question_yn("Restart stack now to apply changes?"):
+                print(f"{Fore.CYAN}Restarting stack...{Style.RESET_ALL}")
+                try:
+                    subprocess.run(["docker", "compose", "down"], check=True)
+                    subprocess.run(["docker", "compose", "up", "-d"], check=True)
+                    print(f"{Fore.GREEN}✓ Stack restarted successfully{Style.RESET_ALL}")
+                except subprocess.CalledProcessError as e:
+                    print(f"{Fore.RED}Error restarting stack: {e}{Style.RESET_ALL}")
+            else:
+                print("Remember to restart your stack to apply changes.")
+        else:
+            print("Start your stack to use the new configuration.")
+
+    except Exception as e:
+        print(f"{Fore.RED}Error: {e}{Style.RESET_ALL}")
+        logging.error(f"Error regenerating files: {e}")
+        if backed_up:
+            print(f"{Fore.YELLOW}Your previous files are backed up in {backup_dir}/{Style.RESET_ALL}")
+
+    input("\nPress Enter to go back to main menu...")
