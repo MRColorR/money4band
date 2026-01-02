@@ -1,6 +1,6 @@
 {
   "project": {
-    "project_version": "4.11.2",
+    "project_version": "4.11.3",
     "compose_project_name": "money4band",
     "ds_project_server_url": "https://discord.com/invite/Fq8eeazBAD"
   },
@@ -58,6 +58,10 @@
     {
       "label": "Reset user-config File",
       "function": "fn_reset_config"
+    },
+    {
+      "label": "Regenerate files from config",
+      "function": "generator"
     },
     {
       "label": "Multiproxy Tools",

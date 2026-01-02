@@ -15,8 +15,18 @@ from utils.cls import cls
 from utils.fn_reset_config import main as reset_main
 from utils.updater import check_update_available
 
-script_dir = os.path.dirname(os.path.abspath(__file__))
-parent_dir = os.path.dirname(script_dir)
+# Handle PyInstaller frozen executable path resolution
+if getattr(sys, 'frozen', False):
+    # Running as compiled executable (PyInstaller)
+    BASE_DIR = os.path.dirname(sys.executable)
+else:
+    # Running as script
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# Change working directory to script location to ensure relative paths work
+os.chdir(BASE_DIR)
+
+parent_dir = os.path.dirname(BASE_DIR)
 if parent_dir not in sys.path:
     sys.path.append(parent_dir)
 
@@ -157,9 +167,9 @@ def mainmenu(
 
 
 def main():
-    # Get the script absolute path and name
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    script_name = os.path.basename(__file__)
+    # Use the global BASE_DIR for PyInstaller compatibility
+    script_dir = BASE_DIR
+    script_name = os.path.basename(__file__) if not getattr(sys, 'frozen', False) else "Money4Band"
 
     # Parse command-line arguments
     parser = argparse.ArgumentParser(description="Run the script.")
