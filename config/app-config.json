@@ -351,40 +351,6 @@
       }
     },
     {
-      "name": "GRASS",
-      "dashboard": "https://app.getgrass.io/dashboard",
-      "link": "https://app.getgrass.io/register/?referralCode=qyvJmxgNUhcLo2f",
-      "compose_config": {
-        "container_name": "${DEVICE_NAME}_grass",
-        "hostname": "${DEVICE_NAME}_grass",
-        "image": "mrcolorrain/grass-node:latest",
-        "environment": [
-          "USER_EMAIL=$GRASS_EMAIL",
-          "USER_PASSWORD=$GRASS_PASSWORD"
-        ],
-        "volumes": [".data/.grass:/app/chrome_user_data"],
-        "restart": "always",
-        "cpus": "${APP_CPU_LIMIT_BIG}",
-        "mem_reservation": "${APP_MEM_RESERV_BIG}",
-        "mem_limit": "${APP_MEM_LIMIT_BIG}",
-        "logging": {
-          "driver": "json-file",
-          "options": {
-            "max-size": "10m",
-            "max-file": "3"
-          }
-        }
-      },
-      "compose_config_proxy": {
-        "network_mode": "service:proxy",
-        "hostname": null
-      },
-      "flags": {
-        "email": {},
-        "password": {}
-      }
-    },
-    {
       "name": "GRADIENT",
       "dashboard": "https://app.gradient.network/dashboard",
       "link": "https://app.gradient.network/signup?code=9WOBKP",
@@ -593,6 +559,71 @@
           "instructions": "Log into your device's mystnode local webdashboard, navigate to the Myst Node page and follow the onscreen instruction to complete the setup.\n\nDisclaimer: If you want to further optimize UPnP and port forwarding, consider setting manually 'network: host' for mystnode in your Docker compose. This may improve mystnode performance, but do this only if you know what you are doing and you are aware of potential security implications."
         }
       }
+    }
+  ],
+  "removed-apps": [
+    {
+      "name": "SPEEDSHARE",
+      "dashboard": "https://dashboard.speedshare.app/",
+      "link": "https://speedshare.app/?ref=mindlessnerd",
+      "compose_config": {
+        "container_name": "${DEVICE_NAME}_speedshare",
+        "hostname": "${DEVICE_NAME}_speedshare",
+        "image": "mrcolorrain/speedshare:latest",
+        "environment": [
+          "CODE=$SPEEDSHARE_CODE",
+          "SPEEDSHARE_UUID=$SPEEDSHARE_UUID"
+        ],
+        "restart": "always",
+        "cpus": "${APP_CPU_LIMIT_BIG}",
+        "mem_reservation": "${APP_MEM_RESERV_BIG}",
+        "mem_limit": "${APP_MEM_LIMIT_BIG}"
+      },
+      "compose_config_proxy": {
+        "network_mode": "service:proxy",
+        "hostname": null
+      },
+      "flags": {
+        "code": {},
+        "uuid": {
+          "length": 32,
+          "claimURLBase": "Speedshare nodes are automatically claimed. After starting it, go to the app's dashboard to see it. Its UUID is: "
+        }
+      }
+    },
+    {
+      "name": "GRASS",
+      "dashboard": "https://app.getgrass.io/dashboard",
+      "link": "https://app.getgrass.io/register/?referralCode=qyvJmxgNUhcLo2f",
+      "compose_config": {
+        "container_name": "${DEVICE_NAME}_grass",
+        "hostname": "${DEVICE_NAME}_grass",
+        "image": "mrcolorrain/grass-node:latest",
+        "environment": [
+          "USER_EMAIL=$GRASS_EMAIL",
+          "USER_PASSWORD=$GRASS_PASSWORD"
+        ],
+        "volumes": [".data/.grass:/app/chrome_user_data"],
+        "restart": "always",
+        "cpus": "${APP_CPU_LIMIT_BIG}",
+        "mem_reservation": "${APP_MEM_RESERV_BIG}",
+        "mem_limit": "${APP_MEM_LIMIT_BIG}",
+        "logging": {
+          "driver": "json-file",
+          "options": {
+            "max-size": "10m",
+            "max-file": "3"
+          }
+        }
+      },
+      "compose_config_proxy": {
+        "network_mode": "service:proxy",
+        "hostname": null
+      },
+      "flags": {
+        "email": {},
+        "password": {}
+      }
     },
     {
       "name": "PEER2PROFIT",
@@ -625,37 +656,6 @@
         "email": {},
         "manual": {
           "instructions": "Use any VNC client to connect to localhost:5901 using the password money4band and follow the onscreen instruction to complete the setup"
-        }
-      }
-    }
-  ],
-  "removed-apps": [
-    {
-      "name": "SPEEDSHARE",
-      "dashboard": "https://dashboard.speedshare.app/",
-      "link": "https://speedshare.app/?ref=mindlessnerd",
-      "compose_config": {
-        "container_name": "${DEVICE_NAME}_speedshare",
-        "hostname": "${DEVICE_NAME}_speedshare",
-        "image": "mrcolorrain/speedshare:latest",
-        "environment": [
-          "CODE=$SPEEDSHARE_CODE",
-          "SPEEDSHARE_UUID=$SPEEDSHARE_UUID"
-        ],
-        "restart": "always",
-        "cpus": "${APP_CPU_LIMIT_BIG}",
-        "mem_reservation": "${APP_MEM_RESERV_BIG}",
-        "mem_limit": "${APP_MEM_LIMIT_BIG}"
-      },
-      "compose_config_proxy": {
-        "network_mode": "service:proxy",
-        "hostname": null
-      },
-      "flags": {
-        "code": {},
-        "uuid": {
-          "length": 32,
-          "claimURLBase": "Speedshare nodes are automatically claimed. After starting it, go to the app's dashboard to see it. Its UUID is: "
         }
       }
     }
