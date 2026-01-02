@@ -13,6 +13,7 @@ from colorama import Fore, Style, just_fix_windows_console
 
 from utils import loader
 from utils.helper import (
+    check_required_files,
     create_docker_group_if_needed,
     is_user_in_docker_group,
     is_user_root,
@@ -211,6 +212,16 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
         base_instance_name = m4b_config.get("project", {}).get(
             "compose_project_name", "money4band"
         )
+
+        # Check if required files exist before proceeding
+        missing = check_required_files(
+            ["./docker-compose.yaml"],
+            error_message="Cannot stop the stack. The following required files are missing:",
+            hint_message="It looks like there is nothing to stop."
+        )
+        if missing:
+            time.sleep(sleep_time)
+            return
 
         stop_all_stacks(main_instance_name=base_instance_name)
     except FileNotFoundError as e:

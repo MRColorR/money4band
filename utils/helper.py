@@ -199,6 +199,33 @@ def ensure_service(
         raise RuntimeError(f"Failed to ensure {service_name} service: {str(e)}")
 
 
+def check_required_files(files: list, error_message: str = None, hint_message: str = None) -> list:
+    """
+    Check if required files exist and return a list of missing files.
+
+    Args:
+        files (list): List of file paths to check.
+        error_message (str): Optional custom error message to display if files are missing.
+        hint_message (str): Optional hint message to help the user resolve the issue.
+
+    Returns:
+        list: List of missing file paths. Empty list if all files exist.
+    """
+    missing_files = [f for f in files if not os.path.isfile(f)]
+
+    if missing_files:
+        if error_message:
+            print(f"{Fore.RED}{error_message}{Style.RESET_ALL}")
+        else:
+            print(f"{Fore.RED}The following required files are missing:{Style.RESET_ALL}")
+        for f in missing_files:
+            print(f"  - {f}")
+        if hint_message:
+            print(f"\n{Fore.YELLOW}{hint_message}{Style.RESET_ALL}")
+
+    return missing_files
+
+
 def show_spinner(message: str, event: threading.Event):
     """
     Display a spinner animation in the console to indicate progress.
