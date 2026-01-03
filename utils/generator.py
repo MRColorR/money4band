@@ -48,9 +48,7 @@ def substitute_port_placeholders(
         if match:
             container_port = match.group(2)
             # Use indexed port if available, otherwise fallback to first port
-            host_port = (
-                actual_ports[idx] if idx < len(actual_ports) else actual_ports[0]
-            )
+            host_port = actual_ports[idx % len(actual_ports)] if isinstance(actual_ports, list) else actual_ports
             new_ports.append(f"{host_port}:{container_port}")
         else:
             # If not a placeholder, keep as is
