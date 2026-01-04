@@ -31,23 +31,28 @@ class TestPortLogic(unittest.TestCase):
             self.assertEqual(result, [5000])
 
     def test_assign_app_ports_multiple_ports(self):
-        """Test assigning multiple ports to an app."""
+        """Test assigning multiple ports ensures unique ports (no duplicates)."""
         app_name = "wipter"
         app = {
             "compose_config": {
                 "ports": ["${WIPTER_PORT_1}:5900", "${WIPTER_PORT_2}:6080"]
             }
         }
-        config = {"ports": [5900, 6080]}
+        config = {}
 
-        with patch("utils.fn_setupApps.find_next_available_port") as mock_find_port:
-            mock_find_port.side_effect = lambda x: x  # Return the same port
+        # Mock port availability - simulate port 50000 is in use
+        with patch("utils.fn_setupApps.is_port_in_use") as mock_is_in_use:
+            mock_is_in_use.side_effect = lambda x: x == 50000
 
-            result = assign_app_ports(app_name, app, config)
+            result = assign_app_ports(app_name, app, config, app_index=0, instance_number=0)            
 
+            # Verify we get more than 1 port, in this case 2
             self.assertIsInstance(result, list)
-            self.assertEqual(len(result), 2)
-            self.assertEqual(result, [5900, 6080])
+            self.assertGreater(len(result), 1)
+            # Critical: verify no duplicate ports
+            self.assertEqual(len(result), len(set(result)), "Unique ports check")
+            self.assertEqual(result[0], 50001)
+            self.assertEqual(result[1], 50002)
 
     def test_assign_app_ports_default_when_no_config(self):
         """Test default port assignment when config doesn't have ports."""
