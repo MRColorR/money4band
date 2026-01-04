@@ -207,7 +207,10 @@ def assign_app_ports(
         port_candidate = base_port_for_app_instance + i
 
         # Find next available port starting from the calculated candidate
+        # Make sure we don't reuse a port that was just assigned in this loop
         available_port = find_next_available_port(port_candidate)
+        while available_port in assigned_ports:
+            available_port = find_next_available_port(available_port + 1)
         assigned_ports.append(available_port)
 
         # Log the port assignment
