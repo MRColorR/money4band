@@ -24,7 +24,7 @@ from utils.generator import (
     generate_env_file,
     generate_uuid,
 )
-from utils.networker import find_next_available_port
+from utils.networker import find_next_available_port, is_port_in_use
 from utils.prompt_helper import ask_email, ask_question_yn, ask_string, ask_uuid
 
 # Ensure the parent directory is in the sys.path
@@ -206,11 +206,10 @@ def assign_app_ports(
         # For apps with multiple ports, add a small offset for each additional port
         port_candidate = base_port_for_app_instance + i
 
-        # Find next available port starting from the calculated candidate
-        # Make sure we don't reuse a port that was just assigned in this loop
-        available_port = find_next_available_port(port_candidate)
-        while available_port in assigned_ports:
-            available_port = find_next_available_port(available_port + 1)
+        # Find next available port that's both free on the system and not already assigned
+        available_port = port_candidate
+        while is_port_in_use(available_port) or available_port in assigned_ports:
+            available_port += 1
         assigned_ports.append(available_port)
 
         # Log the port assignment
