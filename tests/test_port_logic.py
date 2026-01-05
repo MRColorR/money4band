@@ -22,13 +22,14 @@ class TestPortLogic(unittest.TestCase):
         config = {"ports": [5000]}
 
         with patch("utils.fn_setupApps.find_next_available_port") as mock_find_port:
-            mock_find_port.side_effect = lambda x: x  # Return the same port
+            mock_find_port.side_effect = lambda x, **kwargs: x  # Return the same port
 
             result = assign_app_ports(app_name, app, config)
 
             self.assertIsInstance(result, list)
             self.assertEqual(len(result), 1)
-            self.assertEqual(result, [5000])
+            # With app_index=0, instance_number=0, the base port is 50000 + 0*100 + 0*10 = 50000
+            self.assertEqual(result, [50000])
 
     def test_assign_app_ports_multiple_ports(self):
         """Test assigning multiple ports to an app."""
@@ -41,13 +42,15 @@ class TestPortLogic(unittest.TestCase):
         config = {"ports": [5900, 6080]}
 
         with patch("utils.fn_setupApps.find_next_available_port") as mock_find_port:
-            mock_find_port.side_effect = lambda x: x  # Return the same port
+            mock_find_port.side_effect = lambda x, **kwargs: x  # Return the same port
 
             result = assign_app_ports(app_name, app, config)
 
             self.assertIsInstance(result, list)
             self.assertEqual(len(result), 2)
-            self.assertEqual(result, [5900, 6080])
+            # With app_index=0, instance_number=0, the base port is 50000 + 0*100 + 0*10 = 50000
+            # First port: 50000 + 0 = 50000, Second port: 50000 + 1 = 50001
+            self.assertEqual(result, [50000, 50001])
 
     def test_assign_app_ports_default_when_no_config(self):
         """Test default port assignment when config doesn't have ports."""
@@ -56,7 +59,7 @@ class TestPortLogic(unittest.TestCase):
         config = {}  # No ports in config
 
         with patch("utils.fn_setupApps.find_next_available_port") as mock_find_port:
-            mock_find_port.side_effect = lambda x: x  # Return the same port
+            mock_find_port.side_effect = lambda x, **kwargs: x  # Return the same port
 
             result = assign_app_ports(app_name, app, config)
 
