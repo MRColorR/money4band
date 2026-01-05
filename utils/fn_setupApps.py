@@ -207,7 +207,7 @@ def assign_app_ports(
         port_candidate = base_port_for_app_instance + i
 
         # Find next available port starting from the calculated candidate
-        available_port = find_next_available_port(port_candidate)
+        available_port = find_next_available_port(port_candidate, exclude_ports=assigned_ports)
         assigned_ports.append(available_port)
 
         # Log the port assignment
