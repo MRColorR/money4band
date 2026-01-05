@@ -139,7 +139,23 @@ class TestNetworker(unittest.TestCase):
             self.assertEqual(result, 8000)
 
     def test_find_next_available_port_realistic_scenario(self):
-        """Test a realistic scenario of assigning multiple sequential ports."""
+        """
+        Test a realistic scenario of assigning multiple sequential ports.
+        
+        This test simulates the scenario in assign_app_ports where we need to assign
+        5 ports starting from base 50000, while avoiding both system-used ports
+        (50001, 50003, 50005) and already assigned ports in the same loop.
+        
+        Expected result: [50000, 50002, 50004, 50006, 50007]
+        - 50000: free, assigned
+        - 50001: used by system, skip
+        - 50002: free, assigned (excludes 50000)
+        - 50003: used by system, skip
+        - 50004: free, assigned (excludes 50000, 50002)
+        - 50005: used by system, skip
+        - 50006: free, assigned (excludes 50000, 50002, 50004)
+        - 50007: free, assigned (excludes 50000, 50002, 50004, 50006)
+        """
         with patch("utils.networker.is_port_in_use") as mock_is_port_in_use:
             # Simulate some system ports in use
             used_system_ports = {50001, 50003, 50005}
@@ -159,15 +175,6 @@ class TestNetworker(unittest.TestCase):
                 )
                 assigned_ports.append(port)
 
-            # Expected: [50000, 50002, 50004, 50006, 50007]
-            # - 50000: free
-            # - 50001: used by system, skip
-            # - 50002: free
-            # - 50003: used by system, skip
-            # - 50004: free
-            # - 50005: used by system, skip
-            # - 50006: free
-            # - 50007: free
             self.assertEqual(assigned_ports, [50000, 50002, 50004, 50006, 50007])
 
 
