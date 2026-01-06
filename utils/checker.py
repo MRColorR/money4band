@@ -58,27 +58,28 @@ def fetch_docker_tags(image: str) -> dict | None:
         return None
 
 
-def check_img_arch_support(image: str, tag: str, docker_platform: str) -> bool:
+def check_img_arch_support(image: str, tag: str, docker_platform: str) -> bool | None:
     """
     Check if a Docker image tag supports the given docker platform.
 
     Args:
         image (str): The name of the Docker image.
         tag (str): The specific tag of the Docker image.
-        arch (str): The architecture to check for compatibility.
+        docker_platform (str): The docker platform to check for compatibility (e.g., 'linux/arm64').
 
     Returns:
-        bool: True if the architecture is supported, False otherwise.
+        bool | None: True if the architecture is supported, False if not supported,
+                     None if we cannot determine compatibility (e.g., GHCR images without PAT).
     """
     if image.startswith("ghcr.io/"):
         logging.warning(
-            f"Skipping architecture/tag compatibility check for GHCR image: {image}. (As it would require a GH PAT). Using provided tag '{tag}' as compatible."
+            f"Skipping architecture/tag compatibility check for GHCR image: {image}. (As it would require a GH PAT). Will fallback to default platform for emulation compatibility."
         )
         print(
-            f"\n[WARNING] Cannot check architecture/tag for GHCR image {image}. (As it would require a GH PAT). Using provided tag '{tag}'."
+            f"\n[WARNING] Cannot check architecture/tag for GHCR image {image}. (As it would require a GH PAT). Will fallback to default platform (linux/amd64) for emulation compatibility."
         )
         time.sleep(4)
-        return True
+        return None  # Return None to indicate we cannot determine compatibility
     arch = docker_platform.split("/")[1]
     tags_info = fetch_docker_tags(image)
     if tags_info is None:
