@@ -149,7 +149,7 @@
       "proxy_disabled": {
         "container_name": "${DEVICE_NAME}_watchtower",
         "hostname": "${DEVICE_NAME}_watchtower",
-        "image": "containrrr/watchtower:latest",
+        "image": "nickfedor/watchtower:latest",
         "environment": [
           "WATCHTOWER_POLL_INTERVAL=14400",
           "WATCHTOWER_ROLLING_RESTART=true",
@@ -166,7 +166,7 @@
       "proxy_enabled": {
         "container_name": "${DEVICE_NAME}_watchtower",
         "hostname": "${DEVICE_NAME}_watchtower",
-        "image": "containrrr/watchtower:latest",
+        "image": "nickfedor/watchtower:latest",
         "environment": [
           "WATCHTOWER_POLL_INTERVAL=14400",
           "WATCHTOWER_ROLLING_RESTART=false",

@@ -468,18 +468,15 @@ def generate_env_file(
             env_lines.append(f"{key.upper()}={value}")
 
         # Add m4b_dashboard configurations ONLY if enabled
-        m4b_dashboard_name = "m4b_dashboard"
-        m4b_dashboard_config = user_config.get(m4b_dashboard_name, {})
+        m4b_dashboard_config = user_config.get("m4b_dashboard", {})
         if m4b_dashboard_config.get("enabled", False):
             for key, value in m4b_dashboard_config.items():
                 if key == "ports":
                     # Ports are stored as a list, extract the first port for M4B_DASHBOARD_PORT
                     port_value = value[0] if isinstance(value, list) and value else value
-                    env_lines.append(f"{m4b_dashboard_name.upper()}_PORT={port_value}")
-                else:
-                    env_lines.append(
-                        f"{m4b_dashboard_name.upper()}_{key.upper()}={value}"
-                    )
+                    env_lines.append(f"M4B_DASHBOARD_PORT={port_value}")
+                elif key != "enabled":  # Skip the enabled flag
+                    env_lines.append(f"M4B_DASHBOARD_{key.upper()}={value}")
 
         # Add proxy configurations
         proxy_config = user_config.get("proxies", {})
