@@ -88,9 +88,10 @@ def mainmenu(
             # Add default platform for apps if not already present
             for app_name in user_config.get("apps", {}):
                 app_config = user_config["apps"].setdefault(app_name, {})
-                app_config["docker_platform"] = (
-                    f"linux/{device_info['detected_docker_arch']}"
-                )
+                if "docker_platform" not in app_config:
+                    app_config["docker_platform"] = (
+                        f"linux/{device_info['detected_docker_arch']}"
+                    )
 
             dumper.write_json(user_config, user_config_path)
             logging.info(f"System info and default platform stored: {device_info}")

@@ -440,6 +440,10 @@ def _configure_apps(
     """
     Configure apps by collecting user inputs.
 
+    This function iterates through the apps, prompts the user for configuration,
+    assigns ports if needed, and sets the docker_platform based on the detected
+    architecture.
+
     Args:
         user_config (dict): The user configuration dictionary.
         apps (dict): The app configuration dictionary.
@@ -494,6 +498,14 @@ def _configure_apps(
             logging.info(f"Ports for {app_name} set to: {config['ports']}")
             # Only increment port_app_index for apps that actually have ports
             port_app_index += 1
+
+        # Set docker_platform based on detected architecture if not already set
+        if "docker_platform" not in config:
+            detected_docker_arch = user_config.get("device_info", {}).get(
+                "detected_docker_arch", "amd64"
+            )
+            config["docker_platform"] = f"linux/{detected_docker_arch}"
+            logging.info(f"Docker platform for {app_name} set to: {config['docker_platform']}")
 
         user_config["apps"][app_name] = config
 

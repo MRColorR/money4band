@@ -156,9 +156,19 @@ def assemble_docker_compose(
                         "docker_platform", default_docker_platform
                     )
 
-                    if not check_img_arch_support(
+                    arch_support = check_img_arch_support(
                         image_name, image_tag, docker_platform
-                    ):
+                    )
+                    
+                    if arch_support is None:
+                        # Cannot determine compatibility (e.g., GHCR images without PAT)
+                        # Fallback to default platform (linux/amd64) for safety - emulation will be used if needed
+                        app_compose_config["platform"] = default_docker_platform
+                        logging.info(
+                            f"Cannot verify architecture support for {image_name}. "
+                            f"Falling back to default platform {default_docker_platform} for emulation compatibility."
+                        )
+                    elif not arch_support:
                         compatible_tag = get_compatible_tag(image_name, docker_platform)
                         if compatible_tag:
                             app_compose_config["image"] = (
@@ -205,8 +215,8 @@ def assemble_docker_compose(
                                 )
                                 disabled_apps_due_to_incompatibility.append(app_name)
                                 continue  # Do not add the app to the compose file
-                    else:
-                        # Add platform also on all already compatible images tags
+                    elif arch_support:
+                        # Add platform only when we've confirmed the image supports it
                         app_compose_config["platform"] = docker_platform
 
                     if proxy_enabled:
