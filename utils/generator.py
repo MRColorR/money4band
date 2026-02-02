@@ -489,6 +489,11 @@ def generate_env_file(
             for key, value in notifications_config.items():
                 env_lines.append(f"WATCHTOWER_NOTIFICATION_{key.upper()}={value}")
 
+        # Add Watchtower label scoping configuration
+        watchtower_config = m4b_config.get("watchtower", {})
+        watchtower_labels_enabled = watchtower_config.get("enable_labels", True)
+        env_lines.append(f"M4B_WATCHTOWER_LABELS={'true' if watchtower_labels_enabled else 'false'}")
+
         # Add app-specific configurations only if the app is enabled
         apps_categories = ["apps"]
         if is_main_instance:
