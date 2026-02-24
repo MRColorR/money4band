@@ -109,6 +109,9 @@
     "enabled": true,
     "ports": [8081]
   },
+  "watchtower": {
+    "enabled": true
+  },
   "proxies": {
     "enabled": false,
     "url": "",
@@ -135,7 +138,8 @@
         "EXTRA_COMMANDS=ip rule add iif lo ipproto udp dport 53 lookup main;"
       ],
       "labels": [
-        "com.centurylinklabs.watchtower.enable=true"
+        "com.centurylinklabs.watchtower.enable=true",
+        "com.centurylinklabs.watchtower.scope=${M4B_WATCHTOWER_SCOPE}"
       ],
       "cap_add": ["NET_ADMIN"],
       "privileged": true,
@@ -155,6 +159,7 @@
         "image": "nickfedor/watchtower:latest",
         "environment": [
           "WATCHTOWER_LABEL_ENABLE=${M4B_WATCHTOWER_LABELS}",
+          "WATCHTOWER_SCOPE=${M4B_WATCHTOWER_SCOPE}",
           "WATCHTOWER_POLL_INTERVAL=14400",
           "WATCHTOWER_ROLLING_RESTART=true",
           "WATCHTOWER_NO_STARTUP_MESSAGE=true",
@@ -162,7 +167,8 @@
           "WATCHTOWER_NOTIFICATION_URL=${WATCHTOWER_NOTIFICATION_URL}"
         ],
         "labels": [
-          "com.centurylinklabs.watchtower.enable=true"
+          "com.centurylinklabs.watchtower.enable=true",
+          "com.centurylinklabs.watchtower.scope=${M4B_WATCHTOWER_SCOPE}"
         ],
         "volumes": ["/var/run/docker.sock:/var/run/docker.sock"],
         "restart": "always",
@@ -176,6 +182,7 @@
         "image": "nickfedor/watchtower:latest",
         "environment": [
           "WATCHTOWER_LABEL_ENABLE=${M4B_WATCHTOWER_LABELS}",
+          "WATCHTOWER_SCOPE=${M4B_WATCHTOWER_SCOPE}",
           "WATCHTOWER_POLL_INTERVAL=14400",
           "WATCHTOWER_ROLLING_RESTART=false",
           "WATCHTOWER_NO_STARTUP_MESSAGE=true",
@@ -183,7 +190,8 @@
           "WATCHTOWER_NOTIFICATION_URL=${WATCHTOWER_NOTIFICATION_URL}"
         ],
         "labels": [
-          "com.centurylinklabs.watchtower.enable=true"
+          "com.centurylinklabs.watchtower.enable=true",
+          "com.centurylinklabs.watchtower.scope=${M4B_WATCHTOWER_SCOPE}"
         ],
         "volumes": ["/var/run/docker.sock:/var/run/docker.sock"],
         "restart": "always",
@@ -197,7 +205,8 @@
       "hostname": "${DEVICE_NAME}_m4b_dashboard",
       "image": "nginx:alpine-slim",
       "labels": [
-        "com.centurylinklabs.watchtower.enable=true"
+        "com.centurylinklabs.watchtower.enable=true",
+        "com.centurylinklabs.watchtower.scope=${M4B_WATCHTOWER_SCOPE}"
       ],
       "volumes": [
         "./.resources/.www:/usr/share/nginx/html",

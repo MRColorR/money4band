@@ -705,6 +705,43 @@ def setup_m4b_dashboard(user_config: dict[str, Any]) -> None:
         logging.info("User chose not to enable the M4B dashboard.")
 
 
+def setup_watchtower(user_config: dict[str, Any]) -> None:
+    """
+    Set up the Watchtower auto-update configuration.
+
+    Asks the user if they want M4B to manage container auto-updates via its
+    built-in Watchtower service. Disable only if another Watchtower instance
+    is already running on the host.
+
+    Args:
+        user_config (dict): The user configuration dictionary.
+    """
+    watchtower_config = user_config.setdefault("watchtower", {})
+    current_enabled = watchtower_config.get("enabled", True)
+
+    if current_enabled:
+        print("The M4B built-in Watchtower (auto-updater) is currently enabled.")
+        if not ask_question_yn("Do you want to change the Watchtower settings?"):
+            print("Keeping existing Watchtower settings.")
+            logging.info("User chose to keep existing Watchtower settings.")
+            return
+
+    if ask_question_yn(
+        "Do you want M4B to manage container auto-updates via its built-in Watchtower?\n"
+        "(Disable only if another Watchtower instance is already running on this host)"
+    ):
+        watchtower_config["enabled"] = True
+        print("M4B built-in Watchtower enabled. Container images will be auto-updated.")
+        logging.info("User enabled M4B built-in Watchtower.")
+    else:
+        watchtower_config["enabled"] = False
+        print(
+            f"{Fore.YELLOW}M4B Watchtower disabled. "
+            f"Ensure another Watchtower instance is managing updates.{Style.RESET_ALL}"
+        )
+        logging.info("User disabled M4B built-in Watchtower.")
+
+
 def setup_multiproxy_instances(
     user_config: dict[str, Any],
     app_config: dict[str, Any],
@@ -969,8 +1006,14 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
                 # Ensure app exists in user_config before disabling
                 if app_name in user_config["apps"]:
                     user_config["apps"][app_name]["enabled"] = False
-        # Step 4: Set up notifications
-        setup_notifications(user_config)
+        # Step 4a: Set up Watchtower auto-updates
+        setup_watchtower(user_config)
+        # Step 4b: Set up notifications (Watchtower notification URL meaningful if Watchtower is running)
+        if user_config.get("watchtower", {}).get("enabled", True):
+            setup_notifications(user_config)
+        else:
+            user_config["notifications"]["enabled"] = False
+            logging.info("Skipping notification setup: Watchtower is disabled.")
         # Step 5: Set up M4B dashboard
         setup_m4b_dashboard(user_config)
         # Step 6: Save the user configuration
