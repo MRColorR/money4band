@@ -296,13 +296,15 @@ def assemble_docker_compose(
         # Add common services only if this is the main instance
         compose_config_common = user_config.get("compose_config_common", {})
         if is_main_instance:
-            watchtower_service_key = (
-                "proxy_enabled" if proxy_enabled else "proxy_disabled"
-            )
-            watchtower_service = compose_config_common["watchtower_service"][
-                watchtower_service_key
-            ]
-            services["watchtower"] = watchtower_service
+            watchtower_enabled = user_config.get("watchtower", {}).get("enabled", True)
+            if watchtower_enabled:
+                watchtower_service_key = (
+                    "proxy_enabled" if proxy_enabled else "proxy_disabled"
+                )
+                watchtower_service = compose_config_common["watchtower_service"][
+                    watchtower_service_key
+                ]
+                services["watchtower"] = watchtower_service
             # Only add m4bwebdashboard if dashboard is enabled
             m4b_dashboard_config = user_config.get("m4b_dashboard", {})
             if m4b_dashboard_config.get("enabled", False):
@@ -492,7 +494,9 @@ def generate_env_file(
         # Add Watchtower label scoping configuration
         watchtower_config = m4b_config.get("watchtower", {})
         watchtower_labels_enabled = watchtower_config.get("enable_labels", True)
+        watchtower_scope = watchtower_config.get("scope", "money4band")
         env_lines.append(f"M4B_WATCHTOWER_LABELS={'true' if watchtower_labels_enabled else 'false'}")
+        env_lines.append(f"M4B_WATCHTOWER_SCOPE={watchtower_scope}")
 
         # Add app-specific configurations only if the app is enabled
         apps_categories = ["apps"]
