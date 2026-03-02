@@ -100,12 +100,73 @@ def safe_rmtree(directory: str) -> bool:
             f"{Fore.RED}Permission denied when removing {directory}. Please ensure no files are in use and you have proper permissions.{Style.RESET_ALL}"
         )
         return False
-    except Exception as e:
-        logging.error(f"Failed to remove directory {directory}: {str(e)}")
-        print(
-            f"{Fore.RED}Failed to remove directory {directory}: {str(e)}{Style.RESET_ALL}"
+
+
+def cleanup_multiproxy_instances_dir(
+    instances_dir: str = "m4b_proxy_instances",
+    backup_root: str = ".backup",
+) -> None:
+    """
+    Clean up multiproxy instances directory when multiproxy is disabled.
+
+    Behavior:
+    - If directory does not exist: no-op
+    - If directory is empty: remove it
+    - If directory has content: move it to a timestamped backup folder
+
+    Args:
+        instances_dir (str): Path to multiproxy instances directory.
+        backup_root (str): Path to backup root directory.
+    """
+    if not os.path.isdir(instances_dir):
+        logging.info(
+            "No multiproxy instances directory found. Nothing to clean up."
         )
-        return False
+        return
+
+    try:
+        entries = os.listdir(instances_dir)
+    except Exception as e:
+        logging.error(
+            f"Unable to inspect multiproxy instances directory '{instances_dir}': {str(e)}"
+        )
+        return
+
+    if not entries:
+        if safe_rmtree(instances_dir):
+            print(
+                f"{Fore.GREEN}Removed empty multiproxy instances directory '{instances_dir}'.{Style.RESET_ALL}"
+            )
+            logging.info(
+                f"Removed empty multiproxy instances directory '{instances_dir}'."
+            )
+        return
+
+    timestamp = time.strftime("%Y%m%d_%H%M%S")
+    backup_base_dir = os.path.join(backup_root, "m4b_proxy_instances")
+    os.makedirs(backup_base_dir, exist_ok=True)
+    backup_dir = os.path.join(backup_base_dir, f"instances_{timestamp}")
+
+    suffix = 1
+    while os.path.exists(backup_dir):
+        backup_dir = os.path.join(backup_base_dir, f"instances_{timestamp}_{suffix}")
+        suffix += 1
+
+    try:
+        shutil.move(instances_dir, backup_dir)
+        print(
+            f"{Fore.YELLOW}Multiproxy disabled: moved existing instances to '{backup_dir}'.{Style.RESET_ALL}"
+        )
+        logging.info(
+            f"Multiproxy disabled. Moved '{instances_dir}' to backup '{backup_dir}'."
+        )
+    except Exception as e:
+        logging.error(
+            f"Failed to move multiproxy instances directory '{instances_dir}' to backup: {str(e)}"
+        )
+        print(
+            f"{Fore.RED}Failed to back up multiproxy instances directory '{instances_dir}'.{Style.RESET_ALL}"
+        )
 
 
 def ipv4_to_int(ip_address: str) -> int:
@@ -745,7 +806,7 @@ def setup_watchtower(user_config: dict[str, Any]) -> None:
     if ask_question_yn(
         "Do you want M4B to manage container auto-updates via its built-in Watchtower?\n"
         "(Disable only if another Watchtower instance is already running on this host)",
-        default=current_enabled,
+        default=True,
     ):
         watchtower_config["enabled"] = True
         print("M4B built-in Watchtower enabled. Container images will be auto-updated.")
@@ -1074,6 +1135,7 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
                 user_config["proxies"]["url"] = ""
                 user_config["proxies"]["enabled"] = False
                 write_json(user_config, user_config_path)
+            cleanup_multiproxy_instances_dir()
             assemble_docker_compose(
                 m4b_config_path,
                 app_config_path,
