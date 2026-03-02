@@ -735,11 +735,17 @@ def setup_watchtower(user_config: dict[str, Any]) -> None:
             print("Keeping existing Watchtower settings.")
             logging.info("User chose to keep existing Watchtower settings.")
             return
+    else:
+        print("The M4B built-in Watchtower (auto-updater) is currently disabled.")
+        if not ask_question_yn("Do you want to change the Watchtower settings?"):
+            print("Keeping existing Watchtower settings (Watchtower remains disabled).")
+            logging.info("User chose to keep existing Watchtower settings (disabled).")
+            return
 
     if ask_question_yn(
         "Do you want M4B to manage container auto-updates via its built-in Watchtower?\n"
         "(Disable only if another Watchtower instance is already running on this host)",
-        default=True,
+        default=current_enabled,
     ):
         watchtower_config["enabled"] = True
         print("M4B built-in Watchtower enabled. Container images will be auto-updated.")

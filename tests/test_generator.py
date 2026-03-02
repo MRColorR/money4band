@@ -158,6 +158,51 @@ class TestAssembleDockerComposeWatchtower(unittest.TestCase):
         doc = self._compose(watchtower_enabled=False)
         self.assertNotIn("watchtower", doc.get("services", {}))
 
+    def test_watchtower_scope_enforced_on_old_user_config(self):
+        """Scope env vars and label are injected even when old user-config lacks them."""
+        import copy
+
+        # Simulate an older user-config whose watchtower service has no scope entries
+        user_cfg = copy.deepcopy(_USER_CFG_BASE)
+        user_cfg["compose_config_common"]["watchtower_service"]["proxy_disabled"] = {
+            "container_name": "${DEVICE_NAME}_watchtower",
+            "image": "nickfedor/watchtower:latest",
+            # intentionally missing WATCHTOWER_SCOPE env and scope label
+            "environment": ["WATCHTOWER_CLEANUP=true"],
+            "labels": ["com.centurylinklabs.watchtower.enable=true"],
+            "volumes": ["/var/run/docker.sock:/var/run/docker.sock"],
+            "restart": "always",
+        }
+
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".yaml") as f:
+            compose_path = f.name
+        try:
+            assemble_docker_compose(
+                _M4B_CFG, _APP_CFG, user_cfg, compose_path, is_main_instance=True
+            )
+            with open(compose_path) as f:
+                doc = yaml.safe_load(f) or {}
+        finally:
+            if os.path.exists(compose_path):
+                os.unlink(compose_path)
+
+        wt = doc.get("services", {}).get("watchtower", {})
+        env = wt.get("environment", [])
+        labels = wt.get("labels", [])
+
+        self.assertTrue(
+            any("WATCHTOWER_SCOPE" in e for e in env),
+            "WATCHTOWER_SCOPE must be enforced in watchtower environment",
+        )
+        self.assertTrue(
+            any("WATCHTOWER_LABEL_ENABLE" in e for e in env),
+            "WATCHTOWER_LABEL_ENABLE must be enforced in watchtower environment",
+        )
+        self.assertTrue(
+            any("watchtower.scope" in lbl for lbl in labels),
+            "scope label must be enforced on watchtower service",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

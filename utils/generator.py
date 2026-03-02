@@ -1,3 +1,4 @@
+import copy
 import logging
 import os
 import re
@@ -305,9 +306,28 @@ def assemble_docker_compose(
                 watchtower_service_key = (
                     "proxy_enabled" if proxy_enabled else "proxy_disabled"
                 )
-                watchtower_service = compose_config_common["watchtower_service"][
-                    watchtower_service_key
-                ]
+                watchtower_service = copy.deepcopy(
+                    compose_config_common["watchtower_service"][watchtower_service_key]
+                )
+                # Enforce scoping env vars at generation time so older user-config
+                # files (missing WATCHTOWER_SCOPE / WATCHTOWER_LABEL_ENABLE) still
+                # produce a correctly scoped Watchtower service.
+                wt_env: list = watchtower_service.setdefault("environment", [])
+                required_env = {
+                    "WATCHTOWER_SCOPE": "WATCHTOWER_SCOPE=${M4B_WATCHTOWER_SCOPE}",
+                    "WATCHTOWER_LABEL_ENABLE": "WATCHTOWER_LABEL_ENABLE=${M4B_WATCHTOWER_LABELS}",
+                }
+                existing_keys = {e.split("=")[0] for e in wt_env if isinstance(e, str)}
+                for key, entry in required_env.items():
+                    if key not in existing_keys:
+                        wt_env.append(entry)
+                        logging.info(f"Enforced missing Watchtower env var: {entry}")
+                # Enforce scope label so the service is self-managed within scope.
+                wt_labels: list = watchtower_service.setdefault("labels", [])
+                scope_label = "com.centurylinklabs.watchtower.scope=${M4B_WATCHTOWER_SCOPE}"
+                if scope_label not in wt_labels:
+                    wt_labels.append(scope_label)
+                    logging.info("Enforced missing Watchtower scope label")
                 services["watchtower"] = watchtower_service
             # Only add m4bwebdashboard if dashboard is enabled
             m4b_dashboard_config = user_config.get("m4b_dashboard", {})
