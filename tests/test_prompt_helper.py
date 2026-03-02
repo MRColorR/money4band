@@ -14,8 +14,9 @@ class TestPromptHelper(unittest.TestCase):
         self.assertEqual(ask_email("Enter email:"), "test@example.com")
 
     @patch("builtins.input", return_value="")
-    def test_ask_string_empty_allowed(self, mock_input):
-        self.assertEqual(ask_string("Enter string:", empty_allowed=True), "")
+    def test_ask_string_returns_default_when_empty(self, mock_input):
+        """When input is empty and a default is provided, the default is returned."""
+        self.assertEqual(ask_string("Enter string:", default="fallback"), "fallback")
 
     @patch("builtins.input", return_value="non-empty string")
     def test_ask_string_not_empty(self, mock_input):

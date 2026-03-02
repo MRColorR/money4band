@@ -100,7 +100,7 @@ class TestFnInstallDocker(unittest.TestCase):
             ],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            universal_newlines=True,
+            text=True,
             shell=True,
             check=True,
         )
@@ -112,6 +112,7 @@ class TestFnInstallDocker(unittest.TestCase):
                     os.getenv("ProgramFiles"), "Docker", "Docker", "Docker Desktop.exe"
                 )
             ],
+            check=False,
             shell=True,
         )
 
@@ -158,8 +159,10 @@ class TestFnInstallDocker(unittest.TestCase):
     @patch("utils.fn_install_docker.install_docker_linux")
     @patch("utils.fn_install_docker.install_docker_windows")
     @patch("utils.fn_install_docker.install_docker_macos")
+    @patch("utils.fn_install_docker.is_docker_installed", return_value=False)
     def test_main(
         self,
+        mock_is_docker_installed,
         mock_install_macos,
         mock_install_windows,
         mock_install_linux,

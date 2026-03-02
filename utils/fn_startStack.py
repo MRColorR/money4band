@@ -486,7 +486,7 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
         missing = check_required_files(
             required_files,
             error_message="Cannot start the stack. The following required files are missing:",
-            hint_message="Please run the setup wizard first to generate the configuration files."
+            hint_message="Please run the setup wizard first to generate the configuration files.",
         )
         if missing:
             time.sleep(sleep_time)

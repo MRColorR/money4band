@@ -16,7 +16,7 @@ from utils.fn_reset_config import main as reset_main
 from utils.updater import check_update_available
 
 # Handle PyInstaller frozen executable path resolution
-if getattr(sys, 'frozen', False):
+if getattr(sys, "frozen", False):
     # Running as compiled executable (PyInstaller)
     BASE_DIR = os.path.dirname(sys.executable)
 else:
@@ -170,7 +170,11 @@ def mainmenu(
 def main():
     # Use the global BASE_DIR for PyInstaller compatibility
     script_dir = BASE_DIR
-    script_name = os.path.basename(__file__) if not getattr(sys, 'frozen', False) else "Money4Band"
+    script_name = (
+        os.path.basename(__file__)
+        if not getattr(sys, "frozen", False)
+        else "Money4Band"
+    )
 
     # Parse command-line arguments
     parser = argparse.ArgumentParser(description="Run the script.")

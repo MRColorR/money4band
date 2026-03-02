@@ -199,7 +199,9 @@ def ensure_service(
         raise RuntimeError(f"Failed to ensure {service_name} service: {str(e)}")
 
 
-def check_required_files(files: list, error_message: str = None, hint_message: str = None) -> list:
+def check_required_files(
+    files: list, error_message: str = None, hint_message: str = None
+) -> list:
     """
     Check if required files exist and return a list of missing files.
 
@@ -217,7 +219,9 @@ def check_required_files(files: list, error_message: str = None, hint_message: s
         if error_message:
             print(f"{Fore.RED}{error_message}{Style.RESET_ALL}")
         else:
-            print(f"{Fore.RED}The following required files are missing:{Style.RESET_ALL}")
+            print(
+                f"{Fore.RED}The following required files are missing:{Style.RESET_ALL}"
+            )
         for f in missing_files:
             print(f"  - {f}")
         if hint_message:

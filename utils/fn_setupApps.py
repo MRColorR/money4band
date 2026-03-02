@@ -207,7 +207,9 @@ def assign_app_ports(
         port_candidate = base_port_for_app_instance + i
 
         # Find next available port starting from the calculated candidate
-        available_port = find_next_available_port(port_candidate, exclude_ports=assigned_ports)
+        available_port = find_next_available_port(
+            port_candidate, exclude_ports=assigned_ports
+        )
         assigned_ports.append(available_port)
 
         # Log the port assignment
@@ -453,7 +455,7 @@ def _configure_apps(
     """
     # Track port_app_index separately - only incremented for apps WITH ports
     port_app_index = app_index_offset
-    
+
     for app in apps:
         app_name = app["name"].lower()
         config = user_config["apps"].get(app_name, {})
@@ -505,7 +507,9 @@ def _configure_apps(
                 "detected_docker_arch", "amd64"
             )
             config["docker_platform"] = f"linux/{detected_docker_arch}"
-            logging.info(f"Docker platform for {app_name} set to: {config['docker_platform']}")
+            logging.info(
+                f"Docker platform for {app_name} set to: {config['docker_platform']}"
+            )
 
         user_config["apps"][app_name] = config
 
@@ -538,10 +542,15 @@ def configure_extra_apps(
     # Extra apps port_app_index starts AFTER regular apps WITH ports
     # Count only apps that have ports in compose_config
     port_consuming_apps = sum(
-        1 for app in app_config.get("apps", []) if "ports" in app.get("compose_config", {})
+        1
+        for app in app_config.get("apps", [])
+        if "ports" in app.get("compose_config", {})
     )
     _configure_apps(
-        user_config, app_config["extra-apps"], m4b_config, app_index_offset=port_consuming_apps
+        user_config,
+        app_config["extra-apps"],
+        m4b_config,
+        app_index_offset=port_consuming_apps,
     )
 
 
@@ -677,7 +686,8 @@ def setup_m4b_dashboard(user_config: dict[str, Any]) -> None:
     # Ask if user wants to enable the dashboard
     if ask_question_yn(
         "Do you want to enable the M4B web dashboard? "
-        "(A simple local web page to access apps dashboards)"
+        "(A simple local web page to access apps dashboards)",
+        default=True,
     ):
         logging.info("User decided to enable the M4B web dashboard.")
 
@@ -728,7 +738,8 @@ def setup_watchtower(user_config: dict[str, Any]) -> None:
 
     if ask_question_yn(
         "Do you want M4B to manage container auto-updates via its built-in Watchtower?\n"
-        "(Disable only if another Watchtower instance is already running on this host)"
+        "(Disable only if another Watchtower instance is already running on this host)",
+        default=True,
     ):
         watchtower_config["enabled"] = True
         print("M4B built-in Watchtower enabled. Container images will be auto-updated.")
@@ -1012,7 +1023,7 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
         if user_config.get("watchtower", {}).get("enabled", True):
             setup_notifications(user_config)
         else:
-            user_config["notifications"]["enabled"] = False
+            user_config.setdefault("notifications", {})["enabled"] = False
             logging.info("Skipping notification setup: Watchtower is disabled.")
         # Step 5: Set up M4B dashboard
         setup_m4b_dashboard(user_config)
