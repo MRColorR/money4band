@@ -324,7 +324,9 @@ def assemble_docker_compose(
                         logging.info(f"Enforced missing Watchtower env var: {entry}")
                 # Enforce scope label so the service is self-managed within scope.
                 wt_labels: list = watchtower_service.setdefault("labels", [])
-                scope_label = "com.centurylinklabs.watchtower.scope=${M4B_WATCHTOWER_SCOPE}"
+                scope_label = (
+                    "com.centurylinklabs.watchtower.scope=${M4B_WATCHTOWER_SCOPE}"
+                )
                 if scope_label not in wt_labels:
                     wt_labels.append(scope_label)
                     logging.info("Enforced missing Watchtower scope label")

@@ -119,9 +119,7 @@ def cleanup_multiproxy_instances_dir(
         backup_root (str): Path to backup root directory.
     """
     if not os.path.isdir(instances_dir):
-        logging.info(
-            "No multiproxy instances directory found. Nothing to clean up."
-        )
+        logging.info("No multiproxy instances directory found. Nothing to clean up.")
         return
 
     try:
