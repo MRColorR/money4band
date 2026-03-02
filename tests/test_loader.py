@@ -20,7 +20,7 @@ class TestModuleLoader(unittest.TestCase):
 
         config = load_json_config(config_path)
         self.assertEqual(config, expected_config)
-        mock_file.assert_called_once_with(config_path, "r")
+        mock_file.assert_called_once_with(config_path)
 
     def test_load_json_config_dict(self):
         """
