@@ -2,7 +2,6 @@
 Test networker module functionality.
 """
 
-import socket
 import unittest
 from unittest.mock import patch
 
@@ -141,11 +140,11 @@ class TestNetworker(unittest.TestCase):
     def test_find_next_available_port_realistic_scenario(self):
         """
         Test a realistic scenario of assigning multiple sequential ports.
-        
+
         This test simulates the scenario in assign_app_ports where we need to assign
         5 ports starting from base 50000, while avoiding both system-used ports
         (50001, 50003, 50005) and already assigned ports in the same loop.
-        
+
         Expected result: [50000, 50002, 50004, 50006, 50007]
         - 50000: free, assigned
         - 50001: used by system, skip

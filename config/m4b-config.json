@@ -1,6 +1,6 @@
 {
   "project": {
-    "project_version": "4.11.6",
+    "project_version": "4.11.8",
     "compose_project_name": "money4band",
     "ds_project_server_url": "https://discord.com/invite/Fq8eeazBAD"
   },
@@ -33,6 +33,10 @@
       "freebsd": "FreeBSD"
     },
     "default_docker_platform": "linux/amd64"
+  },
+  "watchtower": {
+    "enable_labels": true,
+    "scope": "money4band"
   },
   "menu": [
     {

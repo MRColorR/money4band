@@ -190,6 +190,40 @@ class TestPortLogic(unittest.TestCase):
             self.assertIn("WIPTER_PORT_2=6081", env_content)
             # Should NOT have non-indexed WIPTER_PORT for multiple ports
 
+            # Watchtower scope vars are always emitted — defaults when watchtower key absent
+            self.assertIn("M4B_WATCHTOWER_LABELS=true", env_content)
+            self.assertIn("M4B_WATCHTOWER_SCOPE=money4band", env_content)
+
+        finally:
+            if os.path.exists(env_path):
+                os.unlink(env_path)
+
+    def test_generate_env_file_watchtower_vars_configurable(self):
+        """Watchtower scope vars respect m4b_config overrides."""
+        m4b_config = {
+            "network": {"subnet": "172.19.7.0", "netmask": "27"},
+            "system": {},
+            "watchtower": {"enable_labels": False, "scope": "custom-scope"},
+        }
+        app_config = {"apps": []}
+        user_config = {
+            "device_info": {"device_name": "testdev"},
+            "resource_limits": {},
+            "apps": {},
+        }
+
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".env") as f:
+            env_path = f.name
+
+        try:
+            generate_env_file(m4b_config, app_config, user_config, env_path)
+
+            with open(env_path) as f:
+                env_content = f.read()
+
+            self.assertIn("M4B_WATCHTOWER_LABELS=false", env_content)
+            self.assertIn("M4B_WATCHTOWER_SCOPE=custom-scope", env_content)
+
         finally:
             if os.path.exists(env_path):
                 os.unlink(env_path)

@@ -1,3 +1,4 @@
+import copy
 import logging
 import os
 import re
@@ -48,7 +49,11 @@ def substitute_port_placeholders(
         if match:
             container_port = match.group(2)
             # Use indexed port if available, otherwise fallback to first port
-            host_port = actual_ports[idx % len(actual_ports)] if isinstance(actual_ports, list) else actual_ports
+            host_port = (
+                actual_ports[idx % len(actual_ports)]
+                if isinstance(actual_ports, list)
+                else actual_ports
+            )
             new_ports.append(f"{host_port}:{container_port}")
         else:
             # If not a placeholder, keep as is
@@ -159,7 +164,7 @@ def assemble_docker_compose(
                     arch_support = check_img_arch_support(
                         image_name, image_tag, docker_platform
                     )
-                    
+
                     if arch_support is None:
                         # Cannot determine compatibility (e.g., GHCR images without PAT)
                         # Fallback to default platform (linux/amd64) for safety - emulation will be used if needed
@@ -296,13 +301,34 @@ def assemble_docker_compose(
         # Add common services only if this is the main instance
         compose_config_common = user_config.get("compose_config_common", {})
         if is_main_instance:
-            watchtower_service_key = (
-                "proxy_enabled" if proxy_enabled else "proxy_disabled"
-            )
-            watchtower_service = compose_config_common["watchtower_service"][
-                watchtower_service_key
-            ]
-            services["watchtower"] = watchtower_service
+            watchtower_enabled = user_config.get("watchtower", {}).get("enabled", True)
+            if watchtower_enabled:
+                watchtower_service_key = (
+                    "proxy_enabled" if proxy_enabled else "proxy_disabled"
+                )
+                watchtower_service = copy.deepcopy(
+                    compose_config_common["watchtower_service"][watchtower_service_key]
+                )
+                # Enforce scoping env vars at generation time so older user-config
+                # files (missing WATCHTOWER_SCOPE / WATCHTOWER_LABEL_ENABLE) still
+                # produce a correctly scoped Watchtower service.
+                wt_env: list = watchtower_service.setdefault("environment", [])
+                required_env = {
+                    "WATCHTOWER_SCOPE": "WATCHTOWER_SCOPE=${M4B_WATCHTOWER_SCOPE}",
+                    "WATCHTOWER_LABEL_ENABLE": "WATCHTOWER_LABEL_ENABLE=${M4B_WATCHTOWER_LABELS}",
+                }
+                existing_keys = {e.split("=")[0] for e in wt_env if isinstance(e, str)}
+                for key, entry in required_env.items():
+                    if key not in existing_keys:
+                        wt_env.append(entry)
+                        logging.info(f"Enforced missing Watchtower env var: {entry}")
+                # Enforce scope label so the service is self-managed within scope.
+                wt_labels: list = watchtower_service.setdefault("labels", [])
+                scope_label = "com.centurylinklabs.watchtower.scope=${M4B_WATCHTOWER_SCOPE}"
+                if scope_label not in wt_labels:
+                    wt_labels.append(scope_label)
+                    logging.info("Enforced missing Watchtower scope label")
+                services["watchtower"] = watchtower_service
             # Only add m4bwebdashboard if dashboard is enabled
             m4b_dashboard_config = user_config.get("m4b_dashboard", {})
             if m4b_dashboard_config.get("enabled", False):
@@ -473,7 +499,9 @@ def generate_env_file(
             for key, value in m4b_dashboard_config.items():
                 if key == "ports":
                     # Ports are stored as a list, extract the first port for M4B_DASHBOARD_PORT
-                    port_value = value[0] if isinstance(value, list) and value else value
+                    port_value = (
+                        value[0] if isinstance(value, list) and value else value
+                    )
                     env_lines.append(f"M4B_DASHBOARD_PORT={port_value}")
                 elif key != "enabled":  # Skip the enabled flag
                     env_lines.append(f"M4B_DASHBOARD_{key.upper()}={value}")
@@ -488,6 +516,15 @@ def generate_env_file(
         if notifications_config.get("enabled"):
             for key, value in notifications_config.items():
                 env_lines.append(f"WATCHTOWER_NOTIFICATION_{key.upper()}={value}")
+
+        # Add Watchtower label scoping configuration
+        watchtower_config = m4b_config.get("watchtower", {})
+        watchtower_labels_enabled = watchtower_config.get("enable_labels", True)
+        watchtower_scope = watchtower_config.get("scope", "money4band")
+        env_lines.append(
+            f"M4B_WATCHTOWER_LABELS={'true' if watchtower_labels_enabled else 'false'}"
+        )
+        env_lines.append(f"M4B_WATCHTOWER_SCOPE={watchtower_scope}")
 
         # Add app-specific configurations only if the app is enabled
         apps_categories = ["apps"]
@@ -691,7 +728,9 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
             for name, cfg in apps.items():
                 if isinstance(cfg, dict) and cfg.get("enabled"):
                     enabled.append(name)
-    print(f"  Enabled Apps ({len(enabled)}): {', '.join(enabled) if enabled else 'None'}")
+    print(
+        f"  Enabled Apps ({len(enabled)}): {', '.join(enabled) if enabled else 'None'}"
+    )
 
     # Check for multiproxy instances
     instances_dir = "m4b_proxy_instances"
@@ -699,7 +738,8 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
     instance_dirs = []
     if has_instances:
         instance_dirs = [
-            d for d in os.listdir(instances_dir)
+            d
+            for d in os.listdir(instances_dir)
             if os.path.isdir(os.path.join(instances_dir, d))
         ]
         print(f"  Multiproxy Instances: {len(instance_dirs)}")
@@ -709,12 +749,16 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
     try:
         result = subprocess.run(
             ["docker", "ps", "--filter", f"name={device}", "--format", "{{.Names}}"],
-            capture_output=True, text=True, timeout=10
+            capture_output=True,
+            text=True,
+            timeout=10,
         )
         if result.returncode == 0 and result.stdout.strip():
             containers_running = True
-            running_count = len(result.stdout.strip().split('\n'))
-            print(f"\n{Fore.YELLOW}⚠ {running_count} container(s) currently running{Style.RESET_ALL}")
+            running_count = len(result.stdout.strip().split("\n"))
+            print(
+                f"\n{Fore.YELLOW}⚠ {running_count} container(s) currently running{Style.RESET_ALL}"
+            )
     except Exception:
         pass  # Docker check failed, continue anyway
 
@@ -740,7 +784,9 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
                 logging.warning(f"Could not backup {filename}: {e}")
 
     if backed_up:
-        print(f"{Fore.BLUE}Backed up: {', '.join(backed_up)} → {backup_dir}/{Style.RESET_ALL}")
+        print(
+            f"{Fore.BLUE}Backed up: {', '.join(backed_up)} → {backup_dir}/{Style.RESET_ALL}"
+        )
 
     try:
         # Regenerate main instance files
@@ -766,18 +812,28 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
 
         # Handle multiproxy instances
         if has_instances and instance_dirs:
-            print(f"\n{Fore.YELLOW}Multiproxy instances detected: {len(instance_dirs)}{Style.RESET_ALL}")
-            if ask_question_yn("Regenerate multiproxy instance files too?", default=True):
+            print(
+                f"\n{Fore.YELLOW}Multiproxy instances detected: {len(instance_dirs)}{Style.RESET_ALL}"
+            )
+            if ask_question_yn(
+                "Regenerate multiproxy instance files too?", default=True
+            ):
                 for instance_name in instance_dirs:
                     instance_path = os.path.join(instances_dir, instance_name)
-                    instance_user_config = os.path.join(instance_path, "user-config.json")
+                    instance_user_config = os.path.join(
+                        instance_path, "user-config.json"
+                    )
                     instance_app_config = os.path.join(instance_path, "app-config.json")
                     instance_m4b_config = os.path.join(instance_path, "m4b-config.json")
-                    instance_compose = os.path.join(instance_path, "docker-compose.yaml")
+                    instance_compose = os.path.join(
+                        instance_path, "docker-compose.yaml"
+                    )
                     instance_env = os.path.join(instance_path, ".env")
 
                     if not os.path.exists(instance_user_config):
-                        print(f"{Fore.YELLOW}  Skipping {instance_name}: no user-config.json{Style.RESET_ALL}")
+                        print(
+                            f"{Fore.YELLOW}  Skipping {instance_name}: no user-config.json{Style.RESET_ALL}"
+                        )
                         continue
 
                     # Backup instance files
@@ -793,10 +849,20 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
 
                     try:
                         # Use main configs if instance-specific ones don't exist
-                        i_app_cfg = instance_app_config if os.path.exists(instance_app_config) else app_config_path
-                        i_m4b_cfg = instance_m4b_config if os.path.exists(instance_m4b_config) else m4b_config_path
+                        i_app_cfg = (
+                            instance_app_config
+                            if os.path.exists(instance_app_config)
+                            else app_config_path
+                        )
+                        i_m4b_cfg = (
+                            instance_m4b_config
+                            if os.path.exists(instance_m4b_config)
+                            else m4b_config_path
+                        )
 
-                        print(f"{Fore.CYAN}  Regenerating {instance_name}...{Style.RESET_ALL}")
+                        print(
+                            f"{Fore.CYAN}  Regenerating {instance_name}...{Style.RESET_ALL}"
+                        )
                         assemble_docker_compose(
                             m4b_config_path_or_dict=i_m4b_cfg,
                             app_config_path_or_dict=i_app_cfg,
@@ -811,22 +877,32 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
                             env_output_path=instance_env,
                             is_main_instance=False,
                         )
-                        print(f"{Fore.GREEN}  ✓ {instance_name} regenerated{Style.RESET_ALL}")
+                        print(
+                            f"{Fore.GREEN}  ✓ {instance_name} regenerated{Style.RESET_ALL}"
+                        )
                     except Exception as e:
-                        print(f"{Fore.RED}  ✗ {instance_name} failed: {e}{Style.RESET_ALL}")
-                        logging.error(f"Error regenerating instance {instance_name}: {e}")
+                        print(
+                            f"{Fore.RED}  ✗ {instance_name} failed: {e}{Style.RESET_ALL}"
+                        )
+                        logging.error(
+                            f"Error regenerating instance {instance_name}: {e}"
+                        )
 
         print(f"\n{Fore.GREEN}Done!{Style.RESET_ALL}")
 
         # Offer to restart if containers are running
         if containers_running:
-            print(f"\n{Fore.YELLOW}Containers are running with old configuration.{Style.RESET_ALL}")
+            print(
+                f"\n{Fore.YELLOW}Containers are running with old configuration.{Style.RESET_ALL}"
+            )
             if ask_question_yn("Restart stack now to apply changes?"):
                 print(f"{Fore.CYAN}Restarting stack...{Style.RESET_ALL}")
                 try:
                     subprocess.run(["docker", "compose", "down"], check=True)
                     subprocess.run(["docker", "compose", "up", "-d"], check=True)
-                    print(f"{Fore.GREEN}✓ Stack restarted successfully{Style.RESET_ALL}")
+                    print(
+                        f"{Fore.GREEN}✓ Stack restarted successfully{Style.RESET_ALL}"
+                    )
                 except subprocess.CalledProcessError as e:
                     print(f"{Fore.RED}Error restarting stack: {e}{Style.RESET_ALL}")
             else:
@@ -838,6 +914,8 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
         print(f"{Fore.RED}Error: {e}{Style.RESET_ALL}")
         logging.error(f"Error regenerating files: {e}")
         if backed_up:
-            print(f"{Fore.YELLOW}Your previous files are backed up in {backup_dir}/{Style.RESET_ALL}")
+            print(
+                f"{Fore.YELLOW}Your previous files are backed up in {backup_dir}/{Style.RESET_ALL}"
+            )
 
     input("\nPress Enter to go back to main menu...")
