@@ -59,7 +59,15 @@
                     "com.centurylinklabs.watchtower.enable=true",
                     "com.centurylinklabs.watchtower.scope=${M4B_WATCHTOWER_SCOPE}"
                 ],
-                "command": "-tou-accept -email $HONEYGAIN_EMAIL -pass $HONEYGAIN_PASSWORD -device $DEVICE_NAME",
+                "command": [
+                    "-tou-accept",
+                    "-email",
+                    "${HONEYGAIN_EMAIL}",
+                    "-pass",
+                    "${HONEYGAIN_PASSWORD}",
+                    "-device",
+                    "${DEVICE_NAME}"
+                ],
                 "restart": "always",
                 "cpus": "${APP_CPU_LIMIT_MEDIUM}",
                 "mem_reservation": "${APP_MEM_RESERV_MEDIUM}",
@@ -96,7 +104,13 @@
                     "com.centurylinklabs.watchtower.enable=true",
                     "com.centurylinklabs.watchtower.scope=${M4B_WATCHTOWER_SCOPE}"
                 ],
-                "command": "-accept-tos -email=$IPROYALPAWNS_EMAIL -password=$IPROYALPAWNS_PASSWORD -device-name=$DEVICE_NAME -device-id=id_$DEVICE_NAME",
+                "command": [
+                    "-accept-tos",
+                    "-email=${IPROYALPAWNS_EMAIL}",
+                    "-password=${IPROYALPAWNS_PASSWORD}",
+                    "-device-name=${DEVICE_NAME}",
+                    "-device-id=id_${DEVICE_NAME}"
+                ],
                 "restart": "always",
                 "cpus": "${APP_CPU_LIMIT_LITTLE}",
                 "mem_reservation": "${APP_MEM_RESERV_LITTLE}",
@@ -168,7 +182,15 @@
                     "com.centurylinklabs.watchtower.enable=true",
                     "com.centurylinklabs.watchtower.scope=${M4B_WATCHTOWER_SCOPE}"
                 ],
-                "command": "start accept status --token $TRAFFMONETIZER_TOKEN --device-name $DEVICE_NAME",
+                "command": [
+                    "start",
+                    "accept",
+                    "status",
+                    "--token",
+                    "${TRAFFMONETIZER_TOKEN}",
+                    "--device-name",
+                    "${DEVICE_NAME}"
+                ],
                 "restart": "always",
                 "cpus": "${APP_CPU_LIMIT_LITTLE}",
                 "mem_reservation": "${APP_MEM_RESERV_LITTLE}",
