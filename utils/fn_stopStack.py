@@ -217,7 +217,7 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
         missing = check_required_files(
             ["./docker-compose.yaml"],
             error_message="Cannot stop the stack. The following required files are missing:",
-            hint_message="It looks like there is nothing to stop."
+            hint_message="It looks like there is nothing to stop.",
         )
         if missing:
             time.sleep(sleep_time)

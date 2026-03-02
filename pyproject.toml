@@ -15,7 +15,7 @@ dependencies = [
     "psutil"
 ]
 
-[project.optional-dependencies]
+[dependency-groups]
 dev = [
     "ruff>=0.12.0",
     "pytest>=8.0.0",

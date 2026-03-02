@@ -26,9 +26,9 @@ class TestResetConfig(unittest.TestCase):
         dest_path = os.path.join(self.dest_dir, "test-config.json")
 
         reset_config_main(
-            app_config=None,
-            m4b_config=None,
-            user_config=None,
+            app_config_path=None,
+            m4b_config_path=None,
+            user_config_path=None,
             src_path=src_path,
             dest_path=dest_path,
         )
