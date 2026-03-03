@@ -228,12 +228,47 @@ def calculate_subnet(base_subnet: str, base_netmask: int, offset: int) -> str:
     return int_to_ipv4(new_subnet_int)
 
 
+def collect_assigned_ports(user_config: dict[str, Any]) -> set[int]:
+    """
+    Collect already assigned app ports from a user configuration.
+
+    Only ports from enabled apps are considered.
+
+    Args:
+        user_config (dict[str, Any]): The user configuration dictionary.
+
+    Returns:
+        set[int]: Set of already assigned host ports.
+    """
+    used_ports: set[int] = set()
+    apps_config = user_config.get("apps", {})
+    if not isinstance(apps_config, dict):
+        return used_ports
+
+    for app_cfg in apps_config.values():
+        if not isinstance(app_cfg, dict) or not app_cfg.get("enabled", False):
+            continue
+
+        ports_value = app_cfg.get("ports", [])
+        if not isinstance(ports_value, list):
+            ports_value = [ports_value]
+
+        for port in ports_value:
+            try:
+                used_ports.add(int(port))
+            except (TypeError, ValueError):
+                logging.debug(f"Skipping non-numeric port value in config: {port}")
+
+    return used_ports
+
+
 def assign_app_ports(
     app_name: str,
     app: dict[str, Any],
     config: dict[str, Any],
     app_index: int = 0,
     instance_number: int = 0,
+    reserved_ports: set[int] | None = None,
 ) -> list[int]:
     """
     Assign available ports for an app based on its configuration using consistent offset logic.
@@ -253,6 +288,7 @@ def assign_app_ports(
     """
     port_count = len(app["compose_config"]["ports"])
     assigned_ports = []
+    reserved_ports = reserved_ports or set()
 
     # Calculate the base port for this specific app and instance using the unified formula
     base_port_for_app_instance = (
@@ -264,12 +300,14 @@ def assign_app_ports(
     for i in range(port_count):
         # For apps with multiple ports, add a small offset for each additional port
         port_candidate = base_port_for_app_instance + i
+        excluded_ports = assigned_ports + list(reserved_ports)
 
         # Find next available port starting from the calculated candidate
         available_port = find_next_available_port(
-            port_candidate, exclude_ports=assigned_ports
+            port_candidate, exclude_ports=excluded_ports
         )
         assigned_ports.append(available_port)
+        reserved_ports.add(available_port)
 
         # Log the port assignment
         port_placeholder = (
@@ -872,6 +910,22 @@ def setup_multiproxy_instances(
                 f"{Fore.YELLOW}Keeping existing instances alongside new ones.{Style.RESET_ALL}"
             )
 
+    # Keep a global reservation set to avoid collisions with existing/main/new instances.
+    reserved_ports = collect_assigned_ports(user_config)
+
+    for existing_instance in os.listdir(instances_dir):
+        existing_user_cfg = os.path.join(
+            instances_dir, existing_instance, "user-config.json"
+        )
+        if os.path.isfile(existing_user_cfg):
+            try:
+                existing_config = load_json_config(existing_user_cfg)
+                reserved_ports.update(collect_assigned_ports(existing_config))
+            except Exception as e:
+                logging.warning(
+                    f"Failed to preload ports from existing instance '{existing_instance}': {e}"
+                )
+
     for i, proxy in enumerate(proxies):
         logging.info(f"Creating instance {i + 1}/{len(proxies)} with proxy: {proxy}")
         instance_user_config = deepcopy(user_config)
@@ -948,6 +1002,7 @@ def setup_multiproxy_instances(
                             app_config_entry,
                             app_index=port_app_index,
                             instance_number=i + 1,
+                            reserved_ports=reserved_ports,
                         )
                         app_config_entry["ports"] = assigned_ports
                         logging.info(
