@@ -8,7 +8,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from utils.fn_setupApps import assign_app_ports
+from utils.fn_setupApps import assign_app_ports, collect_assigned_ports
 from utils.generator import generate_env_file, substitute_port_placeholders
 
 
@@ -66,6 +66,37 @@ class TestPortLogic(unittest.TestCase):
             self.assertIsInstance(result, list)
             self.assertEqual(len(result), 1)
             self.assertEqual(result[0], 50000)  # Default starting port
+
+    def test_assign_app_ports_respects_reserved_ports(self):
+        """Test assigning ports skips globally reserved ports."""
+        app_name = "wipter"
+        app = {
+            "compose_config": {
+                "ports": ["${WIPTER_PORT_1}:5900", "${WIPTER_PORT_2}:6080"]
+            }
+        }
+        config = {}
+        reserved_ports = {50000, 50001, 50002}
+
+        with patch("utils.fn_setupApps.find_next_available_port") as mock_find_port:
+            mock_find_port.side_effect = lambda x, **kwargs: next(
+                p for p in range(x, 65535) if p not in kwargs.get("exclude_ports", [])
+            )
+
+            result = assign_app_ports(
+                app_name,
+                app,
+                config,
+                app_index=0,
+                instance_number=0,
+                reserved_ports=reserved_ports,
+            )
+
+        # Candidates start at 50000 and 50001, all three (50000-50002) are reserved
+        # so the first available is 50003, then 50004
+        self.assertEqual(result, [50003, 50004])
+        self.assertIn(50003, reserved_ports)
+        self.assertIn(50004, reserved_ports)
 
     def test_substitute_port_placeholders_single(self):
         """Test substituting a single port placeholder."""
@@ -317,6 +348,78 @@ class TestConfigPortFormat(unittest.TestCase):
         self.assertGreaterEqual(port_config["default_port_base"], 1024)
         self.assertGreater(port_config["port_offset_per_app"], 0)
         self.assertGreater(port_config["port_offset_per_instance"], 0)
+
+
+class TestCollectAssignedPorts(unittest.TestCase):
+    """Test suite for collecting assigned app ports."""
+
+    def test_collect_assigned_ports_enabled_apps_only(self):
+        """Only enabled apps' ports are collected; disabled apps are ignored."""
+        user_config = {
+            "apps": {
+                "wipter": {"enabled": True, "ports": [50000, "50001"]},
+                "dawn": {"enabled": True, "ports": 50100},
+                "mystnode": {"enabled": False, "ports": [50200]},
+            }
+        }
+
+        used_ports = collect_assigned_ports(user_config)
+
+        self.assertEqual(used_ports, {50000, 50001, 50100})
+
+    def test_collect_assigned_ports_empty_and_missing(self):
+        """Missing apps key and apps without ports return empty set."""
+        self.assertEqual(collect_assigned_ports({}), set())
+        self.assertEqual(
+            collect_assigned_ports({"apps": {"earnapp": {"enabled": True}}}), set()
+        )
+
+    def test_collect_assigned_ports_invalid_port_values_skipped(self):
+        """Non-numeric port values are skipped gracefully."""
+        user_config = {
+            "apps": {
+                "wipter": {"enabled": True, "ports": [50000, None, "bad"]},
+            }
+        }
+        used_ports = collect_assigned_ports(user_config)
+        self.assertEqual(used_ports, {50000})
+
+    def test_no_cross_instance_collision_with_reserved_ports(self):
+        """Two successive multiproxy instances with shared reserved set don't collide."""
+        app = {
+            "compose_config": {
+                "ports": ["${WIPTER_PORT_1}:5900", "${WIPTER_PORT_2}:6080"]
+            }
+        }
+        # Simulate: main instance already owns 50000, 50001
+        reserved_ports: set = {50000, 50001}
+
+        with patch("utils.fn_setupApps.find_next_available_port") as mock_fp:
+            mock_fp.side_effect = lambda x, **kwargs: next(
+                p for p in range(x, 65535) if p not in kwargs.get("exclude_ports", [])
+            )
+
+            # First proxy instance (instance_number=1, app_index=0)
+            ports_inst1 = assign_app_ports(
+                "wipter", app, {}, app_index=0, instance_number=1,
+                reserved_ports=reserved_ports,
+            )
+            # Second proxy instance (instance_number=2, app_index=0)
+            ports_inst2 = assign_app_ports(
+                "wipter", app, {}, app_index=0, instance_number=2,
+                reserved_ports=reserved_ports,
+            )
+
+        # inst1 and inst2 must each have 2 unique ports
+        self.assertEqual(len(set(ports_inst1)), 2)
+        self.assertEqual(len(set(ports_inst2)), 2)
+        # No overlap between the two instances
+        self.assertFalse(set(ports_inst1) & set(ports_inst2), "instances share a port")
+        # Neither instance may reuse the main instance's ports
+        self.assertNotIn(50000, ports_inst1)
+        self.assertNotIn(50000, ports_inst2)
+        self.assertNotIn(50001, ports_inst1)
+        self.assertNotIn(50001, ports_inst2)
 
 
 if __name__ == "__main__":
