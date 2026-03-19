@@ -11,6 +11,7 @@ from typing import Any
 
 import yaml  # Import PyYAML
 
+from utils import http_client
 from utils.checker import check_img_arch_support, get_compatible_tag
 from utils.dumper import write_json
 from utils.helper import show_spinner
@@ -124,6 +125,8 @@ def assemble_docker_compose(
         m4b_config = load_json_config(m4b_config_path_or_dict)
         app_config = load_json_config(app_config_path_or_dict)
         user_config = load_json_config(user_config_path_or_dict)
+
+        http_client.configure(m4b_config)
 
         default_docker_platform = m4b_config["system"].get(
             "default_docker_platform", "linux/amd64"

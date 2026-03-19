@@ -3,11 +3,13 @@ import logging
 import os
 import re
 import sys
-import urllib.request
 from datetime import datetime
 
+import requests
 from colorama import Fore, Style, just_fix_windows_console
 
+from utils import http_client
+from utils.http_client import get_session
 from utils.loader import load_json_config
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -95,49 +97,48 @@ def get_latest_releases(count: int = 5) -> list[dict]:
     owner = "MRColorR"
     repo = "money4band"
     url = f"https://api.github.com/repos/{owner}/{repo}/releases"
+    session = get_session()
     try:
-        with urllib.request.urlopen(url) as response:
-            data = response.read().decode()
-            releases = json.loads(data)
-            stripped_releases = []
-            for release in releases:
-                if release["prerelease"]:
-                    continue
-                if release["draft"]:
-                    continue
-                name = release["name"]
-                if not name:
-                    name = release["tag_name"]
-                if not name:
-                    continue
-                try:
-                    version = Version.from_string(name)
-                except ValueError:
-                    logging.warning(
-                        f"Skipping release with unparseable version: '{name}'"
-                    )
-                    continue
-                url = release["html_url"]
-                published_at = release["published_at"]
-                published_at = datetime.strptime(published_at, "%Y-%m-%dT%H:%M:%SZ")
-                stripped_releases.append(
-                    {
-                        "name": name,
-                        "version": version,
-                        "url": url,
-                        "published_at": published_at,
-                    }
+        response = session.get(url, timeout=http_client.REQUEST_TIMEOUT)
+        response.raise_for_status()
+        releases = response.json()
+        stripped_releases = []
+        for release in releases:
+            if release["prerelease"] or release["draft"]:
+                continue
+            name = release["name"] or release["tag_name"]
+            if not name:
+                continue
+            try:
+                version = Version.from_string(name)
+            except ValueError:
+                logging.warning(
+                    "Skipping release with unparseable version: '%s'", name
                 )
-            stripped_releases.sort(key=lambda x: x["version"], reverse=True)
-            return stripped_releases[:count]
-    except urllib.error.HTTPError as e:
-        raise Exception(f"Failed to fetch releases. HTTP Error: {e.code}")
-    except urllib.error.URLError as e:
-        raise Exception(f"Failed to fetch releases. URL Error: {e.reason}")
-    except json.JSONDecodeError:
-        raise Exception("Failed to parse JSON response.")
-    except Exception as e:
-        raise Exception(f"An error occurred: {e}")
+                continue
+            published_at = datetime.strptime(
+                release["published_at"], "%Y-%m-%dT%H:%M:%SZ"
+            )
+            stripped_releases.append(
+                {
+                    "name": name,
+                    "version": version,
+                    "url": release["html_url"],
+                    "published_at": published_at,
+                }
+            )
+        stripped_releases.sort(key=lambda x: x["version"], reverse=True)
+        return stripped_releases[:count]
+    except requests.ConnectionError as e:
+        raise RuntimeError(f"Cannot reach GitHub API: {e}") from e
+    except requests.Timeout as e:
+        raise RuntimeError(
+            f"GitHub API timed out after {http_client.REQUEST_TIMEOUT}s"
+        ) from e
+    except requests.HTTPError as e:
+        raise RuntimeError(f"GitHub API HTTP error: {e}") from e
+    except json.JSONDecodeError as e:
+        raise RuntimeError("Failed to parse GitHub API response") from e
 
 
 def check_update_available(m4b_config_path_or_dict: str | dict) -> None:

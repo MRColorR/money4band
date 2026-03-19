@@ -30,23 +30,25 @@ def load_json_config(config_path_or_dict: Any) -> dict[str, Any]:
         # If config is a string, assume it's a file path and load the JSON file
         try:
             with open(config_path_or_dict) as f:
-                logging.debug(f"Loading config from file: {config_path_or_dict}")
+                logging.debug("Loading config from file: %s", config_path_or_dict)
                 content = f.read()
 
             if is_encrypted(content):
-                logging.debug(f"Decrypting encrypted config: {config_path_or_dict}")
+                logging.debug("Decrypting encrypted config: %s", config_path_or_dict)
                 return decrypt_to_dict(content)
 
             return json.loads(content)
         except FileNotFoundError:
-            logging.error(f"Config file {config_path_or_dict} not found.")
+            logging.error("Config file %s not found.", config_path_or_dict)
             raise
         except json.JSONDecodeError:
-            logging.error(f"Error decoding JSON from {config_path_or_dict}")
+            logging.error("Error decoding JSON from %s", config_path_or_dict)
             raise
         except Exception as e:
             logging.error(
-                f"An unexpected error occurred when loading {config_path_or_dict}: {str(e)}"
+                "An unexpected error occurred when loading %s: %s",
+                config_path_or_dict,
+                e,
             )
             raise
     elif isinstance(config_path_or_dict, dict):

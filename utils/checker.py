@@ -5,7 +5,9 @@ import time
 
 import requests
 
+from utils import http_client
 from utils.helper import ensure_service
+from utils.http_client import get_session
 
 # Ensure the parent directory is in the sys.path
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -13,48 +15,53 @@ parent_dir = os.path.dirname(script_dir)
 if parent_dir not in sys.path:
     sys.path.append(parent_dir)
 
-# Store the Docker Hub base URL in a variable
-# This constant stores the base URL for the Docker Hub Registry API.
-# It is used to construct API requests for fetching image tags from Docker Hub.
 DOCKERHUB_BASE_URL = "https://registry.hub.docker.com/v2/"
-
-# Store the GitHub Container Registry base URL in a variable
-# This constant stores the base URL for the GitHub Container Registry (GHCR) API.
-# It is used to construct API requests for fetching image tags from GHCR.
-# Note: GHCR requires authentication (GitHub PAT) for tag compatibility checks.
 GHCR_BASE_URL = "https://ghcr.io/v2/"
 
 
 def fetch_docker_tags(image: str) -> dict | None:
     """
-    Fetch the tags of a Docker image from Docker Hub.
+    Fetch the tags of a Docker image from Docker Hub or GHCR.
+
+    Uses retry-with-backoff for transient network/server errors
+    and a connection timeout to avoid hanging on unresponsive registries.
 
     Args:
         image (str): The name of the Docker image.
 
     Returns:
-        Optional[Dict]: A dictionary containing tag information if successful, None otherwise.
+        dict | None: Tag information if successful, None otherwise.
     """
+    session = get_session()
+    timeout = http_client.REQUEST_TIMEOUT
     try:
-        # Detect GHCR images (ghcr.io/owner/image)
         if image.startswith("ghcr.io/"):
-            # Remove 'ghcr.io/' prefix for API
             ghcr_image = image.replace("ghcr.io/", "")
             url = f"{GHCR_BASE_URL}{ghcr_image}/tags/list"
-            response = requests.get(url)
+            response = session.get(url, timeout=timeout)
             response.raise_for_status()
-            # GHCR returns tags in 'tags' key, but does not provide architecture info
             tags = response.json().get("tags", [])
-            # Return a Docker Hub-like structure for compatibility
             return {"results": [{"name": tag, "images": []} for tag in tags]}
         else:
-            # Docker Hub image (owner/image or library/image)
             url = f"{DOCKERHUB_BASE_URL}repositories/{image}/tags"
-            response = requests.get(url)
+            response = session.get(url, timeout=timeout)
             response.raise_for_status()
             return response.json()
+    except requests.ConnectionError:
+        logging.error(
+            "Cannot reach registry for %s — network may be down. "
+            "Retries exhausted after %s attempts.",
+            image,
+            http_client.MAX_RETRIES,
+        )
+        return None
+    except requests.Timeout:
+        logging.error(
+            "Registry request timed out for %s after %ss.", image, timeout
+        )
+        return None
     except requests.RequestException as e:
-        logging.error(f"Error fetching Docker tags for {image}: {str(e)}")
+        logging.error("Error fetching Docker tags for %s: %s", image, e)
         return None
 
 
@@ -65,29 +72,41 @@ def check_img_arch_support(image: str, tag: str, docker_platform: str) -> bool |
     Args:
         image (str): The name of the Docker image.
         tag (str): The specific tag of the Docker image.
-        docker_platform (str): The docker platform to check for compatibility (e.g., 'linux/arm64').
+        docker_platform (str): The docker platform to check
+            (e.g., 'linux/arm64').
 
     Returns:
         bool | None: True if the architecture is supported, False if not supported,
-                     None if we cannot determine compatibility (e.g., GHCR images without PAT).
+                     None if we cannot determine compatibility (e.g., GHCR images
+                     without PAT, or registry unreachable).
     """
     if image.startswith("ghcr.io/"):
         logging.warning(
-            f"Skipping architecture/tag compatibility check for GHCR image: {image}. (As it would require a GH PAT). Will fallback to default platform for emulation compatibility."
+            "Skipping arch check for GHCR image %s (requires GH PAT). "
+            "Falling back to default platform for emulation.",
+            image,
         )
         print(
-            f"\n[WARNING] Cannot check architecture/tag for GHCR image {image}. (As it would require a GH PAT). Will fallback to default platform (linux/amd64) for emulation compatibility."
+            f"\n[WARNING] Cannot check arch for GHCR image {image} "
+            f"(requires GH PAT). Falling back to linux/amd64 for emulation."
         )
         time.sleep(4)
-        return None  # Return None to indicate we cannot determine compatibility
+        return None
     arch = docker_platform.split("/")[1]
     tags_info = fetch_docker_tags(image)
     if tags_info is None:
-        return False
+        logging.warning(
+            "Cannot reach registry for %s — skipping arch check. "
+            "Docker will attempt to pull at stack start.",
+            image,
+        )
+        return None
 
-    tag_info = next((t for t in tags_info.get("results", []) if t["name"] == tag), None)
+    tag_info = next(
+        (t for t in tags_info.get("results", []) if t["name"] == tag), None
+    )
     if not tag_info:
-        logging.error(f"Tag {tag} not found for image {image}")
+        logging.error("Tag %s not found for image %s", tag, image)
         return False
 
     return any(image_info["architecture"] == arch for image_info in tag_info["images"])
@@ -120,23 +139,24 @@ def get_compatible_tag(image: str, docker_platform: str) -> str | None:
     )
 
     if not compatible_tag:
-        # Construct the path to the docker.binfmt.service file
         service_file_path = os.path.join(
             os.getcwd(), ".resources", ".files", "docker.binfmt.service"
         )
-
-        # Ensure multi-arch emulation support with binfmt if no compatible tag is found
         ensure_service(
             service_name="docker.binfmt", service_file_path=service_file_path
         )
-
-        # Log and inform the user that no compatible tag for the architecture was found
         logging.warning(
-            f"No compatible tag found for {image} on platform {docker_platform}. The software will attempt to run the app using binfmt multi-arch emulation."
+            "No compatible tag found for %s on %s. "
+            "Will attempt binfmt multi-arch emulation.",
+            image,
+            docker_platform,
         )
     else:
         logging.info(
-            f"Found compatible tag {compatible_tag} for {image} on platform {docker_platform}"
+            "Found compatible tag %s for %s on %s",
+            compatible_tag,
+            image,
+            docker_platform,
         )
 
     return compatible_tag

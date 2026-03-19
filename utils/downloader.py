@@ -4,40 +4,42 @@ import os
 
 import requests
 
+from utils import http_client
+from utils.http_client import get_session
+
+# Longer timeout for large file downloads (Docker Desktop ~600 MB)
+_DOWNLOAD_TIMEOUT = 300  # seconds
+
 
 def download_file(url: str, dest_path: str) -> None:
-    """
-    Download a file from a given URL and save it to the specified destination path.
+    """Download a file from *url* and save it to *dest_path*.
 
-    Args:
-        url (str): The URL of the file to download.
-        dest_path (str): The local path where the file will be saved.
+    Uses the shared HTTP session (retry + back-off) from :mod:`utils.http_client`.
+    A generous timeout is applied because some installers are several hundred MB.
 
     Raises:
-        requests.RequestException: If there is an issue with the request.
+        requests.RequestException: On any network / HTTP error.
+        OSError: If writing to *dest_path* fails.
     """
+    session = get_session()
+    timeout = max(_DOWNLOAD_TIMEOUT, http_client.REQUEST_TIMEOUT)
     try:
-        logging.info(f"Starting download from {url}")
-        response = requests.get(url, stream=True)
+        logging.info("Starting download from %s", url)
+        response = session.get(url, stream=True, timeout=timeout)
         response.raise_for_status()
 
-        # Create the directory if it doesn't exist
         os.makedirs(os.path.dirname(dest_path), exist_ok=True)
 
         with open(dest_path, "wb") as file:
             for chunk in response.iter_content(chunk_size=8192):
                 if chunk:
                     file.write(chunk)
-        logging.info(f"File downloaded successfully from {url} to {dest_path}")
+        logging.info("File downloaded successfully from %s to %s", url, dest_path)
     except requests.RequestException as e:
-        logging.error(
-            f"An error occurred while downloading the file from {url}: {str(e)}"
-        )
+        logging.error("Download failed for %s: %s", url, e)
         raise
     except OSError as e:
-        logging.error(
-            f"An error occurred while writing the file to {dest_path}: {str(e)}"
-        )
+        logging.error("Error writing file to %s: %s", dest_path, e)
         raise
 
 

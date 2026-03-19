@@ -32,7 +32,9 @@
       "msys": "Msys",
       "freebsd": "FreeBSD"
     },
-    "default_docker_platform": "linux/amd64"
+    "default_docker_platform": "linux/amd64",
+    "registry_request_timeout": 15,
+    "registry_max_retries": 3
   },
   "watchtower": {
     "enable_labels": true,

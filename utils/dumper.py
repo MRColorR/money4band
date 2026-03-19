@@ -29,9 +29,9 @@ def write_json(data: dict[str, Any], filename: str) -> None:
             with open(filename, "w") as json_file:
                 json.dump(data, json_file, indent=4)
 
-        logging.info(f"Data written to {filename} successfully!")
+        logging.info("Data written to %s successfully!", filename)
     except Exception as e:
-        logging.error(f"Error writing to {filename}: {e}")
+        logging.error("Error writing to %s: %s", filename, e)
         raise
 
 

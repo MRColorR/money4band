@@ -463,11 +463,11 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "colorama" },
-    { name = "cryptography" },
-    { name = "docker" },
-    { name = "psutil" },
-    { name = "pyyaml" },
-    { name = "requests" },
+    { name = "cryptography", specifier = ">=43.0" },
+    { name = "docker", specifier = ">=7.0" },
+    { name = "psutil", specifier = ">=5.9" },
+    { name = "pyyaml", specifier = ">=6.0" },
+    { name = "requests", specifier = ">=2.28" },
 ]
 
 [package.metadata.requires-dev]

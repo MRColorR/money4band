@@ -7,38 +7,38 @@ from utils.downloader import download_file
 
 
 class TestDownloadFile(unittest.TestCase):
-    @patch("utils.downloader.requests.get")
-    def test_download_file_success(self, mock_get):
-        """
-        Test successful download of a file.
-        """
-        # Mock the response
+    @patch("utils.downloader.get_session")
+    def test_download_file_success(self, mock_get_session):
+        """Test successful download of a file."""
         mock_response = MagicMock()
         mock_response.iter_content = lambda chunk_size: [b"test data"]
         mock_response.raise_for_status = MagicMock()
-        mock_get.return_value = mock_response
+        mock_session = MagicMock()
+        mock_session.get.return_value = mock_response
+        mock_get_session.return_value = mock_session
 
-        # Mock the open function
         with patch("builtins.open", mock_open()) as mocked_file:
             download_file("http://example.com/testfile", "/tmp/testfile")
             mocked_file.assert_called_once_with("/tmp/testfile", "wb")
             mocked_file().write.assert_called_once_with(b"test data")
 
+        # Verify timeout was passed
+        _, kwargs = mock_session.get.call_args
+        self.assertIn("timeout", kwargs)
+        self.assertGreaterEqual(kwargs["timeout"], 15)
+
     @patch("utils.downloader.logging.error")
-    @patch("utils.downloader.requests.get")
-    def test_download_file_failure(self, mock_get, mock_logging_error):
-        """
-        Test download failure due to a request exception.
-        """
-        # Mock the response to raise an exception
-        mock_get.side_effect = requests.RequestException("Error")
+    @patch("utils.downloader.get_session")
+    def test_download_file_failure(self, mock_get_session, mock_logging_error):
+        """Test download failure due to a request exception."""
+        mock_session = MagicMock()
+        mock_session.get.side_effect = requests.RequestException("Error")
+        mock_get_session.return_value = mock_session
 
         with self.assertRaises(requests.RequestException):
             download_file("http://example.com/testfile", "/tmp/testfile")
 
-        mock_logging_error.assert_called_once_with(
-            "An error occurred while downloading the file from http://example.com/testfile: Error"
-        )
+        mock_logging_error.assert_called_once()
 
 
 if __name__ == "__main__":
