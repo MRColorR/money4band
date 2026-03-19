@@ -11,6 +11,7 @@ docker-compose.yaml
 *.log
 *.bak
 venv*
+.venv
 tmp/*
 tmp.py
 *.old
@@ -19,3 +20,8 @@ __pycache__
 build
 dist
 *.spec
+
+# Credential / keystore files (Phase 1.1)
+*.keystore
+*.key
+.m4b_secrets/

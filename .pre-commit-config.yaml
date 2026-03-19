@@ -1,0 +1,28 @@
+# Pre-commit hooks for Money4Band
+# Install: pip install pre-commit && pre-commit install
+# Run manually: pre-commit run --all-files
+
+repos:
+  # Built-in credential detection (lightweight, no external deps)
+  - repo: local
+    hooks:
+      - id: check-secrets
+        name: Check for hardcoded credentials
+        entry: python scripts/check-secrets.py
+        language: python
+        pass_filenames: false
+        stages: [pre-commit]
+
+  # Gitleaks — comprehensive secret scanning
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.24.0
+    hooks:
+      - id: gitleaks
+
+  # Ruff — linting and formatting
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.7
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
