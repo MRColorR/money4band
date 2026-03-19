@@ -1,4 +1,5 @@
 colorama
+cryptography
 docker
 requests
 pyyaml

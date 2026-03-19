@@ -12,6 +12,7 @@ from colorama import Fore, Style, just_fix_windows_console
 
 from utils import detector, dumper, loader
 from utils.cls import cls
+from utils.crypto import ensure_config_encrypted
 from utils.fn_reset_config import main as reset_main
 from utils.updater import check_update_available
 
@@ -266,6 +267,9 @@ def main():
             src_path=args.template_user_config_path,
             dest_path=user_config_path,
         )
+
+    # Encrypt user config if it is still plaintext (first-run migration)
+    ensure_config_encrypted(user_config_path)
 
     try:
         mainmenu(

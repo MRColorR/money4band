@@ -9,6 +9,7 @@ authors = [
 requires-python = ">=3.10"
 dependencies = [
     "colorama",
+    "cryptography",
     "docker",
     "requests",
     "pyyaml",

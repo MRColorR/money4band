@@ -25,3 +25,6 @@ dist
 *.keystore
 *.key
 .m4b_secrets/
+
+# Local-only analysis
+docs/*_ANALYSIS.md

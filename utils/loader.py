@@ -5,10 +5,15 @@ import logging
 import os
 from typing import Any
 
+from utils.crypto import decrypt_to_dict, is_encrypted
+
 
 def load_json_config(config_path_or_dict: Any) -> dict[str, Any]:
     """
     Load JSON config variables from a file or dictionary.
+
+    If the file is encrypted (M4B_ENCRYPTED: prefix), it is decrypted
+    transparently before parsing.
 
     Arguments:
     config_path_or_dict -- the config file path or dictionary
@@ -19,14 +24,20 @@ def load_json_config(config_path_or_dict: Any) -> dict[str, Any]:
     Raises:
     FileNotFoundError -- If the config file is not found.
     JSONDecodeError -- If there is an error decoding the JSON file.
-    ValueError -- If the config type is invalid.
+    ValueError -- If the config type is invalid or decryption fails.
     """
     if isinstance(config_path_or_dict, str):
         # If config is a string, assume it's a file path and load the JSON file
         try:
             with open(config_path_or_dict) as f:
                 logging.debug(f"Loading config from file: {config_path_or_dict}")
-                return json.load(f)
+                content = f.read()
+
+            if is_encrypted(content):
+                logging.debug(f"Decrypting encrypted config: {config_path_or_dict}")
+                return decrypt_to_dict(content)
+
+            return json.loads(content)
         except FileNotFoundError:
             logging.error(f"Config file {config_path_or_dict} not found.")
             raise

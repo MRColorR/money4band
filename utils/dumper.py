@@ -4,18 +4,31 @@ import logging
 import os
 from typing import Any
 
+from utils.crypto import encrypt_dict, is_file_encrypted
+
 
 def write_json(data: dict[str, Any], filename: str) -> None:
     """
     Write data to a JSON file.
+
+    If the file already exists and is encrypted, the new data is written
+    back in encrypted form to preserve the encryption state.
 
     Arguments:
     data -- the data to write
     filename -- the file to write the data to
     """
     try:
-        with open(filename, "w") as json_file:
-            json.dump(data, json_file, indent=4)
+        should_encrypt = os.path.isfile(filename) and is_file_encrypted(filename)
+
+        if should_encrypt:
+            encrypted_content = encrypt_dict(data)
+            with open(filename, "w") as f:
+                f.write(encrypted_content)
+        else:
+            with open(filename, "w") as json_file:
+                json.dump(data, json_file, indent=4)
+
         logging.info(f"Data written to {filename} successfully!")
     except Exception as e:
         logging.error(f"Error writing to {filename}: {e}")
