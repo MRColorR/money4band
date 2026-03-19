@@ -28,3 +28,6 @@ dist
 
 # Local-only analysis
 docs/*_ANALYSIS.md
+
+# Local-only development instructions
+.github/copilot-instructions.md
