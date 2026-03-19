@@ -11,6 +11,41 @@ from itertools import cycle
 from colorama import Fore, Style
 
 
+def get_compose_project_name(env_file: str) -> str | None:
+    """
+    Extract the COMPOSE_PROJECT_NAME from an environment file.
+
+    Args:
+        env_file (str): Path to the .env file (or a compose file path,
+                        which is automatically converted to the .env path).
+
+    Returns:
+        str | None: The COMPOSE_PROJECT_NAME value, or None if not found.
+    """
+    # Handle if compose file was passed instead of .env
+    env_file = env_file.replace("docker-compose.yaml", ".env")
+
+    project_name = None
+    try:
+        if os.path.isfile(env_file):
+            with open(env_file) as f:
+                for line in f:
+                    if line.startswith("COMPOSE_PROJECT_NAME="):
+                        project_name = line.strip().split("=", 1)[1]
+                        logging.info(
+                            "Found COMPOSE_PROJECT_NAME in %s: %s",
+                            env_file,
+                            project_name,
+                        )
+                        break
+    except Exception as e:
+        logging.error(
+            "Error reading COMPOSE_PROJECT_NAME from %s: %s", env_file, e
+        )
+
+    return project_name
+
+
 def is_user_root():
     """
     Check if the current user is the root user on Linux.

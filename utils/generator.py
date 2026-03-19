@@ -417,6 +417,10 @@ def assemble_docker_compose(
         }
 
         # Create the compose dictionary
+        # Harden all non-privileged services: prevent setuid/setgid escalation
+        for svc_config in services.values():
+            if not svc_config.get("privileged", False):
+                svc_config.setdefault("security_opt", ["no-new-privileges:true"])
         compose_dict = {"services": services}
 
         # Append network configuration at the bottom

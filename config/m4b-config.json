@@ -15,7 +15,9 @@
       "x86_64": "amd64",
       "amd64": "amd64",
       "aarch64": "arm64",
-      "arm64": "arm64"
+      "arm64": "arm64",
+      "armv7l": "arm/v7",
+      "armv6l": "arm/v6"
     },
     "os_map": {
       "win32nt": "Windows",

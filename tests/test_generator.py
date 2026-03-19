@@ -204,5 +204,39 @@ class TestAssembleDockerComposeWatchtower(unittest.TestCase):
         )
 
 
+class TestContainerSecurityHardening(unittest.TestCase):
+    """Verify no-new-privileges is injected on non-privileged services."""
+
+    def _compose_with_proxy(self, proxy_privileged: bool) -> dict:
+        import copy
+
+        user_cfg = copy.deepcopy(_USER_CFG_BASE)
+        user_cfg["proxies"]["enabled"] = True
+        if proxy_privileged:
+            user_cfg["compose_config_common"]["proxy_service"]["privileged"] = True
+
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".yaml") as f:
+            compose_path = f.name
+        try:
+            assemble_docker_compose(
+                _M4B_CFG, _APP_CFG, user_cfg, compose_path, is_main_instance=True
+            )
+            with open(compose_path) as f:
+                return yaml.safe_load(f) or {}
+        finally:
+            if os.path.exists(compose_path):
+                os.unlink(compose_path)
+
+    def test_nonprivileged_services_get_no_new_privileges(self):
+        doc = self._compose_with_proxy(proxy_privileged=False)
+        wt = doc["services"]["watchtower"]
+        self.assertEqual(wt.get("security_opt"), ["no-new-privileges:true"])
+
+    def test_privileged_service_skips_no_new_privileges(self):
+        doc = self._compose_with_proxy(proxy_privileged=True)
+        proxy = doc["services"]["proxy"]
+        self.assertNotIn("security_opt", proxy)
+
+
 if __name__ == "__main__":
     unittest.main()
