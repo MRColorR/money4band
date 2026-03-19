@@ -60,7 +60,7 @@ _USER_CFG_BASE = {
         "watchtower_service": {
             "proxy_disabled": {
                 "container_name": "${DEVICE_NAME}_watchtower",
-                "image": "nickfedor/watchtower:latest",
+                "image": "nickfedor/watchtower:1.14",
                 "environment": ["WATCHTOWER_SCOPE=${M4B_WATCHTOWER_SCOPE}"],
                 "labels": ["com.centurylinklabs.watchtower.enable=true"],
                 "volumes": ["/var/run/docker.sock:/var/run/docker.sock"],
@@ -68,7 +68,7 @@ _USER_CFG_BASE = {
             },
             "proxy_enabled": {
                 "container_name": "${DEVICE_NAME}_watchtower",
-                "image": "nickfedor/watchtower:latest",
+                "image": "nickfedor/watchtower:1.14",
                 "environment": ["WATCHTOWER_SCOPE=${M4B_WATCHTOWER_SCOPE}"],
                 "labels": ["com.centurylinklabs.watchtower.enable=true"],
                 "volumes": ["/var/run/docker.sock:/var/run/docker.sock"],
@@ -77,12 +77,12 @@ _USER_CFG_BASE = {
         },
         "m4b_dashboard_service": {
             "container_name": "${DEVICE_NAME}_m4b_dashboard",
-            "image": "nginx:alpine-slim",
+            "image": "nginx:1.28-alpine-slim",
             "restart": "always",
         },
         "proxy_service": {
             "container_name": "${DEVICE_NAME}_proxy",
-            "image": "xjasonlyu/tun2socks",
+            "image": "xjasonlyu/tun2socks:v2.6.0",
             "restart": "always",
         },
     },
@@ -166,7 +166,7 @@ class TestAssembleDockerComposeWatchtower(unittest.TestCase):
         user_cfg = copy.deepcopy(_USER_CFG_BASE)
         user_cfg["compose_config_common"]["watchtower_service"]["proxy_disabled"] = {
             "container_name": "${DEVICE_NAME}_watchtower",
-            "image": "nickfedor/watchtower:latest",
+            "image": "nickfedor/watchtower:1.14",
             # intentionally missing WATCHTOWER_SCOPE env and scope label
             "environment": ["WATCHTOWER_CLEANUP=true"],
             "labels": ["com.centurylinklabs.watchtower.enable=true"],
