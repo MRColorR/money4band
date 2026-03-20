@@ -41,7 +41,7 @@ _M4B_CFG = {
     "watchtower": {"enable_labels": True, "scope": "money4band"},
 }
 
-_APP_CFG = {"apps": [], "extra-apps": []}
+_APP_CFG = {"apps": {"active": True, "entries": []}}
 
 _USER_CFG_BASE = {
     "device_info": {"device_name": "testdev"},
@@ -432,7 +432,7 @@ class TestProxyDependsOn(unittest.TestCase):
         import copy
         from unittest.mock import patch
 
-        app_cfg = {"apps": [self._PROXY_APP], "extra-apps": []}
+        app_cfg = {"apps": {"active": True, "entries": [self._PROXY_APP]}}
         user_cfg = copy.deepcopy(_USER_CFG_BASE)
         user_cfg["proxies"]["enabled"] = proxy_enabled
         user_cfg["apps"] = {"testapp": {"enabled": True}}

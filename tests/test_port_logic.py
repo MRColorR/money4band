@@ -167,7 +167,7 @@ class TestPortLogic(unittest.TestCase):
         }
 
         app_config = {
-            "apps": [
+            "apps": {"active": True, "entries": [
                 {
                     "name": "DAWN",
                     "flags": {"email": {}, "password": {}},
@@ -180,7 +180,7 @@ class TestPortLogic(unittest.TestCase):
                         "ports": ["${WIPTER_PORT_1}:5900", "${WIPTER_PORT_2}:6080"]
                     },
                 },
-            ]
+            ]}
         }
 
         user_config = {
@@ -236,7 +236,7 @@ class TestPortLogic(unittest.TestCase):
             "system": {},
             "watchtower": {"enable_labels": False, "scope": "custom-scope"},
         }
-        app_config = {"apps": []}
+        app_config = {"apps": {"active": True, "entries": []}}
         user_config = {
             "device_info": {"device_name": "testdev"},
             "resource_limits": {},

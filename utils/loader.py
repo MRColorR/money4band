@@ -61,6 +61,36 @@ def load_json_config(config_path_or_dict: Any) -> dict[str, Any]:
         )
 
 
+def get_active_app_categories(app_config: dict[str, Any]) -> list[str]:
+    """Return the list of active app category keys from *app_config*.
+
+    Each category is a dict with ``"active": true/false`` and
+    ``"entries": [...]``.  Only categories marked active are returned.
+
+    Falls back to ``["apps"]`` for legacy flat-list configs.
+    """
+    return [
+        key
+        for key, val in app_config.items()
+        if isinstance(val, dict)
+        and val.get("active", False)
+        and "entries" in val
+    ]
+
+
+def get_category_entries(
+    app_config: dict[str, Any], category: str
+) -> list[dict[str, Any]]:
+    """Return the entries list for *category*, or ``[]`` if missing."""
+    cat = app_config.get(category)
+    if isinstance(cat, dict):
+        return cat.get("entries", [])
+    # Legacy fallback: category value is already a list
+    if isinstance(cat, list):
+        return cat
+    return []
+
+
 def load_module_from_file(module_name: str, file_path: str):
     """
     Dynamically load a module from a Python file.

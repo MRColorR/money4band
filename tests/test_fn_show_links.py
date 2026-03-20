@@ -18,7 +18,7 @@ class TestFnShowLinks(unittest.TestCase):
 
         # Prepare app_config sample data
         app_config = {
-            "apps": [
+            "apps": {"active": True, "entries": [
                 {
                     "name": "EARNAPP",
                     "dashboard": "https://earnapp.com/dashboard",
@@ -41,21 +41,19 @@ class TestFnShowLinks(unittest.TestCase):
                     "image": "mrcolorrain/grass",
                     "flags": {"--email": {}, "--password": {}},
                 },
-            ],
-            "extra-apps": [
                 {
                     "name": "MYSTNODE",
+                    "manual_onboard": True,
                     "dashboard": "https://mystnodes.com/nodes",
                     "link": "https://mystnodes.co/?referral_code=Tc7RaS7Fm12K3Xun6mlU9q9hbnjojjl9aRBW8ZA9",
                     "image": "mysteriumnetwork/myst",
                     "flags": {
                         "--manual": {
-                            "instructions": "Log into your device's mystnode local webdashboard, navigate to the Myst Node page and follow the onscreen instruction to complete the setup.\n\nDisclaimer: If you want to further optimize UPnP and port forwarding, consider setting manually 'network: host' for mystnode in your Docker compose. This may improve mystnode performance, but do this only if you know what you are doing and you are aware of potential security implications."
+                            "instructions": "Log into your device's mystnode local webdashboard..."
                         }
                     },
-                }
-            ],
-            "removed-apps": [],
+                },
+            ]},
         }
 
         # Call the function
@@ -79,7 +77,6 @@ class TestFnShowLinks(unittest.TestCase):
             "GRASS: https://app.getgrass.io/register/?referralCode=qyvJmxgNUhcLo2f",
             clean_printed_output,
         )
-        self.assertIn("---EXTRA-APPS---", clean_printed_output)
         self.assertIn(
             "MYSTNODE: https://mystnodes.co/?referral_code=Tc7RaS7Fm12K3Xun6mlU9q9hbnjojjl9aRBW8ZA9",
             clean_printed_output,

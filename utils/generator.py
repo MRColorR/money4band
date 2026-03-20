@@ -15,7 +15,7 @@ from utils import http_client
 from utils.checker import check_img_arch_support, get_compatible_tag
 from utils.dumper import write_json
 from utils.helper import show_spinner
-from utils.loader import load_json_config
+from utils.loader import get_active_app_categories, get_category_entries, load_json_config
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(script_dir)
@@ -135,11 +135,7 @@ def assemble_docker_compose(
 
         services = {}
         disabled_apps_due_to_incompatibility = []
-        apps_categories = ["apps"]
-        # Overrides extra apps exclusion from m4b proxies instances
-        apps_categories.append("extra-apps")
-        if is_main_instance:
-            apps_categories.append("extra-apps")
+        apps_categories = get_active_app_categories(app_config)
 
         # Collect ports for proxy service if proxy is enabled
         proxy_ports = []
@@ -147,7 +143,7 @@ def assemble_docker_compose(
         app_ports_transferred = {}
 
         for category in apps_categories:
-            for app in app_config.get(category, []):
+            for app in get_category_entries(app_config, category):
                 app_name = app["name"].lower()
                 user_app_config = user_config["apps"].get(app_name, {})
                 if user_app_config.get("enabled"):
@@ -584,11 +580,9 @@ def generate_env_file(
         env_lines.append(f"M4B_WATCHTOWER_SCOPE={watchtower_scope}")
 
         # Add app-specific configurations only if the app is enabled
-        apps_categories = ["apps"]
-        if is_main_instance:
-            apps_categories.append("extra-apps")
+        apps_categories = get_active_app_categories(app_config)
         for category in apps_categories:
-            for app in app_config.get(category, []):
+            for app in get_category_entries(app_config, category):
                 app_name = app["name"].upper()
                 app_lower = app["name"].lower()
                 app_flags = app.get("flags", {})
@@ -779,12 +773,11 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
 
     # Count enabled apps
     enabled = []
-    for cat in ["apps", "extra-apps"]:
-        apps = user_config.get(cat, {})
-        if isinstance(apps, dict):
-            for name, cfg in apps.items():
-                if isinstance(cfg, dict) and cfg.get("enabled"):
-                    enabled.append(name)
+    apps = user_config.get("apps", {})
+    if isinstance(apps, dict):
+        for name, cfg in apps.items():
+            if isinstance(cfg, dict) and cfg.get("enabled"):
+                enabled.append(name)
     print(
         f"  Enabled Apps ({len(enabled)}): {', '.join(enabled) if enabled else 'None'}"
     )
