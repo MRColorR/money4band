@@ -61,6 +61,23 @@ def load_json_config(config_path_or_dict: Any) -> dict[str, Any]:
         )
 
 
+def get_all_app_categories(app_config: dict[str, Any]) -> list[str]:
+    """Return *all* category keys that carry an ``entries`` list."""
+    return [
+        key
+        for key, val in app_config.items()
+        if isinstance(val, dict) and "entries" in val
+    ]
+
+
+def is_category_active(app_config: dict[str, Any], category: str) -> bool:
+    """Return whether *category* is marked active."""
+    cat = app_config.get(category)
+    if isinstance(cat, dict):
+        return cat.get("active", False)
+    return False
+
+
 def get_active_app_categories(app_config: dict[str, Any]) -> list[str]:
     """Return the list of active app category keys from *app_config*.
 

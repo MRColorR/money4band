@@ -11,12 +11,12 @@ class TestFnShowLinks(unittest.TestCase):
     @patch("utils.fn_show_links.input", create=True)
     def test_fn_show_links(self, mock_input, mock_cls, mock_print):
         """
-        Test fn_show_links function.
+        Test fn_show_links function shows active and inactive categories.
         """
         # Mock input to avoid waiting for user input
         mock_input.return_value = ""
 
-        # Prepare app_config sample data
+        # Prepare app_config sample data with active + removed categories
         app_config = {
             "apps": {"active": True, "entries": [
                 {
@@ -35,13 +35,6 @@ class TestFnShowLinks(unittest.TestCase):
                     "flags": {"--email": {}, "--password": {}},
                 },
                 {
-                    "name": "GRASS",
-                    "dashboard": "https://app.getgrass.io/dashboard",
-                    "link": "https://app.getgrass.io/register/?referralCode=qyvJmxgNUhcLo2f",
-                    "image": "mrcolorrain/grass",
-                    "flags": {"--email": {}, "--password": {}},
-                },
-                {
                     "name": "MYSTNODE",
                     "manual_onboard": True,
                     "dashboard": "https://mystnodes.com/nodes",
@@ -54,33 +47,50 @@ class TestFnShowLinks(unittest.TestCase):
                     },
                 },
             ]},
+            "removed-apps": {"active": False, "entries": [
+                {
+                    "name": "GRASS",
+                    "removal_reason": "Docker image unavailability",
+                    "dashboard": "https://app.getgrass.io/dashboard",
+                    "link": "https://app.getgrass.io/register/?referralCode=qyvJmxgNUhcLo2f",
+                    "image": "mrcolorrain/grass",
+                    "flags": {"--email": {}, "--password": {}},
+                },
+            ]},
         }
 
         # Call the function
         fn_show_links(app_config)
 
         # Collect printed lines from mock_print
-        printed_lines = [call.args[0] for call in mock_print.call_args_list]
+        printed_lines = [
+            call.args[0] if call.args else ""
+            for call in mock_print.call_args_list
+        ]
         printed_output = "\n".join(printed_lines)
 
         # Remove ANSI escape codes from printed output
         ansi_escape = re.compile(r"\x1b\[([0-9;]*m)")
         clean_printed_output = ansi_escape.sub("", printed_output)
 
-        # Assertions to check if the output contains the expected strings
-        self.assertIn("---APPS---", clean_printed_output)
+        # Active category assertions
+        self.assertIn("--- APPS [ACTIVE] ---", clean_printed_output)
         self.assertIn("EARNAPP: https://earnapp.com/i/3zulx7k", clean_printed_output)
         self.assertIn(
             "HONEYGAIN: https://r.honeygain.me/MINDL15721", clean_printed_output
         )
         self.assertIn(
-            "GRASS: https://app.getgrass.io/register/?referralCode=qyvJmxgNUhcLo2f",
-            clean_printed_output,
-        )
-        self.assertIn(
             "MYSTNODE: https://mystnodes.co/?referral_code=Tc7RaS7Fm12K3Xun6mlU9q9hbnjojjl9aRBW8ZA9",
             clean_printed_output,
         )
+
+        # Removed category assertions — header + removal reason
+        self.assertIn("--- REMOVED-APPS [INACTIVE] ---", clean_printed_output)
+        self.assertIn(
+            "GRASS: https://app.getgrass.io/register/?referralCode=qyvJmxgNUhcLo2f",
+            clean_printed_output,
+        )
+        self.assertIn("(Docker image unavailability)", clean_printed_output)
 
     @patch("utils.fn_show_links.logging.error")
     def test_fn_show_links_exception(self, mock_logging_error):
