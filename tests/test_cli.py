@@ -195,7 +195,7 @@ class TestHandlerArguments:
         assert u.endswith("user-config.json")
 
     def test_links_passes_apps_m4b_user_paths(self, monkeypatch, tmp_path):
-        captured = _capture_module_call(monkeypatch, "utils.fn_show_links")
+        captured = _capture_module_call(monkeypatch, "utils.fn_app_catalog")
         from main import _cmd_links
         _cmd_links(_make_args(tmp_path, "links"))
 
@@ -282,7 +282,7 @@ class TestAutoBackup:
         assert not result["yes"], "stop must NOT auto-backup"
 
     def test_links_does_not_trigger_auto_backup(self, monkeypatch, tmp_path):
-        result = self._run_handler(monkeypatch, tmp_path, "_cmd_links", "utils.fn_show_links")
+        result = self._run_handler(monkeypatch, tmp_path, "_cmd_links", "utils.fn_app_catalog")
         assert not result["yes"], "links must NOT auto-backup"
 
 

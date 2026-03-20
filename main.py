@@ -307,7 +307,7 @@ def _cmd_generate(args) -> None:
 def _cmd_links(args) -> None:
     """Show app dashboard and referral links."""
     m4b_config_path, apps_config_path, user_config_path = _resolve_paths(args)
-    from utils.fn_show_links import main as links_main
+    from utils.fn_app_catalog import main as links_main
 
     links_main(apps_config_path, m4b_config_path, user_config_path)
 

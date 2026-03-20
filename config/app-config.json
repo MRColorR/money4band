@@ -1,6 +1,6 @@
 {
     "app_config_version": 1.2,
-    "apps": {
+    "supported-apps": {
         "active": true,
         "entries": [
             {
@@ -565,7 +565,7 @@
             }
         }
     ]},
-    "removed-apps": {
+    "unsupported-apps": {
         "active": false,
         "entries": [
         {

@@ -84,7 +84,7 @@ def get_active_app_categories(app_config: dict[str, Any]) -> list[str]:
     Each category is a dict with ``"active": true/false`` and
     ``"entries": [...]``.  Only categories marked active are returned.
 
-    Falls back to ``["apps"]`` for legacy flat-list configs.
+    Falls back to ``["supported-apps"]`` for legacy flat-list configs.
     """
     return [
         key

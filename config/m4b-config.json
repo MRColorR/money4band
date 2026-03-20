@@ -44,8 +44,8 @@
   },
   "menu": [
     {
-      "label": "Show supported apps' links",
-      "function": "fn_show_links"
+      "label": "App Catalog & Links",
+      "function": "fn_app_catalog"
     },
     {
       "label": "Install Docker",

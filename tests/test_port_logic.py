@@ -167,7 +167,7 @@ class TestPortLogic(unittest.TestCase):
         }
 
         app_config = {
-            "apps": {"active": True, "entries": [
+            "supported-apps": {"active": True, "entries": [
                 {
                     "name": "DAWN",
                     "flags": {"email": {}, "password": {}},
@@ -236,7 +236,7 @@ class TestPortLogic(unittest.TestCase):
             "system": {},
             "watchtower": {"enable_labels": False, "scope": "custom-scope"},
         }
-        app_config = {"apps": {"active": True, "entries": []}}
+        app_config = {"supported-apps": {"active": True, "entries": []}}
         user_config = {
             "device_info": {"device_name": "testdev"},
             "resource_limits": {},
