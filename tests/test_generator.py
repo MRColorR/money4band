@@ -237,6 +237,81 @@ class TestContainerSecurityHardening(unittest.TestCase):
         proxy = doc["services"]["proxy"]
         self.assertNotIn("security_opt", proxy)
 
+    def test_watchtower_read_only(self):
+        doc = self._compose_with_proxy(proxy_privileged=False)
+        wt = doc["services"]["watchtower"]
+        self.assertTrue(wt.get("read_only"))
+
+
+class TestNotificationEnvStripping(unittest.TestCase):
+    """KI-032: WATCHTOWER_NOTIFICATION_URL stripped when notifications disabled."""
+
+    def _compose_notify(self, notifications_enabled: bool) -> dict:
+        import copy
+
+        user_cfg = copy.deepcopy(_USER_CFG_BASE)
+        user_cfg["notifications"]["enabled"] = notifications_enabled
+        # Add notification URL env to watchtower template
+        wt = user_cfg["compose_config_common"]["watchtower_service"]["proxy_disabled"]
+        wt["environment"].append(
+            "WATCHTOWER_NOTIFICATION_URL=${WATCHTOWER_NOTIFICATION_URL}"
+        )
+
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".yaml") as f:
+            compose_path = f.name
+        try:
+            assemble_docker_compose(
+                _M4B_CFG, _APP_CFG, user_cfg, compose_path, is_main_instance=True
+            )
+            with open(compose_path) as f:
+                return yaml.safe_load(f) or {}
+        finally:
+            if os.path.exists(compose_path):
+                os.unlink(compose_path)
+
+    def test_notification_env_stripped_when_disabled(self):
+        doc = self._compose_notify(notifications_enabled=False)
+        wt_env = doc["services"]["watchtower"].get("environment", [])
+        self.assertFalse(
+            any("WATCHTOWER_NOTIFICATION_URL" in e for e in wt_env),
+            "WATCHTOWER_NOTIFICATION_URL should be stripped when notifications disabled",
+        )
+
+    def test_notification_env_kept_when_enabled(self):
+        doc = self._compose_notify(notifications_enabled=True)
+        wt_env = doc["services"]["watchtower"].get("environment", [])
+        self.assertTrue(
+            any("WATCHTOWER_NOTIFICATION_URL" in e for e in wt_env),
+            "WATCHTOWER_NOTIFICATION_URL should be kept when notifications enabled",
+        )
+
+
+class TestDashboardHardening(unittest.TestCase):
+    """Verify nginx dashboard gets read_only + tmpfs."""
+
+    def test_dashboard_read_only_with_tmpfs(self):
+        import copy
+
+        user_cfg = copy.deepcopy(_USER_CFG_BASE)
+        user_cfg["m4b_dashboard"]["enabled"] = True
+
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".yaml") as f:
+            compose_path = f.name
+        try:
+            assemble_docker_compose(
+                _M4B_CFG, _APP_CFG, user_cfg, compose_path, is_main_instance=True
+            )
+            with open(compose_path) as f:
+                doc = yaml.safe_load(f) or {}
+        finally:
+            if os.path.exists(compose_path):
+                os.unlink(compose_path)
+
+        dash = doc["services"]["m4bwebdashboard"]
+        self.assertTrue(dash.get("read_only"))
+        self.assertIn("/var/cache/nginx", dash.get("tmpfs", []))
+        self.assertIn("/run", dash.get("tmpfs", []))
+
 
 if __name__ == "__main__":
     unittest.main()

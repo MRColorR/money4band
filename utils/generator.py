@@ -306,6 +306,11 @@ def assemble_docker_compose(
         if is_main_instance:
             watchtower_enabled = user_config.get("watchtower", {}).get("enabled", True)
             if watchtower_enabled:
+                # KI-024: proxy_disabled uses ROLLING_RESTART=true, proxy_enabled
+                # uses false.  This is intentional: in proxy mode all app containers
+                # depend on tun2socks' network stack (network_mode: service:proxy).
+                # Rolling-restarting tun2socks would silently break every app's
+                # connectivity, so we force a clean stop-all/start-all cycle instead.
                 watchtower_service_key = (
                     "proxy_enabled" if proxy_enabled else "proxy_disabled"
                 )
@@ -333,13 +338,30 @@ def assemble_docker_compose(
                 if scope_label not in wt_labels:
                     wt_labels.append(scope_label)
                     logging.info("Enforced missing Watchtower scope label")
+                # KI-032: Strip notification env var when notifications disabled
+                # to prevent Docker Compose WARN spam about unset variables.
+                notifications_enabled = user_config.get("notifications", {}).get(
+                    "enabled", False
+                )
+                if not notifications_enabled:
+                    wt_env[:] = [
+                        e
+                        for e in wt_env
+                        if not e.startswith("WATCHTOWER_NOTIFICATION_")
+                    ]
+                # Watchtower only reads config, never writes — safe to lock filesystem
+                watchtower_service.setdefault("read_only", True)
                 services["watchtower"] = watchtower_service
             # Only add m4bwebdashboard if dashboard is enabled
             m4b_dashboard_config = user_config.get("m4b_dashboard", {})
             if m4b_dashboard_config.get("enabled", False):
-                services["m4bwebdashboard"] = compose_config_common[
+                dashboard_service = compose_config_common[
                     "m4b_dashboard_service"
-                ]
+                ].copy()
+                # nginx serves static files — safe to lock root filesystem
+                dashboard_service.setdefault("read_only", True)
+                dashboard_service.setdefault("tmpfs", ["/var/cache/nginx", "/run"])
+                services["m4bwebdashboard"] = dashboard_service
 
         if proxy_enabled:
             # Get the base proxy service configuration
