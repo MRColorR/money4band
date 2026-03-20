@@ -565,7 +565,7 @@
             }
         }
     ]},
-    "unsupported-apps": {
+    "deprecated-apps": {
         "active": false,
         "entries": [
         {

@@ -47,7 +47,7 @@ class TestFnAppCatalog(unittest.TestCase):
                     },
                 },
             ]},
-            "unsupported-apps": {"active": False, "entries": [
+            "deprecated-apps": {"active": False, "entries": [
                 {
                     "name": "GRASS",
                     "removal_reason": "Docker image unavailability",
@@ -85,7 +85,7 @@ class TestFnAppCatalog(unittest.TestCase):
         )
 
         # Removed category assertions — header + removal reason
-        self.assertIn("--- UNSUPPORTED-APPS [INACTIVE] ---", clean_printed_output)
+        self.assertIn("--- DEPRECATED-APPS [DEPRECATED] ---", clean_printed_output)
         self.assertIn(
             "GRASS: https://app.getgrass.io/register/?referralCode=qyvJmxgNUhcLo2f",
             clean_printed_output,
