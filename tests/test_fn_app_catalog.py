@@ -85,7 +85,7 @@ class TestFnAppCatalog(unittest.TestCase):
         )
 
         # Removed category assertions — header + removal reason
-        self.assertIn("--- DEPRECATED-APPS [DEPRECATED] ---", clean_printed_output)
+        self.assertIn("--- DEPRECATED-APPS [INACTIVE] ---", clean_printed_output)
         self.assertIn(
             "GRASS: https://app.getgrass.io/register/?referralCode=qyvJmxgNUhcLo2f",
             clean_printed_output,

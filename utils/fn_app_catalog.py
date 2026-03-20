@@ -36,7 +36,7 @@ def _display_catalog(app_config: dict) -> None:
             continue
 
         active = is_category_active(app_config, category)
-        status = f"{Fore.GREEN}ACTIVE{Style.RESET_ALL}" if active else f"{Fore.RED}DEPRECATED{Style.RESET_ALL}"
+        status = f"{Fore.GREEN}ACTIVE{Style.RESET_ALL}" if active else f"{Fore.RED}INACTIVE{Style.RESET_ALL}"
         print(f"{Back.YELLOW}--- {category.upper()} [{status}{Back.YELLOW}] ---{Back.RESET}")
 
         for app in apps:
@@ -58,7 +58,7 @@ def _manage_categories(app_config: dict, app_config_path: str | None) -> None:
     print(f"\n{Fore.CYAN}=== Manage Category Status ==={Style.RESET_ALL}")
     for idx, cat in enumerate(all_cats, 1):
         active = is_category_active(app_config, cat)
-        badge = f"{Fore.GREEN}ACTIVE{Style.RESET_ALL}" if active else f"{Fore.RED}DEPRECATED{Style.RESET_ALL}"
+        badge = f"{Fore.GREEN}ACTIVE{Style.RESET_ALL}" if active else f"{Fore.RED}INACTIVE{Style.RESET_ALL}"
         count = len(get_category_entries(app_config, cat))
         print(f"  {idx}. {cat} [{badge}] ({count} apps)")
 
@@ -83,7 +83,7 @@ def _manage_categories(app_config: dict, app_config_path: str | None) -> None:
     new_status = not old_status
     app_config[cat_key]["active"] = new_status
 
-    new_badge = f"{Fore.GREEN}ACTIVE{Style.RESET_ALL}" if new_status else f"{Fore.RED}DEPRECATED{Style.RESET_ALL}"
+    new_badge = f"{Fore.GREEN}ACTIVE{Style.RESET_ALL}" if new_status else f"{Fore.RED}INACTIVE{Style.RESET_ALL}"
     print(f"\n{cat_key} is now [{new_badge}]")
 
     if app_config_path:
