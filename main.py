@@ -2,6 +2,7 @@ import argparse
 import locale
 import logging
 import os
+import subprocess
 
 # Ensure the parent directory is in the sys.path
 import sys
@@ -11,6 +12,7 @@ from logging.handlers import RotatingFileHandler
 from colorama import Fore, Style, just_fix_windows_console
 
 from utils import detector, dumper, loader
+from utils.backup import cleanup_backups, create_backup, list_backups, restore_backup
 from utils.cls import cls
 from utils.crypto import ensure_config_encrypted
 from utils.fn_reset_config import main as reset_main
@@ -32,6 +34,38 @@ if parent_dir not in sys.path:
     sys.path.append(parent_dir)
 
 # Import the module from the parent directory
+
+
+# ---------------------------------------------------------------------------
+# Shared helpers
+# ---------------------------------------------------------------------------
+
+
+def _resolve_paths(args):
+    """Compute the three config paths + utils dir from parsed args."""
+    m4b_config_path = os.path.join(args.config_dir, args.config_m4b_file)
+    apps_config_path = os.path.join(args.config_dir, args.config_app_file)
+    user_config_path = os.path.join(args.config_dir, args.config_usr_file)
+    return m4b_config_path, apps_config_path, user_config_path
+
+
+def _ensure_user_config(args, user_config_path: str) -> None:
+    """Create user config from template if missing, then encrypt if needed."""
+    if not os.path.exists(user_config_path):
+        logging.info("User config not found. Resetting from template...")
+        reset_main(
+            app_config_path=None,
+            m4b_config_path=None,
+            user_config_path=user_config_path,
+            src_path=args.template_user_config_path,
+            dest_path=user_config_path,
+        )
+    ensure_config_encrypted(user_config_path)
+
+
+# ---------------------------------------------------------------------------
+# Interactive menu (default when no subcommand given)
+# ---------------------------------------------------------------------------
 
 
 def mainmenu(
@@ -168,17 +202,202 @@ def mainmenu(
             raise
 
 
-def main():
-    # Use the global BASE_DIR for PyInstaller compatibility
-    script_dir = BASE_DIR
-    script_name = (
-        os.path.basename(__file__)
-        if not getattr(sys, "frozen", False)
-        else "Money4Band"
+# ---------------------------------------------------------------------------
+# Subcommand handlers
+# ---------------------------------------------------------------------------
+
+
+def _cmd_menu(args) -> None:
+    """Launch the interactive menu (default behaviour)."""
+    m4b_config_path, apps_config_path, user_config_path = _resolve_paths(args)
+    _ensure_user_config(args, user_config_path)
+    mainmenu(
+        m4b_config_path=m4b_config_path,
+        apps_config_path=apps_config_path,
+        user_config_path=user_config_path,
+        utils_dir_path=args.utils_dir,
     )
 
-    # Parse command-line arguments
-    parser = argparse.ArgumentParser(description="Run the script.")
+
+def _auto_backup(user_config_path: str) -> None:
+    """Create a backup before destructive operations (best-effort)."""
+    try:
+        if os.path.isfile(user_config_path):
+            create_backup(user_config_path)
+            cleanup_backups()
+    except Exception:
+        logging.warning("Auto-backup failed", exc_info=True)
+
+
+def _cmd_setup(args) -> None:
+    """Run the interactive setup wizard."""
+    m4b_config_path, apps_config_path, user_config_path = _resolve_paths(args)
+    _ensure_user_config(args, user_config_path)
+    _auto_backup(user_config_path)
+    from utils.fn_setupApps import main as setup_main
+
+    setup_main(apps_config_path, m4b_config_path, user_config_path)
+
+
+def _cmd_start(args) -> None:
+    """Start the Docker Compose stack."""
+    m4b_config_path, apps_config_path, user_config_path = _resolve_paths(args)
+    _ensure_user_config(args, user_config_path)
+    from utils.fn_startStack import main as start_main
+
+    start_main(apps_config_path, m4b_config_path, user_config_path)
+
+
+def _cmd_stop(args) -> None:
+    """Stop the Docker Compose stack."""
+    m4b_config_path, apps_config_path, user_config_path = _resolve_paths(args)
+    _ensure_user_config(args, user_config_path)
+    from utils.fn_stopStack import main as stop_main
+
+    stop_main(apps_config_path, m4b_config_path, user_config_path)
+
+
+def _cmd_status(args) -> None:
+    """Show running containers and health status."""
+    from utils.helper import get_compose_project_name
+
+    m4b_config_path, apps_config_path, user_config_path = _resolve_paths(args)
+    _ensure_user_config(args, user_config_path)
+
+    compose_file = os.path.join(BASE_DIR, "docker-compose.yaml")
+    env_file = os.path.join(BASE_DIR, ".env")
+
+    if not os.path.isfile(compose_file):
+        print(
+            f"{Fore.YELLOW}No docker-compose.yaml found. "
+            f"Run 'setup' or 'generate' first.{Style.RESET_ALL}"
+        )
+        return
+
+    cmd = ["docker", "compose"]
+    if os.path.isfile(env_file):
+        project_name = get_compose_project_name(env_file)
+        if project_name:
+            cmd.extend(["-p", project_name])
+    cmd.extend(["-f", compose_file])
+    # Show ALL services (including profiled infrastructure) for visibility.
+    for profile in ("monitoring", "dashboard", "proxy"):
+        cmd.extend(["--profile", profile])
+    cmd.extend(["ps", "--format", "table"])
+
+    just_fix_windows_console()
+    print(f"{Fore.GREEN}--- M4B Stack Status ---{Style.RESET_ALL}")
+    result = subprocess.run(cmd, capture_output=True, text=True)  # noqa: S603
+    if result.returncode == 0:
+        print(result.stdout)
+    else:
+        print(f"{Fore.RED}Error:{Style.RESET_ALL} {result.stderr.strip()}")
+
+
+def _cmd_generate(args) -> None:
+    """Regenerate docker-compose.yaml and .env from config."""
+    m4b_config_path, apps_config_path, user_config_path = _resolve_paths(args)
+    _ensure_user_config(args, user_config_path)
+    _auto_backup(user_config_path)
+    from utils.generator import main as gen_main
+
+    gen_main(apps_config_path, m4b_config_path, user_config_path)
+
+
+def _cmd_links(args) -> None:
+    """Show app dashboard and referral links."""
+    m4b_config_path, apps_config_path, user_config_path = _resolve_paths(args)
+    from utils.fn_show_links import main as links_main
+
+    links_main(apps_config_path, m4b_config_path, user_config_path)
+
+
+def _cmd_reset(args) -> None:
+    """Reset user-config.json from template."""
+    m4b_config_path, apps_config_path, user_config_path = _resolve_paths(args)
+    _auto_backup(user_config_path)
+    reset_main(
+        app_config_path=apps_config_path,
+        m4b_config_path=m4b_config_path,
+        user_config_path=user_config_path,
+        src_path=args.template_user_config_path,
+        dest_path=user_config_path,
+    )
+    print(f"{Fore.GREEN}User config reset to template defaults.{Style.RESET_ALL}")
+
+
+def _cmd_proxy(args) -> None:
+    """Launch multiproxy tools."""
+    m4b_config_path, apps_config_path, user_config_path = _resolve_paths(args)
+    _ensure_user_config(args, user_config_path)
+    from utils.fn_multiproxy_tools import main as proxy_main
+
+    proxy_main(apps_config_path, m4b_config_path, user_config_path)
+
+
+def _cmd_backup(args) -> None:
+    """Create a manual config backup."""
+    _, _, user_config_path = _resolve_paths(args)
+    _ensure_user_config(args, user_config_path)
+    just_fix_windows_console()
+    backup_path = create_backup(user_config_path)
+    cleanup_backups()
+    print(f"{Fore.GREEN}Backup saved: {backup_path}{Style.RESET_ALL}")
+
+
+def _cmd_restore(args) -> None:
+    """Restore user-config from a backup."""
+    _, _, user_config_path = _resolve_paths(args)
+    just_fix_windows_console()
+    backups = list_backups()
+    if not backups:
+        print(f"{Fore.YELLOW}No backups found.{Style.RESET_ALL}")
+        return
+
+    print(f"{Fore.GREEN}Available backups:{Style.RESET_ALL}")
+    for i, b in enumerate(backups, 1):
+        print(f"  {i}. {b.path.name}  ({b.timestamp:%Y-%m-%d %H:%M:%S UTC})")
+
+    choice = input("Select backup number to restore (or press Enter to cancel): ")
+    if not choice.strip():
+        return
+    try:
+        idx = int(choice) - 1
+        if not 0 <= idx < len(backups):
+            raise ValueError
+    except ValueError:
+        print(f"{Fore.RED}Invalid selection.{Style.RESET_ALL}")
+        return
+
+    # Back up current config before overwriting
+    _auto_backup(user_config_path)
+    restore_backup(backups[idx].path, user_config_path)
+    print(f"{Fore.GREEN}Restored: {backups[idx].path.name}{Style.RESET_ALL}")
+
+
+def _cmd_update(args) -> None:
+    """Check for M4B updates."""
+    m4b_config_path, _, _ = _resolve_paths(args)
+    just_fix_windows_console()
+    m4b_config = loader.load_json_config(m4b_config_path)
+    check_update_available(m4b_config)
+
+
+# ---------------------------------------------------------------------------
+# CLI parser construction
+# ---------------------------------------------------------------------------
+
+
+def _build_parser() -> argparse.ArgumentParser:
+    """Build the top-level argument parser with subcommands."""
+    script_dir = BASE_DIR
+
+    parser = argparse.ArgumentParser(
+        prog="m4b",
+        description="Money4Band — Docker orchestrator for passive income apps",
+    )
+
+    # ---- global flags (shared by all subcommands) ----
     parser.add_argument(
         "--config-dir",
         default=os.path.join(script_dir, "config"),
@@ -228,59 +447,89 @@ def main():
         default=os.path.join(script_dir, "template", "user-config.json"),
         help="Set the template user config file path",
     )
-    args = parser.parse_args()
 
-    # Address possible locale issues that use different notations for decimal numbers and so on
-    locale.setlocale(locale.LC_ALL, "C")
+    # ---- subcommands ----
+    sub = parser.add_subparsers(dest="command")
 
-    # Set logging level based on command-line arguments
+    sub.add_parser("setup", help="Run the interactive setup wizard")
+    sub.add_parser("start", help="Start the Docker Compose stack")
+    sub.add_parser("stop", help="Stop the Docker Compose stack")
+    sub.add_parser("status", help="Show running containers and health")
+    sub.add_parser("generate", help="Regenerate docker-compose.yaml and .env")
+    sub.add_parser("links", help="Show app dashboard and referral links")
+    sub.add_parser("reset", help="Reset user-config to template defaults")
+    sub.add_parser("proxy", help="Multi-proxy management tools")
+    sub.add_parser("backup", help="Create a config backup")
+    sub.add_parser("restore", help="Restore config from a backup")
+    sub.add_parser("update", help="Check for M4B updates")
+
+    return parser
+
+
+# ---------------------------------------------------------------------------
+# Logging bootstrap
+# ---------------------------------------------------------------------------
+
+_SUBCOMMAND_DISPATCH = {
+    "setup": _cmd_setup,
+    "start": _cmd_start,
+    "stop": _cmd_stop,
+    "status": _cmd_status,
+    "generate": _cmd_generate,
+    "links": _cmd_links,
+    "reset": _cmd_reset,
+    "proxy": _cmd_proxy,
+    "backup": _cmd_backup,
+    "restore": _cmd_restore,
+    "update": _cmd_update,
+}
+
+
+def _setup_logging(args) -> None:
+    """Configure rotating file handler from parsed args."""
     log_level = getattr(logging, args.log_level.upper(), None)
     if not isinstance(log_level, int):
         raise ValueError(f"Invalid log level: {args.log_level}")
 
-    # Setup logging with rotation and reporting date time, error level, and message
     os.makedirs(args.log_dir, exist_ok=True)
     log_file_path = os.path.join(args.log_dir, args.log_file)
     rotating_handler = RotatingFileHandler(
         log_file_path, maxBytes=1 * 1024 * 1024, backupCount=3
-    )  # 1 MB per file, keep 3 backups
+    )
     rotating_handler.setFormatter(
         logging.Formatter(
             "%(asctime)s - [%(levelname)s] - %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
         )
     )
     rotating_handler.setLevel(log_level)
-
     logging.basicConfig(level=log_level, handlers=[rotating_handler])
 
+
+# ---------------------------------------------------------------------------
+# Entry point
+# ---------------------------------------------------------------------------
+
+
+def main():
+    locale.setlocale(locale.LC_ALL, "C")
+    parser = _build_parser()
+    args = parser.parse_args()
+
+    _setup_logging(args)
+
+    script_name = (
+        os.path.basename(__file__)
+        if not getattr(sys, "frozen", False)
+        else "Money4Band"
+    )
     logging.info(f"Starting {script_name} script...")
 
-    # Check if user config exists; if not, reset it from the template
-    user_config_path = os.path.join(args.config_dir, args.config_usr_file)
-    if not os.path.exists(user_config_path):
-        logging.info("User config not found. Resetting from template...")
-        # Call the reset_config main function
-        reset_main(
-            app_config_path=None,
-            m4b_config_path=None,
-            user_config_path=user_config_path,
-            src_path=args.template_user_config_path,
-            dest_path=user_config_path,
-        )
-
-    # Encrypt user config if it is still plaintext (first-run migration)
-    ensure_config_encrypted(user_config_path)
-
-    try:
-        mainmenu(
-            m4b_config_path=os.path.join(args.config_dir, args.config_m4b_file),
-            apps_config_path=os.path.join(args.config_dir, args.config_app_file),
-            user_config_path=user_config_path,
-            utils_dir_path=args.utils_dir,
-        )
-    except Exception as e:
-        logging.error(f"An error occurred: {str(e)}")
-        raise
+    handler = _SUBCOMMAND_DISPATCH.get(args.command)
+    if handler:
+        handler(args)
+    else:
+        # No subcommand → launch interactive menu (backward compatible)
+        _cmd_menu(args)
 
 
 if __name__ == "__main__":

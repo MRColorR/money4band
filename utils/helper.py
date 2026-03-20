@@ -284,3 +284,24 @@ def show_spinner(message: str, event: threading.Event):
     sys.stdout.write("\b")  # Clear the spinner when stopping
     sys.stdout.write("Done\n")  # Print a completion message
     sys.stdout.flush()
+
+
+def get_active_profiles(user_config_path_or_dict) -> list[str]:
+    """Return the list of Docker Compose profile names to activate.
+
+    Reads the user config to decide which infrastructure profiles are needed:
+      - ``monitoring`` when watchtower is enabled
+      - ``dashboard``  when the web dashboard is enabled
+      - ``proxy``      when proxies are enabled
+    """
+    from utils.loader import load_json_config
+
+    cfg = load_json_config(user_config_path_or_dict)
+    profiles: list[str] = []
+    if cfg.get("watchtower", {}).get("enabled", True):
+        profiles.append("monitoring")
+    if cfg.get("m4b_dashboard", {}).get("enabled", False):
+        profiles.append("dashboard")
+    if cfg.get("proxies", {}).get("enabled", False):
+        profiles.append("proxy")
+    return profiles

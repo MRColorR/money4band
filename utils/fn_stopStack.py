@@ -103,7 +103,14 @@ def stop_stack(
                 f"COMPOSE_PROJECT_NAME not found in {env_file}, relying on Docker Compose defaults"
             )
 
-        command.extend(["-f", compose_file, "down"])
+        command.extend(["-f", compose_file])
+
+        # Activate all infrastructure profiles so profiled services are included
+        # in the shutdown.  Docker Compose ignores unknown profile flags.
+        for profile in ("monitoring", "dashboard", "proxy"):
+            command.extend(["--profile", profile])
+
+        command.extend(["down"])
 
         result = run_docker_command(command, use_sudo=use_sudo)
         if result == 0:

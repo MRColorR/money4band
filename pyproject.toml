@@ -7,6 +7,10 @@ authors = [
     { name = "MRColorR" }
 ]
 requires-python = ">=3.10"
+
+[project.scripts]
+m4b = "main:main"
+
 dependencies = [
     "colorama",
     "cryptography>=43.0",

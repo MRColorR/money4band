@@ -299,6 +299,15 @@ def assemble_docker_compose(
                             if app_compose_config[key] is None:
                                 del app_compose_config[key]
 
+                        # Apps sharing the proxy network must wait for the
+                        # tunnel to be healthy before starting.
+                        if app_compose_config.get("network_mode", "").startswith(
+                            "service:"
+                        ):
+                            app_compose_config["depends_on"] = {
+                                "proxy": {"condition": "service_healthy"}
+                            }
+
                     services[app_name] = app_compose_config
 
         # Add common services only if this is the main instance
@@ -351,6 +360,7 @@ def assemble_docker_compose(
                     ]
                 # Watchtower only reads config, never writes — safe to lock filesystem
                 watchtower_service.setdefault("read_only", True)
+                watchtower_service["profiles"] = ["monitoring"]
                 services["watchtower"] = watchtower_service
             # Only add m4bwebdashboard if dashboard is enabled
             m4b_dashboard_config = user_config.get("m4b_dashboard", {})
@@ -361,6 +371,14 @@ def assemble_docker_compose(
                 # nginx serves static files — safe to lock root filesystem
                 dashboard_service.setdefault("read_only", True)
                 dashboard_service.setdefault("tmpfs", ["/var/cache/nginx", "/run"])
+                dashboard_service["healthcheck"] = {
+                    "test": ["CMD-SHELL", "wget -q --spider http://localhost/ || exit 1"],
+                    "interval": "30s",
+                    "timeout": "5s",
+                    "retries": 3,
+                    "start_period": "15s",
+                }
+                dashboard_service["profiles"] = ["dashboard"]
                 services["m4bwebdashboard"] = dashboard_service
 
         if proxy_enabled:
@@ -419,6 +437,14 @@ def assemble_docker_compose(
                     f"Added {len(proxy_ports)} port mappings to the proxy service from apps using its network"
                 )
 
+            proxy_service["healthcheck"] = {
+                "test": ["CMD-SHELL", "ip link show tun0 2>/dev/null | grep -q UP || exit 1"],
+                "interval": "30s",
+                "timeout": "5s",
+                "retries": 3,
+                "start_period": "30s",
+            }
+            proxy_service["profiles"] = ["proxy"]
             services["proxy"] = proxy_service
 
         # Define network configuration using config json and environment variables

@@ -313,5 +313,155 @@ class TestDashboardHardening(unittest.TestCase):
         self.assertIn("/run", dash.get("tmpfs", []))
 
 
+class TestDockerProfiles(unittest.TestCase):
+    """Verify Docker Compose profiles are injected on infrastructure services."""
+
+    def _generate_compose(self, proxy_enabled=False, dashboard_enabled=True):
+        import copy
+
+        user_cfg = copy.deepcopy(_USER_CFG_BASE)
+        user_cfg["m4b_dashboard"]["enabled"] = dashboard_enabled
+        user_cfg["proxies"]["enabled"] = proxy_enabled
+
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".yaml") as f:
+            compose_path = f.name
+        try:
+            assemble_docker_compose(
+                _M4B_CFG, _APP_CFG, user_cfg, compose_path, is_main_instance=True
+            )
+            with open(compose_path) as f:
+                return yaml.safe_load(f) or {}
+        finally:
+            if os.path.exists(compose_path):
+                os.unlink(compose_path)
+
+    def test_watchtower_has_monitoring_profile(self):
+        doc = self._generate_compose()
+        wt = doc["services"]["watchtower"]
+        self.assertEqual(wt.get("profiles"), ["monitoring"])
+
+    def test_dashboard_has_dashboard_profile(self):
+        doc = self._generate_compose(dashboard_enabled=True)
+        dash = doc["services"]["m4bwebdashboard"]
+        self.assertEqual(dash.get("profiles"), ["dashboard"])
+
+    def test_proxy_has_proxy_profile(self):
+        doc = self._generate_compose(proxy_enabled=True)
+        proxy = doc["services"]["proxy"]
+        self.assertEqual(proxy.get("profiles"), ["proxy"])
+
+    def test_regular_app_has_no_profile(self):
+        doc = self._generate_compose()
+        # Find any enabled app that's not infrastructure
+        for svc_name, svc in doc["services"].items():
+            if svc_name not in ("watchtower", "m4bwebdashboard", "proxy"):
+                self.assertNotIn("profiles", svc,
+                    f"{svc_name} should not have profiles")
+
+
+class TestHealthchecks(unittest.TestCase):
+    """Verify healthchecks are injected on infrastructure services."""
+
+    def _compose_with_services(self, proxy=False, dashboard=True):
+        import copy
+
+        user_cfg = copy.deepcopy(_USER_CFG_BASE)
+        user_cfg["m4b_dashboard"]["enabled"] = dashboard
+        user_cfg["proxies"]["enabled"] = proxy
+
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".yaml") as f:
+            compose_path = f.name
+        try:
+            assemble_docker_compose(
+                _M4B_CFG, _APP_CFG, user_cfg, compose_path, is_main_instance=True
+            )
+            with open(compose_path) as f:
+                return yaml.safe_load(f) or {}
+        finally:
+            if os.path.exists(compose_path):
+                os.unlink(compose_path)
+
+    def test_dashboard_has_healthcheck(self):
+        doc = self._compose_with_services(dashboard=True)
+        dash = doc["services"]["m4bwebdashboard"]
+        hc = dash.get("healthcheck", {})
+        self.assertIn("test", hc)
+        self.assertTrue(any("wget" in str(t) for t in hc["test"]))
+
+    def test_proxy_has_healthcheck(self):
+        doc = self._compose_with_services(proxy=True)
+        proxy = doc["services"]["proxy"]
+        hc = proxy.get("healthcheck", {})
+        self.assertIn("test", hc)
+        self.assertTrue(any("tun0" in str(t) for t in hc["test"]))
+
+    def test_proxy_healthcheck_has_start_period(self):
+        doc = self._compose_with_services(proxy=True)
+        hc = doc["services"]["proxy"]["healthcheck"]
+        self.assertIn("start_period", hc)
+
+    def test_watchtower_has_no_healthcheck(self):
+        doc = self._compose_with_services()
+        wt = doc["services"]["watchtower"]
+        self.assertNotIn("healthcheck", wt)
+
+
+class TestProxyDependsOn(unittest.TestCase):
+    """Apps using proxy network_mode get depends_on with service_healthy condition."""
+
+    _PROXY_APP = {
+        "name": "TESTAPP",
+        "dashboard": "http://example.com",
+        "link": "http://example.com",
+        "compose_config": {
+            "container_name": "${DEVICE_NAME}_testapp",
+            "image": "example/testapp:latest",
+            "restart": "always",
+            "labels": [
+                "com.centurylinklabs.watchtower.enable=true",
+                "com.centurylinklabs.watchtower.scope=${M4B_WATCHTOWER_SCOPE}",
+            ],
+        },
+        "compose_config_proxy": {
+            "network_mode": "service:proxy",
+            "hostname": None,
+        },
+    }
+
+    def _compose_proxy_app(self, proxy_enabled=True):
+        import copy
+        from unittest.mock import patch
+
+        app_cfg = {"apps": [self._PROXY_APP], "extra-apps": []}
+        user_cfg = copy.deepcopy(_USER_CFG_BASE)
+        user_cfg["proxies"]["enabled"] = proxy_enabled
+        user_cfg["apps"] = {"testapp": {"enabled": True}}
+
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".yaml") as f:
+            compose_path = f.name
+        try:
+            with patch("utils.generator.check_img_arch_support", return_value=True):
+                assemble_docker_compose(
+                    _M4B_CFG, app_cfg, user_cfg, compose_path, is_main_instance=True
+                )
+            with open(compose_path) as f:
+                return yaml.safe_load(f) or {}
+        finally:
+            if os.path.exists(compose_path):
+                os.unlink(compose_path)
+
+    def test_app_depends_on_proxy_healthy(self):
+        doc = self._compose_proxy_app(proxy_enabled=True)
+        app_svc = doc["services"]["testapp"]
+        depends = app_svc.get("depends_on", {})
+        self.assertIn("proxy", depends)
+        self.assertEqual(depends["proxy"].get("condition"), "service_healthy")
+
+    def test_app_has_no_depends_on_without_proxy(self):
+        doc = self._compose_proxy_app(proxy_enabled=False)
+        app_svc = doc["services"]["testapp"]
+        self.assertNotIn("depends_on", app_svc)
+
+
 if __name__ == "__main__":
     unittest.main()
