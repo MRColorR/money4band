@@ -440,7 +440,7 @@ class TestProxyDependsOn(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".yaml") as f:
             compose_path = f.name
         try:
-            with patch("utils.generator.check_img_arch_support", return_value=True):
+            with patch("utils.compose_builder.check_img_arch_support", return_value=True):
                 assemble_docker_compose(
                     _M4B_CFG, app_cfg, user_cfg, compose_path, is_main_instance=True
                 )

@@ -21,7 +21,7 @@ class TestPortLogic(unittest.TestCase):
         app = {"compose_config": {"ports": ["${DAWN_PORT}:5000"]}}
         config = {"ports": [5000]}
 
-        with patch("utils.fn_setupApps.find_next_available_port") as mock_find_port:
+        with patch("utils.port_manager.find_next_available_port") as mock_find_port:
             mock_find_port.side_effect = lambda x, **kwargs: x  # Return the same port
 
             result = assign_app_ports(app_name, app, config)
@@ -41,7 +41,7 @@ class TestPortLogic(unittest.TestCase):
         }
         config = {"ports": [5900, 6080]}
 
-        with patch("utils.fn_setupApps.find_next_available_port") as mock_find_port:
+        with patch("utils.port_manager.find_next_available_port") as mock_find_port:
             mock_find_port.side_effect = lambda x, **kwargs: x  # Return the same port
 
             result = assign_app_ports(app_name, app, config)
@@ -58,7 +58,7 @@ class TestPortLogic(unittest.TestCase):
         app = {"compose_config": {"ports": ["${MYSTNODE_PORT}:4449"]}}
         config = {}  # No ports in config
 
-        with patch("utils.fn_setupApps.find_next_available_port") as mock_find_port:
+        with patch("utils.port_manager.find_next_available_port") as mock_find_port:
             mock_find_port.side_effect = lambda x, **kwargs: x  # Return the same port
 
             result = assign_app_ports(app_name, app, config)
@@ -78,7 +78,7 @@ class TestPortLogic(unittest.TestCase):
         config = {}
         reserved_ports = {50000, 50001, 50002}
 
-        with patch("utils.fn_setupApps.find_next_available_port") as mock_find_port:
+        with patch("utils.port_manager.find_next_available_port") as mock_find_port:
             mock_find_port.side_effect = lambda x, **kwargs: next(
                 p for p in range(x, 65535) if p not in kwargs.get("exclude_ports", [])
             )
@@ -146,7 +146,7 @@ class TestPortLogic(unittest.TestCase):
         app = {"compose_config": {"ports": ["${DAWN_PORT}:5000"]}}
         config = {"ports": [5000]}  # Should be list
 
-        with patch("utils.fn_setupApps.find_next_available_port") as mock_find_port:
+        with patch("utils.port_manager.find_next_available_port") as mock_find_port:
             mock_find_port.return_value = 5000
 
             assigned_ports = assign_app_ports(app_name, app, config)
@@ -394,7 +394,7 @@ class TestCollectAssignedPorts(unittest.TestCase):
         # Simulate: main instance already owns 50000, 50001
         reserved_ports: set = {50000, 50001}
 
-        with patch("utils.fn_setupApps.find_next_available_port") as mock_fp:
+        with patch("utils.port_manager.find_next_available_port") as mock_fp:
             mock_fp.side_effect = lambda x, **kwargs: next(
                 p for p in range(x, 65535) if p not in kwargs.get("exclude_ports", [])
             )
