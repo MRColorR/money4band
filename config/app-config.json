@@ -1,7 +1,7 @@
 {
     "app_config_version": 1.2,
     "supported-apps": {
-        "active": false,
+        "active": true,
         "entries": [
             {
                 "name": "EARNAPP",
@@ -567,7 +567,7 @@
         ]
     },
     "deprecated-apps": {
-        "active": false,
+        "active": true,
         "entries": [
             {
                 "name": "SPEEDSHARE",
