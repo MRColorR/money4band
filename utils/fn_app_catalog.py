@@ -114,7 +114,7 @@ def fn_app_catalog(app_config: dict, app_config_path: str | None = None) -> None
         print()
 
         choice = input(
-            f"Press {Fore.CYAN}M{Style.RESET_ALL} to manage category status or any other key to go back: "
+            f"Press {Fore.CYAN}M{Style.RESET_ALL} then Enter to manage category status or any other key to go back: "
         ).strip().lower()
         if choice == "m":
             _manage_categories(app_config, app_config_path)
