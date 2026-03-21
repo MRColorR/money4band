@@ -44,7 +44,8 @@
                         "claimURLBase": "To claim your node, after starting it, go to the app's dashboard and then visit the following link: https://earnapp.com/r/sdk-node-",
                         "prefix": "sdk-node-"
                     }
-                }
+                },
+                "install_limit": -1
             },
             {
                 "name": "HONEYGAIN",
@@ -89,7 +90,8 @@
                 "flags": {
                     "email": {},
                     "password": {}
-                }
+                },
+                "install_limit": 10
             },
             {
                 "name": "IPROYALPAWNS",
@@ -132,7 +134,8 @@
                 "flags": {
                     "email": {},
                     "password": {}
-                }
+                },
+                "install_limit": -1
             },
             {
                 "name": "PACKETSTREAM",
@@ -167,7 +170,8 @@
                 },
                 "flags": {
                     "cid": {}
-                }
+                },
+                "install_limit": -1
             },
             {
                 "name": "TRAFFMONETIZER",
@@ -211,7 +215,8 @@
                 },
                 "flags": {
                     "token": {}
-                }
+                },
+                "install_limit": -1
             },
             {
                 "name": "REPOCKET",
@@ -248,7 +253,8 @@
                 "flags": {
                     "email": {},
                     "apikey": {}
-                }
+                },
+                "install_limit": -1
             },
             {
                 "name": "EARNFM",
@@ -283,7 +289,8 @@
                 },
                 "flags": {
                     "apikey": {}
-                }
+                },
+                "install_limit": -1
             },
             {
                 "name": "PROXYRACK",
@@ -324,7 +331,8 @@
                         "length": 64,
                         "claimURLBase": "To claim your node, after starting it, go to the app's dashboard and then add the device using the following UUID: "
                     }
-                }
+                },
+                "install_limit": 500
             },
             {
                 "name": "PROXYLITE",
@@ -359,7 +367,8 @@
                 },
                 "flags": {
                     "userid": {}
-                }
+                },
+                "install_limit": -1
             },
             {
                 "name": "BITPING",
@@ -400,7 +409,8 @@
                     "email": {},
                     "password": {},
                     "mfa": {}
-                }
+                },
+                "install_limit": -1
             },
             {
                 "name": "PACKETSHARE",
@@ -437,7 +447,8 @@
                 "flags": {
                     "email": {},
                     "password": {}
-                }
+                },
+                "install_limit": -1
             },
             {
                 "name": "GRADIENT",
@@ -477,7 +488,8 @@
                 "flags": {
                     "email": {},
                     "password": {}
-                }
+                },
+                "install_limit": -1
             },
             {
                 "name": "PROXYBASE",
@@ -513,7 +525,8 @@
                 },
                 "flags": {
                     "userid": {}
-                }
+                },
+                "install_limit": -1
             },
             {
                 "name": "MYSTNODE",
@@ -562,7 +575,8 @@
                     "manual": {
                         "instructions": "Log into your device's mystnode local webdashboard, navigate to the Myst Node page and follow the onscreen instruction to complete the setup.\n\nDisclaimer: If you want to further optimize UPnP and port forwarding, consider setting manually 'network: host' for mystnode in your Docker compose. This may improve mystnode performance, but do this only if you know what you are doing and you are aware of potential security implications."
                     }
-                }
+                },
+                "install_limit": -1
             }
         ]
     },
@@ -601,7 +615,8 @@
                         "length": 32,
                         "claimURLBase": "Speedshare nodes are automatically claimed. After starting it, go to the app's dashboard to see it. Its UUID is: "
                     }
-                }
+                },
+                "install_limit": -1
             },
             {
                 "name": "GRASS",
@@ -642,7 +657,8 @@
                 "flags": {
                     "email": {},
                     "password": {}
-                }
+                },
+                "install_limit": -1
             },
             {
                 "name": "PEER2PROFIT",
@@ -685,7 +701,8 @@
                     "manual": {
                         "instructions": "Use any VNC client to connect to localhost:5901 using the password money4band and follow the onscreen instruction to complete the setup"
                     }
-                }
+                },
+                "install_limit": -1
             },
             {
                 "name": "DAWN",
@@ -730,7 +747,8 @@
                 "flags": {
                     "email": {},
                     "password": {}
-                }
+                },
+                "install_limit": -1
             },
             {
                 "name": "TENEO",
@@ -771,7 +789,8 @@
                 "flags": {
                     "email": {},
                     "password": {}
-                }
+                },
+                "install_limit": -1
             },
             {
                 "name": "WIPTER",
@@ -814,7 +833,8 @@
                 "flags": {
                     "email": {},
                     "password": {}
-                }
+                },
+                "install_limit": -1
             }
         ]
     }

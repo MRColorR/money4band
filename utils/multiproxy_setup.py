@@ -21,6 +21,7 @@ from utils.generator import (
 from utils.loader import (
     get_active_app_categories,
     get_category_entries,
+    get_install_limit,
     load_json_config,
 )
 from utils.port_manager import assign_app_ports, collect_assigned_ports
@@ -273,6 +274,35 @@ def setup_multiproxy_instances(
     # Keep a global reservation set to avoid collisions with existing/main/new instances.
     reserved_ports = collect_assigned_ports(user_config)
 
+    # --- Install-limit enforcement ---
+    # Total instances = proxies list + 1 main instance.
+    total_instances = len(proxies) + 1
+    app_limits: dict[str, int] = {}  # app_name -> limit (-1 = unlimited)
+    limited_apps: dict[str, int] = {}  # app_name -> limit (only those exceeded)
+
+    for cat_key in get_active_app_categories(app_config):
+        for entry in get_category_entries(app_config, cat_key):
+            name = entry["name"].lower()
+            limit = get_install_limit(entry)
+            app_limits[name] = limit
+            if limit >= 0 and total_instances > limit:
+                limited_apps[name] = limit
+
+    if limited_apps:
+        print(
+            f"{Fore.YELLOW}Install limits: {total_instances} instances requested "
+            f"(1 main + {len(proxies)} proxies).{Style.RESET_ALL}"
+        )
+        for app_name, limit in sorted(limited_apps.items()):
+            print(
+                f"  {Fore.YELLOW}{app_name.upper()}: max {limit} instances "
+                f"— will be disabled in instances beyond #{limit}{Style.RESET_ALL}"
+            )
+        logging.info(
+            "Install-limit enforcement: %s",
+            {k: v for k, v in limited_apps.items()},
+        )
+
     for existing_instance in os.listdir(instances_dir):
         existing_user_cfg = os.path.join(
             instances_dir, existing_instance, "user-config.json"
@@ -330,11 +360,24 @@ def setup_multiproxy_instances(
 
         # Update all enabled apps with unique ports using the unified assignment logic
         # Track port_app_index separately - only incremented for apps WITH ports
+        # Instance number for limit check: main = 0, proxy instances = 1..N
+        instance_number = i + 1
         port_app_index = 0
         for app_category in get_active_app_categories(app_config):
             for app_details in get_category_entries(instance_app_config, app_category):
                 app_name = app_details["name"].lower()
                 app_config_entry = instance_user_config["apps"].get(app_name, {})
+
+                # Enforce install_limit: disable app if this instance exceeds it
+                limit = app_limits.get(app_name, -1)
+                if limit >= 0 and instance_number >= limit:
+                    if app_config_entry.get("enabled", False):
+                        app_config_entry["enabled"] = False
+                        logging.info(
+                            "Disabled %s in instance %d (limit: %d)",
+                            app_name, instance_number, limit,
+                        )
+                    continue
 
                 # Only process enabled apps
                 if app_details.get("enabled", False) or (

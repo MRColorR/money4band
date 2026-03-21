@@ -108,6 +108,11 @@ def get_category_entries(
     return []
 
 
+def get_install_limit(app_entry: dict[str, Any]) -> int:
+    """Return the install_limit for an app entry (-1 = unlimited)."""
+    return app_entry.get("install_limit", -1)
+
+
 def load_module_from_file(module_name: str, file_path: str):
     """
     Dynamically load a module from a Python file.
