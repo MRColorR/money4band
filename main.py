@@ -1,7 +1,9 @@
 import argparse
+import atexit
 import locale
 import logging
 import os
+import signal
 import subprocess
 
 # Ensure the parent directory is in the sys.path
@@ -65,6 +67,7 @@ def _ensure_user_config(args, user_config_path: str) -> None:
             dest_path=user_config_path,
         )
     ensure_config_encrypted(user_config_path)
+    register_encryption_hooks(user_config_path)
 
 
 def _has_template_defaults(user_config_path: str) -> bool:
@@ -84,6 +87,39 @@ def _has_template_defaults(user_config_path: str) -> bool:
             if isinstance(val, str) and val.lower().startswith("your"):
                 return True
     return False
+
+
+# ---------------------------------------------------------------------------
+# Credential encryption lifecycle (Phase 2.3)
+# ---------------------------------------------------------------------------
+
+_encrypt_on_exit_paths: list[str] = []
+
+
+def _encrypt_on_exit() -> None:
+    """Best-effort encrypt all registered config paths."""
+    for path in _encrypt_on_exit_paths:
+        try:
+            ensure_config_encrypted(path)
+        except Exception:
+            pass  # Best-effort during shutdown
+
+
+def _sigterm_handler(signum, frame) -> None:
+    """Handle SIGTERM by encrypting configs before exit."""
+    _encrypt_on_exit()
+    sys.exit(128 + signum)
+
+
+def register_encryption_hooks(user_config_path: str) -> None:
+    """Register atexit + SIGTERM handlers to auto-encrypt config on exit."""
+    if user_config_path in _encrypt_on_exit_paths:
+        return
+    _encrypt_on_exit_paths.append(user_config_path)
+
+    if len(_encrypt_on_exit_paths) == 1:
+        atexit.register(_encrypt_on_exit)
+        signal.signal(signal.SIGTERM, _sigterm_handler)
 
 
 # ---------------------------------------------------------------------------
@@ -442,6 +478,25 @@ def _cmd_update(args) -> None:
     check_update_available(m4b_config)
 
 
+def _cmd_config(args) -> None:
+    """View or edit encrypted user config."""
+    _, _, user_config_path = _resolve_paths(args)
+    action = getattr(args, "config_action", None)
+
+    if action == "view":
+        from utils.config_viewer import view_masked
+
+        view_masked(user_config_path)
+    elif action == "edit":
+        from utils.config_viewer import edit_config
+
+        register_encryption_hooks(user_config_path)
+        edit_config(user_config_path)
+    else:
+        just_fix_windows_console()
+        print(f"{Fore.YELLOW}Usage: m4b config {{view,edit}}{Style.RESET_ALL}")
+
+
 # ---------------------------------------------------------------------------
 # CLI parser construction
 # ---------------------------------------------------------------------------
@@ -527,6 +582,11 @@ def _build_parser() -> argparse.ArgumentParser:
     sub.add_parser("restore", help="Restore config from a backup")
     sub.add_parser("update", help="Check for M4B updates")
 
+    config_parser = sub.add_parser("config", help="View or edit encrypted config")
+    config_sub = config_parser.add_subparsers(dest="config_action")
+    config_sub.add_parser("view", help="Display config with masked credentials")
+    config_sub.add_parser("edit", help="Edit config in $EDITOR, re-encrypts on save")
+
     return parser
 
 
@@ -546,6 +606,7 @@ _SUBCOMMAND_DISPATCH = {
     "backup": _cmd_backup,
     "restore": _cmd_restore,
     "update": _cmd_update,
+    "config": _cmd_config,
 }
 
 

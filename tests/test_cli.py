@@ -69,7 +69,7 @@ class TestBuildParser:
         expected = {
             "setup", "start", "stop", "status",
             "generate", "links", "reset", "proxy",
-            "backup", "restore", "update",
+            "backup", "restore", "update", "config",
         }
         assert set(sub_action.choices.keys()) == expected
 
