@@ -228,11 +228,11 @@ class TestHandlerArguments:
         received = {}
         monkeypatch.setattr(
             "main.loader.load_json_config",
-            lambda p: {"_loaded_from": p},
+            lambda p: {"_loaded_from": p, "project": {"project_version": "5.0.0"}},
         )
         monkeypatch.setattr(
-            "main.check_update_available",
-            lambda cfg: received.update(cfg=cfg),
+            "utils.updater.check_for_update",
+            lambda cfg: (received.update(cfg=cfg), None)[1],
         )
         from main import _cmd_update
         _cmd_update(_make_args(tmp_path, "update"))

@@ -18,7 +18,7 @@ from utils.backup import cleanup_backups, create_backup, list_backups, restore_b
 from utils.cls import cls
 from utils.crypto import ensure_config_encrypted
 from utils.fn_reset_config import main as reset_main
-from utils.updater import check_update_available
+from utils.updater import check_update_available, show_update_banner
 
 # Handle PyInstaller frozen executable path resolution
 if getattr(sys, "frozen", False):
@@ -471,11 +471,38 @@ def _cmd_restore(args) -> None:
 
 
 def _cmd_update(args) -> None:
-    """Check for M4B updates."""
+    """Check for updates and optionally apply them."""
     m4b_config_path, _, _ = _resolve_paths(args)
     just_fix_windows_console()
     m4b_config = loader.load_json_config(m4b_config_path)
-    check_update_available(m4b_config)
+
+    from utils.updater import apply_update, check_for_update
+
+    new_version = check_for_update(m4b_config)
+    if not new_version:
+        print(f"{Fore.GREEN}M4B is up to date.{Style.RESET_ALL}")
+        return
+
+    current = m4b_config.get("project", {}).get("project_version", "?")
+    print(
+        f"{Fore.YELLOW}Update available: v{current} → v{new_version}{Style.RESET_ALL}"
+    )
+
+    force = getattr(args, "force", False)
+    if not force:
+        confirm = input("Apply update now? [y/N] ").strip().lower()
+        if confirm not in ("y", "yes"):
+            print("Update cancelled.")
+            return
+
+    print(f"{Fore.CYAN}Applying update to v{new_version}...{Style.RESET_ALL}")
+    if apply_update(new_version):
+        print(
+            f"{Fore.GREEN}Updated to v{new_version}. "
+            f"Please restart M4B.{Style.RESET_ALL}"
+        )
+    else:
+        print(f"{Fore.RED}Update failed. See logs for details.{Style.RESET_ALL}")
 
 
 def _cmd_config(args) -> None:
@@ -580,7 +607,14 @@ def _build_parser() -> argparse.ArgumentParser:
     sub.add_parser("proxy", help="Multi-proxy management tools")
     sub.add_parser("backup", help="Create a config backup")
     sub.add_parser("restore", help="Restore config from a backup")
-    sub.add_parser("update", help="Check for M4B updates")
+
+    update_parser = sub.add_parser("update", help="Check for and apply M4B updates")
+    update_parser.add_argument(
+        "--force",
+        action="store_true",
+        default=False,
+        help="Apply update without confirmation prompt",
+    )
 
     config_parser = sub.add_parser("config", help="View or edit encrypted config")
     config_sub = config_parser.add_subparsers(dest="config_action")
@@ -653,7 +687,14 @@ def main():
     if handler:
         handler(args)
     else:
-        # No subcommand → launch interactive menu (backward compatible)
+        # No subcommand → show update banner, then launch interactive menu
+        try:
+            m4b_config_path = os.path.join(args.config_dir, args.config_m4b_file)
+            if os.path.isfile(m4b_config_path):
+                m4b_config = loader.load_json_config(m4b_config_path)
+                show_update_banner(m4b_config)
+        except Exception:
+            pass  # Best-effort — don't block startup
         _cmd_menu(args)
 
 
