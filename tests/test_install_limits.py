@@ -1,5 +1,6 @@
-"""Tests for proxy install limit enforcement."""
+"""Tests for proxy install limit enforcement and toggle."""
 
+import json
 import pytest
 
 from utils.loader import get_install_limit
@@ -85,3 +86,114 @@ class TestPerInstanceDisableLogic:
         # Mirrors: if limit >= 0 and instance_number >= limit:
         result = limit >= 0 and instance_number >= limit
         assert result == should_disable
+
+
+class TestToggleInstallLimits:
+    """Test the enforce_install_limits toggle in the proxy tools menu."""
+
+    def test_toggle_flips_true_to_false(self, tmp_path):
+        cfg_path = str(tmp_path / "m4b-config.json")
+        cfg = {"system": {"enforce_install_limits": True, "sleep_time": 0}}
+        with open(cfg_path, "w") as f:
+            json.dump(cfg, f)
+
+        from utils.fn_multiproxy_tools import toggle_install_limits
+        toggle_install_limits(m4b_config_path=cfg_path)
+
+        with open(cfg_path) as f:
+            result = json.load(f)
+        assert result["system"]["enforce_install_limits"] is False
+
+    def test_toggle_flips_false_to_true(self, tmp_path):
+        cfg_path = str(tmp_path / "m4b-config.json")
+        cfg = {"system": {"enforce_install_limits": False, "sleep_time": 0}}
+        with open(cfg_path, "w") as f:
+            json.dump(cfg, f)
+
+        from utils.fn_multiproxy_tools import toggle_install_limits
+        toggle_install_limits(m4b_config_path=cfg_path)
+
+        with open(cfg_path) as f:
+            result = json.load(f)
+        assert result["system"]["enforce_install_limits"] is True
+
+    def test_toggle_defaults_to_true_when_missing(self, tmp_path):
+        """If the key doesn't exist yet, it defaults to True, so first toggle → False."""
+        cfg_path = str(tmp_path / "m4b-config.json")
+        cfg = {"system": {"sleep_time": 0}}
+        with open(cfg_path, "w") as f:
+            json.dump(cfg, f)
+
+        from utils.fn_multiproxy_tools import toggle_install_limits
+        toggle_install_limits(m4b_config_path=cfg_path)
+
+        with open(cfg_path) as f:
+            result = json.load(f)
+        assert result["system"]["enforce_install_limits"] is False
+
+
+class TestEnforcementToggleInSetup:
+    """Test that the enforcement block respects the toggle."""
+
+    def _compute_with_toggle(self, enforce, app_entries, total_instances):
+        """Reproduce the toggled limit computation from setup_multiproxy_instances."""
+        app_limits = {}
+        limited_apps = {}
+        if enforce:
+            for entry in app_entries:
+                name = entry["name"].lower()
+                limit = get_install_limit(entry)
+                app_limits[name] = limit
+                if limit >= 0 and total_instances > limit:
+                    limited_apps[name] = limit
+        return app_limits, limited_apps
+
+    def test_enforcement_on_detects_over_limit(self):
+        entries = [{"name": "HONEYGAIN", "install_limit": 10}]
+        app_limits, limited = self._compute_with_toggle(True, entries, 15)
+        assert limited == {"honeygain": 10}
+        assert app_limits == {"honeygain": 10}
+
+    def test_enforcement_off_skips_all_limits(self):
+        entries = [{"name": "HONEYGAIN", "install_limit": 10}]
+        app_limits, limited = self._compute_with_toggle(False, entries, 15)
+        assert limited == {}
+        assert app_limits == {}
+
+    def test_enforcement_off_per_instance_never_disables(self):
+        """When app_limits is empty, the per-instance lookup defaults to -1."""
+        app_limits: dict[str, int] = {}
+        limit = app_limits.get("honeygain", -1)
+        # -1 >= 0 is False → no disable
+        assert not (limit >= 0 and 999 >= limit)
+
+
+class TestInstallLimitsStatusLabel:
+    """Test the status label helper used in the menu."""
+
+    def test_label_when_enabled(self, tmp_path):
+        cfg_path = str(tmp_path / "m4b-config.json")
+        with open(cfg_path, "w") as f:
+            json.dump({"system": {"enforce_install_limits": True}}, f)
+
+        from utils.fn_multiproxy_tools import _install_limits_status_label
+        label = _install_limits_status_label(cfg_path)
+        assert "ON" in label
+
+    def test_label_when_disabled(self, tmp_path):
+        cfg_path = str(tmp_path / "m4b-config.json")
+        with open(cfg_path, "w") as f:
+            json.dump({"system": {"enforce_install_limits": False}}, f)
+
+        from utils.fn_multiproxy_tools import _install_limits_status_label
+        label = _install_limits_status_label(cfg_path)
+        assert "OFF" in label
+
+    def test_label_defaults_on_when_key_missing(self, tmp_path):
+        cfg_path = str(tmp_path / "m4b-config.json")
+        with open(cfg_path, "w") as f:
+            json.dump({"system": {}}, f)
+
+        from utils.fn_multiproxy_tools import _install_limits_status_label
+        label = _install_limits_status_label(cfg_path)
+        assert "ON" in label

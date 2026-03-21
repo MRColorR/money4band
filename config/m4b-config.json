@@ -36,7 +36,8 @@
     },
     "default_docker_platform": "linux/amd64",
     "registry_request_timeout": 15,
-    "registry_max_retries": 3
+    "registry_max_retries": 3,
+    "enforce_install_limits": true
   },
   "watchtower": {
     "enable_labels": true,

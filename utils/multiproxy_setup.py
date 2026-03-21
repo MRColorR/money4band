@@ -275,18 +275,28 @@ def setup_multiproxy_instances(
     reserved_ports = collect_assigned_ports(user_config)
 
     # --- Install-limit enforcement ---
+    enforce_limits = m4b_config.get("system", {}).get(
+        "enforce_install_limits", True
+    )
     # Total instances = proxies list + 1 main instance.
     total_instances = len(proxies) + 1
     app_limits: dict[str, int] = {}  # app_name -> limit (-1 = unlimited)
     limited_apps: dict[str, int] = {}  # app_name -> limit (only those exceeded)
 
-    for cat_key in get_active_app_categories(app_config):
-        for entry in get_category_entries(app_config, cat_key):
-            name = entry["name"].lower()
-            limit = get_install_limit(entry)
-            app_limits[name] = limit
-            if limit >= 0 and total_instances > limit:
-                limited_apps[name] = limit
+    if enforce_limits:
+        for cat_key in get_active_app_categories(app_config):
+            for entry in get_category_entries(app_config, cat_key):
+                name = entry["name"].lower()
+                limit = get_install_limit(entry)
+                app_limits[name] = limit
+                if limit >= 0 and total_instances > limit:
+                    limited_apps[name] = limit
+    else:
+        print(
+            f"{Fore.YELLOW}Install-limit enforcement is DISABLED. "
+            f"All apps will run on every instance.{Style.RESET_ALL}"
+        )
+        logging.info("Install-limit enforcement disabled by user.")
 
     if limited_apps:
         print(
