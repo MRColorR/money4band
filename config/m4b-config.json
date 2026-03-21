@@ -37,7 +37,11 @@
     "default_docker_platform": "linux/amd64",
     "registry_request_timeout": 15,
     "registry_max_retries": 3,
-    "enforce_install_limits": true
+    "enforce_install_limits": true,
+    "dns": {
+      "mode": "default",
+      "servers": ["1.1.1.1", "8.8.8.8"]
+    }
   },
   "resource_profiles": {
     "active": "low",
@@ -74,6 +78,10 @@
     "scope": "money4band"
   },
   "menu": [
+    {
+      "label": "System Info",
+      "function": "system_info"
+    },
     {
       "label": "App Catalog & Links",
       "function": "fn_app_catalog"

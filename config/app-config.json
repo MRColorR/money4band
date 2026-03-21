@@ -45,7 +45,8 @@
                         "prefix": "sdk-node-"
                     }
                 },
-                "install_limit": -1
+                "install_limit": -1,
+                "compose_layer": "local"
             },
             {
                 "name": "HONEYGAIN",
@@ -92,6 +93,7 @@
                     "password": {}
                 },
                 "install_limit": 10,
+                "compose_layer": "local",
                 "service": {
                     "name": "honeygain-pot",
                     "description": "Auto-claims daily Lucky Pot reward (~2x revenue)",
@@ -108,7 +110,6 @@
                             "com.centurylinklabs.watchtower.enable=true",
                             "com.centurylinklabs.watchtower.scope=${M4B_WATCHTOWER_SCOPE}"
                         ],
-                        "dns": ["1.1.1.1", "8.8.8.8"],
                         "restart": "always",
                         "cpus": "${APP_CPU_LIMIT_LITTLE}",
                         "mem_reservation": "${APP_MEM_RESERV_LITTLE}",
@@ -165,7 +166,8 @@
                     "email": {},
                     "password": {}
                 },
-                "install_limit": -1
+                "install_limit": -1,
+                "compose_layer": "local"
             },
             {
                 "name": "PACKETSTREAM",
@@ -201,7 +203,8 @@
                 "flags": {
                     "cid": {}
                 },
-                "install_limit": -1
+                "install_limit": -1,
+                "compose_layer": "local"
             },
             {
                 "name": "TRAFFMONETIZER",
@@ -246,7 +249,8 @@
                 "flags": {
                     "token": {}
                 },
-                "install_limit": -1
+                "install_limit": -1,
+                "compose_layer": "unlimited"
             },
             {
                 "name": "REPOCKET",
@@ -284,7 +288,8 @@
                     "email": {},
                     "apikey": {}
                 },
-                "install_limit": -1
+                "install_limit": -1,
+                "compose_layer": "hosting"
             },
             {
                 "name": "EARNFM",
@@ -320,7 +325,8 @@
                 "flags": {
                     "apikey": {}
                 },
-                "install_limit": -1
+                "install_limit": -1,
+                "compose_layer": "hosting"
             },
             {
                 "name": "PROXYRACK",
@@ -362,7 +368,8 @@
                         "claimURLBase": "To claim your node, after starting it, go to the app's dashboard and then add the device using the following UUID: "
                     }
                 },
-                "install_limit": 500
+                "install_limit": 500,
+                "compose_layer": "hosting"
             },
             {
                 "name": "PROXYLITE",
@@ -398,7 +405,8 @@
                 "flags": {
                     "userid": {}
                 },
-                "install_limit": -1
+                "install_limit": -1,
+                "compose_layer": "hosting"
             },
             {
                 "name": "BITPING",
@@ -440,7 +448,8 @@
                     "password": {},
                     "mfa": {}
                 },
-                "install_limit": -1
+                "install_limit": -1,
+                "compose_layer": "hosting"
             },
             {
                 "name": "PACKETSHARE",
@@ -479,6 +488,7 @@
                     "password": {}
                 },
                 "install_limit": -1,
+                "compose_layer": "local",
                 "service": {
                     "name": "packetshare-pot",
                     "description": "Auto-claims daily PacketShare reward",
@@ -495,7 +505,6 @@
                             "com.centurylinklabs.watchtower.enable=true",
                             "com.centurylinklabs.watchtower.scope=${M4B_WATCHTOWER_SCOPE}"
                         ],
-                        "dns": ["1.1.1.1", "8.8.8.8"],
                         "restart": "always",
                         "cpus": "${APP_CPU_LIMIT_LITTLE}",
                         "mem_reservation": "${APP_MEM_RESERV_LITTLE}",
@@ -549,7 +558,8 @@
                     "email": {},
                     "password": {}
                 },
-                "install_limit": -1
+                "install_limit": -1,
+                "compose_layer": "hosting"
             },
             {
                 "name": "PROXYBASE",
@@ -586,7 +596,8 @@
                 "flags": {
                     "userid": {}
                 },
-                "install_limit": -1
+                "install_limit": -1,
+                "compose_layer": "hosting"
             },
             {
                 "name": "MYSTNODE",
@@ -636,7 +647,8 @@
                         "instructions": "Log into your device's mystnode local webdashboard, navigate to the Myst Node page and follow the onscreen instruction to complete the setup.\n\nDisclaimer: If you want to further optimize UPnP and port forwarding, consider setting manually 'network: host' for mystnode in your Docker compose. This may improve mystnode performance, but do this only if you know what you are doing and you are aware of potential security implications."
                     }
                 },
-                "install_limit": -1
+                "install_limit": -1,
+                "compose_layer": "hosting"
             }
         ]
     },

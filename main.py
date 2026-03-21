@@ -566,6 +566,47 @@ def _cmd_ip(args) -> None:
     analyse_ips()
 
 
+def _cmd_info(args) -> None:
+    """Display system information dashboard."""
+    m4b_config_path, apps_config_path, user_config_path = _resolve_paths(args)
+    _ensure_user_config(args, user_config_path)
+    just_fix_windows_console()
+
+    m4b_config = loader.load_json_config(m4b_config_path)
+    app_config = loader.load_json_config(apps_config_path)
+    user_config = loader.load_json_config(user_config_path)
+
+    from utils.system_info import show_system_info
+
+    show_system_info(m4b_config, app_config, user_config)
+
+
+def _cmd_dns(args) -> None:
+    """View or configure DNS settings for containers."""
+    m4b_config_path, _, _ = _resolve_paths(args)
+    just_fix_windows_console()
+
+    dns_action = getattr(args, "dns_action", None)
+
+    if dns_action == "set":
+        mode = args.mode
+        servers = args.servers.split(",") if getattr(args, "servers", None) else None
+        from utils.system_info import set_dns_mode
+
+        set_dns_mode(m4b_config_path, mode, servers)
+        print(f"{Fore.GREEN}DNS mode set to '{mode}'.{Style.RESET_ALL}")
+        if servers:
+            print(f"  Servers: {', '.join(servers)}")
+        print(
+            f"{Fore.YELLOW}Run 'generate' to rebuild compose files.{Style.RESET_ALL}"
+        )
+    else:
+        m4b_config = loader.load_json_config(m4b_config_path)
+        from utils.system_info import show_dns_status
+
+        show_dns_status(m4b_config)
+
+
 def _cmd_config(args) -> None:
     """View or edit encrypted user config."""
     _, _, user_config_path = _resolve_paths(args)
@@ -694,6 +735,22 @@ def _build_parser() -> argparse.ArgumentParser:
 
     sub.add_parser("ip", help="Analyse IP quality for real IP and proxies")
 
+    sub.add_parser("info", help="Show system information dashboard")
+
+    dns_parser = sub.add_parser("dns", help="View or configure container DNS")
+    dns_sub = dns_parser.add_subparsers(dest="dns_action")
+    dns_set = dns_sub.add_parser("set", help="Set DNS mode and servers")
+    dns_set.add_argument(
+        "mode",
+        choices=["default", "custom"],
+        help="DNS mode: 'default' uses host DNS, 'custom' injects specified servers",
+    )
+    dns_set.add_argument(
+        "--servers",
+        default=None,
+        help="Comma-separated DNS servers (e.g. '1.1.1.1,8.8.8.8'). Only used with 'custom' mode.",
+    )
+
     return parser
 
 
@@ -716,6 +773,8 @@ _SUBCOMMAND_DISPATCH = {
     "config": _cmd_config,
     "limit": _cmd_limit,
     "ip": _cmd_ip,
+    "info": _cmd_info,
+    "dns": _cmd_dns,
 }
 
 
