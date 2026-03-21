@@ -243,6 +243,22 @@ def _configure_apps(
                 f"Docker platform for {app_name} set to: {config['docker_platform']}"
             )
 
+        # Auto-claim sidecar prompt
+        service_def = app.get("service")
+        if service_def:
+            sidecar_name = service_def["name"]
+            description = service_def.get("description", "auto-claim sidecar")
+            current = config.get("service_enabled", False)
+            status = f"{Fore.GREEN}ON{Style.RESET_ALL}" if current else f"{Fore.RED}OFF{Style.RESET_ALL}"
+            print(
+                f"\n{Fore.CYAN}{app['name'].title()} has an auto-claim sidecar: "
+                f"{sidecar_name}{Style.RESET_ALL}"
+            )
+            print(f"  {description}  (currently {status})")
+            config["service_enabled"] = ask_question_yn(
+                f"Enable {sidecar_name} for {app['name'].title()}?"
+            )
+
         user_config["apps"][app_name] = config
 
 

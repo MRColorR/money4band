@@ -267,6 +267,20 @@ def assemble_docker_compose(
 
                     services[app_name] = app_compose_config
 
+                    # Auto-claim sidecar: add if app has a service definition
+                    # and the user has enabled it.
+                    service_def = app.get("service")
+                    if service_def and user_app_config.get("service_enabled", False):
+                        sidecar_name = service_def["name"].lower()
+                        sidecar_config = copy.deepcopy(service_def["compose_config"])
+                        # Apply same platform as the parent app
+                        if "platform" in app_compose_config:
+                            sidecar_config["platform"] = app_compose_config["platform"]
+                        services[sidecar_name] = sidecar_config
+                        logging.info(
+                            f"Added auto-claim sidecar '{sidecar_name}' for {app_name}"
+                        )
+
         # Add common services only if this is the main instance
         compose_config_common = user_config.get("compose_config_common", {})
         if is_main_instance:
