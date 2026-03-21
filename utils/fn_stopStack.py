@@ -44,23 +44,24 @@ sleep_time = m4b_config.get("system", {}).get(
 
 
 def stop_stack(
-    compose_file: str = "./docker-compose.yaml",
+    compose_file: str | list[str] = "./docker-compose.yaml",
     instance_name: str = "money4band",
     skip_questions: bool = False,
 ) -> bool:
     """
-    Stop the Docker Compose stack using the provided compose file.
+    Stop the Docker Compose stack using the provided compose file(s).
 
     Args:
-        compose_file (str): The path to the Docker Compose file.
+        compose_file (str | list[str]): Path(s) to the Docker Compose file(s).
         instance_name (str): The name of the instance.
         skip_questions (bool): Whether to skip the confirmation question.
 
     Returns:
         bool: True if the stack stopped successfully, False otherwise.
     """
+    compose_files = [compose_file] if isinstance(compose_file, str) else list(compose_file)
     logging.info(
-        f"Stopping stack for '{instance_name}' instance with compose file: {compose_file}"
+        f"Stopping stack for '{instance_name}' instance with compose file(s): {compose_files}"
     )
     just_fix_windows_console()
 
@@ -82,7 +83,7 @@ def stop_stack(
     use_sudo = not is_user_root() and platform.system().lower() == "linux"
     try:
         # Get the env file path based on the compose file directory
-        compose_dir = os.path.dirname(compose_file)
+        compose_dir = os.path.dirname(compose_files[0])
         if compose_dir == "":
             compose_dir = "."
         env_file = os.path.join(compose_dir, ".env")
@@ -103,7 +104,8 @@ def stop_stack(
                 f"COMPOSE_PROJECT_NAME not found in {env_file}, relying on Docker Compose defaults"
             )
 
-        command.extend(["-f", compose_file])
+        for cf in compose_files:
+            command.extend(["-f", cf])
 
         # Activate all infrastructure profiles so profiled services are included
         # in the shutdown.  Docker Compose ignores unknown profile flags.
@@ -138,7 +140,7 @@ def stop_stack(
 
 
 def stop_all_stacks(
-    main_compose_file: str = "./docker-compose.yaml",
+    main_compose_file: str | list[str] = "./docker-compose.yaml",
     main_instance_name: str = "money4band",
     instances_dir: str = "m4b_proxy_instances",
     skip_questions: bool = False,
@@ -147,7 +149,7 @@ def stop_all_stacks(
     Stop the main stack and all multi-proxy instances.
 
     Args:
-        main_compose_file (str): The path to the main Docker Compose file.
+        main_compose_file (str | list[str]): Path(s) to the main Docker Compose file(s).
         main_instance_name (str): The name of the main instance.
         instances_dir (str): The directory containing the proxy instances.
         skip_questions (bool): Whether to skip the confirmation question.
@@ -168,10 +170,16 @@ def stop_all_stacks(
             print(f"{Fore.YELLOW}Stopping multi-proxy instances...{Style.RESET_ALL}")
             for instance in os.listdir(instances_dir):
                 instance_dir = os.path.join(instances_dir, instance)
-                compose_file = os.path.join(instance_dir, "docker-compose.yaml")
-                if os.path.isfile(compose_file):
+                from utils.compose_builder import get_compose_files
+
+                instance_files = get_compose_files(instance_dir)
+                if not instance_files:
+                    compose_file = os.path.join(instance_dir, "docker-compose.yaml")
+                    if os.path.isfile(compose_file):
+                        instance_files = [compose_file]
+                if instance_files:
                     try:
-                        stop_stack(compose_file, instance, skip_questions=True)
+                        stop_stack(instance_files, instance, skip_questions=True)
                     except Exception as e:
                         logging.error(f"Failed to stop instance '{instance}': {str(e)}")
             print(f"{Fore.GREEN}All multi-proxy instances stopped.{Style.RESET_ALL}")
@@ -192,16 +200,23 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
         )
 
         # Check if required files exist before proceeding
-        missing = check_required_files(
-            ["./docker-compose.yaml"],
-            error_message="Cannot stop the stack. The following required files are missing:",
-            hint_message="It looks like there is nothing to stop.",
-        )
-        if missing:
-            time.sleep(sleep_time)
-            return
+        from utils.compose_builder import get_compose_files
 
-        stop_all_stacks(main_instance_name=base_instance_name)
+        compose_files = get_compose_files(".")
+        if not compose_files:
+            missing = check_required_files(
+                ["./docker-compose.yaml"],
+                error_message="Cannot stop the stack. No compose files found.",
+                hint_message="It looks like there is nothing to stop.",
+            )
+            if missing:
+                time.sleep(sleep_time)
+                return
+
+        stop_all_stacks(
+            main_compose_file=compose_files or "./docker-compose.yaml",
+            main_instance_name=base_instance_name,
+        )
     except FileNotFoundError as e:
         logging.error(f"File not found: {str(e)}")
         print(f"{Fore.RED}File not found: {str(e)}{Style.RESET_ALL}")

@@ -223,7 +223,7 @@ class TestHandlerArguments:
         monkeypatch.setattr("main.BASE_DIR", str(tmp_path))
         from main import _cmd_status
         _cmd_status(_make_args(tmp_path, "status"))
-        assert "No docker-compose.yaml found" in capsys.readouterr().out
+        assert "No compose files found" in capsys.readouterr().out
 
     def test_update_passes_m4b_config_to_checker(self, monkeypatch, tmp_path):
         received = {}

@@ -38,6 +38,7 @@
     "registry_request_timeout": 15,
     "registry_max_retries": 3,
     "enforce_install_limits": true,
+    "compose_mode": "monolithic",
     "dns": {
       "mode": "default",
       "servers": ["1.1.1.1", "8.8.8.8"]

@@ -224,6 +224,14 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
         f"  Enabled Apps ({len(enabled)}): {', '.join(enabled) if enabled else 'None'}"
     )
 
+    # Determine compose mode from config
+    compose_mode = m4b_config.get("system", {}).get("compose_mode", "monolithic")
+    layered = compose_mode == "layered"
+    if layered:
+        print(f"  Compose Mode: Layered (split by IP-policy tier)")
+    else:
+        print(f"  Compose Mode: Monolithic (single docker-compose.yaml)")
+
     # Check for multiproxy instances
     instances_dir = "m4b_proxy_instances"
     has_instances = os.path.exists(instances_dir) and os.listdir(instances_dir)
@@ -263,7 +271,15 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
     # Create backup of existing files
     backup_dir = ".backup"
     os.makedirs(backup_dir, exist_ok=True)
-    files_to_backup = ["docker-compose.yaml", ".env"]
+    from utils.compose_builder import COMPOSE_LAYER_FILES
+
+    files_to_backup = [".env"]
+    # Back up either layered or monolithic compose files, whichever exist
+    for layer_file in COMPOSE_LAYER_FILES.values():
+        if os.path.exists(layer_file):
+            files_to_backup.append(layer_file)
+    if os.path.exists("docker-compose.yaml"):
+        files_to_backup.append("docker-compose.yaml")
     backed_up = []
 
     for filename in files_to_backup:
@@ -282,15 +298,17 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
 
     try:
         # Regenerate main instance files
-        print(f"\n{Fore.CYAN}Regenerating docker-compose.yaml...{Style.RESET_ALL}")
+        mode_label = "layered compose files" if layered else "docker-compose.yaml"
+        print(f"\n{Fore.CYAN}Regenerating {mode_label}...{Style.RESET_ALL}")
         assemble_docker_compose(
             m4b_config_path_or_dict=m4b_config,
             app_config_path_or_dict=app_config,
             user_config_path_or_dict=user_config,
             compose_output_path="./docker-compose.yaml",
             is_main_instance=True,
+            layered=layered,
         )
-        print(f"{Fore.GREEN}docker-compose.yaml regenerated{Style.RESET_ALL}")
+        print(f"{Fore.GREEN}{mode_label} regenerated{Style.RESET_ALL}")
 
         print(f"{Fore.CYAN}Regenerating .env file...{Style.RESET_ALL}")
         generate_env_file(
@@ -331,7 +349,10 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
                     # Backup instance files
                     instance_backup = os.path.join(instance_path, ".backup")
                     os.makedirs(instance_backup, exist_ok=True)
-                    for f in ["docker-compose.yaml", ".env"]:
+                    backup_names = ["docker-compose.yaml", ".env"]
+                    for lf in COMPOSE_LAYER_FILES.values():
+                        backup_names.append(lf)
+                    for f in backup_names:
                         src = os.path.join(instance_path, f)
                         if os.path.exists(src):
                             try:
@@ -361,6 +382,7 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
                             user_config_path_or_dict=instance_user_config,
                             compose_output_path=instance_compose,
                             is_main_instance=False,
+                            layered=layered,
                         )
                         generate_env_file(
                             m4b_config_path_or_dict=i_m4b_cfg,
@@ -390,8 +412,18 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
             if ask_question_yn("Restart stack now to apply changes?"):
                 print(f"{Fore.CYAN}Restarting stack...{Style.RESET_ALL}")
                 try:
-                    subprocess.run(["docker", "compose", "down"], check=True)
-                    subprocess.run(["docker", "compose", "up", "-d"], check=True)
+                    from utils.compose_builder import get_compose_files as _gcf
+
+                    current_files = _gcf(".")
+                    down_cmd = ["docker", "compose"]
+                    up_cmd = ["docker", "compose"]
+                    for cf in current_files:
+                        down_cmd.extend(["-f", cf])
+                        up_cmd.extend(["-f", cf])
+                    down_cmd.append("down")
+                    up_cmd.extend(["up", "-d"])
+                    subprocess.run(down_cmd, check=True)
+                    subprocess.run(up_cmd, check=True)
                     print(
                         f"{Fore.GREEN}Stack restarted successfully{Style.RESET_ALL}"
                     )

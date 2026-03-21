@@ -508,7 +508,7 @@ def assemble_docker_compose(
             output_dir = os.path.dirname(compose_output_path) or "."
             layer_buckets: dict[str, dict] = {layer: {} for layer in COMPOSE_LAYER_ORDER}
             for svc_name, svc_config in services.items():
-                bucket = service_layers.get(svc_name, "hosting")
+                bucket = service_layers.get(svc_name, "datacenter")
                 layer_buckets[bucket][svc_name] = svc_config
 
             for layer_name in COMPOSE_LAYER_ORDER:

@@ -355,17 +355,18 @@ def _cmd_stop(args) -> None:
 
 def _cmd_status(args) -> None:
     """Show running containers and health status."""
+    from utils.compose_builder import get_compose_files
     from utils.helper import get_compose_project_name
 
     m4b_config_path, apps_config_path, user_config_path = _resolve_paths(args)
     _ensure_user_config(args, user_config_path)
 
-    compose_file = os.path.join(BASE_DIR, "docker-compose.yaml")
+    compose_files = get_compose_files(BASE_DIR)
     env_file = os.path.join(BASE_DIR, ".env")
 
-    if not os.path.isfile(compose_file):
+    if not compose_files:
         print(
-            f"{Fore.YELLOW}No docker-compose.yaml found. "
+            f"{Fore.YELLOW}No compose files found. "
             f"Run 'setup' or 'generate' first.{Style.RESET_ALL}"
         )
         return
@@ -375,7 +376,8 @@ def _cmd_status(args) -> None:
         project_name = get_compose_project_name(env_file)
         if project_name:
             cmd.extend(["-p", project_name])
-    cmd.extend(["-f", compose_file])
+    for cf in compose_files:
+        cmd.extend(["-f", cf])
     # Show ALL services (including profiled infrastructure) for visibility.
     for profile in ("monitoring", "dashboard", "proxy"):
         cmd.extend(["--profile", profile])
