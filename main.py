@@ -558,6 +558,14 @@ def _cmd_limit(args) -> None:
     )
 
 
+def _cmd_ip(args) -> None:
+    """Analyse IP quality for real IP and configured proxies."""
+    just_fix_windows_console()
+    from utils.ip_scorer import analyse_ips
+
+    analyse_ips()
+
+
 def _cmd_config(args) -> None:
     """View or edit encrypted user config."""
     _, _, user_config_path = _resolve_paths(args)
@@ -684,6 +692,8 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Profile name to switch to (base/min/low/mid/max). Omit to show current.",
     )
 
+    sub.add_parser("ip", help="Analyse IP quality for real IP and proxies")
+
     return parser
 
 
@@ -705,6 +715,7 @@ _SUBCOMMAND_DISPATCH = {
     "update": _cmd_update,
     "config": _cmd_config,
     "limit": _cmd_limit,
+    "ip": _cmd_ip,
 }
 
 
