@@ -1,6 +1,10 @@
+from __future__ import annotations
+
 import logging
 import os
 import time
+
+from typing import Any
 
 from colorama import Fore, Style, just_fix_windows_console
 
@@ -12,10 +16,12 @@ from utils.generator import assemble_docker_compose, generate_env_file
 from utils.loader import load_json_config
 from utils.prompt_helper import ask_question_yn
 
+logger = logging.getLogger(__name__)
+
 
 def toggle_install_limits(
     m4b_config_path: str = "./config/m4b-config.json",
-    **_kwargs,
+    **_kwargs: Any,
 ) -> None:
     """Toggle the enforce_install_limits flag in m4b-config.json.
 
@@ -42,7 +48,7 @@ def toggle_install_limits(
             f"Some providers may ban accounts that exceed their proxy limits."
             f"{Style.RESET_ALL}"
         )
-    logging.info("enforce_install_limits toggled to %s", new_value)
+    logger.info("enforce_install_limits toggled to %s", new_value)
     time.sleep(m4b_config.get("system", {}).get("sleep_time", 3))
 
 
@@ -72,13 +78,13 @@ def update_multiproxy_instances(
         default=False,
     ):
         print("Operation canceled.")
-        logging.info("User canceled the update of multiproxy instances.")
+        logger.info("User canceled the update of multiproxy instances.")
         time.sleep(sleep_time)
         return
 
     # Ensure proxies.txt exists
     if not os.path.isfile(proxies_file):
-        logging.error(f"Proxies file '{proxies_file}' not found.")
+        logger.error(f"Proxies file '{proxies_file}' not found.")
         print(
             f"{Fore.RED}Proxies file '{proxies_file}' not found. Please create it and add proxies.{Style.RESET_ALL}"
         )
@@ -89,13 +95,13 @@ def update_multiproxy_instances(
         proxies = [line.strip() for line in file if line.strip()]
 
     if not proxies:
-        logging.error("No proxies found in proxies file.")
+        logger.error("No proxies found in proxies file.")
         print(
             f"{Fore.RED}No proxies found in proxies file. Please add proxies.{Style.RESET_ALL}"
         )
         return
     # Tell the user how many proxies where found.
-    logging.info(f"Found {len(proxies)} proxies in '{proxies_file}'.")
+    logger.info(f"Found {len(proxies)} proxies in '{proxies_file}'.")
     print(
         f"{Fore.GREEN}Found {len(proxies)} proxies in '{proxies_file}'.{Style.RESET_ALL}"
     )
@@ -105,7 +111,7 @@ def update_multiproxy_instances(
 
     # Update main instance proxy
     try:
-        logging.info(f"Updating main instance proxy with {proxies[0]}")
+        logger.info(f"Updating main instance proxy with {proxies[0]}")
         print(
             f"{Fore.GREEN}Updating main instance proxy with {proxies[0]}{Style.RESET_ALL}"
         )
@@ -121,7 +127,7 @@ def update_multiproxy_instances(
         write_json(user_config, user_config_path)
 
         # Log the update
-        logging.info(f"Updated main instance proxy URL: {old_proxy} -> {new_proxy}")
+        logger.info(f"Updated main instance proxy URL: {old_proxy} -> {new_proxy}")
         print(
             f"{Fore.GREEN}Updated main instance proxy URL: {old_proxy} -> {new_proxy}{Style.RESET_ALL}"
         )
@@ -139,7 +145,7 @@ def update_multiproxy_instances(
             m4b_config_path, app_config_path, user_config_path, env_output_path="./.env"
         )
     except Exception as e:
-        logging.error(f"Failed to update main instance proxy: {str(e)}")
+        logger.error(f"Failed to update main instance proxy: {str(e)}")
         print(
             f"{Fore.RED}Failed to update main instance proxy: {str(e)}{Style.RESET_ALL}"
         )
@@ -152,19 +158,19 @@ def update_multiproxy_instances(
     # Check if there are any instances in the instances directory.
     instances = os.listdir(instances_dir)
     if not instances:
-        logging.error(f"No instances found in instances directory '{instances_dir}'.")
+        logger.error(f"No instances found in instances directory '{instances_dir}'.")
         print(
             f"{Fore.RED}No instances found in instances directory '{instances_dir}'. Please setup instances by following the main setup first.{Style.RESET_ALL}"
         )
         return
     # Tell the user how many instances are in the instances directory.
-    logging.info(f"Found {len(instances)} instances in '{instances_dir}'.")
+    logger.info(f"Found {len(instances)} instances in '{instances_dir}'.")
     print(
         f"{Fore.GREEN}Found {len(instances)} instances in '{instances_dir}'.{Style.RESET_ALL}"
     )
     # Check if there are enough proxies for all the instances or they will be updated with new proxies ony the ones for wich there are enough proxies, the others will still use the already assigned proxies. then tell user
     if len(proxies) < len(instances):
-        logging.warning(
+        logger.warning(
             f"Not enough proxies for all instances. {len(instances)} instances found, {len(proxies)} proxies available."
         )
         print(
@@ -176,7 +182,7 @@ def update_multiproxy_instances(
 
     for instance in instances:
         if not proxies:
-            logging.warning("No more proxies available to assign.")
+            logger.warning("No more proxies available to assign.")
             print(
                 f"{Fore.YELLOW}No more proxies available to assign. Remaining instances will not be updated.{Style.RESET_ALL}"
             )
@@ -188,7 +194,7 @@ def update_multiproxy_instances(
         instance_app_config_path = os.path.join(instance_dir, "app-config.json")
 
         if not os.path.isfile(instance_user_config_path):
-            logging.warning(
+            logger.warning(
                 f"User config not found for instance '{instance}'. Skipping."
             )
             continue
@@ -206,7 +212,7 @@ def update_multiproxy_instances(
         write_json(instance_user_config, instance_user_config_path)
 
         # Log the update
-        logging.info(
+        logger.info(
             f"Updated instance '{instance}' proxy URL: {old_proxy} -> {new_proxy}"
         )
         print(
@@ -233,7 +239,7 @@ def update_multiproxy_instances(
     start_all_stacks(skip_questions=True)
 
     print(f"{Fore.GREEN}Multiproxy instances updated successfully.{Style.RESET_ALL}")
-    logging.info("Multiproxy instances updated successfully.")
+    logger.info("Multiproxy instances updated successfully.")
 
 
 def _install_limits_status_label(m4b_config_path: str) -> str:
@@ -248,7 +254,7 @@ def _install_limits_status_label(m4b_config_path: str) -> str:
     return f"{Fore.YELLOW}OFF{Style.RESET_ALL}"
 
 
-def submenu_multiproxy_tools(m4b_config_path: str = "./config/m4b-config.json"):
+def submenu_multiproxy_tools(m4b_config_path: str = "./config/m4b-config.json") -> list[dict[str, str]]:
     status = _install_limits_status_label(m4b_config_path)
     return [
         {
@@ -263,9 +269,9 @@ def submenu_multiproxy_tools(m4b_config_path: str = "./config/m4b-config.json"):
     ]
 
 
-def exit_submenu(*args, **kwargs):
+def exit_submenu(*args: Any, **kwargs: Any) -> bool:
     print("Exiting Multiproxy Tools.")
-    logging.info("User exited the Multiproxy Tools menu.")
+    logger.info("User exited the Multiproxy Tools menu.")
     return False
 
 
@@ -278,7 +284,7 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
         m4b_config_path (str): Path to the m4b-config file.
         user_config_path (str): Path to the user-config file.
     """
-    logging.info("Starting multiproxy tools...")
+    logger.info("Starting multiproxy tools...")
     just_fix_windows_console()
 
     # Load sleep time from configuration
@@ -309,7 +315,7 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
 
         if 1 <= choice <= len(menu_options):
             selected_option = menu_options[choice - 1]
-            logging.info(f"User selected menu option: {selected_option['label']}")
+            logger.info(f"User selected menu option: {selected_option['label']}")
 
             if selected_option["function"] == "exit_submenu":
                 if not exit_submenu():
@@ -326,4 +332,4 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
             )
             time.sleep(sleep_time)
 
-    logging.info("Multiproxy tools completed.")
+    logger.info("Multiproxy tools completed.")

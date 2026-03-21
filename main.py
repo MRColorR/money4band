@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import argparse
 import atexit
 import locale
@@ -19,6 +21,8 @@ from utils.cls import cls
 from utils.crypto import ensure_config_encrypted
 from utils.fn_reset_config import main as reset_main
 from utils.updater import check_update_available, show_update_banner
+
+logger = logging.getLogger(__name__)
 
 # Handle PyInstaller frozen executable path resolution
 if getattr(sys, "frozen", False):
@@ -43,7 +47,7 @@ if parent_dir not in sys.path:
 # ---------------------------------------------------------------------------
 
 
-def _resolve_paths(args):
+def _resolve_paths(args: argparse.Namespace) -> tuple[str, str, str]:
     """Compute the three config paths + utils dir from parsed args."""
     m4b_config_path = os.path.join(args.config_dir, args.config_m4b_file)
     apps_config_path = os.path.join(args.config_dir, args.config_app_file)
@@ -51,14 +55,14 @@ def _resolve_paths(args):
     return m4b_config_path, apps_config_path, user_config_path
 
 
-def _ensure_user_config(args, user_config_path: str) -> None:
+def _ensure_user_config(args: argparse.Namespace, user_config_path: str) -> None:
     """Create user config from template if missing, then encrypt if needed.
 
     Also detects template-default configs (all placeholder values) and
     prompts the user to run setup.
     """
     if not os.path.exists(user_config_path):
-        logging.info("User config not found. Resetting from template...")
+        logger.info("User config not found. Resetting from template...")
         reset_main(
             app_config_path=None,
             m4b_config_path=None,
@@ -105,7 +109,7 @@ def _encrypt_on_exit() -> None:
             pass  # Best-effort during shutdown
 
 
-def _sigterm_handler(signum, frame) -> None:
+def _sigterm_handler(signum: int, frame: object) -> None:
     """Handle SIGTERM by encrypting configs before exit."""
     _encrypt_on_exit()
     sys.exit(128 + signum)
@@ -143,31 +147,31 @@ def mainmenu(
     utils_dir_path -- the path to the utils directory
     """
     try:
-        logging.debug("Initializing colorama")
+        logger.debug("Initializing colorama")
         just_fix_windows_console()
-        logging.info("Colorama initialized successfully")
+        logger.info("Colorama initialized successfully")
     except Exception as e:
-        logging.error(f"Error initializing colorama: {str(e)}")
+        logger.error(f"Error initializing colorama: {str(e)}")
         raise
 
     while True:
         try:
-            logging.info("Loading configurations")
+            logger.info("Loading configurations")
             m4b_config = loader.load_json_config(m4b_config_path)
             user_config = loader.load_json_config(user_config_path)
-            logging.info("Configurations loaded successfully")
+            logger.info("Configurations loaded successfully")
         except FileNotFoundError as e:
-            logging.error(f"File not found: {str(e)}")
+            logger.error(f"File not found: {str(e)}")
             raise
         except Exception as e:
-            logging.error(f"An error occurred while loading configurations: {str(e)}")
+            logger.error(f"An error occurred while loading configurations: {str(e)}")
             raise
 
         try:
-            logging.debug("Loading main menu")
+            logger.debug("Loading main menu")
             sleep_time = m4b_config.get("system", {}).get("sleep_time", 2)
 
-            logging.debug("Detecting OS and architecture")
+            logger.debug("Detecting OS and architecture")
             system_info = {
                 **detector.detect_os(m4b_config_path),
                 **detector.detect_architecture(m4b_config_path),
@@ -188,18 +192,18 @@ def mainmenu(
                     )
 
             dumper.write_json(user_config, user_config_path)
-            logging.info(f"System info and default platform stored: {device_info}")
+            logger.info(f"System info and default platform stored: {device_info}")
 
-            logging.debug("Calculating resources limits based on system")
+            logger.debug("Calculating resources limits based on system")
             detector.calculate_resource_limits(
                 user_config_path_or_dict=user_config_path,
                 m4b_config=m4b_config,
             )
 
             # Load the functions from the passed tools dir
-            logging.debug(f"Loading modules from {utils_dir_path}")
+            logger.debug(f"Loading modules from {utils_dir_path}")
             m4b_tools_modules = loader.load_modules_from_directory(utils_dir_path)
-            logging.info(f"Successfully loaded modules from {utils_dir_path}")
+            logger.info(f"Successfully loaded modules from {utils_dir_path}")
             cls()
             print(f"{Fore.GREEN}----------------------------------------------")
             print(
@@ -223,10 +227,10 @@ def mainmenu(
             )
             print("----------------------------------------------")
         except Exception as e:
-            logging.error(f"An error occurred while setting up the menu: {str(e)}")
+            logger.error(f"An error occurred while setting up the menu: {str(e)}")
             raise
         try:
-            logging.debug("Loading menu options from config file")
+            logger.debug("Loading menu options from config file")
             menu_options = m4b_config["menu"]
 
             for i, option in enumerate(menu_options, start=1):
@@ -246,7 +250,7 @@ def mainmenu(
             if 1 <= choice <= len(menu_options):
                 function_label = menu_options[choice - 1]["label"]
                 function_name = menu_options[choice - 1]["function"]
-                logging.info(
+                logger.info(
                     f"User selected menu option number {choice} that corresponds to menu item {function_label}"
                 )
                 m4b_tools_modules[function_name].main(
@@ -258,7 +262,7 @@ def mainmenu(
                 )
                 time.sleep(sleep_time)
         except Exception as e:
-            logging.error(f"An error occurred while processing the menu: {str(e)}")
+            logger.error(f"An error occurred while processing the menu: {str(e)}")
             raise
 
 
@@ -267,7 +271,7 @@ def mainmenu(
 # ---------------------------------------------------------------------------
 
 
-def _cmd_menu(args) -> None:
+def _cmd_menu(args: argparse.Namespace) -> None:
     """Launch the interactive menu (default behaviour)."""
     m4b_config_path, apps_config_path, user_config_path = _resolve_paths(args)
     _ensure_user_config(args, user_config_path)
@@ -299,10 +303,10 @@ def _auto_backup(user_config_path: str) -> None:
             create_backup(user_config_path)
             cleanup_backups()
     except Exception:
-        logging.warning("Auto-backup failed", exc_info=True)
+        logger.warning("Auto-backup failed", exc_info=True)
 
 
-def _cmd_setup(args) -> None:
+def _cmd_setup(args: argparse.Namespace) -> None:
     """Run the interactive setup wizard."""
     m4b_config_path, apps_config_path, user_config_path = _resolve_paths(args)
     _ensure_user_config(args, user_config_path)
@@ -322,7 +326,7 @@ def _cmd_setup(args) -> None:
     )
 
 
-def _cmd_start(args) -> None:
+def _cmd_start(args: argparse.Namespace) -> None:
     """Start the Docker Compose stack."""
     m4b_config_path, apps_config_path, user_config_path = _resolve_paths(args)
     _ensure_user_config(args, user_config_path)
@@ -344,7 +348,7 @@ def _cmd_start(args) -> None:
     start_main(apps_config_path, m4b_config_path, user_config_path)
 
 
-def _cmd_stop(args) -> None:
+def _cmd_stop(args: argparse.Namespace) -> None:
     """Stop the Docker Compose stack."""
     m4b_config_path, apps_config_path, user_config_path = _resolve_paths(args)
     _ensure_user_config(args, user_config_path)
@@ -353,7 +357,7 @@ def _cmd_stop(args) -> None:
     stop_main(apps_config_path, m4b_config_path, user_config_path)
 
 
-def _cmd_status(args) -> None:
+def _cmd_status(args: argparse.Namespace) -> None:
     """Show running containers and health status."""
     from utils.compose_builder import get_compose_files
     from utils.helper import get_compose_project_name
@@ -392,7 +396,7 @@ def _cmd_status(args) -> None:
         print(f"{Fore.RED}Error:{Style.RESET_ALL} {result.stderr.strip()}")
 
 
-def _cmd_generate(args) -> None:
+def _cmd_generate(args: argparse.Namespace) -> None:
     """Regenerate docker-compose.yaml and .env from config."""
     m4b_config_path, apps_config_path, user_config_path = _resolve_paths(args)
     _ensure_user_config(args, user_config_path)
@@ -402,7 +406,7 @@ def _cmd_generate(args) -> None:
     gen_main(apps_config_path, m4b_config_path, user_config_path)
 
 
-def _cmd_links(args) -> None:
+def _cmd_links(args: argparse.Namespace) -> None:
     """Show app dashboard and referral links."""
     m4b_config_path, apps_config_path, user_config_path = _resolve_paths(args)
     from utils.fn_app_catalog import main as links_main
@@ -410,7 +414,7 @@ def _cmd_links(args) -> None:
     links_main(apps_config_path, m4b_config_path, user_config_path)
 
 
-def _cmd_reset(args) -> None:
+def _cmd_reset(args: argparse.Namespace) -> None:
     """Reset user-config.json from template."""
     m4b_config_path, apps_config_path, user_config_path = _resolve_paths(args)
     _auto_backup(user_config_path)
@@ -424,7 +428,7 @@ def _cmd_reset(args) -> None:
     print(f"{Fore.GREEN}User config reset to template defaults.{Style.RESET_ALL}")
 
 
-def _cmd_proxy(args) -> None:
+def _cmd_proxy(args: argparse.Namespace) -> None:
     """Launch multiproxy tools."""
     m4b_config_path, apps_config_path, user_config_path = _resolve_paths(args)
     _ensure_user_config(args, user_config_path)
@@ -433,7 +437,7 @@ def _cmd_proxy(args) -> None:
     proxy_main(apps_config_path, m4b_config_path, user_config_path)
 
 
-def _cmd_backup(args) -> None:
+def _cmd_backup(args: argparse.Namespace) -> None:
     """Create a manual config backup."""
     _, _, user_config_path = _resolve_paths(args)
     _ensure_user_config(args, user_config_path)
@@ -443,7 +447,7 @@ def _cmd_backup(args) -> None:
     print(f"{Fore.GREEN}Backup saved: {backup_path}{Style.RESET_ALL}")
 
 
-def _cmd_restore(args) -> None:
+def _cmd_restore(args: argparse.Namespace) -> None:
     """Restore user-config from a backup."""
     _, _, user_config_path = _resolve_paths(args)
     just_fix_windows_console()
@@ -473,7 +477,7 @@ def _cmd_restore(args) -> None:
     print(f"{Fore.GREEN}Restored: {backups[idx].path.name}{Style.RESET_ALL}")
 
 
-def _cmd_update(args) -> None:
+def _cmd_update(args: argparse.Namespace) -> None:
     """Check for updates and optionally apply them."""
     m4b_config_path, _, _ = _resolve_paths(args)
     just_fix_windows_console()
@@ -508,7 +512,7 @@ def _cmd_update(args) -> None:
         print(f"{Fore.RED}Update failed. See logs for details.{Style.RESET_ALL}")
 
 
-def _cmd_limit(args) -> None:
+def _cmd_limit(args: argparse.Namespace) -> None:
     """Show or change the active resource limit profile."""
     m4b_config_path, _, user_config_path = _resolve_paths(args)
     _ensure_user_config(args, user_config_path)
@@ -560,7 +564,7 @@ def _cmd_limit(args) -> None:
     )
 
 
-def _cmd_ip(args) -> None:
+def _cmd_ip(args: argparse.Namespace) -> None:
     """Analyse IP quality for real IP and configured proxies."""
     just_fix_windows_console()
     from utils.ip_scorer import analyse_ips
@@ -568,7 +572,7 @@ def _cmd_ip(args) -> None:
     analyse_ips()
 
 
-def _cmd_info(args) -> None:
+def _cmd_info(args: argparse.Namespace) -> None:
     """Display system information dashboard."""
     m4b_config_path, apps_config_path, user_config_path = _resolve_paths(args)
     _ensure_user_config(args, user_config_path)
@@ -583,7 +587,7 @@ def _cmd_info(args) -> None:
     show_system_info(m4b_config, app_config, user_config)
 
 
-def _cmd_notify(args) -> None:
+def _cmd_notify(args: argparse.Namespace) -> None:
     """Send a test notification or show notification status."""
     _, _, user_config_path = _resolve_paths(args)
     _ensure_user_config(args, user_config_path)
@@ -625,7 +629,7 @@ def _cmd_notify(args) -> None:
             print(f"    {evt}: {mark}")
 
 
-def _cmd_dns(args) -> None:
+def _cmd_dns(args: argparse.Namespace) -> None:
     """View or configure DNS settings for containers."""
     m4b_config_path, _, _ = _resolve_paths(args)
     just_fix_windows_console()
@@ -651,7 +655,7 @@ def _cmd_dns(args) -> None:
         show_dns_status(m4b_config)
 
 
-def _cmd_config(args) -> None:
+def _cmd_config(args: argparse.Namespace) -> None:
     """View or edit encrypted user config."""
     _, _, user_config_path = _resolve_paths(args)
     action = getattr(args, "config_action", None)
@@ -827,24 +831,66 @@ _SUBCOMMAND_DISPATCH = {
 }
 
 
-def _setup_logging(args) -> None:
-    """Configure rotating file handler from parsed args."""
+class _CredentialScrubFilter(logging.Filter):
+    """Redact common credential patterns before they reach log handlers."""
+
+    import re as _re
+
+    _PATTERNS = [
+        _re.compile(r'(?i)(password|passwd|pwd|secret|token|apikey|api_key)\s*[:=]\s*\S+'),
+        _re.compile(r'(?i)(bearer\s+)\S+'),
+        _re.compile(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'),
+    ]
+    _REDACTED = "***REDACTED***"
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        msg = record.getMessage()
+        for pat in self._PATTERNS:
+            msg = pat.sub(self._REDACTED, msg)
+        record.msg = msg
+        record.args = None
+        return True
+
+
+def _setup_logging(args: argparse.Namespace) -> None:
+    """Configure rotating file handler + stderr console handler from parsed args.
+
+    - File handler: all levels, includes module name for per-module filtering
+    - Console handler: WARNING+ only (keeps terminal clean for CLI output)
+    - Credential scrubbing filter on root logger
+    """
     log_level = getattr(logging, args.log_level.upper(), None)
     if not isinstance(log_level, int):
         raise ValueError(f"Invalid log level: {args.log_level}")
 
     os.makedirs(args.log_dir, exist_ok=True)
     log_file_path = os.path.join(args.log_dir, args.log_file)
+
+    fmt = logging.Formatter(
+        "%(asctime)s - %(name)s - [%(levelname)s] - %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+
+    # Rotating file handler — captures everything at the configured level
     rotating_handler = RotatingFileHandler(
         log_file_path, maxBytes=1 * 1024 * 1024, backupCount=3
     )
-    rotating_handler.setFormatter(
-        logging.Formatter(
-            "%(asctime)s - [%(levelname)s] - %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
-        )
-    )
+    rotating_handler.setFormatter(fmt)
     rotating_handler.setLevel(log_level)
-    logging.basicConfig(level=log_level, handlers=[rotating_handler])
+
+    # Console (stderr) handler — only WARNING+ to avoid polluting CLI output
+    console_handler = logging.StreamHandler()
+    console_handler.setFormatter(
+        logging.Formatter("[%(levelname)s] %(name)s: %(message)s")
+    )
+    console_handler.setLevel(logging.WARNING)
+
+    logging.basicConfig(
+        level=log_level, handlers=[rotating_handler, console_handler]
+    )
+
+    # Attach credential scrubbing filter to root logger
+    logging.getLogger().addFilter(_CredentialScrubFilter())
 
 
 # ---------------------------------------------------------------------------
@@ -852,7 +898,7 @@ def _setup_logging(args) -> None:
 # ---------------------------------------------------------------------------
 
 
-def main():
+def main() -> None:
     locale.setlocale(locale.LC_ALL, "C")
     parser = _build_parser()
     args = parser.parse_args()
@@ -864,7 +910,7 @@ def main():
         if not getattr(sys, "frozen", False)
         else "Money4Band"
     )
-    logging.info(f"Starting {script_name} script...")
+    logger.info(f"Starting {script_name} script...")
 
     handler = _SUBCOMMAND_DISPATCH.get(args.command)
     if handler:

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import json
 import logging
 import os
@@ -10,6 +12,7 @@ import tempfile
 import time
 from datetime import datetime
 from pathlib import Path
+from typing import Any
 
 import requests
 from colorama import Fore, Style, just_fix_windows_console
@@ -17,6 +20,8 @@ from colorama import Fore, Style, just_fix_windows_console
 from utils import http_client
 from utils.http_client import get_session
 from utils.loader import load_json_config
+
+logger = logging.getLogger(__name__)
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(script_dir)
@@ -35,7 +40,7 @@ def _cache_path() -> Path:
     return Path(tempfile.gettempdir()) / "m4b_update_cache.json"
 
 
-def _read_cache() -> dict | None:
+def _read_cache() -> dict[str, Any] | None:
     """Read the cached update check result if still valid."""
     path = _cache_path()
     if not path.is_file():
@@ -73,7 +78,7 @@ class Version:
     )
 
     @staticmethod
-    def from_string(version_str: str):
+    def from_string(version_str: str) -> Version:
         """
         Create a Version object by extracting version numbers from a string.
         """
@@ -89,13 +94,13 @@ class Version:
         self.minor = minor
         self.patch = patch
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.major}.{self.minor}.{self.patch}"
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return str(self)
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, Version):
             return False
         return (
@@ -104,7 +109,7 @@ class Version:
             and self.patch == other.patch
         )
 
-    def __lt__(self, other):
+    def __lt__(self, other: Version) -> bool:
         if not isinstance(other, Version):
             return NotImplemented
         if self.major < other.major:
@@ -118,26 +123,26 @@ class Version:
         else:  # minor is equal
             return self.patch < other.patch
 
-    def __gt__(self, other):
+    def __gt__(self, other: Version) -> bool:
         if not isinstance(other, Version):
             return NotImplemented
         return not self.__lt__(other) and not self.__eq__(other)
 
-    def __le__(self, other):
+    def __le__(self, other: Version) -> bool:
         if not isinstance(other, Version):
             return NotImplemented
         return self.__lt__(other) or self.__eq__(other)
 
-    def __ge__(self, other):
+    def __ge__(self, other: Version) -> bool:
         if not isinstance(other, Version):
             return NotImplemented
         return not self.__lt__(other)
 
-    def __ne__(self, other):
+    def __ne__(self, other: object) -> bool:
         return not self.__eq__(other)
 
 
-def get_latest_releases(count: int = 5) -> list[dict]:
+def get_latest_releases(count: int = 5) -> list[dict[str, Any]]:
     owner = "MRColorR"
     repo = "money4band"
     url = f"https://api.github.com/repos/{owner}/{repo}/releases"
@@ -156,7 +161,7 @@ def get_latest_releases(count: int = 5) -> list[dict]:
             try:
                 version = Version.from_string(name)
             except ValueError:
-                logging.warning(
+                logger.warning(
                     "Skipping release with unparseable version: '%s'", name
                 )
                 continue
@@ -185,7 +190,7 @@ def get_latest_releases(count: int = 5) -> list[dict]:
         raise RuntimeError("Failed to parse GitHub API response") from e
 
 
-def check_update_available(m4b_config_path_or_dict: str | dict) -> None:
+def check_update_available(m4b_config_path_or_dict: str | dict[str, Any]) -> None:
     just_fix_windows_console()
     m4b_config = load_json_config(m4b_config_path_or_dict)
     try:
@@ -204,7 +209,7 @@ def check_update_available(m4b_config_path_or_dict: str | dict) -> None:
             )
             print(f"Download URL: {Style.RESET_ALL}{latest_release['url']}")
     except Exception as e:
-        logging.error(e)
+        logger.error(e)
         print(f"Error checking for updates: {e}")
 
 
@@ -225,7 +230,7 @@ def is_git_install() -> bool:
     return os.path.isdir(git_dir)
 
 
-def check_for_update(m4b_config: dict) -> str | None:
+def check_for_update(m4b_config: dict[str, Any]) -> str | None:
     """Check whether a newer version is available, using the 15-min cache.
 
     Returns the latest version string if an update is available, else None.
@@ -263,7 +268,7 @@ def check_for_update(m4b_config: dict) -> str | None:
     return None
 
 
-def show_update_banner(m4b_config: dict) -> None:
+def show_update_banner(m4b_config: dict[str, Any]) -> None:
     """Print a one-line banner if an update is available (called at startup)."""
     new_version = check_for_update(m4b_config)
     if new_version:
@@ -286,7 +291,7 @@ def _notify_update_available(version: str) -> None:
 
         notify(user_config, "update_available", f"M4B v{version} is available! Run 'm4b update' to upgrade.")
     except Exception:
-        logging.debug("Update notification failed (non-critical).", exc_info=True)
+        logger.debug("Update notification failed (non-critical).", exc_info=True)
 
 
 def _backup_preserved_files(base_dir: str) -> dict[str, bytes]:
@@ -341,7 +346,7 @@ def _apply_git_update(target_version: str) -> bool:
             text=True,
         )  # noqa: S603
     except subprocess.CalledProcessError as e:
-        logging.error("Git update failed: %s", e.stderr)
+        logger.error("Git update failed: %s", e.stderr)
         return False
 
     _restore_preserved_files(parent_dir, saved)
@@ -377,7 +382,7 @@ def _apply_binary_update(target_version: str) -> bool:
         resp = session.get(url, timeout=http_client.REQUEST_TIMEOUT, stream=True)
         resp.raise_for_status()
     except requests.RequestException as e:
-        logging.error("Binary download failed: %s", e)
+        logger.error("Binary download failed: %s", e)
         return False
 
     current_exe = sys.executable
@@ -403,7 +408,7 @@ def _apply_binary_update(target_version: str) -> bool:
         os.rename(tmp_path, current_exe)
         return True
     except OSError as e:
-        logging.error("Binary replacement failed: %s", e)
+        logger.error("Binary replacement failed: %s", e)
         # Try to restore from backup
         if os.path.exists(backup_exe) and not os.path.exists(current_exe):
             os.rename(backup_exe, current_exe)
@@ -431,7 +436,7 @@ def apply_update(target_version: str) -> bool:
         return False
 
 
-def main():
+def main() -> None:
     releases = get_latest_releases()
     for release in releases:
         print(release)

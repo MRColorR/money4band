@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import argparse
 import json
 import logging
@@ -11,6 +13,8 @@ from colorama import Fore, Style, just_fix_windows_console
 
 from utils.cls import cls
 from utils.loader import load_json_config
+
+logger = logging.getLogger(__name__)
 
 # Ensure the parent directory is in the sys.path
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -32,7 +36,7 @@ def fn_bye(m4b_config: dict[str, Any]) -> None:
     m4b_config -- the m4b configuration dictionary
     """
     try:
-        logging.info("Exiting the application gracefully")
+        logger.info("Exiting the application gracefully")
         cls()
         print(
             Fore.GREEN
@@ -57,7 +61,7 @@ def fn_bye(m4b_config: dict[str, Any]) -> None:
         time.sleep(sleep_time)
         sys.exit(0)
     except Exception as e:
-        logging.error(f"An error occurred in fn_bye: {str(e)}")
+        logger.error(f"An error occurred in fn_bye: {str(e)}")
         raise
 
 
@@ -120,7 +124,7 @@ if __name__ == "__main__":
         level=log_level,
     )
 
-    logging.info(f"Starting {script_name} script...")
+    logger.info(f"Starting {script_name} script...")
 
     try:
         # Call the main function
@@ -129,13 +133,13 @@ if __name__ == "__main__":
             m4b_config_path=args.m4b_config,
             user_config_path=args.user_config,
         )
-        logging.info(f"{script_name} script completed successfully")
+        logger.info(f"{script_name} script completed successfully")
     except FileNotFoundError as e:
-        logging.error(f"File not found: {str(e)}")
+        logger.error(f"File not found: {str(e)}")
         raise
     except json.JSONDecodeError as e:
-        logging.error(f"Error decoding JSON: {str(e)}")
+        logger.error(f"Error decoding JSON: {str(e)}")
         raise
     except Exception as e:
-        logging.error(f"An unexpected error occurred: {str(e)}")
+        logger.error(f"An unexpected error occurred: {str(e)}")
         raise

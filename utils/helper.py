@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import getpass
 import logging
 import os
@@ -7,8 +9,11 @@ import sys
 import threading
 import time
 from itertools import cycle
+from typing import Any
 
 from colorama import Fore, Style
+
+logger = logging.getLogger(__name__)
 
 
 def get_compose_project_name(env_file: str) -> str | None:
@@ -32,21 +37,21 @@ def get_compose_project_name(env_file: str) -> str | None:
                 for line in f:
                     if line.startswith("COMPOSE_PROJECT_NAME="):
                         project_name = line.strip().split("=", 1)[1]
-                        logging.info(
+                        logger.info(
                             "Found COMPOSE_PROJECT_NAME in %s: %s",
                             env_file,
                             project_name,
                         )
                         break
     except Exception as e:
-        logging.error(
+        logger.error(
             "Error reading COMPOSE_PROJECT_NAME from %s: %s", env_file, e
         )
 
     return project_name
 
 
-def is_user_root():
+def is_user_root() -> bool:
     """
     Check if the current user is the root user on Linux.
     On macOS and Windows, it always returns False since we don't manage Docker groups.
@@ -54,7 +59,7 @@ def is_user_root():
     return os.geteuid() == 0 if platform.system().lower() == "linux" else False
 
 
-def is_user_in_docker_group():
+def is_user_in_docker_group() -> bool:
     """
     Check if the current user is in the Docker group on Linux.
     This function is skipped on Windows and macOS.
@@ -63,15 +68,15 @@ def is_user_in_docker_group():
         return True
     # use getpass.getuser() instead of os.getlogin() as it is more robust
     user = getpass.getuser()
-    logging.info(f"Detected user: {user}")
-    logging.info(f"Checking if user '{user}' is in the Docker group...")
+    logger.info(f"Detected user: {user}")
+    logger.info(f"Checking if user '{user}' is in the Docker group...")
     groups = subprocess.run(
         ["groups", user], check=False, capture_output=True, text=True
     )
     return "docker" in groups.stdout
 
 
-def create_docker_group_if_needed():
+def create_docker_group_if_needed() -> None:
     """
     Create the Docker group if it doesn't exist and add the current user to it on Linux.
     This function is skipped on Windows and macOS.
@@ -86,23 +91,23 @@ def create_docker_group_if_needed():
             ).returncode
             != 0
         ):
-            logging.info(
+            logger.info(
                 f"{Fore.YELLOW}Docker group does not exist. Creating it...{Style.RESET_ALL}"
             )
             subprocess.run(["sudo", "groupadd", "docker"], check=True)
-            logging.info(
+            logger.info(
                 f"{Fore.GREEN}Docker group created successfully.{Style.RESET_ALL}"
             )
 
         # use getpass.getuser() instead of os.getlogin() as it is more robust
         user = getpass.getuser()
-        logging.info(f"Adding user '{user}' to Docker group...")
+        logger.info(f"Adding user '{user}' to Docker group...")
         subprocess.run(["sudo", "usermod", "-aG", "docker", user], check=True)
-        logging.info(
+        logger.info(
             f"{Fore.GREEN}User '{user}' added to Docker group. Please log out and log back in.{Style.RESET_ALL}"
         )
     except subprocess.CalledProcessError as e:
-        logging.error(
+        logger.error(
             f"{Fore.RED}Failed to add user to Docker group: {e}{Style.RESET_ALL}"
         )
         raise RuntimeError("Failed to add user to Docker group.") from e
@@ -138,7 +143,7 @@ def check_docker_ready() -> None:
                 "Docker daemon is not running. "
                 "Start it with: sudo systemctl start docker"
             )
-            logging.error(msg)
+            logger.error(msg)
             print(f"{Fore.RED}{msg}{Style.RESET_ALL}")
             raise RuntimeError(msg)
         # Check permissions
@@ -148,7 +153,7 @@ def check_docker_ready() -> None:
                 f"User '{user}' is not in the docker group and is not root.\n"
                 "Docker commands will fail with 'permission denied'."
             )
-            logging.warning(msg)
+            logger.warning(msg)
             print(f"{Fore.YELLOW}{msg}{Style.RESET_ALL}")
             print(
                 f"{Fore.GREEN}Attempting to fix: adding '{user}' to docker group...{Style.RESET_ALL}"
@@ -160,12 +165,12 @@ def check_docker_ready() -> None:
                 "Docker daemon is not running or Docker is not installed. "
                 "Please start Docker Desktop or install Docker first."
             )
-            logging.error(msg)
+            logger.error(msg)
             print(f"{Fore.RED}{msg}{Style.RESET_ALL}")
             raise RuntimeError(msg)
 
 
-def run_docker_command(command, use_sudo=False):
+def run_docker_command(command: list[str], use_sudo: bool = False) -> int:
     """
     Run a Docker command, optionally using sudo, and handle errors gracefully.
 
@@ -179,27 +184,27 @@ def run_docker_command(command, use_sudo=False):
     if use_sudo and platform.system().lower() == "linux":
         command.insert(0, "sudo")
 
-    logging.info(f"Running command: {' '.join(command)}")
+    logger.info(f"Running command: {' '.join(command)}")
 
     try:
         result = subprocess.run(command, capture_output=True, text=True, check=False)
         if result.returncode == 0:
-            logging.info(result.stdout)
+            logger.info(result.stdout)
         else:
-            logging.error(f"Command failed with exit code {result.returncode}")
-            logging.error(result.stderr)
+            logger.error(f"Command failed with exit code {result.returncode}")
+            logger.error(result.stderr)
             print(f"{Fore.RED}Error: {result.stderr.strip()}{Style.RESET_ALL}")
         return result.returncode
     except Exception as e:
-        logging.error(f"{Fore.RED}Failed to run command: {e}{Style.RESET_ALL}")
+        logger.error("Failed to run command: %s", e)
         print(f"{Fore.RED}Unexpected error: {e}{Style.RESET_ALL}")
         raise RuntimeError(f"Command failed: {e}")
 
 
 def setup_service(
-    service_name="docker.binfmt",
-    service_file_path="./.resources/.files/docker.binfmt.service",
-):
+    service_name: str = "docker.binfmt",
+    service_file_path: str = "./.resources/.files/docker.binfmt.service",
+) -> None:
     """
     Set up a service on Linux systems, defaulting to setting up the Docker binfmt service.
 
@@ -221,7 +226,7 @@ def setup_service(
                     text=True,
                 )
                 if result.stdout.strip() == "active":
-                    logging.info(
+                    logger.info(
                         f"{Fore.GREEN}{service_name} is already active and running.{Style.RESET_ALL}"
                     )
                     return
@@ -233,7 +238,7 @@ def setup_service(
                     text=True,
                 )
                 if "running" in result.stdout:
-                    logging.info(
+                    logger.info(
                         f"{Fore.GREEN}{service_name} is already active and running.{Style.RESET_ALL}"
                     )
                     return
@@ -241,7 +246,7 @@ def setup_service(
         # Copy service file and enable service
         if os.path.exists("/etc/systemd/system"):
             if not os.path.exists(systemd_service_file):
-                logging.info(f"Copying service file to {systemd_service_file}")
+                logger.info(f"Copying service file to {systemd_service_file}")
                 subprocess.run(
                     ["sudo", "cp", service_file_path, systemd_service_file], check=True
                 )
@@ -252,7 +257,7 @@ def setup_service(
             subprocess.run(["sudo", "systemctl", "start", service_name], check=False)
         elif os.path.exists("/etc/init.d"):
             if not os.path.exists(sysv_init_file):
-                logging.info(f"Copying service file to {sysv_init_file}")
+                logger.info(f"Copying service file to {sysv_init_file}")
                 subprocess.run(
                     ["sudo", "cp", service_file_path, sysv_init_file], check=True
                 )
@@ -262,17 +267,17 @@ def setup_service(
                 )
             subprocess.run(["sudo", "service", service_name, "start"], check=False)
 
-        logging.info(f"{Fore.GREEN}{service_name} setup and started.{Style.RESET_ALL}")
+        logger.info(f"{Fore.GREEN}{service_name} setup and started.{Style.RESET_ALL}")
 
     except subprocess.CalledProcessError as e:
-        logging.error(f"Failed to setup {service_name}: {str(e)}")
+        logger.error(f"Failed to setup {service_name}: {str(e)}")
         raise RuntimeError(f"Failed to setup {service_name}: {str(e)}")
 
 
 def ensure_service(
-    service_name="docker.binfmt",
-    service_file_path="./.resources/.files/docker.binfmt.service",
-):
+    service_name: str = "docker.binfmt",
+    service_file_path: str = "./.resources/.files/docker.binfmt.service",
+) -> None:
     """
     Ensure that a service is installed and running, defaulting to the Docker binfmt service.
 
@@ -280,20 +285,20 @@ def ensure_service(
         service_name (str): The name of the service to ensure. Default is "docker.binfmt".
         service_file_path (str): The path to the service file. Default is './.resources/.files/docker.binfmt.service'.
     """
-    logging.info(f"Ensuring {service_name} service is installed and running.")
+    logger.info(f"Ensuring {service_name} service is installed and running.")
     try:
         setup_service(service_name=service_name, service_file_path=service_file_path)
-        logging.info(
+        logger.info(
             f"{Fore.GREEN}{service_name} setup completed successfully.{Style.RESET_ALL}"
         )
     except Exception as e:
-        logging.error(f"Failed to ensure {service_name} service: {str(e)}")
+        logger.error(f"Failed to ensure {service_name} service: {str(e)}")
         raise RuntimeError(f"Failed to ensure {service_name} service: {str(e)}")
 
 
 def check_required_files(
-    files: list, error_message: str = None, hint_message: str = None
-) -> list:
+    files: list[str], error_message: str | None = None, hint_message: str | None = None
+) -> list[str]:
     """
     Check if required files exist and return a list of missing files.
 
@@ -309,6 +314,7 @@ def check_required_files(
 
     if missing_files:
         if error_message:
+            logger.error(error_message)
             print(f"{Fore.RED}{error_message}{Style.RESET_ALL}")
         else:
             print(
@@ -322,7 +328,7 @@ def check_required_files(
     return missing_files
 
 
-def show_spinner(message: str, event: threading.Event):
+def show_spinner(message: str, event: threading.Event) -> None:
     """
     Display a spinner animation in the console to indicate progress.
 
@@ -343,7 +349,7 @@ def show_spinner(message: str, event: threading.Event):
     sys.stdout.flush()
 
 
-def get_active_profiles(user_config_path_or_dict) -> list[str]:
+def get_active_profiles(user_config_path_or_dict: str | dict[str, Any]) -> list[str]:
     """Return the list of Docker Compose profile names to activate.
 
     Reads the user config to decide which infrastructure profiles are needed:

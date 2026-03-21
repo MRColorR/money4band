@@ -1,17 +1,21 @@
+from __future__ import annotations
+
 import argparse
 import logging
 import os
 
+logger = logging.getLogger(__name__)
 
-def cls():
+
+def cls() -> None:
     """
     Clear the console.
     """
     try:
         os.system("cls" if os.name == "nt" else "clear")
-        logging.info("Console cleared successfully")
+        logger.info("Console cleared successfully")
     except Exception as e:
-        logging.error(f"Error clearing console: {str(e)}")
+        logger.error(f"Error clearing console: {str(e)}")
         raise
 
 
@@ -54,9 +58,9 @@ if __name__ == "__main__":
         level=log_level,
     )
 
-    logging.info(f"Starting {script_name} script...")
+    logger.info(f"Starting {script_name} script...")
 
     # Test the function
-    logging.info(f"Testing {script_name} function...")
+    logger.info(f"Testing {script_name} function...")
     cls()
-    logging.info(f"{script_name} test complete")
+    logger.info(f"{script_name} test complete")

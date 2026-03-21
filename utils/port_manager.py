@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """Port assignment and collection utilities for M4B apps."""
 
 import logging
@@ -15,13 +17,15 @@ if parent_dir not in sys.path:
 
 from utils import loader
 
+
+logger = logging.getLogger(__name__)
 # Global config loading for port constants
 m4b_config_path = os.path.join(parent_dir, "config", "m4b-config.json")
 try:
     _m4b_config = loader.load_json_config(m4b_config_path)
 except FileNotFoundError:
     _m4b_config = {}
-    logging.warning("Configuration file not found. Using default port values.")
+    logger.warning("Configuration file not found. Using default port values.")
 
 DEFAULT_PORT_BASE = _m4b_config.get("ports", {}).get("default_port_base", 50000)
 PORT_OFFSET_PER_APP = _m4b_config.get("ports", {}).get("port_offset_per_app", 100)
@@ -59,7 +63,7 @@ def collect_assigned_ports(user_config: dict[str, Any]) -> set[int]:
             try:
                 used_ports.add(int(port))
             except (TypeError, ValueError):
-                logging.debug(f"Skipping non-numeric port value in config: {port}")
+                logger.debug(f"Skipping non-numeric port value in config: {port}")
 
     return used_ports
 
@@ -119,7 +123,7 @@ def assign_app_ports(
             and i < len(app["compose_config"]["ports"])
             else f"port_{i + 1}"
         )
-        logging.info(
+        logger.info(
             f"Port {port_placeholder} for {app_name} (app_index={app_index}, instance={instance_number}) set to: {available_port}"
         )
 

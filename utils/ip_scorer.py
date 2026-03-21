@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """IP quality scoring — batch analysis of the real IP and proxy IPs.
 
 Uses the ip-api.com free batch endpoint (max 100 IPs, 15 req/min)
@@ -7,12 +9,15 @@ and optional Spamhaus ZEN blacklist checking via Cloudflare DoH.
 import json
 import logging
 import re
+from typing import Any
 from urllib.parse import urlparse
 
 from colorama import Fore, Style
 
 from utils.http_client import get_session
 
+
+logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 # IP providers (multi-fallback)
 # ---------------------------------------------------------------------------
@@ -51,8 +56,8 @@ def get_public_ip(timeout: int = 5) -> str | None:
             if _IPV4_RE.match(ip):
                 return ip
         except Exception:
-            logging.debug("IP provider %s failed", url)
-    logging.warning("Could not determine public IP from any provider")
+            logger.debug("IP provider %s failed", url)
+    logger.warning("Could not determine public IP from any provider")
     return None
 
 
@@ -66,7 +71,7 @@ def parse_proxy_file(path: str) -> list[str]:
                 if line.strip() and not line.strip().startswith("#")
             ]
     except FileNotFoundError:
-        logging.warning("Proxy file not found: %s", path)
+        logger.warning("Proxy file not found: %s", path)
         return []
 
 
@@ -89,11 +94,11 @@ def test_proxy_connectivity(proxy_url: str, timeout: int = 10) -> str | None:
         if _IPV4_RE.match(ip):
             return ip
     except Exception as exc:
-        logging.debug("Proxy connectivity test failed for %s: %s", proxy_url, exc)
+        logger.debug("Proxy connectivity test failed for %s: %s", proxy_url, exc)
     return None
 
 
-def score_ips(ips: list[str]) -> list[dict]:
+def score_ips(ips: list[str]) -> list[dict[str, Any]]:
     """Batch-query ip-api.com for up to 100 IPs. Returns the API response list."""
     if not ips:
         return []
@@ -109,7 +114,7 @@ def score_ips(ips: list[str]) -> list[dict]:
         resp.raise_for_status()
         return resp.json()
     except Exception as exc:
-        logging.error("ip-api.com batch request failed: %s", exc)
+        logger.error("ip-api.com batch request failed: %s", exc)
         return []
 
 
@@ -133,12 +138,12 @@ def check_blacklist(ip: str) -> bool:
             if answer.get("data", "").startswith("127.0.0."):
                 return True
     except Exception as exc:
-        logging.debug("Blacklist check failed for %s: %s", ip, exc)
+        logger.debug("Blacklist check failed for %s: %s", ip, exc)
     return False
 
 
 def calculate_fraud_score(
-    entry: dict,
+    entry: dict[str, Any],
     blacklisted: bool = False,
 ) -> int:
     """Compute a composite fraud score (0–100) from ip-api fields + blacklist."""
@@ -170,7 +175,7 @@ def get_score_rating(score: int) -> str:
     return f"{Fore.RED}Critical{Style.RESET_ALL}"
 
 
-def format_isp_type(entry: dict) -> str:
+def format_isp_type(entry: dict[str, Any]) -> str:
     """Classify the ISP type from ip-api boolean flags."""
     if entry.get("proxy"):
         return "Proxy/VPN"
@@ -185,7 +190,7 @@ def format_isp_type(entry: dict) -> str:
 # Display
 # ---------------------------------------------------------------------------
 
-def display_ip_table(results: list[dict]) -> None:
+def display_ip_table(results: list[dict[str, Any]]) -> None:
     """Print a formatted table of IP analysis results."""
     if not results:
         print(f"{Fore.YELLOW}No IP results to display.{Style.RESET_ALL}")
@@ -218,7 +223,7 @@ def display_ip_table(results: list[dict]) -> None:
 # Orchestrator
 # ---------------------------------------------------------------------------
 
-def analyse_ips(proxy_file: str = "proxies.txt") -> list[dict]:
+def analyse_ips(proxy_file: str = "proxies.txt") -> list[dict[str, Any]]:
     """Run the full IP analysis: real IP + all proxies.
 
     Returns the enriched results list.

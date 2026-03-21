@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 import os
 import sys
@@ -8,6 +10,8 @@ import requests
 from utils import http_client
 from utils.helper import ensure_service
 from utils.http_client import get_session
+
+logger = logging.getLogger(__name__)
 
 # Ensure the parent directory is in the sys.path
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -48,7 +52,7 @@ def fetch_docker_tags(image: str) -> dict | None:
             response.raise_for_status()
             return response.json()
     except requests.ConnectionError:
-        logging.error(
+        logger.error(
             "Cannot reach registry for %s — network may be down. "
             "Retries exhausted after %s attempts.",
             image,
@@ -56,12 +60,12 @@ def fetch_docker_tags(image: str) -> dict | None:
         )
         return None
     except requests.Timeout:
-        logging.error(
+        logger.error(
             "Registry request timed out for %s after %ss.", image, timeout
         )
         return None
     except requests.RequestException as e:
-        logging.error("Error fetching Docker tags for %s: %s", image, e)
+        logger.error("Error fetching Docker tags for %s: %s", image, e)
         return None
 
 
@@ -81,7 +85,7 @@ def check_img_arch_support(image: str, tag: str, docker_platform: str) -> bool |
                      without PAT, or registry unreachable).
     """
     if image.startswith("ghcr.io/"):
-        logging.warning(
+        logger.warning(
             "Skipping arch check for GHCR image %s (requires GH PAT). "
             "Falling back to default platform for emulation.",
             image,
@@ -95,7 +99,7 @@ def check_img_arch_support(image: str, tag: str, docker_platform: str) -> bool |
     arch = docker_platform.split("/")[1]
     tags_info = fetch_docker_tags(image)
     if tags_info is None:
-        logging.warning(
+        logger.warning(
             "Cannot reach registry for %s — skipping arch check. "
             "Docker will attempt to pull at stack start.",
             image,
@@ -106,7 +110,7 @@ def check_img_arch_support(image: str, tag: str, docker_platform: str) -> bool |
         (t for t in tags_info.get("results", []) if t["name"] == tag), None
     )
     if not tag_info:
-        logging.error("Tag %s not found for image %s", tag, image)
+        logger.error("Tag %s not found for image %s", tag, image)
         return False
 
     return any(image_info["architecture"] == arch for image_info in tag_info["images"])
@@ -145,14 +149,14 @@ def get_compatible_tag(image: str, docker_platform: str) -> str | None:
         ensure_service(
             service_name="docker.binfmt", service_file_path=service_file_path
         )
-        logging.warning(
+        logger.warning(
             "No compatible tag found for %s on %s. "
             "Will attempt binfmt multi-arch emulation.",
             image,
             docker_platform,
         )
     else:
-        logging.info(
+        logger.info(
             "Found compatible tag %s for %s on %s",
             compatible_tag,
             image,

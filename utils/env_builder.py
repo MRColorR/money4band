@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """Environment file generation — builds .env from configuration."""
 
 import logging
@@ -9,6 +11,8 @@ from utils.helper import show_spinner
 from utils.loader import get_active_app_categories, get_category_entries, load_json_config
 
 
+
+logger = logging.getLogger(__name__)
 def generate_env_file(
     m4b_config_path_or_dict: Any,
     app_config_path_or_dict: Any,
@@ -130,7 +134,7 @@ def generate_env_file(
         # Write to .env file
         with open(env_output_path, "w") as f:
             f.write("\n".join(env_lines))
-        logging.info(f".env file generated and saved to {env_output_path}")
+        logger.info(f".env file generated and saved to {env_output_path}")
     finally:
         event.set()
         spinner_thread.join()

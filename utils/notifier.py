@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """Fire-and-forget notification sender for M4B lifecycle events.
 
 Uses Shoutrrr-compatible URLs from user config to deliver notifications
@@ -9,6 +11,8 @@ import subprocess
 import threading
 from typing import Any
 
+
+logger = logging.getLogger(__name__)
 # ── Event types ─────────────────────────────────────────────────────────
 EVENT_STACK_START = "stack_start"
 EVENT_STACK_STOP = "stack_stop"
@@ -76,22 +80,22 @@ def _send_shoutrrr(url: str, message: str) -> bool:
             timeout=30,
         )
         if result.returncode == 0:
-            logging.info("Notification sent successfully.")
+            logger.info("Notification sent successfully.")
             return True
-        logging.warning(
+        logger.warning(
             "Shoutrrr exited with code %d: %s",
             result.returncode,
             result.stderr.strip(),
         )
         return False
     except FileNotFoundError:
-        logging.warning("Docker not found — cannot send notification via Shoutrrr.")
+        logger.warning("Docker not found — cannot send notification via Shoutrrr.")
         return False
     except subprocess.TimeoutExpired:
-        logging.warning("Shoutrrr notification timed out after 30s.")
+        logger.warning("Shoutrrr notification timed out after 30s.")
         return False
     except Exception as e:
-        logging.error("Unexpected error sending notification: %s", e)
+        logger.error("Unexpected error sending notification: %s", e)
         return False
 
 
@@ -116,12 +120,12 @@ def notify(
         True/False when blocking, None when fire-and-forget.
     """
     if event != EVENT_TEST and not is_event_enabled(user_config, event):
-        logging.debug("Notification skipped: event '%s' not enabled.", event)
+        logger.debug("Notification skipped: event '%s' not enabled.", event)
         return False if blocking else None
 
     url = _get_notification_config(user_config).get("url", "").strip()
     if not url:
-        logging.debug("Notification skipped: no URL configured.")
+        logger.debug("Notification skipped: no URL configured.")
         return False if blocking else None
 
     prefixed = f"[M4B] {message}"
@@ -142,6 +146,6 @@ def send_test(user_config: dict[str, Any]) -> bool:
     """Send a blocking test notification. Returns True on success."""
     url = _get_notification_config(user_config).get("url", "").strip()
     if not url:
-        logging.warning("Cannot send test notification: no URL configured.")
+        logger.warning("Cannot send test notification: no URL configured.")
         return False
     return _send_shoutrrr(url, "[M4B] Test notification — your webhook is working!")

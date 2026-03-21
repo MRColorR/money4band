@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 import os
 import re
@@ -6,6 +8,8 @@ import sys
 from colorama import Fore, Style
 
 from utils.generator import validate_uuid
+
+logger = logging.getLogger(__name__)
 
 # Ensure the parent directory is in the sys.path
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -45,7 +49,7 @@ def ask_question_yn(question: str, default: bool = False) -> bool:
             done = False
         else:
             print(f"{Fore.RED}Please respond with 'yes' or 'no'{Style.RESET_ALL}")
-    logging.info(f"User response to '{question}': {choice}")
+    logger.info(f"User response to '{question}': {choice}")
     return done
 
 
@@ -75,7 +79,7 @@ def ask_string(prompt: str, default: str = "", show_default: bool = True) -> str
         ):  # As default is empty if not specified then we throw this error
             print(f"{Fore.RED}Input cannot be empty.{Style.RESET_ALL}")
             continue
-        logging.debug(f"User response to '{prompt}': {response}")
+        logger.debug(f"User response to '{prompt}': {response}")
         return response
 
 
@@ -112,7 +116,7 @@ def ask_email(prompt: str, default: str = "", show_default: bool = True) -> str:
             print(f"{Fore.RED}Invalid email address.{Style.RESET_ALL}")
             continue
         else:
-            logging.debug(f"User entered email: {email}")
+            logger.debug(f"User entered email: {email}")
             return email
 
 
@@ -145,13 +149,13 @@ def ask_uuid(
             continue
         elif len(uuid) != length:
             print(f"{Fore.RED}Invalid UUID length.{Style.RESET_ALL}")
-            logging.warning(
+            logger.warning(
                 f"Invalid UUID length. Expected: {length}, Got: {len(uuid)}"
             )
         elif not validate_uuid(uuid, length):
             print(f"{Fore.RED}Invalid UUID format.{Style.RESET_ALL}")
         else:
-            logging.debug(f"User entered UUID: {uuid}")
+            logger.debug(f"User entered UUID: {uuid}")
             return uuid
 
 

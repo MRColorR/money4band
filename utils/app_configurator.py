@@ -1,5 +1,7 @@
 """App credential collection and configuration for M4B setup wizard."""
 
+from __future__ import annotations
+
 import logging
 from typing import Any
 
@@ -11,15 +13,17 @@ from utils.loader import get_active_app_categories, get_category_entries
 from utils.port_manager import assign_app_ports
 from utils.prompt_helper import ask_email, ask_question_yn, ask_string, ask_uuid
 
+logger = logging.getLogger(__name__)
 
-def configure_email(app: dict, flag_config: dict, config: dict):
+
+def configure_email(app: dict[str, Any], flag_config: dict[str, Any], config: dict[str, Any]) -> None:
     email = ask_email(
         f"Enter your {app['name'].lower().title()} email:", default=config.get("email")
     )
     config["email"] = email
 
 
-def configure_password(app: dict, flag_config: dict, config: dict):
+def configure_password(app: dict[str, Any], flag_config: dict[str, Any], config: dict[str, Any]) -> None:
     print(
         f"Note: If you are using login with Google, remember to set also a password for your {app['name'].lower().title()} account!"
     )
@@ -30,7 +34,7 @@ def configure_password(app: dict, flag_config: dict, config: dict):
     config["password"] = password
 
 
-def configure_apikey(app: dict, flag_config: dict, config: dict):
+def configure_apikey(app: dict[str, Any], flag_config: dict[str, Any], config: dict[str, Any]) -> None:
     print(
         f"Find/Generate your APIKey inside your {app['name'].lower().title()} dashboard/profile."
     )
@@ -41,7 +45,7 @@ def configure_apikey(app: dict, flag_config: dict, config: dict):
     config["apikey"] = apikey
 
 
-def configure_userid(app: dict, flag_config: dict, config: dict):
+def configure_userid(app: dict[str, Any], flag_config: dict[str, Any], config: dict[str, Any]) -> None:
     print(
         f"Find your UserID inside your {app['name'].lower().title()} dashboard/profile."
     )
@@ -52,13 +56,13 @@ def configure_userid(app: dict, flag_config: dict, config: dict):
     config["userid"] = userid
 
 
-def configure_uuid(app: dict, flag_config: dict, config: dict):
+def configure_uuid(app: dict[str, Any], flag_config: dict[str, Any], config: dict[str, Any]) -> None:
     print(f"Starting UUID generation/import for {app['name'].lower().title()}")
     if "length" not in flag_config:
         print(
             f"{Fore.RED}Error: Length not specified for UUID generation/import{Style.RESET_ALL}"
         )
-        logging.error("Length not specified for UUID generation/import")
+        logger.error("Length not specified for UUID generation/import")
         return
 
     length = flag_config["length"]
@@ -66,7 +70,7 @@ def configure_uuid(app: dict, flag_config: dict, config: dict):
         print(
             f"{Fore.RED}Error: Invalid length for UUID generation/import{Style.RESET_ALL}"
         )
-        logging.error(f"Invalid length for UUID generation/import: {length}")
+        logger.error(f"Invalid length for UUID generation/import: {length}")
         return
 
     if ask_question_yn(
@@ -97,7 +101,7 @@ def configure_uuid(app: dict, flag_config: dict, config: dict):
                 f"{Fore.GREEN}Claim instructions written to claim_instructions_{app['name'].lower()}.txt{Style.RESET_ALL}"
             )
         except Exception as e:
-            logging.error(f"Error writing claim instructions to file: {e}")
+            logger.error(f"Error writing claim instructions to file: {e}")
         input("Press enter to continue...")
 
     prefix = flag_config.get("prefix", "")
@@ -105,7 +109,7 @@ def configure_uuid(app: dict, flag_config: dict, config: dict):
     config["uuid"] = uuid
 
 
-def configure_cid(app: dict, flag_config: dict, config: dict):
+def configure_cid(app: dict[str, Any], flag_config: dict[str, Any], config: dict[str, Any]) -> None:
     print(f"Find your CID inside your {app['name'].lower().title()} dashboard/profile.")
     print(
         "Example: For packetstream you can fetch it from your dashboard https://packetstream.io/dashboard/download?linux# then click on -> Looking for linux app -> now search for CID= in the code shown in the page, you need to enter the code after -e CID= (e.g. if in the code CID=6aTk, just enter 6aTk)"
@@ -116,7 +120,7 @@ def configure_cid(app: dict, flag_config: dict, config: dict):
     config["cid"] = cid
 
 
-def configure_code(app: dict, flag_config: dict, config: dict):
+def configure_code(app: dict[str, Any], flag_config: dict[str, Any], config: dict[str, Any]) -> None:
     print(
         f"Find your code inside your {app['name'].lower().title()} dashboard/profile."
     )
@@ -126,7 +130,7 @@ def configure_code(app: dict, flag_config: dict, config: dict):
     config["code"] = code
 
 
-def configure_token(app: dict, flag_config: dict, config: dict):
+def configure_token(app: dict[str, Any], flag_config: dict[str, Any], config: dict[str, Any]) -> None:
     print(
         f"Find your token inside your {app['name'].lower().title()} dashboard/profile."
     )
@@ -136,7 +140,7 @@ def configure_token(app: dict, flag_config: dict, config: dict):
     config["token"] = token
 
 
-def configure_manual(app: dict, flag_config: dict, config: dict):
+def configure_manual(app: dict[str, Any], flag_config: dict[str, Any], config: dict[str, Any]) -> None:
     if "instructions" not in flag_config:
         print(
             f"{Fore.RED}Error: Instructions not provided for manual configuration{Style.RESET_ALL}"
@@ -167,10 +171,10 @@ flag_function_mapper = {
 
 def _configure_apps(
     user_config: dict[str, Any],
-    apps: dict,
-    m4b_config: dict,
+    apps: list[dict[str, Any]],
+    m4b_config: dict[str, Any],
     app_index_offset: int = 0,
-):
+) -> None:
     """
     Configure apps by collecting user inputs.
 
@@ -220,7 +224,7 @@ def _configure_apps(
             if flag_name in flag_function_mapper:
                 flag_function_mapper[flag_name](app, flag_config, config)
             else:
-                logging.error(f"Flag {flag_name} not recognized")
+                logger.error(f"Flag {flag_name} not recognized")
 
         # Port configuration with unified offset logic (instance 0 = main)
         if "ports" in app["compose_config"]:
@@ -229,7 +233,7 @@ def _configure_apps(
             )
             # Always store as list for consistency
             config["ports"] = assigned_ports
-            logging.info(f"Ports for {app_name} set to: {config['ports']}")
+            logger.info(f"Ports for {app_name} set to: {config['ports']}")
             # Only increment port_app_index for apps that actually have ports
             port_app_index += 1
 
@@ -239,7 +243,7 @@ def _configure_apps(
                 "detected_docker_arch", "amd64"
             )
             config["docker_platform"] = f"linux/{detected_docker_arch}"
-            logging.info(
+            logger.info(
                 f"Docker platform for {app_name} set to: {config['docker_platform']}"
             )
 
@@ -263,7 +267,7 @@ def _configure_apps(
 
 
 def configure_apps(
-    user_config: dict[str, Any], app_config: dict, m4b_config: dict
+    user_config: dict[str, Any], app_config: dict[str, Any], m4b_config: dict[str, Any]
 ) -> None:
     """
     Configure apps from all active categories.

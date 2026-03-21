@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 import os
 import platform
@@ -10,6 +12,8 @@ import psutil
 
 from utils.dumper import write_json
 from utils.loader import load_json_config
+
+logger = logging.getLogger(__name__)
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(script_dir)
@@ -35,12 +39,12 @@ def detect_os(m4b_config_path_or_dict: Any) -> dict[str, str]:
     try:
         m4b_config = load_json_config(m4b_config_path_or_dict)
 
-        logging.debug("Detecting OS type")
+        logger.debug("Detecting OS type")
         os_map = m4b_config.get("system", {}).get("os_map", {})
 
         # Get the OS type from the platform module and convert it to lowercase
         detected_os = platform.system().lower()
-        logging.info(f"Detected OS: {detected_os}")
+        logger.info(f"Detected OS: {detected_os}")
 
         # Map the detected OS using the os_map from the config
         mapped_os = os_map.get(detected_os, "unknown")
@@ -50,14 +54,14 @@ def detect_os(m4b_config_path_or_dict: Any) -> dict[str, str]:
                 f"OS type '{detected_os}' is not recognized in the provided os_map."
             )
 
-        logging.info(f"Mapped OS: {mapped_os}")
+        logger.info(f"Mapped OS: {mapped_os}")
         return {"os_type": mapped_os}
 
     except KeyError as e:
-        logging.error(f"KeyError in configuration: {str(e)}")
+        logger.error(f"KeyError in configuration: {str(e)}")
         raise
     except Exception as e:
-        logging.error(f"An error occurred while detecting OS: {str(e)}")
+        logger.error(f"An error occurred while detecting OS: {str(e)}")
         raise
 
 
@@ -77,24 +81,24 @@ def detect_architecture(m4b_config_path_or_dict: Any) -> dict[str, str]:
     try:
         m4b_config = load_json_config(m4b_config_path_or_dict)
 
-        logging.debug("Detecting system architecture")
+        logger.debug("Detecting system architecture")
         arch_map = m4b_config.get("system", {}).get("arch_map", {})
         arch = platform.machine().lower()
         dkarch = arch_map.get(arch, "unknown")
-        logging.info(
+        logger.info(
             f"System architecture detected: {arch}, Docker architecture has been set to {dkarch}"
         )
         return {"arch": arch, "dkarch": dkarch}
     except Exception as e:
-        logging.error(f"An error occurred while detecting architecture: {str(e)}")
+        logger.error(f"An error occurred while detecting architecture: {str(e)}")
         raise
 
 
-def get_system_memory_and_cores():
-    logging.debug("Retrieving system memory and cores")
+def get_system_memory_and_cores() -> tuple[float, int | None]:
+    logger.debug("Retrieving system memory and cores")
     total_memory = psutil.virtual_memory().total / (1024**2)
     cores = psutil.cpu_count(logical=False)
-    logging.debug(f"Total RAM: {total_memory:.2f} MB, CPU cores: {cores}")
+    logger.debug(f"Total RAM: {total_memory:.2f} MB, CPU cores: {cores}")
     return total_memory, cores
 
 
@@ -118,7 +122,7 @@ _MIN_CPU = {"little": 0.8, "medium": 1.0, "big": 1.0, "huge": 1.0}
 VALID_PROFILES = ("base", "min", "low", "mid", "max")
 
 
-def get_active_profile(m4b_config: dict) -> str:
+def get_active_profile(m4b_config: dict[str, Any]) -> str:
     """Return the currently active resource profile name."""
     return (
         m4b_config
@@ -127,7 +131,7 @@ def get_active_profile(m4b_config: dict) -> str:
     )
 
 
-def get_profile_definition(m4b_config: dict, name: str | None = None) -> dict:
+def get_profile_definition(m4b_config: dict[str, Any], name: str | None = None) -> dict[str, Any]:
     """Return the profile dict for *name* (defaults to active)."""
     rp = m4b_config.get("resource_profiles", {})
     name = name or rp.get("active", "low")
@@ -136,7 +140,7 @@ def get_profile_definition(m4b_config: dict, name: str | None = None) -> dict:
 
 def calculate_resource_limits(
     user_config_path_or_dict: Any,
-    m4b_config: dict | None = None,
+    m4b_config: dict[str, Any] | None = None,
 ) -> None:
     """Compute per-tier resource limits using the active profile and system specs.
 
@@ -146,7 +150,7 @@ def calculate_resource_limits(
     (LITTLE / MEDIUM / BIG / HUGE) then scale these bases with fixed
     multipliers so heavier apps get proportionally more.
     """
-    logging.debug("Determining resource limits")
+    logger.debug("Determining resource limits")
     user_config = load_json_config(user_config_path_or_dict)
     total_memory, cores = get_system_memory_and_cores()
 
@@ -173,15 +177,15 @@ def calculate_resource_limits(
 
     user_config.setdefault("resource_limits", {}).update(resource_limits)
     write_json(user_config, user_config_path_or_dict)
-    logging.debug(
+    logger.debug(
         "Resource limits updated (profile=%s, base_ram=%.0f MB, base_cpu=%.1f)",
         get_active_profile(m4b_config), base_ram_mb, base_cpu,
     )
 
 
 def show_resource_profile_info(
-    m4b_config: dict,
-    user_config: dict,
+    m4b_config: dict[str, Any],
+    user_config: dict[str, Any],
 ) -> None:
     """Print the active profile, system stats, and per-tier limits."""
     from colorama import Fore, Style

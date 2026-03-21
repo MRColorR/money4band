@@ -92,7 +92,7 @@ class TestFnAppCatalog(unittest.TestCase):
         )
         self.assertIn("(Docker image unavailability)", clean_printed_output)
 
-    @patch("utils.fn_app_catalog.logging.error")
+    @patch("utils.fn_app_catalog.logger.error")
     def test_fn_app_catalog_exception(self, mock_logging_error):
         """
         Test fn_app_catalog exception handling.

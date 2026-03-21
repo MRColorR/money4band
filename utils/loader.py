@@ -1,11 +1,16 @@
+from __future__ import annotations
+
 import argparse
 import importlib.util
 import json
 import logging
 import os
+import types
 from typing import Any
 
 from utils.crypto import decrypt_to_dict, is_encrypted
+
+logger = logging.getLogger(__name__)
 
 
 def load_json_config(config_path_or_dict: Any) -> dict[str, Any]:
@@ -30,22 +35,22 @@ def load_json_config(config_path_or_dict: Any) -> dict[str, Any]:
         # If config is a string, assume it's a file path and load the JSON file
         try:
             with open(config_path_or_dict) as f:
-                logging.debug("Loading config from file: %s", config_path_or_dict)
+                logger.debug("Loading config from file: %s", config_path_or_dict)
                 content = f.read()
 
             if is_encrypted(content):
-                logging.debug("Decrypting encrypted config: %s", config_path_or_dict)
+                logger.debug("Decrypting encrypted config: %s", config_path_or_dict)
                 return decrypt_to_dict(content)
 
             return json.loads(content)
         except FileNotFoundError:
-            logging.error("Config file %s not found.", config_path_or_dict)
+            logger.error("Config file %s not found.", config_path_or_dict)
             raise
         except json.JSONDecodeError:
-            logging.error("Error decoding JSON from %s", config_path_or_dict)
+            logger.error("Error decoding JSON from %s", config_path_or_dict)
             raise
         except Exception as e:
-            logging.error(
+            logger.error(
                 "An unexpected error occurred when loading %s: %s",
                 config_path_or_dict,
                 e,
@@ -53,7 +58,7 @@ def load_json_config(config_path_or_dict: Any) -> dict[str, Any]:
             raise
     elif isinstance(config_path_or_dict, dict):
         # If config is a dictionary, assume it's already loaded and return it directly
-        logging.debug("Using provided config dictionary")
+        logger.debug("Using provided config dictionary")
         return config_path_or_dict
     else:
         raise ValueError(
@@ -113,7 +118,7 @@ def get_install_limit(app_entry: dict[str, Any]) -> int:
     return app_entry.get("install_limit", -1)
 
 
-def load_module_from_file(module_name: str, file_path: str):
+def load_module_from_file(module_name: str, file_path: str) -> types.ModuleType:
     """
     Dynamically load a module from a Python file.
 
@@ -133,13 +138,13 @@ def load_module_from_file(module_name: str, file_path: str):
         spec.loader.exec_module(module)
         return module
     except Exception as e:
-        logging.error(
+        logger.error(
             f"Failed to load module: {module_name} from {file_path}. Error: {str(e)}"
         )
         raise
 
 
-def load_modules_from_directory(directory_path: str):
+def load_modules_from_directory(directory_path: str) -> dict[str, types.ModuleType]:
     """
     Dynamically load all modules in a directory.
 
@@ -156,9 +161,9 @@ def load_modules_from_directory(directory_path: str):
             module_name = filename[:-3]  # remove .py extension
             try:
                 modules[module_name] = load_module_from_file(module_name, path)
-                logging.info(f"Successfully loaded module: {module_name}")
+                logger.info(f"Successfully loaded module: {module_name}")
             except Exception as e:
-                logging.error(f"Failed to load module: {module_name}. Error: {str(e)}")
+                logger.error(f"Failed to load module: {module_name}. Error: {str(e)}")
                 raise
     return modules
 
@@ -175,7 +180,7 @@ def main(config_path_or_dict: Any, module_dir_path: str) -> None:
         config = load_json_config(config_path_or_dict)
         load_modules_from_directory(module_dir_path)
     except Exception as e:
-        logging.error(f"An unexpected error occurred: {str(e)}")
+        logger.error(f"An unexpected error occurred: {str(e)}")
         raise
 
 
@@ -230,7 +235,7 @@ if __name__ == "__main__":
         level=log_level,
     )
 
-    logging.info(f"Starting {script_name} script...")
+    logger.info(f"Starting {script_name} script...")
 
     try:
         # Load the app_config JSON file
@@ -240,13 +245,13 @@ if __name__ == "__main__":
         # Call the main function
         main(config_path_or_dict=config_path, module_dir_path=module_dir_path)
 
-        logging.info(f"{script_name} script completed successfully")
+        logger.info(f"{script_name} script completed successfully")
     except FileNotFoundError as e:
-        logging.error(f"File not found: {str(e)}")
+        logger.error(f"File not found: {str(e)}")
         raise
     except json.JSONDecodeError as e:
-        logging.error(f"Error decoding JSON: {str(e)}")
+        logger.error(f"Error decoding JSON: {str(e)}")
         raise
     except Exception as e:
-        logging.error(f"An unexpected error occurred: {str(e)}")
+        logger.error(f"An unexpected error occurred: {str(e)}")
         raise

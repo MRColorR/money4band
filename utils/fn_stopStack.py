@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import argparse
 import json
 import logging
@@ -23,6 +25,8 @@ from utils.helper import (
 )
 from utils.prompt_helper import ask_question_yn
 
+logger = logging.getLogger(__name__)
+
 script_dir = os.path.dirname(os.path.abspath(__file__))
 
 
@@ -39,7 +43,7 @@ def _notify_event(event: str, message: str) -> None:
 
         notify(user_config, event, message)
     except Exception:
-        logging.debug("Notification send failed (non-critical).", exc_info=True)
+        logger.debug("Notification send failed (non-critical).", exc_info=True)
 parent_dir = os.path.dirname(script_dir)
 if parent_dir not in sys.path:
     sys.path.append(parent_dir)
@@ -51,7 +55,7 @@ try:
     m4b_config = loader.load_json_config(m4b_config_path)
 except FileNotFoundError:
     m4b_config = {}  # Fallback to empty config if not found
-    logging.warning("Configuration file not found. Using default values.")
+    logger.warning("Configuration file not found. Using default values.")
 
 # Set global sleep time
 sleep_time = m4b_config.get("system", {}).get(
@@ -76,7 +80,7 @@ def stop_stack(
         bool: True if the stack stopped successfully, False otherwise.
     """
     compose_files = [compose_file] if isinstance(compose_file, str) else list(compose_file)
-    logging.info(
+    logger.info(
         f"Stopping stack for '{instance_name}' instance with compose file(s): {compose_files}"
     )
     just_fix_windows_console()
@@ -112,11 +116,11 @@ def stop_stack(
 
         if project_name:
             command.extend(["-p", project_name])
-            logging.info(
+            logger.info(
                 f"Using project name '{project_name}' for stopping instance '{instance_name}'"
             )
         else:
-            logging.warning(
+            logger.warning(
                 f"COMPOSE_PROJECT_NAME not found in {env_file}, relying on Docker Compose defaults"
             )
 
@@ -135,13 +139,13 @@ def stop_stack(
             print(
                 f"{Fore.GREEN}All Apps for '{instance_name}' instance stopped and stack deleted.{Style.RESET_ALL}"
             )
-            logging.info(f"Stack for '{instance_name}' stopped successfully.")
+            logger.info(f"Stack for '{instance_name}' stopped successfully.")
             _notify_event("stack_stop", f"Stack '{instance_name}' stopped successfully.")
         else:
             print(
                 f"{Fore.RED}Error stopping and deleting Docker stack for '{instance_name}' instance. Please check the configuration and try again.{Style.RESET_ALL}"
             )
-            logging.error(
+            logger.error(
                 f"Stack for '{instance_name}' failed to stop with exit code {result}."
             )
             _notify_event("stack_error", f"Stack '{instance_name}' failed to stop (exit {result}).")
@@ -150,7 +154,7 @@ def stop_stack(
         print(
             f"{Fore.RED}An unexpected error occurred while stopping the stack for '{instance_name}' instance.{Style.RESET_ALL}"
         )
-        logging.error(f"Unexpected error: {str(e)}")
+        logger.error(f"Unexpected error: {str(e)}")
         _notify_event("stack_error", f"Stack '{instance_name}' error: {e}")
     finally:
         event.set()
@@ -200,10 +204,10 @@ def stop_all_stacks(
                     try:
                         stop_stack(instance_files, instance, skip_questions=True)
                     except Exception as e:
-                        logging.error(f"Failed to stop instance '{instance}': {str(e)}")
+                        logger.error(f"Failed to stop instance '{instance}': {str(e)}")
             print(f"{Fore.GREEN}All multi-proxy instances stopped.{Style.RESET_ALL}")
         else:
-            logging.warning(
+            logger.warning(
                 f"Multi-proxy instances directory '{instances_dir}' does not exist."
             )
     finally:
@@ -237,13 +241,13 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
             main_instance_name=base_instance_name,
         )
     except FileNotFoundError as e:
-        logging.error(f"File not found: {str(e)}")
+        logger.error(f"File not found: {str(e)}")
         print(f"{Fore.RED}File not found: {str(e)}{Style.RESET_ALL}")
     except json.JSONDecodeError as e:
-        logging.error(f"Error decoding JSON: {str(e)}")
+        logger.error(f"Error decoding JSON: {str(e)}")
         print(f"{Fore.RED}Error decoding JSON: {str(e)}{Style.RESET_ALL}")
     except Exception as e:
-        logging.error(f"An unexpected error occurred in main function: {str(e)}")
+        logger.error(f"An unexpected error occurred in main function: {str(e)}")
         print(f"{Fore.RED}An unexpected error occurred: {str(e)}{Style.RESET_ALL}")
 
 
@@ -285,7 +289,7 @@ if __name__ == "__main__":
         level=log_level,
     )
 
-    logging.info("Starting fn_stopStack script...")
+    logger.info("Starting fn_stopStack script...")
 
     try:
         main(
@@ -293,13 +297,13 @@ if __name__ == "__main__":
             m4b_config_path=args.m4b_config,
             user_config_path=args.user_config,
         )
-        logging.info("fn_stopStack script completed successfully")
+        logger.info("fn_stopStack script completed successfully")
     except FileNotFoundError as e:
-        logging.error(f"File not found: {str(e)}")
+        logger.error(f"File not found: {str(e)}")
         raise
     except json.JSONDecodeError as e:
-        logging.error(f"Error decoding JSON: {str(e)}")
+        logger.error(f"Error decoding JSON: {str(e)}")
         raise
     except Exception as e:
-        logging.error(f"An unexpected error occurred: {str(e)}")
+        logger.error(f"An unexpected error occurred: {str(e)}")
         raise

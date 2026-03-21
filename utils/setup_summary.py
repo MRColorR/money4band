@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """Generate a human-readable setup summary after the wizard completes."""
 
 import logging
@@ -7,6 +9,8 @@ from typing import Any
 
 from colorama import Fore, Style
 
+
+logger = logging.getLogger(__name__)
 SUMMARY_PATH = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
     "config",
@@ -107,7 +111,7 @@ def generate_setup_summary(
     os.makedirs(os.path.dirname(SUMMARY_PATH), exist_ok=True)
     with open(SUMMARY_PATH, "w", encoding="utf-8") as f:
         f.write(content)
-    logging.info("Setup summary written to %s", SUMMARY_PATH)
+    logger.info("Setup summary written to %s", SUMMARY_PATH)
 
     # Print abbreviated overview to console
     print(f"\n{Fore.GREEN}{'=' * 50}")

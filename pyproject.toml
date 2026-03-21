@@ -84,4 +84,12 @@ ignore = [
     "T201"
 ]
 
-# Add other tool configurations as needed
+# Mypy configuration — gradual typing adoption
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+check_untyped_defs = true
+# Strict mode disabled for now — enable gradually:
+# disallow_untyped_defs = true
+# disallow_incomplete_defs = true

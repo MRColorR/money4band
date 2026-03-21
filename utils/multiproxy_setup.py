@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """Multi-proxy instance setup, subnet calculation, and directory management for M4B."""
 
 import logging
@@ -8,6 +10,8 @@ import stat
 import time
 from copy import deepcopy
 from typing import Any
+
+from collections.abc import Callable
 
 from colorama import Fore, Style
 
@@ -24,11 +28,13 @@ from utils.loader import (
     get_install_limit,
     load_json_config,
 )
+
+logger = logging.getLogger(__name__)
 from utils.port_manager import assign_app_ports, collect_assigned_ports
 from utils.prompt_helper import ask_question_yn
 
 
-def remove_readonly(func, path, excinfo):
+def remove_readonly(func: Callable[..., Any], path: str, excinfo: object) -> None:
     """
     Error handler for Windows readonly file removal.
 
@@ -42,7 +48,7 @@ def remove_readonly(func, path, excinfo):
         os.chmod(path, stat.S_IWRITE)
         func(path)
     except Exception as e:
-        logging.warning(f"Could not remove {path}: {str(e)}")
+        logger.warning(f"Could not remove {path}: {str(e)}")
 
 
 def safe_rmtree(directory: str) -> bool:
@@ -61,10 +67,10 @@ def safe_rmtree(directory: str) -> bool:
             shutil.rmtree(directory, onerror=remove_readonly)
         else:
             shutil.rmtree(directory)
-        logging.info(f"Successfully removed directory: {directory}")
+        logger.info(f"Successfully removed directory: {directory}")
         return True
     except PermissionError as e:
-        logging.error(f"Permission denied when removing {directory}: {str(e)}")
+        logger.error(f"Permission denied when removing {directory}: {str(e)}")
         print(
             f"{Fore.RED}Permission denied when removing {directory}. Please ensure no files are in use and you have proper permissions.{Style.RESET_ALL}"
         )
@@ -88,13 +94,13 @@ def cleanup_multiproxy_instances_dir(
         backup_root (str): Path to backup root directory.
     """
     if not os.path.isdir(instances_dir):
-        logging.info("No multiproxy instances directory found. Nothing to clean up.")
+        logger.info("No multiproxy instances directory found. Nothing to clean up.")
         return
 
     try:
         entries = os.listdir(instances_dir)
     except Exception as e:
-        logging.error(
+        logger.error(
             f"Unable to inspect multiproxy instances directory '{instances_dir}': {str(e)}"
         )
         return
@@ -104,7 +110,7 @@ def cleanup_multiproxy_instances_dir(
             print(
                 f"{Fore.GREEN}Removed empty multiproxy instances directory '{instances_dir}'.{Style.RESET_ALL}"
             )
-            logging.info(
+            logger.info(
                 f"Removed empty multiproxy instances directory '{instances_dir}'."
             )
         return
@@ -124,11 +130,11 @@ def cleanup_multiproxy_instances_dir(
         print(
             f"{Fore.YELLOW}Multiproxy disabled: moved existing instances to '{backup_dir}'.{Style.RESET_ALL}"
         )
-        logging.info(
+        logger.info(
             f"Multiproxy disabled. Moved '{instances_dir}' to backup '{backup_dir}'."
         )
     except Exception as e:
-        logging.error(
+        logger.error(
             f"Failed to move multiproxy instances directory '{instances_dir}' to backup: {str(e)}"
         )
         print(
@@ -211,14 +217,14 @@ def regenerate_uuids_for_apps(
                 new_uuid = f"{prefix}{new_uuid_part}{postfix}"
 
                 app_user_config["uuid"] = new_uuid
-                logging.info(f"Generated new UUID for {app_name}: {new_uuid}")
+                logger.info(f"Generated new UUID for {app_name}: {new_uuid}")
 
 
 def setup_multiproxy_instances(
     user_config: dict[str, Any],
     app_config: dict[str, Any],
     m4b_config: dict[str, Any],
-    proxies: list,
+    proxies: list[str],
 ) -> None:
     """
     Setup multiple proxy instances based on the given proxies list.
@@ -248,7 +254,7 @@ def setup_multiproxy_instances(
     print(
         f"{Fore.BLUE}Base device name for instances: {base_device_name}{Style.RESET_ALL}"
     )
-    logging.info(f"Base device name for proxy instances: {base_device_name}")
+    logger.info(f"Base device name for proxy instances: {base_device_name}")
 
     base_subnet = m4b_config["network"]["subnet"]
     base_netmask = int(m4b_config["network"]["netmask"])
@@ -296,7 +302,7 @@ def setup_multiproxy_instances(
             f"{Fore.YELLOW}Install-limit enforcement is DISABLED. "
             f"All apps will run on every instance.{Style.RESET_ALL}"
         )
-        logging.info("Install-limit enforcement disabled by user.")
+        logger.info("Install-limit enforcement disabled by user.")
 
     if limited_apps:
         print(
@@ -308,7 +314,7 @@ def setup_multiproxy_instances(
                 f"  {Fore.YELLOW}{app_name.upper()}: max {limit} instances "
                 f"— will be disabled in instances beyond #{limit}{Style.RESET_ALL}"
             )
-        logging.info(
+        logger.info(
             "Install-limit enforcement: %s",
             {k: v for k, v in limited_apps.items()},
         )
@@ -322,12 +328,12 @@ def setup_multiproxy_instances(
                 existing_config = load_json_config(existing_user_cfg)
                 reserved_ports.update(collect_assigned_ports(existing_config))
             except Exception as e:
-                logging.warning(
+                logger.warning(
                     f"Failed to preload ports from existing instance '{existing_instance}': {e}"
                 )
 
     for i, proxy in enumerate(proxies):
-        logging.info(f"Creating instance {i + 1}/{len(proxies)} with proxy: {proxy}")
+        logger.info(f"Creating instance {i + 1}/{len(proxies)} with proxy: {proxy}")
         instance_user_config = deepcopy(user_config)
         instance_m4b_config = deepcopy(m4b_config)
         instance_app_config = deepcopy(app_config)
@@ -350,7 +356,7 @@ def setup_multiproxy_instances(
         print(
             f"{Fore.GREEN}Created proxy instance {i + 1} with device name: {instance_device_name}{Style.RESET_ALL}"
         )
-        logging.info(
+        logger.info(
             f"Created proxy instance with unique device name: {instance_device_name}"
         )
 
@@ -383,7 +389,7 @@ def setup_multiproxy_instances(
                 if limit >= 0 and instance_number >= limit:
                     if app_config_entry.get("enabled", False):
                         app_config_entry["enabled"] = False
-                        logging.info(
+                        logger.info(
                             "Disabled %s in instance %d (limit: %d)",
                             app_name, instance_number, limit,
                         )
@@ -393,7 +399,7 @@ def setup_multiproxy_instances(
                 if app_details.get("enabled", False) or (
                     app_config_entry and app_config_entry.get("enabled", False)
                 ):
-                    logging.info(
+                    logger.info(
                         f"Processing port assignments for {app_name} "
                         f"in instance {instance_project_name}"
                     )
@@ -418,7 +424,7 @@ def setup_multiproxy_instances(
                             reserved_ports=reserved_ports,
                         )
                         app_config_entry["ports"] = assigned_ports
-                        logging.info(
+                        logger.info(
                             f"Assigned ports for {app_name} in instance "
                             f"{instance_project_name}: {assigned_ports}"
                         )
@@ -451,11 +457,11 @@ def setup_multiproxy_instances(
                     instance_user_config["compose_config_common"]["proxy_service"][
                         "ports"
                     ] = ports
-                    logging.info(
+                    logger.info(
                         f"Filtered out dashboard port from proxy_service configuration for multiproxy instance {instance_project_name}"
                     )
 
-            logging.info(
+            logger.info(
                 f"Completely disabled dashboard for multiproxy instance {instance_project_name} to avoid port conflicts"
             )
 

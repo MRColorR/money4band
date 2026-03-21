@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import argparse
 import json
 import logging
@@ -5,6 +7,8 @@ import os
 
 # Ensure the parent directory is in the sys.path
 import sys
+
+from typing import Any
 
 from colorama import Back, Fore, Style, just_fix_windows_console
 
@@ -17,6 +21,8 @@ from utils.loader import (
     load_json_config,
 )
 
+logger = logging.getLogger(__name__)
+
 script_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(script_dir)
 if parent_dir not in sys.path:
@@ -24,7 +30,7 @@ if parent_dir not in sys.path:
 # Import the module from the parent directory
 
 
-def _display_catalog(app_config: dict) -> None:
+def _display_catalog(app_config: dict[str, Any]) -> None:
     """Print the full app catalog grouped by category with status badges."""
     all_cats = get_all_app_categories(app_config)
     active_cats = [c for c in all_cats if is_category_active(app_config, c)]
@@ -48,7 +54,7 @@ def _display_catalog(app_config: dict) -> None:
         print()
 
 
-def _manage_categories(app_config: dict, app_config_path: str | None) -> None:
+def _manage_categories(app_config: dict[str, Any], app_config_path: str | None) -> None:
     """Interactive submenu to toggle category active/inactive status."""
     all_cats = get_all_app_categories(app_config)
     if not all_cats:
@@ -88,13 +94,13 @@ def _manage_categories(app_config: dict, app_config_path: str | None) -> None:
 
     if app_config_path:
         write_json(app_config, app_config_path)
-        logging.info("Saved category status change: %s → active=%s", cat_key, new_status)
+        logger.info("Saved category status change: %s → active=%s", cat_key, new_status)
         print(f"{Fore.GREEN}Saved to {app_config_path}{Style.RESET_ALL}")
     else:
-        logging.warning("No app_config_path provided — change not persisted")
+        logger.warning("No app_config_path provided — change not persisted")
 
 
-def fn_app_catalog(app_config: dict, app_config_path: str | None = None) -> None:
+def fn_app_catalog(app_config: dict[str, Any], app_config_path: str | None = None) -> None:
     """
     Display the app catalog: all categories with status and links.
     Optionally allows toggling category active status.
@@ -104,7 +110,7 @@ def fn_app_catalog(app_config: dict, app_config_path: str | None = None) -> None
     app_config_path -- path to app-config.json (for saving category changes)
     """
     try:
-        logging.info("Displaying app catalog")
+        logger.info("Displaying app catalog")
         cls()
         just_fix_windows_console()
 
@@ -119,7 +125,7 @@ def fn_app_catalog(app_config: dict, app_config_path: str | None = None) -> None
         if choice == "m":
             _manage_categories(app_config, app_config_path)
     except Exception as e:
-        logging.error(f"An error occurred in fn_app_catalog: {str(e)}")
+        logger.error(f"An error occurred in fn_app_catalog: {str(e)}")
         raise
 
 
@@ -182,7 +188,7 @@ if __name__ == "__main__":
         level=log_level,
     )
 
-    logging.info(f"Starting {script_name} script...")
+    logger.info(f"Starting {script_name} script...")
 
     try:
         main(
@@ -190,13 +196,13 @@ if __name__ == "__main__":
             m4b_config_path=args.m4b_config,
             user_config_path=args.user_config,
         )
-        logging.info(f"{script_name} script completed successfully")
+        logger.info(f"{script_name} script completed successfully")
     except FileNotFoundError as e:
-        logging.error(f"File not found: {str(e)}")
+        logger.error(f"File not found: {str(e)}")
         raise
     except json.JSONDecodeError as e:
-        logging.error(f"Error decoding JSON: {str(e)}")
+        logger.error(f"Error decoding JSON: {str(e)}")
         raise
     except Exception as e:
-        logging.error(f"An unexpected error occurred: {str(e)}")
+        logger.error(f"An unexpected error occurred: {str(e)}")
         raise

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """Centralised system information dashboard and DNS management."""
 
 import os
@@ -19,7 +21,7 @@ DNS_MODES = ("default", "custom")
 _DEFAULT_SERVERS = ["1.1.1.1", "8.8.8.8"]
 
 
-def get_dns_config(m4b_config: dict) -> dict:
+def get_dns_config(m4b_config: dict[str, Any]) -> dict[str, Any]:
     """Return the DNS section from the system config."""
     return m4b_config.get("system", {}).get("dns", {"mode": "default", "servers": _DEFAULT_SERVERS})
 
@@ -36,7 +38,7 @@ def set_dns_mode(m4b_config_path: str, mode: str, servers: list[str] | None = No
     write_json(cfg, m4b_config_path)
 
 
-def show_dns_status(m4b_config: dict) -> None:
+def show_dns_status(m4b_config: dict[str, Any]) -> None:
     """Print the current DNS configuration."""
     just_fix_windows_console()
     dns = get_dns_config(m4b_config)
@@ -93,9 +95,9 @@ def dns_interactive(m4b_config_path: str) -> None:
 
 
 def show_system_info(
-    m4b_config: dict,
-    app_config: dict,
-    user_config: dict,
+    m4b_config: dict[str, Any],
+    app_config: dict[str, Any],
+    user_config: dict[str, Any],
 ) -> None:
     """Print a comprehensive system information dashboard."""
     just_fix_windows_console()

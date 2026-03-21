@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """Config backup and restore utilities.
 
 Backups are stored as copies of the (possibly encrypted) user-config file

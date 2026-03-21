@@ -27,7 +27,7 @@ class TestDownloadFile(unittest.TestCase):
         self.assertIn("timeout", kwargs)
         self.assertGreaterEqual(kwargs["timeout"], 15)
 
-    @patch("utils.downloader.logging.error")
+    @patch("utils.downloader.logger.error")
     @patch("utils.downloader.get_session")
     def test_download_file_failure(self, mock_get_session, mock_logging_error):
         """Test download failure due to a request exception."""

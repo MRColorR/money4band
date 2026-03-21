@@ -1,13 +1,19 @@
+from __future__ import annotations
+
 import socket
 
 
-def is_port_in_use(port):
+def is_port_in_use(port: int) -> bool:
     """Check if a port is already in use."""
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         return sock.connect_ex(("localhost", port)) == 0
 
 
-def find_next_available_port(starting_port, exclude_ports=None, max_port=65535):
+def find_next_available_port(
+    starting_port: int,
+    exclude_ports: list[int] | None = None,
+    max_port: int = 65535,
+) -> int:
     """
     Find the next available port starting from the given port.
 

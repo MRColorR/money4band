@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """Config viewer & editor.
 
 Provides masked display and secure $EDITOR integration for encrypted configs.

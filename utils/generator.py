@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """Generator facade -- device naming, UUID utilities, dashboard URL generation,
 and CLI entry point for file regeneration.
 
@@ -22,6 +24,8 @@ from utils.compose_builder import (  # noqa: F401
     substitute_port_placeholders,
 )
 from utils.env_builder import generate_env_file  # noqa: F401
+
+logger = logging.getLogger(__name__)
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(script_dir)
@@ -89,7 +93,7 @@ def generate_dashboard_urls(
     try:
         if not compose_project_name or not device_name:
             if os.path.isfile(env_file):
-                logging.info(
+                logger.info(
                     "Reading COMPOSE_PROJECT_NAME and DEVICE_NAME from .env file..."
                 )
                 with open(env_file) as f:
@@ -99,11 +103,11 @@ def generate_dashboard_urls(
                         if "DEVICE_NAME" in line:
                             device_name = line.split("=")[1].strip()
             else:
-                logging.error("Error: Parameters not provided and .env file not found.")
+                logger.error("Error: Parameters not provided and .env file not found.")
                 return
 
         if not compose_project_name or not device_name:
-            logging.error(
+            logger.error(
                 "Error: COMPOSE_PROJECT_NAME and DEVICE_NAME must be provided."
             )
             return
@@ -127,15 +131,15 @@ def generate_dashboard_urls(
                         f"If enabled you can visit the {container_info} web dashboard on http://localhost:{port_mapping.group(1)}\n"
                     )
 
-        logging.info(f"Dashboard URLs have been written to {dashboard_file}")
+        logger.info(f"Dashboard URLs have been written to {dashboard_file}")
     finally:
         event.set()
         spinner_thread.join()
 
 
 def generate_device_name(
-    adjectives: list,
-    animals: list,
+    adjectives: list[str],
+    animals: list[str],
     device_name: str = "",
     use_uuid_suffix: bool = False,
 ) -> str:
@@ -187,6 +191,7 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
     print("based on your current configuration.")
 
     if not os.path.exists(user_config_path):
+        logger.error("User config not found at %s", user_config_path)
         print(f"{Fore.RED}Error: User config not found.{Style.RESET_ALL}")
         print("Please run 'Setup Apps' first to create the initial configuration.")
         input("\nPress Enter to go back to main menu...")
@@ -197,6 +202,7 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
         app_config = load_json_config(app_config_path)
         user_config = load_json_config(user_config_path)
     except Exception as e:
+        logger.error("Error loading config files: %s", e)
         print(f"{Fore.RED}Error loading config files: {e}{Style.RESET_ALL}")
         input("\nPress Enter to go back to main menu...")
         return
@@ -289,7 +295,7 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
                 shutil.copy2(filename, backup_path)
                 backed_up.append(filename)
             except Exception as e:
-                logging.warning(f"Could not backup {filename}: {e}")
+                logger.warning(f"Could not backup {filename}: {e}")
 
     if backed_up:
         print(
@@ -398,7 +404,7 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
                         print(
                             f"{Fore.RED}  {instance_name} failed: {e}{Style.RESET_ALL}"
                         )
-                        logging.error(
+                        logger.error(
                             f"Error regenerating instance {instance_name}: {e}"
                         )
 
@@ -428,6 +434,7 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
                         f"{Fore.GREEN}Stack restarted successfully{Style.RESET_ALL}"
                     )
                 except subprocess.CalledProcessError as e:
+                    logger.error("Error restarting stack: %s", e)
                     print(f"{Fore.RED}Error restarting stack: {e}{Style.RESET_ALL}")
             else:
                 print("Remember to restart your stack to apply changes.")
@@ -436,7 +443,7 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
 
     except Exception as e:
         print(f"{Fore.RED}Error: {e}{Style.RESET_ALL}")
-        logging.error(f"Error regenerating files: {e}")
+        logger.error(f"Error regenerating files: {e}")
         if backed_up:
             print(
                 f"{Fore.YELLOW}Your previous files are backed up in {backup_dir}/{Style.RESET_ALL}"

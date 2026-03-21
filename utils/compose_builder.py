@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """Docker Compose file assembly — builds docker-compose.yaml from configuration."""
 
 import copy
@@ -17,6 +19,8 @@ from utils.dumper import write_json
 from utils.helper import show_spinner
 from utils.loader import get_active_app_categories, get_category_entries, load_json_config
 
+
+logger = logging.getLogger(__name__)
 # Layered compose file ordering and names.
 # App layers reflect IP-policy TOS tiers (incremental broadening):
 #   residential  — TOS requires residential/local IPs only
@@ -168,7 +172,7 @@ def assemble_docker_compose(
                         # Cannot determine compatibility (e.g., GHCR images without PAT)
                         # Fallback to default platform (linux/amd64) for safety - emulation will be used if needed
                         app_compose_config["platform"] = default_docker_platform
-                        logging.info(
+                        logger.info(
                             f"Cannot verify architecture support for {image_name}. "
                             f"Falling back to default platform {default_docker_platform} for emulation compatibility."
                         )
@@ -180,11 +184,11 @@ def assemble_docker_compose(
                             )
                             # Add platform also on all already compatible images tags
                             app_compose_config["platform"] = docker_platform
-                            logging.info(
+                            logger.info(
                                 f"Updated {app_name} to compatible tag: {compatible_tag}"
                             )
                         else:
-                            logging.warning(
+                            logger.warning(
                                 f"No compatible tag found for {image_name} with architecture {docker_platform}. Searching for a suitable tag for default emulation architecture {default_docker_platform}."
                             )
                             # find a compatibile tag with default docker platform
@@ -197,7 +201,7 @@ def assemble_docker_compose(
                                 )
                                 # Add platform to the compose configuration to force image pull for emulation
                                 app_compose_config["platform"] = default_docker_platform
-                                logging.warning(
+                                logger.warning(
                                     f"Compatible tag found to run {image_name} with emulation on {default_docker_platform} architecture. Using binfmt emulation for {app_name} with image {image_name}:{image_tag}"
                                 )
                             else:
@@ -206,15 +210,15 @@ def assemble_docker_compose(
                                     f"specified architecture {docker_platform} or with default "
                                     f"architecture {default_docker_platform}."
                                 )
-                                logging.error(error_msg)
-                                logging.error(
+                                logger.error(error_msg)
+                                logger.error(
                                     f"Please check the image tag and architecture compatibility "
                                     f"on the registry. Disabling {app_name}..."
                                 )
                                 user_app_config["enabled"] = False
                                 user_config["apps"][app_name] = user_app_config
                                 write_json(user_config, user_config_path_or_dict)
-                                logging.info(
+                                logger.info(
                                     f"{app_name} has been disabled in user-config.json due to lack of compatible image tag."
                                 )
                                 disabled_apps_due_to_incompatibility.append(app_name)
@@ -232,7 +236,7 @@ def assemble_docker_compose(
                         ):
                             # If the app has ports and will use proxy, collect them for the proxy service
                             if "ports" in app_compose_config:
-                                logging.info(
+                                logger.info(
                                     f"Moving ports from {app_name} to proxy service as it's using proxy network"
                                 )
 
@@ -255,13 +259,13 @@ def assemble_docker_compose(
                                             # and if it has the port defined in user_config
                                             if user_app_config.get("ports"):
                                                 proxy_ports.append(port_mapping)
-                                                logging.info(
+                                                logger.info(
                                                     f"Added port mapping {port_mapping} to proxy from {app_name}"
                                                 )
                                         else:
                                             # For static port mappings
                                             proxy_ports.append(port_mapping)
-                                            logging.info(
+                                            logger.info(
                                                 f"Added static port mapping {port_mapping} to proxy from {app_name}"
                                             )
                                 else:
@@ -276,13 +280,13 @@ def assemble_docker_compose(
                                         # Check if this app is enabled and has the port defined
                                         if user_app_config.get("ports"):
                                             proxy_ports.append(port_mapping)
-                                            logging.info(
+                                            logger.info(
                                                 f"Added port mapping {port_mapping} to proxy from {app_name}"
                                             )
                                     else:
                                         # For static port mapping
                                         proxy_ports.append(port_mapping)
-                                        logging.info(
+                                        logger.info(
                                             f"Added static port mapping {port_mapping} to proxy from {app_name}"
                                         )
 
@@ -318,7 +322,7 @@ def assemble_docker_compose(
                             sidecar_config["platform"] = app_compose_config["platform"]
                         services[sidecar_name] = sidecar_config
                         service_layers[sidecar_name] = "service"
-                        logging.info(
+                        logger.info(
                             f"Added auto-claim sidecar '{sidecar_name}' for {app_name}"
                         )
 
@@ -350,7 +354,7 @@ def assemble_docker_compose(
                 for key, entry in required_env.items():
                     if key not in existing_keys:
                         wt_env.append(entry)
-                        logging.info(f"Enforced missing Watchtower env var: {entry}")
+                        logger.info(f"Enforced missing Watchtower env var: {entry}")
                 # Enforce scope label so the service is self-managed within scope.
                 wt_labels: list = watchtower_service.setdefault("labels", [])
                 scope_label = (
@@ -358,7 +362,7 @@ def assemble_docker_compose(
                 )
                 if scope_label not in wt_labels:
                     wt_labels.append(scope_label)
-                    logging.info("Enforced missing Watchtower scope label")
+                    logger.info("Enforced missing Watchtower scope label")
                 # KI-032: Strip notification env var when notifications disabled
                 # to prevent Docker Compose WARN spam about unset variables.
                 notifications_enabled = user_config.get("notifications", {}).get(
@@ -412,7 +416,7 @@ def assemble_docker_compose(
                 dashboard_port = "${M4B_DASHBOARD_PORT}:80"
                 if dashboard_port in proxy_service["ports"]:
                     proxy_service["ports"].remove(dashboard_port)
-                    logging.info(
+                    logger.info(
                         "Removed existing dashboard port mapping from proxy service"
                     )
 
@@ -429,7 +433,7 @@ def assemble_docker_compose(
                     ):
                         # Add the dashboard port to proxy service
                         proxy_service["ports"].append(dashboard_port)
-                        logging.info(
+                        logger.info(
                             "Added M4B dashboard port mapping to proxy service for main instance"
                         )
 
@@ -439,15 +443,15 @@ def assemble_docker_compose(
                             and "ports" in services["m4bwebdashboard"]
                         ):
                             del services["m4bwebdashboard"]["ports"]
-                            logging.info(
+                            logger.info(
                                 "Removed ports key from m4bwebdashboard service as it's handled by proxy"
                             )
                 else:
-                    logging.info(
+                    logger.info(
                         "Skipping dashboard port mapping for multiproxy instance to avoid conflicts"
                     )
 
-                logging.info(
+                logger.info(
                     f"Added {len(proxy_ports)} port mappings to the proxy service from apps using its network"
                 )
 
@@ -526,13 +530,13 @@ def assemble_docker_compose(
                 with open(layer_path, "w") as f:
                     yaml.dump(layer_dict, f, sort_keys=False, default_flow_style=False)
                 generated_files.append(layer_path)
-                logging.info(f"Wrote layered compose file: {layer_path}")
+                logger.info(f"Wrote layered compose file: {layer_path}")
 
             # Remove legacy monolithic file if layered files were written.
             legacy = os.path.join(output_dir, "docker-compose.yaml")
             if generated_files and os.path.isfile(legacy):
                 os.remove(legacy)
-                logging.info("Removed legacy docker-compose.yaml (replaced by layered files)")
+                logger.info("Removed legacy docker-compose.yaml (replaced by layered files)")
         else:
             compose_dict = {"services": services}
             compose_dict.update(network_config)
@@ -540,7 +544,7 @@ def assemble_docker_compose(
                 yaml.dump(compose_dict, f, sort_keys=False, default_flow_style=False)
             generated_files.append(compose_output_path)
 
-        logging.info(
+        logger.info(
             f"Docker Compose file(s) assembled: {generated_files}"
         )
         if disabled_apps_due_to_incompatibility:
@@ -554,7 +558,7 @@ def assemble_docker_compose(
                 print(f"- {app}")
             time.sleep(2 * m4b_config.get("system", {}).get("sleep_time", 2))
     except Exception as e:
-        logging.error(f"Error during Docker Compose assembly: {e}")
+        logger.error(f"Error during Docker Compose assembly: {e}")
         raise
     finally:
         event.set()

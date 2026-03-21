@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import argparse
 import json
 import logging
@@ -5,6 +7,8 @@ import os
 from typing import Any
 
 from utils.crypto import encrypt_dict, is_file_encrypted
+
+logger = logging.getLogger(__name__)
 
 
 def write_json(data: dict[str, Any], filename: str) -> None:
@@ -29,9 +33,9 @@ def write_json(data: dict[str, Any], filename: str) -> None:
             with open(filename, "w") as json_file:
                 json.dump(data, json_file, indent=4)
 
-        logging.info("Data written to %s successfully!", filename)
+        logger.info("Data written to %s successfully!", filename)
     except Exception as e:
-        logging.error("Error writing to %s: %s", filename, e)
+        logger.error("Error writing to %s: %s", filename, e)
         raise
 
 
@@ -78,7 +82,7 @@ if __name__ == "__main__":
         level=log_level,
     )
 
-    logging.info(f"Starting {script_name} script...")
+    logger.info(f"Starting {script_name} script...")
 
     try:
         # Load the data from the command-line argument
@@ -87,7 +91,7 @@ if __name__ == "__main__":
         # Write data to the specified filename
         write_json(data, args.filename)
 
-        logging.info(f"{script_name} script completed successfully")
+        logger.info(f"{script_name} script completed successfully")
     except Exception as e:
-        logging.error(f"An unexpected error occurred: {str(e)}")
+        logger.error(f"An unexpected error occurred: {str(e)}")
         raise

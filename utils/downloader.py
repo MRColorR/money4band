@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import argparse
 import logging
 import os
@@ -6,6 +8,8 @@ import requests
 
 from utils import http_client
 from utils.http_client import get_session
+
+logger = logging.getLogger(__name__)
 
 # Longer timeout for large file downloads (Docker Desktop ~600 MB)
 _DOWNLOAD_TIMEOUT = 300  # seconds
@@ -24,7 +28,7 @@ def download_file(url: str, dest_path: str) -> None:
     session = get_session()
     timeout = max(_DOWNLOAD_TIMEOUT, http_client.REQUEST_TIMEOUT)
     try:
-        logging.info("Starting download from %s", url)
+        logger.info("Starting download from %s", url)
         response = session.get(url, stream=True, timeout=timeout)
         response.raise_for_status()
 
@@ -34,12 +38,12 @@ def download_file(url: str, dest_path: str) -> None:
             for chunk in response.iter_content(chunk_size=8192):
                 if chunk:
                     file.write(chunk)
-        logging.info("File downloaded successfully from %s to %s", url, dest_path)
+        logger.info("File downloaded successfully from %s to %s", url, dest_path)
     except requests.RequestException as e:
-        logging.error("Download failed for %s: %s", url, e)
+        logger.error("Download failed for %s: %s", url, e)
         raise
     except OSError as e:
-        logging.error("Error writing file to %s: %s", dest_path, e)
+        logger.error("Error writing file to %s: %s", dest_path, e)
         raise
 
 
@@ -91,12 +95,12 @@ if __name__ == "__main__":
         level=log_level,
     )
 
-    logging.info(f"Starting {script_name} script...")
+    logger.info(f"Starting {script_name} script...")
 
     try:
         # Call the download_file function
         download_file(args.url, args.dest_path)
-        logging.info(f"{script_name} script completed successfully")
+        logger.info(f"{script_name} script completed successfully")
     except Exception as e:
-        logging.error(f"An unexpected error occurred: {str(e)}")
+        logger.error(f"An unexpected error occurred: {str(e)}")
         raise
