@@ -46,7 +46,7 @@
                     }
                 },
                 "install_limit": -1,
-                "compose_layer": "local"
+                "compose_layer": "residential"
             },
             {
                 "name": "HONEYGAIN",
@@ -93,7 +93,7 @@
                     "password": {}
                 },
                 "install_limit": 10,
-                "compose_layer": "local",
+                "compose_layer": "residential",
                 "service": {
                     "name": "honeygain-pot",
                     "description": "Auto-claims daily Lucky Pot reward (~2x revenue)",
@@ -167,7 +167,7 @@
                     "password": {}
                 },
                 "install_limit": -1,
-                "compose_layer": "local"
+                "compose_layer": "residential"
             },
             {
                 "name": "PACKETSTREAM",
@@ -204,7 +204,7 @@
                     "cid": {}
                 },
                 "install_limit": -1,
-                "compose_layer": "local"
+                "compose_layer": "residential"
             },
             {
                 "name": "TRAFFMONETIZER",
@@ -250,7 +250,7 @@
                     "token": {}
                 },
                 "install_limit": -1,
-                "compose_layer": "unlimited"
+                "compose_layer": "universal"
             },
             {
                 "name": "REPOCKET",
@@ -289,7 +289,7 @@
                     "apikey": {}
                 },
                 "install_limit": -1,
-                "compose_layer": "hosting"
+                "compose_layer": "datacenter"
             },
             {
                 "name": "EARNFM",
@@ -326,7 +326,7 @@
                     "apikey": {}
                 },
                 "install_limit": -1,
-                "compose_layer": "hosting"
+                "compose_layer": "datacenter"
             },
             {
                 "name": "PROXYRACK",
@@ -369,7 +369,7 @@
                     }
                 },
                 "install_limit": 500,
-                "compose_layer": "hosting"
+                "compose_layer": "datacenter"
             },
             {
                 "name": "PROXYLITE",
@@ -406,7 +406,7 @@
                     "userid": {}
                 },
                 "install_limit": -1,
-                "compose_layer": "hosting"
+                "compose_layer": "datacenter"
             },
             {
                 "name": "BITPING",
@@ -449,7 +449,7 @@
                     "mfa": {}
                 },
                 "install_limit": -1,
-                "compose_layer": "hosting"
+                "compose_layer": "datacenter"
             },
             {
                 "name": "PACKETSHARE",
@@ -488,7 +488,7 @@
                     "password": {}
                 },
                 "install_limit": -1,
-                "compose_layer": "local",
+                "compose_layer": "residential",
                 "service": {
                     "name": "packetshare-pot",
                     "description": "Auto-claims daily PacketShare reward",
@@ -559,7 +559,7 @@
                     "password": {}
                 },
                 "install_limit": -1,
-                "compose_layer": "hosting"
+                "compose_layer": "datacenter"
             },
             {
                 "name": "PROXYBASE",
@@ -597,7 +597,7 @@
                     "userid": {}
                 },
                 "install_limit": -1,
-                "compose_layer": "hosting"
+                "compose_layer": "datacenter"
             },
             {
                 "name": "MYSTNODE",
@@ -648,7 +648,7 @@
                     }
                 },
                 "install_limit": -1,
-                "compose_layer": "hosting"
+                "compose_layer": "datacenter"
             }
         ]
     },

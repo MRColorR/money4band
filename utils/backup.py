@@ -1,4 +1,4 @@
-"""Config backup and restore utilities (Phase 2.3).
+"""Config backup and restore utilities.
 
 Backups are stored as copies of the (possibly encrypted) user-config file
 under ``~/.m4b/backups/`` with ISO-8601 timestamps in the filename.  The

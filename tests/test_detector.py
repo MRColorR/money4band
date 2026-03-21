@@ -92,7 +92,7 @@ class TestDetector(unittest.TestCase):
 
 
 class TestResourceProfiles(unittest.TestCase):
-    """Tests for the resource profile system (Phase 2.5)."""
+    """Tests for the resource profile system"""
 
     _M4B_CFG = {
         "resource_profiles": {

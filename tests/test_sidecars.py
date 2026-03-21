@@ -1,4 +1,4 @@
-"""Tests for auto-claim sidecar containers (Phase 2.4)."""
+"""Tests for auto-claim sidecar containers."""
 
 import copy
 import json

@@ -1,4 +1,4 @@
-"""Config viewer & editor — Phase 2.3 credential encryption lifecycle.
+"""Config viewer & editor.
 
 Provides masked display and secure $EDITOR integration for encrypted configs.
 """

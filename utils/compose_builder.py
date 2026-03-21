@@ -18,12 +18,16 @@ from utils.helper import show_spinner
 from utils.loader import get_active_app_categories, get_category_entries, load_json_config
 
 # Layered compose file ordering and names.
-COMPOSE_LAYER_ORDER = ("base", "local", "hosting", "unlimited", "service", "proxy")
+# App layers reflect IP-policy TOS tiers (incremental broadening):
+#   residential  — TOS requires residential/local IPs only
+#   datacenter   — TOS allows residential + datacenter/hosting IPs
+#   universal    — TOS accepts any IP type (proxies, VPN, etc.)
+COMPOSE_LAYER_ORDER = ("base", "residential", "datacenter", "universal", "service", "proxy")
 COMPOSE_LAYER_FILES: dict[str, str] = {
     "base": "compose.yml",
-    "local": "compose.local.yml",
-    "hosting": "compose.hosting.yml",
-    "unlimited": "compose.unlimited.yml",
+    "residential": "compose.residential.yml",
+    "datacenter": "compose.datacenter.yml",
+    "universal": "compose.universal.yml",
     "service": "compose.service.yml",
     "proxy": "compose.proxy.yml",
 }
@@ -301,7 +305,7 @@ def assemble_docker_compose(
                             }
 
                     services[app_name] = app_compose_config
-                    service_layers[app_name] = app.get("compose_layer", "hosting")
+                    service_layers[app_name] = app.get("compose_layer", "datacenter")
 
                     # Auto-claim sidecar: add if app has a service definition
                     # and the user has enabled it.

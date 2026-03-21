@@ -1,4 +1,4 @@
-"""Tests for CLI subcommand parsing, dispatch, and handler correctness (Phase 2.1).
+"""Tests for CLI subcommand parsing, dispatch, and handler correctness.
 
 These tests verify:
 - Parser construction and subcommand routing

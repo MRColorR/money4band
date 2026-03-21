@@ -90,7 +90,7 @@ def _has_template_defaults(user_config_path: str) -> bool:
 
 
 # ---------------------------------------------------------------------------
-# Credential encryption lifecycle (Phase 2.3)
+# Credential encryption lifecycle
 # ---------------------------------------------------------------------------
 
 _encrypt_on_exit_paths: list[str] = []

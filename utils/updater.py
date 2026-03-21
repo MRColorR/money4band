@@ -209,7 +209,7 @@ def check_update_available(m4b_config_path_or_dict: str | dict) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Update detection and application (Phase 2.6)
+# Update detection and application
 # ---------------------------------------------------------------------------
 
 # Files that MUST be preserved across updates (never overwritten).

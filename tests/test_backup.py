@@ -1,4 +1,4 @@
-"""Tests for config backup and restore utilities (Phase 2.3)."""
+"""Tests for config backup and restore utilities"""
 
 import json
 import time
