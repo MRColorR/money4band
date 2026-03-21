@@ -50,7 +50,11 @@ def _resolve_paths(args):
 
 
 def _ensure_user_config(args, user_config_path: str) -> None:
-    """Create user config from template if missing, then encrypt if needed."""
+    """Create user config from template if missing, then encrypt if needed.
+
+    Also detects template-default configs (all placeholder values) and
+    prompts the user to run setup.
+    """
     if not os.path.exists(user_config_path):
         logging.info("User config not found. Resetting from template...")
         reset_main(
@@ -61,6 +65,25 @@ def _ensure_user_config(args, user_config_path: str) -> None:
             dest_path=user_config_path,
         )
     ensure_config_encrypted(user_config_path)
+
+
+def _has_template_defaults(user_config_path: str) -> bool:
+    """Return True if the user config still contains placeholder values."""
+    try:
+        cfg = loader.load_json_config(user_config_path)
+    except Exception:
+        return False
+    apps = cfg.get("apps", {})
+    if not apps:
+        return True
+    # Check if any app has a credential that still starts with "your"
+    for app_cfg in apps.values():
+        for key, val in app_cfg.items():
+            if key == "enabled":
+                continue
+            if isinstance(val, str) and val.lower().startswith("your"):
+                return True
+    return False
 
 
 # ---------------------------------------------------------------------------
@@ -143,7 +166,7 @@ def mainmenu(
             cls()
             print(f"{Fore.GREEN}----------------------------------------------")
             print(
-                f"{Fore.GREEN}MONEY4BAND AUTOMATIC GUIDED SETUP v{m4b_config.get('project')['project_version']}{Style.RESET_ALL}"
+                f"{Fore.GREEN}MONEY4BAND v{m4b_config.get('project')['project_version']}{Style.RESET_ALL}"
             )
             check_update_available(m4b_config)
             print(
@@ -211,6 +234,19 @@ def _cmd_menu(args) -> None:
     """Launch the interactive menu (default behaviour)."""
     m4b_config_path, apps_config_path, user_config_path = _resolve_paths(args)
     _ensure_user_config(args, user_config_path)
+
+    if _has_template_defaults(user_config_path):
+        just_fix_windows_console()
+        print(
+            f"\n{Fore.YELLOW}It looks like this is your first run — "
+            f"the config still has placeholder values.{Style.RESET_ALL}"
+        )
+        print("Running the setup wizard to configure your apps...\n")
+        _auto_backup(user_config_path)
+        from utils.fn_setupApps import main as setup_main
+
+        setup_main(apps_config_path, m4b_config_path, user_config_path)
+
     mainmenu(
         m4b_config_path=m4b_config_path,
         apps_config_path=apps_config_path,
@@ -234,15 +270,38 @@ def _cmd_setup(args) -> None:
     m4b_config_path, apps_config_path, user_config_path = _resolve_paths(args)
     _ensure_user_config(args, user_config_path)
     _auto_backup(user_config_path)
+
+    from utils.helper import check_docker_ready
+
+    check_docker_ready()
+
     from utils.fn_setupApps import main as setup_main
 
-    setup_main(apps_config_path, m4b_config_path, user_config_path)
+    setup_main(
+        apps_config_path,
+        m4b_config_path,
+        user_config_path,
+        resume=getattr(args, "resume", False),
+    )
 
 
 def _cmd_start(args) -> None:
     """Start the Docker Compose stack."""
     m4b_config_path, apps_config_path, user_config_path = _resolve_paths(args)
     _ensure_user_config(args, user_config_path)
+
+    if _has_template_defaults(user_config_path):
+        just_fix_windows_console()
+        print(
+            f"{Fore.YELLOW}Warning: Config contains placeholder values. "
+            f"Run 'setup' first to configure your apps.{Style.RESET_ALL}"
+        )
+        return
+
+    from utils.helper import check_docker_ready
+
+    check_docker_ready()
+
     from utils.fn_startStack import main as start_main
 
     start_main(apps_config_path, m4b_config_path, user_config_path)
@@ -451,7 +510,12 @@ def _build_parser() -> argparse.ArgumentParser:
     # ---- subcommands ----
     sub = parser.add_subparsers(dest="command")
 
-    sub.add_parser("setup", help="Run the interactive setup wizard")
+    sub.add_parser("setup", help="Run the interactive setup wizard").add_argument(
+        "--resume",
+        action="store_true",
+        default=False,
+        help="Resume a previously interrupted setup, skipping completed steps",
+    )
     sub.add_parser("start", help="Start the Docker Compose stack")
     sub.add_parser("stop", help="Stop the Docker Compose stack")
     sub.add_parser("status", help="Show running containers and health")

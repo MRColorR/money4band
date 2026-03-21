@@ -567,7 +567,7 @@
         ]
     },
     "deprecated-apps": {
-        "active": true,
+        "active": false,
         "entries": [
             {
                 "name": "SPEEDSHARE",

@@ -151,6 +151,10 @@ class TestHandlerArguments:
     def _noop_user_config(self, monkeypatch):
         monkeypatch.setattr("main._ensure_user_config", lambda *a, **kw: None)
         monkeypatch.setattr("main._auto_backup", lambda *a, **kw: None)
+        monkeypatch.setattr("main._has_template_defaults", lambda *a, **kw: False)
+        monkeypatch.setattr(
+            "utils.helper.check_docker_ready", lambda *a, **kw: None
+        )
 
     def test_setup_passes_apps_m4b_user_paths(self, monkeypatch, tmp_path):
         captured = _capture_module_call(monkeypatch, "utils.fn_setupApps")

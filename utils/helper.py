@@ -108,6 +108,63 @@ def create_docker_group_if_needed():
         raise RuntimeError("Failed to add user to Docker group.") from e
 
 
+def is_docker_daemon_running() -> bool:
+    """Check whether the Docker daemon is reachable."""
+    try:
+        result = subprocess.run(
+            ["docker", "info"],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        return result.returncode == 0
+    except FileNotFoundError:
+        return False
+
+
+def check_docker_ready() -> None:
+    """Pre-flight check: ensure Docker is usable before any Docker operation.
+
+    On Linux, verifies the daemon is running, the user is root or in the
+    docker group, and offers to fix group membership automatically.
+    On other platforms, only checks that the daemon responds.
+
+    Raises RuntimeError with an actionable message when Docker is not ready.
+    """
+    if platform.system().lower() == "linux":
+        # Check daemon first
+        if not is_docker_daemon_running():
+            msg = (
+                "Docker daemon is not running. "
+                "Start it with: sudo systemctl start docker"
+            )
+            logging.error(msg)
+            print(f"{Fore.RED}{msg}{Style.RESET_ALL}")
+            raise RuntimeError(msg)
+        # Check permissions
+        if not is_user_root() and not is_user_in_docker_group():
+            user = getpass.getuser()
+            msg = (
+                f"User '{user}' is not in the docker group and is not root.\n"
+                "Docker commands will fail with 'permission denied'."
+            )
+            logging.warning(msg)
+            print(f"{Fore.YELLOW}{msg}{Style.RESET_ALL}")
+            print(
+                f"{Fore.GREEN}Attempting to fix: adding '{user}' to docker group...{Style.RESET_ALL}"
+            )
+            create_docker_group_if_needed()
+    else:
+        if not is_docker_daemon_running():
+            msg = (
+                "Docker daemon is not running or Docker is not installed. "
+                "Please start Docker Desktop or install Docker first."
+            )
+            logging.error(msg)
+            print(f"{Fore.RED}{msg}{Style.RESET_ALL}")
+            raise RuntimeError(msg)
+
+
 def run_docker_command(command, use_sudo=False):
     """
     Run a Docker command, optionally using sudo, and handle errors gracefully.

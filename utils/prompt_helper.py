@@ -103,7 +103,12 @@ def ask_email(prompt: str, default: str = "", show_default: bool = True) -> str:
         if not email:  # As default is empty if not specified then we throw this error
             print(f"{Fore.RED}Email address cannot be empty.{Style.RESET_ALL}")
             continue
-        elif not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+        elif not re.match(
+            r"^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9]"
+            r"(?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?"
+            r"(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$",
+            email,
+        ):
             print(f"{Fore.RED}Invalid email address.{Style.RESET_ALL}")
             continue
         else:

@@ -101,7 +101,6 @@ class TestFnInstallDocker(unittest.TestCase):
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
-            shell=True,
             check=True,
         )
 
@@ -109,11 +108,13 @@ class TestFnInstallDocker(unittest.TestCase):
         mock_run.assert_any_call(
             [
                 os.path.join(
-                    os.getenv("ProgramFiles"), "Docker", "Docker", "Docker Desktop.exe"
+                    os.getenv("ProgramFiles", ""),
+                    "Docker",
+                    "Docker",
+                    "Docker Desktop.exe",
                 )
             ],
             check=False,
-            shell=True,
         )
 
         # Assert that the installer executable was removed after installation
