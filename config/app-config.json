@@ -32,6 +32,16 @@
                             "max-size": "10m",
                             "max-file": "3"
                         }
+                    },
+                    "healthcheck": {
+                        "test": [
+                            "CMD-SHELL",
+                            "pgrep -f earnapp || exit 1"
+                        ],
+                        "interval": "120s",
+                        "timeout": "10s",
+                        "retries": 3,
+                        "start_period": "60s"
                     }
                 },
                 "compose_config_proxy": {
@@ -140,6 +150,16 @@
                             "max-size": "10m",
                             "max-file": "3"
                         }
+                    },
+                    "healthcheck": {
+                        "test": [
+                            "CMD-SHELL",
+                            "pgrep -f honeygain || exit 1"
+                        ],
+                        "interval": "120s",
+                        "timeout": "10s",
+                        "retries": 3,
+                        "start_period": "60s"
                     }
                 },
                 "compose_config_proxy": {
@@ -266,6 +286,16 @@
                             "max-size": "10m",
                             "max-file": "3"
                         }
+                    },
+                    "healthcheck": {
+                        "test": [
+                            "CMD-SHELL",
+                            "pgrep -f pawns || exit 1"
+                        ],
+                        "interval": "120s",
+                        "timeout": "10s",
+                        "retries": 3,
+                        "start_period": "60s"
                     }
                 },
                 "compose_config_proxy": {
@@ -357,6 +387,16 @@
                             "max-size": "10m",
                             "max-file": "3"
                         }
+                    },
+                    "healthcheck": {
+                        "test": [
+                            "CMD-SHELL",
+                            "pgrep -f psclient || exit 1"
+                        ],
+                        "interval": "120s",
+                        "timeout": "10s",
+                        "retries": 3,
+                        "start_period": "60s"
                     }
                 },
                 "compose_config_proxy": {
@@ -453,6 +493,16 @@
                             "max-size": "10m",
                             "max-file": "3"
                         }
+                    },
+                    "healthcheck": {
+                        "test": [
+                            "CMD-SHELL",
+                            "pgrep -f Cli || exit 1"
+                        ],
+                        "interval": "120s",
+                        "timeout": "10s",
+                        "retries": 3,
+                        "start_period": "60s"
                     }
                 },
                 "compose_config_proxy": {
@@ -544,6 +594,16 @@
                             "max-size": "10m",
                             "max-file": "3"
                         }
+                    },
+                    "healthcheck": {
+                        "test": [
+                            "CMD-SHELL",
+                            "pgrep -f repocket || exit 1"
+                        ],
+                        "interval": "120s",
+                        "timeout": "10s",
+                        "retries": 3,
+                        "start_period": "60s"
                     }
                 },
                 "compose_config_proxy": {
@@ -634,6 +694,16 @@
                             "max-size": "10m",
                             "max-file": "3"
                         }
+                    },
+                    "healthcheck": {
+                        "test": [
+                            "CMD-SHELL",
+                            "pgrep -f earnfm || exit 1"
+                        ],
+                        "interval": "120s",
+                        "timeout": "10s",
+                        "retries": 3,
+                        "start_period": "60s"
                     }
                 },
                 "compose_config_proxy": {
@@ -731,6 +801,16 @@
                             "max-size": "10m",
                             "max-file": "3"
                         }
+                    },
+                    "healthcheck": {
+                        "test": [
+                            "CMD-SHELL",
+                            "pgrep -f pop || exit 1"
+                        ],
+                        "interval": "120s",
+                        "timeout": "10s",
+                        "retries": 3,
+                        "start_period": "60s"
                     }
                 },
                 "compose_config_proxy": {
@@ -823,6 +903,16 @@
                             "max-size": "10m",
                             "max-file": "3"
                         }
+                    },
+                    "healthcheck": {
+                        "test": [
+                            "CMD-SHELL",
+                            "pgrep -f proxyservice || exit 1"
+                        ],
+                        "interval": "120s",
+                        "timeout": "10s",
+                        "retries": 3,
+                        "start_period": "60s"
                     }
                 },
                 "compose_config_proxy": {
@@ -916,6 +1006,16 @@
                             "max-size": "10m",
                             "max-file": "3"
                         }
+                    },
+                    "healthcheck": {
+                        "test": [
+                            "CMD-SHELL",
+                            "pgrep -f bitpingd || exit 1"
+                        ],
+                        "interval": "120s",
+                        "timeout": "10s",
+                        "retries": 3,
+                        "start_period": "60s"
                     }
                 },
                 "compose_config_proxy": {
@@ -1007,6 +1107,16 @@
                             "max-size": "10m",
                             "max-file": "3"
                         }
+                    },
+                    "healthcheck": {
+                        "test": [
+                            "CMD-SHELL",
+                            "pgrep -f packetshare || exit 1"
+                        ],
+                        "interval": "120s",
+                        "timeout": "10s",
+                        "retries": 3,
+                        "start_period": "60s"
                     }
                 },
                 "compose_config_proxy": {
@@ -1132,6 +1242,16 @@
                             "max-size": "10m",
                             "max-file": "3"
                         }
+                    },
+                    "healthcheck": {
+                        "test": [
+                            "CMD-SHELL",
+                            "pgrep -f chrom || exit 1"
+                        ],
+                        "interval": "120s",
+                        "timeout": "10s",
+                        "retries": 5,
+                        "start_period": "90s"
                     }
                 },
                 "compose_config_proxy": {
@@ -1230,6 +1350,16 @@
                             "max-size": "10m",
                             "max-file": "3"
                         }
+                    },
+                    "healthcheck": {
+                        "test": [
+                            "CMD-SHELL",
+                            "pgrep -f proxybase || exit 1"
+                        ],
+                        "interval": "120s",
+                        "timeout": "10s",
+                        "retries": 3,
+                        "start_period": "60s"
                     }
                 },
                 "compose_config_proxy": {
@@ -1331,6 +1461,16 @@
                             "max-size": "10m",
                             "max-file": "3"
                         }
+                    },
+                    "healthcheck": {
+                        "test": [
+                            "CMD-SHELL",
+                            "wget -q --spider http://127.0.0.1:4449/healthcheck 2>/dev/null || wget -q --spider http://127.0.0.1:4449/ 2>/dev/null || pgrep -f myst || exit 1"
+                        ],
+                        "interval": "120s",
+                        "timeout": "15s",
+                        "retries": 3,
+                        "start_period": "90s"
                     }
                 },
                 "compose_config_proxy": {
@@ -2011,6 +2151,16 @@
                             "max-size": "10m",
                             "max-file": "3"
                         }
+                    },
+                    "healthcheck": {
+                        "test": [
+                            "CMD-SHELL",
+                            "pgrep -f spide || exit 1"
+                        ],
+                        "interval": "120s",
+                        "timeout": "10s",
+                        "retries": 3,
+                        "start_period": "60s"
                     }
                 },
                 "compose_config_proxy": {
@@ -2103,6 +2253,16 @@
                             "max-size": "10m",
                             "max-file": "3"
                         }
+                    },
+                    "healthcheck": {
+                        "test": [
+                            "CMD-SHELL",
+                            "pgrep -f gaga || exit 1"
+                        ],
+                        "interval": "120s",
+                        "timeout": "10s",
+                        "retries": 3,
+                        "start_period": "60s"
                     }
                 },
                 "compose_config_proxy": {
@@ -2195,6 +2355,16 @@
                             "max-size": "10m",
                             "max-file": "3"
                         }
+                    },
+                    "healthcheck": {
+                        "test": [
+                            "CMD-SHELL",
+                            "pgrep -f wizard || exit 1"
+                        ],
+                        "interval": "120s",
+                        "timeout": "10s",
+                        "retries": 3,
+                        "start_period": "60s"
                     }
                 },
                 "compose_config_proxy": {
@@ -2379,6 +2549,16 @@
                             "max-size": "10m",
                             "max-file": "3"
                         }
+                    },
+                    "healthcheck": {
+                        "test": [
+                            "CMD-SHELL",
+                            "pgrep -f bearshare || exit 1"
+                        ],
+                        "interval": "120s",
+                        "timeout": "10s",
+                        "retries": 3,
+                        "start_period": "60s"
                     }
                 },
                 "compose_config_proxy": {
@@ -2466,6 +2646,16 @@
                             "max-size": "10m",
                             "max-file": "3"
                         }
+                    },
+                    "healthcheck": {
+                        "test": [
+                            "CMD-SHELL",
+                            "pgrep -f community || exit 1"
+                        ],
+                        "interval": "120s",
+                        "timeout": "10s",
+                        "retries": 3,
+                        "start_period": "60s"
                     }
                 },
                 "compose_config_proxy": {
@@ -2553,6 +2743,16 @@
                             "max-size": "10m",
                             "max-file": "3"
                         }
+                    },
+                    "healthcheck": {
+                        "test": [
+                            "CMD-SHELL",
+                            "pgrep -f titan || exit 1"
+                        ],
+                        "interval": "120s",
+                        "timeout": "10s",
+                        "retries": 3,
+                        "start_period": "60s"
                     }
                 },
                 "compose_config_proxy": {

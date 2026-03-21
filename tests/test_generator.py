@@ -406,6 +406,98 @@ class TestHealthchecks(unittest.TestCase):
         self.assertNotIn("healthcheck", wt)
 
 
+class TestAppHealthchecks(unittest.TestCase):
+    """Verify that healthcheck definitions in compose_config flow through to output."""
+
+    _HC_APP = {
+        "name": "HCAPP",
+        "dashboard": "http://example.com",
+        "link": "http://example.com",
+        "compose_config": {
+            "container_name": "${DEVICE_NAME}_hcapp",
+            "image": "example/hcapp:latest",
+            "restart": "always",
+            "labels": [
+                "com.centurylinklabs.watchtower.enable=true",
+                "com.centurylinklabs.watchtower.scope=${M4B_WATCHTOWER_SCOPE}",
+            ],
+            "healthcheck": {
+                "test": ["CMD-SHELL", "pgrep -f hcapp || exit 1"],
+                "interval": "120s",
+                "timeout": "10s",
+                "retries": 3,
+                "start_period": "60s",
+            },
+        },
+    }
+
+    _HTTP_HC_APP = {
+        "name": "HTTPAPP",
+        "dashboard": "http://example.com",
+        "link": "http://example.com",
+        "compose_config": {
+            "container_name": "${DEVICE_NAME}_httpapp",
+            "image": "example/httpapp:latest",
+            "restart": "always",
+            "labels": [
+                "com.centurylinklabs.watchtower.enable=true",
+                "com.centurylinklabs.watchtower.scope=${M4B_WATCHTOWER_SCOPE}",
+            ],
+            "healthcheck": {
+                "test": [
+                    "CMD-SHELL",
+                    "wget -q --spider http://127.0.0.1:8080/health || exit 1",
+                ],
+                "interval": "60s",
+                "timeout": "10s",
+                "retries": 3,
+                "start_period": "30s",
+            },
+        },
+    }
+
+    def _compose_with_app(self, app_entry):
+        import copy
+        from unittest.mock import patch
+
+        app_name = app_entry["name"].lower()
+        app_cfg = {"supported-apps": {"active": True, "entries": [app_entry]}}
+        user_cfg = copy.deepcopy(_USER_CFG_BASE)
+        user_cfg["apps"] = {app_name: {"enabled": True}}
+
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".yaml") as f:
+            compose_path = f.name
+        try:
+            with patch("utils.compose_builder.check_img_arch_support", return_value=True):
+                assemble_docker_compose(
+                    _M4B_CFG, app_cfg, user_cfg, compose_path, is_main_instance=True
+                )
+            with open(compose_path) as f:
+                return yaml.safe_load(f) or {}
+        finally:
+            if os.path.exists(compose_path):
+                os.unlink(compose_path)
+
+    def test_pgrep_healthcheck_preserved(self):
+        doc = self._compose_with_app(self._HC_APP)
+        svc = doc["services"]["hcapp"]
+        hc = svc.get("healthcheck", {})
+        self.assertIn("test", hc)
+        self.assertEqual(hc["test"], ["CMD-SHELL", "pgrep -f hcapp || exit 1"])
+        self.assertEqual(hc["interval"], "120s")
+        self.assertEqual(hc["retries"], 3)
+        self.assertEqual(hc["start_period"], "60s")
+
+    def test_http_healthcheck_preserved(self):
+        doc = self._compose_with_app(self._HTTP_HC_APP)
+        svc = doc["services"]["httpapp"]
+        hc = svc.get("healthcheck", {})
+        self.assertIn("test", hc)
+        self.assertTrue(any("wget" in str(t) for t in hc["test"]))
+        self.assertEqual(hc["interval"], "60s")
+        self.assertEqual(hc["start_period"], "30s")
+
+
 class TestProxyDependsOn(unittest.TestCase):
     """Apps using proxy network_mode get depends_on with service_healthy condition."""
 
