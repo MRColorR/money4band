@@ -583,6 +583,48 @@ def _cmd_info(args) -> None:
     show_system_info(m4b_config, app_config, user_config)
 
 
+def _cmd_notify(args) -> None:
+    """Send a test notification or show notification status."""
+    _, _, user_config_path = _resolve_paths(args)
+    _ensure_user_config(args, user_config_path)
+    just_fix_windows_console()
+
+    user_config = loader.load_json_config(user_config_path)
+    action = getattr(args, "notify_action", None)
+
+    if action == "test":
+        from utils.notifier import is_enabled, send_test
+
+        if not is_enabled(user_config):
+            print(
+                f"{Fore.RED}Notifications are not enabled. "
+                f"Run 'm4b setup' to configure them.{Style.RESET_ALL}"
+            )
+            return
+        print(f"{Fore.CYAN}Sending test notification...{Style.RESET_ALL}")
+        if send_test(user_config):
+            print(f"{Fore.GREEN}Test notification sent successfully!{Style.RESET_ALL}")
+        else:
+            print(
+                f"{Fore.RED}Failed to send test notification. "
+                f"Check your URL and Docker availability.{Style.RESET_ALL}"
+            )
+    else:
+        from utils.notifier import ALL_EVENTS, is_enabled, is_event_enabled
+
+        cfg = user_config.get("notifications", {})
+        status = "enabled" if is_enabled(user_config) else "disabled"
+        print(f"Notifications: {Fore.CYAN}{status}{Style.RESET_ALL}")
+        if cfg.get("url"):
+            masked = cfg["url"][:12] + "..." if len(cfg["url"]) > 12 else cfg["url"]
+            print(f"  URL: {masked}")
+        print(f"  Events:")
+        for evt in sorted(ALL_EVENTS - {"test"}):
+            on = is_event_enabled(user_config, evt)
+            mark = f"{Fore.GREEN}ON{Style.RESET_ALL}" if on else f"{Fore.RED}OFF{Style.RESET_ALL}"
+            print(f"    {evt}: {mark}")
+
+
 def _cmd_dns(args) -> None:
     """View or configure DNS settings for containers."""
     m4b_config_path, _, _ = _resolve_paths(args)
@@ -739,6 +781,10 @@ def _build_parser() -> argparse.ArgumentParser:
 
     sub.add_parser("info", help="Show system information dashboard")
 
+    notify_parser = sub.add_parser("notify", help="Notification status and testing")
+    notify_sub = notify_parser.add_subparsers(dest="notify_action")
+    notify_sub.add_parser("test", help="Send a test notification")
+
     dns_parser = sub.add_parser("dns", help="View or configure container DNS")
     dns_sub = dns_parser.add_subparsers(dest="dns_action")
     dns_set = dns_sub.add_parser("set", help="Set DNS mode and servers")
@@ -777,6 +823,7 @@ _SUBCOMMAND_DISPATCH = {
     "ip": _cmd_ip,
     "info": _cmd_info,
     "dns": _cmd_dns,
+    "notify": _cmd_notify,
 }
 
 

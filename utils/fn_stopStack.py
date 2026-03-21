@@ -24,6 +24,22 @@ from utils.helper import (
 from utils.prompt_helper import ask_question_yn
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
+
+
+def _notify_event(event: str, message: str) -> None:
+    """Fire-and-forget notification if enabled in user config."""
+    try:
+        user_cfg_path = os.path.join(
+            os.path.dirname(script_dir), "config", "user-config.json"
+        )
+        if not os.path.isfile(user_cfg_path):
+            return
+        user_config = loader.load_json_config(user_cfg_path)
+        from utils.notifier import notify
+
+        notify(user_config, event, message)
+    except Exception:
+        logging.debug("Notification send failed (non-critical).", exc_info=True)
 parent_dir = os.path.dirname(script_dir)
 if parent_dir not in sys.path:
     sys.path.append(parent_dir)
@@ -120,6 +136,7 @@ def stop_stack(
                 f"{Fore.GREEN}All Apps for '{instance_name}' instance stopped and stack deleted.{Style.RESET_ALL}"
             )
             logging.info(f"Stack for '{instance_name}' stopped successfully.")
+            _notify_event("stack_stop", f"Stack '{instance_name}' stopped successfully.")
         else:
             print(
                 f"{Fore.RED}Error stopping and deleting Docker stack for '{instance_name}' instance. Please check the configuration and try again.{Style.RESET_ALL}"
@@ -127,12 +144,14 @@ def stop_stack(
             logging.error(
                 f"Stack for '{instance_name}' failed to stop with exit code {result}."
             )
+            _notify_event("stack_error", f"Stack '{instance_name}' failed to stop (exit {result}).")
         return result == 0
     except Exception as e:
         print(
             f"{Fore.RED}An unexpected error occurred while stopping the stack for '{instance_name}' instance.{Style.RESET_ALL}"
         )
         logging.error(f"Unexpected error: {str(e)}")
+        _notify_event("stack_error", f"Stack '{instance_name}' error: {e}")
     finally:
         event.set()
         spinner_thread.join()

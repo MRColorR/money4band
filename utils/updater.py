@@ -272,6 +272,21 @@ def show_update_banner(m4b_config: dict) -> None:
             f"{Fore.YELLOW}M4B v{new_version} available! "
             f"Run 'm4b update' to upgrade.{Style.RESET_ALL}"
         )
+        _notify_update_available(new_version)
+
+
+def _notify_update_available(version: str) -> None:
+    """Fire-and-forget notification about an available update."""
+    try:
+        user_cfg_path = os.path.join(parent_dir, "config", "user-config.json")
+        if not os.path.isfile(user_cfg_path):
+            return
+        user_config = load_json_config(user_cfg_path)
+        from utils.notifier import notify
+
+        notify(user_config, "update_available", f"M4B v{version} is available! Run 'm4b update' to upgrade.")
+    except Exception:
+        logging.debug("Update notification failed (non-critical).", exc_info=True)
 
 
 def _backup_preserved_files(base_dir: str) -> dict[str, bytes]:
