@@ -70,6 +70,7 @@ class TestBuildParser:
             "setup", "start", "stop", "status",
             "generate", "links", "reset", "proxy",
             "backup", "restore", "update", "config",
+            "limit",
         }
         assert set(sub_action.choices.keys()) == expected
 

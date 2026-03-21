@@ -192,7 +192,8 @@ def mainmenu(
 
             logging.debug("Calculating resources limits based on system")
             detector.calculate_resource_limits(
-                user_config_path_or_dict=user_config_path
+                user_config_path_or_dict=user_config_path,
+                m4b_config=m4b_config,
             )
 
             # Load the functions from the passed tools dir
@@ -505,6 +506,58 @@ def _cmd_update(args) -> None:
         print(f"{Fore.RED}Update failed. See logs for details.{Style.RESET_ALL}")
 
 
+def _cmd_limit(args) -> None:
+    """Show or change the active resource limit profile."""
+    m4b_config_path, _, user_config_path = _resolve_paths(args)
+    _ensure_user_config(args, user_config_path)
+    just_fix_windows_console()
+
+    m4b_config = loader.load_json_config(m4b_config_path)
+    user_config = loader.load_json_config(user_config_path)
+    profile_name = getattr(args, "profile", None)
+
+    if not profile_name:
+        # Show current profile + stats.
+        detector.show_resource_profile_info(m4b_config, user_config)
+        return
+
+    if profile_name not in detector.VALID_PROFILES:
+        print(
+            f"{Fore.RED}Invalid profile '{profile_name}'. "
+            f"Choose from: {', '.join(detector.VALID_PROFILES)}{Style.RESET_ALL}"
+        )
+        return
+
+    # Switch profile.
+    m4b_config.setdefault("resource_profiles", {})["active"] = profile_name
+    dumper.write_json(m4b_config, m4b_config_path)
+
+    # Recalculate limits with the new profile.
+    detector.calculate_resource_limits(user_config_path, m4b_config=m4b_config)
+
+    # Regenerate .env so Docker picks up the new limits.
+    from utils.generator import generate_env_file
+
+    apps_config_path = os.path.join(
+        args.config_dir, args.config_app_file
+    )
+    generate_env_file(
+        m4b_config_path, apps_config_path, user_config_path,
+        env_output_path=os.path.join(BASE_DIR, ".env"),
+    )
+
+    # Reload user_config to show updated values.
+    user_config = loader.load_json_config(user_config_path)
+    print(
+        f"{Fore.GREEN}Switched to profile: {profile_name}{Style.RESET_ALL}"
+    )
+    detector.show_resource_profile_info(m4b_config, user_config)
+    print(
+        f"\n{Fore.YELLOW}Restart your stack (`m4b start`) "
+        f"for new limits to take effect.{Style.RESET_ALL}"
+    )
+
+
 def _cmd_config(args) -> None:
     """View or edit encrypted user config."""
     _, _, user_config_path = _resolve_paths(args)
@@ -621,6 +674,16 @@ def _build_parser() -> argparse.ArgumentParser:
     config_sub.add_parser("view", help="Display config with masked credentials")
     config_sub.add_parser("edit", help="Edit config in $EDITOR, re-encrypts on save")
 
+    limit_parser = sub.add_parser(
+        "limit", help="Show or change the active resource limit profile"
+    )
+    limit_parser.add_argument(
+        "profile",
+        nargs="?",
+        default=None,
+        help="Profile name to switch to (base/min/low/mid/max). Omit to show current.",
+    )
+
     return parser
 
 
@@ -641,6 +704,7 @@ _SUBCOMMAND_DISPATCH = {
     "restore": _cmd_restore,
     "update": _cmd_update,
     "config": _cmd_config,
+    "limit": _cmd_limit,
 }
 
 

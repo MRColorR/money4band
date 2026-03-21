@@ -39,6 +39,36 @@
     "registry_max_retries": 3,
     "enforce_install_limits": true
   },
+  "resource_profiles": {
+    "active": "low",
+    "profiles": {
+      "base": {
+        "description": "Minimal (VPS / RPi)",
+        "cpu_factor": 0.2,
+        "ram_pct": 0.02
+      },
+      "min": {
+        "description": "Conservative",
+        "cpu_factor": 0.5,
+        "ram_pct": 0.125
+      },
+      "low": {
+        "description": "Default",
+        "cpu_factor": 1.0,
+        "ram_pct": 0.1875
+      },
+      "mid": {
+        "description": "Standard",
+        "cpu_factor": 2.0,
+        "ram_pct": 0.25
+      },
+      "max": {
+        "description": "High-resource",
+        "cpu_factor": 0.5,
+        "ram_pct": 0.50
+      }
+    }
+  },
   "watchtower": {
     "enable_labels": true,
     "scope": "money4band"
