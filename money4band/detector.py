@@ -215,3 +215,122 @@ def show_resource_profile_info(
     profiles = m4b_config.get("resource_profiles", {}).get("profiles", {})
     print(f"\n  Available profiles: {', '.join(profiles)}")
     print(f"  Change with: {Fore.YELLOW}m4b limit <profile>{Style.RESET_ALL}\n")
+
+
+# ---------------------------------------------------------------------------
+# WSL detection
+# ---------------------------------------------------------------------------
+
+
+def is_running_in_wsl() -> bool:
+    """Return ``True`` when the current process is inside a WSL distribution."""
+    if os.environ.get("WSL_DISTRO_NAME"):
+        return True
+    try:
+        with open("/proc/version") as fh:
+            version_text = fh.read().lower()
+        return "microsoft" in version_text or "wsl" in version_text
+    except OSError:
+        return False
+
+
+def get_wsl_version() -> str | None:
+    """Return the WSL kernel version string, or ``None`` if unavailable.
+
+    Parses the output of ``wsl.exe --version`` which shows lines like
+    ``WSL version: 2.4.4.0``.
+    """
+    import subprocess
+
+    try:
+        result = subprocess.run(
+            ["wsl.exe", "--version"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        for raw_line in result.stdout.replace("\x00", "").splitlines():
+            stripped = raw_line.strip()
+            lower = stripped.lower()
+            if lower.startswith("wsl version"):
+                parts = stripped.split(":", 1)
+                if len(parts) == 2:
+                    return parts[1].strip()
+        return None
+    except Exception:
+        return None
+
+
+def get_wsl_networking_mode() -> str:
+    """Detect the WSL networking mode from ``.wslconfig``.
+
+    Returns:
+        ``"mirrored"``, ``"nat"`` (explicit setting), or ``"not_set"``
+        (no .wslconfig or no networkingMode line found).
+    """
+    import subprocess
+
+    try:
+        result = subprocess.run(
+            ["cmd.exe", "/c", "echo", "%USERPROFILE%"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        win_profile = result.stdout.strip().replace("\r", "")
+        if not win_profile or "%" in win_profile:
+            return "not_set"
+
+        result2 = subprocess.run(
+            ["wslpath", win_profile],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        wsl_profile = result2.stdout.strip()
+        if not wsl_profile:
+            return "not_set"
+
+        config_path = os.path.join(wsl_profile, ".wslconfig")
+        if not os.path.isfile(config_path):
+            return "not_set"
+
+        with open(config_path) as fh:
+            for line in fh:
+                stripped = line.strip().lower()
+                if stripped.startswith("networkingmode"):
+                    _, _, value = stripped.partition("=")
+                    value = value.strip()
+                    if value == "mirrored":
+                        return "mirrored"
+                    return value or "not_set"
+
+        return "not_set"
+    except Exception:
+        return "not_set"
+
+
+def detect_wsl_environment() -> dict[str, object]:
+    """Collect WSL environment details.
+
+    Returns a dict with keys:
+    - ``is_wsl``: bool
+    - ``wsl_version``: str | None
+    - ``networking_mode``: ``"mirrored"`` | ``"nat"`` | ``"not_set"``
+    - ``distro``: str | None (WSL_DISTRO_NAME)
+    """
+    in_wsl = is_running_in_wsl()
+    if not in_wsl:
+        return {
+            "is_wsl": False,
+            "wsl_version": None,
+            "networking_mode": "not_set",
+            "distro": None,
+        }
+
+    return {
+        "is_wsl": True,
+        "wsl_version": get_wsl_version(),
+        "networking_mode": get_wsl_networking_mode(),
+        "distro": os.environ.get("WSL_DISTRO_NAME"),
+    }

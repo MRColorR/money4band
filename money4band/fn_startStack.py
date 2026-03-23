@@ -353,7 +353,7 @@ def start_all_stacks(
                 f"{Fore.RED}Container name conflicts detected! These must be fixed before starting.{Style.RESET_ALL}"
             )
             print(
-                f"{Fore.YELLOW}Please run the validator tool: python utils/validate_instances.py --fix{Style.RESET_ALL}"
+                f"{Fore.YELLOW}Please run the validator tool: python -m money4band.validate_instances --fix{Style.RESET_ALL}"
             )
             if not skip_questions and not ask_question_yn(
                 "Continue anyway? (Conflicts will cause failures)"

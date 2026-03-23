@@ -152,7 +152,7 @@ def mainmenu(
     m4b_config_path: str,
     apps_config_path: str,
     user_config_path: str,
-    utils_dir_path: str,
+    modules_dir_path: str,
 ) -> None:
     """
     Main menu of the script.
@@ -161,7 +161,7 @@ def mainmenu(
     m4b_config_path -- the path to the m4b config file
     apps_config_path -- the path to the apps config file
     user_config_path -- the path to the user config file
-    utils_dir_path -- the path to the utils directory
+    modules_dir_path -- the path to the money4band modules directory
     """
     try:
         logger.debug("Initializing colorama")
@@ -218,9 +218,9 @@ def mainmenu(
             )
 
             # Load the functions from the passed tools dir
-            logger.debug(f"Loading modules from {utils_dir_path}")
-            m4b_tools_modules = loader.load_modules_from_directory(utils_dir_path)
-            logger.info(f"Successfully loaded modules from {utils_dir_path}")
+            logger.debug(f"Loading modules from {modules_dir_path}")
+            m4b_tools_modules = loader.load_modules_from_directory(modules_dir_path)
+            logger.info(f"Successfully loaded modules from {modules_dir_path}")
             cls()
             print(f"{Fore.GREEN}----------------------------------------------")
             print(
@@ -315,7 +315,7 @@ def _cmd_menu(args: argparse.Namespace) -> None:
         m4b_config_path=m4b_config_path,
         apps_config_path=apps_config_path,
         user_config_path=user_config_path,
-        utils_dir_path=args.utils_dir,
+        modules_dir_path=args.modules_dir,
     )
 
 
@@ -931,7 +931,7 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Set the apps config file name",
     )
     parser.add_argument(
-        "--utils-dir",
+        "--modules-dir",
         default=os.path.join(script_dir, "money4band"),
         help="Set the m4b tools directory",
     )

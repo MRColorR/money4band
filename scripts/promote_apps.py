@@ -1,4 +1,4 @@
-"""Phase 6: Promote 7 candidate apps to supported-apps."""
+"""Promote candidate apps to supported-apps."""
 
 import json
 from pathlib import Path
@@ -76,7 +76,7 @@ def main():
         # Mark as promoted
         app["app_details"]["recommendation"] = "promoted"
         app["app_details"]["recommendation_reasoning"] = (
-            "Promoted to supported-apps in Phase 6. Docker image verified on Docker Hub."
+            "Promoted to supported-apps. Docker image verified on Docker Hub."
         )
         app["app_details"]["last_verified"] = "2026-03-23"
 

@@ -13,6 +13,7 @@ from money4band.fn_startStack import start_all_stacks
 from money4band.fn_stopStack import stop_all_stacks
 from money4band.generator import assemble_docker_compose, generate_env_file
 from money4band.loader import load_json_config
+from money4band.networker import validate_proxy_list
 from money4band.prompt_helper import ask_question_yn
 
 logger = logging.getLogger(__name__)
@@ -104,6 +105,30 @@ def update_multiproxy_instances(
     print(
         f"{Fore.GREEN}Found {len(proxies)} proxies in '{proxies_file}'.{Style.RESET_ALL}"
     )
+
+    # Validate proxy URLs before proceeding
+    validation = validate_proxy_list(proxies, check_connectivity=True, timeout=5.0)
+    invalid = [r for r in validation if not r["valid"]]
+    unreachable = [r for r in validation if r["valid"] and r["reachable"] is False]
+    if invalid:
+        print(f"\n{Fore.RED}Invalid proxy URLs:{Style.RESET_ALL}")
+        for r in invalid:
+            print(
+                f"  {Fore.RED}\u2717{Style.RESET_ALL} {r['url']} \u2014 {r['reason']}"
+            )
+        print(
+            f"\n{Fore.RED}Fix the invalid proxies before proceeding.{Style.RESET_ALL}"
+        )
+        return
+    if unreachable:
+        print(f"\n{Fore.YELLOW}Unreachable proxies:{Style.RESET_ALL}")
+        for r in unreachable:
+            print(f"  {Fore.YELLOW}!{Style.RESET_ALL} {r['url']} \u2014 {r['reason']}")
+        if not ask_question_yn(
+            "Some proxies are unreachable. Continue anyway?", default=False
+        ):
+            print("Operation canceled.")
+            return
 
     # Stop all stacks
     stop_all_stacks(skip_questions=True)

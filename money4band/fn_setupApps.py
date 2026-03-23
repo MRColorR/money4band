@@ -54,6 +54,7 @@ from money4band.multiproxy_setup import (  # noqa: F401
     safe_rmtree,
     setup_multiproxy_instances,
 )
+from money4band.networker import validate_proxy_list
 from money4band.notification_setup import (  # noqa: F401
     SUPPORTED_NOTIFICATION_SERVICES,
     setup_notifications,
@@ -282,6 +283,37 @@ def main(
                 input(f"\nPress {Fore.CYAN}Enter{Style.RESET_ALL} to continue...")
                 with open("proxies.txt") as file:
                     proxies = [line.strip() for line in file if line.strip()]
+
+                # Validate proxy URLs
+                validation = validate_proxy_list(
+                    proxies, check_connectivity=True, timeout=5.0
+                )
+                invalid = [r for r in validation if not r["valid"]]
+                unreachable = [
+                    r for r in validation if r["valid"] and r["reachable"] is False
+                ]
+                if invalid:
+                    print(f"\n{Fore.RED}Invalid proxy URLs:{Style.RESET_ALL}")
+                    for r in invalid:
+                        print(
+                            f"  {Fore.RED}\u2717{Style.RESET_ALL} {r['url']} \u2014 {r['reason']}"
+                        )
+                    print(
+                        f"\n{Fore.RED}Fix proxies.txt and re-run setup.{Style.RESET_ALL}"
+                    )
+                    logger.error("Setup aborted: invalid proxy URLs found.")
+                    return
+                if unreachable:
+                    print(f"\n{Fore.YELLOW}Unreachable proxies:{Style.RESET_ALL}")
+                    for r in unreachable:
+                        print(
+                            f"  {Fore.YELLOW}!{Style.RESET_ALL} {r['url']} \u2014 {r['reason']}"
+                        )
+                    if not ask_question_yn(
+                        "Some proxies are unreachable. Continue anyway?", default=False
+                    ):
+                        logger.info("User aborted setup due to unreachable proxies.")
+                        return
 
                 user_config["proxies"]["url"] = proxies.pop(-1)
                 user_config["proxies"]["enabled"] = True

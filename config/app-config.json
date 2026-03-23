@@ -1745,7 +1745,7 @@
                     "install_limit_reasoning": "No documented device caps. Decentralized platform.",
                     "recommendation": "promoted",
                     "recommendation_reasoning": "Promoted to supported-apps. Docker image verified on Docker Hub.",
-                    "confidence_notes": "Only found in one competitor project. Requires deeper research before promoting to supported."
+                    "confidence_notes": "Limited external validation. Requires deeper research before promoting to supported."
                 }
             },
             {
@@ -1804,7 +1804,7 @@
                         "max_devices_per_account": "undocumented",
                         "max_devices_per_ip": 1,
                         "max_ips_per_account": "undocumented",
-                        "notes": "Limited documentation. Competitor projects support it."
+                        "notes": "Limited documentation. Other projects support it."
                     },
                     "ip_policy": {
                         "residential": true,
@@ -1834,17 +1834,17 @@
                         "avg_monthly_datacenter_usd": "unknown"
                     },
                     "warnings": [
-                        "Reported 522 errors in competitor community",
+                        "Reported 522 errors in community",
                         "Service stability unverified — use with caution"
                     ],
                     "confidence": "low",
                     "sources": [],
                     "last_verified": "2026-03-23",
-                    "compose_layer_reasoning": "Limited available documentation. Competitor supports it on DC/VPS.",
-                    "install_limit_reasoning": "Limited documentation. Competitor projects support it.",
+                    "compose_layer_reasoning": "Limited available documentation. Supported on DC/VPS by other projects.",
+                    "install_limit_reasoning": "Limited documentation. Other projects support it.",
                     "recommendation": "promoted",
                     "recommendation_reasoning": "Promoted to supported-apps. Docker image verified on Docker Hub.",
-                    "confidence_notes": "Competitor community reports service instability (522 errors)."
+                    "confidence_notes": "Community reports service instability (522 errors)."
                 }
             },
             {
@@ -1900,7 +1900,7 @@
                         "max_devices_per_account": "undocumented",
                         "max_devices_per_ip": "undocumented",
                         "max_ips_per_account": "undocumented",
-                        "notes": "Limited documentation. Competitor projects support it. linux/amd64 platform only."
+                        "notes": "Limited documentation. Other projects support it. linux/amd64 platform only."
                     },
                     "ip_policy": {
                         "residential": true,
@@ -1941,7 +1941,7 @@
                     "install_limit_reasoning": "No documented caps. linux/amd64 platform only.",
                     "recommendation": "promoted",
                     "recommendation_reasoning": "Promoted to supported-apps. Docker image verified on Docker Hub.",
-                    "confidence_notes": "Both competitors disable healthcheck on this app. Negative community reports."
+                    "confidence_notes": "Other projects disable healthcheck on this app. Negative community reports."
                 }
             },
             {
@@ -1999,7 +1999,7 @@
                         "max_devices_per_account": "undocumented",
                         "max_devices_per_ip": "undocumented",
                         "max_ips_per_account": "undocumented",
-                        "notes": "Official Docker image exists. Competitor has companion auto-claim sidecar service."
+                        "notes": "Official Docker image exists. Companion auto-claim sidecar service available."
                     },
                     "ip_policy": {
                         "residential": true,
@@ -2012,7 +2012,7 @@
                         "adjacent_ips_max": "undocumented",
                         "ipv6": "undocumented",
                         "geo_restrictions": "none known",
-                        "quality_notes": "Insufficient documentation. Competitor supports it with email/password auth."
+                        "quality_notes": "Insufficient documentation. Supports email/password auth."
                     },
                     "docker": {
                         "image_official": true,
@@ -2033,7 +2033,7 @@
                     "recommendation": "promoted",
                     "recommendation_reasoning": "Promoted to supported-apps. Docker image verified on Docker Hub.",
                     "confidence": "low",
-                    "confidence_notes": "Only found in one competitor project. Minimal public documentation.",
+                    "confidence_notes": "Limited external validation. Minimal public documentation.",
                     "sources": [],
                     "last_verified": "2026-03-23"
                 },
@@ -2160,7 +2160,7 @@
                     "recommendation": "promoted",
                     "recommendation_reasoning": "Promoted to supported-apps. Docker image verified on Docker Hub.",
                     "confidence": "low",
-                    "confidence_notes": "Only found in one competitor project. Requires deeper research before promoting to supported.",
+                    "confidence_notes": "Limited external validation. Requires deeper research before promoting to supported.",
                     "sources": [],
                     "last_verified": "2026-03-23"
                 }
@@ -2257,7 +2257,7 @@
                     "recommendation": "promoted",
                     "recommendation_reasoning": "Promoted to supported-apps. Docker image verified on Docker Hub.",
                     "confidence": "low",
-                    "confidence_notes": "Only found in one competitor project. Primarily edge compute, not bandwidth sharing.",
+                    "confidence_notes": "Limited external validation. Primarily edge compute, not bandwidth sharing.",
                     "sources": [],
                     "last_verified": "2026-03-23"
                 }
@@ -2346,8 +2346,8 @@
                     "compose_layer_reasoning": "Service discontinued. Historical classification retained.",
                     "install_limit_reasoning": "Service discontinued.",
                     "recommendation": "deprecate",
-                    "recommendation_reasoning": "Service fully discontinued. Both competitor projects have either removed or disabled it. mrcolorrain image is the only available Docker image.",
-                    "confidence_notes": "Competitor projects confirm discontinuation. One still lists it but profile-disabled."
+                    "recommendation_reasoning": "Service fully discontinued. Other projects have either removed or disabled it. mrcolorrain image is the only available Docker image.",
+                    "confidence_notes": "Multiple sources confirm discontinuation."
                 }
             },
             {
@@ -2440,7 +2440,7 @@
                     "compose_layer_reasoning": "Residential-only by design. VPN and datacenter IPs blocked. Browser-extension primary architecture.",
                     "install_limit_reasoning": "No official Docker support. Browser extension model limits practical deployment.",
                     "recommendation": "deprecate",
-                    "recommendation_reasoning": "No official Docker image exists. Both competitors use different third-party images (XternA websocket vs carbon2029 browser-wrapper). Worth monitoring for official Docker release.",
+                    "recommendation_reasoning": "No official Docker image exists. Multiple third-party images exist (XternA websocket vs carbon2029 browser-wrapper). Worth monitoring for official Docker release.",
                     "confidence_notes": "Major DePIN player on Solana but no official container as of March 2026. Two different community approaches exist."
                 }
             },
@@ -2638,8 +2638,8 @@
                     "compose_layer_reasoning": "Browser-extension product. No official Docker support. Third-party browser-container workaround only.",
                     "install_limit_reasoning": "Browser extension model. Limits undocumented.",
                     "recommendation": "deprecate",
-                    "recommendation_reasoning": "Neither competitor supports Dawn as a standalone app. M4B's carbon2029/dockweb is unique and unreliable. Browser extension not suitable for headless Docker.",
-                    "confidence_notes": "Confirmed absent from both competitor projects."
+                    "recommendation_reasoning": "No other project supports Dawn as a standalone app. carbon2029/dockweb is the only Docker approach and unreliable. Browser extension not suitable for headless Docker.",
+                    "confidence_notes": "Absent from other known projects."
                 }
             },
             {
@@ -2736,8 +2736,8 @@
                     "compose_layer_reasoning": "Browser-extension product. Points-based reward system. No official Docker support.",
                     "install_limit_reasoning": "Browser extension model. Limits undocumented.",
                     "recommendation": "deprecate",
-                    "recommendation_reasoning": "Neither competitor supports Teneo. M4B's carbon2029/dockweb is the only Docker approach and unreliable.",
-                    "confidence_notes": "Confirmed absent from both competitor projects."
+                    "recommendation_reasoning": "No other project supports Teneo. carbon2029/dockweb is the only Docker approach and unreliable.",
+                    "confidence_notes": "Absent from other known projects."
                 }
             },
             {
@@ -2835,7 +2835,7 @@
                     "compose_layer_reasoning": "Compute-sharing rather than bandwidth-sharing pattern. Excessive CPU/RAM usage reported.",
                     "install_limit_reasoning": "Removed by M4B community vote. Resource pattern unsuitable for bandwidth-sharing tool.",
                     "recommendation": "deprecate",
-                    "recommendation_reasoning": "Removed by M4B community vote March 2026 due to excessive resource usage. All three projects use different Docker images. One competitor throttles CPU to mitigate. Consider keeping as opt-in with resource warnings.",
+                    "recommendation_reasoning": "Removed by M4B community vote March 2026 due to excessive resource usage. Multiple Docker images exist. Some projects throttle CPU to mitigate. Consider keeping as opt-in with resource warnings.",
                     "confidence_notes": "Community vote and multiple Docker image variants confirm problematic resource pattern."
                 }
             }
