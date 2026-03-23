@@ -1642,7 +1642,7 @@
                     "compose_layer_reasoning": "Verified support for residential, Linux, and Docker on multiple IP types. Payout rates vary by IP type.",
                     "install_limit_reasoning": "Designed for multi-node deployments. Requires machine ID to regenerate device keys.",
                     "recommendation": "promoted",
-                    "recommendation_reasoning": "Promoted to supported-apps in Phase 6. Docker image verified on Docker Hub.",
+                    "recommendation_reasoning": "Promoted to supported-apps. Docker image verified on Docker Hub.",
                     "confidence_notes": "Community tests confirm functionality, but it is early-stage."
                 }
             },
@@ -1744,7 +1744,7 @@
                     "compose_layer_reasoning": "Markets itself as 'decentralized edge cloud'. IP acceptance policy unclear. Conservative residential classification.",
                     "install_limit_reasoning": "No documented device caps. Decentralized platform.",
                     "recommendation": "promoted",
-                    "recommendation_reasoning": "Promoted to supported-apps in Phase 6. Docker image verified on Docker Hub.",
+                    "recommendation_reasoning": "Promoted to supported-apps. Docker image verified on Docker Hub.",
                     "confidence_notes": "Only found in one competitor project. Requires deeper research before promoting to supported."
                 }
             },
@@ -1843,7 +1843,7 @@
                     "compose_layer_reasoning": "Limited available documentation. Competitor supports it on DC/VPS.",
                     "install_limit_reasoning": "Limited documentation. Competitor projects support it.",
                     "recommendation": "promoted",
-                    "recommendation_reasoning": "Promoted to supported-apps in Phase 6. Docker image verified on Docker Hub.",
+                    "recommendation_reasoning": "Promoted to supported-apps. Docker image verified on Docker Hub.",
                     "confidence_notes": "Competitor community reports service instability (522 errors)."
                 }
             },
@@ -1940,7 +1940,7 @@
                     "compose_layer_reasoning": "Insufficient documentation. Conservative datacenter classification.",
                     "install_limit_reasoning": "No documented caps. linux/amd64 platform only.",
                     "recommendation": "promoted",
-                    "recommendation_reasoning": "Promoted to supported-apps in Phase 6. Docker image verified on Docker Hub.",
+                    "recommendation_reasoning": "Promoted to supported-apps. Docker image verified on Docker Hub.",
                     "confidence_notes": "Both competitors disable healthcheck on this app. Negative community reports."
                 }
             },
@@ -2031,7 +2031,7 @@
                     "compose_layer_reasoning": "Conservative residential classification. No IP policy documentation found.",
                     "install_limit_reasoning": "No documented device caps.",
                     "recommendation": "promoted",
-                    "recommendation_reasoning": "Promoted to supported-apps in Phase 6. Docker image verified on Docker Hub.",
+                    "recommendation_reasoning": "Promoted to supported-apps. Docker image verified on Docker Hub.",
                     "confidence": "low",
                     "confidence_notes": "Only found in one competitor project. Minimal public documentation.",
                     "sources": [],
@@ -2158,7 +2158,7 @@
                     "compose_layer_reasoning": "Supports proxy mode for bulk operations suggesting DC/VPS acceptance. Conservative universal classification.",
                     "install_limit_reasoning": "No documented device caps. Proxy mode suggests scale-friendly design.",
                     "recommendation": "promoted",
-                    "recommendation_reasoning": "Promoted to supported-apps in Phase 6. Docker image verified on Docker Hub.",
+                    "recommendation_reasoning": "Promoted to supported-apps. Docker image verified on Docker Hub.",
                     "confidence": "low",
                     "confidence_notes": "Only found in one competitor project. Requires deeper research before promoting to supported.",
                     "sources": [],
@@ -2255,7 +2255,7 @@
                     "compose_layer_reasoning": "Edge compute platform. Conservative universal classification as IP policy is undocumented.",
                     "install_limit_reasoning": "No documented caps. Two-step setup suggests per-device identity.",
                     "recommendation": "promoted",
-                    "recommendation_reasoning": "Promoted to supported-apps in Phase 6. Docker image verified on Docker Hub.",
+                    "recommendation_reasoning": "Promoted to supported-apps. Docker image verified on Docker Hub.",
                     "confidence": "low",
                     "confidence_notes": "Only found in one competitor project. Primarily edge compute, not bandwidth sharing.",
                     "sources": [],
