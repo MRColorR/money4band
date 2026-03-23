@@ -1,0 +1,40 @@
+version: 2
+updates:
+  # Python dependencies (pip)
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    reviewers:
+      - "MRColorR"
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "deps"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    reviewers:
+      - "MRColorR"
+    labels:
+      - "ci"
+    commit-message:
+      prefix: "ci"
+
+  # Docker (compose images)
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    reviewers:
+      - "MRColorR"
+    labels:
+      - "docker"
+    commit-message:
+      prefix: "docker"

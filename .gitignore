@@ -16,6 +16,8 @@ tmp/*
 tmp.py
 *.old
 __pycache__
+.coverage
+htmlcov/
 # pyinstaller folders
 build
 dist
@@ -28,6 +30,8 @@ dist
 
 # Local-only analysis
 docs/*_ANALYSIS.md
+docs/*AUDIT*.md
+docs/*_STATUS*.md
 docs/*_RESULTS.md
 docs/*_RESEARCH_*.md
 

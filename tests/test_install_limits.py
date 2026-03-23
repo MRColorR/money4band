@@ -1,9 +1,11 @@
 """Tests for proxy install limit enforcement and toggle."""
 
 import json
+from unittest.mock import patch
+
 import pytest
 
-from utils.loader import get_install_limit
+from money4band.loader import get_install_limit
 
 
 class TestGetInstallLimit:
@@ -91,40 +93,43 @@ class TestPerInstanceDisableLogic:
 class TestToggleInstallLimits:
     """Test the enforce_install_limits toggle in the proxy tools menu."""
 
-    def test_toggle_flips_true_to_false(self, tmp_path):
+    @patch("builtins.input", return_value="")
+    def test_toggle_flips_true_to_false(self, _mock_input, tmp_path):
         cfg_path = str(tmp_path / "m4b-config.json")
         cfg = {"system": {"enforce_install_limits": True, "sleep_time": 0}}
         with open(cfg_path, "w") as f:
             json.dump(cfg, f)
 
-        from utils.fn_multiproxy_tools import toggle_install_limits
+        from money4band.fn_multiproxy_tools import toggle_install_limits
         toggle_install_limits(m4b_config_path=cfg_path)
 
         with open(cfg_path) as f:
             result = json.load(f)
         assert result["system"]["enforce_install_limits"] is False
 
-    def test_toggle_flips_false_to_true(self, tmp_path):
+    @patch("builtins.input", return_value="")
+    def test_toggle_flips_false_to_true(self, _mock_input, tmp_path):
         cfg_path = str(tmp_path / "m4b-config.json")
         cfg = {"system": {"enforce_install_limits": False, "sleep_time": 0}}
         with open(cfg_path, "w") as f:
             json.dump(cfg, f)
 
-        from utils.fn_multiproxy_tools import toggle_install_limits
+        from money4band.fn_multiproxy_tools import toggle_install_limits
         toggle_install_limits(m4b_config_path=cfg_path)
 
         with open(cfg_path) as f:
             result = json.load(f)
         assert result["system"]["enforce_install_limits"] is True
 
-    def test_toggle_defaults_to_true_when_missing(self, tmp_path):
+    @patch("builtins.input", return_value="")
+    def test_toggle_defaults_to_true_when_missing(self, _mock_input, tmp_path):
         """If the key doesn't exist yet, it defaults to True, so first toggle → False."""
         cfg_path = str(tmp_path / "m4b-config.json")
         cfg = {"system": {"sleep_time": 0}}
         with open(cfg_path, "w") as f:
             json.dump(cfg, f)
 
-        from utils.fn_multiproxy_tools import toggle_install_limits
+        from money4band.fn_multiproxy_tools import toggle_install_limits
         toggle_install_limits(m4b_config_path=cfg_path)
 
         with open(cfg_path) as f:
@@ -176,7 +181,7 @@ class TestInstallLimitsStatusLabel:
         with open(cfg_path, "w") as f:
             json.dump({"system": {"enforce_install_limits": True}}, f)
 
-        from utils.fn_multiproxy_tools import _install_limits_status_label
+        from money4band.fn_multiproxy_tools import _install_limits_status_label
         label = _install_limits_status_label(cfg_path)
         assert "ON" in label
 
@@ -185,7 +190,7 @@ class TestInstallLimitsStatusLabel:
         with open(cfg_path, "w") as f:
             json.dump({"system": {"enforce_install_limits": False}}, f)
 
-        from utils.fn_multiproxy_tools import _install_limits_status_label
+        from money4band.fn_multiproxy_tools import _install_limits_status_label
         label = _install_limits_status_label(cfg_path)
         assert "OFF" in label
 
@@ -194,6 +199,6 @@ class TestInstallLimitsStatusLabel:
         with open(cfg_path, "w") as f:
             json.dump({"system": {}}, f)
 
-        from utils.fn_multiproxy_tools import _install_limits_status_label
+        from money4band.fn_multiproxy_tools import _install_limits_status_label
         label = _install_limits_status_label(cfg_path)
         assert "ON" in label

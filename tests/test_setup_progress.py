@@ -5,7 +5,7 @@ import os
 
 import pytest
 
-from utils.setup_progress import (
+from money4band.setup_progress import (
     clear_progress,
     is_step_done,
     load_progress,
@@ -17,7 +17,7 @@ from utils.setup_progress import (
 def _isolate_progress_file(tmp_path, monkeypatch):
     """Point the progress file at a temp directory so tests don't touch real config."""
     progress_file = str(tmp_path / ".setup_progress.json")
-    monkeypatch.setattr("utils.setup_progress.PROGRESS_FILE", progress_file)
+    monkeypatch.setattr("money4band.setup_progress.PROGRESS_FILE", progress_file)
     yield progress_file
 
 

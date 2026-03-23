@@ -2,7 +2,7 @@ import json
 import unittest
 from unittest.mock import patch
 
-from utils.detector import (
+from money4band.detector import (
     VALID_PROFILES,
     _MIN_CPU,
     _MIN_MEM,
@@ -27,7 +27,7 @@ ARCH_MAP = {
 
 
 class TestDetector(unittest.TestCase):
-    @patch("utils.loader.load_json_config")
+    @patch("money4band.loader.load_json_config")
     @patch("platform.system", return_value="Linux")
     def test_detect_os(self, mock_platform_system, mock_load_json_config):
         """
@@ -61,7 +61,7 @@ class TestDetector(unittest.TestCase):
     def _run_arch_test(self, machine_value, expected_dkarch):
         """Helper: mock platform.machine and assert detect_architecture result."""
         with (
-            patch("utils.detector.load_json_config") as mock_load,
+            patch("money4band.detector.load_json_config") as mock_load,
             patch("platform.machine", return_value=machine_value),
         ):
             mock_load.return_value = {"system": {"arch_map": ARCH_MAP}}
@@ -126,9 +126,9 @@ class TestResourceProfiles(unittest.TestCase):
     def test_valid_profiles_tuple(self):
         self.assertEqual(VALID_PROFILES, ("base", "min", "low", "mid", "max"))
 
-    @patch("utils.detector.get_system_memory_and_cores", return_value=(8192.0, 4))
-    @patch("utils.detector.write_json")
-    @patch("utils.detector.load_json_config")
+    @patch("money4band.detector.get_system_memory_and_cores", return_value=(8192.0, 4))
+    @patch("money4band.detector.write_json")
+    @patch("money4band.detector.load_json_config")
     def test_calculate_resource_limits_low_profile(self, mock_load, mock_write, mock_sys):
         """With 8 GB RAM + 4 cores on 'low' profile, verify all tier values."""
         mock_load.return_value = {"resource_limits": {"ram_cap_mb_default": 6144}}
@@ -152,9 +152,9 @@ class TestResourceProfiles(unittest.TestCase):
             self.assertEqual(rl[f"app_mem_limit_{tier}"], f"{expected_limit}m")
             self.assertEqual(rl[f"app_cpu_limit_{tier}"], expected_cpu)
 
-    @patch("utils.detector.get_system_memory_and_cores", return_value=(2048.0, 2))
-    @patch("utils.detector.write_json")
-    @patch("utils.detector.load_json_config")
+    @patch("money4band.detector.get_system_memory_and_cores", return_value=(2048.0, 2))
+    @patch("money4band.detector.write_json")
+    @patch("money4band.detector.load_json_config")
     def test_calculate_limits_base_profile_uses_minimums(self, mock_load, mock_write, mock_sys):
         """Base profile on a 2 GB / 2-core system should hit absolute minimums for lower tiers."""
         cfg = {
@@ -175,9 +175,9 @@ class TestResourceProfiles(unittest.TestCase):
         self.assertEqual(rl["app_mem_limit_little"], "128m")
         self.assertEqual(rl["app_cpu_limit_little"], 0.8)
 
-    @patch("utils.detector.get_system_memory_and_cores", return_value=(16384.0, 8))
-    @patch("utils.detector.write_json")
-    @patch("utils.detector.load_json_config")
+    @patch("money4band.detector.get_system_memory_and_cores", return_value=(16384.0, 8))
+    @patch("money4band.detector.write_json")
+    @patch("money4band.detector.load_json_config")
     def test_calculate_limits_max_profile(self, mock_load, mock_write, mock_sys):
         """Max profile on a 16 GB / 8-core system."""
         cfg = {
@@ -197,9 +197,9 @@ class TestResourceProfiles(unittest.TestCase):
         self.assertEqual(rl["app_mem_limit_huge"], "8192m")
         self.assertEqual(rl["app_cpu_limit_huge"], 3.2)
 
-    @patch("utils.detector.get_system_memory_and_cores", return_value=(8192.0, 4))
-    @patch("utils.detector.write_json")
-    @patch("utils.detector.load_json_config")
+    @patch("money4band.detector.get_system_memory_and_cores", return_value=(8192.0, 4))
+    @patch("money4band.detector.write_json")
+    @patch("money4band.detector.load_json_config")
     def test_calculate_limits_no_m4b_config_defaults_to_low(self, mock_load, mock_write, mock_sys):
         """When m4b_config is None, should use the fallback low profile values."""
         mock_load.return_value = {"resource_limits": {"ram_cap_mb_default": 6144}}
@@ -215,16 +215,16 @@ class TestResourceProfiles(unittest.TestCase):
     def test_ram_cap_preserved(self):
         """ram_cap_mb_default is preserved in output for backward compat."""
         with (
-            patch("utils.detector.get_system_memory_and_cores", return_value=(8192.0, 4)),
-            patch("utils.detector.write_json") as mock_write,
-            patch("utils.detector.load_json_config") as mock_load,
+            patch("money4band.detector.get_system_memory_and_cores", return_value=(8192.0, 4)),
+            patch("money4band.detector.write_json") as mock_write,
+            patch("money4band.detector.load_json_config") as mock_load,
         ):
             mock_load.return_value = {"resource_limits": {"ram_cap_mb_default": 4096}}
             calculate_resource_limits("dummy_path", m4b_config=self._M4B_CFG)
             saved = mock_write.call_args[0][0]
             self.assertEqual(saved["resource_limits"]["ram_cap_mb_default"], 4096)
 
-    @patch("utils.detector.get_system_memory_and_cores", return_value=(8192.0, 4))
+    @patch("money4band.detector.get_system_memory_and_cores", return_value=(8192.0, 4))
     def test_show_resource_profile_info_runs(self, mock_sys):
         """Smoke test: show_resource_profile_info should not raise."""
         user_config = {

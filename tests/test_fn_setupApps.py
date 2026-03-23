@@ -2,7 +2,7 @@ import os
 import tempfile
 import unittest
 
-from utils.fn_setupApps import cleanup_multiproxy_instances_dir
+from money4band.fn_setupApps import cleanup_multiproxy_instances_dir
 
 
 class TestCleanupMultiproxyInstancesDir(unittest.TestCase):

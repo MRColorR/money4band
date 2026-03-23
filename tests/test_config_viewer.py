@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from utils.config_viewer import _mask_dict, _mask_value, edit_config, view_masked
+from money4band.config_viewer import _mask_dict, _mask_value, edit_config, view_masked
 
 
 class TestMaskValue:
@@ -65,7 +65,7 @@ class TestViewMasked:
         config_file = tmp_path / "user-config.json"
         config_file.write_text(json.dumps(cfg))
 
-        with patch("utils.config_viewer.load_json_config", return_value=cfg):
+        with patch("money4band.config_viewer.load_json_config", return_value=cfg):
             view_masked(str(config_file))
 
         captured = capsys.readouterr()
@@ -87,9 +87,9 @@ class TestEditConfig:
         config_file.write_text(json.dumps(cfg))
 
         with (
-            patch("utils.config_viewer.load_json_config", return_value=cfg),
+            patch("money4band.config_viewer.load_json_config", return_value=cfg),
             patch(
-                "utils.config_viewer.subprocess.run",
+                "money4band.config_viewer.subprocess.run",
                 return_value=subprocess.CompletedProcess(args=[], returncode=1),
             ),
         ):
@@ -114,10 +114,10 @@ class TestEditConfig:
             return subprocess.CompletedProcess(args=cmd, returncode=0)
 
         with (
-            patch("utils.config_viewer.load_json_config", return_value=cfg),
-            patch("utils.config_viewer.subprocess.run", side_effect=fake_editor),
-            patch("utils.dumper.write_json") as mock_write,
-            patch("utils.config_viewer.ensure_config_encrypted"),
+            patch("money4band.config_viewer.load_json_config", return_value=cfg),
+            patch("money4band.config_viewer.subprocess.run", side_effect=fake_editor),
+            patch("money4band.dumper.write_json") as mock_write,
+            patch("money4band.config_viewer.ensure_config_encrypted"),
         ):
             edit_config(str(config_file))
 
@@ -137,8 +137,8 @@ class TestEditConfig:
             return subprocess.CompletedProcess(args=cmd, returncode=0)
 
         with (
-            patch("utils.config_viewer.load_json_config", return_value=cfg),
-            patch("utils.config_viewer.subprocess.run", side_effect=corrupt_editor),
+            patch("money4band.config_viewer.load_json_config", return_value=cfg),
+            patch("money4band.config_viewer.subprocess.run", side_effect=corrupt_editor),
         ):
             edit_config(str(config_file))
 

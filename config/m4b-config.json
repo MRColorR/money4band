@@ -1,274 +1,277 @@
 {
-  "project": {
-    "project_version": "5.0.0",
-    "compose_project_name": "money4band",
-    "ds_project_server_url": "https://discord.com/invite/Fq8eeazBAD"
-  },
-  "ports": {
-    "default_port_base": 50000,
-    "port_offset_per_app": 1000,
-    "port_offset_per_instance": 3
-  },
-  "system": {
-    "sleep_time": 3,
-    "arch_map": {
-      "x86_64": "amd64",
-      "amd64": "amd64",
-      "aarch64": "arm64",
-      "arm64": "arm64",
-      "armv7l": "arm/v7",
-      "armv6l": "arm/v6"
+    "project": {
+        "project_version": "5.0.0",
+        "compose_project_name": "money4band",
+        "ds_project_server_url": "https://discord.com/invite/Fq8eeazBAD"
     },
-    "os_map": {
-      "win32nt": "Windows",
-      "windows_nt": "Windows",
-      "windows": "Windows",
-      "linux": "Linux",
-      "darwin": "MacOS",
-      "macos": "MacOS",
-      "macosx": "MacOS",
-      "mac": "MacOS",
-      "osx": "MacOS",
-      "cygwin": "Cygwin",
-      "mingw": "MinGw",
-      "msys": "Msys",
-      "freebsd": "FreeBSD"
+    "ports": {
+        "default_port_base": 50000,
+        "port_offset_per_app": 1000,
+        "port_offset_per_instance": 3
     },
-    "default_docker_platform": "linux/amd64",
-    "registry_request_timeout": 15,
-    "registry_max_retries": 3,
-    "enforce_install_limits": true,
-    "compose_mode": "monolithic",
-    "dns": {
-      "mode": "default",
-      "servers": ["1.1.1.1", "8.8.8.8"]
-    }
-  },
-  "resource_profiles": {
-    "active": "low",
-    "profiles": {
-      "base": {
-        "description": "Minimal (VPS / RPi)",
-        "cpu_factor": 0.2,
-        "ram_pct": 0.02
-      },
-      "min": {
-        "description": "Conservative",
-        "cpu_factor": 0.5,
-        "ram_pct": 0.125
-      },
-      "low": {
-        "description": "Default",
-        "cpu_factor": 1.0,
-        "ram_pct": 0.1875
-      },
-      "mid": {
-        "description": "Standard",
-        "cpu_factor": 2.0,
-        "ram_pct": 0.25
-      },
-      "max": {
-        "description": "High-resource",
-        "cpu_factor": 0.5,
-        "ram_pct": 0.50
-      }
-    }
-  },
-  "watchtower": {
-    "enable_labels": true,
-    "scope": "money4band"
-  },
-  "menu": [
-    {
-      "label": "System Info",
-      "function": "system_info"
+    "system": {
+        "sleep_time": 3,
+        "arch_map": {
+            "x86_64": "amd64",
+            "amd64": "amd64",
+            "aarch64": "arm64",
+            "arm64": "arm64",
+            "armv7l": "arm/v7",
+            "armv6l": "arm/v6"
+        },
+        "os_map": {
+            "win32nt": "Windows",
+            "windows_nt": "Windows",
+            "windows": "Windows",
+            "linux": "Linux",
+            "darwin": "MacOS",
+            "macos": "MacOS",
+            "macosx": "MacOS",
+            "mac": "MacOS",
+            "osx": "MacOS",
+            "cygwin": "Cygwin",
+            "mingw": "MinGw",
+            "msys": "Msys",
+            "freebsd": "FreeBSD"
+        },
+        "default_docker_platform": "linux/amd64",
+        "registry_request_timeout": 15,
+        "registry_max_retries": 3,
+        "enforce_install_limits": true,
+        "compose_mode": "monolithic",
+        "dns": {
+            "mode": "custom",
+            "servers": [
+                "1.1.1.1",
+                "8.8.8.8"
+            ]
+        }
     },
-    {
-      "label": "App Catalog & Links",
-      "function": "fn_app_catalog"
+    "resource_profiles": {
+        "active": "low",
+        "profiles": {
+            "base": {
+                "description": "Minimal (VPS / RPi)",
+                "cpu_factor": 0.2,
+                "ram_pct": 0.02
+            },
+            "min": {
+                "description": "Conservative",
+                "cpu_factor": 0.5,
+                "ram_pct": 0.125
+            },
+            "low": {
+                "description": "Default",
+                "cpu_factor": 1.0,
+                "ram_pct": 0.1875
+            },
+            "mid": {
+                "description": "Standard",
+                "cpu_factor": 2.0,
+                "ram_pct": 0.25
+            },
+            "max": {
+                "description": "High-resource",
+                "cpu_factor": 0.5,
+                "ram_pct": 0.5
+            }
+        }
     },
-    {
-      "label": "Install Docker",
-      "function": "fn_install_docker"
+    "watchtower": {
+        "enable_labels": true,
+        "scope": "money4band"
     },
-    {
-      "label": "Setup Apps",
-      "function": "fn_setupApps"
-    },
-    {
-      "label": "Start apps stack",
-      "function": "fn_startStack"
-    },
-    {
-      "label": "Stop apps stack",
-      "function": "fn_stopStack"
-    },
-    {
-      "label": "Reset user-config File",
-      "function": "fn_reset_config"
-    },
-    {
-      "label": "Regenerate files from config",
-      "function": "generator"
-    },
-    {
-      "label": "Multiproxy Tools",
-      "function": "fn_multiproxy_tools"
-    },
-    {
-      "label": "Quit",
-      "function": "fn_bye"
-    }
-  ],
-  "farewell_messages": [
-    "Have a fantastic day!",
-    "Enjoy the rest of your day!",
-    "May your journey be filled with joy and success!",
-    "Happy earning!",
-    "Goodbye!",
-    "See you soon!",
-    "Take care and have a nice day!",
-    "Bye! Bye!",
-    "Until we meet again!"
-  ],
-  "files": {
-    "env_filename": ".env",
-    "dkcom_filename": "docker-compose.yaml"
-  },
-  "word_lists": {
-    "adjectives": [
-      "Swift",
-      "Silent",
-      "Brave",
-      "Cunning",
-      "Mighty",
-      "Fierce",
-      "Bold",
-      "Nimble",
-      "Stealthy",
-      "Valiant",
-      "Gallant",
-      "Fearless",
-      "Eager",
-      "Keen",
-      "Lively",
-      "Daring",
-      "Energetic",
-      "Dynamic",
-      "Vigorous",
-      "Intrepid",
-      "Stalwart",
-      "Resolute",
-      "Tenacious",
-      "Dauntless",
-      "Radiant",
-      "Blazing",
-      "Roaring",
-      "Thunderous",
-      "Mystic",
-      "Majestic",
-      "Serene",
-      "Glorious",
-      "Splendid",
-      "Miraculous",
-      "Enchanted",
-      "Magnificent",
-      "Invincible",
-      "Formidable",
-      "Epic",
-      "Legendary",
-      "Mythic",
-      "Supreme",
-      "Ultimate",
-      "Immortal",
-      "Divine",
-      "Spectacular",
-      "Amazing",
-      "Wondrous"
+    "menu": [
+        {
+            "label": "System Info",
+            "function": "system_info"
+        },
+        {
+            "label": "App Catalog & Links",
+            "function": "fn_app_catalog"
+        },
+        {
+            "label": "Docker Setup Guide",
+            "function": "fn_install_docker"
+        },
+        {
+            "label": "Setup Apps",
+            "function": "fn_setupApps"
+        },
+        {
+            "label": "Start apps stack",
+            "function": "fn_startStack"
+        },
+        {
+            "label": "Stop apps stack",
+            "function": "fn_stopStack"
+        },
+        {
+            "label": "Reset user-config File",
+            "function": "fn_reset_config"
+        },
+        {
+            "label": "Regenerate files from config",
+            "function": "generator"
+        },
+        {
+            "label": "Multiproxy Tools",
+            "function": "fn_multiproxy_tools"
+        },
+        {
+            "label": "Quit",
+            "function": "fn_bye"
+        }
     ],
-    "animals": [
-      "Panther",
-      "Tiger",
-      "Eagle",
-      "Falcon",
-      "Lion",
-      "Wolf",
-      "Leopard",
-      "Hawk",
-      "Dragon",
-      "Phoenix",
-      "Cheetah",
-      "Jaguar",
-      "Cougar",
-      "Raptor",
-      "Griffin",
-      "Orca",
-      "Shark",
-      "Dolphin",
-      "Whale",
-      "Bear",
-      "Cobra",
-      "Scorpion",
-      "Python",
-      "Lynx",
-      "Mustang",
-      "Viper",
-      "Bison",
-      "Raven",
-      "Owl",
-      "Falcon",
-      "Lynx",
-      "Puma",
-      "Gazelle",
-      "Mongoose",
-      "Jackal",
-      "Panther",
-      "Kangaroo",
-      "Otter",
-      "Hedgehog",
-      "Fox",
-      "Eagle",
-      "Badger",
-      "Squirrel",
-      "Porcupine",
-      "Beaver",
-      "Wombat",
-      "Koala",
-      "Panda",
-      "Tiger",
-      "Buffalo",
-      "Mammoth",
-      "Walrus",
-      "Seal",
-      "Penguin",
-      "Parrot",
-      "Flamingo",
-      "Pelican",
-      "Stork",
-      "Swan",
-      "Peacock",
-      "Crane",
-      "Heron",
-      "Ibis",
-      "Kiwi",
-      "Toucan",
-      "Macaw",
-      "Chameleon",
-      "Iguana",
-      "Gecko",
-      "Komodo",
-      "Monitor",
-      "Anaconda",
-      "Boa",
-      "Crocodile",
-      "Alligator",
-      "Turtle",
-      "Tortoise"
-    ]
-  },
-  "network": {
-    "driver": "bridge",
-    "subnet": "172.19.7.0",
-    "netmask": "27"
-  }
+    "farewell_messages": [
+        "Have a fantastic day!",
+        "Enjoy the rest of your day!",
+        "May your journey be filled with joy and success!",
+        "Happy earning!",
+        "Goodbye!",
+        "See you soon!",
+        "Take care and have a nice day!",
+        "Bye! Bye!",
+        "Until we meet again!"
+    ],
+    "files": {
+        "env_filename": ".env",
+        "dkcom_filename": "docker-compose.yaml"
+    },
+    "word_lists": {
+        "adjectives": [
+            "Swift",
+            "Silent",
+            "Brave",
+            "Cunning",
+            "Mighty",
+            "Fierce",
+            "Bold",
+            "Nimble",
+            "Stealthy",
+            "Valiant",
+            "Gallant",
+            "Fearless",
+            "Eager",
+            "Keen",
+            "Lively",
+            "Daring",
+            "Energetic",
+            "Dynamic",
+            "Vigorous",
+            "Intrepid",
+            "Stalwart",
+            "Resolute",
+            "Tenacious",
+            "Dauntless",
+            "Radiant",
+            "Blazing",
+            "Roaring",
+            "Thunderous",
+            "Mystic",
+            "Majestic",
+            "Serene",
+            "Glorious",
+            "Splendid",
+            "Miraculous",
+            "Enchanted",
+            "Magnificent",
+            "Invincible",
+            "Formidable",
+            "Epic",
+            "Legendary",
+            "Mythic",
+            "Supreme",
+            "Ultimate",
+            "Immortal",
+            "Divine",
+            "Spectacular",
+            "Amazing",
+            "Wondrous"
+        ],
+        "animals": [
+            "Panther",
+            "Tiger",
+            "Eagle",
+            "Falcon",
+            "Lion",
+            "Wolf",
+            "Leopard",
+            "Hawk",
+            "Dragon",
+            "Phoenix",
+            "Cheetah",
+            "Jaguar",
+            "Cougar",
+            "Raptor",
+            "Griffin",
+            "Orca",
+            "Shark",
+            "Dolphin",
+            "Whale",
+            "Bear",
+            "Cobra",
+            "Scorpion",
+            "Python",
+            "Lynx",
+            "Mustang",
+            "Viper",
+            "Bison",
+            "Raven",
+            "Owl",
+            "Falcon",
+            "Lynx",
+            "Puma",
+            "Gazelle",
+            "Mongoose",
+            "Jackal",
+            "Panther",
+            "Kangaroo",
+            "Otter",
+            "Hedgehog",
+            "Fox",
+            "Eagle",
+            "Badger",
+            "Squirrel",
+            "Porcupine",
+            "Beaver",
+            "Wombat",
+            "Koala",
+            "Panda",
+            "Tiger",
+            "Buffalo",
+            "Mammoth",
+            "Walrus",
+            "Seal",
+            "Penguin",
+            "Parrot",
+            "Flamingo",
+            "Pelican",
+            "Stork",
+            "Swan",
+            "Peacock",
+            "Crane",
+            "Heron",
+            "Ibis",
+            "Kiwi",
+            "Toucan",
+            "Macaw",
+            "Chameleon",
+            "Iguana",
+            "Gecko",
+            "Komodo",
+            "Monitor",
+            "Anaconda",
+            "Boa",
+            "Crocodile",
+            "Alligator",
+            "Turtle",
+            "Tortoise"
+        ]
+    },
+    "network": {
+        "driver": "bridge",
+        "subnet": "172.19.7.0",
+        "netmask": "27"
+    }
 }

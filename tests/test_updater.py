@@ -9,7 +9,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from utils.updater import (
+from money4band.updater import (
     Version,
     _backup_preserved_files,
     _cache_path,
@@ -28,7 +28,7 @@ class TestUpdateCache:
 
     def test_write_and_read_cache(self, tmp_path, monkeypatch):
         cache_file = tmp_path / "m4b_update_cache.json"
-        monkeypatch.setattr("utils.updater._cache_path", lambda: cache_file)
+        monkeypatch.setattr("money4band.updater._cache_path", lambda: cache_file)
 
         _write_cache("5.1.0", "5.0.0")
         result = _read_cache()
@@ -38,7 +38,7 @@ class TestUpdateCache:
 
     def test_expired_cache_returns_none(self, tmp_path, monkeypatch):
         cache_file = tmp_path / "m4b_update_cache.json"
-        monkeypatch.setattr("utils.updater._cache_path", lambda: cache_file)
+        monkeypatch.setattr("money4band.updater._cache_path", lambda: cache_file)
 
         payload = {"ts": time.time() - 1000, "latest": "5.1.0", "current": "5.0.0"}
         cache_file.write_text(json.dumps(payload))
@@ -47,14 +47,14 @@ class TestUpdateCache:
 
     def test_missing_cache_returns_none(self, tmp_path, monkeypatch):
         cache_file = tmp_path / "nonexistent.json"
-        monkeypatch.setattr("utils.updater._cache_path", lambda: cache_file)
+        monkeypatch.setattr("money4band.updater._cache_path", lambda: cache_file)
 
         assert _read_cache() is None
 
     def test_corrupt_cache_returns_none(self, tmp_path, monkeypatch):
         cache_file = tmp_path / "m4b_update_cache.json"
         cache_file.write_text("{bad json")
-        monkeypatch.setattr("utils.updater._cache_path", lambda: cache_file)
+        monkeypatch.setattr("money4band.updater._cache_path", lambda: cache_file)
 
         assert _read_cache() is None
 
@@ -63,11 +63,11 @@ class TestCheckForUpdate:
 
     def test_returns_version_when_update_available(self, tmp_path, monkeypatch):
         cache_file = tmp_path / "cache.json"
-        monkeypatch.setattr("utils.updater._cache_path", lambda: cache_file)
+        monkeypatch.setattr("money4band.updater._cache_path", lambda: cache_file)
 
         fake_release = [{"version": Version(5, 1, 0), "name": "v5.1.0",
                          "url": "https://example.com", "published_at": "2026-01-01"}]
-        monkeypatch.setattr("utils.updater.get_latest_releases", lambda count=1: fake_release)
+        monkeypatch.setattr("money4band.updater.get_latest_releases", lambda count=1: fake_release)
 
         config = {"project": {"project_version": "5.0.0"}}
         result = check_for_update(config)
@@ -75,25 +75,25 @@ class TestCheckForUpdate:
 
     def test_returns_none_when_up_to_date(self, tmp_path, monkeypatch):
         cache_file = tmp_path / "cache.json"
-        monkeypatch.setattr("utils.updater._cache_path", lambda: cache_file)
+        monkeypatch.setattr("money4band.updater._cache_path", lambda: cache_file)
 
         fake_release = [{"version": Version(5, 0, 0), "name": "v5.0.0",
                          "url": "https://example.com", "published_at": "2026-01-01"}]
-        monkeypatch.setattr("utils.updater.get_latest_releases", lambda count=1: fake_release)
+        monkeypatch.setattr("money4band.updater.get_latest_releases", lambda count=1: fake_release)
 
         config = {"project": {"project_version": "5.0.0"}}
         assert check_for_update(config) is None
 
     def test_uses_cache_when_fresh(self, tmp_path, monkeypatch):
         cache_file = tmp_path / "cache.json"
-        monkeypatch.setattr("utils.updater._cache_path", lambda: cache_file)
+        monkeypatch.setattr("money4band.updater._cache_path", lambda: cache_file)
 
         payload = {"ts": time.time(), "latest": "5.2.0", "current": "5.0.0"}
         cache_file.write_text(json.dumps(payload))
 
         # Should NOT call get_latest_releases
         monkeypatch.setattr(
-            "utils.updater.get_latest_releases",
+            "money4band.updater.get_latest_releases",
             lambda count=1: (_ for _ in ()).throw(AssertionError("should not be called")),
         )
 
@@ -102,12 +102,12 @@ class TestCheckForUpdate:
 
     def test_returns_none_on_api_error(self, tmp_path, monkeypatch):
         cache_file = tmp_path / "cache.json"
-        monkeypatch.setattr("utils.updater._cache_path", lambda: cache_file)
+        monkeypatch.setattr("money4band.updater._cache_path", lambda: cache_file)
 
         def fail(*a, **kw):
             raise RuntimeError("network error")
 
-        monkeypatch.setattr("utils.updater.get_latest_releases", fail)
+        monkeypatch.setattr("money4band.updater.get_latest_releases", fail)
 
         config = {"project": {"project_version": "5.0.0"}}
         assert check_for_update(config) is None
@@ -117,7 +117,7 @@ class TestShowUpdateBanner:
 
     def test_prints_banner_when_update_available(self, capsys, monkeypatch):
         monkeypatch.setattr(
-            "utils.updater.check_for_update", lambda cfg: "5.1.0"
+            "money4band.updater.check_for_update", lambda cfg: "5.1.0"
         )
         show_update_banner({"project": {"project_version": "5.0.0"}})
         captured = capsys.readouterr()
@@ -125,7 +125,7 @@ class TestShowUpdateBanner:
         assert "m4b update" in captured.out.lower()
 
     def test_no_output_when_up_to_date(self, capsys, monkeypatch):
-        monkeypatch.setattr("utils.updater.check_for_update", lambda cfg: None)
+        monkeypatch.setattr("money4band.updater.check_for_update", lambda cfg: None)
         show_update_banner({"project": {"project_version": "5.0.0"}})
         assert capsys.readouterr().out == ""
 
@@ -134,11 +134,11 @@ class TestIsGitInstall:
 
     def test_true_when_git_dir_exists(self, tmp_path, monkeypatch):
         (tmp_path / ".git").mkdir()
-        monkeypatch.setattr("utils.updater.parent_dir", str(tmp_path))
+        monkeypatch.setattr("money4band.updater.parent_dir", str(tmp_path))
         assert is_git_install() is True
 
     def test_false_when_no_git_dir(self, tmp_path, monkeypatch):
-        monkeypatch.setattr("utils.updater.parent_dir", str(tmp_path))
+        monkeypatch.setattr("money4band.updater.parent_dir", str(tmp_path))
         assert is_git_install() is False
 
 
@@ -171,22 +171,22 @@ class TestPreservedFiles:
 
 class TestGetBinaryAssetName:
 
-    @patch("utils.updater.platform.system", return_value="Windows")
+    @patch("money4band.updater.platform.system", return_value="Windows")
     def test_windows(self, _):
         assert _get_binary_asset_name() == "money4band-windows-amd64.exe"
 
-    @patch("utils.updater.platform.machine", return_value="x86_64")
-    @patch("utils.updater.platform.system", return_value="Linux")
+    @patch("money4band.updater.platform.machine", return_value="x86_64")
+    @patch("money4band.updater.platform.system", return_value="Linux")
     def test_linux_amd64(self, *_):
         assert _get_binary_asset_name() == "money4band-linux-amd64"
 
-    @patch("utils.updater.platform.machine", return_value="aarch64")
-    @patch("utils.updater.platform.system", return_value="Linux")
+    @patch("money4band.updater.platform.machine", return_value="aarch64")
+    @patch("money4band.updater.platform.system", return_value="Linux")
     def test_linux_arm64(self, *_):
         assert _get_binary_asset_name() == "money4band-linux-arm64"
 
-    @patch("utils.updater.platform.machine", return_value="arm64")
-    @patch("utils.updater.platform.system", return_value="Darwin")
+    @patch("money4band.updater.platform.machine", return_value="arm64")
+    @patch("money4band.updater.platform.system", return_value="Darwin")
     def test_macos_arm64(self, *_):
         assert _get_binary_asset_name() == "money4band-darwin-arm64"
 
@@ -194,7 +194,7 @@ class TestGetBinaryAssetName:
 class TestApplyUpdate:
 
     def test_git_update_calls_fetch_and_checkout(self, monkeypatch):
-        monkeypatch.setattr("utils.updater.is_git_install", lambda: True)
+        monkeypatch.setattr("money4band.updater.is_git_install", lambda: True)
 
         calls = []
 
@@ -202,12 +202,12 @@ class TestApplyUpdate:
             calls.append(cmd)
             return subprocess.CompletedProcess(cmd, 0)
 
-        monkeypatch.setattr("utils.updater.subprocess.run", fake_run)
+        monkeypatch.setattr("money4band.updater.subprocess.run", fake_run)
         monkeypatch.setattr(
-            "utils.updater._backup_preserved_files", lambda d: {}
+            "money4band.updater._backup_preserved_files", lambda d: {}
         )
         monkeypatch.setattr(
-            "utils.updater._restore_preserved_files", lambda d, s: None
+            "money4band.updater._restore_preserved_files", lambda d, s: None
         )
 
         assert apply_update("5.1.0") is True
@@ -216,8 +216,8 @@ class TestApplyUpdate:
         assert "v5.1.0" in calls[1][-1]
 
     def test_unsupported_install_returns_false(self, monkeypatch, capsys):
-        monkeypatch.setattr("utils.updater.is_git_install", lambda: False)
-        monkeypatch.setattr("utils.updater.sys", MagicMock(frozen=False))
+        monkeypatch.setattr("money4band.updater.is_git_install", lambda: False)
+        monkeypatch.setattr("money4band.updater.sys", MagicMock(frozen=False))
         # sys.frozen = False and NOT git → unsupported
         monkeypatch.setattr("builtins.getattr", lambda o, a, d=None: False)
 

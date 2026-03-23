@@ -1,200 +1,187 @@
-import os
-import subprocess
-import sys
-import unittest
-from unittest.mock import call, patch
+"""Tests for the Docker Setup module (fn_install_docker)."""
 
-# Ensure the parent directory is in the sys.path
-script_dir = os.path.dirname(os.path.abspath(__file__))
-parent_dir = os.path.dirname(script_dir)
-sys.path.append(parent_dir)
+from __future__ import annotations
 
-from utils.fn_install_docker import (
-    install_docker_linux,
-    install_docker_macos,
-    install_docker_windows,
+from unittest.mock import patch, MagicMock
+
+import pytest
+
+from money4band.fn_install_docker import (
+    _AUTO_INSTALLERS,
+    _INSTALL_GUIDES,
+    _has_tool,
     is_docker_installed,
     main,
+    show_docker_guide,
 )
 
 
-class TestFnInstallDocker(unittest.TestCase):
-    @patch("utils.fn_install_docker.detect_os")
-    @patch("utils.fn_install_docker.detect_architecture")
-    @patch("utils.fn_install_docker.subprocess.run")
-    def test_is_docker_installed(
-        self, mock_run, mock_detect_architecture, mock_detect_os
+# ---------------------------------------------------------------------------
+# is_docker_installed
+# ---------------------------------------------------------------------------
+
+
+@patch("money4band.fn_install_docker._docker_responds", return_value=True)
+@patch("money4band.fn_install_docker.shutil.which", return_value="/usr/bin/docker")
+def test_is_docker_installed_true(mock_which, mock_responds):
+    assert is_docker_installed() is True
+
+
+@patch("money4band.fn_install_docker.shutil.which", return_value=None)
+def test_is_docker_installed_no_binary(mock_which):
+    assert is_docker_installed() is False
+
+
+@patch("money4band.fn_install_docker._docker_responds", return_value=False)
+@patch("money4band.fn_install_docker.shutil.which", return_value="/usr/bin/docker")
+def test_is_docker_installed_daemon_down(mock_which, mock_responds):
+    assert is_docker_installed() is False
+
+
+# ---------------------------------------------------------------------------
+# _has_tool
+# ---------------------------------------------------------------------------
+
+
+@patch("money4band.fn_install_docker.shutil.which", return_value="/usr/bin/curl")
+def test_has_tool_found(mock_which):
+    assert _has_tool("curl") is True
+
+
+@patch("money4band.fn_install_docker.shutil.which", return_value=None)
+def test_has_tool_missing(mock_which):
+    assert _has_tool("curl") is False
+
+
+# ---------------------------------------------------------------------------
+# show_docker_guide
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("os_key", ["linux", "windows", "darwin"])
+@patch("money4band.fn_install_docker.platform.system")
+def test_show_docker_guide_known_os(mock_system, os_key, capsys):
+    mock_system.return_value = os_key.capitalize() if os_key != "darwin" else "Darwin"
+    show_docker_guide()
+    out = capsys.readouterr().out
+    assert "docker" in out.lower() or "Docker" in out
+
+
+@patch("money4band.fn_install_docker.platform.system", return_value="FreeBSD")
+def test_show_docker_guide_unknown_os(mock_system, capsys):
+    show_docker_guide()
+    out = capsys.readouterr().out
+    assert "Unsupported OS" in out
+
+
+# ---------------------------------------------------------------------------
+# main — already installed
+# ---------------------------------------------------------------------------
+
+
+@patch("builtins.input")
+@patch("money4band.fn_install_docker.is_docker_installed", return_value=True)
+@patch("money4band.fn_install_docker.subprocess.run")
+@patch("money4band.fn_install_docker.cls")
+def test_main_docker_already_installed(mock_cls, mock_run, mock_installed, mock_input, capsys):
+    mock_run.return_value = type("R", (), {"returncode": 0, "stdout": "Docker version 27.0.0"})()
+    main("a", "b", "c")
+    out = capsys.readouterr().out
+    assert "already installed" in out
+
+
+# ---------------------------------------------------------------------------
+# main — auto-install offered and accepted
+# ---------------------------------------------------------------------------
+
+
+@patch("builtins.input")
+@patch("money4band.fn_install_docker.show_docker_guide")
+@patch("money4band.fn_install_docker.ask_question_yn", return_value=True)
+@patch("money4band.fn_install_docker._has_tool", return_value=True)
+@patch("money4band.fn_install_docker.platform.system", return_value="Linux")
+@patch("money4band.fn_install_docker.is_docker_installed", return_value=False)
+@patch("money4band.fn_install_docker.cls")
+def test_main_auto_install_accepted_success(
+    mock_cls, mock_installed, mock_system, mock_has_tool, mock_yn, mock_guide, mock_input, capsys
+):
+    mock_installer = MagicMock(return_value=True)
+    with patch.dict(
+        "money4band.fn_install_docker._AUTO_INSTALLERS",
+        {"linux": ("curl", mock_installer, "test cmd")},
     ):
-        mock_run.side_effect = subprocess.CalledProcessError(1, "docker")
-        mock_detect_os.return_value = {"os_type": "linux"}
-        mock_detect_architecture.return_value = {"dkarch": "amd64"}
+        main("a", "b", "c")
+        mock_installer.assert_called_once()
+    # Guide should NOT be shown when auto-install succeeds
+    mock_guide.assert_not_called()
 
-        m4b_config = {"system": {"sleep_time": 1}}
-        result = is_docker_installed(m4b_config)
-        self.assertFalse(result)
 
-        mock_run.side_effect = None
-        mock_run.return_value = subprocess.CompletedProcess(
-            args=["docker", "--version"], returncode=0
-        )
-        result = is_docker_installed(m4b_config)
-        self.assertTrue(result)
-
-    @patch("utils.fn_install_docker.download_file")
-    @patch("utils.fn_install_docker.subprocess.run")
-    @patch("utils.fn_install_docker.os.remove")
-    def test_install_docker_linux(self, mock_remove, mock_run, mock_download_file):
-        files_path = "/fake/path"
-        mock_run.return_value = subprocess.CompletedProcess(
-            args=["sudo", "sh", "get-docker.sh"], returncode=0
-        )
-
-        install_docker_linux(files_path)
-
-        mock_download_file.assert_called_once_with(
-            "https://get.docker.com", os.path.join(files_path, "get-docker.sh")
-        )
-        mock_run.assert_has_calls(
-            [
-                call(
-                    ["sudo", "sh", os.path.join(files_path, "get-docker.sh")],
-                    check=True,
-                )
-            ]
-        )
-        mock_remove.assert_called_once_with(os.path.join(files_path, "get-docker.sh"))
-
-    @patch("utils.fn_install_docker.download_file")
-    @patch("utils.fn_install_docker.subprocess.run")
-    @patch("utils.fn_install_docker.os.remove")
-    @patch("utils.fn_install_docker.os.getenv", return_value="C:\\Program Files")
-    def test_install_docker_windows(
-        self, mock_getenv, mock_remove, mock_run, mock_download_file
+@patch("builtins.input")
+@patch("money4band.fn_install_docker.show_docker_guide")
+@patch("money4band.fn_install_docker.ask_question_yn", return_value=True)
+@patch("money4band.fn_install_docker._has_tool", return_value=True)
+@patch("money4band.fn_install_docker.platform.system", return_value="Linux")
+@patch("money4band.fn_install_docker.is_docker_installed", return_value=False)
+@patch("money4band.fn_install_docker.cls")
+def test_main_auto_install_accepted_fails_shows_guide(
+    mock_cls, mock_installed, mock_system, mock_has_tool, mock_yn, mock_guide, mock_input, capsys
+):
+    mock_installer = MagicMock(return_value=False)
+    with patch.dict(
+        "money4band.fn_install_docker._AUTO_INSTALLERS",
+        {"linux": ("curl", mock_installer, "test cmd")},
     ):
-        files_path = "/fake/path"
-
-        # Mock subprocess.run to simulate a successful installation and launch of Docker Desktop
-        mock_run.side_effect = [
-            subprocess.CompletedProcess(args=[], returncode=0),  # For installation
-            subprocess.CompletedProcess(
-                args=[], returncode=0
-            ),  # For launching Docker Desktop
-        ]
-
-        # Call the function to install Docker on Windows
-        install_docker_windows(files_path)
-
-        # Assert that the download_file function was called with the correct arguments
-        mock_download_file.assert_called_once_with(
-            "https://desktop.docker.com/win/stable/Docker%20Desktop%20Installer.exe",
-            os.path.join(files_path, "DockerInstaller.exe"),
-        )
-
-        # Assert that subprocess.run was called with the correct arguments to install Docker
-        mock_run.assert_any_call(
-            [
-                os.path.join(files_path, "DockerInstaller.exe"),
-                "install",
-                "--accept-license",
-                "--quiet",
-            ],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-            check=True,
-        )
-
-        # Assert that subprocess.run was called with the correct arguments to launch Docker Desktop
-        mock_run.assert_any_call(
-            [
-                os.path.join(
-                    os.getenv("ProgramFiles", ""),
-                    "Docker",
-                    "Docker",
-                    "Docker Desktop.exe",
-                )
-            ],
-            check=False,
-        )
-
-        # Assert that the installer executable was removed after installation
-        mock_remove.assert_called_once_with(
-            os.path.join(files_path, "DockerInstaller.exe")
-        )
-
-    @patch("utils.fn_install_docker.download_file")
-    @patch("utils.fn_install_docker.subprocess.run")
-    def test_install_docker_macos(self, mock_run, mock_download_file):
-        files_path = "/fake/path"
-        mock_run.return_value = subprocess.CompletedProcess(
-            args=["sudo", "install", "--accept-license"], returncode=0
-        )
-
-        install_docker_macos(files_path, intel_cpu=True)
-
-        mock_download_file.assert_called_once_with(
-            "https://desktop.docker.com/mac/main/amd64/Docker.dmg",
-            os.path.join(files_path, "Docker.dmg"),
-        )
-        mock_run.assert_has_calls(
-            [
-                call(
-                    ["hdiutil", "attach", os.path.join(files_path, "Docker.dmg")],
-                    check=True,
-                ),
-                call(
-                    [
-                        "sudo",
-                        "/Volumes/Docker/Docker.app/Contents/MacOS/install",
-                        "--accept-license",
-                    ],
-                    check=True,
-                ),
-                call(["hdiutil", "detach", "/Volumes/Docker"], check=True),
-                call(["open", "/Applications/Docker.app"], check=True),
-            ]
-        )
-
-    @patch("utils.fn_install_docker.detect_os")
-    @patch("utils.fn_install_docker.detect_architecture")
-    @patch("utils.fn_install_docker.install_docker_linux")
-    @patch("utils.fn_install_docker.install_docker_windows")
-    @patch("utils.fn_install_docker.install_docker_macos")
-    @patch("utils.fn_install_docker.is_docker_installed", return_value=False)
-    def test_main(
-        self,
-        mock_is_docker_installed,
-        mock_install_macos,
-        mock_install_windows,
-        mock_install_linux,
-        mock_detect_architecture,
-        mock_detect_os,
-    ):
-        mock_detect_os.return_value = {"os_type": "linux"}
-        mock_detect_architecture.return_value = {"dkarch": "amd64"}
-
-        app_config = {}
-        m4b_config = {"files_path": "/fake/path"}
-        user_config = {}
-
-        with patch("builtins.input", return_value="y"):
-            main(app_config, m4b_config, user_config)
-
-        mock_install_linux.assert_called_once_with("/fake/path")
-
-        mock_detect_os.return_value = {"os_type": "windows"}
-        with patch("builtins.input", return_value="y"):
-            main(app_config, m4b_config, user_config)
-
-        mock_install_windows.assert_called_once_with("/fake/path")
-
-        mock_detect_os.return_value = {"os_type": "darwin"}
-        mock_detect_architecture.return_value = {"dkarch": "amd64"}
-        with patch("builtins.input", return_value="y"):
-            main(app_config, m4b_config, user_config)
-
-        mock_install_macos.assert_called_once_with("/fake/path", intel_cpu=True)
+        main("a", "b", "c")
+    # Installer failed → guide shown as fallback
+    mock_guide.assert_called_once()
 
 
-if __name__ == "__main__":
-    unittest.main()
+# ---------------------------------------------------------------------------
+# main — auto-install offered but declined
+# ---------------------------------------------------------------------------
+
+
+@patch("builtins.input")
+@patch("money4band.fn_install_docker.show_docker_guide")
+@patch("money4band.fn_install_docker.ask_question_yn", return_value=False)
+@patch("money4band.fn_install_docker._has_tool", return_value=True)
+@patch("money4band.fn_install_docker.platform.system", return_value="Windows")
+@patch("money4band.fn_install_docker.is_docker_installed", return_value=False)
+@patch("money4band.fn_install_docker.cls")
+def test_main_auto_install_declined_shows_guide(
+    mock_cls, mock_installed, mock_system, mock_has_tool, mock_yn, mock_guide, mock_input, capsys
+):
+    main("a", "b", "c")
+    mock_guide.assert_called_once()
+
+
+# ---------------------------------------------------------------------------
+# main — tool not available, straight to guide
+# ---------------------------------------------------------------------------
+
+
+@patch("builtins.input")
+@patch("money4band.fn_install_docker.show_docker_guide")
+@patch("money4band.fn_install_docker._has_tool", return_value=False)
+@patch("money4band.fn_install_docker.platform.system", return_value="Darwin")
+@patch("money4band.fn_install_docker.is_docker_installed", return_value=False)
+@patch("money4band.fn_install_docker.cls")
+def test_main_no_tool_shows_guide(mock_cls, mock_installed, mock_system, mock_has_tool, mock_guide, mock_input, capsys):
+    main("a", "b", "c")
+    mock_guide.assert_called_once()
+
+
+# ---------------------------------------------------------------------------
+# Guide content sanity
+# ---------------------------------------------------------------------------
+# Guide content sanity
+# ---------------------------------------------------------------------------
+
+
+def test_install_guides_have_all_platforms():
+    assert set(_INSTALL_GUIDES.keys()) == {"linux", "windows", "darwin"}
+
+
+@pytest.mark.parametrize("os_key", ["linux", "windows", "darwin"])
+def test_guide_contains_url(os_key):
+    assert "https://" in _INSTALL_GUIDES[os_key]

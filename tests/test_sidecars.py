@@ -127,10 +127,10 @@ def _user_config(apps_override=None):
 class TestSidecarComposeGeneration:
     """Verify compose_builder emits sidecar services correctly."""
 
-    @mock.patch("utils.compose_builder.check_img_arch_support", return_value=True)
-    @mock.patch("utils.compose_builder.get_compatible_tag", return_value=None)
+    @mock.patch("money4band.compose_builder.check_img_arch_support", return_value=True)
+    @mock.patch("money4band.compose_builder.get_compatible_tag", return_value=None)
     def test_sidecar_added_when_service_enabled(self, _tag, _arch, tmp_path):
-        from utils.compose_builder import assemble_docker_compose
+        from money4band.compose_builder import assemble_docker_compose
 
         user = _user_config({
             "honeygain": {"enabled": True, "email": "a@b.c", "password": "pw", "service_enabled": True},
@@ -148,10 +148,10 @@ class TestSidecarComposeGeneration:
         assert "EMAIL=${HONEYGAIN_EMAIL}" in pot["environment"]
         assert pot["restart"] == "always"
 
-    @mock.patch("utils.compose_builder.check_img_arch_support", return_value=True)
-    @mock.patch("utils.compose_builder.get_compatible_tag", return_value=None)
+    @mock.patch("money4band.compose_builder.check_img_arch_support", return_value=True)
+    @mock.patch("money4band.compose_builder.get_compatible_tag", return_value=None)
     def test_sidecar_not_added_when_service_disabled(self, _tag, _arch, tmp_path):
-        from utils.compose_builder import assemble_docker_compose
+        from money4band.compose_builder import assemble_docker_compose
 
         user = _user_config({
             "honeygain": {"enabled": True, "email": "a@b.c", "password": "pw", "service_enabled": False},
@@ -165,10 +165,10 @@ class TestSidecarComposeGeneration:
         assert "honeygain" in compose["services"]
         assert "honeygain-pot" not in compose["services"]
 
-    @mock.patch("utils.compose_builder.check_img_arch_support", return_value=True)
-    @mock.patch("utils.compose_builder.get_compatible_tag", return_value=None)
+    @mock.patch("money4band.compose_builder.check_img_arch_support", return_value=True)
+    @mock.patch("money4band.compose_builder.get_compatible_tag", return_value=None)
     def test_sidecar_not_added_when_no_service_field(self, _tag, _arch, tmp_path):
-        from utils.compose_builder import assemble_docker_compose
+        from money4band.compose_builder import assemble_docker_compose
 
         user = _user_config({
             "traffmonetizer": {"enabled": True, "token": "tok123"},
@@ -183,10 +183,10 @@ class TestSidecarComposeGeneration:
         # No sidecar for traffmonetizer
         assert len([k for k in compose["services"] if "pot" in k]) == 0
 
-    @mock.patch("utils.compose_builder.check_img_arch_support", return_value=True)
-    @mock.patch("utils.compose_builder.get_compatible_tag", return_value=None)
+    @mock.patch("money4band.compose_builder.check_img_arch_support", return_value=True)
+    @mock.patch("money4band.compose_builder.get_compatible_tag", return_value=None)
     def test_sidecar_inherits_platform_from_parent(self, _tag, _arch, tmp_path):
-        from utils.compose_builder import assemble_docker_compose
+        from money4band.compose_builder import assemble_docker_compose
 
         user = _user_config({
             "honeygain": {
@@ -205,10 +205,10 @@ class TestSidecarComposeGeneration:
         pot = compose["services"]["honeygain-pot"]
         assert pot.get("platform") == "linux/arm64"
 
-    @mock.patch("utils.compose_builder.check_img_arch_support", return_value=True)
-    @mock.patch("utils.compose_builder.get_compatible_tag", return_value=None)
+    @mock.patch("money4band.compose_builder.check_img_arch_support", return_value=True)
+    @mock.patch("money4band.compose_builder.get_compatible_tag", return_value=None)
     def test_sidecar_has_security_opt(self, _tag, _arch, tmp_path):
-        from utils.compose_builder import assemble_docker_compose
+        from money4band.compose_builder import assemble_docker_compose
 
         user = _user_config({
             "honeygain": {"enabled": True, "email": "a@b.c", "password": "pw", "service_enabled": True},
@@ -222,11 +222,11 @@ class TestSidecarComposeGeneration:
         pot = compose["services"]["honeygain-pot"]
         assert "no-new-privileges:true" in pot.get("security_opt", [])
 
-    @mock.patch("utils.compose_builder.check_img_arch_support", return_value=True)
-    @mock.patch("utils.compose_builder.get_compatible_tag", return_value=None)
+    @mock.patch("money4band.compose_builder.check_img_arch_support", return_value=True)
+    @mock.patch("money4band.compose_builder.get_compatible_tag", return_value=None)
     def test_sidecar_default_service_enabled_missing(self, _tag, _arch, tmp_path):
         """When user-config has no service_enabled key, sidecar is NOT added."""
-        from utils.compose_builder import assemble_docker_compose
+        from money4band.compose_builder import assemble_docker_compose
 
         user = _user_config({
             "honeygain": {"enabled": True, "email": "a@b.c", "password": "pw"},
@@ -249,46 +249,46 @@ class TestSidecarSetupPrompt:
     """Verify sidecar prompt is shown during app configuration."""
 
     def test_sidecar_prompt_shown_for_app_with_service(self):
-        from utils.app_configurator import _configure_apps
+        from money4band.app_configurator import _configure_apps
 
         user_config = _user_config()
         user_config["apps"]["honeygain"] = {"enabled": False}
 
         # Simulate: enable app → enter email → enter password → enable sidecar
-        with mock.patch("utils.app_configurator.ask_question_yn", side_effect=[True, True]):
-            with mock.patch("utils.app_configurator.ask_email", return_value="a@b.c"):
-                with mock.patch("utils.app_configurator.ask_string", return_value="pw"):
-                    with mock.patch("utils.app_configurator.cls"):
+        with mock.patch("money4band.app_configurator.ask_question_yn", side_effect=[True, True]):
+            with mock.patch("money4band.app_configurator.ask_email", return_value="a@b.c"):
+                with mock.patch("money4band.app_configurator.ask_string", return_value="pw"):
+                    with mock.patch("money4band.app_configurator.cls"):
                         with mock.patch("builtins.input"):
                             _configure_apps(user_config, [_HONEYGAIN_APP], _m4b_config())
 
         assert user_config["apps"]["honeygain"]["service_enabled"] is True
 
     def test_sidecar_prompt_decline(self):
-        from utils.app_configurator import _configure_apps
+        from money4band.app_configurator import _configure_apps
 
         user_config = _user_config()
         user_config["apps"]["honeygain"] = {"enabled": False}
 
-        with mock.patch("utils.app_configurator.ask_question_yn", side_effect=[True, False]):
-            with mock.patch("utils.app_configurator.ask_email", return_value="a@b.c"):
-                with mock.patch("utils.app_configurator.ask_string", return_value="pw"):
-                    with mock.patch("utils.app_configurator.cls"):
+        with mock.patch("money4band.app_configurator.ask_question_yn", side_effect=[True, False]):
+            with mock.patch("money4band.app_configurator.ask_email", return_value="a@b.c"):
+                with mock.patch("money4band.app_configurator.ask_string", return_value="pw"):
+                    with mock.patch("money4band.app_configurator.cls"):
                         with mock.patch("builtins.input"):
                             _configure_apps(user_config, [_HONEYGAIN_APP], _m4b_config())
 
         assert user_config["apps"]["honeygain"]["service_enabled"] is False
 
     def test_no_sidecar_prompt_for_app_without_service(self):
-        from utils.app_configurator import _configure_apps
+        from money4band.app_configurator import _configure_apps
 
         user_config = _user_config()
         user_config["apps"]["traffmonetizer"] = {"enabled": False}
 
         # Only 1 yn call: enable app (no sidecar prompt)
-        with mock.patch("utils.app_configurator.ask_question_yn", side_effect=[True]) as mock_yn:
-            with mock.patch("utils.app_configurator.ask_string", return_value="tok"):
-                with mock.patch("utils.app_configurator.cls"):
+        with mock.patch("money4band.app_configurator.ask_question_yn", side_effect=[True]) as mock_yn:
+            with mock.patch("money4band.app_configurator.ask_string", return_value="tok"):
+                with mock.patch("money4band.app_configurator.cls"):
                     with mock.patch("builtins.input"):
                         _configure_apps(user_config, [_NO_SERVICE_APP], _m4b_config())
 

@@ -4,14 +4,14 @@ import os
 
 import pytest
 
-from utils.setup_summary import generate_setup_summary
+from money4band.setup_summary import generate_setup_summary
 
 
 @pytest.fixture(autouse=True)
 def _isolate_summary_path(tmp_path, monkeypatch):
     """Redirect summary output to a temp directory."""
     summary_file = str(tmp_path / "setup-summary.txt")
-    monkeypatch.setattr("utils.setup_summary.SUMMARY_PATH", summary_file)
+    monkeypatch.setattr("money4band.setup_summary.SUMMARY_PATH", summary_file)
     return summary_file
 
 

@@ -1,86 +1,182 @@
-import os
-import unittest
-from unittest.mock import MagicMock, mock_open, patch
+"""Tests for loader.py — real file I/O, no mock_open."""
 
-from utils.loader import (
+import json
+import os
+import tempfile
+import types
+import unittest
+
+from money4band.loader import (
+    get_active_app_categories,
+    get_all_app_categories,
+    get_category_entries,
+    get_install_limit,
     load_json_config,
     load_module_from_file,
     load_modules_from_directory,
 )
 
 
-class TestModuleLoader(unittest.TestCase):
-    @patch("builtins.open", new_callable=mock_open, read_data='{"key": "value"}')
-    def test_load_json_config_file(self, mock_file):
-        """
-        Test loading JSON config from a file.
-        """
-        config_path = "/path/to/config.json"
-        expected_config = {"key": "value"}
+class TestLoadJsonConfig(unittest.TestCase):
+    """Test load_json_config with real files on disk."""
 
-        config = load_json_config(config_path)
-        self.assertEqual(config, expected_config)
-        mock_file.assert_called_once_with(config_path)
+    def test_loads_valid_json_file(self):
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".json", delete=False
+        ) as f:
+            json.dump({"hello": "world", "n": 42}, f)
+            path = f.name
+        try:
+            cfg = load_json_config(path)
+            self.assertEqual(cfg, {"hello": "world", "n": 42})
+        finally:
+            os.unlink(path)
 
-    def test_load_json_config_dict(self):
-        """
-        Test loading JSON config from a dictionary.
-        """
-        config_dict = {"key": "value"}
+    def test_passthrough_dict(self):
+        d = {"already": "loaded"}
+        self.assertIs(load_json_config(d), d)
 
-        config = load_json_config(config_dict)
-        self.assertEqual(config, config_dict)
-
-    def test_load_json_config_invalid_type(self):
-        """
-        Test loading JSON config with an invalid type.
-        """
+    def test_invalid_type_raises(self):
         with self.assertRaises(ValueError):
             load_json_config(123)
+        with self.assertRaises(ValueError):
+            load_json_config(["a", "b"])
 
-    @patch("importlib.util.spec_from_file_location")
-    @patch("importlib.util.module_from_spec")
-    def test_load_module_from_file(
-        self, mock_module_from_spec, mock_spec_from_file_location
-    ):
-        """
-        Test dynamically loading a module from a file.
-        """
-        mock_spec = MagicMock()
-        mock_spec.loader.exec_module = MagicMock()
-        mock_spec_from_file_location.return_value = mock_spec
-        mock_module = MagicMock()
-        mock_module_from_spec.return_value = mock_module
+    def test_missing_file_raises_file_not_found(self):
+        with self.assertRaises(FileNotFoundError):
+            load_json_config("/no/such/path.json")
 
-        module_name = "test_module"
-        file_path = "/path/to/module.py"
+    def test_malformed_json_raises(self):
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".json", delete=False
+        ) as f:
+            f.write("{bad json!!")
+            path = f.name
+        try:
+            with self.assertRaises(json.JSONDecodeError):
+                load_json_config(path)
+        finally:
+            os.unlink(path)
 
-        module = load_module_from_file(module_name, file_path)
-        self.assertEqual(module, mock_module)
-        mock_spec_from_file_location.assert_called_once_with(module_name, file_path)
-        mock_spec.loader.exec_module.assert_called_once_with(mock_module)
+    def test_empty_file_raises(self):
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".json", delete=False
+        ) as f:
+            path = f.name  # 0 bytes
+        try:
+            with self.assertRaises(json.JSONDecodeError):
+                load_json_config(path)
+        finally:
+            os.unlink(path)
 
-    @patch(
-        "os.listdir",
-        return_value=["module1.py", "module2.py", "__init__.py", "not_a_module.txt"],
-    )
-    @patch("utils.loader.load_module_from_file")
-    def test_load_modules_from_directory(
-        self, mock_load_module_from_file, mock_listdir
-    ):
-        """
-        Test dynamically loading all modules in a directory.
-        """
-        mock_load_module_from_file.side_effect = lambda name, path: {name: path}
+    def test_unicode_content(self):
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".json", delete=False, encoding="utf-8"
+        ) as f:
+            json.dump({"emoji": "\U0001f680", "lang": "日本語"}, f, ensure_ascii=False)
+            path = f.name
+        try:
+            cfg = load_json_config(path)
+            self.assertEqual(cfg["emoji"], "\U0001f680")
+        finally:
+            os.unlink(path)
 
-        directory_path = "/path/to/modules"
-        modules = load_modules_from_directory(directory_path)
 
-        expected_modules = {
-            "module1": {"module1": os.path.join(directory_path, "module1.py")},
-            "module2": {"module2": os.path.join(directory_path, "module2.py")},
-        }
-        self.assertEqual(modules, expected_modules)
+class TestLoadModuleFromFile(unittest.TestCase):
+    """Test dynamic module loading with real .py files."""
+
+    def test_loads_module_with_function(self):
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".py", delete=False
+        ) as f:
+            f.write("def greet(name):\n    return f'hello {name}'\n")
+            path = f.name
+        try:
+            mod = load_module_from_file("_test_greet", path)
+            self.assertIsInstance(mod, types.ModuleType)
+            self.assertEqual(mod.greet("world"), "hello world")
+        finally:
+            os.unlink(path)
+
+    def test_missing_file_raises(self):
+        with self.assertRaises(Exception):
+            load_module_from_file("_gone", "/no/such/module.py")
+
+
+class TestLoadModulesFromDirectory(unittest.TestCase):
+    """Test directory-based multi-module loading with real files."""
+
+    def test_loads_all_py_except_init(self):
+        with tempfile.TemporaryDirectory() as d:
+            # Create two normal modules + __init__.py + non-py file
+            for name, body in [
+                ("alpha.py", "VALUE = 1\ndef main(*a): pass\n"),
+                ("beta.py", "VALUE = 2\ndef main(*a): pass\n"),
+                ("__init__.py", ""),
+                ("readme.txt", "not python"),
+            ]:
+                with open(os.path.join(d, name), "w") as f:
+                    f.write(body)
+
+            modules = load_modules_from_directory(d)
+            self.assertIn("alpha", modules)
+            self.assertIn("beta", modules)
+            self.assertNotIn("__init__", modules)
+            self.assertNotIn("readme", modules)
+            self.assertEqual(modules["alpha"].VALUE, 1)
+            self.assertEqual(modules["beta"].VALUE, 2)
+
+    def test_empty_directory(self):
+        with tempfile.TemporaryDirectory() as d:
+            modules = load_modules_from_directory(d)
+            self.assertEqual(modules, {})
+
+
+class TestCategoryHelpers(unittest.TestCase):
+    """Test app-config category query helpers."""
+
+    SAMPLE = {
+        "supported-apps": {
+            "active": True,
+            "entries": [{"name": "a", "install_limit": 2}],
+        },
+        "deprecated-apps": {
+            "active": False,
+            "entries": [{"name": "b"}],
+        },
+        "candidate-apps": {
+            "active": True,
+            "entries": [],
+        },
+        "project": {"version": "5.0"},
+    }
+
+    def test_get_all_app_categories(self):
+        cats = get_all_app_categories(self.SAMPLE)
+        self.assertIn("supported-apps", cats)
+        self.assertIn("deprecated-apps", cats)
+        self.assertIn("candidate-apps", cats)
+        self.assertNotIn("project", cats)
+
+    def test_get_active_app_categories(self):
+        cats = get_active_app_categories(self.SAMPLE)
+        self.assertIn("supported-apps", cats)
+        self.assertIn("candidate-apps", cats)
+        self.assertNotIn("deprecated-apps", cats)
+
+    def test_get_category_entries(self):
+        entries = get_category_entries(self.SAMPLE, "supported-apps")
+        self.assertEqual(len(entries), 1)
+        self.assertEqual(entries[0]["name"], "a")
+
+    def test_get_category_entries_missing(self):
+        self.assertEqual(get_category_entries(self.SAMPLE, "nonexistent"), [])
+
+    def test_get_install_limit_present(self):
+        self.assertEqual(get_install_limit({"install_limit": 3}), 3)
+
+    def test_get_install_limit_default(self):
+        self.assertEqual(get_install_limit({}), -1)
 
 
 if __name__ == "__main__":

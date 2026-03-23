@@ -1,111 +1,140 @@
+import os
 import re
 import unittest
 from unittest.mock import patch
 
-from utils.fn_app_catalog import fn_app_catalog
+from money4band.fn_app_catalog import fn_app_catalog
+
+
+def _strip_ansi(text: str) -> str:
+    return re.compile(r"\x1b\[([0-9;]*m)").sub("", text)
+
+
+def _collect_output(mock_print) -> str:
+    lines = [call.args[0] if call.args else "" for call in mock_print.call_args_list]
+    return _strip_ansi("\n".join(lines))
 
 
 class TestFnAppCatalog(unittest.TestCase):
-    @patch("utils.fn_app_catalog.print")
-    @patch("utils.fn_app_catalog.cls")
-    @patch("utils.fn_app_catalog.input", create=True)
-    def test_fn_app_catalog(self, mock_input, mock_cls, mock_print):
-        """
-        Test fn_app_catalog shows active and inactive categories.
-        """
-        # Mock input to avoid waiting for user input
+
+    _APP_CONFIG = {
+        "supported-apps": {"active": True, "entries": [
+            {
+                "name": "EARNAPP",
+                "dashboard": "https://earnapp.com/dashboard",
+                "link": "https://earnapp.com/i/3zulx7k",
+                "compose_layer": "residential",
+            },
+            {
+                "name": "HONEYGAIN",
+                "dashboard": "https://dashboard.honeygain.com/",
+                "link": "https://r.honeygain.me/MINDL15721",
+                "compose_layer": "residential",
+            },
+            {
+                "name": "MYSTNODE",
+                "manual_onboard": True,
+                "dashboard": "https://mystnodes.com/nodes",
+                "link": "https://mystnodes.co/?referral_code=Tc7RaS7Fm12K3Xun6mlU9q9hbnjojjl9aRBW8ZA9",
+                "compose_layer": "universal",
+            },
+        ]},
+        "deprecated-apps": {"active": False, "entries": [
+            {
+                "name": "GRASS",
+                "removal_reason": "Docker image unavailability",
+                "dashboard": "https://app.getgrass.io/dashboard",
+                "link": "https://app.getgrass.io/register/?referralCode=qyvJmxgNUhcLo2f",
+                "compose_layer": "residential",
+            },
+        ]},
+    }
+
+    @patch("money4band.fn_app_catalog.shutil.get_terminal_size", return_value=os.terminal_size((200, 24)))
+    @patch("money4band.fn_app_catalog.sys")
+    @patch("money4band.fn_app_catalog.print")
+    @patch("money4band.fn_app_catalog.cls")
+    @patch("money4band.fn_app_catalog.input", create=True)
+    def test_wide_terminal_single_line_with_links(self, mock_input, mock_cls, mock_print, mock_sys, _mock_term):
+        """Wide terminal shows Name, Link, Layer, Payout on a single line."""
         mock_input.return_value = ""
+        mock_sys.stdout.reconfigure = lambda **kw: None
 
-        # Prepare app_config sample data with active + removed categories
-        app_config = {
-            "supported-apps": {"active": True, "entries": [
-                {
-                    "name": "EARNAPP",
-                    "dashboard": "https://earnapp.com/dashboard",
-                    "link": "https://earnapp.com/i/3zulx7k",
-                    "image": "fazalfarhan01/earnapp",
-                    "flags": {"--uuid": {"length": 32}},
-                    "claimURLBase": "To claim your node, after starting it, go to the app's dashboard and then visit the following link: https://earnapp.com/r/sdk-node-",
-                },
-                {
-                    "name": "HONEYGAIN",
-                    "dashboard": "https://dashboard.honeygain.com/",
-                    "link": "https://r.honeygain.me/MINDL15721",
-                    "image": "honeygain/honeygain",
-                    "flags": {"--email": {}, "--password": {}},
-                },
-                {
-                    "name": "MYSTNODE",
-                    "manual_onboard": True,
-                    "dashboard": "https://mystnodes.com/nodes",
-                    "link": "https://mystnodes.co/?referral_code=Tc7RaS7Fm12K3Xun6mlU9q9hbnjojjl9aRBW8ZA9",
-                    "image": "mysteriumnetwork/myst",
-                    "flags": {
-                        "--manual": {
-                            "instructions": "Log into your device's mystnode local webdashboard..."
-                        }
-                    },
-                },
-            ]},
-            "deprecated-apps": {"active": False, "entries": [
-                {
-                    "name": "GRASS",
-                    "removal_reason": "Docker image unavailability",
-                    "dashboard": "https://app.getgrass.io/dashboard",
-                    "link": "https://app.getgrass.io/register/?referralCode=qyvJmxgNUhcLo2f",
-                    "image": "mrcolorrain/grass",
-                    "flags": {"--email": {}, "--password": {}},
-                },
-            ]},
-        }
+        fn_app_catalog(self._APP_CONFIG)
+        out = _collect_output(mock_print)
 
-        # Call the function
-        fn_app_catalog(app_config)
+        # Category headers
+        self.assertIn("--- SUPPORTED-APPS [ACTIVE] ---", out)
+        self.assertIn("--- DEPRECATED-APPS [INACTIVE] ---", out)
 
-        # Collect printed lines from mock_print
-        printed_lines = [
-            call.args[0] if call.args else ""
-            for call in mock_print.call_args_list
-        ]
-        printed_output = "\n".join(printed_lines)
+        # All four column headers present (wide = single-line mode)
+        self.assertIn("Name", out)
+        self.assertIn("Link", out)
+        self.assertIn("Layer", out)
+        self.assertIn("Payout", out)
 
-        # Remove ANSI escape codes from printed output
-        ansi_escape = re.compile(r"\x1b\[([0-9;]*m)")
-        clean_printed_output = ansi_escape.sub("", printed_output)
-
-        # Active category assertions
-        self.assertIn("--- SUPPORTED-APPS [ACTIVE] ---", clean_printed_output)
-        self.assertIn("EARNAPP: https://earnapp.com/i/3zulx7k", clean_printed_output)
+        # Full referral links present and never truncated
+        self.assertIn("https://earnapp.com/i/3zulx7k", out)
+        self.assertIn("https://r.honeygain.me/MINDL15721", out)
         self.assertIn(
-            "HONEYGAIN: https://r.honeygain.me/MINDL15721", clean_printed_output
-        )
-        self.assertIn(
-            "MYSTNODE: https://mystnodes.co/?referral_code=Tc7RaS7Fm12K3Xun6mlU9q9hbnjojjl9aRBW8ZA9",
-            clean_printed_output,
+            "https://mystnodes.co/?referral_code=Tc7RaS7Fm12K3Xun6mlU9q9hbnjojjl9aRBW8ZA9",
+            out,
         )
 
-        # Removed category assertions — header + removal reason
-        self.assertIn("--- DEPRECATED-APPS [INACTIVE] ---", clean_printed_output)
-        self.assertIn(
-            "GRASS: https://app.getgrass.io/register/?referralCode=qyvJmxgNUhcLo2f",
-            clean_printed_output,
-        )
-        self.assertIn("(Docker image unavailability)", clean_printed_output)
+        # Dashboard links NOT shown
+        self.assertNotIn("Dashboard", out)
+        self.assertNotIn("earnapp.com/dashboard", out)
 
-    @patch("utils.fn_app_catalog.logger.error")
+    @patch("money4band.fn_app_catalog.shutil.get_terminal_size", return_value=os.terminal_size((80, 24)))
+    @patch("money4band.fn_app_catalog.sys")
+    @patch("money4band.fn_app_catalog.print")
+    @patch("money4band.fn_app_catalog.cls")
+    @patch("money4band.fn_app_catalog.input", create=True)
+    def test_compact_mode_link_on_own_line(self, mock_input, mock_cls, mock_print, mock_sys, _mock_term):
+        """Narrow terminal uses compact mode: link on its own indented line."""
+        mock_input.return_value = ""
+        mock_sys.stdout.reconfigure = lambda **kw: None
+
+        fn_app_catalog(self._APP_CONFIG)
+        out = _collect_output(mock_print)
+
+        # Compact header shows Name, Layer, Payout (no Link column)
+        self.assertIn("Name", out)
+        self.assertIn("Layer", out)
+        self.assertIn("Payout", out)
+
+        # Full links still present with -> prefix
+        self.assertIn("-> https://earnapp.com/i/3zulx7k", out)
+        self.assertIn("-> https://r.honeygain.me/MINDL15721", out)
+        self.assertIn(
+            "-> https://mystnodes.co/?referral_code=Tc7RaS7Fm12K3Xun6mlU9q9hbnjojjl9aRBW8ZA9",
+            out,
+        )
+
+    @patch("money4band.fn_app_catalog.shutil.get_terminal_size", return_value=os.terminal_size((80, 24)))
+    @patch("money4band.fn_app_catalog.sys")
+    @patch("money4band.fn_app_catalog.print")
+    @patch("money4band.fn_app_catalog.cls")
+    @patch("money4band.fn_app_catalog.input", create=True)
+    def test_deprecated_apps_show_links_and_reason(self, mock_input, mock_cls, mock_print, mock_sys, _mock_term):
+        """Deprecated apps show referral link + removal reason (same format as supported)."""
+        mock_input.return_value = ""
+        mock_sys.stdout.reconfigure = lambda **kw: None
+
+        fn_app_catalog(self._APP_CONFIG)
+        out = _collect_output(mock_print)
+
+        self.assertIn("GRASS", out)
+        self.assertIn("https://app.getgrass.io/register/?referralCode=qyvJmxgNUhcLo2f", out)
+        self.assertIn(">> Docker image unavailability", out)
+
+    @patch("money4band.fn_app_catalog.logger.error")
     def test_fn_app_catalog_exception(self, mock_logging_error):
-        """
-        Test fn_app_catalog exception handling.
-        """
-        # Prepare app_config sample data that will raise an exception
+        """Test fn_app_catalog exception handling."""
         app_config = None
-
         with self.assertRaises(Exception):
             fn_app_catalog(app_config)
-
-        mock_logging_error.assert_called_once_with(
-            "An error occurred in fn_app_catalog: 'NoneType' object has no attribute 'items'"
-        )
+        mock_logging_error.assert_called_once()
 
 
 if __name__ == "__main__":

@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from utils.backup import (
+from money4band.backup import (
     BACKUP_DIR,
     BackupInfo,
     cleanup_backups,
@@ -22,7 +22,7 @@ def _isolated_backup_dir(monkeypatch, tmp_path):
     """Redirect BACKUP_DIR to a temp location for every test."""
     fake_dir = tmp_path / "backups"
     fake_dir.mkdir()
-    monkeypatch.setattr("utils.backup.BACKUP_DIR", fake_dir)
+    monkeypatch.setattr("money4band.backup.BACKUP_DIR", fake_dir)
     return fake_dir
 
 

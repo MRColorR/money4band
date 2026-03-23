@@ -1,0 +1,90 @@
+{
+    "referral_offers_version": 2.0,
+    "description": "External referral & passive income offers NOT managed as M4B apps. App referral links come from app-config.json (single source of truth). PRs welcome — add external offers here.",
+    "offers": [
+        {
+            "name": "NordVPN",
+            "url": null,
+            "bonus": "Up to 73% off + 3 months free",
+            "category": "vpn",
+            "notes": "STUB — add your NordVPN referral link"
+        },
+        {
+            "name": "Surfshark",
+            "url": null,
+            "bonus": "Up to 82% off + 2 months free",
+            "category": "vpn",
+            "notes": "STUB — add your Surfshark referral link"
+        },
+        {
+            "name": "Mullvad VPN",
+            "url": null,
+            "bonus": "Privacy-focused, no referral program",
+            "category": "vpn",
+            "notes": "STUB — no affiliate program; listed for completeness"
+        },
+        {
+            "name": "Webshare Proxy",
+            "url": null,
+            "bonus": "10 free proxies on signup",
+            "category": "proxy",
+            "notes": "STUB — add your Webshare referral link"
+        },
+        {
+            "name": "IPRoyal Proxies",
+            "url": null,
+            "bonus": "Residential rotating proxies",
+            "category": "proxy",
+            "notes": "STUB — not the Pawns app; this is their proxy-buying service"
+        },
+        {
+            "name": "BrightData",
+            "url": null,
+            "bonus": "Free trial credits",
+            "category": "proxy",
+            "notes": "STUB — add your BrightData referral link"
+        },
+        {
+            "name": "Amazon Associates",
+            "url": null,
+            "bonus": "Earn commissions on purchases",
+            "category": "affiliate",
+            "notes": "STUB — add your Amazon affiliate tag link"
+        },
+        {
+            "name": "AliExpress Affiliate",
+            "url": null,
+            "bonus": "Commission on referred sales",
+            "category": "affiliate",
+            "notes": "STUB — add your AliExpress affiliate link"
+        },
+        {
+            "name": "Binance",
+            "url": null,
+            "bonus": "Up to 20% commission kickback",
+            "category": "crypto-exchange",
+            "notes": "STUB — add your Binance referral link"
+        },
+        {
+            "name": "Coinbase",
+            "url": null,
+            "bonus": "$10 in BTC on first purchase",
+            "category": "crypto-exchange",
+            "notes": "STUB — add your Coinbase referral link"
+        },
+        {
+            "name": "Swagbucks",
+            "url": null,
+            "bonus": "Earn points for surveys & tasks",
+            "category": "survey",
+            "notes": "STUB — add your Swagbucks referral link"
+        },
+        {
+            "name": "Prolific",
+            "url": null,
+            "bonus": "Research study participation",
+            "category": "survey",
+            "notes": "STUB — no referral program; listed for completeness"
+        }
+    ]
+}

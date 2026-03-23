@@ -211,7 +211,7 @@
                         "max_devices_per_account": 10,
                         "max_devices_per_ip": 1,
                         "max_ips_per_account": 10,
-                        "notes": "10 concurrent active devices per account. Exactly 1 device per IP — additional devices show 'Network overused' error. Devices inactive 14+ days don't count. Swarmbytes wholesale tier available for 100+ IPs."
+                        "notes": "10 concurrent active devices per account. Exactly 1 device per IP \u2014 additional devices show 'Network overused' error. Devices inactive 14+ days don't count. Swarmbytes wholesale tier available for 100+ IPs."
                     },
                     "ip_policy": {
                         "residential": true,
@@ -309,7 +309,7 @@
                 "install_limit": 1,
                 "compose_layer": "residential",
                 "app_details": {
-                    "official_name": "Pawns.app (by IPRoyal)",
+                    "official_name": "Pawns (IPRoyal)",
                     "publisher": "IPRoyal",
                     "official_url": "https://pawns.app",
                     "tos_url": "https://iproyal.com/terms-of-service/",
@@ -946,7 +946,7 @@
                         "adjacent_ips_accepted": true,
                         "adjacent_ips_max": "unlimited",
                         "ipv6": true,
-                        "geo_restrictions": "Does not support mainland China. Russian-origin service — international availability may vary.",
+                        "geo_restrictions": "Does not support mainland China. Russian-origin service \u2014 international availability may vary.",
                         "quality_notes": "Supports residential, static datacenter, and ISP proxy types. Community VPS deployments widely practiced with no ban reports."
                     },
                     "docker": {
@@ -1209,7 +1209,7 @@
                     "compose_layer_reasoning": "Insufficient official documentation to confirm IP type policy. Community evidence suggests residential focus. Conservative residential classification applied.",
                     "install_limit_reasoning": "Very sparse official documentation. No official limits found.",
                     "recommendation": "keep",
-                    "recommendation_reasoning": "Residential layer and unlimited limit kept. Low confidence — needs re-verification when more docs become available.",
+                    "recommendation_reasoning": "Residential layer and unlimited limit kept. Low confidence \u2014 needs re-verification when more docs become available.",
                     "confidence_notes": "Only academic thesis reference found. Official documentation is extremely sparse."
                 }
             },
@@ -1265,7 +1265,7 @@
                 "install_limit": 1,
                 "compose_layer": "residential",
                 "app_details": {
-                    "official_name": "Gradient Network (Sentry Node)",
+                    "official_name": "Gradient",
                     "publisher": "Gradient Network (Singapore)",
                     "official_url": "https://gradient.network",
                     "tos_url": "https://gradient.network/terms",
@@ -1287,7 +1287,7 @@
                         "adjacent_ips_max": "undocumented",
                         "ipv6": "undocumented",
                         "geo_restrictions": "none known",
-                        "quality_notes": "Sentry nodes used for connectivity mapping, Parallax nodes for GPU/RAM inference. Original product was browser-extension based — fundamentally incompatible with headless Docker."
+                        "quality_notes": "Sentry nodes used for connectivity mapping, Parallax nodes for GPU/RAM inference. Original product was browser-extension based \u2014 fundamentally incompatible with headless Docker."
                     },
                     "docker": {
                         "image_official": false,
@@ -1304,9 +1304,9 @@
                         "avg_monthly_datacenter_usd": "unknown"
                     },
                     "warnings": [
-                        "Company pivoted to AI infrastructure (Parallax) — bandwidth node future uncertain",
+                        "Company pivoted to AI infrastructure (Parallax) \u2014 bandwidth node future uncertain",
                         "Third-party Docker image (carbon2029/dockweb) not maintained by Gradient",
-                        "Same image shared with Dawn and Teneo — reliability concerns",
+                        "Same image shared with Dawn and Teneo \u2014 reliability concerns",
                         "No official Docker image exists",
                         "Sentry Node Open Beta has concluded"
                     ],
@@ -1411,7 +1411,7 @@
                         "avg_monthly_datacenter_usd": "unknown"
                     },
                     "warnings": [
-                        "Domain instability — service may have moved or shut down",
+                        "Domain instability \u2014 service may have moved or shut down",
                         "Zero accessible official documentation",
                         "Verify service is alive before deploying"
                     ],
@@ -1486,7 +1486,7 @@
                 "install_limit": -1,
                 "compose_layer": "universal",
                 "app_details": {
-                    "official_name": "Mysterium Network Node",
+                    "official_name": "Mysterium",
                     "publisher": "Mysterium Network Foundation",
                     "official_url": "https://mystnodes.com",
                     "tos_url": "https://mysterium.network/terms",
@@ -1527,7 +1527,7 @@
                         "avg_monthly_datacenter_usd": "0.5-3"
                     },
                     "warnings": [
-                        "Requires NET_ADMIN capability for VPN tunnel creation (TUN/TAP) — legitimate technical requirement for VPN exit node functionality"
+                        "Requires NET_ADMIN capability for VPN tunnel creation (TUN/TAP) \u2014 legitimate technical requirement for VPN exit node functionality"
                     ],
                     "confidence": "high",
                     "sources": [
@@ -1537,7 +1537,7 @@
                         "https://docs.mysterium.network/content-page"
                     ],
                     "last_verified": "2026-03-21",
-                    "compose_layer_reasoning": "Decentralized VPN exit node network. Algorithm assesses IP location and quality. Both residential and datacenter nodes supported — residential earn premium prices.",
+                    "compose_layer_reasoning": "Decentralized VPN exit node network. Algorithm assesses IP location and quality. Both residential and datacenter nodes supported \u2014 residential earn premium prices.",
                     "install_limit_reasoning": "Decentralized architecture supports massive scaling. Unique IP required per node for network discoverability.",
                     "recommendation": "update-config",
                     "recommendation_reasoning": "Changed compose_layer from datacenter to universal. Verified residential+DC support in official docs and Docker Hub.",
@@ -1710,8 +1710,8 @@
                         "avg_monthly_datacenter_usd": "N/A"
                     },
                     "warnings": [
-                        "No official Docker image — community-maintained only",
-                        "Worth monitoring — if official Docker image is released, reconsider"
+                        "No official Docker image \u2014 community-maintained only",
+                        "Worth monitoring \u2014 if official Docker image is released, reconsider"
                     ],
                     "confidence": "medium",
                     "sources": [
@@ -1909,7 +1909,7 @@
                         "avg_monthly_datacenter_usd": "unknown"
                     },
                     "warnings": [
-                        "No official Docker image — relies on third-party browser-container workaround",
+                        "No official Docker image \u2014 relies on third-party browser-container workaround",
                         "Third-party image shared with Teneo and Gradient"
                     ],
                     "confidence": "low",
@@ -2007,7 +2007,7 @@
                         "avg_monthly_datacenter_usd": "unknown"
                     },
                     "warnings": [
-                        "No official Docker image — shared third-party image with Dawn and Gradient",
+                        "No official Docker image \u2014 shared third-party image with Dawn and Gradient",
                         "Browser-extension model not suitable for headless Docker"
                     ],
                     "confidence": "low",
@@ -2024,7 +2024,7 @@
             },
             {
                 "name": "WIPTER",
-                "removal_reason": "Unofficial Docker image, excessive CPU/RAM/temp (community vote Mar 2026)",
+                "removal_reason": "Unofficial Docker image, excessive CPU/RAM/temp",
                 "dashboard": "https://wipter.com/dashboard",
                 "link": "https://wipter.com/signup?ref=money4band",
                 "compose_config": {
@@ -2108,7 +2108,7 @@
                     },
                     "warnings": [
                         "Excessive CPU/RAM/temperature usage reported by community",
-                        "No official Docker image — community GHCR image only",
+                        "No official Docker image \u2014 community GHCR image only",
                         "Removed by community vote March 2026"
                     ],
                     "confidence": "medium",
@@ -2124,7 +2124,7 @@
         ]
     },
     "candidate-apps": {
-        "active": false,
+        "active": true,
         "entries": [
             {
                 "name": "SPIDE",
@@ -2314,7 +2314,7 @@
                         "avg_monthly_datacenter_usd": "unknown"
                     },
                     "warnings": [
-                        "Community Docker image only — no official container verified",
+                        "Community Docker image only \u2014 no official container verified",
                         "Requires deeper research before promoting to supported"
                     ],
                     "confidence": "low",
@@ -2417,7 +2417,7 @@
                     },
                     "warnings": [
                         "Reported 522 errors in competitor community",
-                        "Service stability unverified — use with caution"
+                        "Service stability unverified \u2014 use with caution"
                     ],
                     "confidence": "low",
                     "sources": [],
@@ -2512,8 +2512,8 @@
                         "avg_monthly_datacenter_usd": "unknown"
                     },
                     "warnings": [
-                        "Negative community sentiment — service reportedly declining",
-                        "linux/amd64 platform only — no ARM support",
+                        "Negative community sentiment \u2014 service reportedly declining",
+                        "linux/amd64 platform only \u2014 no ARM support",
                         "Service viability unverified"
                     ],
                     "confidence": "low",
@@ -2522,7 +2522,7 @@
                     "compose_layer_reasoning": "Insufficient documentation. Conservative datacenter classification.",
                     "install_limit_reasoning": "No documented caps. linux/amd64 platform only.",
                     "recommendation": "add",
-                    "recommendation_reasoning": "Negative community sentiment — service reportedly declining. Both competitors explicitly disable healthcheck.",
+                    "recommendation_reasoning": "Negative community sentiment \u2014 service reportedly declining. Both competitors explicitly disable healthcheck.",
                     "confidence_notes": "Both competitors disable healthcheck on this app. Negative community reports."
                 }
             },
@@ -2613,7 +2613,7 @@
                     "compose_layer_reasoning": "Conservative residential classification. No IP policy documentation found.",
                     "install_limit_reasoning": "No documented device caps.",
                     "recommendation": "add",
-                    "recommendation_reasoning": "Official Docker image (bearshare/bearshare) — only app with official image not yet in M4B. Competitor has auto-claim sidecar. Worth adding as candidate.",
+                    "recommendation_reasoning": "Official Docker image (bearshare/bearshare) \u2014 only app with official image not yet in M4B. Competitor has auto-claim sidecar. Worth adding as candidate.",
                     "confidence": "low",
                     "confidence_notes": "Only found in one competitor project. Minimal public documentation.",
                     "sources": [],
@@ -2692,12 +2692,12 @@
                         "adjacent_ips_max": "undocumented",
                         "ipv6": "undocumented",
                         "geo_restrictions": "none known",
-                        "quality_notes": "Newer service. Supports proxy mode for fleetshare-style bulk operations."
+                        "quality_notes": "Marketplace penalizes same-subnet providers. IP diversity increases traffic weight. Supports proxy mode for fleetshare-style bulk operations."
                     },
                     "docker": {
                         "image_official": true,
                         "image_maintained": true,
-                        "last_update": "unknown"
+                        "last_update": "2025-06"
                     },
                     "earnings": {
                         "model": "undocumented",
@@ -2811,6 +2811,494 @@
                     "recommendation_reasoning": "Edge compute platform found in one competitor. Two-step setup (run + bind). Legitimate service but different from pure bandwidth-sharing model.",
                     "confidence": "low",
                     "confidence_notes": "Only found in one competitor project. Primarily edge compute, not bandwidth sharing.",
+                    "sources": [],
+                    "last_verified": "2026-03-21"
+                }
+            },
+            {
+                "name": "EBESUCHER",
+                "dashboard": "https://www.ebesucher.com/surfbar/",
+                "link": "https://www.ebesucher.com",
+                "compose_config": {},
+                "compose_config_proxy": {
+                    "network_mode": "service:proxy",
+                    "hostname": null
+                },
+                "flags": {},
+                "install_limit": -1,
+                "compose_layer": "residential",
+                "app_details": {
+                    "official_name": "Ebesucher",
+                    "publisher": "Ebesucher",
+                    "official_url": "https://www.ebesucher.com",
+                    "tos_url": "undocumented",
+                    "status": "active",
+                    "device_limits": {
+                        "max_devices_per_account": "undocumented",
+                        "max_devices_per_ip": "undocumented",
+                        "max_ips_per_account": "undocumented",
+                        "notes": "German autosurf platform. Earns by visiting advertiser websites in background."
+                    },
+                    "ip_policy": {
+                        "residential": true,
+                        "datacenter": "undocumented",
+                        "vps": "undocumented",
+                        "vpn": "undocumented",
+                        "proxy": "undocumented",
+                        "mobile": "undocumented",
+                        "adjacent_ips_accepted": "undocumented",
+                        "adjacent_ips_max": "undocumented",
+                        "ipv6": "undocumented",
+                        "geo_restrictions": "none known",
+                        "quality_notes": "Autosurf model, not bandwidth sharing."
+                    },
+                    "docker": {
+                        "image_official": false,
+                        "image_maintained": false,
+                        "last_update": "unknown"
+                    },
+                    "earnings": {
+                        "model": "autosurf points",
+                        "min_payout": "undocumented",
+                        "payout_methods": [
+                            "undocumented"
+                        ],
+                        "avg_monthly_residential_usd": "unknown",
+                        "avg_monthly_datacenter_usd": "unknown"
+                    },
+                    "compose_layer_reasoning": "Autosurf platform. Conservative residential classification.",
+                    "install_limit_reasoning": "No documented caps.",
+                    "recommendation": "evaluate",
+                    "recommendation_reasoning": "Autosurf platform, different model from bandwidth sharing. No official Docker image. Needs research.",
+                    "confidence": "low",
+                    "confidence_notes": "Minimal documentation. Different earning model from other M4B apps.",
+                    "sources": [],
+                    "last_verified": "2026-03-21"
+                }
+            },
+            {
+                "name": "UPROCK",
+                "dashboard": "https://app.uprock.com",
+                "link": "https://uprock.com",
+                "compose_config": {},
+                "compose_config_proxy": {
+                    "network_mode": "service:proxy",
+                    "hostname": null
+                },
+                "flags": {},
+                "install_limit": -1,
+                "compose_layer": "residential",
+                "app_details": {
+                    "official_name": "UpRock",
+                    "publisher": "UpRock",
+                    "official_url": "https://uprock.com",
+                    "tos_url": "undocumented",
+                    "status": "active",
+                    "device_limits": {
+                        "max_devices_per_account": "undocumented",
+                        "max_devices_per_ip": "undocumented",
+                        "max_ips_per_account": "undocumented",
+                        "notes": "AI-focused bandwidth sharing network."
+                    },
+                    "ip_policy": {
+                        "residential": true,
+                        "datacenter": "undocumented",
+                        "vps": "undocumented",
+                        "vpn": "undocumented",
+                        "proxy": "undocumented",
+                        "mobile": "undocumented",
+                        "adjacent_ips_accepted": "undocumented",
+                        "adjacent_ips_max": "undocumented",
+                        "ipv6": "undocumented",
+                        "geo_restrictions": "none known",
+                        "quality_notes": "AI data collection network."
+                    },
+                    "docker": {
+                        "image_official": false,
+                        "image_maintained": false,
+                        "last_update": "unknown"
+                    },
+                    "earnings": {
+                        "model": "undocumented",
+                        "min_payout": "undocumented",
+                        "payout_methods": [
+                            "undocumented"
+                        ],
+                        "avg_monthly_residential_usd": "unknown",
+                        "avg_monthly_datacenter_usd": "unknown"
+                    },
+                    "compose_layer_reasoning": "Conservative residential classification. No IP policy documentation.",
+                    "install_limit_reasoning": "No documented caps.",
+                    "recommendation": "evaluate",
+                    "recommendation_reasoning": "AI-focused bandwidth network. No official Docker image found. Needs deeper research.",
+                    "confidence": "low",
+                    "confidence_notes": "Minimal public documentation.",
+                    "sources": [],
+                    "last_verified": "2026-03-21"
+                }
+            },
+            {
+                "name": "PASSIVEAPP",
+                "dashboard": "https://passiveapp.io/dashboard",
+                "link": "https://passiveapp.io",
+                "compose_config": {},
+                "compose_config_proxy": {
+                    "network_mode": "service:proxy",
+                    "hostname": null
+                },
+                "flags": {},
+                "install_limit": -1,
+                "compose_layer": "residential",
+                "app_details": {
+                    "official_name": "PassiveApp",
+                    "publisher": "PassiveApp",
+                    "official_url": "https://passiveapp.io",
+                    "tos_url": "undocumented",
+                    "status": "active",
+                    "device_limits": {
+                        "max_devices_per_account": "undocumented",
+                        "max_devices_per_ip": "undocumented",
+                        "max_ips_per_account": "undocumented",
+                        "notes": "Passive income app. Limited public documentation."
+                    },
+                    "ip_policy": {
+                        "residential": true,
+                        "datacenter": "undocumented",
+                        "vps": "undocumented",
+                        "vpn": "undocumented",
+                        "proxy": "undocumented",
+                        "mobile": "undocumented",
+                        "adjacent_ips_accepted": "undocumented",
+                        "adjacent_ips_max": "undocumented",
+                        "ipv6": "undocumented",
+                        "geo_restrictions": "none known",
+                        "quality_notes": "Limited documentation available."
+                    },
+                    "docker": {
+                        "image_official": false,
+                        "image_maintained": false,
+                        "last_update": "unknown"
+                    },
+                    "earnings": {
+                        "model": "undocumented",
+                        "min_payout": "undocumented",
+                        "payout_methods": [
+                            "undocumented"
+                        ],
+                        "avg_monthly_residential_usd": "unknown",
+                        "avg_monthly_datacenter_usd": "unknown"
+                    },
+                    "compose_layer_reasoning": "Conservative residential classification.",
+                    "install_limit_reasoning": "No documented caps.",
+                    "recommendation": "evaluate",
+                    "recommendation_reasoning": "Needs deeper research. No official Docker image found.",
+                    "confidence": "low",
+                    "confidence_notes": "Minimal public documentation.",
+                    "sources": [],
+                    "last_verified": "2026-03-21"
+                }
+            },
+            {
+                "name": "BYTELIXIR",
+                "dashboard": "https://bytelixir.com/dashboard",
+                "link": "https://bytelixir.com",
+                "compose_config": {},
+                "compose_config_proxy": {
+                    "network_mode": "service:proxy",
+                    "hostname": null
+                },
+                "flags": {},
+                "install_limit": -1,
+                "compose_layer": "residential",
+                "app_details": {
+                    "official_name": "Bytelixir",
+                    "publisher": "Bytelixir",
+                    "official_url": "https://bytelixir.com",
+                    "tos_url": "undocumented",
+                    "status": "active",
+                    "device_limits": {
+                        "max_devices_per_account": "undocumented",
+                        "max_devices_per_ip": "undocumented",
+                        "max_ips_per_account": "undocumented",
+                        "notes": "Bandwidth sharing app."
+                    },
+                    "ip_policy": {
+                        "residential": true,
+                        "datacenter": "undocumented",
+                        "vps": "undocumented",
+                        "vpn": "undocumented",
+                        "proxy": "undocumented",
+                        "mobile": "undocumented",
+                        "adjacent_ips_accepted": "undocumented",
+                        "adjacent_ips_max": "undocumented",
+                        "ipv6": "undocumented",
+                        "geo_restrictions": "none known",
+                        "quality_notes": "Limited documentation."
+                    },
+                    "docker": {
+                        "image_official": false,
+                        "image_maintained": false,
+                        "last_update": "unknown"
+                    },
+                    "earnings": {
+                        "model": "undocumented",
+                        "min_payout": "$5",
+                        "payout_methods": [
+                            "crypto"
+                        ],
+                        "avg_monthly_residential_usd": "0.5-1",
+                        "avg_monthly_datacenter_usd": "unknown"
+                    },
+                    "compose_layer_reasoning": "Conservative residential classification.",
+                    "install_limit_reasoning": "No documented caps.",
+                    "recommendation": "evaluate",
+                    "recommendation_reasoning": "Bandwidth sharing app. No official Docker image found. Low earnings reported.",
+                    "confidence": "low",
+                    "confidence_notes": "Minimal public documentation. Low reported earnings.",
+                    "sources": [],
+                    "last_verified": "2026-03-21"
+                }
+            },
+            {
+                "name": "BYTEBENEFIT",
+                "dashboard": "https://bytebenefit.com/dashboard",
+                "link": "https://bytebenefit.com",
+                "compose_config": {},
+                "compose_config_proxy": {
+                    "network_mode": "service:proxy",
+                    "hostname": null
+                },
+                "flags": {},
+                "install_limit": -1,
+                "compose_layer": "residential",
+                "app_details": {
+                    "official_name": "ByteBenefit",
+                    "publisher": "ByteBenefit",
+                    "official_url": "https://bytebenefit.com",
+                    "tos_url": "undocumented",
+                    "status": "active",
+                    "device_limits": {
+                        "max_devices_per_account": "undocumented",
+                        "max_devices_per_ip": "undocumented",
+                        "max_ips_per_account": "undocumented",
+                        "notes": "Bandwidth sharing app."
+                    },
+                    "ip_policy": {
+                        "residential": true,
+                        "datacenter": "undocumented",
+                        "vps": "undocumented",
+                        "vpn": "undocumented",
+                        "proxy": "undocumented",
+                        "mobile": "undocumented",
+                        "adjacent_ips_accepted": "undocumented",
+                        "adjacent_ips_max": "undocumented",
+                        "ipv6": "undocumented",
+                        "geo_restrictions": "none known",
+                        "quality_notes": "Limited documentation."
+                    },
+                    "docker": {
+                        "image_official": false,
+                        "image_maintained": false,
+                        "last_update": "unknown"
+                    },
+                    "earnings": {
+                        "model": "undocumented",
+                        "min_payout": "undocumented",
+                        "payout_methods": [
+                            "undocumented"
+                        ],
+                        "avg_monthly_residential_usd": "unknown",
+                        "avg_monthly_datacenter_usd": "unknown"
+                    },
+                    "compose_layer_reasoning": "Conservative residential classification.",
+                    "install_limit_reasoning": "No documented caps.",
+                    "recommendation": "evaluate",
+                    "recommendation_reasoning": "Bandwidth sharing app. No official Docker image found. Needs research.",
+                    "confidence": "low",
+                    "confidence_notes": "Minimal public documentation.",
+                    "sources": [],
+                    "last_verified": "2026-03-21"
+                }
+            },
+            {
+                "name": "EARNCC",
+                "dashboard": "https://earn.cc/dashboard",
+                "link": "https://earn.cc",
+                "compose_config": {},
+                "compose_config_proxy": {
+                    "network_mode": "service:proxy",
+                    "hostname": null
+                },
+                "flags": {},
+                "install_limit": -1,
+                "compose_layer": "residential",
+                "app_details": {
+                    "official_name": "Earn.cc",
+                    "publisher": "Earn.cc",
+                    "official_url": "https://earn.cc",
+                    "tos_url": "undocumented",
+                    "status": "active",
+                    "device_limits": {
+                        "max_devices_per_account": "undocumented",
+                        "max_devices_per_ip": "undocumented",
+                        "max_ips_per_account": "undocumented",
+                        "notes": "Bandwidth sharing platform."
+                    },
+                    "ip_policy": {
+                        "residential": true,
+                        "datacenter": "undocumented",
+                        "vps": "undocumented",
+                        "vpn": "undocumented",
+                        "proxy": "undocumented",
+                        "mobile": "undocumented",
+                        "adjacent_ips_accepted": "undocumented",
+                        "adjacent_ips_max": "undocumented",
+                        "ipv6": "undocumented",
+                        "geo_restrictions": "none known",
+                        "quality_notes": "Limited documentation."
+                    },
+                    "docker": {
+                        "image_official": false,
+                        "image_maintained": false,
+                        "last_update": "unknown"
+                    },
+                    "earnings": {
+                        "model": "undocumented",
+                        "min_payout": "undocumented",
+                        "payout_methods": [
+                            "undocumented"
+                        ],
+                        "avg_monthly_residential_usd": "unknown",
+                        "avg_monthly_datacenter_usd": "unknown"
+                    },
+                    "compose_layer_reasoning": "Conservative residential classification.",
+                    "install_limit_reasoning": "No documented caps.",
+                    "recommendation": "evaluate",
+                    "recommendation_reasoning": "Bandwidth sharing platform. No official Docker image found. Needs research.",
+                    "confidence": "low",
+                    "confidence_notes": "Minimal public documentation.",
+                    "sources": [],
+                    "last_verified": "2026-03-21"
+                }
+            },
+            {
+                "name": "ADNADE",
+                "dashboard": "https://adnade.com/dashboard",
+                "link": "https://adnade.com",
+                "compose_config": {},
+                "compose_config_proxy": {
+                    "network_mode": "service:proxy",
+                    "hostname": null
+                },
+                "flags": {},
+                "install_limit": -1,
+                "compose_layer": "residential",
+                "app_details": {
+                    "official_name": "Adnade",
+                    "publisher": "Adnade",
+                    "official_url": "https://adnade.com",
+                    "tos_url": "undocumented",
+                    "status": "active",
+                    "device_limits": {
+                        "max_devices_per_account": "undocumented",
+                        "max_devices_per_ip": "undocumented",
+                        "max_ips_per_account": "undocumented",
+                        "notes": "Bandwidth sharing app."
+                    },
+                    "ip_policy": {
+                        "residential": true,
+                        "datacenter": "undocumented",
+                        "vps": "undocumented",
+                        "vpn": "undocumented",
+                        "proxy": "undocumented",
+                        "mobile": "undocumented",
+                        "adjacent_ips_accepted": "undocumented",
+                        "adjacent_ips_max": "undocumented",
+                        "ipv6": "undocumented",
+                        "geo_restrictions": "none known",
+                        "quality_notes": "Limited documentation."
+                    },
+                    "docker": {
+                        "image_official": false,
+                        "image_maintained": false,
+                        "last_update": "unknown"
+                    },
+                    "earnings": {
+                        "model": "undocumented",
+                        "min_payout": "undocumented",
+                        "payout_methods": [
+                            "undocumented"
+                        ],
+                        "avg_monthly_residential_usd": "unknown",
+                        "avg_monthly_datacenter_usd": "unknown"
+                    },
+                    "compose_layer_reasoning": "Conservative residential classification.",
+                    "install_limit_reasoning": "No documented caps.",
+                    "recommendation": "evaluate",
+                    "recommendation_reasoning": "Bandwidth sharing app. No official Docker image found. Needs research.",
+                    "confidence": "low",
+                    "confidence_notes": "Minimal public documentation.",
+                    "sources": [],
+                    "last_verified": "2026-03-21"
+                }
+            },
+            {
+                "name": "SALAD",
+                "dashboard": "https://app.salad.com",
+                "link": "https://salad.com",
+                "compose_config": {},
+                "compose_config_proxy": {
+                    "network_mode": "service:proxy",
+                    "hostname": null
+                },
+                "flags": {},
+                "install_limit": -1,
+                "compose_layer": "residential",
+                "app_details": {
+                    "official_name": "Salad",
+                    "publisher": "Salad Technologies",
+                    "official_url": "https://salad.com",
+                    "tos_url": "https://salad.com/terms",
+                    "status": "active",
+                    "device_limits": {
+                        "max_devices_per_account": "undocumented",
+                        "max_devices_per_ip": "undocumented",
+                        "max_ips_per_account": "undocumented",
+                        "notes": "GPU/CPU compute sharing platform. Different model from bandwidth sharing."
+                    },
+                    "ip_policy": {
+                        "residential": true,
+                        "datacenter": false,
+                        "vps": false,
+                        "vpn": "undocumented",
+                        "proxy": "undocumented",
+                        "mobile": "undocumented",
+                        "adjacent_ips_accepted": "undocumented",
+                        "adjacent_ips_max": "undocumented",
+                        "ipv6": "undocumented",
+                        "geo_restrictions": "none known",
+                        "quality_notes": "Primarily GPU/CPU compute sharing, not bandwidth. Residential only."
+                    },
+                    "docker": {
+                        "image_official": false,
+                        "image_maintained": false,
+                        "last_update": "unknown"
+                    },
+                    "earnings": {
+                        "model": "compute-based",
+                        "min_payout": "undocumented",
+                        "payout_methods": [
+                            "undocumented"
+                        ],
+                        "avg_monthly_residential_usd": "unknown",
+                        "avg_monthly_datacenter_usd": "unknown"
+                    },
+                    "compose_layer_reasoning": "Residential only per online data. VPS/DC explicitly not supported.",
+                    "install_limit_reasoning": "No documented caps.",
+                    "recommendation": "evaluate",
+                    "recommendation_reasoning": "GPU/CPU compute sharing platform. Different model from bandwidth apps. No official Docker image. Residential only.",
+                    "confidence": "low",
+                    "confidence_notes": "Different earning model (compute, not bandwidth). Needs evaluation for M4B fit.",
                     "sources": [],
                     "last_verified": "2026-03-21"
                 }

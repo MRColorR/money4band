@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from utils.ip_scorer import (
+from money4band.ip_scorer import (
     calculate_fraud_score,
     extract_proxy_ip,
     format_isp_type,
@@ -18,19 +18,19 @@ from utils.ip_scorer import (
 
 class TestGetPublicIp:
 
-    @patch("utils.ip_scorer.get_session")
+    @patch("money4band.ip_scorer.get_session")
     def test_returns_ip_from_first_provider(self, mock_sess):
         resp = MagicMock()
         resp.text = "1.2.3.4"
         mock_sess.return_value.get.return_value = resp
         assert get_public_ip() == "1.2.3.4"
 
-    @patch("utils.ip_scorer.get_session")
+    @patch("money4band.ip_scorer.get_session")
     def test_returns_none_when_all_fail(self, mock_sess):
         mock_sess.return_value.get.side_effect = Exception("fail")
         assert get_public_ip() is None
 
-    @patch("utils.ip_scorer.get_session")
+    @patch("money4band.ip_scorer.get_session")
     def test_skips_non_ip_response(self, mock_sess):
         bad = MagicMock()
         bad.text = "<html>not an ip</html>"
@@ -69,7 +69,7 @@ class TestScoreIps:
     def test_empty_list(self):
         assert score_ips([]) == []
 
-    @patch("utils.ip_scorer.get_session")
+    @patch("money4band.ip_scorer.get_session")
     def test_batch_request(self, mock_sess):
         resp = MagicMock()
         resp.json.return_value = [
@@ -81,7 +81,7 @@ class TestScoreIps:
         assert len(result) == 1
         assert result[0]["query"] == "1.2.3.4"
 
-    @patch("utils.ip_scorer.get_session")
+    @patch("money4band.ip_scorer.get_session")
     def test_returns_empty_on_error(self, mock_sess):
         mock_sess.return_value.post.side_effect = Exception("timeout")
         assert score_ips(["1.2.3.4"]) == []

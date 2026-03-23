@@ -15,12 +15,12 @@ from logging.handlers import RotatingFileHandler
 
 from colorama import Fore, Style, just_fix_windows_console
 
-from utils import detector, dumper, loader
-from utils.backup import cleanup_backups, create_backup, list_backups, restore_backup
-from utils.cls import cls
-from utils.crypto import ensure_config_encrypted
-from utils.fn_reset_config import main as reset_main
-from utils.updater import check_update_available, show_update_banner
+from money4band import detector, dumper, loader
+from money4band.backup import cleanup_backups, create_backup, list_backups, restore_backup
+from money4band.cls import cls
+from money4band.crypto import ensure_config_encrypted
+from money4band.fn_reset_config import main as reset_main
+from money4band.updater import check_update_available, show_update_banner
 
 logger = logging.getLogger(__name__)
 
@@ -75,7 +75,11 @@ def _ensure_user_config(args: argparse.Namespace, user_config_path: str) -> None
 
 
 def _has_template_defaults(user_config_path: str) -> bool:
-    """Return True if the user config still contains placeholder values."""
+    """Return True if the user config still contains placeholder values.
+
+    Only checks *enabled* apps — disabled apps are expected to keep
+    their placeholder credentials until the user decides to enable them.
+    """
     try:
         cfg = loader.load_json_config(user_config_path)
     except Exception:
@@ -83,8 +87,16 @@ def _has_template_defaults(user_config_path: str) -> bool:
     apps = cfg.get("apps", {})
     if not apps:
         return True
-    # Check if any app has a credential that still starts with "your"
-    for app_cfg in apps.values():
+    # If no app is enabled at all, treat as first-run
+    enabled = {
+        name: app_cfg
+        for name, app_cfg in apps.items()
+        if isinstance(app_cfg, dict) and app_cfg.get("enabled", False)
+    }
+    if not enabled:
+        return True
+    # Check only enabled apps for leftover placeholders
+    for app_cfg in enabled.values():
         for key, val in app_cfg.items():
             if key == "enabled":
                 continue
@@ -220,12 +232,6 @@ def mainmenu(
                 f"{Fore.MAGENTA}Join our Discord community for updates, help and discussions: {m4b_config.get('project')['ds_project_server_url']}{Style.RESET_ALL}"
             )
             print("----------------------------------------------")
-            print(f"Detected OS type: {system_info.get('os_type')}")
-            print(f"Detected architecture: {system_info.get('arch')}")
-            print(
-                f"Docker {system_info.get('dkarch')} image architecture will be used if the app's image permits it"
-            )
-            print("----------------------------------------------")
         except Exception as e:
             logger.error(f"An error occurred while setting up the menu: {str(e)}")
             raise
@@ -235,30 +241,42 @@ def mainmenu(
 
             for i, option in enumerate(menu_options, start=1):
                 print(f"{i}. {option['label']}")
+            print(f"\n  {Fore.CYAN}q{Style.RESET_ALL} Quit")
 
-            choice = input("Select an option and press Enter: ")
+            choice = input("Select: ").strip().lower()
+
+            if choice == "q":
+                # Dispatch to fn_bye the same way the numbered "Quit" entry would
+                bye_entry = next(
+                    (o for o in menu_options if o["function"] == "fn_bye"), None
+                )
+                if bye_entry:
+                    m4b_tools_modules["fn_bye"].main(
+                        apps_config_path, m4b_config_path, user_config_path
+                    )
+                return
 
             try:
-                choice = int(choice)
+                choice_num = int(choice)
             except ValueError:
                 print(
-                    f"Invalid input. Please select a menu option between 1 and {len(menu_options)}."
+                    f"{Fore.YELLOW}Invalid selection. Choose 1\u2013{len(menu_options)} or a shortcut.{Style.RESET_ALL}"
                 )
                 time.sleep(sleep_time)
                 continue
 
-            if 1 <= choice <= len(menu_options):
-                function_label = menu_options[choice - 1]["label"]
-                function_name = menu_options[choice - 1]["function"]
+            if 1 <= choice_num <= len(menu_options):
+                function_label = menu_options[choice_num - 1]["label"]
+                function_name = menu_options[choice_num - 1]["function"]
                 logger.info(
-                    f"User selected menu option number {choice} that corresponds to menu item {function_label}"
+                    f"User selected menu option number {choice_num} that corresponds to menu item {function_label}"
                 )
                 m4b_tools_modules[function_name].main(
                     apps_config_path, m4b_config_path, user_config_path
                 )
             else:
                 print(
-                    f"Invalid input. Please select a menu option between 1 and {len(menu_options)}."
+                    f"{Fore.YELLOW}Invalid selection. Choose 1\u2013{len(menu_options)} or a shortcut.{Style.RESET_ALL}"
                 )
                 time.sleep(sleep_time)
         except Exception as e:
@@ -284,7 +302,7 @@ def _cmd_menu(args: argparse.Namespace) -> None:
         )
         print("Running the setup wizard to configure your apps...\n")
         _auto_backup(user_config_path)
-        from utils.fn_setupApps import main as setup_main
+        from money4band.fn_setupApps import main as setup_main
 
         setup_main(apps_config_path, m4b_config_path, user_config_path)
 
@@ -312,11 +330,11 @@ def _cmd_setup(args: argparse.Namespace) -> None:
     _ensure_user_config(args, user_config_path)
     _auto_backup(user_config_path)
 
-    from utils.helper import check_docker_ready
+    from money4band.helper import check_docker_ready
 
     check_docker_ready()
 
-    from utils.fn_setupApps import main as setup_main
+    from money4band.fn_setupApps import main as setup_main
 
     setup_main(
         apps_config_path,
@@ -339,11 +357,11 @@ def _cmd_start(args: argparse.Namespace) -> None:
         )
         return
 
-    from utils.helper import check_docker_ready
+    from money4band.helper import check_docker_ready
 
     check_docker_ready()
 
-    from utils.fn_startStack import main as start_main
+    from money4band.fn_startStack import main as start_main
 
     start_main(apps_config_path, m4b_config_path, user_config_path)
 
@@ -352,15 +370,15 @@ def _cmd_stop(args: argparse.Namespace) -> None:
     """Stop the Docker Compose stack."""
     m4b_config_path, apps_config_path, user_config_path = _resolve_paths(args)
     _ensure_user_config(args, user_config_path)
-    from utils.fn_stopStack import main as stop_main
+    from money4band.fn_stopStack import main as stop_main
 
     stop_main(apps_config_path, m4b_config_path, user_config_path)
 
 
 def _cmd_status(args: argparse.Namespace) -> None:
     """Show running containers and health status."""
-    from utils.compose_builder import get_compose_files
-    from utils.helper import get_compose_project_name
+    from money4band.compose_builder import get_compose_files
+    from money4band.helper import get_compose_project_name
 
     m4b_config_path, apps_config_path, user_config_path = _resolve_paths(args)
     _ensure_user_config(args, user_config_path)
@@ -395,21 +413,66 @@ def _cmd_status(args: argparse.Namespace) -> None:
     else:
         print(f"{Fore.RED}Error:{Style.RESET_ALL} {result.stderr.strip()}")
 
+    # Health summary from Docker inspect
+    from money4band.monitor import get_stack_health
+
+    project_name = None
+    if os.path.isfile(env_file):
+        project_name = get_compose_project_name(env_file)
+    statuses = get_stack_health(project_filter=project_name)
+    if statuses:
+        print(f"{Fore.GREEN}--- Health Summary ---{Style.RESET_ALL}")
+        for s in statuses:
+            icon = f"{Fore.GREEN}\u2713" if s.ok else f"{Fore.RED}\u2717"
+            health_tag = s.health if s.health != "none" else "no-healthcheck"
+            line = f"  {icon} {s.name:<35}{Style.RESET_ALL} {health_tag:<16} restarts={s.restart_count}"
+            if s.last_error:
+                line += f"  {Fore.YELLOW}err: {s.last_error[:80]}{Style.RESET_ALL}"
+            if s.restart_count >= 5:
+                line += f"  {Fore.RED}[RESTART LOOP]{Style.RESET_ALL}"
+            print(line)
+        print()
+
+    # Earnings estimation
+    app_config = loader.load_json_config(apps_config_path)
+    from money4band.earnings_estimator import display_earnings_summary
+
+    display_earnings_summary(app_config)
+
 
 def _cmd_generate(args: argparse.Namespace) -> None:
     """Regenerate docker-compose.yaml and .env from config."""
     m4b_config_path, apps_config_path, user_config_path = _resolve_paths(args)
+
+    if getattr(args, "docs", False):
+        from money4band.loader import load_json_config
+        from money4band.readme_generator import update_apps_md, update_readme
+
+        app_config = load_json_config(apps_config_path)
+        readme_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "README.md")
+        apps_md_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "docs", "APPS.md")
+        ok_readme = update_readme(app_config, readme_path)
+        ok_apps = update_apps_md(app_config, apps_md_path)
+        if ok_readme:
+            print(f"{Fore.GREEN}README.md app table updated.{Style.RESET_ALL}")
+        if ok_apps:
+            print(f"{Fore.GREEN}docs/APPS.md app table updated.{Style.RESET_ALL}")
+        if not ok_readme and not ok_apps:
+            print(f"{Fore.YELLOW}No marker sections found in target files.{Style.RESET_ALL}")
+        return
+
     _ensure_user_config(args, user_config_path)
     _auto_backup(user_config_path)
-    from utils.generator import main as gen_main
+    from money4band.generator import main as gen_main
 
     gen_main(apps_config_path, m4b_config_path, user_config_path)
+
 
 
 def _cmd_links(args: argparse.Namespace) -> None:
     """Show app dashboard and referral links."""
     m4b_config_path, apps_config_path, user_config_path = _resolve_paths(args)
-    from utils.fn_app_catalog import main as links_main
+    from money4band.fn_app_catalog import main as links_main
 
     links_main(apps_config_path, m4b_config_path, user_config_path)
 
@@ -432,7 +495,7 @@ def _cmd_proxy(args: argparse.Namespace) -> None:
     """Launch multiproxy tools."""
     m4b_config_path, apps_config_path, user_config_path = _resolve_paths(args)
     _ensure_user_config(args, user_config_path)
-    from utils.fn_multiproxy_tools import main as proxy_main
+    from money4band.fn_multiproxy_tools import main as proxy_main
 
     proxy_main(apps_config_path, m4b_config_path, user_config_path)
 
@@ -460,8 +523,9 @@ def _cmd_restore(args: argparse.Namespace) -> None:
     for i, b in enumerate(backups, 1):
         print(f"  {i}. {b.path.name}  ({b.timestamp:%Y-%m-%d %H:%M:%S UTC})")
 
-    choice = input("Select backup number to restore (or press Enter to cancel): ")
-    if not choice.strip():
+    print(f"  Press {Fore.CYAN}Enter{Style.RESET_ALL} to cancel.")
+    choice = input("Select: ").strip()
+    if not choice:
         return
     try:
         idx = int(choice) - 1
@@ -483,7 +547,7 @@ def _cmd_update(args: argparse.Namespace) -> None:
     just_fix_windows_console()
     m4b_config = loader.load_json_config(m4b_config_path)
 
-    from utils.updater import apply_update, check_for_update
+    from money4band.updater import apply_update, check_for_update
 
     new_version = check_for_update(m4b_config)
     if not new_version:
@@ -497,8 +561,9 @@ def _cmd_update(args: argparse.Namespace) -> None:
 
     force = getattr(args, "force", False)
     if not force:
-        confirm = input("Apply update now? [y/N] ").strip().lower()
-        if confirm not in ("y", "yes"):
+        from money4band.prompt_helper import ask_question_yn
+
+        if not ask_question_yn("Apply update now?", default=False):
             print("Update cancelled.")
             return
 
@@ -542,7 +607,7 @@ def _cmd_limit(args: argparse.Namespace) -> None:
     detector.calculate_resource_limits(user_config_path, m4b_config=m4b_config)
 
     # Regenerate .env so Docker picks up the new limits.
-    from utils.generator import generate_env_file
+    from money4band.generator import generate_env_file
 
     apps_config_path = os.path.join(
         args.config_dir, args.config_app_file
@@ -567,7 +632,7 @@ def _cmd_limit(args: argparse.Namespace) -> None:
 def _cmd_ip(args: argparse.Namespace) -> None:
     """Analyse IP quality for real IP and configured proxies."""
     just_fix_windows_console()
-    from utils.ip_scorer import analyse_ips
+    from money4band.ip_scorer import analyse_ips
 
     analyse_ips()
 
@@ -582,7 +647,7 @@ def _cmd_info(args: argparse.Namespace) -> None:
     app_config = loader.load_json_config(apps_config_path)
     user_config = loader.load_json_config(user_config_path)
 
-    from utils.system_info import show_system_info
+    from money4band.system_info import show_system_info
 
     show_system_info(m4b_config, app_config, user_config)
 
@@ -597,7 +662,7 @@ def _cmd_notify(args: argparse.Namespace) -> None:
     action = getattr(args, "notify_action", None)
 
     if action == "test":
-        from utils.notifier import is_enabled, send_test
+        from money4band.notifier import is_enabled, send_test
 
         if not is_enabled(user_config):
             print(
@@ -614,7 +679,7 @@ def _cmd_notify(args: argparse.Namespace) -> None:
                 f"Check your URL and Docker availability.{Style.RESET_ALL}"
             )
     else:
-        from utils.notifier import ALL_EVENTS, is_enabled, is_event_enabled
+        from money4band.notifier import ALL_EVENTS, is_enabled, is_event_enabled
 
         cfg = user_config.get("notifications", {})
         status = "enabled" if is_enabled(user_config) else "disabled"
@@ -629,6 +694,144 @@ def _cmd_notify(args: argparse.Namespace) -> None:
             print(f"    {evt}: {mark}")
 
 
+def _cmd_apps(args: argparse.Namespace) -> None:
+    """List apps or show detail for a specific app."""
+    _, apps_config_path, _ = _resolve_paths(args)
+    just_fix_windows_console()
+
+    app_config = loader.load_json_config(apps_config_path)
+
+    app_name = getattr(args, "app_name", None)
+    if app_name:
+        from money4band.app_info import show_app_detail
+
+        show_app_detail(app_config, app_name)
+    else:
+        from money4band.app_info import list_apps
+
+        category = getattr(args, "category", None)
+        list_apps(app_config, category_filter=category)
+
+
+def _cmd_validate(args: argparse.Namespace) -> None:
+    """Run Docker image security checks."""
+    _, apps_config_path, _ = _resolve_paths(args)
+
+    app_config = loader.load_json_config(apps_config_path)
+
+    from money4band.image_security import validate_images
+
+    skip_cves = getattr(args, "skip_cves", False)
+    validate_images(app_config, run_cves=not skip_cves)
+
+
+def _cmd_app(args: argparse.Namespace) -> None:
+    """App plugin management — add or validate community apps."""
+    action = getattr(args, "app_action", None)
+    config_dir = getattr(args, "config_dir", os.path.join(BASE_DIR, "config"))
+    apps_d_dir = os.path.join(config_dir, "apps.d")
+
+    if action == "add":
+        from money4band.app_wizard import run_app_wizard
+
+        run_app_wizard(apps_d_dir)
+    elif action == "validate":
+        from money4band.app_schema import load_community_apps, validate_app_entry
+
+        just_fix_windows_console()
+        entries = load_community_apps(apps_d_dir)
+        if not entries:
+            print(f"{Fore.YELLOW}No community apps found in {apps_d_dir}{Style.RESET_ALL}")
+            return
+        all_ok = True
+        for entry in entries:
+            errors = validate_app_entry(entry)
+            name = entry.get("name", "?")
+            if errors:
+                all_ok = False
+                print(f"{Fore.RED}\u2717 {name}:{Style.RESET_ALL}")
+                for e in errors:
+                    print(f"    {e}")
+            else:
+                print(f"{Fore.GREEN}\u2713 {name}{Style.RESET_ALL}")
+        if all_ok:
+            print(f"\n{Fore.GREEN}All {len(entries)} community app(s) valid.{Style.RESET_ALL}")
+    else:
+        print(f"Usage: m4b app {{add,validate}}")
+        print(f"  add       Interactive wizard to add a new community app")
+        print(f"  validate  Check all apps.d/ files against the schema")
+
+
+def _cmd_offers(args: argparse.Namespace) -> None:
+    """Show referral and passive income offers."""
+    just_fix_windows_console()
+    config_dir = getattr(args, "config_dir", os.path.join(BASE_DIR, "config"))
+    offers_path = os.path.join(config_dir, "referral-offers.json")
+    apps_config_path = os.path.join(config_dir, "app-config.json")
+    category = getattr(args, "offer_category", None)
+
+    from money4band.offers import display_offers
+
+    display_offers(offers_path, category_filter=category, app_config_path=apps_config_path)
+
+
+def _cmd_dashboard(args: argparse.Namespace) -> None:
+    """Start the web dashboard API server."""
+    config_dir = getattr(args, "config_dir", os.path.join(BASE_DIR, "config"))
+    port = getattr(args, "port", 8088)
+
+    from money4band.dashboard_api import configure, start_server
+
+    configure(config_dir)
+    print(f"{Fore.GREEN}Starting M4B Dashboard API on port {port}...{Style.RESET_ALL}")
+    print(f"  API docs: http://localhost:{port}/api/docs")
+    print(f"  Status:   http://localhost:{port}/api/status")
+    start_server(port=port)
+
+
+def _cmd_profile(args: argparse.Namespace) -> None:
+    """Manage configuration profiles."""
+    _, _, user_config_path = _resolve_paths(args)
+    config_dir = getattr(args, "config_dir", os.path.join(BASE_DIR, "config"))
+    just_fix_windows_console()
+
+    action = getattr(args, "profile_action", None)
+    name = getattr(args, "profile_name", None)
+
+    from money4band.profiles import (
+        create_profile,
+        delete_profile,
+        display_profiles,
+        switch_profile,
+    )
+
+    if action == "create":
+        if not name:
+            print(f"{Fore.RED}Profile name required.{Style.RESET_ALL}")
+            return
+        path = create_profile(name, config_dir, BASE_DIR, user_config_path)
+        print(f"{Fore.GREEN}Profile '{name}' saved to {path}{Style.RESET_ALL}")
+    elif action == "switch":
+        if not name:
+            print(f"{Fore.RED}Profile name required.{Style.RESET_ALL}")
+            return
+        if switch_profile(name, config_dir, BASE_DIR, user_config_path):
+            print(f"{Fore.GREEN}Switched to profile '{name}'.{Style.RESET_ALL}")
+            print(f"{Fore.YELLOW}Run 'generate' to rebuild compose files.{Style.RESET_ALL}")
+        else:
+            print(f"{Fore.RED}Profile '{name}' not found.{Style.RESET_ALL}")
+    elif action == "delete":
+        if not name:
+            print(f"{Fore.RED}Profile name required.{Style.RESET_ALL}")
+            return
+        if delete_profile(name, config_dir):
+            print(f"{Fore.GREEN}Profile '{name}' deleted.{Style.RESET_ALL}")
+        else:
+            print(f"{Fore.RED}Profile '{name}' not found.{Style.RESET_ALL}")
+    else:
+        display_profiles(config_dir)
+
+
 def _cmd_dns(args: argparse.Namespace) -> None:
     """View or configure DNS settings for containers."""
     m4b_config_path, _, _ = _resolve_paths(args)
@@ -639,7 +842,7 @@ def _cmd_dns(args: argparse.Namespace) -> None:
     if dns_action == "set":
         mode = args.mode
         servers = args.servers.split(",") if getattr(args, "servers", None) else None
-        from utils.system_info import set_dns_mode
+        from money4band.system_info import set_dns_mode
 
         set_dns_mode(m4b_config_path, mode, servers)
         print(f"{Fore.GREEN}DNS mode set to '{mode}'.{Style.RESET_ALL}")
@@ -650,7 +853,7 @@ def _cmd_dns(args: argparse.Namespace) -> None:
         )
     else:
         m4b_config = loader.load_json_config(m4b_config_path)
-        from utils.system_info import show_dns_status
+        from money4band.system_info import show_dns_status
 
         show_dns_status(m4b_config)
 
@@ -661,11 +864,11 @@ def _cmd_config(args: argparse.Namespace) -> None:
     action = getattr(args, "config_action", None)
 
     if action == "view":
-        from utils.config_viewer import view_masked
+        from money4band.config_viewer import view_masked
 
         view_masked(user_config_path)
     elif action == "edit":
-        from utils.config_viewer import edit_config
+        from money4band.config_viewer import edit_config
 
         register_encryption_hooks(user_config_path)
         edit_config(user_config_path)
@@ -711,7 +914,7 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--utils-dir",
-        default=os.path.join(script_dir, "utils"),
+        default=os.path.join(script_dir, "money4band"),
         help="Set the m4b tools directory",
     )
     parser.add_argument(
@@ -751,7 +954,11 @@ def _build_parser() -> argparse.ArgumentParser:
     sub.add_parser("start", help="Start the Docker Compose stack")
     sub.add_parser("stop", help="Stop the Docker Compose stack")
     sub.add_parser("status", help="Show running containers and health")
-    sub.add_parser("generate", help="Regenerate docker-compose.yaml and .env")
+    gen_parser = sub.add_parser("generate", help="Regenerate docker-compose.yaml and .env")
+    gen_parser.add_argument(
+        "--docs", action="store_true",
+        help="Regenerate README.md and docs/APPS.md app tables from app-config.json",
+    )
     sub.add_parser("links", help="Show app dashboard and referral links")
     sub.add_parser("reset", help="Reset user-config to template defaults")
     sub.add_parser("proxy", help="Multi-proxy management tools")
@@ -784,6 +991,54 @@ def _build_parser() -> argparse.ArgumentParser:
     sub.add_parser("ip", help="Analyse IP quality for real IP and proxies")
 
     sub.add_parser("info", help="Show system information dashboard")
+
+    apps_parser = sub.add_parser("apps", help="List apps or show app detail card")
+    apps_parser.add_argument(
+        "app_name", nargs="?", default=None,
+        help="App name to show detail for. Omit to list all apps.",
+    )
+    apps_parser.add_argument(
+        "--category", "-c", default=None,
+        choices=["supported", "deprecated", "candidate"],
+        help="Filter listing by category",
+    )
+
+    validate_parser = sub.add_parser("validate", help="Run Docker image security checks")
+    validate_parser.add_argument(
+        "--skip-cves", action="store_true", default=False,
+        help="Skip CVE scanning (only run stale check and digest logging)",
+    )
+
+    app_parser = sub.add_parser("app", help="App plugin management (add/validate)")
+    app_parser.add_argument(
+        "app_action", nargs="?", default=None,
+        choices=["add", "validate"],
+        help="Action: 'add' to create a new community app, 'validate' to check apps.d/ files",
+    )
+
+    offers_parser = sub.add_parser("offers", help="Show referral & passive income offers")
+    offers_parser.add_argument(
+        "--category", "-c", dest="offer_category", default=None,
+        choices=["bandwidth", "compute", "survey", "other"],
+        help="Filter by offer category",
+    )
+
+    dashboard_parser = sub.add_parser("dashboard", help="Start the web dashboard API server")
+    dashboard_parser.add_argument(
+        "--port", type=int, default=8088,
+        help="Port for the dashboard API server (default: 8088)",
+    )
+
+    profile_parser = sub.add_parser("profile", help="Manage configuration profiles")
+    profile_parser.add_argument(
+        "profile_action", nargs="?", default=None,
+        choices=["create", "switch", "delete"],
+        help="Action: create/switch/delete a named profile. Omit to list profiles.",
+    )
+    profile_parser.add_argument(
+        "profile_name", nargs="?", default=None,
+        help="Profile name (e.g. 'home', 'vps')",
+    )
 
     notify_parser = sub.add_parser("notify", help="Notification status and testing")
     notify_sub = notify_parser.add_subparsers(dest="notify_action")
@@ -828,6 +1083,12 @@ _SUBCOMMAND_DISPATCH = {
     "info": _cmd_info,
     "dns": _cmd_dns,
     "notify": _cmd_notify,
+    "apps": _cmd_apps,
+    "validate": _cmd_validate,
+    "app": _cmd_app,
+    "offers": _cmd_offers,
+    "dashboard": _cmd_dashboard,
+    "profile": _cmd_profile,
 }
 
 
@@ -875,8 +1136,12 @@ def _setup_logging(args: argparse.Namespace) -> None:
     rotating_handler = RotatingFileHandler(
         log_file_path, maxBytes=1 * 1024 * 1024, backupCount=3
     )
-    rotating_handler.setFormatter(fmt)
     rotating_handler.setLevel(log_level)
+
+    # Use JSON formatter for file output, plain text for console
+    from money4band.structured_logging import JSONFormatter
+
+    rotating_handler.setFormatter(JSONFormatter())
 
     # Console (stderr) handler — only WARNING+ to avoid polluting CLI output
     console_handler = logging.StreamHandler()
@@ -905,12 +1170,16 @@ def main() -> None:
 
     _setup_logging(args)
 
+    from money4band.structured_logging import new_correlation_id
+
+    cid = new_correlation_id()
+
     script_name = (
         os.path.basename(__file__)
         if not getattr(sys, "frozen", False)
         else "Money4Band"
     )
-    logger.info(f"Starting {script_name} script...")
+    logger.info("Starting %s [%s] command=%s", script_name, cid, args.command or "menu")
 
     handler = _SUBCOMMAND_DISPATCH.get(args.command)
     if handler:

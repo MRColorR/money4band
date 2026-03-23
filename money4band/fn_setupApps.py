@@ -1,0 +1,415 @@
+from __future__ import annotations
+
+"""Setup wizard facade -- orchestrates app configuration, notifications, dashboard,
+watchtower, and multiproxy setup.
+
+This module delegates to focused sub-modules and re-exports their public API
+for backward compatibility. New code should import from the sub-modules directly.
+"""
+
+import argparse
+import getpass
+import json
+import logging
+import os
+import platform
+import sys
+from typing import Any
+from collections.abc import Callable
+
+from colorama import Fore, Style
+
+from money4band import loader
+from money4band.dumper import write_json
+from money4band.setup_progress import (
+    clear_progress,
+    is_step_done,
+    load_progress,
+    save_progress,
+)
+from money4band.setup_summary import generate_setup_summary
+from money4band.generator import (
+    assemble_docker_compose,
+    generate_device_name,
+    generate_env_file,
+)
+from money4band.prompt_helper import ask_question_yn
+
+# -- Re-exports for backward compatibility ------------------------------------
+# External code may import these from money4band.fn_setupApps; keep them available.
+from money4band.port_manager import (  # noqa: F401
+    assign_app_ports,
+    collect_assigned_ports,
+    DEFAULT_PORT_BASE,
+    PORT_OFFSET_PER_APP,
+    PORT_OFFSET_PER_INSTANCE,
+)
+from money4band.app_configurator import (  # noqa: F401
+    configure_apps,
+    configure_email,
+    configure_password,
+    configure_apikey,
+    configure_userid,
+    configure_uuid,
+    configure_cid,
+    configure_code,
+    configure_token,
+    configure_manual,
+    flag_function_mapper,
+    _configure_apps,
+)
+from money4band.notification_setup import (  # noqa: F401
+    SUPPORTED_NOTIFICATION_SERVICES,
+    validate_notification_url,
+    setup_notifications,
+)
+from money4band.dashboard_setup import (  # noqa: F401
+    setup_m4b_dashboard,
+    setup_watchtower,
+)
+from money4band.multiproxy_setup import (  # noqa: F401
+    cleanup_multiproxy_instances_dir,
+    calculate_subnet,
+    ipv4_to_int,
+    int_to_ipv4,
+    remove_readonly,
+    safe_rmtree,
+    regenerate_uuids_for_apps,
+    setup_multiproxy_instances,
+)
+
+
+logger = logging.getLogger(__name__)
+# Ensure the parent directory is in the sys.path
+script_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(script_dir)
+if parent_dir not in sys.path:
+    sys.path.append(parent_dir)
+
+# Global config loading (kept for backward compatibility with module-level access)
+m4b_config_path = os.path.join(parent_dir, "config", "m4b-config.json")
+try:
+    m4b_config = loader.load_json_config(m4b_config_path)
+except FileNotFoundError:
+    m4b_config = {}
+    logger.warning("Configuration file not found. Using default values.")
+
+sleep_time = m4b_config.get("system", {}).get("sleep_time", 3)
+
+TOTAL_SETUP_STEPS = 7
+
+
+def _print_step(step: int, description: str) -> None:
+    """Display a 'Step X of N' progress indicator to the user."""
+    print(
+        f"\n{Fore.CYAN}[Step {step}/{TOTAL_SETUP_STEPS}]{Style.RESET_ALL} {description}"
+    )
+
+
+def collect_user_info(user_config: dict[str, Any], m4b_config: dict[str, Any]) -> None:
+    """
+    Collect user information and update the user configuration.
+
+    Args:
+        user_config (dict): The user configuration dictionary.
+        m4b_config (dict): The m4b configuration dictionary.
+    """
+    try:
+        # Get the system's current username (fallback to 'user' on exception)
+        nickname = getpass.getuser()
+    except Exception:
+        nickname = "user"
+
+    # Store the username in the user configuration
+    user_config["user"]["Nickname"] = nickname
+
+    # Fetch the existing device name from the configuration, use 'yourDeviceName' as placeholder
+    device_name = user_config["device_info"].get("device_name", "yourDeviceName")
+
+    # If the device name is 'yourDeviceName', try using the system's hostname, otherwise generate a random name
+    if device_name.lower() == ("yourDeviceName").lower():
+        try:
+            device_name = platform.node()  # Default to system hostname
+        except Exception:
+            logger.warning("Unable to retrieve hostname for device name.")
+            device_name = generate_device_name(  # Generate random name if hostname is not available
+                m4b_config["word_lists"]["adjectives"],
+                m4b_config["word_lists"]["animals"],
+                use_uuid_suffix=False,
+            )
+
+    # Ask the user if they want to keep the current device name or change it
+    if ask_question_yn(
+        f'The current device name is "{device_name}". Do you want to change it?'
+    ):
+        # Prompt for new device name or leave blank to auto-generate
+        new_device_name = input(
+            "Enter your new device name (or leave blank to generate one randomly): "
+        ).strip()
+
+        # Generate the device name based on input or generate randomly
+        device_name = generate_device_name(
+            m4b_config["word_lists"]["adjectives"],
+            m4b_config["word_lists"]["animals"],
+            device_name=new_device_name,
+            use_uuid_suffix=False,
+        )
+
+    # Set the final device name in the user configuration
+    user_config["device_info"]["device_name"] = device_name
+    logger.info(f"Device name set to: {device_name}")
+
+
+def main(
+    app_config_path: str,
+    m4b_config_path: str,
+    user_config_path: str,
+    *,
+    resume: bool = False,
+) -> None:
+    """
+    Main function for setting up user configurations.
+
+    Args:
+        app_config_path (str): Path to the app configuration file.
+        m4b_config_path (str): Path to the m4b configuration file.
+        user_config_path (str): Path to the user configuration file.
+        resume (bool): If True, skip steps that were completed in a previous run.
+    """
+    try:
+        app_config = loader.load_json_config(app_config_path)
+        user_config = loader.load_json_config(user_config_path)
+        m4b_config = loader.load_json_config(m4b_config_path)
+        logger.info("Setup apps started")
+
+        # Display M4B header banner
+        from colorama import just_fix_windows_console
+        from money4band.cls import cls
+
+        just_fix_windows_console()
+        cls()
+        version = m4b_config.get("project", {}).get("project_version", "?")
+        ds_url = m4b_config.get("project", {}).get("ds_project_server_url", "")
+        print(f"{Fore.GREEN}----------------------------------------------")
+        print(f"MONEY4BAND v{version}{Style.RESET_ALL}")
+        print(f"{Fore.GREEN}----------------------------------------------{Style.RESET_ALL}")
+        print(
+            f"{Fore.YELLOW}Support the M4B development <3 check the donation "
+            f"options in the README, on GitHub or in our Discord. Every bit helps!"
+        )
+        if ds_url:
+            print(
+                f"{Fore.MAGENTA}Join our Discord community for updates, help and "
+                f"discussions: {ds_url}{Style.RESET_ALL}"
+            )
+        print("----------------------------------------------")
+        print(f"\n{Fore.CYAN}=== Setup Wizard ==={Style.RESET_ALL}\n")
+
+        progress = load_progress() if resume else {}
+        completed: list[int] = list(progress.get("completed_steps", []))
+
+        if resume and completed:
+            print(
+                f"{Fore.YELLOW}Resuming setup — skipping already-completed "
+                f"steps: {completed}{Style.RESET_ALL}"
+            )
+
+        def _run_step(step: int, description: str, func: Callable[..., Any], *args: Any, **kwargs: Any) -> None:
+            """Execute *func* for *step* unless already completed."""
+            if is_step_done(progress, step):
+                print(
+                    f"{Fore.YELLOW}[Step {step}/{TOTAL_SETUP_STEPS}] "
+                    f"{description} — skipped (already done){Style.RESET_ALL}"
+                )
+                return
+            _print_step(step, description)
+            func(*args, **kwargs)
+            completed.append(step)
+            save_progress(completed)
+
+        # Step 1: Collect user information
+        _run_step(1, "Collecting user information", collect_user_info, user_config, m4b_config)
+        # Step 2: Configure apps
+        _run_step(2, "Configuring apps", configure_apps, user_config, app_config, m4b_config)
+        # Step 3: Set up Watchtower auto-updates
+        _run_step(3, "Setting up Watchtower auto-updates", setup_watchtower, user_config)
+        # Step 4: Set up notifications
+        if not is_step_done(progress, 4):
+            _print_step(4, "Setting up notifications")
+            if user_config.get("watchtower", {}).get("enabled", True):
+                setup_notifications(user_config)
+            else:
+                user_config.setdefault("notifications", {})["enabled"] = False
+                logger.info("Skipping notification setup: Watchtower is disabled.")
+            completed.append(4)
+            save_progress(completed)
+        else:
+            print(
+                f"{Fore.YELLOW}[Step 4/{TOTAL_SETUP_STEPS}] "
+                f"Setting up notifications — skipped (already done){Style.RESET_ALL}"
+            )
+        # Step 5: Set up M4B dashboard
+        _run_step(5, "Setting up M4B dashboard", setup_m4b_dashboard, user_config)
+        # Step 6: Save the user configuration
+        _print_step(6, "Saving user configuration")
+        write_json(user_config, user_config_path)
+        if 6 not in completed:
+            completed.append(6)
+            save_progress(completed)
+        # Step 7: Set up proxy if the user chooses to
+        if not is_step_done(progress, 7):
+            _print_step(7, "Proxy configuration")
+            proxy_setup = ask_question_yn("Do you want to enable (multi)proxy?")
+            if proxy_setup:
+                logger.info("Multiproxy setup selected")
+                print(
+                    "Create a proxies.txt file in the same folder and add proxies in the following format: protocol://user:pass@ip:port (one proxy per line)"
+                )
+                input(f"\nPress {Fore.CYAN}Enter{Style.RESET_ALL} to continue...")
+                with open("proxies.txt") as file:
+                    proxies = [line.strip() for line in file if line.strip()]
+
+                user_config["proxies"]["url"] = proxies.pop(-1)
+                user_config["proxies"]["enabled"] = True
+                write_json(user_config, user_config_path)
+                assemble_docker_compose(
+                    m4b_config_path_or_dict=m4b_config,
+                    app_config_path_or_dict=app_config,
+                    user_config_path_or_dict=user_config,
+                    compose_output_path="./docker-compose.yaml",
+                    is_main_instance=True,
+                )
+                generate_env_file(
+                    m4b_config_path_or_dict=m4b_config,
+                    app_config_path_or_dict=app_config,
+                    user_config_path_or_dict=user_config,
+                    env_output_path="./.env",
+                    is_main_instance=True,
+                )
+                setup_multiproxy_instances(user_config, app_config, m4b_config, proxies)
+                logger.info("Multiproxy instances setup completed")
+            else:
+                logger.info("Multiproxy setup not selected")
+                if user_config["proxies"].get("enabled"):
+                    user_config["proxies"]["url"] = ""
+                    user_config["proxies"]["enabled"] = False
+                    write_json(user_config, user_config_path)
+                cleanup_multiproxy_instances_dir()
+                assemble_docker_compose(
+                    m4b_config_path,
+                    app_config_path,
+                    user_config_path,
+                    compose_output_path="./docker-compose.yaml",
+                    is_main_instance=True,
+                )
+                generate_env_file(
+                    m4b_config_path,
+                    app_config_path,
+                    user_config_path,
+                    env_output_path="./.env",
+                    is_main_instance=True,
+                )
+            completed.append(7)
+            save_progress(completed)
+        else:
+            print(
+                f"{Fore.YELLOW}[Step 7/{TOTAL_SETUP_STEPS}] "
+                f"Proxy configuration — skipped (already done){Style.RESET_ALL}"
+            )
+
+        # All steps complete — clean up progress file
+        clear_progress()
+
+        # Generate and display post-setup summary
+        generate_setup_summary(user_config, app_config)
+        logger.info("Setup completed")
+        input(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
+
+    except FileNotFoundError as e:
+        logger.error(f"File not found: {str(e)}")
+        raise
+    except json.JSONDecodeError as e:
+        logger.error(f"Error decoding JSON: {str(e)}")
+        raise
+    except Exception as e:
+        logger.error(f"An error occurred in main setup apps process: {str(e)}")
+        raise
+
+
+if __name__ == "__main__":
+    # Get the script absolute path and name
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    script_name = os.path.basename(__file__)
+
+    # Parse command-line arguments
+    parser = argparse.ArgumentParser(
+        description="Run the setup apps module standalone."
+    )
+    parser.add_argument(
+        "--app-config", type=str, required=True, help="Path to app_config JSON file"
+    )
+    parser.add_argument(
+        "--m4b-config", type=str, required=True, help="Path to m4b_config JSON file"
+    )
+    parser.add_argument(
+        "--user-config-path",
+        type=str,
+        default="./config/user-config.json",
+        help="Path to user_config JSON file",
+    )
+    parser.add_argument(
+        "--log-dir",
+        default=os.path.join(script_dir, "logs"),
+        help="Set the logging directory",
+    )
+    parser.add_argument(
+        "--log-file", default=f"{script_name}.log", help="Set the logging file name"
+    )
+    parser.add_argument(
+        "--log-level",
+        choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+        default="INFO",
+        help="Set the logging level",
+    )
+    parser.add_argument(
+        "--resume",
+        action="store_true",
+        default=False,
+        help="Resume a previously interrupted setup, skipping completed steps",
+    )
+    args = parser.parse_args()
+
+    # Set logging level based on command-line arguments
+    log_level = getattr(logging, args.log_level.upper(), None)
+    if not isinstance(log_level, int):
+        raise ValueError(f"Invalid log level: {args.log_level}")
+
+    # Start logging
+    os.makedirs(args.log_dir, exist_ok=True)
+    logging.basicConfig(
+        filename=os.path.join(args.log_dir, args.log_file),
+        format="%(asctime)s - [%(levelname)s] - %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+        level=log_level,
+    )
+
+    logger.info(f"Starting {script_name} script...")
+
+    try:
+        # Call the main function
+        main(
+            app_config_path=args.app_config,
+            m4b_config_path=args.m4b_config,
+            user_config_path=args.user_config_path,
+            resume=args.resume,
+        )
+        logger.info(f"{script_name} script completed successfully")
+    except FileNotFoundError as e:
+        logger.error(f"File not found: {str(e)}")
+        raise
+    except json.JSONDecodeError as e:
+        logger.error(f"Error decoding JSON: {str(e)}")
+        raise
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {str(e)}")
+        raise

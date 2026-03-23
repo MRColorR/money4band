@@ -4,7 +4,7 @@ import unittest
 
 import yaml
 
-from utils.generator import (
+from money4band.generator import (
     assemble_docker_compose,
     generate_device_name,
     generate_env_file,
@@ -468,7 +468,7 @@ class TestAppHealthchecks(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".yaml") as f:
             compose_path = f.name
         try:
-            with patch("utils.compose_builder.check_img_arch_support", return_value=True):
+            with patch("money4band.compose_builder.check_img_arch_support", return_value=True):
                 assemble_docker_compose(
                     _M4B_CFG, app_cfg, user_cfg, compose_path, is_main_instance=True
                 )
@@ -532,7 +532,7 @@ class TestProxyDependsOn(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".yaml") as f:
             compose_path = f.name
         try:
-            with patch("utils.compose_builder.check_img_arch_support", return_value=True):
+            with patch("money4band.compose_builder.check_img_arch_support", return_value=True):
                 assemble_docker_compose(
                     _M4B_CFG, app_cfg, user_cfg, compose_path, is_main_instance=True
                 )

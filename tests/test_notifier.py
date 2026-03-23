@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from utils.notifier import (
+from money4band.notifier import (
     ALL_EVENTS,
     EVENT_STACK_ERROR,
     EVENT_STACK_START,
@@ -144,14 +144,14 @@ class TestIsEventEnabled:
 
 class TestNotify:
 
-    @patch("utils.notifier._send_shoutrrr", return_value=True)
+    @patch("money4band.notifier._send_shoutrrr", return_value=True)
     def test_blocking_sends(self, mock_send, enabled_config):
         result = notify(enabled_config, EVENT_STACK_START, "Started!", blocking=True)
         assert result is True
         mock_send.assert_called_once()
         assert "[M4B]" in mock_send.call_args[0][1]
 
-    @patch("utils.notifier._send_shoutrrr", return_value=True)
+    @patch("money4band.notifier._send_shoutrrr", return_value=True)
     def test_fire_and_forget_returns_none(self, mock_send, enabled_config):
         result = notify(enabled_config, EVENT_STACK_START, "Started!")
         assert result is None
@@ -160,25 +160,25 @@ class TestNotify:
         time.sleep(0.2)
         mock_send.assert_called_once()
 
-    @patch("utils.notifier._send_shoutrrr")
+    @patch("money4band.notifier._send_shoutrrr")
     def test_skips_disabled_event(self, mock_send, partial_config):
         result = notify(partial_config, EVENT_STACK_STOP, "Stopped!", blocking=True)
         assert result is False
         mock_send.assert_not_called()
 
-    @patch("utils.notifier._send_shoutrrr")
+    @patch("money4band.notifier._send_shoutrrr")
     def test_skips_disabled_notifications(self, mock_send, disabled_config):
         result = notify(disabled_config, EVENT_STACK_START, "Started!", blocking=True)
         assert result is False
         mock_send.assert_not_called()
 
-    @patch("utils.notifier._send_shoutrrr")
+    @patch("money4band.notifier._send_shoutrrr")
     def test_skips_no_url(self, mock_send, no_url_config):
         result = notify(no_url_config, EVENT_STACK_START, "test", blocking=True)
         assert result is False
         mock_send.assert_not_called()
 
-    @patch("utils.notifier._send_shoutrrr", return_value=True)
+    @patch("money4band.notifier._send_shoutrrr", return_value=True)
     def test_test_event_always_sends(self, mock_send, enabled_config):
         """EVENT_TEST bypasses the event filter (always sends if URL exists)."""
         result = notify(enabled_config, EVENT_TEST, "Test!", blocking=True)
@@ -193,30 +193,30 @@ class TestNotify:
 
 class TestSendShoutrrr:
 
-    @patch("utils.notifier.subprocess.run")
+    @patch("money4band.notifier.subprocess.run")
     def test_success(self, mock_run):
         mock_run.return_value = MagicMock(returncode=0, stderr="")
-        from utils.notifier import _send_shoutrrr
+        from money4band.notifier import _send_shoutrrr
         assert _send_shoutrrr("discord://token@hook", "hello") is True
         mock_run.assert_called_once()
         cmd = mock_run.call_args[0][0]
         assert "docker" in cmd
         assert "containrrr/shoutrrr" in cmd
 
-    @patch("utils.notifier.subprocess.run")
+    @patch("money4band.notifier.subprocess.run")
     def test_failure_nonzero(self, mock_run):
         mock_run.return_value = MagicMock(returncode=1, stderr="error")
-        from utils.notifier import _send_shoutrrr
+        from money4band.notifier import _send_shoutrrr
         assert _send_shoutrrr("discord://token@hook", "hello") is False
 
-    @patch("utils.notifier.subprocess.run", side_effect=FileNotFoundError)
+    @patch("money4band.notifier.subprocess.run", side_effect=FileNotFoundError)
     def test_docker_missing(self, mock_run):
-        from utils.notifier import _send_shoutrrr
+        from money4band.notifier import _send_shoutrrr
         assert _send_shoutrrr("discord://token@hook", "hello") is False
 
-    @patch("utils.notifier.subprocess.run", side_effect=subprocess.TimeoutExpired("cmd", 30))
+    @patch("money4band.notifier.subprocess.run", side_effect=subprocess.TimeoutExpired("cmd", 30))
     def test_timeout(self, mock_run):
-        from utils.notifier import _send_shoutrrr
+        from money4band.notifier import _send_shoutrrr
         assert _send_shoutrrr("discord://token@hook", "hello") is False
 
 
@@ -227,7 +227,7 @@ class TestSendShoutrrr:
 
 class TestSendTest:
 
-    @patch("utils.notifier._send_shoutrrr", return_value=True)
+    @patch("money4band.notifier._send_shoutrrr", return_value=True)
     def test_success(self, mock_send, enabled_config):
         assert send_test(enabled_config) is True
         assert "Test notification" in mock_send.call_args[0][1]
@@ -291,11 +291,11 @@ class TestNotifySubcommand:
 class TestHookHelpers:
 
     def test_start_stack_has_notify_helper(self):
-        from utils.fn_startStack import _notify_event
+        from money4band.fn_startStack import _notify_event
         assert callable(_notify_event)
 
     def test_stop_stack_has_notify_helper(self):
-        from utils.fn_stopStack import _notify_event
+        from money4band.fn_stopStack import _notify_event
         assert callable(_notify_event)
 
 

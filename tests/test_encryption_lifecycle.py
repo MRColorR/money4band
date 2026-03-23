@@ -117,7 +117,7 @@ class TestCmdConfig:
 
         expected = os.path.join(str(tmp_path), "user-config.json")
 
-        with patch("utils.config_viewer.view_masked") as mock_view:
+        with patch("money4band.config_viewer.view_masked") as mock_view:
             main._cmd_config(args)
 
         mock_view.assert_called_once_with(expected)
@@ -137,7 +137,7 @@ class TestCmdConfig:
         expected = os.path.join(str(tmp_path), "user-config.json")
 
         with (
-            patch("utils.config_viewer.edit_config") as mock_edit,
+            patch("money4band.config_viewer.edit_config") as mock_edit,
             patch("main.atexit.register"),
             patch("main.signal.signal"),
         ):

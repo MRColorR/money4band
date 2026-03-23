@@ -3,11 +3,11 @@ from unittest.mock import MagicMock, mock_open, patch
 
 import requests
 
-from utils.downloader import download_file
+from money4band.downloader import download_file
 
 
 class TestDownloadFile(unittest.TestCase):
-    @patch("utils.downloader.get_session")
+    @patch("money4band.downloader.get_session")
     def test_download_file_success(self, mock_get_session):
         """Test successful download of a file."""
         mock_response = MagicMock()
@@ -27,8 +27,8 @@ class TestDownloadFile(unittest.TestCase):
         self.assertIn("timeout", kwargs)
         self.assertGreaterEqual(kwargs["timeout"], 15)
 
-    @patch("utils.downloader.logger.error")
-    @patch("utils.downloader.get_session")
+    @patch("money4band.downloader.logger.error")
+    @patch("money4band.downloader.get_session")
     def test_download_file_failure(self, mock_get_session, mock_logging_error):
         """Test download failure due to a request exception."""
         mock_session = MagicMock()
