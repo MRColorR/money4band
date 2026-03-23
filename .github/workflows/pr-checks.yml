@@ -57,7 +57,7 @@ jobs:
           pip install -r requirements.txt
           pip install -r requirements-dev.txt
           pip install mypy types-requests types-PyYAML
-      - run: mypy --ignore-missing-imports utils/ main.py
+      - run: mypy --ignore-missing-imports money4band/ main.py
 
   security:
     name: Security scan (bandit)
@@ -68,4 +68,4 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install bandit[toml]
-      - run: bandit -r utils/ main.py -c pyproject.toml --severity-level medium || true
+      - run: bandit -r money4band/ main.py -c pyproject.toml --severity-level medium || true

@@ -8,6 +8,7 @@ docker-compose.yaml
 .env
 *.txt
 !requirements.txt
+!requirements-dev.txt
 *.log
 *.bak
 venv*
