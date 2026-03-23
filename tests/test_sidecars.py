@@ -419,7 +419,7 @@ class TestAppConfigServiceDefinitions:
 
     def test_apps_without_service_have_none(self, app_config):
         for app in app_config["supported-apps"]["entries"]:
-            if app["name"] not in ("HONEYGAIN", "PACKETSHARE"):
+            if app["name"] not in ("HONEYGAIN", "PACKETSHARE", "BEARSHARE"):
                 assert "service" not in app, f"{app['name']} should not have a service"
 
 
@@ -445,9 +445,12 @@ class TestUserConfigTemplate:
     def test_packetshare_template_has_service_enabled(self, template):
         assert template["apps"]["packetshare"]["service_enabled"] is False
 
+    def test_bearshare_template_has_service_enabled(self, template):
+        assert template["apps"]["bearshare"]["service_enabled"] is False
+
     def test_other_apps_no_service_enabled(self, template):
         for name, cfg in template["apps"].items():
-            if name not in ("honeygain", "packetshare"):
+            if name not in ("honeygain", "packetshare", "bearshare"):
                 assert "service_enabled" not in cfg, (
                     f"{name} should not have service_enabled"
                 )
