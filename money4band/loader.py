@@ -116,9 +116,7 @@ def get_active_app_categories(app_config: dict[str, Any]) -> list[str]:
     return [
         key
         for key, val in app_config.items()
-        if isinstance(val, dict)
-        and val.get("active", False)
-        and "entries" in val
+        if isinstance(val, dict) and val.get("active", False) and "entries" in val
     ]
 
 
@@ -202,7 +200,7 @@ def main(config_path_or_dict: Any, module_dir_path: str) -> None:
     module_dir_path -- the directory containing the modules
     """
     try:
-        config = load_json_config(config_path_or_dict)
+        load_json_config(config_path_or_dict)
         load_modules_from_directory(module_dir_path)
     except Exception as e:
         logger.error(f"An unexpected error occurred: {str(e)}")

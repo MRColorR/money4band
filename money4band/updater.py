@@ -5,7 +5,6 @@ import logging
 import os
 import platform
 import re
-import shutil
 import subprocess
 import sys
 import tempfile
@@ -109,6 +108,9 @@ class Version:
             and self.patch == other.patch
         )
 
+    def __hash__(self) -> int:
+        return hash((self.major, self.minor, self.patch))
+
     def __lt__(self, other: Version) -> bool:
         if not isinstance(other, Version):
             return NotImplemented
@@ -161,9 +163,7 @@ def get_latest_releases(count: int = 5) -> list[dict[str, Any]]:
             try:
                 version = Version.from_string(name)
             except ValueError:
-                logger.warning(
-                    "Skipping release with unparseable version: '%s'", name
-                )
+                logger.warning("Skipping release with unparseable version: '%s'", name)
                 continue
             published_at = datetime.strptime(
                 release["published_at"], "%Y-%m-%dT%H:%M:%SZ"
@@ -289,7 +289,11 @@ def _notify_update_available(version: str) -> None:
         user_config = load_json_config(user_cfg_path)
         from money4band.notifier import notify
 
-        notify(user_config, "update_available", f"M4B v{version} is available! Run 'm4b update' to upgrade.")
+        notify(
+            user_config,
+            "update_available",
+            f"M4B v{version} is available! Run 'm4b update' to upgrade.",
+        )
     except Exception:
         logger.debug("Update notification failed (non-critical).", exc_info=True)
 
@@ -331,8 +335,13 @@ def _apply_git_update(target_version: str) -> bool:
 
     try:
         subprocess.run(
-            ["git", "fetch", "--depth=1", "origin",
-             f"+refs/tags/{tag}:refs/tags/{tag}"],
+            [
+                "git",
+                "fetch",
+                "--depth=1",
+                "origin",
+                f"+refs/tags/{tag}:refs/tags/{tag}",
+            ],
             cwd=parent_dir,
             check=True,
             capture_output=True,
@@ -364,9 +373,14 @@ def _get_binary_asset_name() -> str:
         arch = "arm64" if machine in ("arm64", "aarch64") else "amd64"
         return f"money4band-darwin-{arch}"
     else:  # linux
-        arch_map = {"x86_64": "amd64", "amd64": "amd64",
-                    "aarch64": "arm64", "arm64": "arm64",
-                    "armv7l": "armv7", "armv6l": "armv6"}
+        arch_map = {
+            "x86_64": "amd64",
+            "amd64": "amd64",
+            "aarch64": "arm64",
+            "arm64": "arm64",
+            "armv7l": "armv7",
+            "armv6l": "armv6",
+        }
         arch = arch_map.get(machine, "amd64")
         return f"money4band-linux-{arch}"
 

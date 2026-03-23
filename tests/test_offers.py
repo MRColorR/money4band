@@ -1,10 +1,8 @@
 """Tests for utils.offers — referral & passive income directory."""
+
 from __future__ import annotations
 
 import json
-import os
-
-import pytest
 
 from money4band.offers import display_offers, load_all_offers, load_external_offers
 
@@ -13,7 +11,12 @@ class TestLoadExternalOffers:
     def test_loads_valid_file(self, tmp_path):
         data = {
             "offers": [
-                {"name": "VPN Deal", "url": "https://vpn.example.com", "bonus": "x", "category": "vpn"}
+                {
+                    "name": "VPN Deal",
+                    "url": "https://vpn.example.com",
+                    "bonus": "x",
+                    "category": "vpn",
+                }
             ]
         }
         path = tmp_path / "offers.json"
@@ -46,7 +49,10 @@ class TestLoadAllOffers:
                         "compose_layer": "residential",
                         "app_details": {
                             "official_name": "TestApp",
-                            "earnings": {"model": "per-GB", "payout_methods": ["PayPal"]},
+                            "earnings": {
+                                "model": "per-GB",
+                                "payout_methods": ["PayPal"],
+                            },
                             "ip_policy": {"residential": True, "datacenter": False},
                         },
                     }
@@ -58,7 +64,11 @@ class TestLoadAllOffers:
         return str(p)
 
     def _write_ext_offers(self, tmp_path):
-        data = {"offers": [{"name": "ExtVPN", "url": "https://vpn.example.com", "category": "vpn"}]}
+        data = {
+            "offers": [
+                {"name": "ExtVPN", "url": "https://vpn.example.com", "category": "vpn"}
+            ]
+        }
         p = tmp_path / "offers.json"
         p.write_text(json.dumps(data))
         return str(p)
@@ -88,9 +98,14 @@ class TestLoadAllOffers:
             "deprecated-apps": {
                 "active": False,
                 "entries": [
-                    {"name": "OLDAPP", "link": "https://old.com",
-                     "compose_config": {"image": "x"}, "flags": {},
-                     "install_limit": -1, "compose_layer": "residential"}
+                    {
+                        "name": "OLDAPP",
+                        "link": "https://old.com",
+                        "compose_config": {"image": "x"},
+                        "flags": {},
+                        "install_limit": -1,
+                        "compose_layer": "residential",
+                    }
                 ],
             },
         }
@@ -129,9 +144,15 @@ class TestDisplayOffers:
         app_path = tmp_path / "app-config.json"
         app_path.write_text(json.dumps(cfg))
 
-        ext = {"offers": [
-            {"name": "ExtDeal", "url": "https://ext.example.com", "category": "affiliate"},
-        ]}
+        ext = {
+            "offers": [
+                {
+                    "name": "ExtDeal",
+                    "url": "https://ext.example.com",
+                    "category": "affiliate",
+                },
+            ]
+        }
         ext_path = tmp_path / "offers.json"
         ext_path.write_text(json.dumps(ext))
         return str(app_path), str(ext_path)

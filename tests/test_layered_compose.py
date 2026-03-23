@@ -1,11 +1,9 @@
 """Tests for Phase 2.9 — layered compose architecture."""
 
 import copy
-import json
 import os
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
-import pytest
 import yaml
 
 # ---------------------------------------------------------------------------
@@ -103,10 +101,13 @@ _USER_CONFIG = {
 
 
 class TestGetComposeFiles:
-
     def test_discovers_layered_files_in_order(self, tmp_path):
         """Layered files are returned in COMPOSE_LAYER_ORDER."""
-        from money4band.compose_builder import get_compose_files, COMPOSE_LAYER_FILES, COMPOSE_LAYER_ORDER
+        from money4band.compose_builder import (
+            COMPOSE_LAYER_FILES,
+            COMPOSE_LAYER_ORDER,
+            get_compose_files,
+        )
 
         # Create only some layer files
         for layer in ("base", "residential", "proxy"):
@@ -114,7 +115,8 @@ class TestGetComposeFiles:
         result = get_compose_files(str(tmp_path))
         filenames = [os.path.basename(f) for f in result]
         assert filenames == [
-            COMPOSE_LAYER_FILES[l] for l in COMPOSE_LAYER_ORDER
+            COMPOSE_LAYER_FILES[l]
+            for l in COMPOSE_LAYER_ORDER
             if l in ("base", "residential", "proxy")
         ]
 
@@ -136,7 +138,7 @@ class TestGetComposeFiles:
 
     def test_prefers_layered_over_legacy(self, tmp_path):
         """When both layered and legacy exist, returns only layered."""
-        from money4band.compose_builder import get_compose_files, COMPOSE_LAYER_FILES
+        from money4band.compose_builder import COMPOSE_LAYER_FILES, get_compose_files
 
         (tmp_path / COMPOSE_LAYER_FILES["base"]).write_text("services: {}")
         (tmp_path / "docker-compose.yaml").write_text("services: {}")
@@ -386,6 +388,7 @@ class TestCmdStatusCompose:
     def test_cmd_status_imports_get_compose_files(self):
         """Verify the _cmd_status function references get_compose_files."""
         import inspect
+
         from main import _cmd_status
 
         source = inspect.getsource(_cmd_status)
@@ -404,6 +407,7 @@ class TestLayerFallback:
     def test_service_layers_default(self):
         """service_layers.get() default must be 'datacenter'."""
         import inspect
+
         from money4band import compose_builder
 
         source = inspect.getsource(compose_builder.assemble_docker_compose)

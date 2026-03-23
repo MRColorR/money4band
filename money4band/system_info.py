@@ -47,13 +47,19 @@ def compose_regen_reminder() -> None:
 
 def get_dns_config(m4b_config: dict[str, Any]) -> dict[str, Any]:
     """Return the DNS section from the system config."""
-    return m4b_config.get("system", {}).get("dns", {"mode": "default", "servers": _DEFAULT_SERVERS})
+    return m4b_config.get("system", {}).get(
+        "dns", {"mode": "default", "servers": _DEFAULT_SERVERS}
+    )
 
 
-def set_dns_mode(m4b_config_path: str, mode: str, servers: list[str] | None = None) -> None:
+def set_dns_mode(
+    m4b_config_path: str, mode: str, servers: list[str] | None = None
+) -> None:
     """Persist a DNS mode (and optional server list) to m4b-config.json."""
     if mode not in DNS_MODES:
-        raise ValueError(f"Invalid DNS mode '{mode}'. Choose from: {', '.join(DNS_MODES)}")
+        raise ValueError(
+            f"Invalid DNS mode '{mode}'. Choose from: {', '.join(DNS_MODES)}"
+        )
     if servers is not None:
         invalid = [s for s in servers if not is_valid_ipv4(s)]
         if invalid:
@@ -95,7 +101,9 @@ def dns_interactive(m4b_config_path: str) -> None:
         else "current: host DNS"
     )
 
-    print(f"\n{Fore.YELLOW}Enter up to two IPv4 DNS servers, comma-separated.{Style.RESET_ALL}")
+    print(
+        f"\n{Fore.YELLOW}Enter up to two IPv4 DNS servers, comma-separated.{Style.RESET_ALL}"
+    )
     print(f"  Example: {Fore.CYAN}1.1.1.1, 8.8.8.8{Style.RESET_ALL}")
     print(f"  Leave empty to use the host machine's DNS ({current_hint}).")
 
@@ -174,11 +182,12 @@ def show_system_info(
     # ---- Apps ----
     apps_cfg = user_config.get("apps", {})
     enabled_apps = [
-        name for name, cfg in apps_cfg.items()
+        name
+        for name, cfg in apps_cfg.items()
         if isinstance(cfg, dict) and cfg.get("enabled", False)
     ]
     total_supported = 0
-    for cat_key, cat in app_config.items():
+    for _cat_key, cat in app_config.items():
         if isinstance(cat, dict) and cat.get("active", False):
             total_supported += len(cat.get("entries", []))
 
@@ -199,20 +208,29 @@ def show_system_info(
     docker_running = False
     multiarch = False
     if docker_ok:
-        from money4band.helper import is_docker_daemon_running, is_multiarch_emulation_available
+        from money4band.helper import (
+            is_docker_daemon_running,
+            is_multiarch_emulation_available,
+        )
+
         docker_running = is_docker_daemon_running()
         if docker_running:
             multiarch = is_multiarch_emulation_available()
 
     # ---- Compose files ----
     from money4band.compose_builder import get_compose_files
+
     compose_files = get_compose_files(".")
-    compose_mode = "layered" if len(compose_files) > 1 else ("monolithic" if compose_files else "none")
+    compose_mode = (
+        "layered"
+        if len(compose_files) > 1
+        else ("monolithic" if compose_files else "none")
+    )
 
     # ---- Print ----
     w = 22  # label column width
     print(f"\n{Fore.CYAN}{'=' * 50}")
-    print(f"  M4B System Information")
+    print("  M4B System Information")
     print(f"{'=' * 50}{Style.RESET_ALL}")
 
     print(f"\n{Fore.CYAN}Version & Updates{Style.RESET_ALL}")
@@ -224,12 +242,18 @@ def show_system_info(
     print(f"  {'Architecture:':<{w}} {arch}")
     print(f"  {'Docker arch:':<{w}} {dk_arch}")
     print(f"  {'Default platform:':<{w}} {dk_platform}")
-    print(f"  {'Docker installed:':<{w}} {'yes' if docker_ok else f'{Fore.RED}no{Style.RESET_ALL}'}")
+    print(
+        f"  {'Docker installed:':<{w}} {'yes' if docker_ok else f'{Fore.RED}no{Style.RESET_ALL}'}"
+    )
     if docker_ok:
-        print(f"  {'Docker running:':<{w}} {'yes' if docker_running else f'{Fore.RED}no{Style.RESET_ALL}'}")
+        print(
+            f"  {'Docker running:':<{w}} {'yes' if docker_running else f'{Fore.RED}no{Style.RESET_ALL}'}"
+        )
         print(f"  {'Multiarch (QEMU):':<{w}} {'yes' if multiarch else 'no'}")
         if multiarch:
-            print(f"    {Fore.GREEN}\u21b3 Cross-arch apps run via QEMU emulation{Style.RESET_ALL}")
+            print(
+                f"    {Fore.GREEN}\u21b3 Cross-arch apps run via QEMU emulation{Style.RESET_ALL}"
+            )
         else:
             print(
                 f"    {Fore.YELLOW}\u21b3 Native {dk_arch} only \u2014 "
@@ -299,4 +323,3 @@ def main(
             raise SystemExit(0)
         else:
             break
-

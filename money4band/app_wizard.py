@@ -42,7 +42,9 @@ def _prompt_choice(msg: str, choices: dict[str, tuple[str, str]]) -> str:
         val = input(f"{Fore.GREEN}Select:{Style.RESET_ALL} ").strip()
         if val in choices:
             return val
-        print(f"{Fore.RED}Invalid choice. Enter {'/'.join(sorted(choices))}.{Style.RESET_ALL}")
+        print(
+            f"{Fore.RED}Invalid choice. Enter {'/'.join(sorted(choices))}.{Style.RESET_ALL}"
+        )
 
 
 def run_app_wizard(apps_d_dir: str) -> dict[str, Any] | None:
@@ -86,11 +88,14 @@ def run_app_wizard(apps_d_dir: str) -> dict[str, Any] | None:
         flags["manual_onboard"] = True
 
     # --- Compose layer ---
-    layer_choice = _prompt_choice("Network tier:", {
-        "1": ("residential", "Residential (home IP required)"),
-        "2": ("universal", "Universal (any IP type)"),
-        "3": ("datacenter", "Datacenter / VPS"),
-    })
+    layer_choice = _prompt_choice(
+        "Network tier:",
+        {
+            "1": ("residential", "Residential (home IP required)"),
+            "2": ("universal", "Universal (any IP type)"),
+            "3": ("datacenter", "Datacenter / VPS"),
+        },
+    )
     compose_layer = _LAYER_CHOICES[layer_choice]
 
     # --- Install limit ---
@@ -157,9 +162,13 @@ def run_app_wizard(apps_d_dir: str) -> dict[str, Any] | None:
     os.makedirs(apps_d_dir, exist_ok=True)
     filepath = os.path.join(apps_d_dir, f"{name}.json")
     if os.path.exists(filepath):
-        overwrite = input(
-            f"{Fore.YELLOW}{filepath} already exists. Overwrite? (y/N):{Style.RESET_ALL} "
-        ).strip().lower()
+        overwrite = (
+            input(
+                f"{Fore.YELLOW}{filepath} already exists. Overwrite? (y/N):{Style.RESET_ALL} "
+            )
+            .strip()
+            .lower()
+        )
         if overwrite not in ("y", "yes"):
             print("Cancelled.")
             return None

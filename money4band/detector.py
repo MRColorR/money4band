@@ -109,10 +109,10 @@ def get_system_memory_and_cores() -> tuple[float, int | None]:
 # Per-app tier multipliers applied on top of the profile base.
 # Keys match the LITTLE/MEDIUM/BIG/HUGE tiers used in app-config.json.
 _TIER_MULTIPLIERS = {
-    "little":  {"mem_reserv": 0.2, "mem_limit": 0.4, "cpu": 0.2},
-    "medium":  {"mem_reserv": 0.4, "mem_limit": 0.6, "cpu": 0.4},
-    "big":     {"mem_reserv": 0.6, "mem_limit": 0.8, "cpu": 0.6},
-    "huge":    {"mem_reserv": 0.8, "mem_limit": 1.0, "cpu": 0.8},
+    "little": {"mem_reserv": 0.2, "mem_limit": 0.4, "cpu": 0.2},
+    "medium": {"mem_reserv": 0.4, "mem_limit": 0.6, "cpu": 0.4},
+    "big": {"mem_reserv": 0.6, "mem_limit": 0.8, "cpu": 0.6},
+    "huge": {"mem_reserv": 0.8, "mem_limit": 1.0, "cpu": 0.8},
 }
 
 # Absolute minimums so containers always get something usable.
@@ -124,14 +124,12 @@ VALID_PROFILES = ("base", "min", "low", "mid", "max")
 
 def get_active_profile(m4b_config: dict[str, Any]) -> str:
     """Return the currently active resource profile name."""
-    return (
-        m4b_config
-        .get("resource_profiles", {})
-        .get("active", "low")
-    )
+    return m4b_config.get("resource_profiles", {}).get("active", "low")
 
 
-def get_profile_definition(m4b_config: dict[str, Any], name: str | None = None) -> dict[str, Any]:
+def get_profile_definition(
+    m4b_config: dict[str, Any], name: str | None = None
+) -> dict[str, Any]:
     """Return the profile dict for *name* (defaults to active)."""
     rp = m4b_config.get("resource_profiles", {})
     name = name or rp.get("active", "low")
@@ -171,15 +169,17 @@ def calculate_resource_limits(
         resource_limits[f"app_cpu_limit_{tier}"] = cpu
 
     # Preserve the ram_cap_mb_default key for backward compat.
-    resource_limits["ram_cap_mb_default"] = user_config.get(
-        "resource_limits", {}
-    ).get("ram_cap_mb_default", 6144)
+    resource_limits["ram_cap_mb_default"] = user_config.get("resource_limits", {}).get(
+        "ram_cap_mb_default", 6144
+    )
 
     user_config.setdefault("resource_limits", {}).update(resource_limits)
     write_json(user_config, user_config_path_or_dict)
     logger.debug(
         "Resource limits updated (profile=%s, base_ram=%.0f MB, base_cpu=%.1f)",
-        get_active_profile(m4b_config), base_ram_mb, base_cpu,
+        get_active_profile(m4b_config),
+        base_ram_mb,
+        base_cpu,
     )
 
 
@@ -196,9 +196,7 @@ def show_resource_profile_info(
 
     print(f"\n{Fore.CYAN}Resource Profile: {Fore.GREEN}{active}{Style.RESET_ALL}")
     print(f"  {profile.get('description', '')}")
-    print(
-        f"  System: {total_mem:.0f} MB RAM, {cores} cores"
-    )
+    print(f"  System: {total_mem:.0f} MB RAM, {cores} cores")
     print(
         f"  Base allocation: "
         f"{total_mem * profile.get('ram_pct', 0):.0f} MB RAM, "
@@ -207,7 +205,7 @@ def show_resource_profile_info(
 
     rl = user_config.get("resource_limits", {})
     print(f"\n  {'Tier':<8} {'Mem Limit':<12} {'Mem Reserv':<12} {'CPU Limit'}")
-    print(f"  {'-'*8} {'-'*12} {'-'*12} {'-'*9}")
+    print(f"  {'-' * 8} {'-' * 12} {'-' * 12} {'-' * 9}")
     for tier in ("little", "medium", "big", "huge"):
         ml = rl.get(f"app_mem_limit_{tier}", "?")
         mr = rl.get(f"app_mem_reserv_{tier}", "?")
@@ -216,6 +214,4 @@ def show_resource_profile_info(
 
     profiles = m4b_config.get("resource_profiles", {}).get("profiles", {})
     print(f"\n  Available profiles: {', '.join(profiles)}")
-    print(
-        f"  Change with: {Fore.YELLOW}m4b limit <profile>{Style.RESET_ALL}\n"
-    )
+    print(f"  Change with: {Fore.YELLOW}m4b limit <profile>{Style.RESET_ALL}\n")

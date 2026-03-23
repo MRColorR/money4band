@@ -36,20 +36,24 @@ GHCR_TAGS_RESPONSE = {"tags": ["latest", "v1.0", "v2.0"]}
 class TestConfigure(unittest.TestCase):
     def tearDown(self):
         # Reset module globals after each test
-        configure({
-            "system": {
-                "registry_request_timeout": 15,
-                "registry_max_retries": 3,
+        configure(
+            {
+                "system": {
+                    "registry_request_timeout": 15,
+                    "registry_max_retries": 3,
+                }
             }
-        })
+        )
 
     def test_configure_overrides_defaults(self):
-        configure({
-            "system": {
-                "registry_request_timeout": 30,
-                "registry_max_retries": 5,
+        configure(
+            {
+                "system": {
+                    "registry_request_timeout": 30,
+                    "registry_max_retries": 5,
+                }
             }
-        })
+        )
         self.assertEqual(http_client_mod.REQUEST_TIMEOUT, 30)
         self.assertEqual(http_client_mod.MAX_RETRIES, 5)
 
@@ -186,9 +190,7 @@ class TestCheckImgArchSupport(unittest.TestCase):
     @patch("money4band.checker.fetch_docker_tags", return_value=None)
     def test_registry_unreachable_returns_none(self, _mock):
         # KI-003: registry down must NOT return False (disables apps)
-        result = check_img_arch_support(
-            "honeygain/honeygain", "latest", "linux/amd64"
-        )
+        result = check_img_arch_support("honeygain/honeygain", "latest", "linux/amd64")
         self.assertIsNone(result)
 
     @patch("money4band.checker.time.sleep")  # Don't actually sleep in tests
@@ -202,12 +204,8 @@ class TestCheckImgArchSupport(unittest.TestCase):
     @patch("money4band.checker.fetch_docker_tags", return_value=DOCKERHUB_TAGS_RESPONSE)
     def test_multi_arch_tag(self, _mock):
         """'latest' has both amd64 and arm64 — both should be detected."""
-        self.assertTrue(
-            check_img_arch_support("img", "latest", "linux/amd64")
-        )
-        self.assertTrue(
-            check_img_arch_support("img", "latest", "linux/arm64")
-        )
+        self.assertTrue(check_img_arch_support("img", "latest", "linux/amd64"))
+        self.assertTrue(check_img_arch_support("img", "latest", "linux/arm64"))
 
 
 class TestGetCompatibleTag(unittest.TestCase):

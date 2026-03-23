@@ -10,7 +10,6 @@ from __future__ import annotations
 import io
 import logging
 import os
-import sys
 from contextlib import redirect_stdout
 from typing import Any
 
@@ -265,7 +264,11 @@ def get_app_catalog_rich(app_config: dict[str, Any]) -> list[dict[str, Any]]:
     Each element: {category, active, apps: [{name, link, layer, payout, reason}]}
     Sorted: active categories first.
     """
-    from money4band.loader import get_all_app_categories, get_category_entries, is_category_active
+    from money4band.loader import (
+        get_all_app_categories,
+        get_category_entries,
+        is_category_active,
+    )
 
     all_cats = get_all_app_categories(app_config)
     active_cats = [c for c in all_cats if is_category_active(app_config, c)]
@@ -277,18 +280,22 @@ def get_app_catalog_rich(app_config: dict[str, Any]) -> list[dict[str, Any]]:
         apps = []
         for e in entries:
             earnings = e.get("app_details", {}).get("earnings", {})
-            apps.append({
-                "name": e.get("name", "?"),
-                "link": e.get("link", ""),
-                "layer": e.get("compose_layer", "-"),
-                "payout": earnings.get("min_payout", "-"),
-                "reason": e.get("removal_reason", ""),
-            })
-        result.append({
-            "category": cat_key,
-            "active": is_category_active(app_config, cat_key),
-            "apps": apps,
-        })
+            apps.append(
+                {
+                    "name": e.get("name", "?"),
+                    "link": e.get("link", ""),
+                    "layer": e.get("compose_layer", "-"),
+                    "payout": earnings.get("min_payout", "-"),
+                    "reason": e.get("removal_reason", ""),
+                }
+            )
+        result.append(
+            {
+                "category": cat_key,
+                "active": is_category_active(app_config, cat_key),
+                "apps": apps,
+            }
+        )
     return result
 
 
@@ -321,7 +328,9 @@ def get_system_info_structured(
     os_type = device.get("os_type", "unknown")
     arch = device.get("detected_architecture", "unknown")
     dk_arch = device.get("detected_docker_arch", "unknown")
-    dk_platform = m4b_config.get("system", {}).get("default_docker_platform", "linux/amd64")
+    dk_platform = m4b_config.get("system", {}).get(
+        "default_docker_platform", "linux/amd64"
+    )
 
     active_profile = detector.get_active_profile(m4b_config)
     profile_def = detector.get_profile_definition(m4b_config, active_profile)
@@ -334,7 +343,8 @@ def get_system_info_structured(
 
     apps_cfg = user_config.get("apps", {})
     enabled_apps = [
-        name for name, cfg in apps_cfg.items()
+        name
+        for name, cfg in apps_cfg.items()
         if isinstance(cfg, dict) and cfg.get("enabled", False)
     ]
     total_supported = 0
@@ -350,14 +360,23 @@ def get_system_info_structured(
     docker_running = False
     multiarch = False
     if docker_ok:
-        from money4band.helper import is_docker_daemon_running, is_multiarch_emulation_available
+        from money4band.helper import (
+            is_docker_daemon_running,
+            is_multiarch_emulation_available,
+        )
+
         docker_running = is_docker_daemon_running()
         if docker_running:
             multiarch = is_multiarch_emulation_available()
 
     from money4band.compose_builder import get_compose_files
+
     compose_files = get_compose_files(".")
-    compose_mode = "layered" if len(compose_files) > 1 else ("monolithic" if compose_files else "none")
+    compose_mode = (
+        "layered"
+        if len(compose_files) > 1
+        else ("monolithic" if compose_files else "none")
+    )
 
     return {
         "version": version,
@@ -398,7 +417,8 @@ def get_generator_summary(
     proxy_enabled = user.get("proxies", {}).get("enabled", False)
     apps_cfg = user.get("apps", {})
     enabled_apps = [
-        name for name, cfg in apps_cfg.items()
+        name
+        for name, cfg in apps_cfg.items()
         if isinstance(cfg, dict) and cfg.get("enabled", False)
     ]
     dash = user.get("m4b_dashboard", {})
@@ -409,10 +429,13 @@ def get_generator_summary(
     instances_dir = os.path.join(_BASE_DIR, "m4b_proxy_instances")
     proxy_count = 0
     if os.path.isdir(instances_dir):
-        proxy_count = len([
-            d for d in os.listdir(instances_dir)
-            if os.path.isdir(os.path.join(instances_dir, d))
-        ])
+        proxy_count = len(
+            [
+                d
+                for d in os.listdir(instances_dir)
+                if os.path.isdir(os.path.join(instances_dir, d))
+            ]
+        )
 
     return {
         "device_name": device_name,

@@ -16,7 +16,6 @@ from colorama import Fore, Style
 
 from money4band.http_client import get_session
 
-
 logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 # IP providers (multi-fallback)
@@ -36,15 +35,28 @@ _CLOUDFLARE_DOH = "https://1.1.1.1/dns-query"
 _IPV4_RE = re.compile(r"^\d{1,3}(?:\.\d{1,3}){3}$")
 
 # Suspicious ISP keywords that increase fraud score.
-_SUSPICIOUS_ISP_KEYWORDS = frozenset({
-    "ovh", "hetzner", "digitalocean", "linode", "vultr", "aws", "amazon",
-    "google cloud", "azure", "contabo", "scaleway", "oracle",
-})
+_SUSPICIOUS_ISP_KEYWORDS = frozenset(
+    {
+        "ovh",
+        "hetzner",
+        "digitalocean",
+        "linode",
+        "vultr",
+        "aws",
+        "amazon",
+        "google cloud",
+        "azure",
+        "contabo",
+        "scaleway",
+        "oracle",
+    }
+)
 
 
 # ---------------------------------------------------------------------------
 # Core helpers
 # ---------------------------------------------------------------------------
+
 
 def get_public_ip(timeout: int = 5) -> str | None:
     """Return the machine's public IPv4 address, trying multiple providers."""
@@ -190,6 +202,7 @@ def format_isp_type(entry: dict[str, Any]) -> str:
 # Display
 # ---------------------------------------------------------------------------
 
+
 def display_ip_table(results: list[dict[str, Any]]) -> None:
     """Print a formatted table of IP analysis results."""
     if not results:
@@ -201,7 +214,9 @@ def display_ip_table(results: list[dict[str, Any]]) -> None:
         f"\n  {'#':<4} {'IP Address':<17} {'Score':<8} {'Rating':<20} "
         f"{'Type':<14} {'Location':<25} {'Blacklist'}"
     )
-    print(f"  {'-'*4} {'-'*17} {'-'*8} {'-'*12} {'-'*14} {'-'*25} {'-'*9}")
+    print(
+        f"  {'-' * 4} {'-' * 17} {'-' * 8} {'-' * 12} {'-' * 14} {'-' * 25} {'-' * 9}"
+    )
 
     for i, r in enumerate(results, 1):
         ip = r.get("query", "?")
@@ -210,9 +225,19 @@ def display_ip_table(results: list[dict[str, Any]]) -> None:
         isp_type = format_isp_type(r)
         location = f"{r.get('city', '?')}, {r.get('country', '?')}"
         bl = r.get("_blacklisted", False)
-        bl_str = f"{Fore.RED}YES{Style.RESET_ALL}" if bl else f"{Fore.GREEN}no{Style.RESET_ALL}"
+        bl_str = (
+            f"{Fore.RED}YES{Style.RESET_ALL}"
+            if bl
+            else f"{Fore.GREEN}no{Style.RESET_ALL}"
+        )
 
-        label = "REAL" if i == 1 and not r.get("_is_proxy") else f"P{i - 1}" if r.get("_is_proxy") else str(i)
+        label = (
+            "REAL"
+            if i == 1 and not r.get("_is_proxy")
+            else f"P{i - 1}"
+            if r.get("_is_proxy")
+            else str(i)
+        )
         print(
             f"  {label:<4} {ip:<17} {score:<8} {rating:<20} "
             f"{isp_type:<14} {location:<25} {bl_str}"
@@ -222,6 +247,7 @@ def display_ip_table(results: list[dict[str, Any]]) -> None:
 # ---------------------------------------------------------------------------
 # Orchestrator
 # ---------------------------------------------------------------------------
+
 
 def analyse_ips(proxy_file: str | None = None) -> list[dict[str, Any]]:
     """Run the full IP analysis: real IP + all proxies.
@@ -246,9 +272,7 @@ def analyse_ips(proxy_file: str | None = None) -> list[dict[str, Any]]:
     # 2. Test proxy connectivity (only when a proxy file was provided)
     proxies = parse_proxy_file(proxy_file) if proxy_file else []
     if proxies:
-        print(
-            f"{Fore.CYAN}Testing {len(proxies)} proxies...{Style.RESET_ALL}"
-        )
+        print(f"{Fore.CYAN}Testing {len(proxies)} proxies...{Style.RESET_ALL}")
         for proxy_url in proxies:
             exit_ip = test_proxy_connectivity(proxy_url)
             if exit_ip and exit_ip not in all_ips:

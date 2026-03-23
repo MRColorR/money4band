@@ -14,7 +14,6 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-
 logger = logging.getLogger(__name__)
 # ── Defaults (overridable via configure()) ──────────────────────────────
 REQUEST_TIMEOUT: int = 15  # seconds

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
 from money4band.app_info import _find_app, list_apps, show_app_detail
 
 # ---------------------------------------------------------------------------
@@ -119,6 +118,7 @@ _SAMPLE_CONFIG = {
 # _find_app
 # ---------------------------------------------------------------------------
 
+
 class TestFindApp:
     def test_find_exact_name(self):
         entry, cat = _find_app(_SAMPLE_CONFIG, "EARNAPP")
@@ -155,6 +155,7 @@ class TestFindApp:
 # ---------------------------------------------------------------------------
 # show_app_detail
 # ---------------------------------------------------------------------------
+
 
 class TestShowAppDetail:
     def test_found_returns_true(self, capsys):
@@ -230,6 +231,7 @@ class TestShowAppDetail:
 # ---------------------------------------------------------------------------
 # list_apps
 # ---------------------------------------------------------------------------
+
 
 class TestListApps:
     def test_lists_all_apps(self, capsys):

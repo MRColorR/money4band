@@ -1,10 +1,9 @@
 """Tests for utils.profiles — configuration profiles."""
+
 from __future__ import annotations
 
 import json
 import os
-
-import pytest
 
 from money4band.profiles import (
     create_profile,

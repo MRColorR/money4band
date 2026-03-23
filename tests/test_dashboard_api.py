@@ -1,4 +1,5 @@
 """Tests for utils.dashboard_api — FastAPI dashboard backend."""
+
 from __future__ import annotations
 
 import json
@@ -6,12 +7,13 @@ from unittest import mock
 
 import pytest
 
-from money4band.dashboard_api import app, configure, _ALLOWED_ACTIONS
+from money4band.dashboard_api import _ALLOWED_ACTIONS, app, configure
 
 
 @pytest.fixture
 def client():
     from fastapi.testclient import TestClient
+
     return TestClient(app)
 
 
@@ -76,7 +78,10 @@ class TestDashboardAPI:
         assert resp.status_code in (400, 404, 422)
 
     def test_get_app_config(self, client, tmp_path):
-        config = {"app_config_version": 1.2, "supported-apps": {"active": True, "entries": []}}
+        config = {
+            "app_config_version": 1.2,
+            "supported-apps": {"active": True, "entries": []},
+        }
         config_file = tmp_path / "app-config.json"
         config_file.write_text(json.dumps(config))
         configure(str(tmp_path))

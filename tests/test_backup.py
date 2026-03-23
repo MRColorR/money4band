@@ -2,14 +2,11 @@
 
 import json
 import time
-from datetime import datetime, timezone
 from pathlib import Path
 
 import pytest
 
 from money4band.backup import (
-    BACKUP_DIR,
-    BackupInfo,
     cleanup_backups,
     create_backup,
     list_backups,
@@ -38,8 +35,8 @@ def sample_config(tmp_path):
 # create_backup
 # ---------------------------------------------------------------------------
 
-class TestCreateBackup:
 
+class TestCreateBackup:
     def test_creates_file_in_backup_dir(self, sample_config, _isolated_backup_dir):
         path = create_backup(sample_config)
         assert path.exists()
@@ -65,8 +62,8 @@ class TestCreateBackup:
 # list_backups
 # ---------------------------------------------------------------------------
 
-class TestListBackups:
 
+class TestListBackups:
     def test_empty_when_no_backups(self):
         assert list_backups() == []
 
@@ -88,8 +85,8 @@ class TestListBackups:
 # restore_backup
 # ---------------------------------------------------------------------------
 
-class TestRestoreBackup:
 
+class TestRestoreBackup:
     def test_restore_overwrites_config(self, sample_config, tmp_path):
         backup_path = create_backup(sample_config)
         # Modify the live config
@@ -108,8 +105,8 @@ class TestRestoreBackup:
 # cleanup_backups
 # ---------------------------------------------------------------------------
 
-class TestCleanupBackups:
 
+class TestCleanupBackups:
     def test_keeps_specified_count(self, sample_config):
         for _ in range(4):
             create_backup(sample_config)
@@ -142,7 +139,9 @@ class TestCleanupBackups:
 # Edge cases
 # ---------------------------------------------------------------------------
 
-class TestBackupEdgeCases:
+
+class TestBackupBoundaryConditions:
+    """Binary content, empty files, zero-keep cleanup, and missing parent dirs."""
 
     def test_restore_preserves_binary_content(self, tmp_path, _isolated_backup_dir):
         """Encrypted (binary) configs must survive backup→restore round-trip."""

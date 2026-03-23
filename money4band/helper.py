@@ -44,9 +44,7 @@ def get_compose_project_name(env_file: str) -> str | None:
                         )
                         break
     except Exception as e:
-        logger.error(
-            "Error reading COMPOSE_PROJECT_NAME from %s: %s", env_file, e
-        )
+        logger.error("Error reading COMPOSE_PROJECT_NAME from %s: %s", env_file, e)
 
     return project_name
 
@@ -152,7 +150,15 @@ def is_multiarch_emulation_available() -> bool:
             timeout=15,
         )
         if result.returncode == 0:
-            known_archs = {"amd64", "arm64", "arm/v7", "386", "ppc64le", "s390x", "riscv64"}
+            known_archs = {
+                "amd64",
+                "arm64",
+                "arm/v7",
+                "386",
+                "ppc64le",
+                "s390x",
+                "riscv64",
+            }
             for line in result.stdout.splitlines():
                 if "platforms:" in line.lower():
                     lower = line.lower()
@@ -225,15 +231,14 @@ def check_docker_ready() -> None:
                 f"{Fore.GREEN}Attempting to fix: adding '{user}' to docker group...{Style.RESET_ALL}"
             )
             create_docker_group_if_needed()
-    else:
-        if not is_docker_daemon_running():
-            msg = (
-                "Docker daemon is not running or Docker is not installed. "
-                "Please start Docker Desktop or install Docker first."
-            )
-            logger.error(msg)
-            print(f"{Fore.RED}{msg}{Style.RESET_ALL}")
-            raise RuntimeError(msg)
+    elif not is_docker_daemon_running():
+        msg = (
+            "Docker daemon is not running or Docker is not installed. "
+            "Please start Docker Desktop or install Docker first."
+        )
+        logger.error(msg)
+        print(f"{Fore.RED}{msg}{Style.RESET_ALL}")
+        raise RuntimeError(msg)
 
 
 def run_docker_command(command: list[str], use_sudo: bool = False) -> int:
@@ -264,7 +269,7 @@ def run_docker_command(command: list[str], use_sudo: bool = False) -> int:
     except Exception as e:
         logger.error("Failed to run command: %s", e)
         print(f"{Fore.RED}Unexpected error: {e}{Style.RESET_ALL}")
-        raise RuntimeError(f"Command failed: {e}")
+        raise RuntimeError(f"Command failed: {e}") from e
 
 
 def setup_service(
@@ -337,7 +342,7 @@ def setup_service(
 
     except subprocess.CalledProcessError as e:
         logger.error(f"Failed to setup {service_name}: {str(e)}")
-        raise RuntimeError(f"Failed to setup {service_name}: {str(e)}")
+        raise RuntimeError(f"Failed to setup {service_name}: {str(e)}") from e
 
 
 def ensure_service(
@@ -359,7 +364,7 @@ def ensure_service(
         )
     except Exception as e:
         logger.error(f"Failed to ensure {service_name} service: {str(e)}")
-        raise RuntimeError(f"Failed to ensure {service_name} service: {str(e)}")
+        raise RuntimeError(f"Failed to ensure {service_name} service: {str(e)}") from e
 
 
 def check_required_files(

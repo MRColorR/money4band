@@ -75,7 +75,9 @@ class TestEncryptDecrypt(unittest.TestCase):
     def setUp(self):
         self.tmp_dir = tempfile.mkdtemp()
         self.key_path = Path(self.tmp_dir) / "master.key"
-        self.patcher = patch("money4band.crypto.get_key_path", return_value=self.key_path)
+        self.patcher = patch(
+            "money4band.crypto.get_key_path", return_value=self.key_path
+        )
         self.patcher.start()
 
     def tearDown(self):
@@ -146,7 +148,9 @@ class TestFileOperations(unittest.TestCase):
         self.tmp_dir = tempfile.mkdtemp()
         self.key_path = Path(self.tmp_dir) / "master.key"
         self.config_path = os.path.join(self.tmp_dir, "user-config.json")
-        self.patcher = patch("money4band.crypto.get_key_path", return_value=self.key_path)
+        self.patcher = patch(
+            "money4band.crypto.get_key_path", return_value=self.key_path
+        )
         self.patcher.start()
 
     def tearDown(self):
@@ -270,7 +274,9 @@ class TestLoaderIntegration(unittest.TestCase):
         self.tmp_dir = tempfile.mkdtemp()
         self.key_path = Path(self.tmp_dir) / "master.key"
         self.config_path = os.path.join(self.tmp_dir, "test-config.json")
-        self.patcher = patch("money4band.crypto.get_key_path", return_value=self.key_path)
+        self.patcher = patch(
+            "money4band.crypto.get_key_path", return_value=self.key_path
+        )
         self.patcher.start()
 
     def tearDown(self):
@@ -307,7 +313,9 @@ class TestDumperIntegration(unittest.TestCase):
         self.tmp_dir = tempfile.mkdtemp()
         self.key_path = Path(self.tmp_dir) / "master.key"
         self.config_path = os.path.join(self.tmp_dir, "test-config.json")
-        self.patcher = patch("money4band.crypto.get_key_path", return_value=self.key_path)
+        self.patcher = patch(
+            "money4band.crypto.get_key_path", return_value=self.key_path
+        )
         self.patcher.start()
 
     def tearDown(self):

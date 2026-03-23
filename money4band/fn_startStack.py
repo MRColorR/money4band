@@ -19,7 +19,6 @@ from money4band import loader
 from money4band.cls import cls
 from money4band.generator import generate_dashboard_urls
 from money4band.helper import (
-    check_required_files,
     create_docker_group_if_needed,
     get_compose_project_name,
     is_user_in_docker_group,
@@ -48,6 +47,8 @@ def _notify_event(event: str, message: str) -> None:
         notify(user_config, event, message)
     except Exception:
         logger.debug("Notification send failed (non-critical).", exc_info=True)
+
+
 parent_dir = os.path.dirname(script_dir)
 if parent_dir not in sys.path:
     sys.path.append(parent_dir)
@@ -111,7 +112,9 @@ def start_stack(
     Returns:
         bool: True if the stack started successfully, False otherwise.
     """
-    compose_files = [compose_file] if isinstance(compose_file, str) else list(compose_file)
+    compose_files = (
+        [compose_file] if isinstance(compose_file, str) else list(compose_file)
+    )
     logger.info(
         f"Starting stack for '{instance_name}' instance with compose file(s): {compose_files} and env file: {env_file}"
     )
@@ -171,7 +174,9 @@ def start_stack(
                 f"{Fore.GREEN}All Apps for '{instance_name}' instance started.{Style.RESET_ALL}"
             )
             logger.info(f"Stack for '{instance_name}' started successfully.")
-            _notify_event("stack_start", f"Stack '{instance_name}' started successfully.")
+            _notify_event(
+                "stack_start", f"Stack '{instance_name}' started successfully."
+            )
         else:
             print(
                 f"{Fore.RED}Error starting Docker stack for '{instance_name}' instance. Please check that Docker is running and that the configuration is complete, then try again.{Style.RESET_ALL}"
@@ -179,7 +184,10 @@ def start_stack(
             logger.error(
                 f"Stack for '{instance_name}' failed to start with exit code {result}."
             )
-            _notify_event("stack_error", f"Stack '{instance_name}' failed to start (exit {result}).")
+            _notify_event(
+                "stack_error",
+                f"Stack '{instance_name}' failed to start (exit {result}).",
+            )
             input(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
         return result == 0
     except Exception as e:
@@ -357,8 +365,11 @@ def start_all_stacks(
 
         # Start main stack
         all_started = start_stack(
-            main_compose_file, main_env_file, main_instance_name,
-            skip_questions=True, profiles=profiles,
+            main_compose_file,
+            main_env_file,
+            main_instance_name,
+            skip_questions=True,
+            profiles=profiles,
         )
 
         # Wait a moment for main stack to initialize
@@ -384,7 +395,9 @@ def start_all_stacks(
                         # Proxy instances always need the proxy profile
                         proxy_profiles = tuple(dict.fromkeys((*profiles, "proxy")))
                         instance_started = start_stack(
-                            instance_files, env_file, instance,
+                            instance_files,
+                            env_file,
+                            instance,
                             skip_questions=True,
                             profiles=proxy_profiles,
                         )
@@ -463,7 +476,9 @@ def _extract_app_names_from_compose(compose_file: str | list[str]) -> list[str]:
     Falls back to infrastructure-only names if no compose file exists.
     """
     infra_fallback = ["watchtower", "m4bwebdashboard", "tun2socks"]
-    compose_files = [compose_file] if isinstance(compose_file, str) else list(compose_file)
+    compose_files = (
+        [compose_file] if isinstance(compose_file, str) else list(compose_file)
+    )
     all_services: list[str] = []
     try:
         import yaml
@@ -536,7 +551,9 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
         compose_files = get_compose_files(".")
         if not compose_files or not os.path.isfile("./.env"):
             print("Cannot start the stack. Required compose/env files are missing.")
-            print("Please run the setup wizard first to generate the configuration files.")
+            print(
+                "Please run the setup wizard first to generate the configuration files."
+            )
             input(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
             return
 
@@ -544,7 +561,8 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
 
         profiles = tuple(get_active_profiles(user_config))
         start_all_stacks(
-            main_compose_file=compose_files, profiles=profiles,
+            main_compose_file=compose_files,
+            profiles=profiles,
             main_instance_name=base_instance_name,
         )
     except FileNotFoundError as e:

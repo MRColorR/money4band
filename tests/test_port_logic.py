@@ -21,7 +21,9 @@ class TestPortLogic(unittest.TestCase):
         app = {"compose_config": {"ports": ["${DAWN_PORT}:5000"]}}
         config = {"ports": [5000]}
 
-        with patch("money4band.port_manager.find_next_available_port") as mock_find_port:
+        with patch(
+            "money4band.port_manager.find_next_available_port"
+        ) as mock_find_port:
             mock_find_port.side_effect = lambda x, **kwargs: x  # Return the same port
 
             result = assign_app_ports(app_name, app, config)
@@ -41,7 +43,9 @@ class TestPortLogic(unittest.TestCase):
         }
         config = {"ports": [5900, 6080]}
 
-        with patch("money4band.port_manager.find_next_available_port") as mock_find_port:
+        with patch(
+            "money4band.port_manager.find_next_available_port"
+        ) as mock_find_port:
             mock_find_port.side_effect = lambda x, **kwargs: x  # Return the same port
 
             result = assign_app_ports(app_name, app, config)
@@ -58,7 +62,9 @@ class TestPortLogic(unittest.TestCase):
         app = {"compose_config": {"ports": ["${MYSTNODE_PORT}:4449"]}}
         config = {}  # No ports in config
 
-        with patch("money4band.port_manager.find_next_available_port") as mock_find_port:
+        with patch(
+            "money4band.port_manager.find_next_available_port"
+        ) as mock_find_port:
             mock_find_port.side_effect = lambda x, **kwargs: x  # Return the same port
 
             result = assign_app_ports(app_name, app, config)
@@ -78,7 +84,9 @@ class TestPortLogic(unittest.TestCase):
         config = {}
         reserved_ports = {50000, 50001, 50002}
 
-        with patch("money4band.port_manager.find_next_available_port") as mock_find_port:
+        with patch(
+            "money4band.port_manager.find_next_available_port"
+        ) as mock_find_port:
             mock_find_port.side_effect = lambda x, **kwargs: next(
                 p for p in range(x, 65535) if p not in kwargs.get("exclude_ports", [])
             )
@@ -146,7 +154,9 @@ class TestPortLogic(unittest.TestCase):
         app = {"compose_config": {"ports": ["${DAWN_PORT}:5000"]}}
         config = {"ports": [5000]}  # Should be list
 
-        with patch("money4band.port_manager.find_next_available_port") as mock_find_port:
+        with patch(
+            "money4band.port_manager.find_next_available_port"
+        ) as mock_find_port:
             mock_find_port.return_value = 5000
 
             assigned_ports = assign_app_ports(app_name, app, config)
@@ -167,20 +177,23 @@ class TestPortLogic(unittest.TestCase):
         }
 
         app_config = {
-            "supported-apps": {"active": True, "entries": [
-                {
-                    "name": "DAWN",
-                    "flags": {"email": {}, "password": {}},
-                    "compose_config": {"ports": ["${DAWN_PORT}:5000"]},
-                },
-                {
-                    "name": "WIPTER",
-                    "flags": {"email": {}, "password": {}},
-                    "compose_config": {
-                        "ports": ["${WIPTER_PORT_1}:5900", "${WIPTER_PORT_2}:6080"]
+            "supported-apps": {
+                "active": True,
+                "entries": [
+                    {
+                        "name": "DAWN",
+                        "flags": {"email": {}, "password": {}},
+                        "compose_config": {"ports": ["${DAWN_PORT}:5000"]},
                     },
-                },
-            ]}
+                    {
+                        "name": "WIPTER",
+                        "flags": {"email": {}, "password": {}},
+                        "compose_config": {
+                            "ports": ["${WIPTER_PORT_1}:5900", "${WIPTER_PORT_2}:6080"]
+                        },
+                    },
+                ],
+            }
         }
 
         user_config = {
@@ -401,12 +414,20 @@ class TestCollectAssignedPorts(unittest.TestCase):
 
             # First proxy instance (instance_number=1, app_index=0)
             ports_inst1 = assign_app_ports(
-                "wipter", app, {}, app_index=0, instance_number=1,
+                "wipter",
+                app,
+                {},
+                app_index=0,
+                instance_number=1,
                 reserved_ports=reserved_ports,
             )
             # Second proxy instance (instance_number=2, app_index=0)
             ports_inst2 = assign_app_ports(
-                "wipter", app, {}, app_index=0, instance_number=2,
+                "wipter",
+                app,
+                {},
+                app_index=0,
+                instance_number=2,
                 reserved_ports=reserved_ports,
             )
 

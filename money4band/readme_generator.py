@@ -21,11 +21,11 @@ _CATEGORY_ORDER = {"supported-apps": 0, "candidate-apps": 1, "deprecated-apps": 
 
 # Status → emoji mapping
 _STATUS_EMOJI: dict[str, str] = {
-    "active": "\U0001f7e2",       # 🟢
-    "unstable": "\U0001f7e1",     # 🟡
-    "candidate": "\U0001f51c",    # 🔜
-    "deprecated": "\U0001f534",   # 🔴
-    "discontinued": "\U0001f534", # 🔴
+    "active": "\U0001f7e2",  # 🟢
+    "unstable": "\U0001f7e1",  # 🟡
+    "candidate": "\U0001f51c",  # 🔜
+    "deprecated": "\U0001f534",  # 🔴
+    "discontinued": "\U0001f534",  # 🔴
 }
 
 
@@ -40,7 +40,7 @@ def _bool_md(val: Any) -> str:
         return "\u2705"  # ✅
     if val is False:
         return "\u274c"  # ❌
-    return "\u2014"      # —
+    return "\u2014"  # —
 
 
 def _effective_status(category: str, details: dict[str, Any]) -> str:
@@ -81,7 +81,11 @@ def _format_devices(val: Any) -> str:
 def _format_payout(methods: list[str] | None) -> str:
     if not methods:
         return "\u2014"
-    cleaned = [m for m in methods if m.lower() not in ("undocumented", "unknown", "n/a", "none")]
+    cleaned = [
+        m
+        for m in methods
+        if m.lower() not in ("undocumented", "unknown", "n/a", "none")
+    ]
     if not cleaned:
         return "\u2014"
     return ", ".join(cleaned)
@@ -103,15 +107,17 @@ def _collect_apps(app_config: dict[str, Any]) -> list[dict[str, Any]]:
         order = _CATEGORY_ORDER.get(cat, 99)
         for entry in get_category_entries(app_config, cat):
             details = entry.get("app_details", {})
-            apps.append({
-                "entry": entry,
-                "details": details,
-                "category": cat,
-                "order": order,
-                "name": details.get("official_name", entry.get("name", "?")),
-                "link": entry.get("link", ""),
-                "status": _effective_status(cat, details),
-            })
+            apps.append(
+                {
+                    "entry": entry,
+                    "details": details,
+                    "category": cat,
+                    "order": order,
+                    "name": details.get("official_name", entry.get("name", "?")),
+                    "link": entry.get("link", ""),
+                    "status": _effective_status(cat, details),
+                }
+            )
     apps.sort(key=lambda a: a["order"])
     return apps
 
@@ -222,7 +228,9 @@ def update_readme(app_config: dict[str, Any], readme_path: str | Path) -> bool:
     table = generate_readme_table(app_config)
     updated = _replace_between_markers(text, table)
     if updated is None:
-        logger.warning("Markers %s / %s not found in %s", _BEGIN_MARKER, _END_MARKER, path)
+        logger.warning(
+            "Markers %s / %s not found in %s", _BEGIN_MARKER, _END_MARKER, path
+        )
         return False
 
     path.write_text(updated, encoding="utf-8")
@@ -252,7 +260,9 @@ def update_apps_md(app_config: dict[str, Any], apps_md_path: str | Path) -> bool
     table = generate_apps_md_table(app_config)
     updated = _replace_between_markers(text, table)
     if updated is None:
-        logger.warning("Markers %s / %s not found in %s", _BEGIN_MARKER, _END_MARKER, path)
+        logger.warning(
+            "Markers %s / %s not found in %s", _BEGIN_MARKER, _END_MARKER, path
+        )
         return False
 
     path.write_text(updated, encoding="utf-8")

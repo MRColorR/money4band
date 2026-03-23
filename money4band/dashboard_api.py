@@ -5,6 +5,7 @@ indicators, and quick actions (start/stop/restart).
 
 Run standalone:  ``m4b dashboard [--port 8088]``
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -57,9 +58,12 @@ def _run_docker(*args: str) -> subprocess.CompletedProcess[str]:
 async def get_status() -> list[dict[str, Any]]:
     """Return status of all M4B containers."""
     result = _run_docker(
-        "ps", "-a",
-        "--filter", "label=com.centurylinklabs.watchtower.enable=true",
-        "--format", "{{.Names}}\t{{.Status}}\t{{.State}}\t{{.Ports}}",
+        "ps",
+        "-a",
+        "--filter",
+        "label=com.centurylinklabs.watchtower.enable=true",
+        "--format",
+        "{{.Names}}\t{{.Status}}\t{{.State}}\t{{.Ports}}",
     )
     containers: list[dict[str, Any]] = []
     if result.returncode != 0:
@@ -68,12 +72,14 @@ async def get_status() -> list[dict[str, Any]]:
     for line in result.stdout.strip().splitlines():
         parts = line.split("\t")
         if len(parts) >= 3:
-            containers.append({
-                "name": parts[0],
-                "status": parts[1],
-                "state": parts[2],
-                "ports": parts[3] if len(parts) > 3 else "",
-            })
+            containers.append(
+                {
+                    "name": parts[0],
+                    "status": parts[1],
+                    "state": parts[2],
+                    "ports": parts[3] if len(parts) > 3 else "",
+                }
+            )
     return containers
 
 
@@ -81,8 +87,11 @@ async def get_status() -> list[dict[str, Any]]:
 async def get_health() -> list[dict[str, Any]]:
     """Return health status for all M4B containers via docker inspect."""
     result = _run_docker(
-        "ps", "-a", "-q",
-        "--filter", "label=com.centurylinklabs.watchtower.enable=true",
+        "ps",
+        "-a",
+        "-q",
+        "--filter",
+        "label=com.centurylinklabs.watchtower.enable=true",
     )
     if result.returncode != 0 or not result.stdout.strip():
         return []
@@ -114,8 +123,10 @@ async def get_health() -> list[dict[str, Any]]:
 async def get_stats() -> list[dict[str, Any]]:
     """Return CPU and memory stats for running M4B containers."""
     result = _run_docker(
-        "stats", "--no-stream",
-        "--format", "{{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.MemPerc}}",
+        "stats",
+        "--no-stream",
+        "--format",
+        "{{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.MemPerc}}",
     )
     stats: list[dict[str, Any]] = []
     if result.returncode != 0:
@@ -124,12 +135,14 @@ async def get_stats() -> list[dict[str, Any]]:
     for line in result.stdout.strip().splitlines():
         parts = line.split("\t")
         if len(parts) >= 4:
-            stats.append({
-                "name": parts[0],
-                "cpu_percent": parts[1],
-                "mem_usage": parts[2],
-                "mem_percent": parts[3],
-            })
+            stats.append(
+                {
+                    "name": parts[0],
+                    "cpu_percent": parts[1],
+                    "mem_usage": parts[2],
+                    "mem_percent": parts[3],
+                }
+            )
     return stats
 
 
@@ -141,6 +154,7 @@ async def container_action(container: str, action: str) -> dict[str, str]:
 
     # Sanitize container name — only allow alphanumeric, dash, underscore, dot
     import re
+
     if not re.match(r"^[a-zA-Z0-9._-]+$", container):
         raise HTTPException(status_code=400, detail="Invalid container name")
 
@@ -158,9 +172,12 @@ async def event_stream() -> StreamingResponse:
     async def generate():
         while True:
             result = _run_docker(
-                "ps", "-a",
-                "--filter", "label=com.centurylinklabs.watchtower.enable=true",
-                "--format", "{{.Names}}\t{{.State}}",
+                "ps",
+                "-a",
+                "--filter",
+                "label=com.centurylinklabs.watchtower.enable=true",
+                "--format",
+                "{{.Names}}\t{{.State}}",
             )
             data: list[dict[str, str]] = []
             if result.returncode == 0:

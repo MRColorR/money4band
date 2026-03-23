@@ -16,14 +16,18 @@ from money4band.prompt_helper import ask_email, ask_question_yn, ask_string, ask
 logger = logging.getLogger(__name__)
 
 
-def configure_email(app: dict[str, Any], flag_config: dict[str, Any], config: dict[str, Any]) -> None:
+def configure_email(
+    app: dict[str, Any], flag_config: dict[str, Any], config: dict[str, Any]
+) -> None:
     email = ask_email(
         f"Enter your {app['name'].lower().title()} email:", default=config.get("email")
     )
     config["email"] = email
 
 
-def configure_password(app: dict[str, Any], flag_config: dict[str, Any], config: dict[str, Any]) -> None:
+def configure_password(
+    app: dict[str, Any], flag_config: dict[str, Any], config: dict[str, Any]
+) -> None:
     print(
         f"Note: If you are using login with Google, remember to set also a password for your {app['name'].lower().title()} account!"
     )
@@ -34,7 +38,9 @@ def configure_password(app: dict[str, Any], flag_config: dict[str, Any], config:
     config["password"] = password
 
 
-def configure_apikey(app: dict[str, Any], flag_config: dict[str, Any], config: dict[str, Any]) -> None:
+def configure_apikey(
+    app: dict[str, Any], flag_config: dict[str, Any], config: dict[str, Any]
+) -> None:
     print(
         f"Find/Generate your APIKey inside your {app['name'].lower().title()} dashboard/profile."
     )
@@ -45,7 +51,9 @@ def configure_apikey(app: dict[str, Any], flag_config: dict[str, Any], config: d
     config["apikey"] = apikey
 
 
-def configure_userid(app: dict[str, Any], flag_config: dict[str, Any], config: dict[str, Any]) -> None:
+def configure_userid(
+    app: dict[str, Any], flag_config: dict[str, Any], config: dict[str, Any]
+) -> None:
     print(
         f"Find your UserID inside your {app['name'].lower().title()} dashboard/profile."
     )
@@ -56,7 +64,9 @@ def configure_userid(app: dict[str, Any], flag_config: dict[str, Any], config: d
     config["userid"] = userid
 
 
-def configure_uuid(app: dict[str, Any], flag_config: dict[str, Any], config: dict[str, Any]) -> None:
+def configure_uuid(
+    app: dict[str, Any], flag_config: dict[str, Any], config: dict[str, Any]
+) -> None:
     print(f"Starting UUID generation/import for {app['name'].lower().title()}")
     if "length" not in flag_config:
         print(
@@ -109,7 +119,9 @@ def configure_uuid(app: dict[str, Any], flag_config: dict[str, Any], config: dic
     config["uuid"] = uuid
 
 
-def configure_cid(app: dict[str, Any], flag_config: dict[str, Any], config: dict[str, Any]) -> None:
+def configure_cid(
+    app: dict[str, Any], flag_config: dict[str, Any], config: dict[str, Any]
+) -> None:
     print(f"Find your CID inside your {app['name'].lower().title()} dashboard/profile.")
     print(
         "Example: For packetstream you can fetch it from your dashboard https://packetstream.io/dashboard/download?linux# then click on -> Looking for linux app -> now search for CID= in the code shown in the page, you need to enter the code after -e CID= (e.g. if in the code CID=6aTk, just enter 6aTk)"
@@ -120,7 +132,9 @@ def configure_cid(app: dict[str, Any], flag_config: dict[str, Any], config: dict
     config["cid"] = cid
 
 
-def configure_code(app: dict[str, Any], flag_config: dict[str, Any], config: dict[str, Any]) -> None:
+def configure_code(
+    app: dict[str, Any], flag_config: dict[str, Any], config: dict[str, Any]
+) -> None:
     print(
         f"Find your code inside your {app['name'].lower().title()} dashboard/profile."
     )
@@ -130,7 +144,9 @@ def configure_code(app: dict[str, Any], flag_config: dict[str, Any], config: dic
     config["code"] = code
 
 
-def configure_token(app: dict[str, Any], flag_config: dict[str, Any], config: dict[str, Any]) -> None:
+def configure_token(
+    app: dict[str, Any], flag_config: dict[str, Any], config: dict[str, Any]
+) -> None:
     print(
         f"Find your token inside your {app['name'].lower().title()} dashboard/profile."
     )
@@ -140,7 +156,9 @@ def configure_token(app: dict[str, Any], flag_config: dict[str, Any], config: di
     config["token"] = token
 
 
-def configure_manual(app: dict[str, Any], flag_config: dict[str, Any], config: dict[str, Any]) -> None:
+def configure_manual(
+    app: dict[str, Any], flag_config: dict[str, Any], config: dict[str, Any]
+) -> None:
     if "instructions" not in flag_config:
         print(
             f"{Fore.RED}Error: Instructions not provided for manual configuration{Style.RESET_ALL}"
@@ -253,7 +271,11 @@ def _configure_apps(
             sidecar_name = service_def["name"]
             description = service_def.get("description", "auto-claim sidecar")
             current = config.get("service_enabled", False)
-            status = f"{Fore.GREEN}ON{Style.RESET_ALL}" if current else f"{Fore.RED}OFF{Style.RESET_ALL}"
+            status = (
+                f"{Fore.GREEN}ON{Style.RESET_ALL}"
+                if current
+                else f"{Fore.RED}OFF{Style.RESET_ALL}"
+            )
             print(
                 f"\n{Fore.CYAN}{app['name'].title()} has an auto-claim sidecar: "
                 f"{sidecar_name}{Style.RESET_ALL}"

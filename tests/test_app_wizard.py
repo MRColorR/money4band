@@ -1,11 +1,9 @@
 """Tests for utils.app_wizard — interactive app-add wizard."""
+
 from __future__ import annotations
 
 import json
-import os
 from unittest import mock
-
-import pytest
 
 from money4band.app_wizard import run_app_wizard
 
@@ -20,13 +18,13 @@ class TestAppWizard:
 
     def test_wizard_creates_file(self, tmp_path):
         inputs = self._mock_inputs(
-            "TESTAPP",           # name
-            "test/image:latest", # image
-            "1",                 # auth type: email+password
-            "1",                 # layer: residential
-            "-1",                # install limit
-            "",                  # dashboard (skip)
-            "",                  # link (skip)
+            "TESTAPP",  # name
+            "test/image:latest",  # image
+            "1",  # auth type: email+password
+            "1",  # layer: residential
+            "-1",  # install limit
+            "",  # dashboard (skip)
+            "",  # link (skip)
         )
         with mock.patch("builtins.input", side_effect=inputs):
             result = run_app_wizard(str(tmp_path))
@@ -49,10 +47,10 @@ class TestAppWizard:
         inputs = self._mock_inputs(
             "UUIDAPP",
             "pub/uuid:v1",
-            "3",                 # UUID auth
-            "64",                # UUID length
-            "2",                 # universal layer
-            "5",                 # install limit
+            "3",  # UUID auth
+            "64",  # UUID length
+            "2",  # universal layer
+            "5",  # install limit
             "https://dash.example.com",
             "",
         )
@@ -68,8 +66,8 @@ class TestAppWizard:
         inputs = self._mock_inputs(
             "MANUALAPP",
             "pub/manual:latest",
-            "5",                 # manual auth
-            "3",                 # datacenter layer
+            "5",  # manual auth
+            "3",  # datacenter layer
             "-1",
             "",
             "",
@@ -97,12 +95,12 @@ class TestAppWizard:
         inputs = self._mock_inputs(
             "EXISTING",
             "img:latest",
-            "2",   # token auth
-            "1",   # residential
+            "2",  # token auth
+            "1",  # residential
             "-1",
             "",
             "",
-            "n",   # decline overwrite
+            "n",  # decline overwrite
         )
         with mock.patch("builtins.input", side_effect=inputs):
             result = run_app_wizard(str(tmp_path))
@@ -114,11 +112,11 @@ class TestAppWizard:
             "OVERME",
             "img:latest",
             "2",
-            "2",   # universal
+            "2",  # universal
             "-1",
             "",
             "",
-            "y",   # accept overwrite
+            "y",  # accept overwrite
         )
         with mock.patch("builtins.input", side_effect=inputs):
             result = run_app_wizard(str(tmp_path))

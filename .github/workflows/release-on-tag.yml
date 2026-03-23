@@ -6,6 +6,10 @@ on:
       - "*.*.*"  # Matches tags like 1.0.0, 2.1.1, etc.
   workflow_dispatch:
 
+permissions:
+  contents: write      # needed to create GitHub releases
+  actions: read        # needed to download artifacts
+
 jobs:
   build:
     runs-on: ${{ matrix.os }}
@@ -26,10 +30,10 @@ jobs:
           fetch-depth: 0  # Fetch all history for generating changelogs
           fetch-tags: true  # Ensure all tags are fetched
 
-      - name: Set up Python 3.12
+      - name: Set up Python 3.13
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: '3.13'
           #cache: 'pip'  # Enables caching for pip dependencies , it seems to fail in DinD containers for arm builds
 
       # Step to print platform details for diagnostic purposes
@@ -51,10 +55,12 @@ jobs:
           pip install pyinstaller  # Install PyInstaller
 
       # Step: Build with PyInstaller
+      # Note: PyInstaller --add-data uses ';' on Windows and ':' on Unix regardless of shell
       - name: Build with PyInstaller
         if: matrix.os != 'ubuntu-latest' || (matrix.architecture != 'arm64' && matrix.architecture != 'arm/v7')
         shell: bash
         run: |
+          if [[ "$RUNNER_OS" == "Windows" ]]; then SEP=";"; else SEP=":"; fi
           pyinstaller --onedir \
             --name Money4Band \
             main.py \
@@ -65,12 +71,17 @@ jobs:
             --hidden-import psutil \
             --hidden-import yaml \
             --hidden-import secrets \
-            --add-data ".resources:.resources" \
-            --add-data "config:config" \
-            --add-data "utils:utils" \
-            --add-data "template:template" \
-            --add-data "LICENSE:LICENSE" \
-            --add-data "README.md:README.md" \
+            --hidden-import cryptography \
+            --hidden-import fastapi \
+            --hidden-import uvicorn \
+            --hidden-import textual \
+            --hidden-import money4band \
+            --add-data ".resources${SEP}.resources" \
+            --add-data "config${SEP}config" \
+            --add-data "money4band${SEP}money4band" \
+            --add-data "template${SEP}template" \
+            --add-data "LICENSE${SEP}." \
+            --add-data "README.md${SEP}." \
             --contents-directory "." \
             -y
 
@@ -90,8 +101,15 @@ jobs:
       - name: Build with Docker for ARM architectures
         if: matrix.os == 'ubuntu-latest' && (matrix.architecture == 'arm64' || matrix.architecture == 'arm/v7')
         run: |
-          docker build --file workflow-linux-arm64.dockerfile --platform linux/${{ matrix.architecture }} -t money4band-builder --cache-from type=gha --cache-to type=gha .
-          docker run --platform linux/${{ matrix.architecture }} --rm -v $(pwd)/dist:/app/dist money4band-builder
+          docker buildx build \
+            --file workflow-linux-arm64.dockerfile \
+            --platform linux/${{ matrix.architecture }} \
+            --load \
+            -t money4band-builder \
+            .
+          docker create --name m4b-extract money4band-builder
+          docker cp m4b-extract:/app/dist ./dist
+          docker rm m4b-extract
 
       # Archive build artifacts for Windows
       - name: Archive build artifacts for release (Windows)
@@ -148,22 +166,12 @@ jobs:
         with:
           path: ./artifacts
 
-      - name: Generate Changelog
-        id: changelog
-        uses: heinrichreimer/action-github-changelog-generator@v2.3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          output: CHANGELOG.md
-          onlyLastTag: true  # Only generate changelog for the last tag
-
       - name: Create a GitHub release
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
           name: "Money4Band ${{ github.ref_name }}"
           tag_name: "${{ github.ref_name }}"
-          body_path: "./CHANGELOG.md"
+          generate_release_notes: true  # GitHub-native changelog from PR titles
           files: "./artifacts/**/*"
           prerelease: true # Set to true so that the release is marked as a pre-release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

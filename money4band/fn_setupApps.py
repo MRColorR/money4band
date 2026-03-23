@@ -14,13 +14,62 @@ import logging
 import os
 import platform
 import sys
-from typing import Any
 from collections.abc import Callable
+from typing import Any
 
 from colorama import Fore, Style
 
 from money4band import loader
+from money4band.app_configurator import (  # noqa: F401
+    _configure_apps,
+    configure_apikey,
+    configure_apps,
+    configure_cid,
+    configure_code,
+    configure_email,
+    configure_manual,
+    configure_password,
+    configure_token,
+    configure_userid,
+    configure_uuid,
+    flag_function_mapper,
+)
+from money4band.dashboard_setup import (  # noqa: F401
+    setup_m4b_dashboard,
+    setup_watchtower,
+)
 from money4band.dumper import write_json
+from money4band.generator import (
+    assemble_docker_compose,
+    generate_device_name,
+    generate_env_file,
+)
+from money4band.multiproxy_setup import (  # noqa: F401
+    calculate_subnet,
+    cleanup_multiproxy_instances_dir,
+    int_to_ipv4,
+    ipv4_to_int,
+    regenerate_uuids_for_apps,
+    remove_readonly,
+    safe_rmtree,
+    setup_multiproxy_instances,
+)
+from money4band.notification_setup import (  # noqa: F401
+    SUPPORTED_NOTIFICATION_SERVICES,
+    setup_notifications,
+    validate_notification_url,
+)
+
+# -- Re-exports for backward compatibility ------------------------------------
+# External code may import these from money4band.fn_setupApps; keep them available.
+from money4band.port_manager import (  # noqa: F401
+    DEFAULT_PORT_BASE,
+    PORT_OFFSET_PER_APP,
+    PORT_OFFSET_PER_INSTANCE,
+    assign_app_ports,
+    collect_assigned_ports,
+)
+from money4band.prompt_helper import ask_question_yn
 from money4band.setup_progress import (
     clear_progress,
     is_step_done,
@@ -28,56 +77,6 @@ from money4band.setup_progress import (
     save_progress,
 )
 from money4band.setup_summary import generate_setup_summary
-from money4band.generator import (
-    assemble_docker_compose,
-    generate_device_name,
-    generate_env_file,
-)
-from money4band.prompt_helper import ask_question_yn
-
-# -- Re-exports for backward compatibility ------------------------------------
-# External code may import these from money4band.fn_setupApps; keep them available.
-from money4band.port_manager import (  # noqa: F401
-    assign_app_ports,
-    collect_assigned_ports,
-    DEFAULT_PORT_BASE,
-    PORT_OFFSET_PER_APP,
-    PORT_OFFSET_PER_INSTANCE,
-)
-from money4band.app_configurator import (  # noqa: F401
-    configure_apps,
-    configure_email,
-    configure_password,
-    configure_apikey,
-    configure_userid,
-    configure_uuid,
-    configure_cid,
-    configure_code,
-    configure_token,
-    configure_manual,
-    flag_function_mapper,
-    _configure_apps,
-)
-from money4band.notification_setup import (  # noqa: F401
-    SUPPORTED_NOTIFICATION_SERVICES,
-    validate_notification_url,
-    setup_notifications,
-)
-from money4band.dashboard_setup import (  # noqa: F401
-    setup_m4b_dashboard,
-    setup_watchtower,
-)
-from money4band.multiproxy_setup import (  # noqa: F401
-    cleanup_multiproxy_instances_dir,
-    calculate_subnet,
-    ipv4_to_int,
-    int_to_ipv4,
-    remove_readonly,
-    safe_rmtree,
-    regenerate_uuids_for_apps,
-    setup_multiproxy_instances,
-)
-
 
 logger = logging.getLogger(__name__)
 # Ensure the parent directory is in the sys.path
@@ -184,6 +183,7 @@ def main(
 
         # Display M4B header banner
         from colorama import just_fix_windows_console
+
         from money4band.cls import cls
 
         just_fix_windows_console()
@@ -192,7 +192,9 @@ def main(
         ds_url = m4b_config.get("project", {}).get("ds_project_server_url", "")
         print(f"{Fore.GREEN}----------------------------------------------")
         print(f"MONEY4BAND v{version}{Style.RESET_ALL}")
-        print(f"{Fore.GREEN}----------------------------------------------{Style.RESET_ALL}")
+        print(
+            f"{Fore.GREEN}----------------------------------------------{Style.RESET_ALL}"
+        )
         print(
             f"{Fore.YELLOW}Support the M4B development <3 check the donation "
             f"options in the README, on GitHub or in our Discord. Every bit helps!"
@@ -214,7 +216,13 @@ def main(
                 f"steps: {completed}{Style.RESET_ALL}"
             )
 
-        def _run_step(step: int, description: str, func: Callable[..., Any], *args: Any, **kwargs: Any) -> None:
+        def _run_step(
+            step: int,
+            description: str,
+            func: Callable[..., Any],
+            *args: Any,
+            **kwargs: Any,
+        ) -> None:
             """Execute *func* for *step* unless already completed."""
             if is_step_done(progress, step):
                 print(
@@ -228,11 +236,17 @@ def main(
             save_progress(completed)
 
         # Step 1: Collect user information
-        _run_step(1, "Collecting user information", collect_user_info, user_config, m4b_config)
+        _run_step(
+            1, "Collecting user information", collect_user_info, user_config, m4b_config
+        )
         # Step 2: Configure apps
-        _run_step(2, "Configuring apps", configure_apps, user_config, app_config, m4b_config)
+        _run_step(
+            2, "Configuring apps", configure_apps, user_config, app_config, m4b_config
+        )
         # Step 3: Set up Watchtower auto-updates
-        _run_step(3, "Setting up Watchtower auto-updates", setup_watchtower, user_config)
+        _run_step(
+            3, "Setting up Watchtower auto-updates", setup_watchtower, user_config
+        )
         # Step 4: Set up notifications
         if not is_step_done(progress, 4):
             _print_step(4, "Setting up notifications")

@@ -16,7 +16,7 @@ from typing import Any
 
 from colorama import Fore, Style, just_fix_windows_console
 
-from money4band.crypto import encrypt_file, ensure_config_encrypted, is_file_encrypted
+from money4band.crypto import ensure_config_encrypted
 from money4band.loader import load_json_config
 
 logger = logging.getLogger(__name__)

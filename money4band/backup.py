@@ -9,7 +9,6 @@ encrypted and plaintext configs stay plaintext — no re-encryption needed.
 """
 
 import logging
-import os
 import shutil
 from datetime import datetime, timezone
 from pathlib import Path

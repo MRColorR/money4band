@@ -59,7 +59,15 @@ class TestJSONFormatter:
 
     def test_contains_required_fields(self, formatter, record):
         parsed = json.loads(formatter.format(record))
-        for key in ("timestamp", "level", "logger", "message", "module", "funcName", "lineno"):
+        for key in (
+            "timestamp",
+            "level",
+            "logger",
+            "message",
+            "module",
+            "funcName",
+            "lineno",
+        ):
             assert key in parsed
 
     def test_message_is_formatted(self, formatter, record):
@@ -85,9 +93,15 @@ class TestJSONFormatter:
             raise ValueError("boom")
         except ValueError:
             import sys
+
             record = logging.LogRecord(
-                name="test", level=logging.ERROR, pathname="test.py",
-                lineno=1, msg="fail", args=(), exc_info=sys.exc_info(),
+                name="test",
+                level=logging.ERROR,
+                pathname="test.py",
+                lineno=1,
+                msg="fail",
+                args=(),
+                exc_info=sys.exc_info(),
             )
         parsed = json.loads(formatter.format(record))
         assert "exception" in parsed

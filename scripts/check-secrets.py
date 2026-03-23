@@ -23,8 +23,7 @@ CREDENTIAL_PATTERNS: list[tuple[re.Pattern[str], str]] = [
             r"""[\s]*[=:]\s*["']?(?!your)[a-zA-Z0-9/+_.@-]{3,}""",
             re.IGNORECASE,
         ),
-        "Possible hardcoded credential"
-        " (non-placeholder value)",
+        "Possible hardcoded credential (non-placeholder value)",
     ),
     (
         re.compile(r"PACKETSTREAM_CID=(?!yourPACKETSTREAMCID)(?!$)\S+"),

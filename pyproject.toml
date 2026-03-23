@@ -82,14 +82,38 @@ select = [
 # COM812, COM819 - trailing comma conflicts
 # ISC002 - implicit string concat warnings
 # T201 - print statements are needed for CLI user interaction
+# E402 - module-import-not-at-top (deferred imports are intentional pattern)
+# PLC0415 - import-outside-top-level (same as E402)
+# PLR2004 - magic-value-comparison (too noisy for config-heavy code)
+# PLR0912, PLR0915, PLR0913, PLR0911 - complexity warnings (not refactoring now)
+# N999 - invalid module names (camelCase filenames like fn_setupApps.py are legacy)
+# PLW0603 - global statement (acceptable for module-level config)
+# S110 - try-except-pass (used for optional feature detection)
+# E501 - line too long (handled by formatter)
 ignore = [
     "W191", "E111", "E114", "E117",
     "D206", "D300",
     "Q000", "Q001", "Q002", "Q003",
     "COM812", "COM819",
     "ISC002",
-    "T201"
+    "T201",
+    "E501",
+    "E402",
+    "PLC0415",
+    "PLR2004",
+    "PLR0912", "PLR0915", "PLR0913", "PLR0911",
+    "N999",
+    "PLW0603",
+    "S110",
 ]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests: allow assert, local imports, magic values, broad exceptions, ambiguous names, test passwords
+"tests/**" = ["S101", "PLC0415", "E402", "PLR2004", "S108", "PLR0913", "PLR0915", "E741", "S105", "S104"]
+# Main entry point: allow local imports
+"main.py" = ["PLC0415", "E402"]
+# Source files: subprocess usage is intentional for Docker/system commands
+"money4band/**" = ["S603", "S607", "S605", "PLW1510", "S104", "S103", "S311"]
 
 # Mypy configuration — gradual typing adoption
 [tool.mypy]
@@ -105,3 +129,10 @@ check_untyped_defs = true
 [tool.bandit]
 exclude_dirs = ["tests", ".venv"]
 skips = ["B101"]  # skip assert checks (used in tests)
+
+# Coverage configuration
+[tool.coverage.run]
+source = ["money4band"]
+
+[tool.coverage.report]
+fail_under = 75

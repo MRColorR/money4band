@@ -49,7 +49,8 @@ def get_app_earnings(
     results: list[dict[str, Any]] = []
 
     categories = [
-        k for k, v in app_config.items()
+        k
+        for k, v in app_config.items()
         if isinstance(v, dict) and v.get("active") and "entries" in v
     ]
 
@@ -58,13 +59,15 @@ def get_app_earnings(
             details = entry.get("app_details", {})
             earnings = details.get("earnings", {})
             rng = parse_earnings_range(earnings.get(field))
-            results.append({
-                "name": entry.get("name", "?"),
-                "model": earnings.get("model", "unknown"),
-                "range_low": rng[0] if rng else 0.0,
-                "range_high": rng[1] if rng else 0.0,
-                "min_payout": earnings.get("min_payout", "unknown"),
-            })
+            results.append(
+                {
+                    "name": entry.get("name", "?"),
+                    "model": earnings.get("model", "unknown"),
+                    "range_low": rng[0] if rng else 0.0,
+                    "range_high": rng[1] if rng else 0.0,
+                    "min_payout": earnings.get("min_payout", "unknown"),
+                }
+            )
 
     return results
 
@@ -80,9 +83,11 @@ def display_earnings_summary(
         return
 
     label = ip_type.capitalize()
-    print(f"\n{Fore.CYAN}--- Estimated Monthly Earnings ({label} IP) ---{Style.RESET_ALL}")
+    print(
+        f"\n{Fore.CYAN}--- Estimated Monthly Earnings ({label} IP) ---{Style.RESET_ALL}"
+    )
     print(f"  {'App':<20} {'Model':<30} {'Est. $/month':<18} {'Min Payout'}")
-    print(f"  {'-'*20} {'-'*30} {'-'*18} {'-'*18}")
+    print(f"  {'-' * 20} {'-' * 30} {'-' * 18} {'-' * 18}")
 
     total_low = 0.0
     total_high = 0.0
@@ -99,7 +104,7 @@ def display_earnings_summary(
             est = f"${low:.2f} - ${high:.2f}"
         print(f"  {r['name']:<20} {r['model']:<30} {est:<18} {r['min_payout']}")
 
-    print(f"  {'-'*20} {'-'*30} {'-'*18}")
+    print(f"  {'-' * 20} {'-' * 30} {'-' * 18}")
     if total_high > 0:
         print(
             f"  {'TOTAL':<20} {'':<30} "

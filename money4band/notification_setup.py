@@ -10,7 +10,6 @@ from colorama import Fore, Style
 
 from money4band.prompt_helper import ask_question_yn, ask_string
 
-
 logger = logging.getLogger(__name__)
 # Supported services and their URL patterns
 SUPPORTED_NOTIFICATION_SERVICES = {

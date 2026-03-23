@@ -39,9 +39,7 @@ def validate_app_entry(entry: dict[str, Any]) -> list[str]:
         if "image" not in cc:
             errors.append("compose_config: missing required field 'image'")
         if cc.get("restart") and cc["restart"] not in _VALID_RESTART:
-            errors.append(
-                f"compose_config.restart: invalid value '{cc['restart']}'"
-            )
+            errors.append(f"compose_config.restart: invalid value '{cc['restart']}'")
     elif cc is not None:
         errors.append("compose_config: must be an object")
 
@@ -90,7 +88,9 @@ def load_community_apps(apps_d_dir: str) -> list[dict[str, Any]]:
         errors = validate_app_entry(data)
         if errors:
             logger.warning(
-                "Community app %s has validation errors: %s", filename, "; ".join(errors)
+                "Community app %s has validation errors: %s",
+                filename,
+                "; ".join(errors),
             )
             continue
 
@@ -100,9 +100,7 @@ def load_community_apps(apps_d_dir: str) -> list[dict[str, Any]]:
     return entries
 
 
-def merge_community_apps(
-    app_config: dict[str, Any], apps_d_dir: str
-) -> dict[str, Any]:
+def merge_community_apps(app_config: dict[str, Any], apps_d_dir: str) -> dict[str, Any]:
     """Merge community app definitions into *app_config*.
 
     Community apps are placed into the ``candidate-apps`` category.
@@ -116,7 +114,7 @@ def merge_community_apps(
 
     # Collect all existing names across all categories
     existing_names: set[str] = set()
-    for key, val in app_config.items():
+    for _key, val in app_config.items():
         if isinstance(val, dict) and "entries" in val:
             for e in val["entries"]:
                 if isinstance(e, dict) and "name" in e:

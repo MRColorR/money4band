@@ -149,9 +149,7 @@ def ask_uuid(
             continue
         elif len(uuid) != length:
             print(f"{Fore.RED}Invalid UUID length.{Style.RESET_ALL}")
-            logger.warning(
-                f"Invalid UUID length. Expected: {length}, Got: {len(uuid)}"
-            )
+            logger.warning(f"Invalid UUID length. Expected: {length}, Got: {len(uuid)}")
         elif not validate_uuid(uuid, length):
             print(f"{Fore.RED}Invalid UUID format.{Style.RESET_ALL}")
         else:

@@ -1,6 +1,7 @@
 import os
 import tempfile
 import unittest
+import unittest.mock
 
 import yaml
 
@@ -355,8 +356,92 @@ class TestDockerProfiles(unittest.TestCase):
         # Find any enabled app that's not infrastructure
         for svc_name, svc in doc["services"].items():
             if svc_name not in ("watchtower", "m4bwebdashboard", "proxy"):
-                self.assertNotIn("profiles", svc,
-                    f"{svc_name} should not have profiles")
+                self.assertNotIn(
+                    "profiles", svc, f"{svc_name} should not have profiles"
+                )
+
+
+class TestDeviceNameOverrides:
+    """Verify device_name parameter and uuid_suffix override behavior."""
+
+    def test_uses_provided_name(self):
+        name = generate_device_name(["a"], ["b"], device_name="my_device")
+        assert name == "my_device"
+
+    def test_uuid_suffix_appended(self):
+        name = generate_device_name(["a"], ["b"], use_uuid_suffix=True)
+        parts = name.split("_")
+        assert len(parts) == 3
+        assert len(parts[2]) == 4
+
+    def test_uuid_suffix_on_provided_name(self):
+        name = generate_device_name([], [], device_name="custom", use_uuid_suffix=True)
+        assert name.startswith("custom_")
+        assert len(name) == len("custom_") + 4
+
+
+class TestValidateUuidRejection:
+    """Reject non-string, wrong-length, and uppercase UUID inputs."""
+
+    def test_rejects_non_string(self):
+        assert validate_uuid(12345, 5) is False
+
+    def test_rejects_wrong_length(self):
+        assert validate_uuid("abcd", 5) is False
+
+    def test_rejects_uppercase(self):
+        assert validate_uuid("ABCDEF", 6) is False
+
+    def test_accepts_valid(self):
+        assert validate_uuid("abcdef", 6) is True
+
+
+class TestDashboardUrlFileCreation:
+    """Verify dashboard URL file is written from container port output."""
+
+    def test_writes_file_with_ports(self, tmp_path, monkeypatch):
+        from money4band.generator import generate_dashboard_urls
+
+        env_file = tmp_path / ".env"
+        env_file.write_text("COMPOSE_PROJECT_NAME=m4b\nDEVICE_NAME=test_dev\n")
+        monkeypatch.chdir(tmp_path)
+
+        mock_result = unittest.mock.MagicMock()
+        mock_result.stdout = (
+            "0.0.0.0:8080->80/tcp container_a\n0.0.0.0:9090->90/tcp container_b\n"
+        )
+
+        with unittest.mock.patch(
+            "money4band.generator.subprocess.run", return_value=mock_result
+        ):
+            generate_dashboard_urls(None, None, str(env_file))
+
+        dash_file = tmp_path / "dashboards_URLs_m4b-test_dev.txt"
+        assert dash_file.exists()
+        content = dash_file.read_text()
+        assert "8080" in content
+        assert "9090" in content
+
+    def test_no_env_file_returns(self, tmp_path):
+        from money4band.generator import generate_dashboard_urls
+
+        generate_dashboard_urls(None, None, str(tmp_path / "nofile.env"))
+        # Should return without crashing
+
+    def test_explicit_names_skip_env(self, tmp_path, monkeypatch):
+        from money4band.generator import generate_dashboard_urls
+
+        monkeypatch.chdir(tmp_path)
+        mock_result = unittest.mock.MagicMock()
+        mock_result.stdout = ""
+
+        with unittest.mock.patch(
+            "money4band.generator.subprocess.run", return_value=mock_result
+        ):
+            generate_dashboard_urls("proj", "dev", str(tmp_path / ".env"))
+
+        dash_file = tmp_path / "dashboards_URLs_proj-dev.txt"
+        assert dash_file.exists()
 
 
 class TestHealthchecks(unittest.TestCase):
@@ -468,7 +553,9 @@ class TestAppHealthchecks(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".yaml") as f:
             compose_path = f.name
         try:
-            with patch("money4band.compose_builder.check_img_arch_support", return_value=True):
+            with patch(
+                "money4band.compose_builder.check_img_arch_support", return_value=True
+            ):
                 assemble_docker_compose(
                     _M4B_CFG, app_cfg, user_cfg, compose_path, is_main_instance=True
                 )
@@ -532,7 +619,9 @@ class TestProxyDependsOn(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".yaml") as f:
             compose_path = f.name
         try:
-            with patch("money4band.compose_builder.check_img_arch_support", return_value=True):
+            with patch(
+                "money4band.compose_builder.check_img_arch_support", return_value=True
+            ):
                 assemble_docker_compose(
                     _M4B_CFG, app_cfg, user_cfg, compose_path, is_main_instance=True
                 )
@@ -553,6 +642,26 @@ class TestProxyDependsOn(unittest.TestCase):
         doc = self._compose_proxy_app(proxy_enabled=False)
         app_svc = doc["services"]["testapp"]
         self.assertNotIn("depends_on", app_svc)
+
+
+class TestGenerateDashboardUrls(unittest.TestCase):
+    """Test generate_dashboard_urls with mocked subprocess."""
+
+    @unittest.mock.patch("money4band.generator.subprocess")
+    @unittest.mock.patch("money4band.generator.show_spinner")
+    def test_does_not_crash(self, _spinner, mock_sp):
+        from money4band.generator import generate_dashboard_urls
+
+        with tempfile.TemporaryDirectory() as d:
+            env_file = os.path.join(d, ".env")
+            with open(env_file, "w") as f:
+                f.write("M4B_DASHBOARD_PORT=8081\n")
+            mock_sp.run.return_value = unittest.mock.MagicMock(
+                stdout="money4band-dashboard-1  0.0.0.0:8081->80/tcp",
+                returncode=0,
+            )
+            generate_dashboard_urls("money4band", "testbox", env_file)
+            mock_sp.run.assert_called()
 
 
 if __name__ == "__main__":

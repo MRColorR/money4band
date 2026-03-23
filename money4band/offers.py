@@ -7,7 +7,11 @@ from typing import Any
 
 from colorama import Fore, Style
 
-from money4band.loader import get_all_app_categories, get_category_entries, load_json_config
+from money4band.loader import (
+    get_all_app_categories,
+    get_category_entries,
+    load_json_config,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +74,11 @@ def _app_offers_from_config(app_config_path: str) -> list[dict[str, Any]]:
             if model:
                 bonus_parts.append(model)
             if payout_methods:
-                cleaned = [m for m in payout_methods if m.lower() not in ("undocumented", "unknown", "n/a", "none")]
+                cleaned = [
+                    m
+                    for m in payout_methods
+                    if m.lower() not in ("undocumented", "unknown", "n/a", "none")
+                ]
                 if cleaned:
                     bonus_parts.append(", ".join(cleaned))
             bonus = " — ".join(bonus_parts) if bonus_parts else "Earn per GB shared"
@@ -82,14 +90,16 @@ def _app_offers_from_config(app_config_path: str) -> list[dict[str, Any]]:
             elif ip.get("datacenter"):
                 notes_parts.append("Works on VPS/datacenter")
 
-            offers.append({
-                "name": details.get("official_name", entry.get("name", "?")),
-                "url": link,
-                "bonus": bonus,
-                "category": cat_label,
-                "m4b_app": True,
-                "notes": "; ".join(notes_parts) if notes_parts else None,
-            })
+            offers.append(
+                {
+                    "name": details.get("official_name", entry.get("name", "?")),
+                    "url": link,
+                    "bonus": bonus,
+                    "category": cat_label,
+                    "m4b_app": True,
+                    "notes": "; ".join(notes_parts) if notes_parts else None,
+                }
+            )
     return offers
 
 
@@ -138,14 +148,20 @@ def display_offers(
         return
 
     if category_filter:
-        offers = [o for o in offers if o.get("category", "").lower() == category_filter.lower()]
+        offers = [
+            o
+            for o in offers
+            if o.get("category", "").lower() == category_filter.lower()
+        ]
         if not offers:
-            print(f"{Fore.YELLOW}No offers in category '{category_filter}'.{Style.RESET_ALL}")
+            print(
+                f"{Fore.YELLOW}No offers in category '{category_filter}'.{Style.RESET_ALL}"
+            )
             return
 
     print(f"\n{Fore.CYAN}--- Referral & Passive Income Offers ---{Style.RESET_ALL}")
     print(f"  {'Name':<20} {'Category':<16} {'Bonus':<35} {'Source':<6} {'Notes'}")
-    print(f"  {'-'*20} {'-'*16} {'-'*35} {'-'*6} {'-'*20}")
+    print(f"  {'-' * 20} {'-' * 16} {'-' * 35} {'-' * 6} {'-' * 20}")
 
     for o in offers:
         name = o.get("name", "?")
@@ -163,8 +179,14 @@ def display_offers(
     categories = sorted({o.get("category", "other") for o in offers})
     m4b_count = sum(1 for o in offers if o.get("m4b_app"))
     ext_count = len(offers) - m4b_count
-    print(f"\n  {Fore.CYAN}{len(offers)} offer(s) listed{Style.RESET_ALL}"
-          f" ({m4b_count} M4B apps, {ext_count} external)")
+    print(
+        f"\n  {Fore.CYAN}{len(offers)} offer(s) listed{Style.RESET_ALL}"
+        f" ({m4b_count} M4B apps, {ext_count} external)"
+    )
     print(f"  Categories: {', '.join(categories)}")
-    print(f"  {Fore.YELLOW}App reflinks come from app-config.json (single source of truth){Style.RESET_ALL}")
-    print(f"  {Fore.YELLOW}Add external offers in config/referral-offers.json{Style.RESET_ALL}\n")
+    print(
+        f"  {Fore.YELLOW}App reflinks come from app-config.json (single source of truth){Style.RESET_ALL}"
+    )
+    print(
+        f"  {Fore.YELLOW}Add external offers in config/referral-offers.json{Style.RESET_ALL}\n"
+    )

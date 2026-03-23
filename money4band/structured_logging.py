@@ -47,16 +47,21 @@ class JSONFormatter(logging.Formatter):
     Extra dict keys from ``record.__dict__`` prefixed with ``extra.`` are included.
     """
 
-    _BUILTIN_ATTRS = frozenset(logging.LogRecord("", 0, "", 0, "", (), None).__dict__.keys()) | {
-        "message", "asctime", "taskName",
+    _BUILTIN_ATTRS = frozenset(
+        logging.LogRecord("", 0, "", 0, "", (), None).__dict__.keys()
+    ) | {
+        "message",
+        "asctime",
+        "taskName",
     }
 
     def format(self, record: logging.LogRecord) -> str:  # noqa: A003
         record.message = record.getMessage()
 
         payload: dict[str, Any] = {
-            "timestamp": self.formatTime(record, self.datefmt) if self.datefmt else
-            time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(record.created))
+            "timestamp": self.formatTime(record, self.datefmt)
+            if self.datefmt
+            else time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(record.created))
             + f".{int(record.msecs):03d}Z",
             "level": record.levelname,
             "logger": record.name,

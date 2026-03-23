@@ -1,7 +1,6 @@
 """Tests for the notification system (utils/notifier.py + hooks)."""
 
 import subprocess
-import threading
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -19,10 +18,10 @@ from money4band.notifier import (
     send_test,
 )
 
-
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture()
 def enabled_config():
@@ -98,7 +97,6 @@ def no_url_config():
 
 
 class TestIsEnabled:
-
     def test_enabled_with_url(self, enabled_config):
         assert is_enabled(enabled_config) is True
 
@@ -117,7 +115,6 @@ class TestIsEnabled:
 
 
 class TestIsEventEnabled:
-
     def test_event_on(self, enabled_config):
         assert is_event_enabled(enabled_config, EVENT_STACK_START) is True
 
@@ -143,7 +140,6 @@ class TestIsEventEnabled:
 
 
 class TestNotify:
-
     @patch("money4band.notifier._send_shoutrrr", return_value=True)
     def test_blocking_sends(self, mock_send, enabled_config):
         result = notify(enabled_config, EVENT_STACK_START, "Started!", blocking=True)
@@ -157,6 +153,7 @@ class TestNotify:
         assert result is None
         # Give thread a moment to execute
         import time
+
         time.sleep(0.2)
         mock_send.assert_called_once()
 
@@ -192,11 +189,11 @@ class TestNotify:
 
 
 class TestSendShoutrrr:
-
     @patch("money4band.notifier.subprocess.run")
     def test_success(self, mock_run):
         mock_run.return_value = MagicMock(returncode=0, stderr="")
         from money4band.notifier import _send_shoutrrr
+
         assert _send_shoutrrr("discord://token@hook", "hello") is True
         mock_run.assert_called_once()
         cmd = mock_run.call_args[0][0]
@@ -207,16 +204,22 @@ class TestSendShoutrrr:
     def test_failure_nonzero(self, mock_run):
         mock_run.return_value = MagicMock(returncode=1, stderr="error")
         from money4band.notifier import _send_shoutrrr
+
         assert _send_shoutrrr("discord://token@hook", "hello") is False
 
     @patch("money4band.notifier.subprocess.run", side_effect=FileNotFoundError)
     def test_docker_missing(self, mock_run):
         from money4band.notifier import _send_shoutrrr
+
         assert _send_shoutrrr("discord://token@hook", "hello") is False
 
-    @patch("money4band.notifier.subprocess.run", side_effect=subprocess.TimeoutExpired("cmd", 30))
+    @patch(
+        "money4band.notifier.subprocess.run",
+        side_effect=subprocess.TimeoutExpired("cmd", 30),
+    )
     def test_timeout(self, mock_run):
         from money4band.notifier import _send_shoutrrr
+
         assert _send_shoutrrr("discord://token@hook", "hello") is False
 
 
@@ -226,7 +229,6 @@ class TestSendShoutrrr:
 
 
 class TestSendTest:
-
     @patch("money4band.notifier._send_shoutrrr", return_value=True)
     def test_success(self, mock_send, enabled_config):
         assert send_test(enabled_config) is True
@@ -243,7 +245,6 @@ class TestSendTest:
 
 
 class TestConstants:
-
     def test_all_events_complete(self):
         assert EVENT_STACK_START in ALL_EVENTS
         assert EVENT_STACK_STOP in ALL_EVENTS
@@ -259,24 +260,27 @@ class TestConstants:
 
 
 class TestNotifySubcommand:
-
     def test_notify_in_dispatch(self):
         from main import _SUBCOMMAND_DISPATCH
+
         assert "notify" in _SUBCOMMAND_DISPATCH
 
     def test_notify_parser_exists(self):
         import argparse
+
         from main import _build_parser
+
         parser = _build_parser()
         sub_action = next(
-            a for a in parser._subparsers._group_actions
+            a
+            for a in parser._subparsers._group_actions
             if isinstance(a, argparse._SubParsersAction)
         )
         assert "notify" in sub_action.choices
 
     def test_notify_test_subcommand(self):
-        import argparse
         from main import _build_parser
+
         parser = _build_parser()
         args = parser.parse_args(["notify", "test"])
         assert args.command == "notify"
@@ -289,13 +293,14 @@ class TestNotifySubcommand:
 
 
 class TestHookHelpers:
-
     def test_start_stack_has_notify_helper(self):
         from money4band.fn_startStack import _notify_event
+
         assert callable(_notify_event)
 
     def test_stop_stack_has_notify_helper(self):
         from money4band.fn_stopStack import _notify_event
+
         assert callable(_notify_event)
 
 
@@ -305,13 +310,14 @@ class TestHookHelpers:
 
 
 class TestTemplate:
-
     def test_template_has_events_field(self):
         import json
         import os
+
         template_path = os.path.join(
             os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-            "template", "user-config.json",
+            "template",
+            "user-config.json",
         )
         with open(template_path) as f:
             tpl = json.load(f)

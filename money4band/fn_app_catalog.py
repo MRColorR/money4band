@@ -8,7 +8,6 @@ import os
 # Ensure the parent directory is in the sys.path
 import shutil
 import sys
-
 from typing import Any
 
 from colorama import Back, Fore, Style, just_fix_windows_console
@@ -57,19 +56,29 @@ def _display_catalog(app_config: dict[str, Any]) -> None:
             continue
 
         active = is_category_active(app_config, category)
-        status = f"{Fore.GREEN}ACTIVE{Style.RESET_ALL}" if active else f"{Fore.RED}INACTIVE{Style.RESET_ALL}"
-        print(f"\n{Back.YELLOW}{Fore.BLACK}--- {category.upper()} [{status}{Back.YELLOW}{Fore.BLACK}] ---{Style.RESET_ALL}")
+        status = (
+            f"{Fore.GREEN}ACTIVE{Style.RESET_ALL}"
+            if active
+            else f"{Fore.RED}INACTIVE{Style.RESET_ALL}"
+        )
+        print(
+            f"\n{Back.YELLOW}{Fore.BLACK}--- {category.upper()} [{status}{Back.YELLOW}{Fore.BLACK}] ---{Style.RESET_ALL}"
+        )
 
         # Collect rows
         rows: list[dict[str, str]] = []
         for app in apps:
-            rows.append({
-                "name": app["name"],
-                "link": app.get("link", ""),
-                "payout": app.get("app_details", {}).get("earnings", {}).get("min_payout", "-"),
-                "layer": app.get("compose_layer", "-"),
-                "reason": app.get("removal_reason", ""),
-            })
+            rows.append(
+                {
+                    "name": app["name"],
+                    "link": app.get("link", ""),
+                    "payout": app.get("app_details", {})
+                    .get("earnings", {})
+                    .get("min_payout", "-"),
+                    "layer": app.get("compose_layer", "-"),
+                    "reason": app.get("removal_reason", ""),
+                }
+            )
 
         # Column widths (data-driven)
         w_name = max((len(r["name"]) for r in rows), default=4)
@@ -93,8 +102,7 @@ def _display_catalog(app_config: dict[str, Any]) -> None:
                 f"{'Layer':<{w_layer}}  {'Payout':<{w_payout}}{Style.RESET_ALL}"
             )
             separator = (
-                f"  {'-' * w_name}  {'-' * w_link}  "
-                f"{'-' * w_layer}  {'-' * w_payout}"
+                f"  {'-' * w_name}  {'-' * w_link}  {'-' * w_layer}  {'-' * w_payout}"
             )
             print(header)
             print(separator)
@@ -140,13 +148,16 @@ def _manage_categories(app_config: dict[str, Any], app_config_path: str | None) 
     print(f"\n{Fore.CYAN}=== Manage Category Status ==={Style.RESET_ALL}")
     for idx, cat in enumerate(all_cats, 1):
         active = is_category_active(app_config, cat)
-        badge = f"{Fore.GREEN}ACTIVE{Style.RESET_ALL}" if active else f"{Fore.RED}INACTIVE{Style.RESET_ALL}"
+        badge = (
+            f"{Fore.GREEN}ACTIVE{Style.RESET_ALL}"
+            if active
+            else f"{Fore.RED}INACTIVE{Style.RESET_ALL}"
+        )
         count = len(get_category_entries(app_config, cat))
         print(f"  {idx}. {cat} [{badge}] ({count} apps)")
 
     print(
-        f"\n  {Fore.CYAN}b{Style.RESET_ALL} Back  |  "
-        f"{Fore.CYAN}q{Style.RESET_ALL} Quit"
+        f"\n  {Fore.CYAN}b{Style.RESET_ALL} Back  |  {Fore.CYAN}q{Style.RESET_ALL} Quit"
     )
     choice = input("Select: ").strip().lower()
 
@@ -170,7 +181,11 @@ def _manage_categories(app_config: dict[str, Any], app_config_path: str | None) 
     new_status = not old_status
     app_config[cat_key]["active"] = new_status
 
-    new_badge = f"{Fore.GREEN}ACTIVE{Style.RESET_ALL}" if new_status else f"{Fore.RED}INACTIVE{Style.RESET_ALL}"
+    new_badge = (
+        f"{Fore.GREEN}ACTIVE{Style.RESET_ALL}"
+        if new_status
+        else f"{Fore.RED}INACTIVE{Style.RESET_ALL}"
+    )
     print(f"\n{cat_key} is now [{new_badge}]")
 
     if app_config_path:
@@ -181,7 +196,9 @@ def _manage_categories(app_config: dict[str, Any], app_config_path: str | None) 
         logger.warning("No app_config_path provided — change not persisted")
 
 
-def fn_app_catalog(app_config: dict[str, Any], app_config_path: str | None = None) -> bool:
+def fn_app_catalog(
+    app_config: dict[str, Any], app_config_path: str | None = None
+) -> bool:
     """Display the app catalog and handle sub-actions.
 
     Returns True if the caller should reload and re-display (e.g. after a

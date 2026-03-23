@@ -29,12 +29,8 @@ dist
 *.key
 .m4b_secrets/
 
-# Local-only analysis
-docs/*_ANALYSIS.md
-docs/*AUDIT*.md
-docs/*_STATUS*.md
-docs/*_RESULTS.md
-docs/*_RESEARCH_*.md
+# Docs folder — kept local, not shipped in repo
+docs/
 
 # Local-only development instructions
 .github/copilot-instructions.md

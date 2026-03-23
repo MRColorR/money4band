@@ -2,19 +2,17 @@
 
 from __future__ import annotations
 
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
 from money4band.fn_install_docker import (
-    _AUTO_INSTALLERS,
     _INSTALL_GUIDES,
     _has_tool,
     is_docker_installed,
     main,
     show_docker_guide,
 )
-
 
 # ---------------------------------------------------------------------------
 # is_docker_installed
@@ -83,8 +81,12 @@ def test_show_docker_guide_unknown_os(mock_system, capsys):
 @patch("money4band.fn_install_docker.is_docker_installed", return_value=True)
 @patch("money4band.fn_install_docker.subprocess.run")
 @patch("money4band.fn_install_docker.cls")
-def test_main_docker_already_installed(mock_cls, mock_run, mock_installed, mock_input, capsys):
-    mock_run.return_value = type("R", (), {"returncode": 0, "stdout": "Docker version 27.0.0"})()
+def test_main_docker_already_installed(
+    mock_cls, mock_run, mock_installed, mock_input, capsys
+):
+    mock_run.return_value = type(
+        "R", (), {"returncode": 0, "stdout": "Docker version 27.0.0"}
+    )()
     main("a", "b", "c")
     out = capsys.readouterr().out
     assert "already installed" in out
@@ -103,7 +105,14 @@ def test_main_docker_already_installed(mock_cls, mock_run, mock_installed, mock_
 @patch("money4band.fn_install_docker.is_docker_installed", return_value=False)
 @patch("money4band.fn_install_docker.cls")
 def test_main_auto_install_accepted_success(
-    mock_cls, mock_installed, mock_system, mock_has_tool, mock_yn, mock_guide, mock_input, capsys
+    mock_cls,
+    mock_installed,
+    mock_system,
+    mock_has_tool,
+    mock_yn,
+    mock_guide,
+    mock_input,
+    capsys,
 ):
     mock_installer = MagicMock(return_value=True)
     with patch.dict(
@@ -124,7 +133,14 @@ def test_main_auto_install_accepted_success(
 @patch("money4band.fn_install_docker.is_docker_installed", return_value=False)
 @patch("money4band.fn_install_docker.cls")
 def test_main_auto_install_accepted_fails_shows_guide(
-    mock_cls, mock_installed, mock_system, mock_has_tool, mock_yn, mock_guide, mock_input, capsys
+    mock_cls,
+    mock_installed,
+    mock_system,
+    mock_has_tool,
+    mock_yn,
+    mock_guide,
+    mock_input,
+    capsys,
 ):
     mock_installer = MagicMock(return_value=False)
     with patch.dict(
@@ -149,7 +165,14 @@ def test_main_auto_install_accepted_fails_shows_guide(
 @patch("money4band.fn_install_docker.is_docker_installed", return_value=False)
 @patch("money4band.fn_install_docker.cls")
 def test_main_auto_install_declined_shows_guide(
-    mock_cls, mock_installed, mock_system, mock_has_tool, mock_yn, mock_guide, mock_input, capsys
+    mock_cls,
+    mock_installed,
+    mock_system,
+    mock_has_tool,
+    mock_yn,
+    mock_guide,
+    mock_input,
+    capsys,
 ):
     main("a", "b", "c")
     mock_guide.assert_called_once()
@@ -166,7 +189,9 @@ def test_main_auto_install_declined_shows_guide(
 @patch("money4band.fn_install_docker.platform.system", return_value="Darwin")
 @patch("money4band.fn_install_docker.is_docker_installed", return_value=False)
 @patch("money4band.fn_install_docker.cls")
-def test_main_no_tool_shows_guide(mock_cls, mock_installed, mock_system, mock_has_tool, mock_guide, mock_input, capsys):
+def test_main_no_tool_shows_guide(
+    mock_cls, mock_installed, mock_system, mock_has_tool, mock_guide, mock_input, capsys
+):
     main("a", "b", "c")
     mock_guide.assert_called_once()
 
@@ -185,3 +210,94 @@ def test_install_guides_have_all_platforms():
 @pytest.mark.parametrize("os_key", ["linux", "windows", "darwin"])
 def test_guide_contains_url(os_key):
     assert "https://" in _INSTALL_GUIDES[os_key]
+
+
+class TestDockerResponds:
+    """Docker daemon reachability check via subprocess."""
+
+    @patch("money4band.fn_install_docker.subprocess.run")
+    def test_returns_true_when_daemon_up(self, mock_run):
+        mock_run.return_value = MagicMock(returncode=0)
+        from money4band.fn_install_docker import _docker_responds
+
+        assert _docker_responds() is True
+
+    @patch("money4band.fn_install_docker.subprocess.run", side_effect=FileNotFoundError)
+    def test_returns_false_when_docker_missing(self, _run):
+        from money4band.fn_install_docker import _docker_responds
+
+        assert _docker_responds() is False
+
+
+class TestInstallLinux:
+    """Linux Docker auto-install via get.docker.com script."""
+
+    @patch("money4band.fn_install_docker.subprocess.run")
+    @patch("money4band.fn_install_docker.subprocess.Popen")
+    def test_pipes_curl_to_sudo_sh(self, mock_popen, mock_run):
+        mock_curl = MagicMock()
+        mock_curl.stdout = b"#!/bin/sh\necho ok"
+        mock_curl.wait.return_value = 0
+        mock_popen.return_value = mock_curl
+        mock_run.return_value = MagicMock(returncode=0)
+        from money4band.fn_install_docker import _install_linux
+
+        assert _install_linux() is True
+        # Verify curl fetches the official install script
+        popen_args = mock_popen.call_args[0][0]
+        assert "https://get.docker.com" in popen_args
+        # Verify sudo sh receives curl's stdout as stdin
+        run_kwargs = mock_run.call_args
+        assert run_kwargs[1]["stdin"] is mock_curl.stdout
+        assert run_kwargs[0][0] == ["sudo", "sh"]
+
+    @patch("money4band.fn_install_docker.subprocess.run", side_effect=OSError("fail"))
+    @patch("money4band.fn_install_docker.subprocess.Popen")
+    def test_failure_returns_false(self, mock_popen, _run):
+        mock_popen.return_value.stdout = b""
+        from money4band.fn_install_docker import _install_linux
+
+        assert _install_linux() is False
+
+
+class TestInstallWindows:
+    """Windows Docker Desktop install via winget."""
+
+    @patch("money4band.fn_install_docker.subprocess.run")
+    def test_calls_winget_with_docker_id(self, mock_run):
+        mock_run.return_value = MagicMock(returncode=0)
+        from money4band.fn_install_docker import _install_windows
+
+        assert _install_windows() is True
+        cmd = mock_run.call_args[0][0]
+        assert "winget" in cmd
+        assert "Docker.DockerDesktop" in cmd
+
+    @patch(
+        "money4band.fn_install_docker.subprocess.run", side_effect=OSError("no winget")
+    )
+    def test_failure_returns_false(self, _run):
+        from money4band.fn_install_docker import _install_windows
+
+        assert _install_windows() is False
+
+
+class TestInstallMacos:
+    """macOS Docker Desktop install via Homebrew."""
+
+    @patch("money4band.fn_install_docker.subprocess.run")
+    def test_calls_brew_cask_docker(self, mock_run):
+        mock_run.return_value = MagicMock(returncode=0)
+        from money4band.fn_install_docker import _install_macos
+
+        assert _install_macos() is True
+        cmd = mock_run.call_args[0][0]
+        assert cmd == ["brew", "install", "--cask", "docker"]
+
+    @patch(
+        "money4band.fn_install_docker.subprocess.run", side_effect=OSError("no brew")
+    )
+    def test_failure_returns_false(self, _run):
+        from money4band.fn_install_docker import _install_macos
+
+        assert _install_macos() is False

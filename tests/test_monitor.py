@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
-from unittest.mock import patch, MagicMock
 import json
+from unittest.mock import MagicMock, patch
 
-import pytest
-
-from money4band.monitor import HealthStatus, check_container_health, detect_restart_loops, get_stack_health
+from money4band.monitor import (
+    HealthStatus,
+    check_container_health,
+    detect_restart_loops,
+    get_stack_health,
+)
 
 
 class TestHealthStatus:
@@ -51,15 +54,17 @@ class TestCheckContainerHealth:
 
     @patch("money4band.monitor.subprocess.run")
     def test_parses_healthy_container(self, mock_run):
-        mock_run.return_value = self._mock_inspect({
-            "State": {
-                "Running": True,
-                "StartedAt": "2026-03-20T10:00:00Z",
-                "Health": {"Status": "healthy", "Log": []},
-            },
-            "RestartCount": 0,
-            "Config": {"Image": "myimage:latest"},
-        })
+        mock_run.return_value = self._mock_inspect(
+            {
+                "State": {
+                    "Running": True,
+                    "StartedAt": "2026-03-20T10:00:00Z",
+                    "Health": {"Status": "healthy", "Log": []},
+                },
+                "RestartCount": 0,
+                "Config": {"Image": "myimage:latest"},
+            }
+        )
         status = check_container_health("test")
         assert status.running is True
         assert status.health == "healthy"
@@ -69,17 +74,19 @@ class TestCheckContainerHealth:
 
     @patch("money4band.monitor.subprocess.run")
     def test_parses_unhealthy_with_error(self, mock_run):
-        mock_run.return_value = self._mock_inspect({
-            "State": {
-                "Running": True,
-                "Health": {
-                    "Status": "unhealthy",
-                    "Log": [{"ExitCode": 1, "Output": "connection refused"}],
+        mock_run.return_value = self._mock_inspect(
+            {
+                "State": {
+                    "Running": True,
+                    "Health": {
+                        "Status": "unhealthy",
+                        "Log": [{"ExitCode": 1, "Output": "connection refused"}],
+                    },
                 },
-            },
-            "RestartCount": 3,
-            "Config": {"Image": "img"},
-        })
+                "RestartCount": 3,
+                "Config": {"Image": "img"},
+            }
+        )
         status = check_container_health("test")
         assert status.health == "unhealthy"
         assert status.last_error == "connection refused"
@@ -87,21 +94,25 @@ class TestCheckContainerHealth:
 
     @patch("money4band.monitor.subprocess.run")
     def test_oom_killed(self, mock_run):
-        mock_run.return_value = self._mock_inspect({
-            "State": {"Running": False, "OOMKilled": True},
-            "RestartCount": 1,
-            "Config": {"Image": "img"},
-        })
+        mock_run.return_value = self._mock_inspect(
+            {
+                "State": {"Running": False, "OOMKilled": True},
+                "RestartCount": 1,
+                "Config": {"Image": "img"},
+            }
+        )
         status = check_container_health("test")
         assert status.last_error == "OOMKilled"
 
     @patch("money4band.monitor.subprocess.run")
     def test_no_healthcheck(self, mock_run):
-        mock_run.return_value = self._mock_inspect({
-            "State": {"Running": True},
-            "RestartCount": 0,
-            "Config": {"Image": "img"},
-        })
+        mock_run.return_value = self._mock_inspect(
+            {
+                "State": {"Running": True},
+                "RestartCount": 0,
+                "Config": {"Image": "img"},
+            }
+        )
         status = check_container_health("test")
         assert status.health == "none"
         assert status.ok is True

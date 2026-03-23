@@ -3,13 +3,12 @@
 Profiles are stored under ``config/profiles/{name}/`` with copies of
 ``user-config.json`` and ``.env``.
 """
+
 from __future__ import annotations
 
-import json
 import logging
 import os
 import shutil
-from typing import Any
 
 from colorama import Fore, Style
 
@@ -25,10 +24,7 @@ def list_profiles(config_dir: str) -> list[str]:
     pdir = _profiles_dir(config_dir)
     if not os.path.isdir(pdir):
         return []
-    return sorted(
-        d for d in os.listdir(pdir)
-        if os.path.isdir(os.path.join(pdir, d))
-    )
+    return sorted(d for d in os.listdir(pdir) if os.path.isdir(os.path.join(pdir, d)))
 
 
 def create_profile(
@@ -107,7 +103,7 @@ def display_profiles(config_dir: str) -> None:
     profiles = list_profiles(config_dir)
     if not profiles:
         print(f"{Fore.YELLOW}No saved profiles.{Style.RESET_ALL}")
-        print(f"  Create one with: m4b profile create <name>")
+        print("  Create one with: m4b profile create <name>")
         return
 
     print(f"\n{Fore.CYAN}--- Saved Profiles ---{Style.RESET_ALL}")

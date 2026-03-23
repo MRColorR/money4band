@@ -60,9 +60,7 @@ def fetch_docker_tags(image: str) -> dict | None:
         )
         return None
     except requests.Timeout:
-        logger.error(
-            "Registry request timed out for %s after %ss.", image, timeout
-        )
+        logger.error("Registry request timed out for %s after %ss.", image, timeout)
         return None
     except requests.RequestException as e:
         logger.error("Error fetching Docker tags for %s: %s", image, e)
@@ -106,9 +104,7 @@ def check_img_arch_support(image: str, tag: str, docker_platform: str) -> bool |
         )
         return None
 
-    tag_info = next(
-        (t for t in tags_info.get("results", []) if t["name"] == tag), None
-    )
+    tag_info = next((t for t in tags_info.get("results", []) if t["name"] == tag), None)
     if not tag_info:
         logger.error("Tag %s not found for image %s", tag, image)
         return False

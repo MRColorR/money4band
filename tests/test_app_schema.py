@@ -1,12 +1,9 @@
 """Tests for utils.app_schema — validation and community app loading."""
+
 from __future__ import annotations
 
 import json
 import os
-import tempfile
-from unittest import mock
-
-import pytest
 
 from money4band.app_schema import (
     load_community_apps,
@@ -14,10 +11,10 @@ from money4band.app_schema import (
     validate_app_entry,
 )
 
-
 # ---------------------------------------------------------------------------
 # validate_app_entry
 # ---------------------------------------------------------------------------
+
 
 class TestValidateAppEntry:
     def _minimal(self, **overrides):
@@ -77,6 +74,7 @@ class TestValidateAppEntry:
 # load_community_apps
 # ---------------------------------------------------------------------------
 
+
 class TestLoadCommunityApps:
     def _write_app(self, d, name, **overrides):
         entry = {
@@ -128,6 +126,7 @@ class TestLoadCommunityApps:
 # merge_community_apps
 # ---------------------------------------------------------------------------
 
+
 class TestMergeCommunityApps:
     def _base_config(self):
         return {
@@ -135,8 +134,13 @@ class TestMergeCommunityApps:
             "supported-apps": {
                 "active": True,
                 "entries": [
-                    {"name": "EXISTING", "compose_config": {"image": "x"},
-                     "flags": {}, "install_limit": 1, "compose_layer": "residential"}
+                    {
+                        "name": "EXISTING",
+                        "compose_config": {"image": "x"},
+                        "flags": {},
+                        "install_limit": 1,
+                        "compose_layer": "residential",
+                    }
                 ],
             },
             "candidate-apps": {"active": False, "entries": []},
@@ -189,7 +193,10 @@ class TestMergeCommunityApps:
         with open(tmp_path / "NEWBIE.json", "w") as f:
             json.dump(entry, f)
 
-        config = {"app_config_version": 1.2, "supported-apps": {"active": True, "entries": []}}
+        config = {
+            "app_config_version": 1.2,
+            "supported-apps": {"active": True, "entries": []},
+        }
         merge_community_apps(config, str(tmp_path))
 
         assert "candidate-apps" in config

@@ -3,7 +3,6 @@ from __future__ import annotations
 import logging
 import os
 import time
-
 from typing import Any
 
 from colorama import Fore, Style, just_fix_windows_console
@@ -254,7 +253,9 @@ def _install_limits_status_label(m4b_config_path: str) -> str:
     return f"{Fore.YELLOW}OFF{Style.RESET_ALL}"
 
 
-def submenu_multiproxy_tools(m4b_config_path: str = "./config/m4b-config.json") -> list[dict[str, str]]:
+def submenu_multiproxy_tools(
+    m4b_config_path: str = "./config/m4b-config.json",
+) -> list[dict[str, str]]:
     status = _install_limits_status_label(m4b_config_path)
     return [
         {
@@ -301,7 +302,9 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
 
         for i, option in enumerate(menu_options, start=1):
             print(f"{i}. {option['label']}")
-        print(f"\n  {Fore.CYAN}b{Style.RESET_ALL} Back  |  {Fore.CYAN}q{Style.RESET_ALL} Quit")
+        print(
+            f"\n  {Fore.CYAN}b{Style.RESET_ALL} Back  |  {Fore.CYAN}q{Style.RESET_ALL} Quit"
+        )
 
         choice = input("Select: ").strip().lower()
 

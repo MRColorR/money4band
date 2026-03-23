@@ -18,7 +18,7 @@ def _isolate_summary_path(tmp_path, monkeypatch):
 def _minimal_user_config(enabled_apps=None):
     """Build a minimal user_config for testing."""
     apps = {}
-    for name in (enabled_apps or []):
+    for name in enabled_apps or []:
         apps[name] = {"enabled": True, "email": "test@example.com"}
     # Add a disabled app
     apps["disabledapp"] = {"enabled": False}

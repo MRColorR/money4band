@@ -8,10 +8,9 @@ import platform
 import shutil
 import stat
 import time
+from collections.abc import Callable
 from copy import deepcopy
 from typing import Any
-
-from collections.abc import Callable
 
 from colorama import Fore, Style
 
@@ -281,9 +280,7 @@ def setup_multiproxy_instances(
     reserved_ports = collect_assigned_ports(user_config)
 
     # --- Install-limit enforcement ---
-    enforce_limits = m4b_config.get("system", {}).get(
-        "enforce_install_limits", True
-    )
+    enforce_limits = m4b_config.get("system", {}).get("enforce_install_limits", True)
     # Total instances = proxies list + 1 main instance.
     total_instances = len(proxies) + 1
     app_limits: dict[str, int] = {}  # app_name -> limit (-1 = unlimited)
@@ -316,7 +313,7 @@ def setup_multiproxy_instances(
             )
         logger.info(
             "Install-limit enforcement: %s",
-            {k: v for k, v in limited_apps.items()},
+            dict(limited_apps),
         )
 
     for existing_instance in os.listdir(instances_dir):
@@ -391,7 +388,9 @@ def setup_multiproxy_instances(
                         app_config_entry["enabled"] = False
                         logger.info(
                             "Disabled %s in instance %d (limit: %d)",
-                            app_name, instance_number, limit,
+                            app_name,
+                            instance_number,
+                            limit,
                         )
                     continue
 

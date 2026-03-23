@@ -17,8 +17,6 @@ import sys
 import threading
 
 from money4band.cls import cls
-from money4band.helper import show_spinner
-from money4band.loader import load_json_config
 
 # -- Re-exports for backward compatibility ------------------------------------
 from money4band.compose_builder import (  # noqa: F401
@@ -26,6 +24,8 @@ from money4band.compose_builder import (  # noqa: F401
     substitute_port_placeholders,
 )
 from money4band.env_builder import generate_env_file  # noqa: F401
+from money4band.helper import show_spinner
+from money4band.loader import load_json_config
 
 logger = logging.getLogger(__name__)
 
@@ -237,9 +237,9 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
     compose_mode = m4b_config.get("system", {}).get("compose_mode", "monolithic")
     layered = compose_mode == "layered"
     if layered:
-        print(f"  Compose Mode: Layered (split by IP-policy tier)")
+        print("  Compose Mode: Layered (split by IP-policy tier)")
     else:
-        print(f"  Compose Mode: Monolithic (single docker-compose.yaml)")
+        print("  Compose Mode: Monolithic (single docker-compose.yaml)")
 
     # Check for multiproxy instances
     instances_dir = "m4b_proxy_instances"
@@ -433,9 +433,7 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
                     up_cmd.extend(["up", "-d"])
                     subprocess.run(down_cmd, check=True)
                     subprocess.run(up_cmd, check=True)
-                    print(
-                        f"{Fore.GREEN}Stack restarted successfully{Style.RESET_ALL}"
-                    )
+                    print(f"{Fore.GREEN}Stack restarted successfully{Style.RESET_ALL}")
                 except subprocess.CalledProcessError as e:
                     logger.error("Error restarting stack: %s", e)
                     print(f"{Fore.RED}Error restarting stack: {e}{Style.RESET_ALL}")

@@ -9,7 +9,6 @@ from typing import Any
 
 from colorama import Fore, Style
 
-
 logger = logging.getLogger(__name__)
 SUMMARY_PATH = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
@@ -66,13 +65,13 @@ def generate_setup_summary(
 
     # --- Watchtower ---
     wt = user_config.get("watchtower", {})
-    lines.append(f"Watchtower auto-update: {'enabled' if wt.get('enabled') else 'disabled'}")
+    lines.append(
+        f"Watchtower auto-update: {'enabled' if wt.get('enabled') else 'disabled'}"
+    )
 
     # --- Notifications ---
     notif = user_config.get("notifications", {})
-    lines.append(
-        f"Notifications: {'enabled' if notif.get('enabled') else 'disabled'}"
-    )
+    lines.append(f"Notifications: {'enabled' if notif.get('enabled') else 'disabled'}")
 
     # --- Proxy ---
     proxy = user_config.get("proxies", {})
@@ -97,7 +96,9 @@ def generate_setup_summary(
     # --- Resource estimate ---
     lines.append("")
     lines.append("Estimated Resource Usage")
-    lines.append(f"  Active containers: ~{len(enabled_apps) + (2 if dash.get('enabled') else 1)}")
+    lines.append(
+        f"  Active containers: ~{len(enabled_apps) + (2 if dash.get('enabled') else 1)}"
+    )
     lines.append("  (watchtower + dashboard + one per enabled app)")
 
     lines.append("")
@@ -115,15 +116,15 @@ def generate_setup_summary(
 
     # Print abbreviated overview to console
     print(f"\n{Fore.GREEN}{'=' * 50}")
-    print(f"  Setup Complete!")
+    print("  Setup Complete!")
     print(f"{'=' * 50}{Style.RESET_ALL}")
     print(f"  Enabled apps: {Fore.CYAN}{len(enabled_apps)}{Style.RESET_ALL}")
     if dash.get("enabled"):
         port = dash.get("ports", [8081])[0] if dash.get("ports") else 8081
         print(f"  Dashboard:    {Fore.CYAN}http://localhost:{port}{Style.RESET_ALL}")
-    print(f"  Proxy:        {Fore.CYAN}{'enabled' if proxy_enabled else 'disabled'}{Style.RESET_ALL}")
     print(
-        f"\n  Full summary saved to: {Fore.YELLOW}{SUMMARY_PATH}{Style.RESET_ALL}\n"
+        f"  Proxy:        {Fore.CYAN}{'enabled' if proxy_enabled else 'disabled'}{Style.RESET_ALL}"
     )
+    print(f"\n  Full summary saved to: {Fore.YELLOW}{SUMMARY_PATH}{Style.RESET_ALL}\n")
 
     return SUMMARY_PATH

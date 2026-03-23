@@ -7,7 +7,6 @@ import logging
 import os
 from typing import Any
 
-
 logger = logging.getLogger(__name__)
 PROGRESS_FILE = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),

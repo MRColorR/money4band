@@ -11,7 +11,6 @@ import subprocess
 import threading
 from typing import Any
 
-
 logger = logging.getLogger(__name__)
 # ── Event types ─────────────────────────────────────────────────────────
 EVENT_STACK_START = "stack_start"

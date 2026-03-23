@@ -16,7 +16,12 @@ from logging.handlers import RotatingFileHandler
 from colorama import Fore, Style, just_fix_windows_console
 
 from money4band import detector, dumper, loader
-from money4band.backup import cleanup_backups, create_backup, list_backups, restore_backup
+from money4band.backup import (
+    cleanup_backups,
+    create_backup,
+    list_backups,
+    restore_backup,
+)
 from money4band.cls import cls
 from money4band.crypto import ensure_config_encrypted
 from money4band.fn_reset_config import main as reset_main
@@ -407,7 +412,7 @@ def _cmd_status(args: argparse.Namespace) -> None:
 
     just_fix_windows_console()
     print(f"{Fore.GREEN}--- M4B Stack Status ---{Style.RESET_ALL}")
-    result = subprocess.run(cmd, capture_output=True, text=True)  # noqa: S603
+    result = subprocess.run(cmd, capture_output=True, text=True, check=False)  # noqa: S603
     if result.returncode == 0:
         print(result.stdout)
     else:
@@ -449,8 +454,12 @@ def _cmd_generate(args: argparse.Namespace) -> None:
         from money4band.readme_generator import update_apps_md, update_readme
 
         app_config = load_json_config(apps_config_path)
-        readme_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "README.md")
-        apps_md_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "docs", "APPS.md")
+        readme_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "README.md"
+        )
+        apps_md_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "docs", "APPS.md"
+        )
         ok_readme = update_readme(app_config, readme_path)
         ok_apps = update_apps_md(app_config, apps_md_path)
         if ok_readme:
@@ -458,7 +467,9 @@ def _cmd_generate(args: argparse.Namespace) -> None:
         if ok_apps:
             print(f"{Fore.GREEN}docs/APPS.md app table updated.{Style.RESET_ALL}")
         if not ok_readme and not ok_apps:
-            print(f"{Fore.YELLOW}No marker sections found in target files.{Style.RESET_ALL}")
+            print(
+                f"{Fore.YELLOW}No marker sections found in target files.{Style.RESET_ALL}"
+            )
         return
 
     _ensure_user_config(args, user_config_path)
@@ -466,7 +477,6 @@ def _cmd_generate(args: argparse.Namespace) -> None:
     from money4band.generator import main as gen_main
 
     gen_main(apps_config_path, m4b_config_path, user_config_path)
-
 
 
 def _cmd_links(args: argparse.Namespace) -> None:
@@ -609,19 +619,17 @@ def _cmd_limit(args: argparse.Namespace) -> None:
     # Regenerate .env so Docker picks up the new limits.
     from money4band.generator import generate_env_file
 
-    apps_config_path = os.path.join(
-        args.config_dir, args.config_app_file
-    )
+    apps_config_path = os.path.join(args.config_dir, args.config_app_file)
     generate_env_file(
-        m4b_config_path, apps_config_path, user_config_path,
+        m4b_config_path,
+        apps_config_path,
+        user_config_path,
         env_output_path=os.path.join(BASE_DIR, ".env"),
     )
 
     # Reload user_config to show updated values.
     user_config = loader.load_json_config(user_config_path)
-    print(
-        f"{Fore.GREEN}Switched to profile: {profile_name}{Style.RESET_ALL}"
-    )
+    print(f"{Fore.GREEN}Switched to profile: {profile_name}{Style.RESET_ALL}")
     detector.show_resource_profile_info(m4b_config, user_config)
     print(
         f"\n{Fore.YELLOW}Restart your stack (`m4b start`) "
@@ -687,10 +695,14 @@ def _cmd_notify(args: argparse.Namespace) -> None:
         if cfg.get("url"):
             masked = cfg["url"][:12] + "..." if len(cfg["url"]) > 12 else cfg["url"]
             print(f"  URL: {masked}")
-        print(f"  Events:")
+        print("  Events:")
         for evt in sorted(ALL_EVENTS - {"test"}):
             on = is_event_enabled(user_config, evt)
-            mark = f"{Fore.GREEN}ON{Style.RESET_ALL}" if on else f"{Fore.RED}OFF{Style.RESET_ALL}"
+            mark = (
+                f"{Fore.GREEN}ON{Style.RESET_ALL}"
+                if on
+                else f"{Fore.RED}OFF{Style.RESET_ALL}"
+            )
             print(f"    {evt}: {mark}")
 
 
@@ -741,7 +753,9 @@ def _cmd_app(args: argparse.Namespace) -> None:
         just_fix_windows_console()
         entries = load_community_apps(apps_d_dir)
         if not entries:
-            print(f"{Fore.YELLOW}No community apps found in {apps_d_dir}{Style.RESET_ALL}")
+            print(
+                f"{Fore.YELLOW}No community apps found in {apps_d_dir}{Style.RESET_ALL}"
+            )
             return
         all_ok = True
         for entry in entries:
@@ -755,11 +769,13 @@ def _cmd_app(args: argparse.Namespace) -> None:
             else:
                 print(f"{Fore.GREEN}\u2713 {name}{Style.RESET_ALL}")
         if all_ok:
-            print(f"\n{Fore.GREEN}All {len(entries)} community app(s) valid.{Style.RESET_ALL}")
+            print(
+                f"\n{Fore.GREEN}All {len(entries)} community app(s) valid.{Style.RESET_ALL}"
+            )
     else:
-        print(f"Usage: m4b app {{add,validate}}")
-        print(f"  add       Interactive wizard to add a new community app")
-        print(f"  validate  Check all apps.d/ files against the schema")
+        print("Usage: m4b app {add,validate}")
+        print("  add       Interactive wizard to add a new community app")
+        print("  validate  Check all apps.d/ files against the schema")
 
 
 def _cmd_offers(args: argparse.Namespace) -> None:
@@ -772,7 +788,9 @@ def _cmd_offers(args: argparse.Namespace) -> None:
 
     from money4band.offers import display_offers
 
-    display_offers(offers_path, category_filter=category, app_config_path=apps_config_path)
+    display_offers(
+        offers_path, category_filter=category, app_config_path=apps_config_path
+    )
 
 
 def _cmd_dashboard(args: argparse.Namespace) -> None:
@@ -817,7 +835,9 @@ def _cmd_profile(args: argparse.Namespace) -> None:
             return
         if switch_profile(name, config_dir, BASE_DIR, user_config_path):
             print(f"{Fore.GREEN}Switched to profile '{name}'.{Style.RESET_ALL}")
-            print(f"{Fore.YELLOW}Run 'generate' to rebuild compose files.{Style.RESET_ALL}")
+            print(
+                f"{Fore.YELLOW}Run 'generate' to rebuild compose files.{Style.RESET_ALL}"
+            )
         else:
             print(f"{Fore.RED}Profile '{name}' not found.{Style.RESET_ALL}")
     elif action == "delete":
@@ -848,9 +868,7 @@ def _cmd_dns(args: argparse.Namespace) -> None:
         print(f"{Fore.GREEN}DNS mode set to '{mode}'.{Style.RESET_ALL}")
         if servers:
             print(f"  Servers: {', '.join(servers)}")
-        print(
-            f"{Fore.YELLOW}Run 'generate' to rebuild compose files.{Style.RESET_ALL}"
-        )
+        print(f"{Fore.YELLOW}Run 'generate' to rebuild compose files.{Style.RESET_ALL}")
     else:
         m4b_config = loader.load_json_config(m4b_config_path)
         from money4band.system_info import show_dns_status
@@ -954,9 +972,12 @@ def _build_parser() -> argparse.ArgumentParser:
     sub.add_parser("start", help="Start the Docker Compose stack")
     sub.add_parser("stop", help="Stop the Docker Compose stack")
     sub.add_parser("status", help="Show running containers and health")
-    gen_parser = sub.add_parser("generate", help="Regenerate docker-compose.yaml and .env")
+    gen_parser = sub.add_parser(
+        "generate", help="Regenerate docker-compose.yaml and .env"
+    )
     gen_parser.add_argument(
-        "--docs", action="store_true",
+        "--docs",
+        action="store_true",
         help="Regenerate README.md and docs/APPS.md app tables from app-config.json",
     )
     sub.add_parser("links", help="Show app dashboard and referral links")
@@ -994,49 +1015,72 @@ def _build_parser() -> argparse.ArgumentParser:
 
     apps_parser = sub.add_parser("apps", help="List apps or show app detail card")
     apps_parser.add_argument(
-        "app_name", nargs="?", default=None,
+        "app_name",
+        nargs="?",
+        default=None,
         help="App name to show detail for. Omit to list all apps.",
     )
     apps_parser.add_argument(
-        "--category", "-c", default=None,
+        "--category",
+        "-c",
+        default=None,
         choices=["supported", "deprecated", "candidate"],
         help="Filter listing by category",
     )
 
-    validate_parser = sub.add_parser("validate", help="Run Docker image security checks")
+    validate_parser = sub.add_parser(
+        "validate", help="Run Docker image security checks"
+    )
     validate_parser.add_argument(
-        "--skip-cves", action="store_true", default=False,
+        "--skip-cves",
+        action="store_true",
+        default=False,
         help="Skip CVE scanning (only run stale check and digest logging)",
     )
 
     app_parser = sub.add_parser("app", help="App plugin management (add/validate)")
     app_parser.add_argument(
-        "app_action", nargs="?", default=None,
+        "app_action",
+        nargs="?",
+        default=None,
         choices=["add", "validate"],
         help="Action: 'add' to create a new community app, 'validate' to check apps.d/ files",
     )
 
-    offers_parser = sub.add_parser("offers", help="Show referral & passive income offers")
+    offers_parser = sub.add_parser(
+        "offers", help="Show referral & passive income offers"
+    )
     offers_parser.add_argument(
-        "--category", "-c", dest="offer_category", default=None,
+        "--category",
+        "-c",
+        dest="offer_category",
+        default=None,
         choices=["bandwidth", "compute", "survey", "other"],
         help="Filter by offer category",
     )
 
-    dashboard_parser = sub.add_parser("dashboard", help="Start the web dashboard API server")
+    dashboard_parser = sub.add_parser(
+        "dashboard", help="Start the web dashboard API server"
+    )
     dashboard_parser.add_argument(
-        "--port", type=int, default=8088,
+        "--port",
+        type=int,
+        default=8088,
         help="Port for the dashboard API server (default: 8088)",
     )
 
     profile_parser = sub.add_parser("profile", help="Manage configuration profiles")
     profile_parser.add_argument(
-        "profile_action", nargs="?", default=None,
+        "profile_action",
+        nargs="?",
+        default=None,
         choices=["create", "switch", "delete"],
         help="Action: create/switch/delete a named profile. Omit to list profiles.",
     )
     profile_parser.add_argument(
-        "profile_name", nargs="?", default=None,
+        "profile_name",
+        nargs="?",
+        default=None,
         help="Profile name (e.g. 'home', 'vps')",
     )
 
@@ -1098,9 +1142,11 @@ class _CredentialScrubFilter(logging.Filter):
     import re as _re
 
     _PATTERNS = [
-        _re.compile(r'(?i)(password|passwd|pwd|secret|token|apikey|api_key)\s*[:=]\s*\S+'),
-        _re.compile(r'(?i)(bearer\s+)\S+'),
-        _re.compile(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'),
+        _re.compile(
+            r"(?i)(password|passwd|pwd|secret|token|apikey|api_key)\s*[:=]\s*\S+"
+        ),
+        _re.compile(r"(?i)(bearer\s+)\S+"),
+        _re.compile(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"),
     ]
     _REDACTED = "***REDACTED***"
 
@@ -1127,11 +1173,6 @@ def _setup_logging(args: argparse.Namespace) -> None:
     os.makedirs(args.log_dir, exist_ok=True)
     log_file_path = os.path.join(args.log_dir, args.log_file)
 
-    fmt = logging.Formatter(
-        "%(asctime)s - %(name)s - [%(levelname)s] - %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
-
     # Rotating file handler — captures everything at the configured level
     rotating_handler = RotatingFileHandler(
         log_file_path, maxBytes=1 * 1024 * 1024, backupCount=3
@@ -1150,9 +1191,7 @@ def _setup_logging(args: argparse.Namespace) -> None:
     )
     console_handler.setLevel(logging.WARNING)
 
-    logging.basicConfig(
-        level=log_level, handlers=[rotating_handler, console_handler]
-    )
+    logging.basicConfig(level=log_level, handlers=[rotating_handler, console_handler])
 
     # Attach credential scrubbing filter to root logger
     logging.getLogger().addFilter(_CredentialScrubFilter())

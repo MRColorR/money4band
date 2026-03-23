@@ -1,7 +1,6 @@
 """Tests for utils.earnings_estimator."""
-from __future__ import annotations
 
-import pytest
+from __future__ import annotations
 
 from money4band.earnings_estimator import (
     display_earnings_summary,
@@ -45,7 +44,8 @@ class TestGetAppEarnings:
                     {
                         "name": "APP1",
                         "app_details": {
-                            "earnings": earnings or {
+                            "earnings": earnings
+                            or {
                                 "model": "per-GB",
                                 "avg_monthly_residential_usd": "1-5",
                                 "avg_monthly_datacenter_usd": "0.5-2",
@@ -76,12 +76,28 @@ class TestGetAppEarnings:
 
     def test_skips_inactive_categories(self):
         cfg = {
-            "supported-apps": {"active": True, "entries": [
-                {"name": "A", "app_details": {"earnings": {"avg_monthly_residential_usd": "1-2"}}}
-            ]},
-            "deprecated-apps": {"active": False, "entries": [
-                {"name": "B", "app_details": {"earnings": {"avg_monthly_residential_usd": "3-4"}}}
-            ]},
+            "supported-apps": {
+                "active": True,
+                "entries": [
+                    {
+                        "name": "A",
+                        "app_details": {
+                            "earnings": {"avg_monthly_residential_usd": "1-2"}
+                        },
+                    }
+                ],
+            },
+            "deprecated-apps": {
+                "active": False,
+                "entries": [
+                    {
+                        "name": "B",
+                        "app_details": {
+                            "earnings": {"avg_monthly_residential_usd": "3-4"}
+                        },
+                    }
+                ],
+            },
         }
         rows = get_app_earnings(cfg)
         assert len(rows) == 1

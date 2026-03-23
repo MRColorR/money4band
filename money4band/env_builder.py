@@ -8,11 +8,15 @@ import threading
 from typing import Any
 
 from money4band.helper import show_spinner
-from money4band.loader import get_active_app_categories, get_category_entries, load_json_config
-
-
+from money4band.loader import (
+    get_active_app_categories,
+    get_category_entries,
+    load_json_config,
+)
 
 logger = logging.getLogger(__name__)
+
+
 def generate_env_file(
     m4b_config_path_or_dict: Any,
     app_config_path_or_dict: Any,

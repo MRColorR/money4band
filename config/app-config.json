@@ -2124,7 +2124,7 @@
         ]
     },
     "candidate-apps": {
-        "active": true,
+        "active": false,
         "entries": [
             {
                 "name": "SPIDE",

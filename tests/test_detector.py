@@ -1,12 +1,11 @@
-import json
 import unittest
 from unittest.mock import patch
 
 from money4band.detector import (
-    VALID_PROFILES,
     _MIN_CPU,
     _MIN_MEM,
     _TIER_MULTIPLIERS,
+    VALID_PROFILES,
     calculate_resource_limits,
     detect_architecture,
     detect_os,
@@ -99,10 +98,18 @@ class TestResourceProfiles(unittest.TestCase):
             "active": "low",
             "profiles": {
                 "base": {"description": "Minimal", "cpu_factor": 0.2, "ram_pct": 0.02},
-                "min": {"description": "Conservative", "cpu_factor": 0.5, "ram_pct": 0.125},
+                "min": {
+                    "description": "Conservative",
+                    "cpu_factor": 0.5,
+                    "ram_pct": 0.125,
+                },
                 "low": {"description": "Default", "cpu_factor": 1.0, "ram_pct": 0.1875},
                 "mid": {"description": "Standard", "cpu_factor": 2.0, "ram_pct": 0.25},
-                "max": {"description": "High-resource", "cpu_factor": 0.5, "ram_pct": 0.50},
+                "max": {
+                    "description": "High-resource",
+                    "cpu_factor": 0.5,
+                    "ram_pct": 0.50,
+                },
             },
         }
     }
@@ -129,7 +136,9 @@ class TestResourceProfiles(unittest.TestCase):
     @patch("money4band.detector.get_system_memory_and_cores", return_value=(8192.0, 4))
     @patch("money4band.detector.write_json")
     @patch("money4band.detector.load_json_config")
-    def test_calculate_resource_limits_low_profile(self, mock_load, mock_write, mock_sys):
+    def test_calculate_resource_limits_low_profile(
+        self, mock_load, mock_write, mock_sys
+    ):
         """With 8 GB RAM + 4 cores on 'low' profile, verify all tier values."""
         mock_load.return_value = {"resource_limits": {"ram_cap_mb_default": 6144}}
         calculate_resource_limits("dummy_path", m4b_config=self._M4B_CFG)
@@ -144,7 +153,9 @@ class TestResourceProfiles(unittest.TestCase):
         base_cpu = 4 * 1.0  # 4.0
 
         for tier, mult in _TIER_MULTIPLIERS.items():
-            expected_reserv = int(max(base_ram * mult["mem_reserv"], _MIN_MEM["reserv"]))
+            expected_reserv = int(
+                max(base_ram * mult["mem_reserv"], _MIN_MEM["reserv"])
+            )
             expected_limit = int(max(base_ram * mult["mem_limit"], _MIN_MEM["limit"]))
             expected_cpu = round(max(base_cpu * mult["cpu"], _MIN_CPU[tier]), 1)
 
@@ -155,7 +166,9 @@ class TestResourceProfiles(unittest.TestCase):
     @patch("money4band.detector.get_system_memory_and_cores", return_value=(2048.0, 2))
     @patch("money4band.detector.write_json")
     @patch("money4band.detector.load_json_config")
-    def test_calculate_limits_base_profile_uses_minimums(self, mock_load, mock_write, mock_sys):
+    def test_calculate_limits_base_profile_uses_minimums(
+        self, mock_load, mock_write, mock_sys
+    ):
         """Base profile on a 2 GB / 2-core system should hit absolute minimums for lower tiers."""
         cfg = {
             "resource_profiles": {
@@ -200,7 +213,9 @@ class TestResourceProfiles(unittest.TestCase):
     @patch("money4band.detector.get_system_memory_and_cores", return_value=(8192.0, 4))
     @patch("money4band.detector.write_json")
     @patch("money4band.detector.load_json_config")
-    def test_calculate_limits_no_m4b_config_defaults_to_low(self, mock_load, mock_write, mock_sys):
+    def test_calculate_limits_no_m4b_config_defaults_to_low(
+        self, mock_load, mock_write, mock_sys
+    ):
         """When m4b_config is None, should use the fallback low profile values."""
         mock_load.return_value = {"resource_limits": {"ram_cap_mb_default": 6144}}
         calculate_resource_limits("dummy_path", m4b_config=None)
@@ -215,7 +230,10 @@ class TestResourceProfiles(unittest.TestCase):
     def test_ram_cap_preserved(self):
         """ram_cap_mb_default is preserved in output for backward compat."""
         with (
-            patch("money4band.detector.get_system_memory_and_cores", return_value=(8192.0, 4)),
+            patch(
+                "money4band.detector.get_system_memory_and_cores",
+                return_value=(8192.0, 4),
+            ),
             patch("money4band.detector.write_json") as mock_write,
             patch("money4band.detector.load_json_config") as mock_load,
         ):

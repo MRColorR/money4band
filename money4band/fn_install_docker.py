@@ -115,12 +115,17 @@ def _install_linux() -> bool:
 
 def _install_windows() -> bool:
     """Install Docker Desktop via winget."""
-    print("Running: winget install -e --id Docker.DockerDesktop --accept-source-agreements --accept-package-agreements")
+    print(
+        "Running: winget install -e --id Docker.DockerDesktop --accept-source-agreements --accept-package-agreements"
+    )
     try:
         subprocess.run(
             [
-                "winget", "install", "-e",
-                "--id", "Docker.DockerDesktop",
+                "winget",
+                "install",
+                "-e",
+                "--id",
+                "Docker.DockerDesktop",
                 "--accept-source-agreements",
                 "--accept-package-agreements",
             ],
@@ -161,9 +166,9 @@ def _install_macos() -> bool:
 
 # Map: os_key → (required_tool, installer_callable, human description)
 _AUTO_INSTALLERS: dict[str, tuple[str, Callable[[], bool], str]] = {
-    "linux":   ("curl",   _install_linux,   "curl -fsSL https://get.docker.com | sudo sh"),
+    "linux": ("curl", _install_linux, "curl -fsSL https://get.docker.com | sudo sh"),
     "windows": ("winget", _install_windows, "winget install Docker.DockerDesktop"),
-    "darwin":  ("brew",   _install_macos,   "brew install --cask docker"),
+    "darwin": ("brew", _install_macos, "brew install --cask docker"),
 }
 
 
@@ -213,7 +218,9 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
         input(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
         return
 
-    print(f"{Fore.YELLOW}Docker is not installed or the daemon is not running.{Style.RESET_ALL}\n")
+    print(
+        f"{Fore.YELLOW}Docker is not installed or the daemon is not running.{Style.RESET_ALL}\n"
+    )
 
     os_key = platform.system().lower()
     entry = _AUTO_INSTALLERS.get(os_key)
@@ -227,7 +234,9 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
                     input(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
                     return
                 # installer failed — fall through to guide
-                print(f"\n{Fore.YELLOW}Falling back to manual instructions.{Style.RESET_ALL}")
+                print(
+                    f"\n{Fore.YELLOW}Falling back to manual instructions.{Style.RESET_ALL}"
+                )
             else:
                 logger.info("User declined auto-install")
 

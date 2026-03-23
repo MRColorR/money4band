@@ -162,7 +162,7 @@ wheels = [
 [[package]]
 name = "money4band"
 version = "5.0.0"
-source = { virtual = "." }
+source = { editable = "." }
 
 [package.dev-dependencies]
 dev = [

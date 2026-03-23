@@ -1,6 +1,5 @@
 """Tests for IP quality scoring (utils/ip_scorer.py)."""
 
-import json
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -17,7 +16,6 @@ from money4band.ip_scorer import (
 
 
 class TestGetPublicIp:
-
     @patch("money4band.ip_scorer.get_session")
     def test_returns_ip_from_first_provider(self, mock_sess):
         resp = MagicMock()
@@ -41,7 +39,6 @@ class TestGetPublicIp:
 
 
 class TestParseProxyFile:
-
     def test_reads_lines_skips_comments(self, tmp_path):
         f = tmp_path / "proxies.txt"
         f.write_text("# comment\nsocks5://1.2.3.4:1080\n\nhttp://5.6.7.8:8080\n")
@@ -53,7 +50,6 @@ class TestParseProxyFile:
 
 
 class TestExtractProxyIp:
-
     def test_socks5_with_auth(self):
         assert extract_proxy_ip("socks5://user:pass@1.2.3.4:1080") == "1.2.3.4"
 
@@ -65,7 +61,6 @@ class TestExtractProxyIp:
 
 
 class TestScoreIps:
-
     def test_empty_list(self):
         assert score_ips([]) == []
 
@@ -88,7 +83,6 @@ class TestScoreIps:
 
 
 class TestCalculateFraudScore:
-
     def test_clean_residential(self):
         entry = {"proxy": False, "hosting": False, "mobile": False, "isp": "Comcast"}
         assert calculate_fraud_score(entry) == 0
@@ -109,7 +103,6 @@ class TestCalculateFraudScore:
 
 
 class TestGetScoreRating:
-
     @pytest.mark.parametrize(
         "score,expected_word",
         [
@@ -130,15 +123,194 @@ class TestGetScoreRating:
 
 
 class TestFormatIspType:
-
     def test_proxy(self):
-        assert format_isp_type({"proxy": True, "hosting": False, "mobile": False}) == "Proxy/VPN"
+        assert (
+            format_isp_type({"proxy": True, "hosting": False, "mobile": False})
+            == "Proxy/VPN"
+        )
 
     def test_datacenter(self):
-        assert format_isp_type({"proxy": False, "hosting": True, "mobile": False}) == "Datacenter"
+        assert (
+            format_isp_type({"proxy": False, "hosting": True, "mobile": False})
+            == "Datacenter"
+        )
 
     def test_mobile(self):
-        assert format_isp_type({"proxy": False, "hosting": False, "mobile": True}) == "Mobile"
+        assert (
+            format_isp_type({"proxy": False, "hosting": False, "mobile": True})
+            == "Mobile"
+        )
 
     def test_residential(self):
-        assert format_isp_type({"proxy": False, "hosting": False, "mobile": False}) == "Residential"
+        assert (
+            format_isp_type({"proxy": False, "hosting": False, "mobile": False})
+            == "Residential"
+        )
+
+
+class TestCheckBlacklist:
+    """DNS-over-HTTPS Spamhaus query via mocked HTTP session."""
+
+    @patch("money4band.ip_scorer.get_session")
+    def test_blacklisted_ip(self, mock_sess):
+        resp = MagicMock()
+        resp.json.return_value = {"Answer": [{"data": "127.0.0.2"}]}
+        mock_sess.return_value.get.return_value = resp
+        from money4band.ip_scorer import check_blacklist
+
+        assert check_blacklist("1.2.3.4") is True
+
+    @patch("money4band.ip_scorer.get_session")
+    def test_clean_ip(self, mock_sess):
+        resp = MagicMock()
+        resp.json.return_value = {}
+        mock_sess.return_value.get.return_value = resp
+        from money4band.ip_scorer import check_blacklist
+
+        assert check_blacklist("8.8.8.8") is False
+
+    @patch("money4band.ip_scorer.get_session")
+    def test_exception_returns_false(self, mock_sess):
+        mock_sess.return_value.get.side_effect = ConnectionError("timeout")
+        from money4band.ip_scorer import check_blacklist
+
+        assert check_blacklist("1.2.3.4") is False
+
+
+class TestTestProxyConnectivity:
+    """Connectivity test via mocked HTTP session through proxy."""
+
+    @patch("money4band.ip_scorer.get_session")
+    def test_returns_ip_on_success(self, mock_sess):
+        resp = MagicMock()
+        resp.text = "  203.0.113.5  "
+        mock_sess.return_value.get.return_value = resp
+        from money4band.ip_scorer import test_proxy_connectivity
+
+        assert test_proxy_connectivity("socks5://1.2.3.4:1080") == "203.0.113.5"
+
+    @patch("money4band.ip_scorer.get_session")
+    def test_returns_none_on_failure(self, mock_sess):
+        mock_sess.return_value.get.side_effect = ConnectionError
+        from money4band.ip_scorer import test_proxy_connectivity
+
+        assert test_proxy_connectivity("http://bad:8080") is None
+
+    @patch("money4band.ip_scorer.get_session")
+    def test_rejects_non_ip_response(self, mock_sess):
+        resp = MagicMock()
+        resp.text = "not-an-ip"
+        mock_sess.return_value.get.return_value = resp
+        from money4band.ip_scorer import test_proxy_connectivity
+
+        assert test_proxy_connectivity("http://proxy:8080") is None
+
+
+class TestDisplayIpTable:
+    """Table display handles empty and populated result lists."""
+
+    def test_empty_results(self, capsys):
+        from money4band.ip_scorer import display_ip_table
+
+        display_ip_table([])
+        assert "No IP results" in capsys.readouterr().out
+
+    def test_displays_rows_with_score_and_rating(self, capsys):
+        from money4band.ip_scorer import display_ip_table
+
+        results = [
+            {
+                "query": "1.2.3.4",
+                "status": "success",
+                "_fraud_score": 15,
+                "_blacklisted": False,
+                "_is_proxy": False,
+                "proxy": False,
+                "hosting": False,
+                "mobile": False,
+                "city": "NYC",
+                "country": "US",
+            },
+            {
+                "query": "5.6.7.8",
+                "status": "success",
+                "_fraud_score": 75,
+                "_blacklisted": True,
+                "_is_proxy": True,
+                "proxy": True,
+                "hosting": False,
+                "mobile": False,
+                "city": "London",
+                "country": "UK",
+            },
+        ]
+        display_ip_table(results)
+        out = capsys.readouterr().out
+        # Row 1: real IP with Excellent rating (score 15 < 21)
+        assert "1.2.3.4" in out
+        assert "NYC" in out
+        assert "Excellent" in out
+        assert "REAL" in out
+        # Row 2: proxy IP with High rating (score 75, 61-80) and blacklisted
+        assert "5.6.7.8" in out
+        assert "London" in out
+        assert "High" in out
+        assert "YES" in out  # blacklist flag
+
+
+class TestAnalyseIps:
+    """Full analysis orchestrator with mocked network."""
+
+    @patch("money4band.ip_scorer.check_blacklist", return_value=False)
+    @patch("money4band.ip_scorer.score_ips")
+    @patch("money4band.ip_scorer.get_public_ip", return_value="1.2.3.4")
+    @patch("money4band.ip_scorer.display_ip_table")
+    def test_real_ip_only(self, _display, mock_pub, mock_score, _bl):
+        mock_score.return_value = [
+            {
+                "query": "1.2.3.4",
+                "status": "success",
+                "proxy": False,
+                "hosting": False,
+                "mobile": False,
+            }
+        ]
+        from money4band.ip_scorer import analyse_ips
+
+        results = analyse_ips()
+        assert len(results) == 1
+        assert results[0]["query"] == "1.2.3.4"
+
+    @patch("money4band.ip_scorer.get_public_ip", return_value=None)
+    def test_no_public_ip_returns_empty(self, _pub):
+        from money4band.ip_scorer import analyse_ips
+
+        assert analyse_ips() == []
+
+    @patch("money4band.ip_scorer.check_blacklist", return_value=False)
+    @patch("money4band.ip_scorer.score_ips")
+    @patch("money4band.ip_scorer.test_proxy_connectivity", return_value="5.6.7.8")
+    @patch("money4band.ip_scorer.parse_proxy_file", return_value=["http://proxy:8080"])
+    @patch("money4band.ip_scorer.get_public_ip", return_value="1.2.3.4")
+    @patch("money4band.ip_scorer.display_ip_table")
+    def test_with_proxy_file(self, _display, _pub, _parse, _test, mock_score, _bl):
+        mock_score.return_value = [
+            {
+                "query": "1.2.3.4",
+                "status": "success",
+                "proxy": False,
+                "hosting": False,
+                "mobile": False,
+            },
+            {
+                "query": "5.6.7.8",
+                "status": "success",
+                "proxy": True,
+                "hosting": False,
+                "mobile": False,
+            },
+        ]
+        from money4band.ip_scorer import analyse_ips
+
+        results = analyse_ips(proxy_file="proxies.txt")
+        assert len(results) == 2

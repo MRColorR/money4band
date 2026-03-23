@@ -3,7 +3,6 @@ from __future__ import annotations
 """Docker Compose file assembly — builds docker-compose.yaml from configuration."""
 
 import copy
-import glob
 import logging
 import os
 import re
@@ -17,8 +16,11 @@ from money4band import http_client
 from money4band.checker import check_img_arch_support, get_compatible_tag
 from money4band.dumper import write_json
 from money4band.helper import show_spinner
-from money4band.loader import get_active_app_categories, get_category_entries, load_json_config
-
+from money4band.loader import (
+    get_active_app_categories,
+    get_category_entries,
+    load_json_config,
+)
 
 logger = logging.getLogger(__name__)
 # Layered compose file ordering and names.
@@ -26,7 +28,14 @@ logger = logging.getLogger(__name__)
 #   residential  — TOS requires residential/local IPs only
 #   datacenter   — TOS allows residential + datacenter/hosting IPs
 #   universal    — TOS accepts any IP type (proxies, VPN, etc.)
-COMPOSE_LAYER_ORDER = ("base", "residential", "datacenter", "universal", "service", "proxy")
+COMPOSE_LAYER_ORDER = (
+    "base",
+    "residential",
+    "datacenter",
+    "universal",
+    "service",
+    "proxy",
+)
 COMPOSE_LAYER_FILES: dict[str, str] = {
     "base": "compose.yml",
     "residential": "compose.residential.yml",
@@ -250,11 +259,6 @@ def assemble_docker_compose(
                                         if "${" in str(port_mapping) and "}" in str(
                                             port_mapping
                                         ):
-                                            env_var = (
-                                                str(port_mapping)
-                                                .split(":")[0]
-                                                .strip("${}")
-                                            )
                                             # Check if this app is enabled (we already know it is at this point)
                                             # and if it has the port defined in user_config
                                             if user_app_config.get("ports"):
@@ -274,9 +278,6 @@ def assemble_docker_compose(
                                     if "${" in str(port_mapping) and "}" in str(
                                         port_mapping
                                     ):
-                                        env_var = (
-                                            str(port_mapping).split(":")[0].strip("${}")
-                                        )
                                         # Check if this app is enabled and has the port defined
                                         if user_app_config.get("ports"):
                                             proxy_ports.append(port_mapping)
@@ -389,7 +390,10 @@ def assemble_docker_compose(
                 dashboard_service.setdefault("read_only", True)
                 dashboard_service.setdefault("tmpfs", ["/var/cache/nginx", "/run"])
                 dashboard_service["healthcheck"] = {
-                    "test": ["CMD-SHELL", "wget -q --spider http://localhost/ || exit 1"],
+                    "test": [
+                        "CMD-SHELL",
+                        "wget -q --spider http://localhost/ || exit 1",
+                    ],
                     "interval": "30s",
                     "timeout": "5s",
                     "retries": 3,
@@ -456,7 +460,10 @@ def assemble_docker_compose(
                 )
 
             proxy_service["healthcheck"] = {
-                "test": ["CMD-SHELL", "ip link show tun0 2>/dev/null | grep -q UP || exit 1"],
+                "test": [
+                    "CMD-SHELL",
+                    "ip link show tun0 2>/dev/null | grep -q UP || exit 1",
+                ],
                 "interval": "30s",
                 "timeout": "5s",
                 "retries": 3,
@@ -510,7 +517,9 @@ def assemble_docker_compose(
         if layered:
             # Split services into layer buckets and write separate files.
             output_dir = os.path.dirname(compose_output_path) or "."
-            layer_buckets: dict[str, dict] = {layer: {} for layer in COMPOSE_LAYER_ORDER}
+            layer_buckets: dict[str, dict] = {
+                layer: {} for layer in COMPOSE_LAYER_ORDER
+            }
             for svc_name, svc_config in services.items():
                 bucket = service_layers.get(svc_name, "datacenter")
                 layer_buckets[bucket][svc_name] = svc_config
@@ -536,7 +545,9 @@ def assemble_docker_compose(
             legacy = os.path.join(output_dir, "docker-compose.yaml")
             if generated_files and os.path.isfile(legacy):
                 os.remove(legacy)
-                logger.info("Removed legacy docker-compose.yaml (replaced by layered files)")
+                logger.info(
+                    "Removed legacy docker-compose.yaml (replaced by layered files)"
+                )
         else:
             compose_dict = {"services": services}
             compose_dict.update(network_config)
@@ -544,9 +555,7 @@ def assemble_docker_compose(
                 yaml.dump(compose_dict, f, sort_keys=False, default_flow_style=False)
             generated_files.append(compose_output_path)
 
-        logger.info(
-            f"Docker Compose file(s) assembled: {generated_files}"
-        )
+        logger.info(f"Docker Compose file(s) assembled: {generated_files}")
         if disabled_apps_due_to_incompatibility:
             # disable the apps and save updated config
 

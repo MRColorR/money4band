@@ -1,16 +1,13 @@
 """Tests for credential encryption lifecycle (atexit/signal hooks)."""
 
-import json
 import os
 import signal
-import sys
 from unittest.mock import MagicMock, patch
 
 import pytest
 
 
 class TestRegisterEncryptionHooks:
-
     def test_registers_atexit_and_sigterm(self):
         # Import fresh to reset module state
         import main
@@ -50,7 +47,6 @@ class TestRegisterEncryptionHooks:
 
 
 class TestEncryptOnExit:
-
     def test_encrypts_all_registered_paths(self):
         import main
 
@@ -84,7 +80,6 @@ class TestEncryptOnExit:
 
 
 class TestSigtermHandler:
-
     def test_encrypts_and_exits(self):
         import main
 
@@ -104,7 +99,6 @@ class TestSigtermHandler:
 
 
 class TestCmdConfig:
-
     def test_view_dispatches_to_viewer(self, tmp_path):
         import main
 

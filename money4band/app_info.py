@@ -8,7 +8,11 @@ from typing import Any
 
 from colorama import Fore, Style, just_fix_windows_console
 
-from money4band.loader import get_all_app_categories, get_category_entries, is_category_active
+from money4band.loader import (
+    get_all_app_categories,
+    get_category_entries,
+    is_category_active,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +31,9 @@ def _ensure_utf8_stdout() -> None:
 # ---------------------------------------------------------------------------
 
 
-def _find_app(app_config: dict[str, Any], name: str) -> tuple[dict[str, Any] | None, str]:
+def _find_app(
+    app_config: dict[str, Any], name: str
+) -> tuple[dict[str, Any] | None, str]:
     """Find an app entry by name (case-insensitive). Returns (entry, category) or (None, "")."""
     target = name.strip().upper()
     for cat in get_all_app_categories(app_config):
@@ -209,7 +215,9 @@ def list_apps(app_config: dict[str, Any], category_filter: str | None = None) ->
     just_fix_windows_console()
     _ensure_utf8_stdout()
 
-    print(f"\n{Fore.CYAN}{'Name':<20} {'Status':<14} {'Resi':>4} {'DC':>4} {'Payout':<22} {'Limit':>7}{Style.RESET_ALL}")
+    print(
+        f"\n{Fore.CYAN}{'Name':<20} {'Status':<14} {'Resi':>4} {'DC':>4} {'Payout':<22} {'Limit':>7}{Style.RESET_ALL}"
+    )
     print(f"{'-' * 73}")
 
     for cat in get_all_app_categories(app_config):
@@ -235,7 +243,9 @@ def list_apps(app_config: dict[str, Any], category_filter: str | None = None) ->
             else:
                 status = f"{Fore.GREEN}active{Style.RESET_ALL}"
 
-            print(f"  {name:<18} {status:<23} {resi:>13} {dc:>13} {payout:<22} {limit_str:>5}")
+            print(
+                f"  {name:<18} {status:<23} {resi:>13} {dc:>13} {payout:<22} {limit_str:>5}"
+            )
 
             # Show removal reason for deprecated apps
             removal_reason = entry.get("removal_reason", "")

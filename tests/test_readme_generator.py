@@ -2,11 +2,8 @@ from __future__ import annotations
 
 """Tests for utils.readme_generator — auto-generation of README/APPS.md app tables."""
 
-import textwrap
 from pathlib import Path
 from typing import Any
-
-import pytest
 
 from money4band.readme_generator import (
     _BEGIN_MARKER,
@@ -150,7 +147,10 @@ class TestEffectiveStatus:
         assert _effective_status("supported-apps", {"status": "unstable"}) == "unstable"
 
     def test_deprecated(self) -> None:
-        assert _effective_status("deprecated-apps", {"status": "deprecated"}) == "deprecated"
+        assert (
+            _effective_status("deprecated-apps", {"status": "deprecated"})
+            == "deprecated"
+        )
 
     def test_candidate(self) -> None:
         assert _effective_status("candidate-apps", {"status": "active"}) == "candidate"
@@ -163,10 +163,14 @@ class TestEffectiveStatus:
 
 class TestExtractReferralCode:
     def test_short_code(self) -> None:
-        assert _extract_referral_code("https://example.com/signup?code=ABC123") == "ABC123"
+        assert (
+            _extract_referral_code("https://example.com/signup?code=ABC123") == "ABC123"
+        )
 
     def test_long_code_rejected(self) -> None:
-        assert _extract_referral_code("https://example.com/?code=ABCDEFGHIJKLMNOP") is None
+        assert (
+            _extract_referral_code("https://example.com/?code=ABCDEFGHIJKLMNOP") is None
+        )
 
     def test_no_code_param(self) -> None:
         assert _extract_referral_code("https://example.com/?ref=abc") is None
@@ -258,7 +262,7 @@ class TestGenerateReadmeTable:
 
     def test_row_count(self) -> None:
         table = generate_readme_table(_SAMPLE_CONFIG)
-        data_rows = [l for l in table.split("\n") if l.startswith("| [") or l.startswith("| **")]
+        data_rows = [l for l in table.split("\n") if l.startswith(("| [", "| **"))]
         assert len(data_rows) == 4
 
     def test_active_app_row(self) -> None:

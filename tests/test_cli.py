@@ -15,10 +15,10 @@ import types
 
 import pytest
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture(autouse=True)
 def _isolate_main(monkeypatch, tmp_path):
@@ -56,22 +56,41 @@ def _capture_module_call(monkeypatch, module_path):
 # Parser construction
 # ---------------------------------------------------------------------------
 
-class TestBuildParser:
 
+class TestBuildParser:
     def test_all_subcommands_present(self):
         from main import _build_parser
 
         parser = _build_parser()
         sub_action = next(
-            a for a in parser._subparsers._group_actions
+            a
+            for a in parser._subparsers._group_actions
             if isinstance(a, argparse._SubParsersAction)
         )
         expected = {
-            "setup", "start", "stop", "status",
-            "generate", "links", "reset", "proxy",
-            "backup", "restore", "update", "config",
-            "limit", "ip", "info", "dns", "notify",
-            "apps", "validate", "app", "offers", "dashboard", "profile",
+            "setup",
+            "start",
+            "stop",
+            "status",
+            "generate",
+            "links",
+            "reset",
+            "proxy",
+            "backup",
+            "restore",
+            "update",
+            "config",
+            "limit",
+            "ip",
+            "info",
+            "dns",
+            "notify",
+            "apps",
+            "validate",
+            "app",
+            "offers",
+            "dashboard",
+            "profile",
         }
         assert set(sub_action.choices.keys()) == expected
 
@@ -101,15 +120,16 @@ class TestBuildParser:
 # Dispatch table integrity
 # ---------------------------------------------------------------------------
 
-class TestDispatchTable:
 
+class TestDispatchTable:
     def test_dispatch_keys_match_parser_subcommands(self):
         """Every subcommand in the parser has a matching dispatch entry and vice-versa."""
         from main import _SUBCOMMAND_DISPATCH, _build_parser
 
         parser = _build_parser()
         sub_action = next(
-            a for a in parser._subparsers._group_actions
+            a
+            for a in parser._subparsers._group_actions
             if isinstance(a, argparse._SubParsersAction)
         )
         assert set(_SUBCOMMAND_DISPATCH.keys()) == set(sub_action.choices.keys())
@@ -119,8 +139,8 @@ class TestDispatchTable:
 # _resolve_paths — verify custom config dir + filenames propagate
 # ---------------------------------------------------------------------------
 
-class TestResolvePaths:
 
+class TestResolvePaths:
     def test_default_filenames(self, tmp_path):
         from main import _resolve_paths
 
@@ -146,6 +166,7 @@ class TestResolvePaths:
 # Each handler must pass the right config paths in the right order.
 # ---------------------------------------------------------------------------
 
+
 class TestHandlerArguments:
     """Verify handlers forward the correct (apps, m4b, user) paths to downstream modules."""
 
@@ -161,6 +182,7 @@ class TestHandlerArguments:
     def test_setup_passes_apps_m4b_user_paths(self, monkeypatch, tmp_path):
         captured = _capture_module_call(monkeypatch, "money4band.fn_setupApps")
         from main import _cmd_setup
+
         _cmd_setup(_make_args(tmp_path, "setup"))
 
         a, m, u = captured["args"]
@@ -173,6 +195,7 @@ class TestHandlerArguments:
     def test_start_passes_apps_m4b_user_paths(self, monkeypatch, tmp_path):
         captured = _capture_module_call(monkeypatch, "money4band.fn_startStack")
         from main import _cmd_start
+
         _cmd_start(_make_args(tmp_path, "start"))
 
         a, m, u = captured["args"]
@@ -183,6 +206,7 @@ class TestHandlerArguments:
     def test_stop_passes_apps_m4b_user_paths(self, monkeypatch, tmp_path):
         captured = _capture_module_call(monkeypatch, "money4band.fn_stopStack")
         from main import _cmd_stop
+
         _cmd_stop(_make_args(tmp_path, "stop"))
 
         a, m, u = captured["args"]
@@ -193,6 +217,7 @@ class TestHandlerArguments:
     def test_generate_passes_apps_m4b_user_paths(self, monkeypatch, tmp_path):
         captured = _capture_module_call(monkeypatch, "money4band.generator")
         from main import _cmd_generate
+
         _cmd_generate(_make_args(tmp_path, "generate"))
 
         a, m, u = captured["args"]
@@ -203,6 +228,7 @@ class TestHandlerArguments:
     def test_links_passes_apps_m4b_user_paths(self, monkeypatch, tmp_path):
         captured = _capture_module_call(monkeypatch, "money4band.fn_app_catalog")
         from main import _cmd_links
+
         _cmd_links(_make_args(tmp_path, "links"))
 
         a, m, u = captured["args"]
@@ -213,6 +239,7 @@ class TestHandlerArguments:
     def test_proxy_passes_apps_m4b_user_paths(self, monkeypatch, tmp_path):
         captured = _capture_module_call(monkeypatch, "money4band.fn_multiproxy_tools")
         from main import _cmd_proxy
+
         _cmd_proxy(_make_args(tmp_path, "proxy"))
 
         a, m, u = captured["args"]
@@ -223,6 +250,7 @@ class TestHandlerArguments:
     def test_status_no_compose_file_warns(self, monkeypatch, tmp_path, capsys):
         monkeypatch.setattr("main.BASE_DIR", str(tmp_path))
         from main import _cmd_status
+
         _cmd_status(_make_args(tmp_path, "status"))
         assert "No compose files found" in capsys.readouterr().out
 
@@ -237,6 +265,7 @@ class TestHandlerArguments:
             lambda cfg: (received.update(cfg=cfg), None)[1],
         )
         from main import _cmd_update
+
         _cmd_update(_make_args(tmp_path, "update"))
         assert received["cfg"]["_loaded_from"].endswith("m4b-config.json")
 
@@ -246,8 +275,8 @@ class TestHandlerArguments:
 # non-destructive commands (start, stop, links) must NOT.
 # ---------------------------------------------------------------------------
 
-class TestAutoBackup:
 
+class TestAutoBackup:
     def _run_handler(self, monkeypatch, tmp_path, handler_name, module_path=None):
         """Run a handler and return whether _auto_backup was invoked."""
         backup_called = {"yes": False}
@@ -258,23 +287,29 @@ class TestAutoBackup:
             lambda path: backup_called.update(yes=True, path=path),
         )
         monkeypatch.setattr(
-            "money4band.helper.check_docker_ready", lambda: None,
+            "money4band.helper.check_docker_ready",
+            lambda: None,
         )
         if module_path:
             _capture_module_call(monkeypatch, module_path)
 
         import main
+
         handler = getattr(main, handler_name)
         handler(_make_args(tmp_path, handler_name.replace("_cmd_", "")))
         return backup_called
 
     def test_setup_triggers_auto_backup(self, monkeypatch, tmp_path):
-        result = self._run_handler(monkeypatch, tmp_path, "_cmd_setup", "money4band.fn_setupApps")
+        result = self._run_handler(
+            monkeypatch, tmp_path, "_cmd_setup", "money4band.fn_setupApps"
+        )
         assert result["yes"], "_auto_backup must be called before setup"
         assert result["path"].endswith("user-config.json")
 
     def test_generate_triggers_auto_backup(self, monkeypatch, tmp_path):
-        result = self._run_handler(monkeypatch, tmp_path, "_cmd_generate", "money4band.generator")
+        result = self._run_handler(
+            monkeypatch, tmp_path, "_cmd_generate", "money4band.generator"
+        )
         assert result["yes"], "_auto_backup must be called before generate"
 
     def test_reset_triggers_auto_backup(self, monkeypatch, tmp_path):
@@ -283,15 +318,21 @@ class TestAutoBackup:
         assert result["yes"], "_auto_backup must be called before reset"
 
     def test_start_does_not_trigger_auto_backup(self, monkeypatch, tmp_path):
-        result = self._run_handler(monkeypatch, tmp_path, "_cmd_start", "money4band.fn_startStack")
+        result = self._run_handler(
+            monkeypatch, tmp_path, "_cmd_start", "money4band.fn_startStack"
+        )
         assert not result["yes"], "start must NOT auto-backup"
 
     def test_stop_does_not_trigger_auto_backup(self, monkeypatch, tmp_path):
-        result = self._run_handler(monkeypatch, tmp_path, "_cmd_stop", "money4band.fn_stopStack")
+        result = self._run_handler(
+            monkeypatch, tmp_path, "_cmd_stop", "money4band.fn_stopStack"
+        )
         assert not result["yes"], "stop must NOT auto-backup"
 
     def test_links_does_not_trigger_auto_backup(self, monkeypatch, tmp_path):
-        result = self._run_handler(monkeypatch, tmp_path, "_cmd_links", "money4band.fn_app_catalog")
+        result = self._run_handler(
+            monkeypatch, tmp_path, "_cmd_links", "money4band.fn_app_catalog"
+        )
         assert not result["yes"], "links must NOT auto-backup"
 
 
@@ -299,8 +340,8 @@ class TestAutoBackup:
 # Main entry point dispatch
 # ---------------------------------------------------------------------------
 
-class TestMainDispatch:
 
+class TestMainDispatch:
     def test_no_args_dispatches_to_menu(self, monkeypatch):
         called = {}
         monkeypatch.setattr("sys.argv", ["m4b"])
@@ -308,6 +349,7 @@ class TestMainDispatch:
         monkeypatch.setattr("main._setup_logging", lambda a: None)
 
         from main import main
+
         main()
         assert called.get("yes")
 
@@ -321,6 +363,7 @@ class TestMainDispatch:
             lambda a: called.update(yes=True, command=a.command),
         )
         from main import main
+
         main()
         assert called.get("yes")
         assert called["command"] == "stop"
@@ -330,8 +373,8 @@ class TestMainDispatch:
 # get_active_profiles — real logic, varied inputs
 # ---------------------------------------------------------------------------
 
-class TestGetActiveProfiles:
 
+class TestGetActiveProfiles:
     def test_all_disabled(self):
         from money4band.helper import get_active_profiles
 

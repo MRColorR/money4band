@@ -9,7 +9,6 @@ import platform
 # Ensure the parent directory is in the sys.path
 import sys
 import threading
-import time
 
 from colorama import Fore, Style, just_fix_windows_console
 
@@ -45,6 +44,8 @@ def _notify_event(event: str, message: str) -> None:
         notify(user_config, event, message)
     except Exception:
         logger.debug("Notification send failed (non-critical).", exc_info=True)
+
+
 parent_dir = os.path.dirname(script_dir)
 if parent_dir not in sys.path:
     sys.path.append(parent_dir)
@@ -80,7 +81,9 @@ def stop_stack(
     Returns:
         bool: True if the stack stopped successfully, False otherwise.
     """
-    compose_files = [compose_file] if isinstance(compose_file, str) else list(compose_file)
+    compose_files = (
+        [compose_file] if isinstance(compose_file, str) else list(compose_file)
+    )
     logger.info(
         f"Stopping stack for '{instance_name}' instance with compose file(s): {compose_files}"
     )
@@ -141,7 +144,9 @@ def stop_stack(
                 f"{Fore.GREEN}All Apps for '{instance_name}' instance stopped and stack deleted.{Style.RESET_ALL}"
             )
             logger.info(f"Stack for '{instance_name}' stopped successfully.")
-            _notify_event("stack_stop", f"Stack '{instance_name}' stopped successfully.")
+            _notify_event(
+                "stack_stop", f"Stack '{instance_name}' stopped successfully."
+            )
         else:
             print(
                 f"{Fore.RED}Error stopping and deleting Docker stack for '{instance_name}' instance. Please check the configuration and try again.{Style.RESET_ALL}"
@@ -149,7 +154,10 @@ def stop_stack(
             logger.error(
                 f"Stack for '{instance_name}' failed to stop with exit code {result}."
             )
-            _notify_event("stack_error", f"Stack '{instance_name}' failed to stop (exit {result}).")
+            _notify_event(
+                "stack_error",
+                f"Stack '{instance_name}' failed to stop (exit {result}).",
+            )
         return result == 0
     except Exception as e:
         print(
@@ -219,7 +227,7 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
     cls()
     try:
         m4b_config = loader.load_json_config(m4b_config_path)
-        user_config = loader.load_json_config(user_config_path)
+        loader.load_json_config(user_config_path)  # validate user config exists
         base_instance_name = m4b_config.get("project", {}).get(
             "compose_project_name", "money4band"
         )

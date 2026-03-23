@@ -1,17 +1,13 @@
 """Tests for config_viewer"""
 
 import json
-import os
 import subprocess
-from unittest.mock import MagicMock, patch
-
-import pytest
+from unittest.mock import patch
 
 from money4band.config_viewer import _mask_dict, _mask_value, edit_config, view_masked
 
 
 class TestMaskValue:
-
     def test_short_string_fully_masked(self):
         assert _mask_value("ab") == "****"
         assert _mask_value("abcd") == "****"
@@ -27,7 +23,6 @@ class TestMaskValue:
 
 
 class TestMaskDict:
-
     def test_masks_string_credential_values(self):
         data = {"apps": {"honeygain": {"email": "user@example.com", "enabled": True}}}
         masked = _mask_dict(data)
@@ -54,7 +49,6 @@ class TestMaskDict:
 
 
 class TestViewMasked:
-
     def test_missing_file(self, capsys):
         view_masked("/nonexistent/path.json")
         captured = capsys.readouterr()
@@ -75,7 +69,6 @@ class TestViewMasked:
 
 
 class TestEditConfig:
-
     def test_missing_file(self, capsys):
         edit_config("/nonexistent/path.json")
         captured = capsys.readouterr()
@@ -138,7 +131,9 @@ class TestEditConfig:
 
         with (
             patch("money4band.config_viewer.load_json_config", return_value=cfg),
-            patch("money4band.config_viewer.subprocess.run", side_effect=corrupt_editor),
+            patch(
+                "money4band.config_viewer.subprocess.run", side_effect=corrupt_editor
+            ),
         ):
             edit_config(str(config_file))
 

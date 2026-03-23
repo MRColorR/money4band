@@ -1,6 +1,5 @@
 """Tests for setup_progress module."""
 
-import json
 import os
 
 import pytest
