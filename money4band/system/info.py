@@ -108,40 +108,63 @@ def show_dns_status(m4b_config: dict[str, Any]) -> None:
         print("  Servers: (host default — Docker inherits from the host resolver)")
 
 
+def show_dns_presets(m4b_config: dict[str, Any]) -> None:
+    """Print available DNS presets and their server addresses."""
+    just_fix_windows_console()
+    presets = get_dns_presets(m4b_config)
+    current_mode = get_dns_config(m4b_config).get("mode", "default")
+
+    print(f"\n{Fore.CYAN}Available DNS presets:{Style.RESET_ALL}")
+    print(f"  {'Preset':<22} {'Servers'}")
+    print(f"  {'-' * 22} {'-' * 30}")
+    marker = f" {Fore.GREEN}\u2190 active{Style.RESET_ALL}"
+    print(f"  {'default':<22} (host DNS){marker if current_mode == 'default' else ''}")
+    for name, servers in presets.items():
+        active = marker if name == current_mode else ""
+        print(f"  {name:<22} {', '.join(servers)}{active}")
+    print(f"  {'custom':<22} (specify with --servers){marker if current_mode == 'custom' else ''}")
+
+
 def dns_interactive(m4b_config_path: str) -> None:
     """Interactive DNS configuration prompt."""
     just_fix_windows_console()
     m4b_config = load_json_config(m4b_config_path)
     show_dns_status(m4b_config)
 
-    dns = get_dns_config(m4b_config)
-    current_servers = dns.get("servers", get_default_servers(m4b_config))
-    current_mode = dns.get("mode", "default")
-    current_hint = (
-        f"current: {', '.join(current_servers)}"
-        if current_mode == "custom"
-        else "current: host DNS"
-    )
+    presets = get_dns_presets(m4b_config)
+    show_dns_presets(m4b_config)
 
     print(
-        f"\n{Fore.YELLOW}Enter up to two IPv4 DNS servers, comma-separated.{Style.RESET_ALL}"
+        f"\n{Fore.YELLOW}Enter a preset name, custom IP addresses (comma-separated), "
+        f"or press Enter for host DNS.{Style.RESET_ALL}"
     )
-    print(f"  Example: {Fore.CYAN}1.1.1.1, 8.8.8.8{Style.RESET_ALL}")
-    print(f"  Leave empty to use the host machine's DNS ({current_hint}).")
 
     while True:
-        raw = input(f"{Fore.GREEN}DNS servers>{Style.RESET_ALL} ").strip()
+        raw = input(f"{Fore.GREEN}DNS>{Style.RESET_ALL} ").strip()
 
         if not raw:
             set_dns_mode(m4b_config_path, "default")
             print(f"{Fore.GREEN}DNS set to host default.{Style.RESET_ALL}")
             break
 
+        # Check if input matches a preset name
+        if raw.lower() in presets or raw.lower() == "default":
+            set_dns_mode(m4b_config_path, raw.lower())
+            if raw.lower() == "default":
+                print(f"{Fore.GREEN}DNS set to host default.{Style.RESET_ALL}")
+            else:
+                print(
+                    f"{Fore.GREEN}DNS set to {raw.lower()}: "
+                    f"{', '.join(presets[raw.lower()])}{Style.RESET_ALL}"
+                )
+            break
+
+        # Otherwise treat as custom IP addresses
         servers = [s.strip() for s in raw.split(",") if s.strip()][:2]
         invalid = [s for s in servers if not is_valid_ipv4(s)]
         if invalid:
             print(
-                f"  {Fore.RED}Invalid IPv4 address(es): {', '.join(invalid)}{Style.RESET_ALL}"
+                f"  {Fore.RED}Invalid preset or IPv4 address(es): {', '.join(invalid)}{Style.RESET_ALL}"
             )
             continue
 
@@ -223,7 +246,7 @@ def show_system_info(
 
     # ---- Dashboard ----
     dash = user_config.get("m4b_dashboard", {})
-    dash_enabled = dash.get("enabled", False)
+    dash_enabled = dash.get("enabled", True)
 
     # ---- Docker availability ----
     docker_ok = shutil.which("docker") is not None

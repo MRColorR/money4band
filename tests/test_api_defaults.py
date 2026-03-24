@@ -96,7 +96,7 @@ def _flat_config(tmp_path):
         "user": {"Nickname": "tester"},
         "device_info": {"device_name": "test-device", "os_type": "linux"},
         "apps": {"honeygain": {"enabled": True}},
-        "resource_limits": {"ram_cap_mb_default": 4096},
+        "resource_limits": {},
         "notifications": {"enabled": False, "url": ""},
         "proxies": {"enabled": False},
     }

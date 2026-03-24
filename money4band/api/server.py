@@ -20,6 +20,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
 
 from money4band.api._deps import configure_paths
 from money4band.api.router_apps import router as apps_router
@@ -45,7 +46,7 @@ _bearer_scheme = {
         "scheme": "bearer",
         "description": (
             "Paste the API key shown at dashboard startup "
-            "(or via `m4b dashboard --show-key`)."
+            "(or via `m4b dashboard show-key`)."
         ),
     }
 }
@@ -91,7 +92,13 @@ app.add_middleware(
 # ---------------------------------------------------------------------------
 
 _LOOPBACK = frozenset({"127.0.0.1", "::1", "localhost"})
-_PUBLIC_PREFIXES = ("/api/docs", "/api/openapi.json", "/docs", "/openapi.json")
+_PUBLIC_PREFIXES = (
+    "/api/docs",
+    "/api/openapi.json",
+    "/api/auth/login",
+    "/docs",
+    "/openapi.json",
+)
 
 # Populated by configure() from user-config or freshly generated.
 _api_key: str = ""
@@ -131,12 +138,55 @@ async def _auth_middleware(request: Request, call_next):  # type: ignore[no-unty
             )
         return await call_next(request)
 
-    # All callers must supply a valid token.
+    # All callers must supply a valid token (header or cookie).
     auth = request.headers.get("authorization", "")
     if auth == f"Bearer {_api_key}":
         return await call_next(request)
 
+    cookie_token = request.cookies.get("m4b_token", "")
+    if cookie_token == _api_key:
+        return await call_next(request)
+
     return JSONResponse(status_code=401, content={"detail": "Unauthorized"})
+
+
+# ---------------------------------------------------------------------------
+# Cookie-based auth for the web frontend
+# ---------------------------------------------------------------------------
+
+
+class _LoginPayload(BaseModel):
+    token: str
+
+
+@app.post("/api/auth/login", tags=["auth"])
+async def login(payload: _LoginPayload) -> JSONResponse:
+    """Validate the API key and set an ``m4b_token`` session cookie."""
+    import hmac
+
+    if not _api_key or not hmac.compare_digest(payload.token, _api_key):
+        return JSONResponse(
+            status_code=401, content={"detail": "Invalid API key"}
+        )
+    response = JSONResponse(content={"status": "ok"})
+    response.set_cookie(
+        key="m4b_token",
+        value=_api_key,
+        httponly=True,
+        samesite="strict",
+        secure=False,  # dashboard typically runs on plain HTTP
+        path="/",
+    )
+    return response
+
+
+@app.post("/api/auth/logout", tags=["auth"])
+async def logout() -> JSONResponse:
+    """Clear the ``m4b_token`` session cookie."""
+    response = JSONResponse(content={"status": "ok"})
+    response.delete_cookie(key="m4b_token", path="/")
+    return response
+
 
 # Register modular API routers
 app.include_router(stack_router)

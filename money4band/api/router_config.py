@@ -171,3 +171,60 @@ def _deep_merge(base: dict, updates: dict) -> None:
             _deep_merge(base[key], value)
         else:
             base[key] = value
+
+
+# ---------------------------------------------------------------------------
+# Dashboard auto-start config
+# ---------------------------------------------------------------------------
+
+
+@router.get("/dashboard", response_model=dict[str, Any])
+async def get_dashboard_config(
+    paths: ConfigPaths = Depends(get_paths),
+) -> dict[str, Any]:
+    """Return the ``m4b_dashboard`` section of user-config."""
+    cfg = load_user_config()
+    dash = cfg.get("m4b_dashboard", {})
+    from money4band.dashboard.setup import read_dashboard_pid
+
+    pid = read_dashboard_pid(paths.config_dir)
+    return {
+        "enabled": dash.get("enabled", True),
+        "port": dash.get("port", 8088),
+        "running": pid is not None,
+        "pid": pid,
+    }
+
+
+class DashboardConfigUpdate(BaseModel):
+    """Payload for updating dashboard auto-start settings."""
+
+    enabled: bool | None = None
+    port: int | None = None
+
+
+@router.put("/dashboard", response_model=StatusOk)
+async def update_dashboard_config(
+    payload: DashboardConfigUpdate,
+    paths: ConfigPaths = Depends(get_paths),
+) -> dict[str, str]:
+    """Update the ``m4b_dashboard.enabled`` and/or ``port`` in user-config."""
+    from money4band.dashboard.setup import set_dashboard_state
+
+    if payload.enabled is None and payload.port is None:
+        raise HTTPException(
+            status_code=400,
+            detail="Provide at least one of: enabled, port",
+        )
+
+    kwargs: dict[str, Any] = {}
+    if payload.enabled is not None:
+        kwargs["enabled"] = payload.enabled
+    else:
+        cfg = load_user_config()
+        kwargs["enabled"] = cfg.get("m4b_dashboard", {}).get("enabled", True)
+    if payload.port is not None:
+        kwargs["port"] = payload.port
+
+    set_dashboard_state(paths.config_dir, **kwargs)
+    return {"status": "ok"}

@@ -130,7 +130,7 @@ def tmp_config(tmp_path):
             "honeygain": {"enabled": True},
             "earnapp": {"enabled": False},
         },
-        "resource_limits": {"ram_cap_mb_default": 6144},
+        "resource_limits": {},
         "notifications": {"enabled": False, "url": ""},
         "proxies": {"enabled": False},
     }

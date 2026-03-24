@@ -55,7 +55,7 @@ def generate_setup_summary(
 
     # --- Dashboard ---
     dash = user_config.get("m4b_dashboard", {})
-    if dash.get("enabled"):
+    if dash.get("enabled", True):
         port = dash.get("port", 8088)
         lines.append("")
         lines.append(f"Dashboard: http://localhost:{port}")
@@ -103,7 +103,7 @@ def generate_setup_summary(
 
     lines.append("")
     lines.append("=" * 60)
-    lines.append("Run 'python main.py start' to launch the stack.")
+    lines.append("Run 'm4b stack start' to launch the stack.")
     lines.append("=" * 60)
 
     content = "\n".join(lines) + "\n"

@@ -84,10 +84,13 @@ If `~/.m4b/master.key` is lost, you cannot decrypt your saved credentials. Run `
 ### How do I change the DNS?
 
 ```bash
-m4b dns set cloudflare
-m4b generate   # regenerate files with new DNS
-m4b stop && m4b start  # restart stack
+m4b dns list              # see available presets
+m4b dns set cloudflare    # use a preset
+m4b generate              # regenerate files with new DNS
+m4b stack restart          # restart stack
 ```
+
+Or use the **interactive menu** which shows the same presets.
 
 ### How do I switch between monolithic and layered compose?
 

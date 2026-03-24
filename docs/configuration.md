@@ -75,13 +75,18 @@ m4b limit conservative   # switch profile
 Configure which DNS servers your containers use:
 
 ```bash
-m4b dns set cloudflare           # Cloudflare 1.1.1.1
-m4b dns set google               # Google 8.8.8.8
-m4b dns set quad9                # Quad9 9.9.9.9 (malware blocking)
-m4b dns set custom --servers 1.1.1.1 9.9.9.9
+m4b dns                                      # show current DNS config
+m4b dns list                                 # list available presets
+m4b dns set cloudflare                       # use Cloudflare 1.1.1.1
+m4b dns set google                           # use Google 8.8.8.8
+m4b dns set quad9                            # use Quad9 9.9.9.9 (malware blocking)
+m4b dns set default                          # use host DNS
+m4b dns set custom --servers 1.1.1.1,8.8.8.8  # inject custom servers (comma-separated)
 ```
 
-Available presets: `default`, `cloudflare`, `cloudflare-security`, `google`, `quad9`, `quad9-unfiltered`, `opendns`, `dns4eu`, `dns4eu-unfiltered`.
+Available presets: `default`, `cloudflare`, `cloudflare-security`, `google`, `quad9`, `quad9-unfiltered`, `opendns`, `dns4eu`, `dns4eu-unfiltered`, `custom`.
+
+The same presets are available through the **interactive menu** and the **REST API** (`PUT /api/system/dns`).
 
 ## Compose Modes
 

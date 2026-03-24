@@ -69,8 +69,7 @@ class TestBuildParser:
         )
         expected = {
             "setup",
-            "start",
-            "stop",
+            "stack",
             "status",
             "generate",
             "links",
@@ -103,11 +102,11 @@ class TestBuildParser:
         from main import _build_parser
 
         args = _build_parser().parse_args(
-            ["--log-level", "DEBUG", "--config-dir", "/tmp/x", "stop"]
+            ["--log-level", "DEBUG", "--config-dir", "/tmp/x", "stack", "stop"]
         )
         assert args.log_level == "DEBUG"
         assert args.config_dir == "/tmp/x"
-        assert args.command == "stop"
+        assert args.command == "stack"
 
     def test_unknown_subcommand_raises(self):
         from main import _build_parser
@@ -192,27 +191,43 @@ class TestHandlerArguments:
         # The dir portion must match --config-dir
         assert str(tmp_path) in a
 
-    def test_start_passes_apps_m4b_user_paths(self, monkeypatch, tmp_path):
+    def test_stack_start_passes_apps_m4b_user_paths(self, monkeypatch, tmp_path):
         captured = _capture_module_call(monkeypatch, "money4band.docker.start")
-        from main import _cmd_start
+        from main import _cmd_stack
 
-        _cmd_start(_make_args(tmp_path, "start"))
+        _cmd_stack(_make_args(tmp_path, extra_argv=["stack", "start"]))
 
         a, m, u = captured["args"]
         assert a.endswith("app-config.json")
         assert m.endswith("m4b-config.json")
         assert u.endswith("user-config.json")
 
-    def test_stop_passes_apps_m4b_user_paths(self, monkeypatch, tmp_path):
+    def test_stack_stop_passes_apps_m4b_user_paths(self, monkeypatch, tmp_path):
         captured = _capture_module_call(monkeypatch, "money4band.docker.stop")
-        from main import _cmd_stop
+        from main import _cmd_stack
 
-        _cmd_stop(_make_args(tmp_path, "stop"))
+        _cmd_stack(_make_args(tmp_path, extra_argv=["stack", "stop"]))
 
         a, m, u = captured["args"]
         assert a.endswith("app-config.json")
         assert m.endswith("m4b-config.json")
         assert u.endswith("user-config.json")
+
+    def test_stack_restart_calls_stop_then_start(self, monkeypatch, tmp_path):
+        call_order = []
+        stop_mod = types.ModuleType("money4band.docker.stop")
+        stop_mod.main = lambda *a, **kw: call_order.append("stop")
+        monkeypatch.setitem(sys.modules, "money4band.docker.stop", stop_mod)
+
+        start_mod = types.ModuleType("money4band.docker.start")
+        start_mod.main = lambda *a, **kw: call_order.append("start")
+        monkeypatch.setitem(sys.modules, "money4band.docker.start", start_mod)
+
+        from main import _cmd_stack
+
+        _cmd_stack(_make_args(tmp_path, extra_argv=["stack", "restart"]))
+
+        assert call_order == ["stop", "start"]
 
     def test_generate_passes_apps_m4b_user_paths(self, monkeypatch, tmp_path):
         captured = _capture_module_call(monkeypatch, "money4band.docker.generator")
@@ -317,17 +332,34 @@ class TestAutoBackup:
         result = self._run_handler(monkeypatch, tmp_path, "_cmd_reset")
         assert result["yes"], "_auto_backup must be called before reset"
 
-    def test_start_does_not_trigger_auto_backup(self, monkeypatch, tmp_path):
-        result = self._run_handler(
-            monkeypatch, tmp_path, "_cmd_start", "money4band.docker.start"
+    def test_stack_start_does_not_trigger_auto_backup(self, monkeypatch, tmp_path):
+        backup_called = {"yes": False}
+        monkeypatch.setattr("main._ensure_user_config", lambda *a, **kw: None)
+        monkeypatch.setattr(
+            "main._auto_backup",
+            lambda path: backup_called.update(yes=True, path=path),
         )
-        assert not result["yes"], "start must NOT auto-backup"
+        monkeypatch.setattr("money4band.docker.helper.check_docker_ready", lambda: None)
+        monkeypatch.setattr("main._has_template_defaults", lambda *a, **kw: False)
+        _capture_module_call(monkeypatch, "money4band.docker.start")
+        from main import _cmd_stack
 
-    def test_stop_does_not_trigger_auto_backup(self, monkeypatch, tmp_path):
-        result = self._run_handler(
-            monkeypatch, tmp_path, "_cmd_stop", "money4band.docker.stop"
+        _cmd_stack(_make_args(tmp_path, extra_argv=["stack", "start"]))
+        assert not backup_called["yes"], "stack start must NOT auto-backup"
+
+    def test_stack_stop_does_not_trigger_auto_backup(self, monkeypatch, tmp_path):
+        backup_called = {"yes": False}
+        monkeypatch.setattr("main._ensure_user_config", lambda *a, **kw: None)
+        monkeypatch.setattr(
+            "main._auto_backup",
+            lambda path: backup_called.update(yes=True, path=path),
         )
-        assert not result["yes"], "stop must NOT auto-backup"
+        monkeypatch.setattr("money4band.docker.helper.check_docker_ready", lambda: None)
+        _capture_module_call(monkeypatch, "money4band.docker.stop")
+        from main import _cmd_stack
+
+        _cmd_stack(_make_args(tmp_path, extra_argv=["stack", "stop"]))
+        assert not backup_called["yes"], "stack stop must NOT auto-backup"
 
     def test_links_does_not_trigger_auto_backup(self, monkeypatch, tmp_path):
         result = self._run_handler(
@@ -347,6 +379,7 @@ class TestMainDispatch:
         monkeypatch.setattr("sys.argv", ["m4b"])
         monkeypatch.setattr("main._cmd_menu", lambda a: called.update(yes=True))
         monkeypatch.setattr("main._setup_logging", lambda a: None)
+        monkeypatch.setattr("main._handle_dashboard_auto_start", lambda a: None)
 
         from main import main
 
@@ -355,18 +388,19 @@ class TestMainDispatch:
 
     def test_subcommand_dispatches_via_table(self, monkeypatch):
         called = {}
-        monkeypatch.setattr("sys.argv", ["m4b", "stop"])
+        monkeypatch.setattr("sys.argv", ["m4b", "stack", "stop"])
         monkeypatch.setattr("main._setup_logging", lambda a: None)
+        monkeypatch.setattr("main._handle_dashboard_auto_start", lambda a: None)
         monkeypatch.setitem(
             __import__("main")._SUBCOMMAND_DISPATCH,
-            "stop",
+            "stack",
             lambda a: called.update(yes=True, command=a.command),
         )
         from main import main
 
         main()
         assert called.get("yes")
-        assert called["command"] == "stop"
+        assert called["command"] == "stack"
 
 
 # ---------------------------------------------------------------------------

@@ -179,6 +179,12 @@ def mainmenu(
     from money4band.system.resource_profiles import main as _fn_resource_profiles
     from money4band.ui.bye import main as _fn_bye
 
+    def _fn_restart_stack(
+        app_config_path: str, m4b_config_path: str, user_config_path: str
+    ) -> None:
+        _fn_stop_stack(app_config_path, m4b_config_path, user_config_path)
+        _fn_start_stack(app_config_path, m4b_config_path, user_config_path)
+
     menu_dispatch: dict[str, object] = {
         "system_info": _system_info,
         "fn_app_catalog": _fn_app_catalog,
@@ -186,6 +192,7 @@ def mainmenu(
         "fn_setupApps": _fn_setup_apps,
         "fn_startStack": _fn_start_stack,
         "fn_stopStack": _fn_stop_stack,
+        "fn_restartStack": _fn_restart_stack,
         "fn_reset_config": _fn_reset_config,
         "generator": _generator,
         "fn_dashboard": _fn_dashboard,
@@ -380,12 +387,13 @@ def _cmd_setup(args: argparse.Namespace) -> None:
     )
 
 
-def _cmd_start(args: argparse.Namespace) -> None:
-    """Start the Docker Compose stack."""
+def _cmd_stack(args: argparse.Namespace) -> None:
+    """Start, stop, or restart the Docker Compose stack."""
+    action = getattr(args, "stack_action", None)
     m4b_config_path, apps_config_path, user_config_path = _resolve_paths(args)
     _ensure_user_config(args, user_config_path)
 
-    if _has_template_defaults(user_config_path):
+    if action in ("start", "restart") and _has_template_defaults(user_config_path):
         just_fix_windows_console()
         print(
             f"{Fore.YELLOW}Warning: Config contains placeholder values. "
@@ -393,22 +401,33 @@ def _cmd_start(args: argparse.Namespace) -> None:
         )
         return
 
-    from money4band.docker.helper import check_docker_ready
+    if action in ("start", "restart"):
+        from money4band.docker.helper import check_docker_ready
 
-    check_docker_ready()
+        check_docker_ready()
 
-    from money4band.docker.start import main as start_main
+    if action == "start":
+        from money4band.docker.start import main as start_main
 
-    start_main(apps_config_path, m4b_config_path, user_config_path)
+        start_main(apps_config_path, m4b_config_path, user_config_path)
+    elif action == "stop":
+        from money4band.docker.stop import main as stop_main
 
+        stop_main(apps_config_path, m4b_config_path, user_config_path)
+    elif action == "restart":
+        from money4band.docker.start import main as start_main
+        from money4band.docker.stop import main as stop_main
 
-def _cmd_stop(args: argparse.Namespace) -> None:
-    """Stop the Docker Compose stack."""
-    m4b_config_path, apps_config_path, user_config_path = _resolve_paths(args)
-    _ensure_user_config(args, user_config_path)
-    from money4band.docker.stop import main as stop_main
-
-    stop_main(apps_config_path, m4b_config_path, user_config_path)
+        stop_main(apps_config_path, m4b_config_path, user_config_path)
+        start_main(apps_config_path, m4b_config_path, user_config_path)
+    else:
+        just_fix_windows_console()
+        print(
+            f"Usage: m4b stack {{start|stop|restart}}\n"
+            f"  {Fore.CYAN}start{Style.RESET_ALL}    Start the Docker Compose stack\n"
+            f"  {Fore.CYAN}stop{Style.RESET_ALL}     Stop the Docker Compose stack\n"
+            f"  {Fore.CYAN}restart{Style.RESET_ALL}  Stop then start the stack"
+        )
 
 
 def _cmd_status(args: argparse.Namespace) -> None:
@@ -890,15 +909,26 @@ def _cmd_dns(args: argparse.Namespace) -> None:
 
     dns_action = getattr(args, "dns_action", None)
 
-    if dns_action == "set":
+    if dns_action == "list":
+        from money4band.system.info import show_dns_presets
+
+        m4b_config = loader.load_json_config(m4b_config_path)
+        show_dns_presets(m4b_config)
+    elif dns_action == "set":
         mode = args.mode
-        servers = args.servers.split(",") if getattr(args, "servers", None) else None
+        servers = [s.strip() for s in args.servers.split(",") if s.strip()] if getattr(args, "servers", None) else None
         from money4band.system.info import set_dns_mode
 
         set_dns_mode(m4b_config_path, mode, servers)
         print(f"{Fore.GREEN}DNS mode set to '{mode}'.{Style.RESET_ALL}")
         if servers:
             print(f"  Servers: {', '.join(servers)}")
+        elif mode not in ("default", "custom"):
+            from money4band.system.info import get_dns_presets
+
+            presets = get_dns_presets(loader.load_json_config(m4b_config_path))
+            if mode in presets:
+                print(f"  Servers: {', '.join(presets[mode])}")
         print(f"{Fore.YELLOW}Run 'generate' to rebuild compose files.{Style.RESET_ALL}")
     else:
         m4b_config = loader.load_json_config(m4b_config_path)
@@ -1002,8 +1032,11 @@ def _build_parser() -> argparse.ArgumentParser:
         default=False,
         help="Resume a previously interrupted setup, skipping completed steps",
     )
-    sub.add_parser("start", help="Start the Docker Compose stack")
-    sub.add_parser("stop", help="Stop the Docker Compose stack")
+    stack_parser = sub.add_parser("stack", help="Start, stop, or restart the Docker Compose stack")
+    stack_sub = stack_parser.add_subparsers(dest="stack_action")
+    stack_sub.add_parser("start", help="Start the Docker Compose stack")
+    stack_sub.add_parser("stop", help="Stop the Docker Compose stack")
+    stack_sub.add_parser("restart", help="Stop then start the Docker Compose stack")
     sub.add_parser("status", help="Show running containers and health")
     gen_parser = sub.add_parser(
         "generate", help="Regenerate docker-compose.yaml and .env"
@@ -1110,7 +1143,7 @@ def _build_parser() -> argparse.ArgumentParser:
         default="127.0.0.1",
         help=(
             "Bind address (default: 127.0.0.1, localhost only). "
-            "Use 0.0.0.0 to expose on LAN/VPS (requires API key)"
+            "Use 0.0.0.0 to web-expose (requires API key)"
         ),
     )
     dash_start.add_argument(
@@ -1123,6 +1156,25 @@ def _build_parser() -> argparse.ArgumentParser:
 
     # m4b dashboard stop
     dash_sub.add_parser("stop", help="Stop a background dashboard process")
+
+    # m4b dashboard restart [--port] [--host]
+    dash_restart = dash_sub.add_parser(
+        "restart", help="Restart a background dashboard process"
+    )
+    dash_restart.add_argument(
+        "--port",
+        type=int,
+        default=8088,
+        help="Port for the dashboard API server (default: 8088)",
+    )
+    dash_restart.add_argument(
+        "--host",
+        default="127.0.0.1",
+        help=(
+            "Bind address (default: 127.0.0.1, localhost only). "
+            "Use 0.0.0.0 to web-expose (requires API key)"
+        ),
+    )
 
     # m4b dashboard status
     dash_sub.add_parser("status", help="Check whether the dashboard is running")
@@ -1160,11 +1212,15 @@ def _build_parser() -> argparse.ArgumentParser:
 
     dns_parser = sub.add_parser("dns", help="View or configure container DNS")
     dns_sub = dns_parser.add_subparsers(dest="dns_action")
+    dns_sub.add_parser("list", help="List available DNS presets")
     dns_set = dns_sub.add_parser("set", help="Set DNS mode and servers")
     dns_set.add_argument(
         "mode",
-        choices=["default", "custom"],
-        help="DNS mode: 'default' uses host DNS, 'custom' injects specified servers",
+        help=(
+            "DNS mode: 'default' (host DNS), 'custom' (specify --servers), "
+            "or a preset name (e.g. cloudflare, google, quad9). "
+            "Run 'dns list' to see all presets."
+        ),
     )
     dns_set.add_argument(
         "--servers",
@@ -1181,8 +1237,7 @@ def _build_parser() -> argparse.ArgumentParser:
 
 _SUBCOMMAND_DISPATCH = {
     "setup": _cmd_setup,
-    "start": _cmd_start,
-    "stop": _cmd_stop,
+    "stack": _cmd_stack,
     "status": _cmd_status,
     "generate": _cmd_generate,
     "links": _cmd_links,
@@ -1294,7 +1349,11 @@ def _handle_dashboard_auto_start(args: argparse.Namespace) -> None:
     config_dir = getattr(args, "config_dir", os.path.join(BASE_DIR, "config"))
     user_cfg_path = os.path.join(config_dir, "user-config.json")
     if not os.path.isfile(user_cfg_path):
-        return
+        # First launch, create user-config from template so the dashboard
+        # can honour the default enabled=True on the very first run.
+        _ensure_user_config(args, user_cfg_path)
+        if not os.path.isfile(user_cfg_path):
+            return  # template missing or creation failed
 
     just_fix_windows_console()
 

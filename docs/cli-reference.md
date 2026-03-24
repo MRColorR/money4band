@@ -1,20 +1,22 @@
 # CLI Reference
 
-> All 23 subcommands available via `m4b <command>` (or `python main.py <command>`).
+> All 22 subcommands available via `m4b <command>` (or `python main.py <command>`).
 
 ---
 
 ## General Usage
 
 ```
-m4b [--version] [--verbose] [--dashboard true|false] <command> [options]
+m4b [--log-level LEVEL] [--dashboard true|false] <command> [options]
 ```
 
 | Flag | Description |
 |------|-------------|
-| `--version` | Print version and exit |
-| `--verbose` | Enable DEBUG-level console logging |
+| `--log-level LEVEL` | Set console log level (`DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL`) |
 | `--dashboard true\|false` | Start / stop the web dashboard alongside any command |
+| `--config-dir PATH` | Override the default config directory |
+| `--log-dir PATH` | Override the default log directory |
+| `--log-file NAME` | Override the log file name |
 
 When invoked **without** a subcommand, M4B opens the **interactive menu**.
 
@@ -75,18 +77,25 @@ m4b profile delete gaming-rig
 
 ## Stack Operations
 
-### `start`
+### `stack start`
 Start the Docker Compose stack.
 
 ```bash
-m4b start
+m4b stack start
 ```
 
-### `stop`
+### `stack stop`
 Stop the Docker Compose stack.
 
 ```bash
-m4b stop
+m4b stack stop
+```
+
+### `stack restart`
+Stop then start the Docker Compose stack.
+
+```bash
+m4b stack restart
 ```
 
 ### `status`
@@ -112,7 +121,7 @@ List all supported apps grouped by category.
 
 ```bash
 m4b apps
-m4b apps --category residential
+m4b apps --category supported
 ```
 
 ### `apps <name>`
@@ -170,11 +179,20 @@ m4b ip
 ```
 
 ### `dns set <mode>`
-Configure container DNS. Modes: `default`, `cloudflare`, `cloudflare-security`, `google`, `quad9`, `quad9-unfiltered`, `opendns`, `dns4eu`, `dns4eu-unfiltered`.
+Configure container DNS. Mode can be `default` (host DNS), `custom` (with `--servers`), or any preset name.
 
 ```bash
-m4b dns set cloudflare
-m4b dns set custom --servers 1.1.1.1 9.9.9.9
+m4b dns set cloudflare                       # use Cloudflare preset
+m4b dns set google                           # use Google preset
+m4b dns set default                          # use host DNS
+m4b dns set custom --servers 1.1.1.1,8.8.8.8  # inject custom servers (comma-separated)
+```
+
+### `dns list`
+List all available DNS presets with their server addresses.
+
+```bash
+m4b dns list
 ```
 
 ---
@@ -243,6 +261,14 @@ Display the current API key.
 
 ### `dashboard regenerate-key`
 Generate a new API key.
+
+### `dashboard restart`
+Restart the background dashboard.
+
+```bash
+m4b dashboard restart
+m4b dashboard restart --host 0.0.0.0 --port 9000
+```
 
 ### `dashboard enable` / `dashboard disable`
 Toggle dashboard auto-start.

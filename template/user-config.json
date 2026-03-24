@@ -54,8 +54,7 @@
     "bitping": {
       "enabled": false,
       "email": "yourBITPINGMail",
-      "password": "yourBITPINGPw",
-      "mfa": ""
+      "password": "yourBITPINGPw"
     },
     "packetshare": {
       "enabled": false,
@@ -140,7 +139,7 @@
   },
   "m4b_dashboard": {
     "enabled": true,
-    "ports": [8081]
+    "port": 8088
   },
   "watchtower": {
     "enabled": true
@@ -237,40 +236,7 @@
         "mem_reservation": "${APP_MEM_RESERV_MEDIUM}",
         "mem_limit": "${APP_MEM_LIMIT_MEDIUM}"
       }
-    },
-    "m4b_dashboard_service": {
-      "container_name": "${DEVICE_NAME}_m4b_dashboard",
-      "hostname": "${DEVICE_NAME}_m4b_dashboard",
-      "image": "nginx:alpine-slim",
-      "labels": [
-        "com.centurylinklabs.watchtower.enable=true",
-        "com.centurylinklabs.watchtower.scope=${M4B_WATCHTOWER_SCOPE}"
-      ],
-      "volumes": [
-        "./.resources/.www:/usr/share/nginx/html",
-        "./.resources/.assets:/usr/share/nginx/html/.images:ro",
-        "./config/app-config.json:/usr/share/nginx/html/.config/app-config.json:ro"
-      ],
-      "ports": ["${M4B_DASHBOARD_PORT}:80"],
-      "restart": "always",
-      "cpus": "${APP_CPU_LIMIT_LITTLE}",
-      "mem_reservation": "${APP_MEM_RESERV_LITTLE}",
-      "mem_limit": "${APP_MEM_LIMIT_LITTLE}"
     }
   },
-  "resource_limits": {
-    "app_cpu_limit_little": 0.8,
-    "app_cpu_limit_medium": 1,
-    "app_cpu_limit_big": 2,
-    "app_cpu_limit_huge": 4,
-    "ram_cap_mb_default": 6144,
-    "app_mem_reserv_little": "64m",
-    "app_mem_limit_little": "128m",
-    "app_mem_reserv_medium": "128m",
-    "app_mem_limit_medium": "256m",
-    "app_mem_reserv_big": "256m",
-    "app_mem_limit_big": "512m",
-    "app_mem_reserv_huge": "512m",
-    "app_mem_limit_huge": "1024m"
-  }
+  "resource_limits": {}
 }

@@ -72,3 +72,4 @@ This checks:
 3. **Keep M4B updated** (`m4b update`) for security patches.
 4. **Review IP quality** (`m4b ip`) — some proxy providers may flag your IP.
 5. **Use the dashboard locally** — avoid exposing it to the internet without HTTPS.
+6. **Dashboard cookie auth** — when using web-exposed mode, the API key is stored as an `httpOnly`, `samesite=strict` cookie.

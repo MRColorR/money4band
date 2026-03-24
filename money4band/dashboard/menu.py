@@ -130,7 +130,6 @@ def _action_stop(config_dir: str) -> None:
     from money4band.dashboard.setup import (
         read_dashboard_pid,
         remove_dashboard_pid,
-        set_dashboard_state,
     )
 
     pid = read_dashboard_pid(config_dir)
@@ -143,7 +142,86 @@ def _action_stop(config_dir: str) -> None:
     except OSError as exc:
         print(f"{Fore.RED}Failed to stop PID {pid}: {exc}{Style.RESET_ALL}")
     remove_dashboard_pid(config_dir)
-    set_dashboard_state(config_dir, enabled=False)
+
+
+def _action_restart(config_dir: str, port: int) -> None:
+    _action_stop(config_dir)
+    time.sleep(0.5)
+    _action_start_background(config_dir, port)
+
+
+def _action_start_background_web(config_dir: str, port: int) -> None:
+    from money4band.api.server import configure, find_dashboard_port
+    from money4band.dashboard.setup import (
+        ensure_api_key_on_disk,
+        read_dashboard_pid,
+        regenerate_api_key_on_disk,
+        set_dashboard_state,
+    )
+
+    configure(config_dir, base_dir=_BASE_DIR)
+
+    existing = read_dashboard_pid(config_dir)
+    if existing:
+        print(
+            f"{Fore.YELLOW}Dashboard + API already running (PID {existing}).  "
+            f"Stop it first.{Style.RESET_ALL}"
+        )
+        return
+
+    port = find_dashboard_port(port)
+    api_key = ensure_api_key_on_disk(config_dir)
+    if not api_key:
+        print(
+            f"{Fore.YELLOW}No API key found — generating one automatically."
+            f"{Style.RESET_ALL}"
+        )
+        api_key = regenerate_api_key_on_disk(config_dir)
+    set_dashboard_state(config_dir, enabled=True, port=port)
+
+    host = "0.0.0.0"  # noqa: S104
+    print(
+        f"{Fore.YELLOW}WARNING: Dashboard will be reachable from the "
+        f"network ({host}).{Style.RESET_ALL}"
+    )
+    print(
+        "  All API requests require the Bearer token.  "
+        "Keep your API key secret."
+    )
+
+    from money4band.dashboard.setup import spawn_dashboard_background
+
+    pid = spawn_dashboard_background(config_dir, _BASE_DIR, host=host, port=port)
+
+    from money4band.network.networker import is_port_in_use
+
+    print(
+        f"{Fore.CYAN}Waiting for dashboard to start...{Style.RESET_ALL}",
+        end="",
+        flush=True,
+    )
+    started = False
+    for _ in range(15):
+        time.sleep(0.2)
+        if is_port_in_use(port):
+            started = True
+            break
+        print(".", end="", flush=True)
+
+    if started:
+        print(
+            f"\n{Fore.GREEN}Dashboard + API running in background "
+            f"(PID {pid}), web-exposed.{Style.RESET_ALL}"
+        )
+        print(f"  Dashboard: http://0.0.0.0:{port}/")
+        print(f"  API docs:  http://0.0.0.0:{port}/api/docs")
+        if api_key:
+            print(f"  API key:   {api_key}")
+    else:
+        print(
+            f"\n{Fore.YELLOW}Dashboard + API spawned (PID {pid}) but port "
+            f"{port} not yet responding.{Style.RESET_ALL}"
+        )
 
 
 def _action_status(config_dir: str) -> None:
@@ -199,7 +277,9 @@ def _action_toggle_autostart(config_dir: str) -> None:
 _MENU_ITEMS = [
     ("Start Dashboard + API (foreground)", "foreground"),
     ("Start Dashboard + API (background)", "background"),
+    ("Start Dashboard + API (web-exposed)", "background_web"),
     ("Stop Dashboard + API", "stop"),
+    ("Restart Dashboard + API", "restart"),
     ("Toggle auto-start on M4B launch", "toggle_autostart"),
     ("Dashboard + API status", "status"),
     ("Show API key", "show_key"),
@@ -255,8 +335,14 @@ def _dashboard_menu(config_dir: str, port: int) -> None:
         elif action == "background":
             _action_start_background(config_dir, port)
             input("\nPress Enter to go back...")
+        elif action == "background_web":
+            _action_start_background_web(config_dir, port)
+            input("\nPress Enter to go back...")
         elif action == "stop":
             _action_stop(config_dir)
+            input("\nPress Enter to go back...")
+        elif action == "restart":
+            _action_restart(config_dir, port)
             input("\nPress Enter to go back...")
         elif action == "toggle_autostart":
             _action_toggle_autostart(config_dir)

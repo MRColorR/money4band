@@ -135,7 +135,7 @@ def setup_m4b_dashboard(user_config: dict[str, Any]) -> None:
         user_config (dict): The user configuration dictionary.
     """
     dashboard_config = user_config["m4b_dashboard"]
-    current_enabled = dashboard_config.get("enabled", False)
+    current_enabled = dashboard_config.get("enabled", True)
 
     if current_enabled:
         print("The M4B web dashboard is currently enabled.")
@@ -237,7 +237,6 @@ def read_dashboard_pid(config_dir: str) -> int | None:
     except OSError:
         pass
     return None
-    return pid
 
 
 def write_dashboard_pid(config_dir: str, pid: int) -> None:
@@ -361,7 +360,6 @@ def auto_start_dashboard(config_dir: str, base_dir: str) -> None:
         return
 
     api_key = ensure_api_key_on_disk(config_dir)
-    set_dashboard_state(config_dir, enabled=True, port=port)
 
     pid = spawn_dashboard_background(config_dir, base_dir, port=port)
 

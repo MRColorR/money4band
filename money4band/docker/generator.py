@@ -212,7 +212,7 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
     device = user_config.get("device_info", {}).get("device_name", "Unknown")
     proxy = user_config.get("proxies", {}).get("enabled", False)
     dash = user_config.get("m4b_dashboard", {})
-    dash_on = dash.get("enabled", False)
+    dash_on = dash.get("enabled", True)
     dash_port = dash.get("port", 8088)
 
     print(f"  Device: {device}")
@@ -407,6 +407,11 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
                         logger.error(
                             f"Error regenerating instance {instance_name}: {e}"
                         )
+
+        # Refresh setup summary so it reflects the current config
+        from money4band.ui.summary import generate_setup_summary
+
+        generate_setup_summary(user_config, app_config)
 
         print(f"\n{Fore.GREEN}Done!{Style.RESET_ALL}")
 

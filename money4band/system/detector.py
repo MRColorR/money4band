@@ -96,18 +96,21 @@ def get_system_memory_and_cores() -> tuple[float, int | None]:
 # Resource-limit profiles
 # ---------------------------------------------------------------------------
 
-# Per-app tier multipliers applied on top of the profile base.
-# Keys match the LITTLE/MEDIUM/BIG/HUGE tiers used in app-config.json.
-_TIER_MULTIPLIERS = {
-    "little": {"mem_reserv": 0.2, "mem_limit": 0.4, "cpu": 0.2},
-    "medium": {"mem_reserv": 0.4, "mem_limit": 0.6, "cpu": 0.4},
-    "big": {"mem_reserv": 0.6, "mem_limit": 0.8, "cpu": 0.6},
-    "huge": {"mem_reserv": 0.8, "mem_limit": 1.0, "cpu": 0.8},
-}
 
-# Absolute minimums so containers always get something usable.
-_MIN_MEM = {"reserv": 64, "limit": 128}
-_MIN_CPU = {"little": 0.8, "medium": 1.0, "big": 1.0, "huge": 1.0}
+def _get_tiers(m4b_config: dict[str, Any]) -> dict[str, dict[str, float]]:
+    """Return tier multipliers from ``resource_profiles.tiers`` in *m4b_config*."""
+    return m4b_config["resource_profiles"]["tiers"]
+
+
+def _get_minimums(m4b_config: dict[str, Any]) -> tuple[dict[str, int], dict[str, float]]:
+    """Return ``(min_mem, min_cpu)`` from ``resource_profiles.minimums`` in *m4b_config*."""
+    mins = m4b_config["resource_profiles"]["minimums"]
+    min_mem = {
+        "reserv": mins["mem_reserv_mb"],
+        "limit": mins["mem_limit_mb"],
+    }
+    min_cpu = mins["cpu"]
+    return min_mem, min_cpu
 
 
 def get_valid_profiles(m4b_config: dict[str, Any]) -> tuple[str, ...]:
@@ -148,24 +151,22 @@ def calculate_resource_limits(
 
     # Resolve the active profile's base values.
     if m4b_config is None:
-        m4b_config = {}
+        raise ValueError("m4b_config is required for resource limit calculation")
     profile = get_profile_definition(m4b_config)
     base_ram_mb = total_memory * profile.get("ram_pct", 0.40)
     base_cpu = cores * profile.get("cpu_pct", 0.60)
 
+    tiers = _get_tiers(m4b_config)
+    min_mem, min_cpu = _get_minimums(m4b_config)
+
     resource_limits = {}
-    for tier, mult in _TIER_MULTIPLIERS.items():
-        mem_r = int(max(base_ram_mb * mult["mem_reserv"], _MIN_MEM["reserv"]))
-        mem_l = int(max(base_ram_mb * mult["mem_limit"], _MIN_MEM["limit"]))
-        cpu = round(max(base_cpu * mult["cpu"], _MIN_CPU[tier]), 1)
+    for tier, mult in tiers.items():
+        mem_r = int(max(base_ram_mb * mult["mem_reserv"], min_mem["reserv"]))
+        mem_l = int(max(base_ram_mb * mult["mem_limit"], min_mem["limit"]))
+        cpu = round(max(base_cpu * mult["cpu"], min_cpu.get(tier, 0.5)), 1)
         resource_limits[f"app_mem_reserv_{tier}"] = f"{mem_r}m"
         resource_limits[f"app_mem_limit_{tier}"] = f"{mem_l}m"
         resource_limits[f"app_cpu_limit_{tier}"] = cpu
-
-    # Preserve the ram_cap_mb_default key for backward compat.
-    resource_limits["ram_cap_mb_default"] = user_config.get("resource_limits", {}).get(
-        "ram_cap_mb_default", 6144
-    )
 
     user_config.setdefault("resource_limits", {}).update(resource_limits)
     write_json(user_config, user_config_path_or_dict)

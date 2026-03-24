@@ -354,7 +354,7 @@ def get_system_info_structured(
 
     proxy_enabled = user_config.get("proxies", {}).get("enabled", False)
     wt_enabled = user_config.get("watchtower", {}).get("enabled", True)
-    dash_enabled = user_config.get("m4b_dashboard", {}).get("enabled", False)
+    dash_enabled = user_config.get("m4b_dashboard", {}).get("enabled", True)
 
     docker_ok = shutil.which("docker") is not None
     docker_running = False

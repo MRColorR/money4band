@@ -84,7 +84,7 @@
 | `server.py` | FastAPI app, CORS, Bearer auth, SSE events, static mount |
 | `_deps.py` | Shared request dependencies |
 | `schemas.py` | Pydantic request / response models |
-| `routers/` | 13 endpoint routers (stack, config, apps, system, monitor, backups, profiles, earnings, ip, offers, notifications, update, security) |
+| `router_*.py` | 13 endpoint routers (stack, config, apps, system, monitor, backups, profiles, earnings, ip, offers, notifications, update, security) |
 
 ## `dashboard/` — Web Dashboard
 

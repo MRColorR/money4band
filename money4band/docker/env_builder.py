@@ -106,10 +106,6 @@ def generate_env_file(
                             env_lines.append(f"{env_var_name}={env_var_value}")
 
                     # Add ports configurations for apps that have them
-                    if "dashboard_port" in app_user_config:
-                        env_lines.append(
-                            f"{app_name.upper()}_DASHBOARD_PORT={app_user_config['dashboard_port']}"
-                        )
                     if "ports" in app_user_config:
                         # Ports are always stored as a list
                         ports = app_user_config["ports"]

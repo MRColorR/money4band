@@ -6,7 +6,7 @@
 
 ## App Catalog
 
-M4B tracks **35 bandwidth-sharing apps** across three categories:
+M4B tracks **35 passive-income apps** across three categories:
 
 | Category | Description |
 |----------|-------------|
@@ -18,7 +18,7 @@ View the catalog:
 
 ```bash
 m4b apps                         # full catalog
-m4b apps --category residential  # filter by IP policy
+m4b apps --category supported    # filter by category
 m4b apps honeygain               # detailed info for one app
 ```
 

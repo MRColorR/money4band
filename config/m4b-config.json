@@ -97,21 +97,53 @@
     },
     "resource_profiles": {
         "active": "standard",
+        "tiers": {
+            "little": {
+                "mem_reserv": 0.2,
+                "mem_limit": 0.4,
+                "cpu": 0.2
+            },
+            "medium": {
+                "mem_reserv": 0.4,
+                "mem_limit": 0.6,
+                "cpu": 0.4
+            },
+            "big": {
+                "mem_reserv": 0.6,
+                "mem_limit": 0.8,
+                "cpu": 0.6
+            },
+            "huge": {
+                "mem_reserv": 0.8,
+                "mem_limit": 1.0,
+                "cpu": 0.8
+            }
+        },
+        "minimums": {
+            "mem_reserv_mb": 64,
+            "mem_limit_mb": 128,
+            "cpu": {
+                "little": 0.8,
+                "medium": 1.0,
+                "big": 1.0,
+                "huge": 1.0
+            }
+        },
         "profiles": {
             "minimal": {
                 "description": "Minimal",
-                "cpu_pct": 0.20,
-                "ram_pct": 0.10
+                "cpu_pct": 0.2,
+                "ram_pct": 0.1
             },
             "conservative": {
                 "description": "Conservative",
-                "cpu_pct": 0.40,
+                "cpu_pct": 0.4,
                 "ram_pct": 0.25
             },
             "standard": {
                 "description": "Standard (default)",
-                "cpu_pct": 0.60,
-                "ram_pct": 0.40
+                "cpu_pct": 0.6,
+                "ram_pct": 0.4
             },
             "performance": {
                 "description": "Performance",
@@ -148,6 +180,10 @@
         {
             "label": "Stop apps stack",
             "function": "fn_stopStack"
+        },
+        {
+            "label": "Restart apps stack",
+            "function": "fn_restartStack"
         },
         {
             "label": "Reset user-config File",

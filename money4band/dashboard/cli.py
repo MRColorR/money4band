@@ -42,6 +42,7 @@ def handle_dashboard_action(
         print("Commands:")
         print("  start           Start the Dashboard + API server")
         print("  stop            Stop a background Dashboard + API process")
+        print("  restart         Restart a background Dashboard + API process")
         print("  status          Show Dashboard + API status")
         print("  show-key        Print the Dashboard API key")
         print("  regenerate-key  Generate a new API key")
@@ -65,6 +66,9 @@ def handle_dashboard_action(
         kwargs.update(host=host, preferred_port=port, background=background)
     elif action == "stop":
         kwargs["stop"] = True
+    elif action == "restart":
+        kwargs["restart"] = True
+        kwargs.update(host=host, preferred_port=port)
     elif action == "status":
         kwargs["status_check"] = True
     elif action == "show-key":
@@ -89,6 +93,7 @@ def run_dashboard_command(
     background: bool = False,
     show_key: bool = False,
     stop: bool = False,
+    restart: bool = False,
     status_check: bool = False,
     regenerate_key: bool = False,
 ) -> None:
@@ -111,6 +116,13 @@ def run_dashboard_command(
     # --stop: kill a running background dashboard.
     if stop:
         _handle_stop(config_dir, read_dashboard_pid, remove_dashboard_pid)
+        return
+
+    # --restart: stop then start in background.
+    if restart:
+        _handle_stop(config_dir, read_dashboard_pid, remove_dashboard_pid)
+        time.sleep(0.5)
+        _start_background(config_dir, base_dir, host=host, port=find_dashboard_port(preferred_port))
         return
 
     # --status: check if a background dashboard is running.
@@ -218,9 +230,6 @@ def _handle_stop(config_dir, read_pid_fn, remove_pid_fn) -> None:  # type: ignor
     except OSError as exc:
         print(f"{Fore.RED}Failed to stop PID {pid}: {exc}{Style.RESET_ALL}")
     remove_pid_fn(config_dir)
-    from money4band.dashboard.setup import set_dashboard_state
-
-    set_dashboard_state(config_dir, enabled=False)
 
 
 def _handle_status(config_dir, read_pid_fn) -> None:  # type: ignore[no-untyped-def]

@@ -54,6 +54,8 @@ def _docker_inspect_image(image: str) -> dict[str, Any] | None:
             ["docker", "image", "inspect", image, "--format", "{{json .}}"],
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
             timeout=15,
         )
         if result.returncode != 0:
@@ -69,6 +71,8 @@ def _docker_available() -> bool:
             ["docker", "version", "--format", "{{.Server.Version}}"],
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
             timeout=5,
         )
         return result.returncode == 0
@@ -82,6 +86,8 @@ def _scout_available() -> bool:
             ["docker", "scout", "version"],
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
             timeout=5,
         )
         return result.returncode == 0
@@ -157,6 +163,8 @@ def run_scout_cves(image: str) -> str | None:
             ["docker", "scout", "cves", image, "--only-severity", "critical,high"],
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
             timeout=60,
         )
         if result.returncode == 0:

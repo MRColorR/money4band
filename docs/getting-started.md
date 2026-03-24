@@ -32,6 +32,12 @@ m4b.exe
 ```bash
 git clone https://github.com/MRColorR/money4band.git
 cd money4band
+
+# Using uv (recommended)
+uv sync
+uv run python main.py
+
+# Or using pip
 pip install -r requirements.txt
 python main.py
 ```
@@ -44,7 +50,7 @@ When you launch M4B for the first time, choose **Setup Apps** from the menu (or 
 2. **App selection** — Pick the apps you want to run. Each app shows its IP policy (residential / datacenter / universal) and payout info.
 3. **Credentials** — Enter the credentials required by each selected app (email, token, etc.). Credentials are encrypted with Fernet (AES-128-CBC) and stored in `config/user-config.json`.
 4. **Generation** — M4B generates your `docker-compose.yaml` and `.env` file.
-5. **Start** — Launch the stack with `m4b start` or choose **Start Stack** from the menu.
+5. **Start** — Launch the stack with `m4b stack start` or choose **Start Stack** from the menu.
 
 ## Verifying Everything Works
 

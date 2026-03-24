@@ -1,5 +1,5 @@
 window.onload = () => {
-    fetch('/api/config/app')
+    m4bFetch('/api/config/app')
       .then(response => response.json())
       .then(config => {
         const tableBody = document.querySelector('.u-table-body');
