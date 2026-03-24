@@ -1,7 +1,8 @@
 """FastAPI backend for the M4B web dashboard.
 
 Provides REST endpoints for container status, resource stats, health
-indicators, and quick actions (start/stop/restart).
+indicators, quick actions (start/stop/restart), and full M4B control
+via modular API routers.
 
 Run standalone:  ``m4b dashboard [--port 8088]``
 """
@@ -19,11 +20,26 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 
+from money4band.api._deps import configure_paths
+from money4band.api.router_apps import router as apps_router
+from money4band.api.router_backups import router as backups_router
+from money4band.api.router_config import router as config_router
+from money4band.api.router_earnings import router as earnings_router
+from money4band.api.router_ip import router as ip_router
+from money4band.api.router_monitor import router as monitor_router
+from money4band.api.router_notifications import router as notifications_router
+from money4band.api.router_offers import router as offers_router
+from money4band.api.router_profiles import router as profiles_router
+from money4band.api.router_security import router as security_router
+from money4band.api.router_stack import router as stack_router
+from money4band.api.router_system import router as system_router
+from money4band.api.router_update import router as update_router
+
 logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="M4B Dashboard API",
-    version="1.0.0",
+    version="2.0.0",
     docs_url="/api/docs",
     openapi_url="/api/openapi.json",
 )
@@ -31,19 +47,37 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_methods=["GET", "POST"],
+    allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["*"],
 )
+
+# Register modular API routers
+app.include_router(stack_router)
+app.include_router(config_router)
+app.include_router(apps_router)
+app.include_router(system_router)
+app.include_router(monitor_router)
+app.include_router(backups_router)
+app.include_router(profiles_router)
+app.include_router(earnings_router)
+app.include_router(ip_router)
+app.include_router(offers_router)
+app.include_router(notifications_router)
+app.include_router(update_router)
+app.include_router(security_router)
 
 # Config directory — set at startup via configure()
 _config_dir: str = ""
 _ALLOWED_ACTIONS = {"start", "stop", "restart"}
 
 
-def configure(config_dir: str) -> None:
-    """Set config directory for the dashboard API."""
+def configure(config_dir: str, base_dir: str | None = None) -> None:
+    """Set config directory for the dashboard API and all routers."""
     global _config_dir
     _config_dir = config_dir
+    if base_dir is None:
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    configure_paths(config_dir=config_dir, base_dir=base_dir)
 
 
 def _run_docker(*args: str) -> subprocess.CompletedProcess[str]:

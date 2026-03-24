@@ -110,6 +110,8 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 # Tests: allow assert, local imports, magic values, broad exceptions, ambiguous names, test passwords
 "tests/**" = ["S101", "PLC0415", "E402", "PLR2004", "S108", "PLR0913", "PLR0915", "E741", "S105", "S104"]
+# API routers: Depends() in parameter defaults is the standard FastAPI DI pattern
+"money4band/api/**" = ["B008"]
 # Main entry point: allow local imports
 "main.py" = ["PLC0415", "E402"]
 # Source files: subprocess usage is intentional for Docker/system commands

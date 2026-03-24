@@ -800,7 +800,7 @@ def _cmd_dashboard(args: argparse.Namespace) -> None:
 
     from money4band.dashboard_api import configure, start_server
 
-    configure(config_dir)
+    configure(config_dir, base_dir=BASE_DIR)
     print(f"{Fore.GREEN}Starting M4B Dashboard API on port {port}...{Style.RESET_ALL}")
     print(f"  API docs: http://localhost:{port}/api/docs")
     print(f"  Status:   http://localhost:{port}/api/status")
