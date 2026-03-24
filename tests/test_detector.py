@@ -94,15 +94,15 @@ class TestResourceProfiles(unittest.TestCase):
         "resource_profiles": {
             "active": "standard",
             "tiers": {
-                "little":  {"mem_reserv": 0.2, "mem_limit": 0.4, "cpu": 0.2},
-                "medium":  {"mem_reserv": 0.4, "mem_limit": 0.6, "cpu": 0.4},
-                "big":     {"mem_reserv": 0.6, "mem_limit": 0.8, "cpu": 0.6},
-                "huge":    {"mem_reserv": 0.8, "mem_limit": 1.0, "cpu": 0.8},
+                "little":  {"mem_reserv": 0.03, "mem_limit": 0.06, "cpu": 0.04},
+                "medium":  {"mem_reserv": 0.05, "mem_limit": 0.10, "cpu": 0.08},
+                "big":     {"mem_reserv": 0.08, "mem_limit": 0.15, "cpu": 0.12},
+                "huge":    {"mem_reserv": 0.12, "mem_limit": 0.20, "cpu": 0.18},
             },
             "minimums": {
-                "mem_reserv_mb": 64,
-                "mem_limit_mb": 128,
-                "cpu": {"little": 0.8, "medium": 1.0, "big": 1.0, "huge": 1.0},
+                "mem_reserv_mb": {"little": 32, "medium": 64, "big": 96, "huge": 128},
+                "mem_limit_mb": {"little": 64, "medium": 128, "big": 192, "huge": 256},
+                "cpu": {"little": 0.10, "medium": 0.15, "big": 0.25, "huge": 0.50},
             },
             "profiles": {
                 "minimal": {"description": "Minimal", "cpu_pct": 0.20, "ram_pct": 0.10},
@@ -161,14 +161,15 @@ class TestResourceProfiles(unittest.TestCase):
 
         tiers = self._M4B_CFG["resource_profiles"]["tiers"]
         mins = self._M4B_CFG["resource_profiles"]["minimums"]
-        min_mem = {"reserv": mins["mem_reserv_mb"], "limit": mins["mem_limit_mb"]}
+        min_mem_r = mins["mem_reserv_mb"]
+        min_mem_l = mins["mem_limit_mb"]
         min_cpu = mins["cpu"]
 
         for tier, mult in tiers.items():
             expected_reserv = int(
-                max(base_ram * mult["mem_reserv"], min_mem["reserv"])
+                max(base_ram * mult["mem_reserv"], min_mem_r.get(tier, 64))
             )
-            expected_limit = int(max(base_ram * mult["mem_limit"], min_mem["limit"]))
+            expected_limit = int(max(base_ram * mult["mem_limit"], min_mem_l.get(tier, 128)))
             expected_cpu = round(max(base_cpu * mult["cpu"], min_cpu.get(tier, 0.5)), 1)
 
             self.assertEqual(rl[f"app_mem_reserv_{tier}"], f"{expected_reserv}m")
@@ -198,9 +199,9 @@ class TestResourceProfiles(unittest.TestCase):
 
         # base_ram = 2048 * 0.10 = 204.8 MB → lower tiers hit minimums for mem
         # base_cpu = 2 * 0.20 = 0.4 → all tiers hit minimum CPU
-        self.assertEqual(rl["app_mem_reserv_little"], "64m")
-        self.assertEqual(rl["app_mem_limit_little"], "128m")
-        self.assertEqual(rl["app_cpu_limit_little"], 0.8)
+        self.assertEqual(rl["app_mem_reserv_little"], "32m")
+        self.assertEqual(rl["app_mem_limit_little"], "64m")
+        self.assertEqual(rl["app_cpu_limit_little"], 0.1)
 
     @patch("money4band.system.detector.get_system_memory_and_cores", return_value=(16384.0, 8))
     @patch("money4band.system.detector.write_json")
@@ -222,9 +223,9 @@ class TestResourceProfiles(unittest.TestCase):
         rl = saved["resource_limits"]
 
         # base_ram = 16384 * 0.65 = 10649.6, base_cpu = 8 * 0.85 = 6.8
-        # HUGE tier: mem_limit = 10649.6 * 1.0 = 10649m, cpu = 6.8 * 0.8 = 5.4
-        self.assertEqual(rl["app_mem_limit_huge"], "10649m")
-        self.assertEqual(rl["app_cpu_limit_huge"], 5.4)
+        # HUGE tier: mem_limit = 10649.6 * 0.20 = 2129m, cpu = 6.8 * 0.18 = 1.2
+        self.assertEqual(rl["app_mem_limit_huge"], "2129m")
+        self.assertEqual(rl["app_cpu_limit_huge"], 1.2)
 
     @patch("money4band.system.detector.load_json_config")
     def test_calculate_limits_none_m4b_config_raises(self, mock_load):

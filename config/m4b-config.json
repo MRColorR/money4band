@@ -99,34 +99,44 @@
         "active": "standard",
         "tiers": {
             "little": {
-                "mem_reserv": 0.2,
-                "mem_limit": 0.4,
-                "cpu": 0.2
+                "mem_reserv": 0.03,
+                "mem_limit": 0.06,
+                "cpu": 0.04
             },
             "medium": {
-                "mem_reserv": 0.4,
-                "mem_limit": 0.6,
-                "cpu": 0.4
+                "mem_reserv": 0.05,
+                "mem_limit": 0.10,
+                "cpu": 0.08
             },
             "big": {
-                "mem_reserv": 0.6,
-                "mem_limit": 0.8,
-                "cpu": 0.6
+                "mem_reserv": 0.08,
+                "mem_limit": 0.15,
+                "cpu": 0.12
             },
             "huge": {
-                "mem_reserv": 0.8,
-                "mem_limit": 1.0,
-                "cpu": 0.8
+                "mem_reserv": 0.12,
+                "mem_limit": 0.20,
+                "cpu": 0.18
             }
         },
         "minimums": {
-            "mem_reserv_mb": 64,
-            "mem_limit_mb": 128,
+            "mem_reserv_mb": {
+                "little": 32,
+                "medium": 64,
+                "big": 96,
+                "huge": 128
+            },
+            "mem_limit_mb": {
+                "little": 64,
+                "medium": 128,
+                "big": 192,
+                "huge": 256
+            },
             "cpu": {
-                "little": 0.8,
-                "medium": 1.0,
-                "big": 1.0,
-                "huge": 1.0
+                "little": 0.10,
+                "medium": 0.15,
+                "big": 0.25,
+                "huge": 0.50
             }
         },
         "profiles": {
