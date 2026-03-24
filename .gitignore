@@ -34,8 +34,5 @@ dist
 *.key
 .m4b_secrets/
 
-# Docs folder — kept local, not shipped in repo
-docs/
-
 # Local-only development instructions
 .github/copilot-instructions.md

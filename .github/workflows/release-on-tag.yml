@@ -76,6 +76,14 @@ jobs:
             --hidden-import uvicorn \
             --hidden-import textual \
             --hidden-import money4band \
+            --hidden-import money4band.apps \
+            --hidden-import money4band.core \
+            --hidden-import money4band.docker \
+            --hidden-import money4band.network \
+            --hidden-import money4band.system \
+            --hidden-import money4band.ui \
+            --hidden-import money4band.api \
+            --hidden-import money4band.dashboard \
             --add-data "config${SEP}config" \
             --add-data "money4band${SEP}money4band" \
             --add-data "template${SEP}template" \

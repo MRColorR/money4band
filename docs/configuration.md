@@ -1,0 +1,120 @@
+# Configuration
+
+> How M4B stores, secures, and manages your settings.
+
+---
+
+## Config Files
+
+| File | Location | Purpose |
+|------|----------|---------|
+| `m4b-config.json` | `config/` | Project settings — ports, DNS, profiles, menu, word lists |
+| `app-config.json` | `config/` | App definitions — Docker images, metadata, earnings, limits |
+| `user-config.json` | `config/` | **Your settings** — credentials, proxy config, preferences |
+
+### user-config.json
+
+This is the only file you need to care about. It stores:
+
+- App credentials (encrypted at rest)
+- Enabled/disabled app selections
+- Proxy configuration
+- Dashboard settings
+- Notification webhook URL
+
+A factory template exists at `template/user-config.json`. Reset anytime with:
+
+```bash
+m4b reset
+```
+
+### m4b-config.json
+
+Project-level settings you can tune:
+
+| Key | Default | Description |
+|-----|---------|-------------|
+| `system.compose_mode` | `monolithic` | `monolithic` or `layered` compose output |
+| `system.enforce_install_limits` | `true` | Respect per-app instance limits |
+| `system.dns.mode` | `default` | Container DNS mode |
+| `resource_profiles.active` | `standard` | Active resource limit profile |
+| `ports.default_port_base` | `50000` | Starting port for app port allocation |
+
+## Configuration Profiles
+
+Save and switch between named configurations:
+
+```bash
+m4b profile create work-pc     # save current config
+m4b profile create gaming-rig  # save another
+
+m4b profile switch work-pc     # restore "work-pc" config
+m4b profile delete gaming-rig  # remove a profile
+```
+
+Profiles are stored at `config/profiles/{name}/` and include both `user-config.json` and `.env`.
+
+## Resource Limit Profiles
+
+Control how much CPU and memory containers are allowed to use:
+
+| Profile | CPU Limit | Memory Limit | Use Case |
+|---------|-----------|--------------|----------|
+| `minimal` | 20% | 10% | Background, shared machine |
+| `conservative` | 40% | 25% | Light usage alongside other work |
+| `standard` | 60% | 40% | **Default** — balanced |
+| `performance` | 85% | 65% | Dedicated earning machine |
+
+```bash
+m4b limit                # view current profile
+m4b limit conservative   # switch profile
+```
+
+## DNS Configuration
+
+Configure which DNS servers your containers use:
+
+```bash
+m4b dns set cloudflare           # Cloudflare 1.1.1.1
+m4b dns set google               # Google 8.8.8.8
+m4b dns set quad9                # Quad9 9.9.9.9 (malware blocking)
+m4b dns set custom --servers 1.1.1.1 9.9.9.9
+```
+
+Available presets: `default`, `cloudflare`, `cloudflare-security`, `google`, `quad9`, `quad9-unfiltered`, `opendns`, `dns4eu`, `dns4eu-unfiltered`.
+
+## Compose Modes
+
+### Monolithic (Default)
+
+All services are written to a single `docker-compose.yaml`. Simple and compatible with all Docker Compose versions.
+
+### Layered
+
+Services are split into 6 separate compose files by IP-policy tier:
+
+```
+compose.yml                  # base (network + watchtower)
+compose.residential.yml      # residential-IP apps
+compose.datacenter.yml       # datacenter-OK apps
+compose.universal.yml        # any-IP apps
+compose.service.yml          # auto-claim sidecars
+compose.proxy.yml            # VPN tunnel
+```
+
+Enable layered mode:
+```json
+// m4b-config.json
+"compose_mode": "layered"
+```
+
+Layered mode is useful for advanced users who want to selectively start/stop app groups.
+
+## Backup & Restore
+
+```bash
+m4b backup    # create encrypted backup → ~/.m4b/backups/
+m4b restore   # pick from recent backups to restore
+```
+
+Backups are raw file copies — if the config is encrypted, the backup stays encrypted. Up to 5 backups are retained automatically.

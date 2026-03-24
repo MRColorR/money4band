@@ -148,9 +148,12 @@ pip install -r requirements.txt && python3 main.py
 
 | | |
 |---|---|
-| 📋 [App Directory](docs/APPS.md) | 🌍 Multi-Proxy Guide *(wiki)* |
-| 🔧 [Setup Guide](https://github.com/MRColorR/money4band/wiki) | 🔒 Security & Encryption *(wiki)* |
-| ❓ [FAQ](https://github.com/MRColorR/money4band/wiki) | 📊 [Known Issues](docs/KNOWN_ISSUES.md) |
+| � [Getting Started](docs/getting-started.md) | 🏗️ [Architecture](docs/ARCHITECTURE.md) |
+| 📋 [CLI Reference](docs/cli-reference.md) | 📦 [Package Structure](docs/package-structure.md) |
+| 📊 [Dashboard & API](docs/dashboard-api.md) | 🌍 [Proxy & Multi-Proxy](docs/proxy-setup.md) |
+| 🧩 [App Management](docs/app-management.md) | ⚙️ [Configuration](docs/configuration.md) |
+| 🔒 [Security](docs/security.md) | 🔔 [Notifications](docs/notifications.md) |
+| ❓ [FAQ & Troubleshooting](docs/faq.md) | 📋 [App Directory](docs/APPS.md) |
 
 ---
 
