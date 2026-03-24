@@ -19,6 +19,7 @@ from typing import Any
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
+from fastapi.staticfiles import StaticFiles
 
 from money4band.api._deps import configure_paths
 from money4band.api.router_apps import router as apps_router
@@ -236,10 +237,23 @@ async def get_app_config() -> dict[str, Any]:
         return json.load(f)
 
 
+def _mount_frontend() -> None:
+    """Mount the static web dashboard at ``/`` replicating the nginx layout."""
+    base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    www_dir = os.path.join(base, ".resources", ".www")
+    assets_dir = os.path.join(base, ".resources", ".assets")
+
+    if os.path.isdir(assets_dir):
+        app.mount("/.images", StaticFiles(directory=assets_dir), name="assets")
+    if os.path.isdir(www_dir):
+        app.mount("/", StaticFiles(directory=www_dir, html=True), name="frontend")
+
+
 def start_server(host: str = "0.0.0.0", port: int = 8088) -> None:
     """Start the dashboard API server."""
     import uvicorn
 
     configure(_config_dir)
+    _mount_frontend()
     logger.info("Starting M4B Dashboard API on %s:%d", host, port)
     uvicorn.run(app, host=host, port=port, log_level="info")

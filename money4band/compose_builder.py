@@ -380,28 +380,6 @@ def assemble_docker_compose(
                 watchtower_service["profiles"] = ["monitoring"]
                 services["watchtower"] = watchtower_service
                 service_layers["watchtower"] = "base"
-            # Only add m4bwebdashboard if dashboard is enabled
-            m4b_dashboard_config = user_config.get("m4b_dashboard", {})
-            if m4b_dashboard_config.get("enabled", False):
-                dashboard_service = compose_config_common[
-                    "m4b_dashboard_service"
-                ].copy()
-                # nginx serves static files — safe to lock root filesystem
-                dashboard_service.setdefault("read_only", True)
-                dashboard_service.setdefault("tmpfs", ["/var/cache/nginx", "/run"])
-                dashboard_service["healthcheck"] = {
-                    "test": [
-                        "CMD-SHELL",
-                        "wget -q --spider http://localhost/ || exit 1",
-                    ],
-                    "interval": "30s",
-                    "timeout": "5s",
-                    "retries": 3,
-                    "start_period": "15s",
-                }
-                dashboard_service["profiles"] = ["dashboard"]
-                services["m4bwebdashboard"] = dashboard_service
-                service_layers["m4bwebdashboard"] = "base"
 
         if proxy_enabled:
             # Get the base proxy service configuration
@@ -416,44 +394,10 @@ def assemble_docker_compose(
                     # If it's not a list, convert it to one
                     proxy_service["ports"] = [proxy_service["ports"]]
 
-                # IMPORTANT: Remove any existing dashboard port from the proxy service ports
-                dashboard_port = "${M4B_DASHBOARD_PORT}:80"
-                if dashboard_port in proxy_service["ports"]:
-                    proxy_service["ports"].remove(dashboard_port)
-                    logger.info(
-                        "Removed existing dashboard port mapping from proxy service"
-                    )
-
                 # Add required ports from enabled apps
                 for port_mapping in proxy_ports:
                     if port_mapping not in proxy_service["ports"]:
                         proxy_service["ports"].append(port_mapping)
-
-                # Dashboard port handling based on instance type
-                if is_main_instance and user_config["m4b_dashboard"].get("enabled"):
-                    # Only add dashboard port to proxy service if using proxy AND dashboard is enabled
-                    if proxy_enabled and not app_ports_transferred.get(
-                        "m4bwebdashboard"
-                    ):
-                        # Add the dashboard port to proxy service
-                        proxy_service["ports"].append(dashboard_port)
-                        logger.info(
-                            "Added M4B dashboard port mapping to proxy service for main instance"
-                        )
-
-                        # If we're adding dashboard port to proxy, we should remove 'ports' entirely from the dashboard service
-                        if (
-                            "m4bwebdashboard" in services
-                            and "ports" in services["m4bwebdashboard"]
-                        ):
-                            del services["m4bwebdashboard"]["ports"]
-                            logger.info(
-                                "Removed ports key from m4bwebdashboard service as it's handled by proxy"
-                            )
-                else:
-                    logger.info(
-                        "Skipping dashboard port mapping for multiproxy instance to avoid conflicts"
-                    )
 
                 logger.info(
                     f"Added {len(proxy_ports)} port mappings to the proxy service from apps using its network"

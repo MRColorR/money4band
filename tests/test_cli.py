@@ -393,7 +393,7 @@ class TestGetActiveProfiles:
             "m4b_dashboard": {"enabled": True},
             "proxies": {"enabled": True},
         }
-        assert get_active_profiles(cfg) == ["monitoring", "dashboard", "proxy"]
+        assert get_active_profiles(cfg) == ["monitoring", "proxy"]
 
     def test_monitoring_only(self):
         from money4band.helper import get_active_profiles
@@ -420,7 +420,7 @@ class TestGetActiveProfiles:
         assert get_active_profiles(cfg) == ["monitoring"]
 
     def test_profile_order_is_stable(self):
-        """Profiles always come out in monitoring → dashboard → proxy order."""
+        """Profiles always come out in monitoring → proxy order."""
         from money4band.helper import get_active_profiles
 
         cfg = {
@@ -428,4 +428,4 @@ class TestGetActiveProfiles:
             "m4b_dashboard": {"enabled": True},
             "watchtower": {"enabled": True},
         }
-        assert get_active_profiles(cfg) == ["monitoring", "dashboard", "proxy"]
+        assert get_active_profiles(cfg) == ["monitoring", "proxy"]

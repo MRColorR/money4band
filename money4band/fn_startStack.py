@@ -475,7 +475,7 @@ def _extract_app_names_from_compose(compose_file: str | list[str]) -> list[str]:
 
     Falls back to infrastructure-only names if no compose file exists.
     """
-    infra_fallback = ["watchtower", "m4bwebdashboard", "tun2socks"]
+    infra_fallback = ["watchtower", "tun2socks"]
     compose_files = (
         [compose_file] if isinstance(compose_file, str) else list(compose_file)
     )

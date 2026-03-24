@@ -130,10 +130,6 @@ def _make_configs(tmp_path: Path) -> tuple[dict, dict, dict]:
                     "labels": [],
                 },
             },
-            "m4b_dashboard_service": {
-                "image": "nginx:alpine",
-                "restart": "unless-stopped",
-            },
             "proxy_service": {
                 "image": "tun2socks:latest",
                 "restart": "unless-stopped",
@@ -231,16 +227,13 @@ class TestAssembleDockerCompose:
 
     @patch("money4band.compose_builder.check_img_arch_support", return_value=True)
     @patch("money4band.compose_builder.http_client")
-    def test_dashboard_added_when_enabled(self, _http, _arch, tmp_path: Path) -> None:
+    def test_dashboard_not_in_compose(self, _http, _arch, tmp_path: Path) -> None:
         m4b, app, user = _make_configs(tmp_path)
         user["m4b_dashboard"]["enabled"] = True
         out = str(tmp_path / "docker-compose.yaml")
         assemble_docker_compose(m4b, app, user, out, is_main_instance=True)
         data = yaml.safe_load(Path(out).read_text())
-        assert "m4bwebdashboard" in data["services"]
-        dash = data["services"]["m4bwebdashboard"]
-        assert dash.get("read_only") is True
-        assert "healthcheck" in dash
+        assert "m4bwebdashboard" not in data["services"]
 
     @patch("money4band.compose_builder.check_img_arch_support", return_value=True)
     @patch("money4band.compose_builder.http_client")

@@ -219,7 +219,8 @@ class TestExtractAppNamesFromCompose:
     def test_missing_file_returns_infra_fallback(self):
         names = _extract_app_names_from_compose("/nonexistent/compose.yaml")
         assert "watchtower" in names
-        assert "m4bwebdashboard" in names
+        assert "tun2socks" in names
+        assert "m4bwebdashboard" not in names
 
     def test_multi_file_merges_services(self, tmp_path):
         c1 = tmp_path / "a.yaml"

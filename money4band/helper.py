@@ -434,8 +434,6 @@ def get_active_profiles(user_config_path_or_dict: str | dict[str, Any]) -> list[
     profiles: list[str] = []
     if cfg.get("watchtower", {}).get("enabled", True):
         profiles.append("monitoring")
-    if cfg.get("m4b_dashboard", {}).get("enabled", False):
-        profiles.append("dashboard")
     if cfg.get("proxies", {}).get("enabled", False):
         profiles.append("proxy")
     return profiles

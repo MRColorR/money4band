@@ -76,11 +76,6 @@ _USER_CFG_BASE = {
                 "restart": "always",
             },
         },
-        "m4b_dashboard_service": {
-            "container_name": "${DEVICE_NAME}_m4b_dashboard",
-            "image": "nginx:1.28-alpine-slim",
-            "restart": "always",
-        },
         "proxy_service": {
             "container_name": "${DEVICE_NAME}_proxy",
             "image": "xjasonlyu/tun2socks:v2.6.0",
@@ -288,9 +283,9 @@ class TestNotificationEnvStripping(unittest.TestCase):
 
 
 class TestDashboardHardening(unittest.TestCase):
-    """Verify nginx dashboard gets read_only + tmpfs."""
+    """Verify dashboard container is no longer generated."""
 
-    def test_dashboard_read_only_with_tmpfs(self):
+    def test_no_dashboard_container_in_compose(self):
         import copy
 
         user_cfg = copy.deepcopy(_USER_CFG_BASE)
@@ -308,20 +303,16 @@ class TestDashboardHardening(unittest.TestCase):
             if os.path.exists(compose_path):
                 os.unlink(compose_path)
 
-        dash = doc["services"]["m4bwebdashboard"]
-        self.assertTrue(dash.get("read_only"))
-        self.assertIn("/var/cache/nginx", dash.get("tmpfs", []))
-        self.assertIn("/run", dash.get("tmpfs", []))
+        self.assertNotIn("m4bwebdashboard", doc.get("services", {}))
 
 
 class TestDockerProfiles(unittest.TestCase):
     """Verify Docker Compose profiles are injected on infrastructure services."""
 
-    def _generate_compose(self, proxy_enabled=False, dashboard_enabled=True):
+    def _generate_compose(self, proxy_enabled=False):
         import copy
 
         user_cfg = copy.deepcopy(_USER_CFG_BASE)
-        user_cfg["m4b_dashboard"]["enabled"] = dashboard_enabled
         user_cfg["proxies"]["enabled"] = proxy_enabled
 
         with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".yaml") as f:
@@ -341,10 +332,9 @@ class TestDockerProfiles(unittest.TestCase):
         wt = doc["services"]["watchtower"]
         self.assertEqual(wt.get("profiles"), ["monitoring"])
 
-    def test_dashboard_has_dashboard_profile(self):
-        doc = self._generate_compose(dashboard_enabled=True)
-        dash = doc["services"]["m4bwebdashboard"]
-        self.assertEqual(dash.get("profiles"), ["dashboard"])
+    def test_no_dashboard_container(self):
+        doc = self._generate_compose()
+        self.assertNotIn("m4bwebdashboard", doc["services"])
 
     def test_proxy_has_proxy_profile(self):
         doc = self._generate_compose(proxy_enabled=True)
@@ -355,7 +345,7 @@ class TestDockerProfiles(unittest.TestCase):
         doc = self._generate_compose()
         # Find any enabled app that's not infrastructure
         for svc_name, svc in doc["services"].items():
-            if svc_name not in ("watchtower", "m4bwebdashboard", "proxy"):
+            if svc_name not in ("watchtower", "proxy"):
                 self.assertNotIn(
                     "profiles", svc, f"{svc_name} should not have profiles"
                 )
@@ -447,11 +437,10 @@ class TestDashboardUrlFileCreation:
 class TestHealthchecks(unittest.TestCase):
     """Verify healthchecks are injected on infrastructure services."""
 
-    def _compose_with_services(self, proxy=False, dashboard=True):
+    def _compose_with_services(self, proxy=False):
         import copy
 
         user_cfg = copy.deepcopy(_USER_CFG_BASE)
-        user_cfg["m4b_dashboard"]["enabled"] = dashboard
         user_cfg["proxies"]["enabled"] = proxy
 
         with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".yaml") as f:
@@ -465,13 +454,6 @@ class TestHealthchecks(unittest.TestCase):
         finally:
             if os.path.exists(compose_path):
                 os.unlink(compose_path)
-
-    def test_dashboard_has_healthcheck(self):
-        doc = self._compose_with_services(dashboard=True)
-        dash = doc["services"]["m4bwebdashboard"]
-        hc = dash.get("healthcheck", {})
-        self.assertIn("test", hc)
-        self.assertTrue(any("wget" in str(t) for t in hc["test"]))
 
     def test_proxy_has_healthcheck(self):
         doc = self._compose_with_services(proxy=True)

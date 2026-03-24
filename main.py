@@ -406,7 +406,7 @@ def _cmd_status(args: argparse.Namespace) -> None:
     for cf in compose_files:
         cmd.extend(["-f", cf])
     # Show ALL services (including profiled infrastructure) for visibility.
-    for profile in ("monitoring", "dashboard", "proxy"):
+    for profile in ("monitoring", "proxy"):
         cmd.extend(["--profile", profile])
     cmd.extend(["ps", "--format", "table"])
 
