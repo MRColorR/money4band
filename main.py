@@ -7,8 +7,6 @@ import logging
 import os
 import signal
 import subprocess
-
-# Ensure the parent directory is in the sys.path
 import sys
 import time
 from logging.handlers import RotatingFileHandler
@@ -41,10 +39,6 @@ else:
 os.chdir(BASE_DIR)
 
 parent_dir = os.path.dirname(BASE_DIR)
-if parent_dir not in sys.path:
-    sys.path.append(parent_dir)
-
-# Import the module from the parent directory
 
 
 # ---------------------------------------------------------------------------
@@ -236,6 +230,15 @@ def mainmenu(
             nickname = ensure_nickname(user_config)
             print_banner(m4b_config, nickname=nickname)
             check_update_available(m4b_config)
+
+            # Dashboard status line below the banner.
+            try:
+                from money4band.dashboard.setup import print_dashboard_status
+
+                print_dashboard_status(os.path.dirname(user_config_path))
+            except Exception:  # noqa: BLE001
+                pass
+            print()  # blank line before menu
         except Exception as e:
             logger.error(f"An error occurred while setting up the menu: {str(e)}")
             raise
@@ -793,19 +796,16 @@ def _cmd_offers(args: argparse.Namespace) -> None:
 
 
 def _cmd_dashboard(args: argparse.Namespace) -> None:
-    """Start the web dashboard API server."""
-    from money4band.dashboard_cli import run_dashboard_command
+    """Manage the web dashboard & API server."""
+    from money4band.dashboard.cli import handle_dashboard_action
 
-    run_dashboard_command(
+    handle_dashboard_action(
+        action=getattr(args, "dashboard_action", None),
         config_dir=getattr(args, "config_dir", os.path.join(BASE_DIR, "config")),
         base_dir=BASE_DIR,
         host=getattr(args, "host", "127.0.0.1"),
-        preferred_port=getattr(args, "port", 8088),
+        port=getattr(args, "port", 8088),
         background=getattr(args, "background", False),
-        show_key=getattr(args, "show_key", False),
-        stop=getattr(args, "stop", False),
-        status_check=getattr(args, "status", False),
-        regenerate_key=getattr(args, "regenerate_key", False),
     )
 
 
@@ -961,6 +961,13 @@ def _build_parser() -> argparse.ArgumentParser:
         default=os.path.join(script_dir, "template", "user-config.json"),
         help="Set the template user config file path",
     )
+    parser.add_argument(
+        "--dashboard",
+        type=lambda v: v.lower() in ("true", "1", "yes"),
+        default=None,
+        metavar="true|false",
+        help="Auto-start the dashboard in background on startup (default: value from config)",
+    )
 
     # ---- subcommands ----
     sub = parser.add_subparsers(dest="command")
@@ -1008,7 +1015,7 @@ def _build_parser() -> argparse.ArgumentParser:
         "profile",
         nargs="?",
         default=None,
-        help="Profile name to switch to (base/min/low/mid/max). Omit to show current.",
+        help="Profile name to switch to (minimal/conservative/standard/performance). Omit to show current.",
     )
 
     sub.add_parser("ip", help="Analyse IP quality for real IP and proxies")
@@ -1062,15 +1069,19 @@ def _build_parser() -> argparse.ArgumentParser:
     )
 
     dashboard_parser = sub.add_parser(
-        "dashboard", help="Start the web dashboard API server"
+        "dashboard", help="Manage the web dashboard & API server"
     )
-    dashboard_parser.add_argument(
+    dash_sub = dashboard_parser.add_subparsers(dest="dashboard_action")
+
+    # m4b dashboard start [--port] [--host] [-b]
+    dash_start = dash_sub.add_parser("start", help="Start the dashboard server")
+    dash_start.add_argument(
         "--port",
         type=int,
         default=8088,
         help="Port for the dashboard API server (default: 8088)",
     )
-    dashboard_parser.add_argument(
+    dash_start.add_argument(
         "--host",
         default="127.0.0.1",
         help=(
@@ -1078,37 +1089,31 @@ def _build_parser() -> argparse.ArgumentParser:
             "Use 0.0.0.0 to expose on LAN/VPS (requires API key)"
         ),
     )
-    dashboard_parser.add_argument(
+    dash_start.add_argument(
         "-b",
         "--background",
         action="store_true",
         default=False,
         help="Run the dashboard in the background and return immediately",
     )
-    dashboard_parser.add_argument(
-        "--show-key",
-        action="store_true",
-        default=False,
-        help="Print the dashboard API key (generate if missing) and exit",
+
+    # m4b dashboard stop
+    dash_sub.add_parser("stop", help="Stop a background dashboard process")
+
+    # m4b dashboard status
+    dash_sub.add_parser("status", help="Check whether the dashboard is running")
+
+    # m4b dashboard show-key
+    dash_sub.add_parser("show-key", help="Print the dashboard API key")
+
+    # m4b dashboard regenerate-key
+    dash_sub.add_parser(
+        "regenerate-key", help="Generate a new API key (invalidates the old one)"
     )
-    dashboard_parser.add_argument(
-        "--stop",
-        action="store_true",
-        default=False,
-        help="Stop a background dashboard process",
-    )
-    dashboard_parser.add_argument(
-        "--status",
-        action="store_true",
-        default=False,
-        help="Check whether the background dashboard is running",
-    )
-    dashboard_parser.add_argument(
-        "--regenerate-key",
-        action="store_true",
-        default=False,
-        help="Generate a new API key (invalidates the old one) and exit",
-    )
+
+    # m4b dashboard enable / disable
+    dash_sub.add_parser("enable", help="Enable dashboard auto-start on M4B launch")
+    dash_sub.add_parser("disable", help="Disable dashboard auto-start on M4B launch")
 
     profile_parser = sub.add_parser("profile", help="Manage configuration profiles")
     profile_parser.add_argument(
@@ -1239,6 +1244,68 @@ def _setup_logging(args: argparse.Namespace) -> None:
 
 
 # ---------------------------------------------------------------------------
+# Dashboard auto-start
+# ---------------------------------------------------------------------------
+
+
+def _handle_dashboard_auto_start(args: argparse.Namespace) -> None:
+    """Auto-start (or skip) the background dashboard on M4B launch.
+
+    Behaviour:
+    * ``--dashboard true``  → persist ``enabled=True``, start in background.
+    * ``--dashboard false`` → persist ``enabled=False``, do NOT start.
+    * No flag               → honour the saved ``m4b_dashboard.enabled`` value.
+
+    The ``m4b_dashboard.enabled`` config value is the single source of truth.
+    It can also be toggled via ``m4b dashboard enable|disable`` or the
+    interactive dashboard menu.
+
+    Skipped entirely when the user invoked the explicit ``dashboard``
+    subcommand (that handles its own lifecycle).
+    """
+    # Don't interfere with the explicit "m4b dashboard" command.
+    if getattr(args, "command", None) == "dashboard":
+        return
+
+    config_dir = getattr(args, "config_dir", os.path.join(BASE_DIR, "config"))
+    user_cfg_path = os.path.join(config_dir, "user-config.json")
+    if not os.path.isfile(user_cfg_path):
+        return
+
+    just_fix_windows_console()
+
+    flag = getattr(args, "dashboard", None)  # True / False / None
+
+    # If flag was explicitly passed, persist it to config.
+    if flag is not None:
+        from money4band.dashboard.setup import set_dashboard_state
+
+        set_dashboard_state(config_dir, enabled=flag)
+
+    # Read the (possibly just-updated) config to decide whether to start.
+    try:
+        cfg = loader.load_json_config(user_cfg_path)
+    except Exception:  # noqa: BLE001
+        return
+
+    dash_cfg = cfg.get("m4b_dashboard", {})
+    enabled = dash_cfg.get("enabled", True)
+
+    if not enabled:
+        print(
+            f"{Fore.CYAN}Dashboard + API auto-start is off.{Style.RESET_ALL}  "
+            f"Enable with {Fore.CYAN}m4b --dashboard true{Style.RESET_ALL} "
+            f"or start manually with {Fore.CYAN}m4b dashboard{Style.RESET_ALL}."
+        )
+        return
+
+    # Dashboard is enabled — start it in background.
+    from money4band.dashboard.setup import auto_start_dashboard
+
+    auto_start_dashboard(config_dir, BASE_DIR)
+
+
+# ---------------------------------------------------------------------------
 # Entry point
 # ---------------------------------------------------------------------------
 
@@ -1260,6 +1327,10 @@ def main() -> None:
         else "Money4Band"
     )
     logger.info("Starting %s [%s] command=%s", script_name, cid, args.command or "menu")
+
+    # Handle dashboard auto-start based on --dashboard true|false flag
+    # or the persisted enabled state in user-config.json.
+    _handle_dashboard_auto_start(args)
 
     handler = _SUBCOMMAND_DISPATCH.get(args.command)
     if handler:

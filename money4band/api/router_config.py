@@ -115,13 +115,15 @@ async def get_m4b_config(
 async def get_limits(
     paths: ConfigPaths = Depends(get_paths),
 ) -> dict[str, Any]:
-    """Return current resource limits and the active profile name."""
+    """Return current resource limits, active profile, and available profiles."""
     from money4band.detector import get_active_profile
 
     m4b = load_m4b_config()
     usr = load_user_config()
+    profiles = m4b.get("resource_profiles", {}).get("profiles", {})
     return {
         "active_profile": get_active_profile(m4b),
+        "available_profiles": profiles,
         "resource_limits": usr.get("resource_limits", {}),
     }
 

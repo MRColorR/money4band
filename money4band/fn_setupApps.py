@@ -12,7 +12,6 @@ import json
 import logging
 import os
 import platform
-import sys
 from collections.abc import Callable
 from typing import Any
 
@@ -32,10 +31,6 @@ from money4band.app_configurator import (  # noqa: F401
     configure_userid,
     configure_uuid,
     flag_function_mapper,
-)
-from money4band.dashboard_setup import (  # noqa: F401
-    setup_m4b_dashboard,
-    setup_watchtower,
 )
 from money4band.dumper import write_json
 from money4band.generator import (
@@ -77,25 +72,15 @@ from money4band.setup_progress import (
     save_progress,
 )
 from money4band.setup_summary import generate_setup_summary
+from money4band.watchtower_setup import setup_watchtower  # noqa: F401
 
 logger = logging.getLogger(__name__)
-# Ensure the parent directory is in the sys.path
 script_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(script_dir)
-if parent_dir not in sys.path:
-    sys.path.append(parent_dir)
 
-# Global config loading (kept for backward compatibility with module-level access)
 m4b_config_path = os.path.join(parent_dir, "config", "m4b-config.json")
-try:
-    m4b_config = loader.load_json_config(m4b_config_path)
-except FileNotFoundError:
-    m4b_config = {}
-    logger.warning("Configuration file not found. Using default values.")
 
-sleep_time = m4b_config.get("system", {}).get("sleep_time", 3)
-
-TOTAL_SETUP_STEPS = 7
+TOTAL_SETUP_STEPS = 6
 
 
 def _print_step(step: int, description: str) -> None:
@@ -251,17 +236,15 @@ def main(
                 f"{Fore.YELLOW}[Step 4/{TOTAL_SETUP_STEPS}] "
                 f"Setting up notifications — skipped (already done){Style.RESET_ALL}"
             )
-        # Step 5: Set up M4B dashboard
-        _run_step(5, "Setting up M4B dashboard", setup_m4b_dashboard, user_config)
-        # Step 6: Save the user configuration
-        _print_step(6, "Saving user configuration")
+        # Step 5: Save the user configuration
+        _print_step(5, "Saving user configuration")
         write_json(user_config, user_config_path)
-        if 6 not in completed:
-            completed.append(6)
+        if 5 not in completed:
+            completed.append(5)
             save_progress(completed)
-        # Step 7: Set up proxy if the user chooses to
-        if not is_step_done(progress, 7):
-            _print_step(7, "Proxy configuration")
+        # Step 6: Set up proxy if the user chooses to
+        if not is_step_done(progress, 6):
+            _print_step(6, "Proxy configuration")
             proxy_setup = ask_question_yn("Do you want to enable (multi)proxy?")
             if proxy_setup:
                 logger.info("Multiproxy setup selected")
@@ -343,11 +326,11 @@ def main(
                     env_output_path="./.env",
                     is_main_instance=True,
                 )
-            completed.append(7)
+            completed.append(6)
             save_progress(completed)
         else:
             print(
-                f"{Fore.YELLOW}[Step 7/{TOTAL_SETUP_STEPS}] "
+                f"{Fore.YELLOW}[Step 6/{TOTAL_SETUP_STEPS}] "
                 f"Proxy configuration — skipped (already done){Style.RESET_ALL}"
             )
 

@@ -96,32 +96,27 @@
         }
     },
     "resource_profiles": {
-        "active": "low",
+        "active": "standard",
         "profiles": {
-            "base": {
-                "description": "Minimal (VPS / RPi)",
-                "cpu_factor": 0.2,
-                "ram_pct": 0.02
+            "minimal": {
+                "description": "Minimal",
+                "cpu_pct": 0.20,
+                "ram_pct": 0.10
             },
-            "min": {
+            "conservative": {
                 "description": "Conservative",
-                "cpu_factor": 0.5,
-                "ram_pct": 0.125
-            },
-            "low": {
-                "description": "Default",
-                "cpu_factor": 1.0,
-                "ram_pct": 0.1875
-            },
-            "mid": {
-                "description": "Standard",
-                "cpu_factor": 2.0,
+                "cpu_pct": 0.40,
                 "ram_pct": 0.25
             },
-            "max": {
-                "description": "High-resource",
-                "cpu_factor": 4.0,
-                "ram_pct": 0.5
+            "standard": {
+                "description": "Standard (default)",
+                "cpu_pct": 0.60,
+                "ram_pct": 0.40
+            },
+            "performance": {
+                "description": "Performance",
+                "cpu_pct": 0.85,
+                "ram_pct": 0.65
             }
         }
     },
@@ -163,8 +158,16 @@
             "function": "generator"
         },
         {
+            "label": "M4B Dashboard and APIs",
+            "function": "fn_dashboard"
+        },
+        {
             "label": "Multiproxy Tools",
             "function": "fn_multiproxy_tools"
+        },
+        {
+            "label": "Resource Profiles",
+            "function": "fn_resource_profiles"
         },
         {
             "label": "Quit",

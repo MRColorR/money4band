@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 import logging
-import os
-import sys
 import time
 
 import requests
@@ -12,12 +10,6 @@ from money4band.helper import ensure_service
 from money4band.http_client import get_session
 
 logger = logging.getLogger(__name__)
-
-# Ensure the parent directory is in the sys.path
-script_dir = os.path.dirname(os.path.abspath(__file__))
-parent_dir = os.path.dirname(script_dir)
-if parent_dir not in sys.path:
-    sys.path.append(parent_dir)
 
 DOCKERHUB_BASE_URL = "https://registry.hub.docker.com/v2/"
 GHCR_BASE_URL = "https://ghcr.io/v2/"
@@ -139,9 +131,9 @@ def get_compatible_tag(image: str, docker_platform: str) -> str | None:
     )
 
     if not compatible_tag:
-        service_file_path = os.path.join(
-            os.getcwd(), ".resources", ".files", "docker.binfmt.service"
-        )
+        from money4band.resources import get_path
+
+        service_file_path = str(get_path("files", "docker.binfmt.service"))
         ensure_service(
             service_name="docker.binfmt", service_file_path=service_file_path
         )

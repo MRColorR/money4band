@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from fastapi.testclient import TestClient
 
-from money4band.dashboard_api import app, configure
+from money4band.api.server import app, configure
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -47,11 +47,11 @@ def tmp_config(tmp_path):
             },
         },
         "resource_profiles": {
-            "active": "low",
+            "active": "standard",
             "profiles": {
-                "base": {"cpu_factor": 0.5, "ram_pct": 0.1, "description": "Base"},
-                "low": {"cpu_factor": 1.0, "ram_pct": 0.1875, "description": "Low"},
-                "mid": {"cpu_factor": 1.5, "ram_pct": 0.25, "description": "Mid"},
+                "conservative": {"cpu_pct": 0.40, "ram_pct": 0.25, "description": "Conservative"},
+                "standard": {"cpu_pct": 0.60, "ram_pct": 0.40, "description": "Standard"},
+                "performance": {"cpu_pct": 0.85, "ram_pct": 0.65, "description": "Performance"},
             },
         },
     }
@@ -284,13 +284,16 @@ class TestConfigRouter:
         resp = client.get("/api/config/limits")
         assert resp.status_code == 200
         data = resp.json()
-        assert data["active_profile"] == "low"
+        assert data["active_profile"] == "standard"
+        assert "available_profiles" in data
+        assert "standard" in data["available_profiles"]
+        assert data["available_profiles"]["standard"]["cpu_pct"] == 0.60
 
     def test_set_limits_valid(self, client):
         with patch("money4band.detector.calculate_resource_limits"):
-            resp = client.put("/api/config/limits", json={"profile": "mid"})
+            resp = client.put("/api/config/limits", json={"profile": "performance"})
         assert resp.status_code == 200
-        assert resp.json()["profile"] == "mid"
+        assert resp.json()["profile"] == "performance"
 
     def test_set_limits_invalid(self, client):
         resp = client.put("/api/config/limits", json={"profile": "turbo"})

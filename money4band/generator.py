@@ -13,7 +13,6 @@ import os
 import re
 import secrets
 import subprocess
-import sys
 import threading
 
 from money4band.cls import cls
@@ -28,11 +27,6 @@ from money4band.helper import show_spinner
 from money4band.loader import load_json_config
 
 logger = logging.getLogger(__name__)
-
-script_dir = os.path.dirname(os.path.abspath(__file__))
-parent_dir = os.path.dirname(script_dir)
-if parent_dir not in sys.path:
-    sys.path.append(parent_dir)
 
 
 def validate_uuid(uuid: str, length: int) -> bool:
@@ -68,24 +62,27 @@ def generate_uuid(length: int) -> str:
     return str(os.urandom(length // 2 + 1).hex())[:length]
 
 
-def generate_dashboard_urls(
+def generate_container_url_list(
     compose_project_name: str,
     device_name: str,
-    env_file: str = str(os.path.join(os.getcwd(), ".env")),
+    env_file: str | None = None,
 ) -> None:
     """
-    Generate dashboard URLs based on the provided compose project name and device name.
+    Generate container dashboard URLs based on the provided compose project name and device name.
     If the parameters are not provided, it tries to read them from the .env file.
-    The generated dashboard URLs are written to a file named "dashboards_URLs_<compose_project_name>-<device_name>.txt".
+    The generated URLs are written to a file named "dashboards_URLs_<compose_project_name>-<device_name>.txt".
 
     Args:
         compose_project_name (str): The name of the compose project.
         device_name (str): The name of the device.
-        env_file (str, optional): The path to the environment file. Defaults to ".env".
+        env_file (str | None, optional): The path to the environment file. Defaults to ".env" in cwd.
 
     Raises:
         Exception: If an error occurs during the URL generation process.
     """
+    if env_file is None:
+        env_file = os.path.join(os.getcwd(), ".env")
+
     event = threading.Event()
     spinner_thread = threading.Thread(
         target=show_spinner, args=("Generating dashboard URLs...", event)

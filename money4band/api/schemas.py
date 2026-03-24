@@ -81,8 +81,15 @@ class BackupRestore(StatusOk):
 # ---------------------------------------------------------------------------
 
 
+class ProfileDefinition(BaseModel):
+    description: str = ""
+    cpu_pct: float
+    ram_pct: float
+
+
 class LimitsResponse(BaseModel):
     active_profile: str
+    available_profiles: dict[str, ProfileDefinition]
     resource_limits: dict[str, Any]
 
 

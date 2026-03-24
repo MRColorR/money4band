@@ -44,7 +44,6 @@ RUN pyinstaller --onedir \
     --hidden-import uvicorn \
     --hidden-import textual \
     --hidden-import money4band \
-    --add-data ".resources:.resources" \
     --add-data "config:config" \
     --add-data "money4band:money4band" \
     --add-data "template:template" \

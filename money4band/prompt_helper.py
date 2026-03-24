@@ -1,21 +1,13 @@
 from __future__ import annotations
 
 import logging
-import os
 import re
-import sys
 
 from colorama import Fore, Style
 
 from money4band.generator import validate_uuid
 
 logger = logging.getLogger(__name__)
-
-# Ensure the parent directory is in the sys.path
-script_dir = os.path.dirname(os.path.abspath(__file__))
-parent_dir = os.path.dirname(script_dir)
-if parent_dir not in sys.path:
-    sys.path.append(parent_dir)
 
 
 def ask_question_yn(question: str, default: bool = False) -> bool:

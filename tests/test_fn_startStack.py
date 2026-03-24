@@ -134,7 +134,7 @@ class TestStartStack:
 
 
 class TestStartAllStacks:
-    @patch("money4band.fn_startStack.generate_dashboard_urls")
+    @patch("money4band.fn_startStack.generate_container_url_list")
     @patch("money4band.fn_startStack.start_stack", return_value=True)
     @patch("money4band.fn_startStack.is_user_in_docker_group", return_value=True)
     @patch("money4band.fn_startStack.ask_question_yn", return_value=True)
@@ -153,7 +153,7 @@ class TestStartAllStacks:
         )
         mock_start.assert_called()
 
-    @patch("money4band.fn_startStack.generate_dashboard_urls")
+    @patch("money4band.fn_startStack.generate_container_url_list")
     @patch("money4band.fn_startStack.start_stack", return_value=True)
     @patch("money4band.fn_startStack.is_user_in_docker_group", return_value=True)
     @patch("subprocess.run")
@@ -233,7 +233,7 @@ class TestExtractAppNamesFromCompose:
 
 
 class TestStartAllStacksForceClean:
-    @patch("money4band.fn_startStack.generate_dashboard_urls")
+    @patch("money4band.fn_startStack.generate_container_url_list")
     @patch("money4band.fn_startStack.start_stack", return_value=True)
     @patch("money4band.fn_startStack.is_user_in_docker_group", return_value=True)
     @patch("subprocess.run")
@@ -265,7 +265,7 @@ class TestStartAllStacksForceClean:
 
 
 class TestStartAllStacksConflictDetection:
-    @patch("money4band.fn_startStack.generate_dashboard_urls")
+    @patch("money4band.fn_startStack.generate_container_url_list")
     @patch("money4band.fn_startStack.start_stack", return_value=True)
     @patch("money4band.fn_startStack.is_user_in_docker_group", return_value=True)
     @patch("subprocess.run")
@@ -310,7 +310,7 @@ class TestStartAllStacksConflictDetection:
 
 
 class TestStartAllStacksRunningContainerWarning:
-    @patch("money4band.fn_startStack.generate_dashboard_urls")
+    @patch("money4band.fn_startStack.generate_container_url_list")
     @patch("money4band.fn_startStack.start_stack", return_value=True)
     @patch("money4band.fn_startStack.is_user_in_docker_group", return_value=True)
     @patch("subprocess.run")

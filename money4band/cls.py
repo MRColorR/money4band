@@ -12,7 +12,7 @@ def cls() -> None:
     Clear the console.
     """
     try:
-        os.system("cls" if os.name == "nt" else "clear")
+        print("\033[2J\033[H", end="", flush=True)
         logger.info("Console cleared successfully")
     except Exception as e:
         logger.error(f"Error clearing console: {str(e)}")

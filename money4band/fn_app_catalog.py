@@ -4,8 +4,6 @@ import argparse
 import json
 import logging
 import os
-
-# Ensure the parent directory is in the sys.path
 import shutil
 import sys
 from typing import Any
@@ -22,12 +20,6 @@ from money4band.loader import (
 )
 
 logger = logging.getLogger(__name__)
-
-script_dir = os.path.dirname(os.path.abspath(__file__))
-parent_dir = os.path.dirname(script_dir)
-if parent_dir not in sys.path:
-    sys.path.append(parent_dir)
-# Import the module from the parent directory
 
 
 def _display_catalog(app_config: dict[str, Any]) -> None:

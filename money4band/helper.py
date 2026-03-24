@@ -28,7 +28,7 @@ def get_compose_project_name(env_file: str) -> str | None:
         str | None: The COMPOSE_PROJECT_NAME value, or None if not found.
     """
     # Handle if compose file was passed instead of .env
-    env_file = env_file.replace("docker-compose.yaml", ".env")
+    env_file = os.path.join(os.path.dirname(env_file), ".env") if not env_file.endswith(".env") else env_file
 
     project_name = None
     try:
@@ -272,17 +272,26 @@ def run_docker_command(command: list[str], use_sudo: bool = False) -> int:
         raise RuntimeError(f"Command failed: {e}") from e
 
 
+def _default_binfmt_path() -> str:
+    from money4band.resources import get_path
+
+    return str(get_path("files", "docker.binfmt.service"))
+
+
 def setup_service(
     service_name: str = "docker.binfmt",
-    service_file_path: str = "./.resources/.files/docker.binfmt.service",
+    service_file_path: str | None = None,
 ) -> None:
     """
     Set up a service on Linux systems, defaulting to setting up the Docker binfmt service.
 
     Args:
         service_name (str): The name of the service to set up. Default is "docker.binfmt".
-        service_file_path (str): The path to the service file. Default is "./.resources/.files/docker.binfmt.service".
+        service_file_path (str | None): The path to the service file. Defaults to the
+            bundled ``docker.binfmt.service`` inside ``money4band/resources/files/``.
     """
+    if service_file_path is None:
+        service_file_path = _default_binfmt_path()
     systemd_service_file = f"/etc/systemd/system/{service_name}.service"
     sysv_init_file = f"/etc/init.d/{service_name}"
 
@@ -347,14 +356,15 @@ def setup_service(
 
 def ensure_service(
     service_name: str = "docker.binfmt",
-    service_file_path: str = "./.resources/.files/docker.binfmt.service",
+    service_file_path: str | None = None,
 ) -> None:
     """
     Ensure that a service is installed and running, defaulting to the Docker binfmt service.
 
     Args:
         service_name (str): The name of the service to ensure. Default is "docker.binfmt".
-        service_file_path (str): The path to the service file. Default is './.resources/.files/docker.binfmt.service'.
+        service_file_path (str | None): The path to the service file. Defaults to the
+            bundled ``docker.binfmt.service`` inside ``money4band/resources/files/``.
     """
     logger.info(f"Ensuring {service_name} service is installed and running.")
     try:
@@ -425,7 +435,6 @@ def get_active_profiles(user_config_path_or_dict: str | dict[str, Any]) -> list[
 
     Reads the user config to decide which infrastructure profiles are needed:
       - ``monitoring`` when watchtower is enabled
-      - ``dashboard``  when the web dashboard is enabled
       - ``proxy``      when proxies are enabled
     """
     from money4band.loader import load_json_config

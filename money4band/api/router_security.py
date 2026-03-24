@@ -72,7 +72,7 @@ async def get_api_key_info(
     paths: ConfigPaths = Depends(get_paths),
 ) -> dict[str, object]:
     """Return a masked preview of the current API key."""
-    from money4band.dashboard_api import ensure_api_key
+    from money4band.api.server import ensure_api_key
 
     key = ensure_api_key(paths.config_dir)
     if key:
@@ -86,7 +86,7 @@ async def regenerate_key(
     paths: ConfigPaths = Depends(get_paths),
 ) -> dict[str, str]:
     """Regenerate the dashboard API key.  The new key is shown once."""
-    from money4band.dashboard_api import regenerate_api_key
+    from money4band.api.server import regenerate_api_key
 
     new_key = regenerate_api_key(paths.config_dir)
     if not new_key:

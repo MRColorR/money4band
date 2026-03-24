@@ -7,7 +7,7 @@ from unittest import mock
 
 import pytest
 
-from money4band.dashboard_api import _ALLOWED_ACTIONS, app, configure
+from money4band.api.server import _ALLOWED_ACTIONS, app, configure
 
 
 @pytest.fixture
@@ -20,7 +20,7 @@ def client():
 class TestDashboardAPI:
     def test_get_status(self, client):
         docker_output = "container1\tUp 2 hours\trunning\t0.0.0.0:8080->80/tcp"
-        with mock.patch("money4band.dashboard_api._run_docker") as m:
+        with mock.patch("money4band.api.server._run_docker") as m:
             m.return_value = mock.Mock(returncode=0, stdout=docker_output)
             resp = client.get("/api/status")
         assert resp.status_code == 200
@@ -31,7 +31,7 @@ class TestDashboardAPI:
         assert data["containers"][0]["state"] == "running"
 
     def test_get_status_docker_error(self, client):
-        with mock.patch("money4band.dashboard_api._run_docker") as m:
+        with mock.patch("money4band.api.server._run_docker") as m:
             m.return_value = mock.Mock(returncode=1, stdout="", stderr="")
             resp = client.get("/api/status")
         assert resp.status_code == 200
@@ -45,7 +45,7 @@ class TestDashboardAPI:
             '{"name":"/c1","running":true,"health":"healthy","restarts":0}\n'
             '{"name":"/c2","running":false,"health":"none","restarts":3}'
         )
-        with mock.patch("money4band.dashboard_api._run_docker") as m:
+        with mock.patch("money4band.api.server._run_docker") as m:
             m.side_effect = [
                 mock.Mock(returncode=0, stdout=ps_out),
                 mock.Mock(returncode=0, stdout=inspect_out),
@@ -58,7 +58,7 @@ class TestDashboardAPI:
 
     def test_get_stats(self, client):
         docker_output = "container1\t5.23%\t50MiB / 512MiB\t9.77%"
-        with mock.patch("money4band.dashboard_api._run_docker") as m:
+        with mock.patch("money4band.api.server._run_docker") as m:
             m.return_value = mock.Mock(returncode=0, stdout=docker_output)
             resp = client.get("/api/stats")
         data = resp.json()
@@ -66,7 +66,7 @@ class TestDashboardAPI:
         assert data[0]["cpu_percent"] == "5.23%"
 
     def test_container_action_start(self, client):
-        with mock.patch("money4band.dashboard_api._run_docker") as m:
+        with mock.patch("money4band.api.server._run_docker") as m:
             m.return_value = mock.Mock(returncode=0)
             resp = client.post("/api/action/my_container/start")
         assert resp.status_code == 200

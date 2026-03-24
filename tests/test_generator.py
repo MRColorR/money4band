@@ -390,7 +390,7 @@ class TestDashboardUrlFileCreation:
     """Verify dashboard URL file is written from container port output."""
 
     def test_writes_file_with_ports(self, tmp_path, monkeypatch):
-        from money4band.generator import generate_dashboard_urls
+        from money4band.generator import generate_container_url_list
 
         env_file = tmp_path / ".env"
         env_file.write_text("COMPOSE_PROJECT_NAME=m4b\nDEVICE_NAME=test_dev\n")
@@ -404,7 +404,7 @@ class TestDashboardUrlFileCreation:
         with unittest.mock.patch(
             "money4band.generator.subprocess.run", return_value=mock_result
         ):
-            generate_dashboard_urls(None, None, str(env_file))
+            generate_container_url_list(None, None, str(env_file))
 
         dash_file = tmp_path / "dashboards_URLs_m4b-test_dev.txt"
         assert dash_file.exists()
@@ -413,13 +413,13 @@ class TestDashboardUrlFileCreation:
         assert "9090" in content
 
     def test_no_env_file_returns(self, tmp_path):
-        from money4band.generator import generate_dashboard_urls
+        from money4band.generator import generate_container_url_list
 
-        generate_dashboard_urls(None, None, str(tmp_path / "nofile.env"))
+        generate_container_url_list(None, None, str(tmp_path / "nofile.env"))
         # Should return without crashing
 
     def test_explicit_names_skip_env(self, tmp_path, monkeypatch):
-        from money4band.generator import generate_dashboard_urls
+        from money4band.generator import generate_container_url_list
 
         monkeypatch.chdir(tmp_path)
         mock_result = unittest.mock.MagicMock()
@@ -428,7 +428,7 @@ class TestDashboardUrlFileCreation:
         with unittest.mock.patch(
             "money4band.generator.subprocess.run", return_value=mock_result
         ):
-            generate_dashboard_urls("proj", "dev", str(tmp_path / ".env"))
+            generate_container_url_list("proj", "dev", str(tmp_path / ".env"))
 
         dash_file = tmp_path / "dashboards_URLs_proj-dev.txt"
         assert dash_file.exists()
@@ -627,12 +627,12 @@ class TestProxyDependsOn(unittest.TestCase):
 
 
 class TestGenerateDashboardUrls(unittest.TestCase):
-    """Test generate_dashboard_urls with mocked subprocess."""
+    """Test generate_container_url_list with mocked subprocess."""
 
     @unittest.mock.patch("money4band.generator.subprocess")
     @unittest.mock.patch("money4band.generator.show_spinner")
     def test_does_not_crash(self, _spinner, mock_sp):
-        from money4band.generator import generate_dashboard_urls
+        from money4band.generator import generate_container_url_list
 
         with tempfile.TemporaryDirectory() as d:
             env_file = os.path.join(d, ".env")
@@ -642,7 +642,7 @@ class TestGenerateDashboardUrls(unittest.TestCase):
                 stdout="money4band-dashboard-1  0.0.0.0:8081->80/tcp",
                 returncode=0,
             )
-            generate_dashboard_urls("money4band", "testbox", env_file)
+            generate_container_url_list("money4band", "testbox", env_file)
             mock_sp.run.assert_called()
 
 

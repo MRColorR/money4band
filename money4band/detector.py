@@ -3,9 +3,6 @@ from __future__ import annotations
 import logging
 import os
 import platform
-
-# Ensure the parent directory is in the sys.path
-import sys
 from typing import Any
 
 import psutil
@@ -14,13 +11,6 @@ from money4band.dumper import write_json
 from money4band.loader import load_json_config
 
 logger = logging.getLogger(__name__)
-
-script_dir = os.path.dirname(os.path.abspath(__file__))
-parent_dir = os.path.dirname(script_dir)
-if parent_dir not in sys.path:
-    sys.path.append(parent_dir)
-
-# Import the module from the parent directory
 
 
 def detect_os(m4b_config_path_or_dict: Any) -> dict[str, str]:
@@ -128,7 +118,7 @@ def get_valid_profiles(m4b_config: dict[str, Any]) -> tuple[str, ...]:
 
 def get_active_profile(m4b_config: dict[str, Any]) -> str:
     """Return the currently active resource profile name."""
-    return m4b_config.get("resource_profiles", {}).get("active", "low")
+    return m4b_config.get("resource_profiles", {}).get("active", "standard")
 
 
 def get_profile_definition(
@@ -136,8 +126,8 @@ def get_profile_definition(
 ) -> dict[str, Any]:
     """Return the profile dict for *name* (defaults to active)."""
     rp = m4b_config.get("resource_profiles", {})
-    name = name or rp.get("active", "low")
-    return rp.get("profiles", {}).get(name, {"cpu_factor": 1.0, "ram_pct": 0.1875})
+    name = name or rp.get("active", "standard")
+    return rp.get("profiles", {}).get(name, {"cpu_pct": 0.60, "ram_pct": 0.40})
 
 
 def calculate_resource_limits(
@@ -147,7 +137,7 @@ def calculate_resource_limits(
     """Compute per-tier resource limits using the active profile and system specs.
 
     The active profile in ``m4b_config["resource_profiles"]["active"]``
-    determines the base CPU/RAM allocation via ``cpu_factor`` (multiplied by
+    determines the base CPU/RAM allocation via ``cpu_pct`` (fraction of
     detected cores) and ``ram_pct`` (fraction of total RAM).  Per-app tiers
     (LITTLE / MEDIUM / BIG / HUGE) then scale these bases with fixed
     multipliers so heavier apps get proportionally more.
@@ -160,8 +150,8 @@ def calculate_resource_limits(
     if m4b_config is None:
         m4b_config = {}
     profile = get_profile_definition(m4b_config)
-    base_ram_mb = total_memory * profile.get("ram_pct", 0.1875)
-    base_cpu = cores * profile.get("cpu_factor", 1.0)
+    base_ram_mb = total_memory * profile.get("ram_pct", 0.40)
+    base_cpu = cores * profile.get("cpu_pct", 0.60)
 
     resource_limits = {}
     for tier, mult in _TIER_MULTIPLIERS.items():
@@ -198,14 +188,8 @@ def show_resource_profile_info(
     active = get_active_profile(m4b_config)
     profile = get_profile_definition(m4b_config, active)
 
-    print(f"\n{Fore.CYAN}Resource Profile: {Fore.GREEN}{active}{Style.RESET_ALL}")
-    print(f"  {profile.get('description', '')}")
-    print(f"  System: {total_mem:.0f} MB RAM, {cores} cores")
-    print(
-        f"  Base allocation: "
-        f"{total_mem * profile.get('ram_pct', 0):.0f} MB RAM, "
-        f"{cores * profile.get('cpu_factor', 0):.1f} CPUs"
-    )
+    print(f"\n{Fore.CYAN}System:{Style.RESET_ALL} {total_mem:.0f} MB RAM, {cores} cores")
+    print(f"{Fore.CYAN}Active profile:{Style.RESET_ALL} {Fore.GREEN}{active}{Style.RESET_ALL} — {profile.get('description', '')}")
 
     rl = user_config.get("resource_limits", {})
     print(f"\n  {'Tier':<8} {'Mem Limit':<12} {'Mem Reserv':<12} {'CPU Limit'}")
@@ -216,9 +200,19 @@ def show_resource_profile_info(
         cl = rl.get(f"app_cpu_limit_{tier}", "?")
         print(f"  {tier.upper():<8} {ml:<12} {mr:<12} {cl}")
 
+    # Show what each profile would allocate on THIS device
     profiles = m4b_config.get("resource_profiles", {}).get("profiles", {})
-    print(f"\n  Available profiles: {', '.join(profiles)}")
-    print(f"  Change with: {Fore.YELLOW}m4b limit <profile>{Style.RESET_ALL}\n")
+    print(f"\n  {Fore.CYAN}Profile comparison on this device:{Style.RESET_ALL}")
+    print(f"  {'Profile':<14} {'CPU%':<6} {'RAM%':<6} {'Base CPUs':<11} {'Base RAM'}")
+    print(f"  {'-' * 14} {'-' * 6} {'-' * 6} {'-' * 11} {'-' * 10}")
+    for pname, pdef in profiles.items():
+        cpu_pct = pdef.get("cpu_pct", 0)
+        ram_pct = pdef.get("ram_pct", 0)
+        marker = f" {Fore.GREEN}←{Style.RESET_ALL}" if pname == active else ""
+        print(
+            f"  {pname:<14} {cpu_pct:<6.0%} {ram_pct:<6.0%} "
+            f"{cores * cpu_pct:<11.1f} {total_mem * ram_pct:.0f} MB{marker}"
+        )
 
 
 # ---------------------------------------------------------------------------

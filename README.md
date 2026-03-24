@@ -1,5 +1,5 @@
 <p align="center">
-  <img src=".resources/.assets/M4B_logo.png" width="128" alt="Money4Band Logo">
+  <img src="money4band/resources/assets/M4B_logo.png" width="128" alt="Money4Band Logo">
 </p>
 
 <h1 align="center">Money4Band</h1>
@@ -24,7 +24,7 @@
 
 <!-- TODO: Add demo GIF/screenshot here once available
 <p align="center">
-  <img src=".resources/.assets/m4b-demo.gif" alt="M4B Quick Demo" width="720">
+  <img src="money4band/resources/assets/m4b-demo.gif" alt="M4B Quick Demo" width="720">
 </p>
 -->
 

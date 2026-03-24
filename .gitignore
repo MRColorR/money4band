@@ -1,7 +1,7 @@
 m4b_proxy_instances
 config/user-config.json
-.resources/.www/.images
-.resources/.www/.config
+money4band/resources/www/images
+money4band/resources/www/config
 .data
 logs
 docker-compose.yaml

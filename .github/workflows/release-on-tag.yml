@@ -76,7 +76,6 @@ jobs:
             --hidden-import uvicorn \
             --hidden-import textual \
             --hidden-import money4band \
-            --add-data ".resources${SEP}.resources" \
             --add-data "config${SEP}config" \
             --add-data "money4band${SEP}money4band" \
             --add-data "template${SEP}template" \

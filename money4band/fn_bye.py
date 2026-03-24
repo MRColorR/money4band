@@ -16,14 +16,6 @@ from money4band.loader import load_json_config
 
 logger = logging.getLogger(__name__)
 
-# Ensure the parent directory is in the sys.path
-script_dir = os.path.dirname(os.path.abspath(__file__))
-parent_dir = os.path.dirname(script_dir)
-if parent_dir not in sys.path:
-    sys.path.append(parent_dir)
-
-# Import the module from the parent directory
-
 # Initialize colorama for Windows compatibility
 just_fix_windows_console()
 

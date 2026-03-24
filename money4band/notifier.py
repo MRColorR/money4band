@@ -148,3 +148,28 @@ def send_test(user_config: dict[str, Any]) -> bool:
         logger.warning("Cannot send test notification: no URL configured.")
         return False
     return _send_shoutrrr(url, "[M4B] Test notification — your webhook is working!")
+
+
+def fire_event(event: str, message: str, config_dir: str | None = None) -> None:
+    """Fire-and-forget notification if enabled in user config.
+
+    Loads user-config.json from *config_dir* (auto-detected if omitted),
+    then delegates to :func:`notify`.  Any error is silently logged.
+    """
+    import os
+
+    from money4band.loader import load_json_config
+
+    try:
+        if config_dir is None:
+            config_dir = os.path.join(
+                os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                "config",
+            )
+        user_cfg_path = os.path.join(config_dir, "user-config.json")
+        if not os.path.isfile(user_cfg_path):
+            return
+        user_config = load_json_config(user_cfg_path)
+        notify(user_config, event, message)
+    except Exception:
+        logger.debug("Notification send failed (non-critical).", exc_info=True)

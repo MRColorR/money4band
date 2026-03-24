@@ -7,9 +7,6 @@ import os
 import platform
 import re
 import subprocess
-
-# Ensure the parent directory is in the sys.path
-import sys
 import threading
 import time
 
@@ -17,7 +14,7 @@ from colorama import Fore, Style, just_fix_windows_console
 
 from money4band import loader
 from money4band.cls import cls
-from money4band.generator import generate_dashboard_urls
+from money4band.generator import generate_container_url_list
 from money4band.helper import (
     create_docker_group_if_needed,
     get_compose_project_name,
@@ -26,45 +23,16 @@ from money4band.helper import (
     run_docker_command,
     show_spinner,
 )
+from money4band.notifier import fire_event as _notify_event
 from money4band.prompt_helper import ask_question_yn
 
 logger = logging.getLogger(__name__)
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 
-
-def _notify_event(event: str, message: str) -> None:
-    """Fire-and-forget notification if enabled in user config."""
-    try:
-        user_cfg_path = os.path.join(
-            os.path.dirname(script_dir), "config", "user-config.json"
-        )
-        if not os.path.isfile(user_cfg_path):
-            return
-        user_config = loader.load_json_config(user_cfg_path)
-        from money4band.notifier import notify
-
-        notify(user_config, event, message)
-    except Exception:
-        logger.debug("Notification send failed (non-critical).", exc_info=True)
-
-
 parent_dir = os.path.dirname(script_dir)
-if parent_dir not in sys.path:
-    sys.path.append(parent_dir)
 
-# Global config loading and global variables
 m4b_config_path = os.path.join(parent_dir, "config", "m4b-config.json")
-try:
-    m4b_config = loader.load_json_config(m4b_config_path)
-except FileNotFoundError:
-    m4b_config = {}  # Fallback to empty config if not found
-    logger.warning("Configuration file not found. Using default values.")
-
-# Set global sleep time
-sleep_time = m4b_config.get("system", {}).get(
-    "sleep_time", 3
-)  # Default to 3 seconds if not specified
 
 
 def get_device_name_from_env(env_file: str) -> str | None:
@@ -412,7 +380,7 @@ def start_all_stacks(
                         logger.error(f"Error starting instance '{instance}': {str(e)}")
 
         if all_started:
-            generate_dashboard_urls(None, None, main_env_file)
+            generate_container_url_list(None, None, main_env_file)
             print(
                 f"{Fore.YELLOW}Use the previously generated apps nodes URLs to add your device in any apps dashboard that require node claiming/registration (e.g., Earnapp, ProxyRack, etc.){Style.RESET_ALL}"
             )

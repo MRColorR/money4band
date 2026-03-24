@@ -95,51 +95,50 @@ class TestResourceProfiles(unittest.TestCase):
 
     _M4B_CFG = {
         "resource_profiles": {
-            "active": "low",
+            "active": "standard",
             "profiles": {
-                "base": {"description": "Minimal", "cpu_factor": 0.2, "ram_pct": 0.02},
-                "min": {
+                "minimal": {"description": "Minimal", "cpu_pct": 0.20, "ram_pct": 0.10},
+                "conservative": {
                     "description": "Conservative",
-                    "cpu_factor": 0.5,
-                    "ram_pct": 0.125,
+                    "cpu_pct": 0.40,
+                    "ram_pct": 0.25,
                 },
-                "low": {"description": "Default", "cpu_factor": 1.0, "ram_pct": 0.1875},
-                "mid": {"description": "Standard", "cpu_factor": 2.0, "ram_pct": 0.25},
-                "max": {
-                    "description": "High-resource",
-                    "cpu_factor": 4.0,
-                    "ram_pct": 0.50,
+                "standard": {"description": "Standard", "cpu_pct": 0.60, "ram_pct": 0.40},
+                "performance": {
+                    "description": "Performance",
+                    "cpu_pct": 0.85,
+                    "ram_pct": 0.65,
                 },
             },
         }
     }
 
     def test_get_active_profile_returns_configured(self):
-        self.assertEqual(get_active_profile(self._M4B_CFG), "low")
+        self.assertEqual(get_active_profile(self._M4B_CFG), "standard")
 
-    def test_get_active_profile_defaults_to_low(self):
-        self.assertEqual(get_active_profile({}), "low")
+    def test_get_active_profile_defaults_to_standard(self):
+        self.assertEqual(get_active_profile({}), "standard")
 
     def test_get_profile_definition_returns_correct(self):
-        p = get_profile_definition(self._M4B_CFG, "mid")
-        self.assertEqual(p["cpu_factor"], 2.0)
+        p = get_profile_definition(self._M4B_CFG, "conservative")
+        self.assertEqual(p["cpu_pct"], 0.40)
         self.assertEqual(p["ram_pct"], 0.25)
 
     def test_get_profile_definition_active_default(self):
         p = get_profile_definition(self._M4B_CFG)
-        # Active is "low"
-        self.assertEqual(p["cpu_factor"], 1.0)
+        # Active is "standard"
+        self.assertEqual(p["cpu_pct"], 0.60)
 
     def test_valid_profiles_from_config(self):
-        self.assertEqual(get_valid_profiles(self._M4B_CFG), ("base", "min", "low", "mid", "max"))
+        self.assertEqual(get_valid_profiles(self._M4B_CFG), ("minimal", "conservative", "standard", "performance"))
 
     @patch("money4band.detector.get_system_memory_and_cores", return_value=(8192.0, 4))
     @patch("money4band.detector.write_json")
     @patch("money4band.detector.load_json_config")
-    def test_calculate_resource_limits_low_profile(
+    def test_calculate_resource_limits_standard_profile(
         self, mock_load, mock_write, mock_sys
     ):
-        """With 8 GB RAM + 4 cores on 'low' profile, verify all tier values."""
+        """With 8 GB RAM + 4 cores on 'standard' profile, verify all tier values."""
         mock_load.return_value = {"resource_limits": {"ram_cap_mb_default": 6144}}
         calculate_resource_limits("dummy_path", m4b_config=self._M4B_CFG)
 
@@ -148,9 +147,9 @@ class TestResourceProfiles(unittest.TestCase):
         saved = mock_write.call_args[0][0]
         rl = saved["resource_limits"]
 
-        # base_ram = 8192 * 0.1875 = 1536 MB, base_cpu = 4 * 1.0 = 4.0
-        base_ram = 8192 * 0.1875  # 1536
-        base_cpu = 4 * 1.0  # 4.0
+        # base_ram = 8192 * 0.40 = 3276.8 MB, base_cpu = 4 * 0.60 = 2.4
+        base_ram = 8192 * 0.40  # 3276.8
+        base_cpu = 4 * 0.60  # 2.4
 
         for tier, mult in _TIER_MULTIPLIERS.items():
             expected_reserv = int(
@@ -166,13 +165,13 @@ class TestResourceProfiles(unittest.TestCase):
     @patch("money4band.detector.get_system_memory_and_cores", return_value=(2048.0, 2))
     @patch("money4band.detector.write_json")
     @patch("money4band.detector.load_json_config")
-    def test_calculate_limits_base_profile_uses_minimums(
+    def test_calculate_limits_minimal_profile_uses_minimums(
         self, mock_load, mock_write, mock_sys
     ):
-        """Base profile on a 2 GB / 2-core system should hit absolute minimums for lower tiers."""
+        """Minimal profile on a 2 GB / 2-core system should hit absolute minimums for lower tiers."""
         cfg = {
             "resource_profiles": {
-                "active": "base",
+                "active": "minimal",
                 "profiles": self._M4B_CFG["resource_profiles"]["profiles"],
             }
         }
@@ -182,8 +181,8 @@ class TestResourceProfiles(unittest.TestCase):
         saved = mock_write.call_args[0][0]
         rl = saved["resource_limits"]
 
-        # base_ram = 2048 * 0.02 = 40.96 MB → all tiers hit minimums for mem
-        # base_cpu = 2 * 0.2 = 0.4 → all tiers hit minimum CPU
+        # base_ram = 2048 * 0.10 = 204.8 MB → lower tiers hit minimums for mem
+        # base_cpu = 2 * 0.20 = 0.4 → all tiers hit minimum CPU
         self.assertEqual(rl["app_mem_reserv_little"], "64m")
         self.assertEqual(rl["app_mem_limit_little"], "128m")
         self.assertEqual(rl["app_cpu_limit_little"], 0.8)
@@ -191,11 +190,11 @@ class TestResourceProfiles(unittest.TestCase):
     @patch("money4band.detector.get_system_memory_and_cores", return_value=(16384.0, 8))
     @patch("money4band.detector.write_json")
     @patch("money4band.detector.load_json_config")
-    def test_calculate_limits_max_profile(self, mock_load, mock_write, mock_sys):
-        """Max profile on a 16 GB / 8-core system."""
+    def test_calculate_limits_performance_profile(self, mock_load, mock_write, mock_sys):
+        """Performance profile on a 16 GB / 8-core system."""
         cfg = {
             "resource_profiles": {
-                "active": "max",
+                "active": "performance",
                 "profiles": self._M4B_CFG["resource_profiles"]["profiles"],
             }
         }
@@ -205,10 +204,10 @@ class TestResourceProfiles(unittest.TestCase):
         saved = mock_write.call_args[0][0]
         rl = saved["resource_limits"]
 
-        # base_ram = 16384 * 0.5 = 8192, base_cpu = 8 * 4.0 = 32.0
-        # HUGE tier: mem_limit = 8192 * 1.0 = 8192m, cpu = 32.0 * 0.8 = 25.6
-        self.assertEqual(rl["app_mem_limit_huge"], "8192m")
-        self.assertEqual(rl["app_cpu_limit_huge"], 25.6)
+        # base_ram = 16384 * 0.65 = 10649.6, base_cpu = 8 * 0.85 = 6.8
+        # HUGE tier: mem_limit = 10649.6 * 1.0 = 10649m, cpu = 6.8 * 0.8 = 5.4
+        self.assertEqual(rl["app_mem_limit_huge"], "10649m")
+        self.assertEqual(rl["app_cpu_limit_huge"], 5.4)
 
     @patch("money4band.detector.get_system_memory_and_cores", return_value=(8192.0, 4))
     @patch("money4band.detector.write_json")
@@ -216,15 +215,15 @@ class TestResourceProfiles(unittest.TestCase):
     def test_calculate_limits_no_m4b_config_defaults_to_low(
         self, mock_load, mock_write, mock_sys
     ):
-        """When m4b_config is None, should use the fallback low profile values."""
+        """When m4b_config is None, should use the fallback standard profile values."""
         mock_load.return_value = {"resource_limits": {"ram_cap_mb_default": 6144}}
         calculate_resource_limits("dummy_path", m4b_config=None)
 
         saved = mock_write.call_args[0][0]
         rl = saved["resource_limits"]
 
-        # Fallback: cpu_factor=1.0, ram_pct=0.1875 (same as "low")
-        base_ram = 8192 * 0.1875
+        # Fallback: cpu_pct=0.60, ram_pct=0.40 (same as "standard")
+        base_ram = 8192 * 0.40
         self.assertEqual(rl["app_mem_limit_medium"], f"{int(base_ram * 0.6)}m")
 
     def test_ram_cap_preserved(self):

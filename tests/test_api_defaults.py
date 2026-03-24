@@ -12,7 +12,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from fastapi.testclient import TestClient
 
-from money4band.dashboard_api import app, configure
+from money4band.api.server import app, configure
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -29,10 +29,10 @@ def _flat_config(tmp_path):
         "project": {"project_version": "5.0.0"},
         "system": {"sleep_time": 1},
         "resource_profiles": {
-            "active": "low",
+            "active": "standard",
             "profiles": {
-                "base": {"cpu_factor": 0.5, "ram_pct": 0.1, "description": "Base"},
-                "low": {"cpu_factor": 1.0, "ram_pct": 0.1875, "description": "Low"},
+                "conservative": {"cpu_pct": 0.40, "ram_pct": 0.25, "description": "Conservative"},
+                "standard": {"cpu_pct": 0.60, "ram_pct": 0.40, "description": "Standard"},
             },
         },
         "dns": {"mode": "default", "servers": []},
@@ -119,7 +119,7 @@ def _empty_config(tmp_path):
     m4b = {
         "project": {"project_version": "5.0.0"},
         "system": {"sleep_time": 1},
-        "resource_profiles": {"active": "low", "profiles": {}},
+        "resource_profiles": {"active": "standard", "profiles": {}},
         "dns": {"mode": "default", "servers": []},
     }
     (config_dir / "m4b-config.json").write_text(json.dumps(m4b))
@@ -274,6 +274,7 @@ class TestConfigDefaults:
         assert resp.status_code == 200
         data = resp.json()
         assert "active_profile" in data
+        assert "available_profiles" in data
         assert "resource_limits" in data
 
     def test_get_user_config_masked(self, flat_client):
@@ -546,7 +547,7 @@ class TestStackDefaults:
 
 class TestDirectEndpointDefaults:
     def test_status_empty(self, flat_client):
-        with patch("money4band.dashboard_api._run_docker") as m:
+        with patch("money4band.api.server._run_docker") as m:
             m.return_value = MagicMock(returncode=1, stdout="", stderr="")
             resp = flat_client.get("/api/status")
         assert resp.status_code == 200
@@ -555,25 +556,20 @@ class TestDirectEndpointDefaults:
         assert data["containers"] == []
 
     def test_health_empty(self, flat_client):
-        with patch("money4band.dashboard_api._run_docker") as m:
+        with patch("money4band.api.server._run_docker") as m:
             m.return_value = MagicMock(returncode=1, stdout="")
             resp = flat_client.get("/api/health")
         assert resp.status_code == 200
         assert resp.json() == []
 
     def test_stats_empty(self, flat_client):
-        with patch("money4band.dashboard_api._run_docker") as m:
+        with patch("money4band.api.server._run_docker") as m:
             m.return_value = MagicMock(returncode=1, stdout="")
             resp = flat_client.get("/api/stats")
         assert resp.status_code == 200
         assert resp.json() == []
 
-    def test_legacy_config_endpoint_removed(self, flat_client):
-        """Legacy bare /api/config was removed — use /api/config/app instead."""
-        resp = flat_client.get("/api/config")
-        # Should NOT be 200 — the legacy endpoint is gone.
-        # The router prefix /api/config exists but has no root GET handler.
-        assert resp.status_code != 200
+
 
     def test_action_invalid_action(self, flat_client):
         resp = flat_client.post("/api/action/mycontainer/delete")

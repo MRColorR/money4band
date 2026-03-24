@@ -9,8 +9,6 @@ from __future__ import annotations
 import logging
 import os
 import signal as sig
-import subprocess
-import sys
 import time
 
 from colorama import Fore, Style
@@ -19,7 +17,66 @@ logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
-# Public entry point — called from main._cmd_dashboard
+# Top-level dispatch — called from main._cmd_dashboard
+# ---------------------------------------------------------------------------
+
+
+def handle_dashboard_action(
+    action: str | None,
+    config_dir: str,
+    base_dir: str,
+    *,
+    host: str = "127.0.0.1",
+    port: int = 8088,
+    background: bool = False,
+) -> None:
+    """Dispatch a ``m4b dashboard <action>`` CLI invocation.
+
+    ``main._cmd_dashboard`` extracts args and delegates here so that
+    all dashboard CLI logic lives in the ``dashboard`` package.
+    """
+    from colorama import just_fix_windows_console
+
+    if action is None:
+        print("usage: m4b dashboard <command> [options]\n")
+        print("Commands:")
+        print("  start           Start the Dashboard + API server")
+        print("  stop            Stop a background Dashboard + API process")
+        print("  status          Show Dashboard + API status")
+        print("  show-key        Print the Dashboard API key")
+        print("  regenerate-key  Generate a new API key")
+        print("  enable          Enable Dashboard + API auto-start on M4B launch")
+        print("  disable         Disable Dashboard + API auto-start on M4B launch")
+        print("\nRun 'm4b dashboard <command> --help' for details.")
+        return
+
+    if action in ("enable", "disable"):
+        from money4band.dashboard.setup import set_dashboard_state
+
+        enabled = action == "enable"
+        set_dashboard_state(config_dir, enabled=enabled)
+        just_fix_windows_console()
+        state = f"{Fore.GREEN}enabled" if enabled else f"{Fore.YELLOW}disabled"
+        print(f"Dashboard + API auto-start {state}.{Style.RESET_ALL}")
+        return
+
+    kwargs: dict = {"config_dir": config_dir, "base_dir": base_dir}
+    if action == "start":
+        kwargs.update(host=host, preferred_port=port, background=background)
+    elif action == "stop":
+        kwargs["stop"] = True
+    elif action == "status":
+        kwargs["status_check"] = True
+    elif action == "show-key":
+        kwargs["show_key"] = True
+    elif action == "regenerate-key":
+        kwargs["regenerate_key"] = True
+
+    run_dashboard_command(**kwargs)
+
+
+# ---------------------------------------------------------------------------
+# Public entry point — called from handle_dashboard_action
 # ---------------------------------------------------------------------------
 
 
@@ -40,13 +97,13 @@ def run_dashboard_command(
     Handles --stop, --status, --show-key, --regenerate-key flags and
     both foreground / background server startup.
     """
-    from money4band.dashboard_api import configure, find_dashboard_port, start_server
-    from money4band.dashboard_setup import (
+    from money4band.api.server import configure, find_dashboard_port, start_server
+    from money4band.dashboard.setup import (
         ensure_api_key_on_disk,
         read_dashboard_pid,
         regenerate_api_key_on_disk,
         remove_dashboard_pid,
-        write_dashboard_pid,
+        set_dashboard_state,
     )
 
     configure(config_dir, base_dir=base_dir)
@@ -69,6 +126,20 @@ def run_dashboard_command(
     # --regenerate-key: force a new API key and exit.
     if regenerate_key:
         _handle_regenerate_key(config_dir, regenerate_api_key_on_disk)
+        return
+
+    # If a background dashboard is already running, print its info and exit
+    # instead of spawning a second instance (which would steal the PID file).
+    existing_pid = read_dashboard_pid(config_dir)
+    if existing_pid is not None:
+        from money4band.dashboard.setup import print_dashboard_status
+
+        print(
+            f"{Fore.YELLOW}Dashboard + API is already running "
+            f"(PID {existing_pid}).{Style.RESET_ALL}"
+        )
+        print_dashboard_status(config_dir)
+        print(f"  Stop with: {Fore.CYAN}m4b dashboard stop{Style.RESET_ALL}")
         return
 
     # Resolve an available port.
@@ -104,7 +175,7 @@ def run_dashboard_command(
             "Keep your API key secret."
         )
 
-    print(f"{Fore.GREEN}Starting M4B Dashboard on {host}:{port}...{Style.RESET_ALL}")
+    print(f"{Fore.GREEN}Starting M4B Dashboard + API on {host}:{port}...{Style.RESET_ALL}")
     print(f"  Dashboard: http://{display_host}:{port}/")
     print(f"  API docs:  http://{display_host}:{port}/api/docs")
     print(f"  Status:    http://{display_host}:{port}/api/status")
@@ -116,14 +187,15 @@ def run_dashboard_command(
             f"(use --regenerate-key){Style.RESET_ALL}"
         )
 
+    # Persist enabled state + resolved port so system info stays accurate.
+    set_dashboard_state(config_dir, enabled=True, port=port)
+
     if background:
         _start_background(
             config_dir,
             base_dir,
             host=host,
             port=port,
-            read_dashboard_pid=read_dashboard_pid,
-            write_dashboard_pid=write_dashboard_pid,
         )
         return
 
@@ -138,22 +210,23 @@ def run_dashboard_command(
 def _handle_stop(config_dir, read_pid_fn, remove_pid_fn) -> None:  # type: ignore[no-untyped-def]
     pid = read_pid_fn(config_dir)
     if pid is None:
-        print(f"{Fore.YELLOW}No running dashboard found.{Style.RESET_ALL}")
+        print(f"{Fore.YELLOW}No running Dashboard + API found.{Style.RESET_ALL}")
         return
     try:
         os.kill(pid, sig.SIGTERM)
-        print(f"{Fore.GREEN}Dashboard (PID {pid}) stopped.{Style.RESET_ALL}")
+        print(f"{Fore.GREEN}Dashboard + API (PID {pid}) stopped.{Style.RESET_ALL}")
     except OSError as exc:
         print(f"{Fore.RED}Failed to stop PID {pid}: {exc}{Style.RESET_ALL}")
     remove_pid_fn(config_dir)
+    from money4band.dashboard.setup import set_dashboard_state
+
+    set_dashboard_state(config_dir, enabled=False)
 
 
 def _handle_status(config_dir, read_pid_fn) -> None:  # type: ignore[no-untyped-def]
-    pid = read_pid_fn(config_dir)
-    if pid:
-        print(f"{Fore.GREEN}Dashboard is running (PID {pid}).{Style.RESET_ALL}")
-    else:
-        print(f"{Fore.YELLOW}Dashboard is not running.{Style.RESET_ALL}")
+    from money4band.dashboard.setup import print_dashboard_status
+
+    print_dashboard_status(config_dir)
 
 
 def _handle_show_key(config_dir, ensure_key_fn) -> None:  # type: ignore[no-untyped-def]
@@ -178,41 +251,22 @@ def _start_background(
     *,
     host: str,
     port: int,
-    read_dashboard_pid,  # type: ignore[no-untyped-def]
-    write_dashboard_pid,  # type: ignore[no-untyped-def]
 ) -> None:
     """Spawn the dashboard in a detached subprocess."""
+    from money4band.dashboard.setup import (
+        read_dashboard_pid,
+        spawn_dashboard_background,
+    )
+
     existing_pid = read_dashboard_pid(config_dir)
     if existing_pid:
         print(
-            f"{Fore.YELLOW}Dashboard already running "
+            f"{Fore.YELLOW}Dashboard + API already running "
             f"(PID {existing_pid}).  Use --stop first.{Style.RESET_ALL}"
         )
         return
 
-    cmd = [
-        sys.executable,
-        "-c",
-        (
-            "from money4band.dashboard_api import configure, start_server; "
-            f"configure({config_dir!r}, base_dir={base_dir!r}); "
-            f"start_server(host={host!r}, port={port})"
-        ),
-    ]
-    popen_kwargs: dict = {
-        "stdout": subprocess.DEVNULL,
-        "stderr": subprocess.DEVNULL,
-    }
-    if sys.platform == "win32":
-        popen_kwargs["creationflags"] = (
-            subprocess.DETACHED_PROCESS  # type: ignore[attr-defined]
-            | subprocess.CREATE_NEW_PROCESS_GROUP  # type: ignore[attr-defined]
-        )
-    else:
-        popen_kwargs["start_new_session"] = True
-
-    proc = subprocess.Popen(cmd, **popen_kwargs)  # noqa: S603
-    write_dashboard_pid(config_dir, proc.pid)
+    pid = spawn_dashboard_background(config_dir, base_dir, host=host, port=port)
 
     # Poll the port briefly to confirm uvicorn actually started.
     from money4band.networker import is_port_in_use
@@ -232,15 +286,15 @@ def _start_background(
 
     if started:
         print(
-            f"\n{Fore.GREEN}Dashboard running in background "
-            f"(PID {proc.pid}).{Style.RESET_ALL}"
+            f"\n{Fore.GREEN}Dashboard + API running in background "
+            f"(PID {pid}).{Style.RESET_ALL}"
         )
-        print(f"  Stop with: {Fore.CYAN}m4b dashboard --stop{Style.RESET_ALL}")
+        print(f"  Stop with: {Fore.CYAN}m4b dashboard stop{Style.RESET_ALL}")
     else:
         print(
-            f"\n{Fore.YELLOW}Dashboard spawned (PID {proc.pid}) but port "
+            f"\n{Fore.YELLOW}Dashboard + API spawned (PID {pid}) but port "
             f"{port} not yet responding — it may still be starting up."
             f"{Style.RESET_ALL}"
         )
-        print(f"  Check with: {Fore.CYAN}m4b dashboard --status{Style.RESET_ALL}")
-        print(f"  Stop with:  {Fore.CYAN}m4b dashboard --stop{Style.RESET_ALL}")
+        print(f"  Check with: {Fore.CYAN}m4b dashboard status{Style.RESET_ALL}")
+        print(f"  Stop with:  {Fore.CYAN}m4b dashboard stop{Style.RESET_ALL}")

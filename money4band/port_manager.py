@@ -4,33 +4,39 @@ from __future__ import annotations
 
 import logging
 import os
-import sys
 from typing import Any
 
+from money4band import loader
 from money4band.networker import find_next_available_port
 
-# Ensure the parent directory is in the sys.path
-script_dir = os.path.dirname(os.path.abspath(__file__))
-parent_dir = os.path.dirname(script_dir)
-if parent_dir not in sys.path:
-    sys.path.append(parent_dir)
-
-from money4band import loader
-
 logger = logging.getLogger(__name__)
-# Global config loading for port constants
-m4b_config_path = os.path.join(parent_dir, "config", "m4b-config.json")
-try:
-    _m4b_config = loader.load_json_config(m4b_config_path)
-except FileNotFoundError:
-    _m4b_config = {}
-    logger.warning("Configuration file not found. Using default port values.")
 
-DEFAULT_PORT_BASE = _m4b_config.get("ports", {}).get("default_port_base", 50000)
-PORT_OFFSET_PER_APP = _m4b_config.get("ports", {}).get("port_offset_per_app", 100)
-PORT_OFFSET_PER_INSTANCE = _m4b_config.get("ports", {}).get(
-    "port_offset_per_instance", 10
+_m4b_config_path = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "..", "config", "m4b-config.json"
 )
+
+# Lazy-loaded port constants — populated on first access via _load_port_constants()
+DEFAULT_PORT_BASE: int = 0
+PORT_OFFSET_PER_APP: int = 0
+PORT_OFFSET_PER_INSTANCE: int = 0
+_port_constants_loaded = False
+
+
+def _load_port_constants() -> None:
+    """Load port constants from config on first use."""
+    global DEFAULT_PORT_BASE, PORT_OFFSET_PER_APP, PORT_OFFSET_PER_INSTANCE, _port_constants_loaded
+    if _port_constants_loaded:
+        return
+    try:
+        cfg = loader.load_json_config(_m4b_config_path)
+    except FileNotFoundError:
+        cfg = {}
+        logger.warning("Configuration file not found. Using default port values.")
+    ports = cfg.get("ports", {})
+    DEFAULT_PORT_BASE = ports.get("default_port_base", 50000)
+    PORT_OFFSET_PER_APP = ports.get("port_offset_per_app", 100)
+    PORT_OFFSET_PER_INSTANCE = ports.get("port_offset_per_instance", 10)
+    _port_constants_loaded = True
 
 
 def collect_assigned_ports(user_config: dict[str, Any]) -> set[int]:
@@ -95,6 +101,7 @@ def assign_app_ports(
     port_count = len(app["compose_config"]["ports"])
     assigned_ports = []
     reserved_ports = reserved_ports or set()
+    _load_port_constants()
 
     # Calculate the base port for this specific app and instance using the unified formula
     base_port_for_app_instance = (

@@ -24,8 +24,6 @@ logger = logging.getLogger(__name__)
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(script_dir)
-if parent_dir not in sys.path:
-    sys.path.append(parent_dir)
 
 # ---------------------------------------------------------------------------
 # Update cache — avoids hitting GitHub API more than once per 15 minutes

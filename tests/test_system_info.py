@@ -39,9 +39,9 @@ _M4B_CONFIG = {
         "os_map": {"linux": "Linux"},
     },
     "resource_profiles": {
-        "active": "low",
+        "active": "standard",
         "profiles": {
-            "low": {"description": "Default", "cpu_factor": 1.0, "ram_pct": 0.1875},
+            "standard": {"description": "Standard", "cpu_pct": 0.60, "ram_pct": 0.40},
         },
     },
 }

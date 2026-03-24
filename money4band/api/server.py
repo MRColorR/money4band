@@ -187,7 +187,7 @@ def ensure_api_key(config_dir: str) -> str:
     if _api_key:
         return _api_key
 
-    from money4band.dashboard_setup import ensure_api_key_on_disk
+    from money4band.dashboard.setup import ensure_api_key_on_disk
 
     key = ensure_api_key_on_disk(config_dir)
     _api_key = key
@@ -197,7 +197,7 @@ def ensure_api_key(config_dir: str) -> str:
 def regenerate_api_key(config_dir: str) -> str:
     """Force-regenerate the API key and update the auth middleware."""
     global _api_key
-    from money4band.dashboard_setup import regenerate_api_key_on_disk
+    from money4band.dashboard.setup import regenerate_api_key_on_disk
 
     key = regenerate_api_key_on_disk(config_dir)
     if key:
@@ -373,14 +373,15 @@ async def event_stream() -> StreamingResponse:
 
 def _mount_frontend() -> None:
     """Mount the static web dashboard at ``/``."""
-    base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    www_dir = os.path.join(base, ".resources", ".www")
-    assets_dir = os.path.join(base, ".resources", ".assets")
+    from money4band.resources import get_path
 
-    if os.path.isdir(assets_dir):
-        app.mount("/.images", StaticFiles(directory=assets_dir), name="assets")
-    if os.path.isdir(www_dir):
-        app.mount("/", StaticFiles(directory=www_dir, html=True), name="frontend")
+    www_dir = get_path("www")
+    assets_dir = get_path("assets")
+
+    if assets_dir.is_dir():
+        app.mount("/.images", StaticFiles(directory=str(assets_dir)), name="assets")
+    if www_dir.is_dir():
+        app.mount("/", StaticFiles(directory=str(www_dir), html=True), name="frontend")
 
 
 def find_dashboard_port(preferred: int = 8088) -> int:
