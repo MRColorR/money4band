@@ -8,7 +8,6 @@ for backward compatibility. New code should import from the sub-modules directly
 """
 
 import argparse
-import getpass
 import json
 import logging
 import os
@@ -114,14 +113,10 @@ def collect_user_info(user_config: dict[str, Any], m4b_config: dict[str, Any]) -
         user_config (dict): The user configuration dictionary.
         m4b_config (dict): The m4b configuration dictionary.
     """
-    try:
-        # Get the system's current username (fallback to 'user' on exception)
-        nickname = getpass.getuser()
-    except Exception:
-        nickname = "user"
+    from money4band.banner import ensure_nickname
 
-    # Store the username in the user configuration
-    user_config["user"]["Nickname"] = nickname
+    # Resolve nickname from OS account (replaces placeholder if needed).
+    ensure_nickname(user_config)
 
     # Fetch the existing device name from the configuration, use 'yourDeviceName' as placeholder
     device_name = user_config["device_info"].get("device_name", "yourDeviceName")
@@ -185,28 +180,21 @@ def main(
         # Display M4B header banner
         from colorama import just_fix_windows_console
 
+        from money4band.banner import ensure_nickname, print_banner
         from money4band.cls import cls
 
         just_fix_windows_console()
         cls()
-        version = m4b_config.get("project", {}).get("project_version", "?")
-        ds_url = m4b_config.get("project", {}).get("ds_project_server_url", "")
-        print(f"{Fore.GREEN}----------------------------------------------")
-        print(f"MONEY4BAND v{version}{Style.RESET_ALL}")
-        print(
-            f"{Fore.GREEN}----------------------------------------------{Style.RESET_ALL}"
+        nickname = ensure_nickname(user_config)
+        print_banner(
+            m4b_config,
+            nickname=nickname,
+            greeting=(
+                f"It seems this is your first time running Money4Band. "
+                f"Let's get you set up!"
+                f"\n\n{Fore.CYAN}=== Setup Wizard ==={Style.RESET_ALL}"
+            ),
         )
-        print(
-            f"{Fore.YELLOW}Support the M4B development <3 check the donation "
-            f"options in the README, on GitHub or in our Discord. Every bit helps!"
-        )
-        if ds_url:
-            print(
-                f"{Fore.MAGENTA}Join our Discord community for updates, help and "
-                f"discussions: {ds_url}{Style.RESET_ALL}"
-            )
-        print("----------------------------------------------")
-        print(f"\n{Fore.CYAN}=== Setup Wizard ==={Style.RESET_ALL}\n")
 
         progress = load_progress() if resume else {}
         completed: list[int] = list(progress.get("completed_steps", []))

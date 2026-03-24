@@ -16,12 +16,13 @@ from money4band.api._deps import (
     load_m4b_config,
     load_user_config,
 )
+from money4band.api.schemas import DnsConfig, DnsSet, SystemInfo
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/system", tags=["system"])
 
 
-@router.get("/info")
+@router.get("/info", response_model=SystemInfo)
 async def system_info(
     paths: ConfigPaths = Depends(get_paths),
 ) -> dict[str, Any]:
@@ -58,7 +59,7 @@ async def system_info(
     }
 
 
-@router.get("/dns")
+@router.get("/dns", response_model=DnsConfig)
 async def get_dns(
     paths: ConfigPaths = Depends(get_paths),
 ) -> dict[str, Any]:
@@ -76,15 +77,16 @@ class DnsUpdate(BaseModel):
     servers: list[str] | None = None
 
 
-@router.put("/dns")
+@router.put("/dns", response_model=DnsSet)
 async def set_dns(
     payload: DnsUpdate,
     paths: ConfigPaths = Depends(get_paths),
 ) -> dict[str, str]:
     """Update the DNS configuration."""
-    from money4band.system_info import set_dns_mode
+    from money4band.system_info import get_dns_modes, set_dns_mode
 
-    valid_modes = ("default", "cloudflare", "google", "quad9", "custom")
+    m4b = load_m4b_config()
+    valid_modes = get_dns_modes(m4b)
     if payload.mode not in valid_modes:
         raise HTTPException(
             status_code=400,

@@ -5,12 +5,12 @@ from money4band.detector import (
     _MIN_CPU,
     _MIN_MEM,
     _TIER_MULTIPLIERS,
-    VALID_PROFILES,
     calculate_resource_limits,
     detect_architecture,
     detect_os,
     get_active_profile,
     get_profile_definition,
+    get_valid_profiles,
     show_resource_profile_info,
 )
 
@@ -107,7 +107,7 @@ class TestResourceProfiles(unittest.TestCase):
                 "mid": {"description": "Standard", "cpu_factor": 2.0, "ram_pct": 0.25},
                 "max": {
                     "description": "High-resource",
-                    "cpu_factor": 0.5,
+                    "cpu_factor": 4.0,
                     "ram_pct": 0.50,
                 },
             },
@@ -130,8 +130,8 @@ class TestResourceProfiles(unittest.TestCase):
         # Active is "low"
         self.assertEqual(p["cpu_factor"], 1.0)
 
-    def test_valid_profiles_tuple(self):
-        self.assertEqual(VALID_PROFILES, ("base", "min", "low", "mid", "max"))
+    def test_valid_profiles_from_config(self):
+        self.assertEqual(get_valid_profiles(self._M4B_CFG), ("base", "min", "low", "mid", "max"))
 
     @patch("money4band.detector.get_system_memory_and_cores", return_value=(8192.0, 4))
     @patch("money4band.detector.write_json")
@@ -205,10 +205,10 @@ class TestResourceProfiles(unittest.TestCase):
         saved = mock_write.call_args[0][0]
         rl = saved["resource_limits"]
 
-        # base_ram = 16384 * 0.5 = 8192, base_cpu = 8 * 0.5 = 4.0
-        # HUGE tier: mem_limit = 8192 * 1.0 = 8192m, cpu = 4.0 * 0.8 = 3.2
+        # base_ram = 16384 * 0.5 = 8192, base_cpu = 8 * 4.0 = 32.0
+        # HUGE tier: mem_limit = 8192 * 1.0 = 8192m, cpu = 32.0 * 0.8 = 25.6
         self.assertEqual(rl["app_mem_limit_huge"], "8192m")
-        self.assertEqual(rl["app_cpu_limit_huge"], 3.2)
+        self.assertEqual(rl["app_cpu_limit_huge"], 25.6)
 
     @patch("money4band.detector.get_system_memory_and_cores", return_value=(8192.0, 4))
     @patch("money4band.detector.write_json")

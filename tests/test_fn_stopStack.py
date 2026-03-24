@@ -87,11 +87,12 @@ class TestStopStack:
     ) -> None:
         stop_stack(compose_file="compose.yml", skip_questions=True)
         cmd = mock_run.call_args[0][0]
-        # Should include monitoring, dashboard, proxy profiles
+        # Should include monitoring and proxy profiles (dashboard is no
+        # longer a Docker service — it runs as a standalone FastAPI process).
         profile_indices = [i for i, c in enumerate(cmd) if c == "--profile"]
         profiles = [cmd[i + 1] for i in profile_indices]
         assert "monitoring" in profiles
-        assert "dashboard" in profiles
+        assert "dashboard" not in profiles
         assert "proxy" in profiles
 
 
@@ -175,8 +176,9 @@ class TestStopStackProjectName:
     def test_all_profiles_activated(self, _proj, _root, mock_run) -> None:
         stop_stack("docker-compose.yaml", skip_questions=True)
         cmd = mock_run.call_args[0][0]
-        for profile in ("monitoring", "dashboard", "proxy"):
+        for profile in ("monitoring", "proxy"):
             assert profile in cmd, f"profile {profile} missing from command"
+        assert "dashboard" not in cmd, "dashboard profile should not be present"
 
 
 class TestStopAllStacksInstances:

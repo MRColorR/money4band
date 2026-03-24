@@ -15,6 +15,7 @@ from money4band.api._deps import (
     load_m4b_config,
     load_user_config,
 )
+from money4band.api.schemas import LimitSet, LimitsResponse, StatusMessage, StatusOk
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/config", tags=["config"])
@@ -42,21 +43,33 @@ class ConfigUpdate(BaseModel):
     data: dict[str, Any]
 
 
-@router.put("/user")
+@router.put("/user", response_model=StatusOk)
 async def update_user_config(
     payload: ConfigUpdate,
     paths: ConfigPaths = Depends(get_paths),
 ) -> dict[str, str]:
-    """Merge *payload.data* into user-config.json and persist."""
+    """Merge *payload.data* into user-config.json and persist.
+
+    Only top-level keys that already exist in the current config are
+    accepted — this prevents injection of arbitrary new keys while
+    allowing the API full parity with the CLI menu.
+    """
     from money4band.dumper import write_json
 
     cfg = load_user_config()
+    unknown = set(payload.data) - set(cfg)
+    if unknown:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unknown config keys: {', '.join(sorted(unknown))}",
+        )
+
     _deep_merge(cfg, payload.data)
     write_json(cfg, paths.user_config)
     return {"status": "ok"}
 
 
-@router.post("/reset")
+@router.post("/reset", response_model=StatusMessage)
 async def reset_config(
     paths: ConfigPaths = Depends(get_paths),
 ) -> dict[str, str]:
@@ -98,7 +111,7 @@ async def get_m4b_config(
 # ---------------------------------------------------------------------------
 
 
-@router.get("/limits")
+@router.get("/limits", response_model=LimitsResponse)
 async def get_limits(
     paths: ConfigPaths = Depends(get_paths),
 ) -> dict[str, Any]:
@@ -119,19 +132,21 @@ class LimitUpdate(BaseModel):
     profile: str
 
 
-@router.put("/limits")
+@router.put("/limits", response_model=LimitSet)
 async def set_limits(
     payload: LimitUpdate,
     paths: ConfigPaths = Depends(get_paths),
 ) -> dict[str, str]:
     """Switch the active resource-limit profile and recalculate limits."""
-    from money4band.detector import VALID_PROFILES, calculate_resource_limits
+    from money4band.detector import calculate_resource_limits, get_valid_profiles
     from money4band.dumper import write_json
 
-    if payload.profile not in VALID_PROFILES:
+    m4b = load_m4b_config()
+    valid = get_valid_profiles(m4b)
+    if payload.profile not in valid:
         raise HTTPException(
             status_code=400,
-            detail=f"Invalid profile '{payload.profile}'. Valid: {', '.join(VALID_PROFILES)}",
+            detail=f"Invalid profile '{payload.profile}'. Valid: {', '.join(valid)}",
         )
 
     m4b = load_m4b_config()

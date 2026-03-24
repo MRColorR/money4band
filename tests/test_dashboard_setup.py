@@ -5,7 +5,11 @@ from __future__ import annotations
 import copy
 from unittest.mock import patch
 
-from money4band.dashboard_setup import setup_m4b_dashboard, setup_watchtower
+from money4band.dashboard_setup import (
+    DEFAULT_DASHBOARD_PORT,
+    setup_m4b_dashboard,
+    setup_watchtower,
+)
 
 _USER_CONFIG = {
     "m4b_dashboard": {"enabled": False},
@@ -13,12 +17,30 @@ _USER_CONFIG = {
 }
 
 
+def _mock_port(port=DEFAULT_DASHBOARD_PORT):
+    return patch("money4band.dashboard_setup._ask_port", return_value=port)
+
+
 class TestSetupM4bDashboard:
     def test_enable_dashboard(self):
         cfg = copy.deepcopy(_USER_CONFIG)
-        with patch("money4band.dashboard_setup.ask_question_yn", return_value=True):
+        with (
+            patch("money4band.dashboard_setup.ask_question_yn", return_value=True),
+            _mock_port(),
+        ):
             setup_m4b_dashboard(cfg)
         assert cfg["m4b_dashboard"]["enabled"] is True
+        assert cfg["m4b_dashboard"]["port"] == DEFAULT_DASHBOARD_PORT
+
+    def test_enable_dashboard_custom_port(self):
+        cfg = copy.deepcopy(_USER_CONFIG)
+        with (
+            patch("money4band.dashboard_setup.ask_question_yn", return_value=True),
+            _mock_port(9090),
+        ):
+            setup_m4b_dashboard(cfg)
+        assert cfg["m4b_dashboard"]["enabled"] is True
+        assert cfg["m4b_dashboard"]["port"] == 9090
 
     def test_disable_dashboard(self):
         cfg = copy.deepcopy(_USER_CONFIG)

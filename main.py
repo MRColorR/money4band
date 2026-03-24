@@ -75,6 +75,15 @@ def _ensure_user_config(args: argparse.Namespace, user_config_path: str) -> None
             src_path=args.template_user_config_path,
             dest_path=user_config_path,
         )
+        # Auto-set nickname from OS account so the greeting works immediately.
+        from money4band.banner import ensure_nickname
+
+        try:
+            cfg = loader.load_json_config(user_config_path)
+            ensure_nickname(cfg)
+            dumper.write_json(cfg, user_config_path)
+        except Exception:  # noqa: BLE001
+            pass  # best-effort — setup wizard will fix it
     ensure_config_encrypted(user_config_path)
     register_encryption_hooks(user_config_path)
 
@@ -222,21 +231,11 @@ def mainmenu(
             m4b_tools_modules = loader.load_modules_from_directory(modules_dir_path)
             logger.info(f"Successfully loaded modules from {modules_dir_path}")
             cls()
-            print(f"{Fore.GREEN}----------------------------------------------")
-            print(
-                f"{Fore.GREEN}MONEY4BAND v{m4b_config.get('project')['project_version']}{Style.RESET_ALL}"
-            )
+            from money4band.banner import ensure_nickname, print_banner
+
+            nickname = ensure_nickname(user_config)
+            print_banner(m4b_config, nickname=nickname)
             check_update_available(m4b_config)
-            print(
-                f"{Fore.GREEN}----------------------------------------------{Style.RESET_ALL}"
-            )
-            print(
-                f"{Fore.YELLOW}Support the M4B development <3 check the donation options in the README, on GitHub or in our Discord. Every bit helps!"
-            )
-            print(
-                f"{Fore.MAGENTA}Join our Discord community for updates, help and discussions: {m4b_config.get('project')['ds_project_server_url']}{Style.RESET_ALL}"
-            )
-            print("----------------------------------------------")
         except Exception as e:
             logger.error(f"An error occurred while setting up the menu: {str(e)}")
             raise
@@ -602,10 +601,10 @@ def _cmd_limit(args: argparse.Namespace) -> None:
         detector.show_resource_profile_info(m4b_config, user_config)
         return
 
-    if profile_name not in detector.VALID_PROFILES:
+    if profile_name not in detector.get_valid_profiles(m4b_config):
         print(
             f"{Fore.RED}Invalid profile '{profile_name}'. "
-            f"Choose from: {', '.join(detector.VALID_PROFILES)}{Style.RESET_ALL}"
+            f"Choose from: {', '.join(detector.get_valid_profiles(m4b_config))}{Style.RESET_ALL}"
         )
         return
 
@@ -795,16 +794,19 @@ def _cmd_offers(args: argparse.Namespace) -> None:
 
 def _cmd_dashboard(args: argparse.Namespace) -> None:
     """Start the web dashboard API server."""
-    config_dir = getattr(args, "config_dir", os.path.join(BASE_DIR, "config"))
-    port = getattr(args, "port", 8088)
+    from money4band.dashboard_cli import run_dashboard_command
 
-    from money4band.dashboard_api import configure, start_server
-
-    configure(config_dir, base_dir=BASE_DIR)
-    print(f"{Fore.GREEN}Starting M4B Dashboard API on port {port}...{Style.RESET_ALL}")
-    print(f"  API docs: http://localhost:{port}/api/docs")
-    print(f"  Status:   http://localhost:{port}/api/status")
-    start_server(port=port)
+    run_dashboard_command(
+        config_dir=getattr(args, "config_dir", os.path.join(BASE_DIR, "config")),
+        base_dir=BASE_DIR,
+        host=getattr(args, "host", "127.0.0.1"),
+        preferred_port=getattr(args, "port", 8088),
+        background=getattr(args, "background", False),
+        show_key=getattr(args, "show_key", False),
+        stop=getattr(args, "stop", False),
+        status_check=getattr(args, "status", False),
+        regenerate_key=getattr(args, "regenerate_key", False),
+    )
 
 
 def _cmd_profile(args: argparse.Namespace) -> None:
@@ -1067,6 +1069,45 @@ def _build_parser() -> argparse.ArgumentParser:
         type=int,
         default=8088,
         help="Port for the dashboard API server (default: 8088)",
+    )
+    dashboard_parser.add_argument(
+        "--host",
+        default="127.0.0.1",
+        help=(
+            "Bind address (default: 127.0.0.1, localhost only). "
+            "Use 0.0.0.0 to expose on LAN/VPS (requires API key)"
+        ),
+    )
+    dashboard_parser.add_argument(
+        "-b",
+        "--background",
+        action="store_true",
+        default=False,
+        help="Run the dashboard in the background and return immediately",
+    )
+    dashboard_parser.add_argument(
+        "--show-key",
+        action="store_true",
+        default=False,
+        help="Print the dashboard API key (generate if missing) and exit",
+    )
+    dashboard_parser.add_argument(
+        "--stop",
+        action="store_true",
+        default=False,
+        help="Stop a background dashboard process",
+    )
+    dashboard_parser.add_argument(
+        "--status",
+        action="store_true",
+        default=False,
+        help="Check whether the background dashboard is running",
+    )
+    dashboard_parser.add_argument(
+        "--regenerate-key",
+        action="store_true",
+        default=False,
+        help="Generate a new API key (invalidates the old one) and exit",
     )
 
     profile_parser = sub.add_parser("profile", help="Manage configuration profiles")

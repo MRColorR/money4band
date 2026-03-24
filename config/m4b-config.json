@@ -40,8 +40,56 @@
         "enforce_install_limits": true,
         "compose_mode": "monolithic",
         "dns": {
-            "mode": "custom",
+            "mode": "default",
             "servers": [
+                "1.1.1.1",
+                "8.8.8.8"
+            ],
+            "available_modes": [
+                "default",
+                "cloudflare",
+                "cloudflare-security",
+                "google",
+                "quad9",
+                "quad9-unfiltered",
+                "opendns",
+                "dns4eu",
+                "dns4eu-unfiltered",
+                "custom"
+            ],
+            "presets": {
+                "cloudflare": [
+                    "1.1.1.1",
+                    "1.0.0.1"
+                ],
+                "cloudflare-security": [
+                    "1.1.1.2",
+                    "1.0.0.2"
+                ],
+                "google": [
+                    "8.8.8.8",
+                    "8.8.4.4"
+                ],
+                "quad9": [
+                    "9.9.9.9",
+                    "149.112.112.112"
+                ],
+                "quad9-unfiltered": [
+                    "9.9.9.10",
+                    "149.112.112.10"
+                ],
+                "opendns": [
+                    "208.67.222.222",
+                    "208.67.220.220"
+                ],
+                "dns4eu": [
+                    "86.54.11.1"
+                ],
+                "dns4eu-unfiltered": [
+                    "86.54.11.100"
+                ]
+            },
+            "default_servers": [
                 "1.1.1.1",
                 "8.8.8.8"
             ]
@@ -72,7 +120,7 @@
             },
             "max": {
                 "description": "High-resource",
-                "cpu_factor": 0.5,
+                "cpu_factor": 4.0,
                 "ram_pct": 0.5
             }
         }

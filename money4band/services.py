@@ -219,7 +219,7 @@ def get_stack_status() -> str:
             cmd.extend(["-p", project_name])
     for cf in compose_files:
         cmd.extend(["-f", cf])
-    for profile in ("monitoring", "dashboard", "proxy"):
+    for profile in ("monitoring", "proxy"):
         cmd.extend(["--profile", profile])
     cmd.extend(["ps", "--format", "table"])
 
@@ -422,7 +422,7 @@ def get_generator_summary(
         if isinstance(cfg, dict) and cfg.get("enabled", False)
     ]
     dash = user.get("m4b_dashboard", {})
-    dash_port = dash.get("port", 8081) if dash.get("enabled") else None
+    dash_port = dash.get("port", 8088) if dash.get("enabled") else None
     compose_mode = m4b.get("system", {}).get("compose_mode", "monolithic")
 
     # Count proxy instances

@@ -216,7 +216,7 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
     proxy = user_config.get("proxies", {}).get("enabled", False)
     dash = user_config.get("m4b_dashboard", {})
     dash_on = dash.get("enabled", False)
-    dash_port = dash.get("ports", [8081])[0] if dash.get("ports") else 8081
+    dash_port = dash.get("port", 8088)
 
     print(f"  Device: {device}")
     print(f"  Proxy: {'Enabled' if proxy else 'Disabled'}")

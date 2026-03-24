@@ -157,6 +157,45 @@ def ask_uuid(
             return uuid
 
 
+def ask_question_num(
+    prompt: str,
+    default: int = 0,
+    min_val: int | None = None,
+    max_val: int | None = None,
+) -> int:
+    """Ask the user for an integer, with optional range enforcement.
+
+    Args:
+        prompt: The prompt text.
+        default: Value returned when the user presses Enter.
+        min_val: Minimum accepted value (inclusive).
+        max_val: Maximum accepted value (inclusive).
+
+    Returns:
+        The integer entered by the user.
+    """
+    while True:
+        raw = input(
+            f"{Fore.GREEN}{prompt} "
+            f"(default: {Fore.YELLOW}{default}{Fore.GREEN})"
+            f":{Style.RESET_ALL} "
+        ).strip()
+        if not raw:
+            return default
+        try:
+            value = int(raw)
+        except ValueError:
+            print(f"{Fore.RED}Please enter a valid integer.{Style.RESET_ALL}")
+            continue
+        if min_val is not None and value < min_val:
+            print(f"{Fore.RED}Value must be >= {min_val}.{Style.RESET_ALL}")
+            continue
+        if max_val is not None and value > max_val:
+            print(f"{Fore.RED}Value must be <= {max_val}.{Style.RESET_ALL}")
+            continue
+        return value
+
+
 def main() -> None:
     """
     Main function to run the prompt helper standalone.

@@ -119,7 +119,11 @@ _TIER_MULTIPLIERS = {
 _MIN_MEM = {"reserv": 64, "limit": 128}
 _MIN_CPU = {"little": 0.8, "medium": 1.0, "big": 1.0, "huge": 1.0}
 
-VALID_PROFILES = ("base", "min", "low", "mid", "max")
+
+def get_valid_profiles(m4b_config: dict[str, Any]) -> tuple[str, ...]:
+    """Return the valid profile names from *m4b_config*."""
+    keys = m4b_config.get("resource_profiles", {}).get("profiles", {}).keys()
+    return tuple(keys) if keys else ()
 
 
 def get_active_profile(m4b_config: dict[str, Any]) -> str:

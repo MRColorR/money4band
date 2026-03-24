@@ -8,12 +8,13 @@ from typing import Any
 from fastapi import APIRouter, Depends, Query
 
 from money4band.api._deps import ConfigPaths, get_paths
+from money4band.api.schemas import OfferEntry
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/offers", tags=["offers"])
 
 
-@router.get("")
+@router.get("", response_model=list[OfferEntry])
 async def get_offers(
     category: str | None = Query(None, description="Filter by offer category"),
     paths: ConfigPaths = Depends(get_paths),

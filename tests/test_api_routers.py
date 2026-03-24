@@ -23,7 +23,29 @@ def tmp_config(tmp_path):
 
     m4b = {
         "project": {"project_version": "5.0.0"},
-        "system": {"sleep_time": 1},
+        "system": {
+            "sleep_time": 1,
+            "dns": {
+                "mode": "default",
+                "servers": [],
+                "available_modes": [
+                    "default", "cloudflare", "cloudflare-security",
+                    "google", "quad9", "quad9-unfiltered",
+                    "opendns", "dns4eu", "dns4eu-unfiltered", "custom",
+                ],
+                "presets": {
+                    "cloudflare": ["1.1.1.1", "1.0.0.1"],
+                    "cloudflare-security": ["1.1.1.2", "1.0.0.2"],
+                    "google": ["8.8.8.8", "8.8.4.4"],
+                    "quad9": ["9.9.9.9", "149.112.112.112"],
+                    "quad9-unfiltered": ["9.9.9.10", "149.112.112.10"],
+                    "opendns": ["208.67.222.222", "208.67.220.220"],
+                    "dns4eu": ["86.54.11.1"],
+                    "dns4eu-unfiltered": ["86.54.11.100"],
+                },
+                "default_servers": ["1.1.1.1", "8.8.8.8"],
+            },
+        },
         "resource_profiles": {
             "active": "low",
             "profiles": {
@@ -32,7 +54,6 @@ def tmp_config(tmp_path):
                 "mid": {"cpu_factor": 1.5, "ram_pct": 0.25, "description": "Mid"},
             },
         },
-        "dns": {"mode": "default", "servers": []},
     }
     (config_dir / "m4b-config.json").write_text(json.dumps(m4b))
 
@@ -44,15 +65,37 @@ def tmp_config(tmp_path):
                 "entries": [
                     {
                         "name": "honeygain",
-                        "image": {"name": "honeygain/honeygain:latest"},
-                        "resource_tier": "medium",
-                        "app_details": {"earnings_range": "1-5"},
+                        "dashboard": "https://dashboard.honeygain.com/",
+                        "link": "https://r.honeygain.me/TEST",
+                        "compose_config": {
+                            "container_name": "m4b_honeygain",
+                            "image": "honeygain/honeygain:latest",
+                            "cpus": "${APP_CPU_LIMIT_MEDIUM}",
+                        },
+                        "compose_layer": "residential",
+                        "app_details": {
+                            "status": "active",
+                            "earnings": {
+                                "avg_monthly_residential_usd": "1-5",
+                            },
+                        },
                     },
                     {
                         "name": "earnapp",
-                        "image": {"name": "fazalfarhan01/earnapp:latest"},
-                        "resource_tier": "little",
-                        "app_details": {"earnings_range": "0.5-3"},
+                        "dashboard": "https://earnapp.com/dashboard",
+                        "link": "https://earnapp.com/i/TEST",
+                        "compose_config": {
+                            "container_name": "m4b_earnapp",
+                            "image": "fazalfarhan01/earnapp:latest",
+                            "cpus": "${APP_CPU_LIMIT_LITTLE}",
+                        },
+                        "compose_layer": "residential",
+                        "app_details": {
+                            "status": "active",
+                            "earnings": {
+                                "avg_monthly_residential_usd": "0.5-3",
+                            },
+                        },
                     },
                 ],
             },
@@ -61,9 +104,18 @@ def tmp_config(tmp_path):
                 "entries": [
                     {
                         "name": "testapp",
-                        "image": {"name": "test/test:latest"},
-                        "resource_tier": "little",
-                        "app_details": {"earnings_range": "0-1"},
+                        "compose_config": {
+                            "container_name": "m4b_testapp",
+                            "image": "test/test:latest",
+                            "cpus": "${APP_CPU_LIMIT_LITTLE}",
+                        },
+                        "compose_layer": "datacenter",
+                        "app_details": {
+                            "status": "candidate",
+                            "earnings": {
+                                "avg_monthly_residential_usd": "0-1",
+                            },
+                        },
                     },
                 ],
             },
@@ -181,14 +233,14 @@ class TestConfigRouter:
     def test_update_user_config(self, client, tmp_config):
         resp = client.put(
             "/api/config/user",
-            json={"data": {"user": {"Nickname": "updated"}}},
+            json={"data": {"device_info": {"Nickname": "updated"}}},
         )
         assert resp.status_code == 200
 
         # Verify the change persisted
         cfg_path = tmp_config / "config" / "user-config.json"
         updated = json.loads(cfg_path.read_text())
-        assert updated["user"]["Nickname"] == "updated"
+        assert updated["device_info"]["Nickname"] == "updated"
 
     def test_update_user_config_deep_merge(self, client, tmp_config):
         """Deep merge should preserve existing nested keys."""
@@ -202,6 +254,15 @@ class TestConfigRouter:
         # os_type updated, device_name preserved
         assert updated["device_info"]["os_type"] == "windows"
         assert updated["device_info"]["device_name"] == "test-device"
+
+    def test_update_user_config_rejects_unknown_keys(self, client, tmp_config):
+        """Keys that don't exist in the current config should be rejected."""
+        resp = client.put(
+            "/api/config/user",
+            json={"data": {"malicious_key": {"evil": True}}},
+        )
+        assert resp.status_code == 400
+        assert "Unknown config keys" in resp.json()["detail"]
 
     def test_reset_config(self, client, tmp_config):
         resp = client.post("/api/config/reset")
@@ -384,21 +445,42 @@ class TestBackupsRouter:
         assert resp.json()["status"] == "ok"
 
     def test_restore_backup(self, client, tmp_config):
-        backup_file = tmp_config / "fake_backup.tar.gz"
+        fake_backup_dir = tmp_config / "backups"
+        fake_backup_dir.mkdir(exist_ok=True)
+        backup_file = fake_backup_dir / "fake_backup.tar.gz"
         backup_file.write_text("fake")
-        with patch("money4band.backup.restore_backup"):
+        with (
+            patch("money4band.api.router_backups.BACKUP_DIR", fake_backup_dir),
+            patch("money4band.backup.restore_backup"),
+        ):
             resp = client.post(
                 "/api/backups/restore",
                 json={"path": str(backup_file)},
             )
         assert resp.status_code == 200
 
-    def test_restore_nonexistent(self, client):
-        resp = client.post(
-            "/api/backups/restore",
-            json={"path": "/nonexistent/path"},
-        )
+    def test_restore_nonexistent(self, client, tmp_config):
+        fake_backup_dir = tmp_config / "backups"
+        fake_backup_dir.mkdir(exist_ok=True)
+        with patch("money4band.api.router_backups.BACKUP_DIR", fake_backup_dir):
+            resp = client.post(
+                "/api/backups/restore",
+                json={"path": str(fake_backup_dir / "nonexistent")},
+            )
         assert resp.status_code == 404
+
+    def test_restore_path_traversal(self, client, tmp_config):
+        """Reject restore paths outside BACKUP_DIR."""
+        outside = tmp_config / "evil.tar.gz"
+        outside.write_text("evil")
+        fake_backup_dir = tmp_config / "backups"
+        fake_backup_dir.mkdir(exist_ok=True)
+        with patch("money4band.api.router_backups.BACKUP_DIR", fake_backup_dir):
+            resp = client.post(
+                "/api/backups/restore",
+                json={"path": str(outside)},
+            )
+        assert resp.status_code == 400
 
     def test_cleanup_backups(self, client):
         with patch(
@@ -472,6 +554,15 @@ class TestProfilesRouter:
             resp = client.delete("/api/profiles/nope")
         assert resp.status_code == 404
 
+    def test_create_profile_path_traversal(self, client):
+        """Profile names with path traversal characters should be rejected."""
+        resp = client.post("/api/profiles", json={"name": "../../../etc"})
+        assert resp.status_code == 422  # pydantic validation
+
+    def test_switch_profile_path_traversal(self, client):
+        resp = client.put("/api/profiles/..%5C..%5Cetc/switch")
+        assert resp.status_code == 400
+
 
 # ===========================================================================
 # Earnings router
@@ -481,8 +572,8 @@ class TestProfilesRouter:
 class TestEarningsRouter:
     def test_get_earnings(self, client):
         mock_earnings = [
-            {"name": "honeygain", "min": 1.0, "max": 5.0},
-            {"name": "earnapp", "min": 0.5, "max": 3.0},
+            {"name": "honeygain", "range_low": 1.0, "range_high": 5.0},
+            {"name": "earnapp", "range_low": 0.5, "range_high": 3.0},
         ]
         with patch(
             "money4band.earnings_estimator.get_app_earnings",
@@ -627,6 +718,10 @@ class TestUpdateRouter:
     def test_apply_update(self, client):
         with (
             patch(
+                "money4band.api.router_update._LOOPBACK",
+                frozenset({"127.0.0.1", "::1", "localhost", "testclient"}),
+            ),
+            patch(
                 "money4band.updater.check_for_update",
                 return_value="5.1.0",
             ),
@@ -638,10 +733,21 @@ class TestUpdateRouter:
             resp = client.post("/api/update/apply", json={"version": "5.1.0"})
         assert resp.status_code == 200
 
+    def test_apply_update_rejects_remote(self, client):
+        """Non-loopback clients should get 403."""
+        resp = client.post("/api/update/apply", json={"version": "5.1.0"})
+        assert resp.status_code == 403
+
     def test_apply_update_no_version(self, client):
-        with patch(
-            "money4band.updater.check_for_update",
-            return_value=None,
+        with (
+            patch(
+                "money4band.api.router_update._LOOPBACK",
+                frozenset({"127.0.0.1", "::1", "localhost", "testclient"}),
+            ),
+            patch(
+                "money4band.updater.check_for_update",
+                return_value=None,
+            ),
         ):
             resp = client.post("/api/update/apply", json={})
         assert resp.status_code == 400

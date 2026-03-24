@@ -225,7 +225,7 @@ class TestGetGeneratorSummary:
                 "earnapp": {"enabled": True},
                 "honeygain": {"enabled": False},
             },
-            "m4b_dashboard": {"enabled": True, "port": 8081},
+            "m4b_dashboard": {"enabled": True, "port": 8088},
         }
         m4b = {"system": {"compose_mode": "layered"}}
 

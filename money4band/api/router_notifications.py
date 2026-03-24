@@ -8,12 +8,13 @@ from typing import Any
 from fastapi import APIRouter, Depends
 
 from money4band.api._deps import ConfigPaths, get_paths, load_user_config
+from money4band.api.schemas import NotificationStatus, NotificationTest
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/notifications", tags=["notifications"])
 
 
-@router.get("/status")
+@router.get("/status", response_model=NotificationStatus)
 async def notification_status(
     paths: ConfigPaths = Depends(get_paths),
 ) -> dict[str, Any]:
@@ -29,7 +30,7 @@ async def notification_status(
     }
 
 
-@router.post("/test")
+@router.post("/test", response_model=NotificationTest)
 async def send_test_notification(
     paths: ConfigPaths = Depends(get_paths),
 ) -> dict[str, Any]:

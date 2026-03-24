@@ -133,7 +133,7 @@ def stop_stack(
 
         # Activate all infrastructure profiles so profiled services are included
         # in the shutdown.  Docker Compose ignores unknown profile flags.
-        for profile in ("monitoring", "dashboard", "proxy"):
+        for profile in ("monitoring", "proxy"):
             command.extend(["--profile", profile])
 
         command.extend(["down"])

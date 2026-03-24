@@ -430,38 +430,13 @@ def setup_multiproxy_instances(
                         # Only increment port_app_index for apps that have ports
                         port_app_index += 1
 
-        # Properly disable dashboard for multiproxy instances to avoid port conflicts
+        # Disable dashboard for multiproxy instances (dashboard is a
+        # standalone FastAPI process, not a Docker container — disabling
+        # just prevents the instance from trying to start its own server).
         if "m4b_dashboard" in instance_user_config:
             instance_user_config["m4b_dashboard"]["enabled"] = False
-            # Remove dashboard port to ensure it's not included anywhere in multiproxy instances
-            if "ports" in instance_user_config["m4b_dashboard"]:
-                del instance_user_config["m4b_dashboard"]["ports"]
-
-            # Also completely remove dashboard port from proxy_service configuration ports
-            if (
-                "compose_config_common" in instance_user_config
-                and "proxy_service" in instance_user_config["compose_config_common"]
-                and "ports"
-                in instance_user_config["compose_config_common"]["proxy_service"]
-            ):
-                # Get ports configuration
-                ports = instance_user_config["compose_config_common"]["proxy_service"][
-                    "ports"
-                ]
-
-                # Filter out any dashboard port references
-                if isinstance(ports, list):
-                    dashboard_port = "${M4B_DASHBOARD_PORT}:80"
-                    ports = [port for port in ports if port != dashboard_port]
-                    instance_user_config["compose_config_common"]["proxy_service"][
-                        "ports"
-                    ] = ports
-                    logger.info(
-                        f"Filtered out dashboard port from proxy_service configuration for multiproxy instance {instance_project_name}"
-                    )
-
             logger.info(
-                f"Completely disabled dashboard for multiproxy instance {instance_project_name} to avoid port conflicts"
+                f"Disabled dashboard for multiproxy instance {instance_project_name}"
             )
 
         # Regenerate UUIDs for apps that require them

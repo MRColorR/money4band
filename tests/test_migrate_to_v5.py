@@ -103,7 +103,7 @@ def sample_template() -> dict:
             },
             "packetstream": {"enabled": False, "cid": "yourPACKETSTREAMCID"},
         },
-        "m4b_dashboard": {"enabled": True, "ports": [8081]},
+        "m4b_dashboard": {"enabled": True, "port": 8088},
         "proxies": {"enabled": False, "url": ""},
     }
 
@@ -219,7 +219,7 @@ class TestBuildV5Config:
     def test_dashboard_port(self, sample_template: dict, sample_flag_map: dict) -> None:
         env = {"M4B_DASHBOARD_PORT": "9090"}
         config = build_v5_config(sample_template, env, sample_flag_map, None)
-        assert config["m4b_dashboard"]["ports"] == [9090]
+        assert config["m4b_dashboard"]["port"] == 9090
 
     def test_proxy_settings(self, sample_template: dict, sample_flag_map: dict) -> None:
         env = {
@@ -354,7 +354,7 @@ class TestMigrate:
                 "earnapp": {"enabled": False, "uuid": "yourEARNAPPDeviceUUID"},
                 "honeygain": {"enabled": False, "email": "...", "password": "..."},
             },
-            "m4b_dashboard": {"enabled": True, "ports": [8081]},
+            "m4b_dashboard": {"enabled": True, "port": 8088},
             "proxies": {"enabled": False, "url": ""},
         }
         (root / "template" / "user-config.json").write_text(

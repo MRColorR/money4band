@@ -29,7 +29,7 @@ def _minimal_user_config(enabled_apps=None):
             "detected_architecture": "amd64",
         },
         "apps": apps,
-        "m4b_dashboard": {"enabled": True, "ports": [8081]},
+        "m4b_dashboard": {"enabled": True, "port": 8088},
         "watchtower": {"enabled": True},
         "notifications": {"enabled": False},
         "proxies": {"enabled": False, "url": ""},
@@ -67,7 +67,7 @@ def test_summary_shows_dashboard_url(_isolate_summary_path):
     generate_setup_summary(user_cfg, {})
     with open(_isolate_summary_path) as f:
         content = f.read()
-    assert "http://localhost:8081" in content
+    assert "http://localhost:8088" in content
 
 
 def test_summary_proxy_disabled(_isolate_summary_path):

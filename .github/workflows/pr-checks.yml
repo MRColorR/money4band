@@ -68,4 +68,4 @@ jobs:
         with:
           python-version: "3.13"
       - run: pip install bandit[toml]
-      - run: bandit -r money4band/ main.py -c pyproject.toml --severity-level medium || true
+      - run: bandit -r money4band/ main.py -c pyproject.toml --severity-level medium

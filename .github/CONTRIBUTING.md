@@ -1,4 +1,4 @@
-# Welcome to Mooney4Band contributing guide
+# Welcome to Money4Band contributing guide
 Thank you for investing your time in contributing to this project!
 
 - Read our Code of Conduct to keep our community approachable and respectable.
@@ -36,7 +36,7 @@ Scan through our existing issues to find one that interests you. You can narrow 
 
 ### Commit your update
 
-Commit the changes once you are happy with them. Don't forget to [self-review](/contributing/self-review.md) to speed up the review process:zap:.
+Commit the changes once you are happy with them. Don't forget to self-review to speed up the review process:zap:.
 
 ### Pull Request
 

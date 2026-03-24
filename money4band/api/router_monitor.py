@@ -2,18 +2,20 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from typing import Any
 
 from fastapi import APIRouter, Depends, Query
 
 from money4band.api._deps import ConfigPaths, get_paths
+from money4band.api.schemas import ContainerHealth, RestartLoop
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/monitor", tags=["monitor"])
 
 
-@router.get("/health")
+@router.get("/health", response_model=list[ContainerHealth])
 async def stack_health(
     project: str | None = Query(None, description="Docker Compose project filter"),
     paths: ConfigPaths = Depends(get_paths),
@@ -21,7 +23,7 @@ async def stack_health(
     """Return rich health status for all stack containers."""
     from money4band.monitor import get_stack_health
 
-    statuses = get_stack_health(project_filter=project)
+    statuses = await asyncio.to_thread(get_stack_health, project_filter=project)
     return [
         {
             "name": s.name,
@@ -36,7 +38,7 @@ async def stack_health(
     ]
 
 
-@router.get("/restart-loops")
+@router.get("/restart-loops", response_model=list[RestartLoop])
 async def restart_loops(
     threshold: int = Query(5, ge=1, description="Restart count threshold"),
     paths: ConfigPaths = Depends(get_paths),
@@ -44,7 +46,7 @@ async def restart_loops(
     """Detect containers stuck in restart loops."""
     from money4band.monitor import get_stack_health
 
-    statuses = get_stack_health()
+    statuses = await asyncio.to_thread(get_stack_health)
     loops: list[dict[str, Any]] = []
     for s in statuses:
         if s.restart_count >= threshold:

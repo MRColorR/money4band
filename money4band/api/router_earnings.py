@@ -8,12 +8,13 @@ from typing import Any
 from fastapi import APIRouter, Depends, Query
 
 from money4band.api._deps import ConfigPaths, get_paths, load_app_config
+from money4band.api.schemas import EarningsResponse
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/earnings", tags=["earnings"])
 
 
-@router.get("")
+@router.get("", response_model=EarningsResponse)
 async def get_earnings(
     ip_type: str = Query(
         "residential", description="IP type: residential or datacenter"
@@ -26,8 +27,8 @@ async def get_earnings(
     app_config = load_app_config()
     apps = get_app_earnings(app_config, ip_type=ip_type)
 
-    total_min = sum(a.get("min", 0) for a in apps)
-    total_max = sum(a.get("max", 0) for a in apps)
+    total_min = sum(a.get("range_low", 0) for a in apps)
+    total_max = sum(a.get("range_high", 0) for a in apps)
 
     return {
         "ip_type": ip_type,

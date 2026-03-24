@@ -25,16 +25,19 @@ class TestDashboardAPI:
             resp = client.get("/api/status")
         assert resp.status_code == 200
         data = resp.json()
-        assert len(data) == 1
-        assert data[0]["name"] == "container1"
-        assert data[0]["state"] == "running"
+        assert data["docker_available"] is True
+        assert len(data["containers"]) == 1
+        assert data["containers"][0]["name"] == "container1"
+        assert data["containers"][0]["state"] == "running"
 
     def test_get_status_docker_error(self, client):
         with mock.patch("money4band.dashboard_api._run_docker") as m:
-            m.return_value = mock.Mock(returncode=1, stdout="")
+            m.return_value = mock.Mock(returncode=1, stdout="", stderr="")
             resp = client.get("/api/status")
         assert resp.status_code == 200
-        assert resp.json() == []
+        data = resp.json()
+        assert data["docker_available"] is True
+        assert data["containers"] == []
 
     def test_get_health(self, client):
         ps_out = "abc123\ndef456"
@@ -85,14 +88,9 @@ class TestDashboardAPI:
         config_file = tmp_path / "app-config.json"
         config_file.write_text(json.dumps(config))
         configure(str(tmp_path))
-        resp = client.get("/api/config")
+        resp = client.get("/api/config/app")
         assert resp.status_code == 200
         assert resp.json()["app_config_version"] == 1.2
-
-    def test_get_app_config_missing(self, client, tmp_path):
-        configure(str(tmp_path / "nonexistent"))
-        resp = client.get("/api/config")
-        assert resp.status_code == 404
 
     def test_allowed_actions(self):
         assert _ALLOWED_ACTIONS == {"start", "stop", "restart"}

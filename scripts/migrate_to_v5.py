@@ -167,7 +167,7 @@ def build_v5_config(
     if "M4B_DASHBOARD_PORT" in env_vars:
         dashboard = config.setdefault("m4b_dashboard", {})
         try:
-            dashboard["ports"] = [int(env_vars["M4B_DASHBOARD_PORT"])]
+            dashboard["port"] = int(env_vars["M4B_DASHBOARD_PORT"])
         except ValueError:
             pass
 

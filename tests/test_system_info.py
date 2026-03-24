@@ -14,7 +14,26 @@ import pytest
 _M4B_CONFIG = {
     "project": {"project_version": "5.0.0"},
     "system": {
-        "dns": {"mode": "default", "servers": ["1.1.1.1", "8.8.8.8"]},
+        "dns": {
+            "mode": "default",
+            "servers": ["1.1.1.1", "8.8.8.8"],
+            "available_modes": [
+                "default", "cloudflare", "cloudflare-security",
+                "google", "quad9", "quad9-unfiltered",
+                "opendns", "dns4eu", "dns4eu-unfiltered", "custom",
+            ],
+            "presets": {
+                "cloudflare": ["1.1.1.1", "1.0.0.1"],
+                "cloudflare-security": ["1.1.1.2", "1.0.0.2"],
+                "google": ["8.8.8.8", "8.8.4.4"],
+                "quad9": ["9.9.9.9", "149.112.112.112"],
+                "quad9-unfiltered": ["9.9.9.10", "149.112.112.10"],
+                "opendns": ["208.67.222.222", "208.67.220.220"],
+                "dns4eu": ["86.54.11.1"],
+                "dns4eu-unfiltered": ["86.54.11.100"],
+            },
+            "default_servers": ["1.1.1.1", "8.8.8.8"],
+        },
         "default_docker_platform": "linux/amd64",
         "arch_map": {"amd64": "amd64"},
         "os_map": {"linux": "Linux"},
@@ -587,7 +606,8 @@ class TestDnsInteractive:
         from money4band.system_info import dns_interactive
 
         cfg = copy.deepcopy(_M4B_CONFIG)
-        cfg["system"]["dns"] = {"mode": "custom", "servers": ["1.2.3.4"]}
+        cfg["system"]["dns"]["mode"] = "custom"
+        cfg["system"]["dns"]["servers"] = ["1.2.3.4"]
         cfg_path = tmp_path / "m4b-config.json"
         cfg_path.write_text(json.dumps(cfg))
 

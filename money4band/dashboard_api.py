@@ -16,9 +16,9 @@ import os
 import subprocess
 from typing import Any
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
 from money4band.api._deps import configure_paths
@@ -38,19 +38,105 @@ from money4band.api.router_update import router as update_router
 
 logger = logging.getLogger(__name__)
 
+# OpenAPI security scheme — shows the "Authorize" padlock in Swagger UI.
+_bearer_scheme = {
+    "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": (
+            "Paste the API key shown at dashboard startup "
+            "(or via `m4b dashboard --show-key`)."
+        ),
+    }
+}
+
 app = FastAPI(
     title="M4B Dashboard API",
     version="2.0.0",
     docs_url="/api/docs",
     openapi_url="/api/openapi.json",
+    swagger_ui_init_oauth={},
+    openapi_tags=None,
 )
+
+# Inject the security scheme into the generated OpenAPI spec so Swagger
+# renders an "Authorize" button where users can enter their Bearer token.
+_original_openapi = app.openapi
+
+
+def _custom_openapi():  # type: ignore[no-untyped-def]
+    if app.openapi_schema:
+        return app.openapi_schema
+    schema = _original_openapi()
+    schema.setdefault("components", {}).setdefault("securitySchemes", {}).update(
+        _bearer_scheme
+    )
+    # Apply globally — every endpoint requires it (middleware handles actual auth).
+    schema["security"] = [{"BearerAuth": []}]
+    app.openapi_schema = schema
+    return schema
+
+
+app.openapi = _custom_openapi  # type: ignore[method-assign]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$",
     allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["*"],
 )
+
+# ---------------------------------------------------------------------------
+# API-key auth — auto-generated, stored in user-config, localhost exempt.
+# ---------------------------------------------------------------------------
+
+_LOOPBACK = frozenset({"127.0.0.1", "::1", "localhost"})
+_PUBLIC_PREFIXES = ("/api/docs", "/api/openapi.json", "/docs", "/openapi.json")
+
+# Populated by configure() from user-config or freshly generated.
+_api_key: str = ""
+
+# True when the server is bound to a non-loopback address (0.0.0.0, LAN IP, …).
+# When exposed, the auth middleware NEVER skips auth even if no key is set
+# it will reject all non-localhost requests with 401.
+_exposed: bool = False
+
+
+def is_exposed() -> bool:
+    """Return True when the server is bound to a non-loopback address."""
+    return _exposed
+
+
+@app.middleware("http")
+async def _auth_middleware(request: Request, call_next):  # type: ignore[no-untyped-def]
+    """Require ``Authorization: Bearer <key>`` for non-localhost API calls."""
+    path = request.url.path
+
+    # Always allow non-API routes (static frontend), docs, and health.
+    if not path.startswith("/api/") or path.startswith(_PUBLIC_PREFIXES):
+        return await call_next(request)
+
+    # Localhost is trusted when binding to loopback only.
+    client_host = request.client.host if request.client else ""
+    if not _exposed and client_host in _LOOPBACK:
+        return await call_next(request)
+
+    # If no key configured and we're NOT exposed, auth is disabled
+    # (fresh install / tests).  When exposed, always require a key.
+    if not _api_key:
+        if _exposed:
+            return JSONResponse(
+                status_code=401,
+                content={"detail": "API key required (server is exposed)"},
+            )
+        return await call_next(request)
+
+    # All callers must supply a valid token.
+    auth = request.headers.get("authorization", "")
+    if auth == f"Bearer {_api_key}":
+        return await call_next(request)
+
+    return JSONResponse(status_code=401, content={"detail": "Unauthorized"})
 
 # Register modular API routers
 app.include_router(stack_router)
@@ -74,36 +160,93 @@ _ALLOWED_ACTIONS = {"start", "stop", "restart"}
 
 def configure(config_dir: str, base_dir: str | None = None) -> None:
     """Set config directory for the dashboard API and all routers."""
-    global _config_dir
+    global _config_dir, _api_key
     _config_dir = config_dir
     if base_dir is None:
         base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     configure_paths(config_dir=config_dir, base_dir=base_dir)
 
+    # Load API key from user-config if present (do NOT generate here).
+    user_cfg_path = os.path.join(config_dir, "user-config.json")
+    try:
+        from money4band.loader import load_json_config
 
-def _run_docker(*args: str) -> subprocess.CompletedProcess[str]:
-    """Run a docker command and return the result."""
+        cfg = load_json_config(user_cfg_path)
+        _api_key = cfg.get("m4b_dashboard", {}).get("api_key", "")
+    except Exception:  # noqa: BLE001
+        _api_key = ""
+
+
+def ensure_api_key(config_dir: str) -> str:
+    """Generate and persist an API key if one doesn't exist yet.
+
+    Delegates to ``dashboard_setup.ensure_api_key_on_disk`` and syncs
+    the module-level ``_api_key`` used by the auth middleware.
+    """
+    global _api_key
+    if _api_key:
+        return _api_key
+
+    from money4band.dashboard_setup import ensure_api_key_on_disk
+
+    key = ensure_api_key_on_disk(config_dir)
+    _api_key = key
+    return key
+
+
+def regenerate_api_key(config_dir: str) -> str:
+    """Force-regenerate the API key and update the auth middleware."""
+    global _api_key
+    from money4band.dashboard_setup import regenerate_api_key_on_disk
+
+    key = regenerate_api_key_on_disk(config_dir)
+    if key:
+        _api_key = key
+    return key
+
+
+def _run_docker_sync(*args: str) -> subprocess.CompletedProcess[str]:
+    """Run a docker command and return the result (blocking)."""
     cmd = ["docker"] + list(args)
     return subprocess.run(  # noqa: S603
         cmd, capture_output=True, text=True, timeout=30
     )
 
 
-@app.get("/api/status")
-async def get_status() -> list[dict[str, Any]]:
-    """Return status of all M4B containers."""
-    result = _run_docker(
-        "ps",
-        "-a",
-        "--filter",
-        "label=com.centurylinklabs.watchtower.enable=true",
-        "--format",
-        "{{.Names}}\t{{.Status}}\t{{.State}}\t{{.Ports}}",
-    )
-    containers: list[dict[str, Any]] = []
-    if result.returncode != 0:
-        return containers
+async def _run_docker(*args: str) -> subprocess.CompletedProcess[str]:
+    """Run a docker command off the event loop."""
+    import asyncio
 
+    return await asyncio.to_thread(_run_docker_sync, *args)
+
+
+@app.get("/api/status")
+async def get_status() -> dict[str, Any]:
+    """Return status of M4B containers plus Docker availability info.
+
+    When Docker is unreachable or no M4B containers exist the response
+    still provides useful context (``docker_available``, ``containers``).
+    """
+    try:
+        result = await _run_docker(
+            "ps",
+            "-a",
+            "--filter",
+            "label=com.centurylinklabs.watchtower.enable=true",
+            "--format",
+            "{{.Names}}\t{{.Status}}\t{{.State}}\t{{.Ports}}",
+        )
+    except Exception:
+        return {"docker_available": False, "error": "Docker is not reachable", "containers": []}
+
+    if result.returncode != 0:
+        return {
+            "docker_available": True,
+            "error": result.stderr.strip() or "docker ps failed",
+            "containers": [],
+        }
+
+    containers: list[dict[str, Any]] = []
     for line in result.stdout.strip().splitlines():
         parts = line.split("\t")
         if len(parts) >= 3:
@@ -115,13 +258,14 @@ async def get_status() -> list[dict[str, Any]]:
                     "ports": parts[3] if len(parts) > 3 else "",
                 }
             )
-    return containers
+
+    return {"docker_available": True, "containers": containers}
 
 
 @app.get("/api/health")
 async def get_health() -> list[dict[str, Any]]:
     """Return health status for all M4B containers via docker inspect."""
-    result = _run_docker(
+    result = await _run_docker(
         "ps",
         "-a",
         "-q",
@@ -132,7 +276,7 @@ async def get_health() -> list[dict[str, Any]]:
         return []
 
     ids = result.stdout.strip().splitlines()
-    inspect_result = _run_docker(
+    inspect_result = await _run_docker(
         "inspect",
         "--format",
         '{"name":"{{.Name}}","running":{{.State.Running}},'
@@ -157,7 +301,7 @@ async def get_health() -> list[dict[str, Any]]:
 @app.get("/api/stats")
 async def get_stats() -> list[dict[str, Any]]:
     """Return CPU and memory stats for running M4B containers."""
-    result = _run_docker(
+    result = await _run_docker(
         "stats",
         "--no-stream",
         "--format",
@@ -193,7 +337,7 @@ async def container_action(container: str, action: str) -> dict[str, str]:
     if not re.match(r"^[a-zA-Z0-9._-]+$", container):
         raise HTTPException(status_code=400, detail="Invalid container name")
 
-    result = _run_docker(action, container)
+    result = await _run_docker(action, container)
     if result.returncode != 0:
         raise HTTPException(status_code=500, detail=result.stderr.strip())
 
@@ -206,7 +350,7 @@ async def event_stream() -> StreamingResponse:
 
     async def generate():
         while True:
-            result = _run_docker(
+            result = await _run_docker(
                 "ps",
                 "-a",
                 "--filter",
@@ -227,18 +371,8 @@ async def event_stream() -> StreamingResponse:
     return StreamingResponse(generate(), media_type="text/event-stream")
 
 
-@app.get("/api/config")
-async def get_app_config() -> dict[str, Any]:
-    """Return the current app-config.json for the frontend."""
-    config_path = os.path.join(_config_dir, "app-config.json")
-    if not os.path.isfile(config_path):
-        raise HTTPException(status_code=404, detail="app-config.json not found")
-    with open(config_path, encoding="utf-8") as f:
-        return json.load(f)
-
-
 def _mount_frontend() -> None:
-    """Mount the static web dashboard at ``/`` replicating the nginx layout."""
+    """Mount the static web dashboard at ``/``."""
     base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     www_dir = os.path.join(base, ".resources", ".www")
     assets_dir = os.path.join(base, ".resources", ".assets")
@@ -249,11 +383,63 @@ def _mount_frontend() -> None:
         app.mount("/", StaticFiles(directory=www_dir, html=True), name="frontend")
 
 
-def start_server(host: str = "0.0.0.0", port: int = 8088) -> None:
-    """Start the dashboard API server."""
+def find_dashboard_port(preferred: int = 8088) -> int:
+    """Return *preferred* if free, otherwise the next available port.
+
+    Uses the shared :func:`networker.find_next_available_port` helper so
+    the behaviour is consistent with the rest of the project.
+    """
+    from money4band.networker import is_port_in_use
+
+    if not is_port_in_use(preferred):
+        return preferred
+
+    from money4band.networker import find_next_available_port
+
+    return find_next_available_port(preferred + 1)
+
+
+def start_server(
+    host: str = "127.0.0.1",
+    port: int = 8088,
+) -> None:
+    """Start the dashboard API server.
+
+    Parameters
+    ----------
+    host:
+        Bind address.  Defaults to ``127.0.0.1`` (localhost only).
+        Pass ``0.0.0.0`` to expose on all interfaces (LAN / VPS).
+    port:
+        Preferred port.  If the port is occupied an alternative is
+        chosen automatically and a warning is logged.
+    """
     import uvicorn
+
+    global _exposed
+    _exposed = host not in ("127.0.0.1", "::1", "localhost")
 
     configure(_config_dir)
     _mount_frontend()
+
+    # Always verify port availability.
+    resolved = find_dashboard_port(port)
+    if resolved != port:
+        logger.warning("Port %d in use — falling back to %d", port, resolved)
+    port = resolved
+
+    # Generate / load API key for remote access.
+    key = ensure_api_key(_config_dir)
+    if key:
+        logger.info("Dashboard API key: %s…", key[:8])
+
+    if _exposed and not key:
+        logger.warning(
+            "Server is exposed on %s but no API key is configured — "
+            "generating one automatically.",
+            host,
+        )
+        key = regenerate_api_key(_config_dir)
+
     logger.info("Starting M4B Dashboard API on %s:%d", host, port)
     uvicorn.run(app, host=host, port=port, log_level="info")

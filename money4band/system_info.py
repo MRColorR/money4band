@@ -17,11 +17,28 @@ from money4band.loader import load_json_config
 from money4band.updater import check_for_update
 
 # ---------------------------------------------------------------------------
-# DNS helpers
+# DNS helpers — all data lives in m4b-config.json (system.dns section).
 # ---------------------------------------------------------------------------
 
-DNS_MODES = ("default", "custom")
-_DEFAULT_SERVERS = ["1.1.1.1", "8.8.8.8"]
+
+def _dns_section(m4b_config: dict[str, Any]) -> dict[str, Any]:
+    """Return the ``system.dns`` section from *m4b_config*."""
+    return m4b_config.get("system", {}).get("dns", {})
+
+
+def get_dns_modes(m4b_config: dict[str, Any]) -> tuple[str, ...]:
+    """Return the available DNS modes from config."""
+    return tuple(_dns_section(m4b_config).get("available_modes", ()))
+
+
+def get_dns_presets(m4b_config: dict[str, Any]) -> dict[str, list[str]]:
+    """Return DNS presets from config."""
+    return dict(_dns_section(m4b_config).get("presets", {}))
+
+
+def get_default_servers(m4b_config: dict[str, Any]) -> list[str]:
+    """Return the default DNS servers from config."""
+    return list(_dns_section(m4b_config).get("default_servers", []))
 
 
 def is_valid_ipv4(address: str) -> bool:
@@ -48,7 +65,7 @@ def compose_regen_reminder() -> None:
 def get_dns_config(m4b_config: dict[str, Any]) -> dict[str, Any]:
     """Return the DNS section from the system config."""
     return m4b_config.get("system", {}).get(
-        "dns", {"mode": "default", "servers": _DEFAULT_SERVERS}
+        "dns", {"mode": "default", "servers": get_default_servers(m4b_config)}
     )
 
 
@@ -56,19 +73,24 @@ def set_dns_mode(
     m4b_config_path: str, mode: str, servers: list[str] | None = None
 ) -> None:
     """Persist a DNS mode (and optional server list) to m4b-config.json."""
-    if mode not in DNS_MODES:
+    cfg = load_json_config(m4b_config_path)
+    valid_modes = get_dns_modes(cfg)
+    if mode not in valid_modes:
         raise ValueError(
-            f"Invalid DNS mode '{mode}'. Choose from: {', '.join(DNS_MODES)}"
+            f"Invalid DNS mode '{mode}'. Choose from: {', '.join(valid_modes)}"
         )
     if servers is not None:
         invalid = [s for s in servers if not is_valid_ipv4(s)]
         if invalid:
             raise ValueError(f"Invalid IPv4 address(es): {', '.join(invalid)}")
-    cfg = load_json_config(m4b_config_path)
     dns = cfg.setdefault("system", {}).setdefault("dns", {})
     dns["mode"] = mode
     if servers is not None:
         dns["servers"] = servers
+    else:
+        presets = get_dns_presets(cfg)
+        if mode in presets:
+            dns["servers"] = presets[mode]
     write_json(cfg, m4b_config_path)
 
 
@@ -93,7 +115,7 @@ def dns_interactive(m4b_config_path: str) -> None:
     show_dns_status(m4b_config)
 
     dns = get_dns_config(m4b_config)
-    current_servers = dns.get("servers", _DEFAULT_SERVERS)
+    current_servers = dns.get("servers", get_default_servers(m4b_config))
     current_mode = dns.get("mode", "default")
     current_hint = (
         f"current: {', '.join(current_servers)}"

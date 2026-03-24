@@ -56,9 +56,9 @@ def generate_setup_summary(
     # --- Dashboard ---
     dash = user_config.get("m4b_dashboard", {})
     if dash.get("enabled"):
-        ports = dash.get("ports", [8081])
+        port = dash.get("port", 8088)
         lines.append("")
-        lines.append(f"Dashboard: http://localhost:{ports[0] if ports else 8081}")
+        lines.append(f"Dashboard: http://localhost:{port}")
     else:
         lines.append("")
         lines.append("Dashboard: disabled")
@@ -97,9 +97,9 @@ def generate_setup_summary(
     lines.append("")
     lines.append("Estimated Resource Usage")
     lines.append(
-        f"  Active containers: ~{len(enabled_apps) + (2 if dash.get('enabled') else 1)}"
+        f"  Active containers: ~{len(enabled_apps) + 1}"
     )
-    lines.append("  (watchtower + dashboard + one per enabled app)")
+    lines.append("  (watchtower + one per enabled app)")
 
     lines.append("")
     lines.append("=" * 60)
@@ -120,7 +120,7 @@ def generate_setup_summary(
     print(f"{'=' * 50}{Style.RESET_ALL}")
     print(f"  Enabled apps: {Fore.CYAN}{len(enabled_apps)}{Style.RESET_ALL}")
     if dash.get("enabled"):
-        port = dash.get("ports", [8081])[0] if dash.get("ports") else 8081
+        port = dash.get("port", 8088)
         print(f"  Dashboard:    {Fore.CYAN}http://localhost:{port}{Style.RESET_ALL}")
     print(
         f"  Proxy:        {Fore.CYAN}{'enabled' if proxy_enabled else 'disabled'}{Style.RESET_ALL}"
