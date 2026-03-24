@@ -15,12 +15,34 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
-      - run: pip install ruff
-      - run: ruff check .
-      - run: ruff format --check .
+      - run: uv tool run ruff check .
+      - run: uv tool run ruff format --check .
+
+  tables:
+    name: App tables up-to-date
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: uv sync --frozen
+      - run: uv run python scripts/update_tables.py --check
+
+  secrets:
+    name: Credential scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: python scripts/check-secrets.py
 
   test:
     name: Test (pytest)
@@ -32,40 +54,34 @@ jobs:
         python-version: ["3.10", "3.12", "3.13"]
     steps:
       - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install -r requirements-dev.txt
+      - run: uv sync --frozen --group dev
       - name: Run tests
-        run: python -m pytest --tb=short -q
+        run: uv run python -m pytest --tb=short -q
 
   typecheck:
     name: Type-check (mypy)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install -r requirements-dev.txt
-          pip install mypy types-requests types-PyYAML
-      - run: mypy --ignore-missing-imports money4band/ main.py
+      - run: uv sync --frozen --group dev
+      - run: uv pip install mypy types-requests types-PyYAML
+      - run: uv run mypy --ignore-missing-imports money4band/ main.py
 
   security:
     name: Security scan (bandit)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
-      - run: pip install bandit[toml]
-      - run: bandit -r money4band/ main.py -c pyproject.toml --severity-level medium
+      - run: uv tool run bandit -r money4band/ main.py -c pyproject.toml --severity-level medium

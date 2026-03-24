@@ -11,7 +11,20 @@ permissions:
   actions: read        # needed to download artifacts
 
 jobs:
+  # Gate: run tests before building release artifacts
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: uv sync --frozen --group dev
+      - run: uv run python -m pytest --tb=short -q
+
   build:
+    needs: test
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -34,7 +47,9 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.13'
-          #cache: 'pip'  # Enables caching for pip dependencies , it seems to fail in DinD containers for arm builds
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
 
       # Step to print platform details for diagnostic purposes
       - name: Check Python platform info
@@ -48,11 +63,16 @@ jobs:
       # Step: Install dependencies
       - name: Install dependencies
         if: matrix.os != 'ubuntu-latest' || (matrix.architecture != 'arm64' && matrix.architecture != 'arm/v7')
-        shell: bash  # Use bash shell for consistency
+        shell: bash
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pyinstaller  # Install PyInstaller
+          uv sync --frozen
+          uv pip install pyinstaller
+
+      # Step: Regenerate app tables in README.md and docs/APPS.md
+      - name: Update app tables
+        if: matrix.os != 'ubuntu-latest' || (matrix.architecture != 'arm64' && matrix.architecture != 'arm/v7')
+        shell: bash
+        run: uv run python scripts/update_tables.py
 
       # Step: Build with PyInstaller
       # Note: PyInstaller --add-data uses ';' on Windows and ':' on Unix regardless of shell
@@ -61,7 +81,7 @@ jobs:
         shell: bash
         run: |
           if [[ "$RUNNER_OS" == "Windows" ]]; then SEP=";"; else SEP=":"; fi
-          pyinstaller --onedir \
+          uv run pyinstaller --onedir \
             --name Money4Band \
             main.py \
             --hidden-import colorama \

@@ -1,7 +1,7 @@
 version: 2
 updates:
-  # Python dependencies (pip)
-  - package-ecosystem: "pip"
+  # Python dependencies (uv)
+  - package-ecosystem: "uv"
     directory: "/"
     schedule:
       interval: "weekly"
@@ -25,16 +25,3 @@ updates:
       - "ci"
     commit-message:
       prefix: "ci"
-
-  # Docker (compose images)
-  - package-ecosystem: "docker"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-    reviewers:
-      - "MRColorR"
-    labels:
-      - "docker"
-    commit-message:
-      prefix: "docker"

@@ -1,5 +1,5 @@
 # Pre-commit hooks for Money4Band
-# Install: pip install pre-commit && pre-commit install
+# Install: uv tool install pre-commit && pre-commit install
 # Run manually: pre-commit run --all-files
 
 repos:

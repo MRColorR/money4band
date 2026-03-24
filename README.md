@@ -34,11 +34,11 @@
 
 **Money4Band (M4B)** turns your unused internet bandwidth into passive income. That bandwidth is there anyway whether you're using it or not. Why not put it to work? One command. All the bandwidth-sharing apps. Each one runs in its own isolated Docker container, so your system stays clean, your setup is safer than installing each app natively, and you earn more than any single app could deliver alone.
 
-We created M4B because nothing like it existed. We were the first to create and share a complete, structured, engineered, and easy-to-use open source project. If something like this had already existed, we would have joined that project instead. But nobody was out there, so we created it ourselves, for everyone.
-
 Our maintainers and community are passionate about this space. We **research** every app, **verify** its background, **track** payout history, and **monitor** real-world behavior over time. You don't have to figure out which apps are legit and which are a waste of time. That work is already done.
 
-Since then, others have followed. Good. That means we got it right. The original keeps moving forward, and the community behind it is open to everyone. Not just developers. Not just contributors. Everyone. [Come build with us.](https://discord.com/invite/Fq8eeazBAD)
+We created M4B because nothing like it existed. We were the first to create and share a complete, structured, engineered, and easy-to-use open source project. If something like this had already existed, we would have joined that project. But nobody was out there, so we created it ourselves, for everyone.
+
+Since then, others have followed. Good. That means we got it right. The original keeps moving forward, and the community behind it is open to everyone. Not just experts. Not just contributors. Everyone. [Come build with us.](https://discord.com/invite/Fq8eeazBAD)
 
 ## ⚡ Quick Start
 

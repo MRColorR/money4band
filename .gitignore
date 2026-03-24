@@ -22,8 +22,6 @@ htmlcov/
 .ruff_cache/
 .pytest_cache/
 .backup/
-base/
-examples/
 # pyinstaller folders
 build
 dist
