@@ -444,9 +444,9 @@ def assemble_docker_compose(
         # configured (mode="custom"), otherwise leave Docker's host-inherited
         # defaults alone (mode="default").  This replaces any per-app
         # hardcoded DNS entries with a single source of truth.
-        dns_cfg = m4b_config.get("system", {}).get("dns", {})
-        if dns_cfg.get("mode") == "custom":
-            dns_servers = dns_cfg.get("servers", [])
+        dns_cfg = user_config.get("settings", {})
+        if dns_cfg.get("dns_mode") == "custom":
+            dns_servers = dns_cfg.get("dns_servers", [])
             if dns_servers:
                 for svc_config in services.values():
                     svc_config["dns"] = list(dns_servers)

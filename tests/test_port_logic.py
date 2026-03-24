@@ -247,13 +247,14 @@ class TestPortLogic(unittest.TestCase):
         m4b_config = {
             "network": {"subnet": "172.19.7.0", "netmask": "27"},
             "system": {},
-            "watchtower": {"enable_labels": False, "scope": "custom-scope"},
+            "watchtower": {"scope": "custom-scope"},
         }
         app_config = {"supported-apps": {"active": True, "entries": []}}
         user_config = {
             "device_info": {"device_name": "testdev"},
             "resource_limits": {},
             "apps": {},
+            "watchtower": {"enable_labels": False},
         }
 
         with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".env") as f:

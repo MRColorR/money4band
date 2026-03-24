@@ -129,17 +129,18 @@ def get_valid_profiles(m4b_config: dict[str, Any]) -> tuple[str, ...]:
     return tuple(keys) if keys else ()
 
 
-def get_active_profile(m4b_config: dict[str, Any]) -> str:
+def get_active_profile(user_config: dict[str, Any]) -> str:
     """Return the currently active resource profile name."""
-    return m4b_config.get("resource_profiles", {}).get("active", "standard")
+    return user_config.get("settings", {}).get("resource_profile", "standard")
 
 
 def get_profile_definition(
-    m4b_config: dict[str, Any], name: str | None = None
+    m4b_config: dict[str, Any], name: str | None = None, *, user_config: dict[str, Any] | None = None
 ) -> dict[str, Any]:
-    """Return the profile dict for *name* (defaults to active)."""
+    """Return the profile dict for *name* defaulting to standard."""
     rp = m4b_config.get("resource_profiles", {})
-    name = name or rp.get("active", "standard")
+    if name is None:
+        name = get_active_profile(user_config) if user_config else "standard"
     return rp.get("profiles", {}).get(name, {"cpu_pct": 0.60, "ram_pct": 0.40})
 
 
@@ -149,7 +150,7 @@ def calculate_resource_limits(
 ) -> None:
     """Compute per-tier resource limits using the active profile and system specs.
 
-    The active profile in ``m4b_config["resource_profiles"]["active"]``
+    The active profile stored in ``user_config["settings"]["resource_profile"]``
     determines the base CPU/RAM allocation via ``cpu_pct`` (fraction of
     detected cores) and ``ram_pct`` (fraction of total RAM).  Per-app tiers
     (LITTLE / MEDIUM / BIG / HUGE) then scale these bases with fixed
@@ -162,7 +163,7 @@ def calculate_resource_limits(
     # Resolve the active profile's base values.
     if m4b_config is None:
         raise ValueError("m4b_config is required for resource limit calculation")
-    profile = get_profile_definition(m4b_config)
+    profile = get_profile_definition(m4b_config, user_config=user_config)
     base_ram_mb = total_memory * profile.get("ram_pct", 0.40)
     base_cpu = cores * profile.get("cpu_pct", 0.60)
 
@@ -182,7 +183,7 @@ def calculate_resource_limits(
     write_json(user_config, user_config_path_or_dict)
     logger.debug(
         "Resource limits updated (profile=%s, base_ram=%.0f MB, base_cpu=%.1f)",
-        get_active_profile(m4b_config),
+        get_active_profile(user_config),
         base_ram_mb,
         base_cpu,
     )
@@ -196,7 +197,7 @@ def show_resource_profile_info(
     from colorama import Fore, Style
 
     total_mem, cores = get_system_memory_and_cores()
-    active = get_active_profile(m4b_config)
+    active = get_active_profile(user_config)
     profile = get_profile_definition(m4b_config, active)
 
     print(f"\n{Fore.CYAN}System:{Style.RESET_ALL} {total_mem:.0f} MB RAM, {cores} cores")

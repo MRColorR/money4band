@@ -131,6 +131,13 @@ def tmp_config(tmp_path):
             "earnapp": {"enabled": False},
         },
         "resource_limits": {},
+        "settings": {
+            "setup_completed": True,
+            "resource_profile": "standard",
+            "dns_mode": "default",
+            "dns_servers": [],
+            "enforce_install_limits": True,
+        },
         "notifications": {"enabled": False, "url": ""},
         "proxies": {"enabled": False},
     }

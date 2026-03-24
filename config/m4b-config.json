@@ -37,14 +37,8 @@
         "default_docker_platform": "linux/amd64",
         "registry_request_timeout": 15,
         "registry_max_retries": 3,
-        "enforce_install_limits": true,
         "compose_mode": "monolithic",
         "dns": {
-            "mode": "default",
-            "servers": [
-                "1.1.1.1",
-                "8.8.8.8"
-            ],
             "available_modes": [
                 "default",
                 "cloudflare",
@@ -96,7 +90,6 @@
         }
     },
     "resource_profiles": {
-        "active": "standard",
         "tiers": {
             "little": {
                 "mem_reserv": 0.03,
@@ -163,7 +156,6 @@
         }
     },
     "watchtower": {
-        "enable_labels": true,
         "scope": "money4band"
     },
     "menu": [

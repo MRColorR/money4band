@@ -16,56 +16,56 @@ from money4band.network.proxy_tools import (
 
 class TestToggleInstallLimits:
     def test_toggles_on_to_off(self, tmp_path, capsys):
-        cfg = {"system": {"enforce_install_limits": True}}
-        cfg_path = tmp_path / "m4b-config.json"
+        cfg = {"settings": {"enforce_install_limits": True}}
+        cfg_path = tmp_path / "user-config.json"
         cfg_path.write_text(json.dumps(cfg))
 
         with patch("builtins.input", return_value=""):
             toggle_install_limits(str(cfg_path))
 
         result = json.loads(cfg_path.read_text())
-        assert result["system"]["enforce_install_limits"] is False
+        assert result["settings"]["enforce_install_limits"] is False
         captured = capsys.readouterr()
         assert "DISABLED" in captured.out
 
     def test_toggles_off_to_on(self, tmp_path, capsys):
-        cfg = {"system": {"enforce_install_limits": False}}
-        cfg_path = tmp_path / "m4b-config.json"
+        cfg = {"settings": {"enforce_install_limits": False}}
+        cfg_path = tmp_path / "user-config.json"
         cfg_path.write_text(json.dumps(cfg))
 
         with patch("builtins.input", return_value=""):
             toggle_install_limits(str(cfg_path))
 
         result = json.loads(cfg_path.read_text())
-        assert result["system"]["enforce_install_limits"] is True
+        assert result["settings"]["enforce_install_limits"] is True
         captured = capsys.readouterr()
         assert "ENABLED" in captured.out
 
 
 class TestInstallLimitsStatusLabel:
     def test_enabled_shows_on(self, tmp_path):
-        cfg = {"system": {"enforce_install_limits": True}}
-        cfg_path = tmp_path / "m4b-config.json"
+        cfg = {"settings": {"enforce_install_limits": True}}
+        cfg_path = tmp_path / "user-config.json"
         cfg_path.write_text(json.dumps(cfg))
         label = _install_limits_status_label(str(cfg_path))
         assert "ON" in label
 
     def test_disabled_shows_off(self, tmp_path):
-        cfg = {"system": {"enforce_install_limits": False}}
-        cfg_path = tmp_path / "m4b-config.json"
+        cfg = {"settings": {"enforce_install_limits": False}}
+        cfg_path = tmp_path / "user-config.json"
         cfg_path.write_text(json.dumps(cfg))
         label = _install_limits_status_label(str(cfg_path))
         assert "OFF" in label
 
     def test_missing_file_defaults_on(self):
-        label = _install_limits_status_label("/nonexistent/m4b-config.json")
+        label = _install_limits_status_label("/nonexistent/user-config.json")
         assert "ON" in label
 
 
 class TestSubmenuMultiproxyTools:
     def test_returns_menu_items(self, tmp_path):
-        cfg = {"system": {"enforce_install_limits": True}}
-        cfg_path = tmp_path / "m4b-config.json"
+        cfg = {"settings": {"enforce_install_limits": True}}
+        cfg_path = tmp_path / "user-config.json"
         cfg_path.write_text(json.dumps(cfg))
         items = submenu_multiproxy_tools(str(cfg_path))
         assert len(items) >= 2

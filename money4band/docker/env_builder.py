@@ -82,9 +82,10 @@ def generate_env_file(
                 env_lines.append(f"WATCHTOWER_NOTIFICATION_{key.upper()}={value}")
 
         # Add Watchtower label scoping configuration
-        watchtower_config = m4b_config.get("watchtower", {})
-        watchtower_labels_enabled = watchtower_config.get("enable_labels", True)
-        watchtower_scope = watchtower_config.get("scope", "money4band")
+        watchtower_labels_enabled = user_config.get("watchtower", {}).get(
+            "enable_labels", True
+        )
+        watchtower_scope = m4b_config.get("watchtower", {}).get("scope", "money4band")
         env_lines.append(
             f"M4B_WATCHTOWER_LABELS={'true' if watchtower_labels_enabled else 'false'}"
         )

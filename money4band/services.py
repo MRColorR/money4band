@@ -332,14 +332,14 @@ def get_system_info_structured(
         "default_docker_platform", "linux/amd64"
     )
 
-    active_profile = detector.get_active_profile(m4b_config)
+    active_profile = detector.get_active_profile(user_config)
     profile_def = detector.get_profile_definition(m4b_config, active_profile)
     try:
         total_mem, cores = detector.get_system_memory_and_cores()
     except Exception:
         total_mem, cores = 0, 0
 
-    dns = get_dns_config(m4b_config)
+    dns = get_dns_config(user_config)
 
     apps_cfg = user_config.get("apps", {})
     enabled_apps = [

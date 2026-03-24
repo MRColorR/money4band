@@ -122,7 +122,7 @@ async def get_limits(
     usr = load_user_config()
     profiles = m4b.get("resource_profiles", {}).get("profiles", {})
     return {
-        "active_profile": get_active_profile(m4b),
+        "active_profile": get_active_profile(usr),
         "available_profiles": profiles,
         "resource_limits": usr.get("resource_limits", {}),
     }
@@ -151,9 +151,9 @@ async def set_limits(
             detail=f"Invalid profile '{payload.profile}'. Valid: {', '.join(valid)}",
         )
 
-    m4b = load_m4b_config()
-    m4b.setdefault("resource_profiles", {})["active"] = payload.profile
-    write_json(m4b, paths.m4b_config)
+    usr = load_user_config()
+    usr.setdefault("settings", {})["resource_profile"] = payload.profile
+    write_json(usr, paths.user_config)
 
     calculate_resource_limits(paths.user_config, m4b_config=m4b)
     return {"status": "ok", "profile": payload.profile}

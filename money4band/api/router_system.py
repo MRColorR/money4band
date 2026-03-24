@@ -66,8 +66,7 @@ async def get_dns(
     """Return the current DNS configuration."""
     from money4band.system.info import get_dns_config
 
-    m4b = load_m4b_config()
-    return get_dns_config(m4b)
+    return get_dns_config(load_user_config())
 
 
 class DnsUpdate(BaseModel):
@@ -92,5 +91,5 @@ async def set_dns(
             status_code=400,
             detail=f"Invalid mode '{payload.mode}'. Valid: {', '.join(valid_modes)}",
         )
-    set_dns_mode(paths.m4b_config, payload.mode, servers=payload.servers)
+    set_dns_mode(paths.m4b_config, paths.user_config, payload.mode, servers=payload.servers)
     return {"status": "ok", "mode": payload.mode}

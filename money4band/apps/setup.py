@@ -337,6 +337,11 @@ def main(
         # All steps complete — clean up progress file
         clear_progress()
 
+        # Mark setup as completed so the first-run wizard doesn't re-trigger
+        user_config = loader.load_json_config(user_config_path)
+        user_config.setdefault("settings", {})["setup_completed"] = True
+        write_json(user_config, user_config_path)
+
         # Generate and display post-setup summary
         generate_setup_summary(user_config, app_config)
         logger.info("Setup completed")

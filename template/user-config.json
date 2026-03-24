@@ -137,12 +137,20 @@
       "ports": [5900, 6080]
     }
   },
+  "settings": {
+    "setup_completed": false,
+    "resource_profile": "standard",
+    "dns_mode": "default",
+    "dns_servers": [],
+    "enforce_install_limits": true
+  },
   "m4b_dashboard": {
     "enabled": true,
     "port": 8088
   },
   "watchtower": {
-    "enabled": true
+    "enabled": true,
+    "enable_labels": true
   },
   "proxies": {
     "enabled": false,

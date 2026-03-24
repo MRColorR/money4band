@@ -130,6 +130,7 @@ def _empty_config(tmp_path):
         "device_info": {},
         "apps": {},
         "resource_limits": {},
+        "settings": {"resource_profile": "standard", "dns_mode": "default", "dns_servers": [], "enforce_install_limits": True, "setup_completed": True},
         "notifications": {"enabled": False, "url": ""},
         "proxies": {"enabled": False},
     }

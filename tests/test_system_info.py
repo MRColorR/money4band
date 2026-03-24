@@ -80,6 +80,13 @@ _USER_CONFIG = {
     "proxies": {"enabled": False},
     "notifications": {"enabled": False},
     "resource_limits": {},
+    "settings": {
+        "setup_completed": True,
+        "resource_profile": "standard",
+        "dns_mode": "default",
+        "dns_servers": ["1.1.1.1", "8.8.8.8"],
+        "enforce_install_limits": True,
+    },
     "compose_config_common": {
         "network": {"driver": "bridge", "subnet": "172.20.0.0", "netmask": "16"},
     },
@@ -95,98 +102,114 @@ class TestDNSConfig:
     def test_get_dns_config_default(self):
         from money4band.system.info import get_dns_config
 
-        cfg = copy.deepcopy(_M4B_CONFIG)
-        dns = get_dns_config(cfg)
+        usr = copy.deepcopy(_USER_CONFIG)
+        dns = get_dns_config(usr)
         assert dns["mode"] == "default"
         assert "1.1.1.1" in dns["servers"]
 
     def test_get_dns_config_missing_returns_default(self):
         from money4band.system.info import get_dns_config
 
-        cfg = {"system": {}}
-        dns = get_dns_config(cfg)
+        usr = {}
+        dns = get_dns_config(usr)
         assert dns["mode"] == "default"
 
     def test_set_dns_mode_custom(self, tmp_path):
         from money4band.system.info import set_dns_mode
 
-        cfg_path = tmp_path / "m4b-config.json"
-        cfg_path.write_text(json.dumps(copy.deepcopy(_M4B_CONFIG)))
+        m4b_path = tmp_path / "m4b-config.json"
+        m4b_path.write_text(json.dumps(copy.deepcopy(_M4B_CONFIG)))
+        usr_path = tmp_path / "user-config.json"
+        usr_path.write_text(json.dumps(copy.deepcopy(_USER_CONFIG)))
 
-        set_dns_mode(str(cfg_path), "custom", ["9.9.9.9", "149.112.112.112"])
+        set_dns_mode(str(m4b_path), str(usr_path), "custom", ["9.9.9.9", "149.112.112.112"])
 
-        result = json.loads(cfg_path.read_text())
-        assert result["system"]["dns"]["mode"] == "custom"
-        assert result["system"]["dns"]["servers"] == ["9.9.9.9", "149.112.112.112"]
+        result = json.loads(usr_path.read_text())
+        assert result["settings"]["dns_mode"] == "custom"
+        assert result["settings"]["dns_servers"] == ["9.9.9.9", "149.112.112.112"]
 
     def test_set_dns_mode_default(self, tmp_path):
         from money4band.system.info import set_dns_mode
 
-        cfg = copy.deepcopy(_M4B_CONFIG)
-        cfg["system"]["dns"]["mode"] = "custom"
-        cfg_path = tmp_path / "m4b-config.json"
-        cfg_path.write_text(json.dumps(cfg))
+        m4b_path = tmp_path / "m4b-config.json"
+        m4b_path.write_text(json.dumps(copy.deepcopy(_M4B_CONFIG)))
+        usr = copy.deepcopy(_USER_CONFIG)
+        usr["settings"]["dns_mode"] = "custom"
+        usr_path = tmp_path / "user-config.json"
+        usr_path.write_text(json.dumps(usr))
 
-        set_dns_mode(str(cfg_path), "default")
+        set_dns_mode(str(m4b_path), str(usr_path), "default")
 
-        result = json.loads(cfg_path.read_text())
-        assert result["system"]["dns"]["mode"] == "default"
+        result = json.loads(usr_path.read_text())
+        assert result["settings"]["dns_mode"] == "default"
 
     def test_set_dns_mode_invalid_raises(self, tmp_path):
         from money4band.system.info import set_dns_mode
 
-        cfg_path = tmp_path / "m4b-config.json"
-        cfg_path.write_text(json.dumps(copy.deepcopy(_M4B_CONFIG)))
+        m4b_path = tmp_path / "m4b-config.json"
+        m4b_path.write_text(json.dumps(copy.deepcopy(_M4B_CONFIG)))
+        usr_path = tmp_path / "user-config.json"
+        usr_path.write_text(json.dumps(copy.deepcopy(_USER_CONFIG)))
 
         with pytest.raises(ValueError, match="Invalid DNS mode"):
-            set_dns_mode(str(cfg_path), "invalid")
+            set_dns_mode(str(m4b_path), str(usr_path), "invalid")
 
     def test_set_dns_mode_rejects_invalid_ipv4(self, tmp_path):
         from money4band.system.info import set_dns_mode
 
-        cfg_path = tmp_path / "m4b-config.json"
-        cfg_path.write_text(json.dumps(copy.deepcopy(_M4B_CONFIG)))
+        m4b_path = tmp_path / "m4b-config.json"
+        m4b_path.write_text(json.dumps(copy.deepcopy(_M4B_CONFIG)))
+        usr_path = tmp_path / "user-config.json"
+        usr_path.write_text(json.dumps(copy.deepcopy(_USER_CONFIG)))
 
         with pytest.raises(ValueError, match="Invalid IPv4"):
-            set_dns_mode(str(cfg_path), "custom", ["not-an-ip"])
+            set_dns_mode(str(m4b_path), str(usr_path), "custom", ["not-an-ip"])
 
     def test_set_dns_mode_rejects_partial_bad_list(self, tmp_path):
         from money4band.system.info import set_dns_mode
 
-        cfg_path = tmp_path / "m4b-config.json"
-        cfg_path.write_text(json.dumps(copy.deepcopy(_M4B_CONFIG)))
+        m4b_path = tmp_path / "m4b-config.json"
+        m4b_path.write_text(json.dumps(copy.deepcopy(_M4B_CONFIG)))
+        usr_path = tmp_path / "user-config.json"
+        usr_path.write_text(json.dumps(copy.deepcopy(_USER_CONFIG)))
 
         with pytest.raises(ValueError, match="999.999.999.999"):
-            set_dns_mode(str(cfg_path), "custom", ["1.1.1.1", "999.999.999.999"])
+            set_dns_mode(str(m4b_path), str(usr_path), "custom", ["1.1.1.1", "999.999.999.999"])
 
     def test_set_dns_mode_rejects_empty_string(self, tmp_path):
         from money4band.system.info import set_dns_mode
 
-        cfg_path = tmp_path / "m4b-config.json"
-        cfg_path.write_text(json.dumps(copy.deepcopy(_M4B_CONFIG)))
+        m4b_path = tmp_path / "m4b-config.json"
+        m4b_path.write_text(json.dumps(copy.deepcopy(_M4B_CONFIG)))
+        usr_path = tmp_path / "user-config.json"
+        usr_path.write_text(json.dumps(copy.deepcopy(_USER_CONFIG)))
 
         with pytest.raises(ValueError, match="Invalid IPv4"):
-            set_dns_mode(str(cfg_path), "custom", [""])
+            set_dns_mode(str(m4b_path), str(usr_path), "custom", [""])
 
     def test_set_dns_mode_rejects_hostname(self, tmp_path):
         from money4band.system.info import set_dns_mode
 
-        cfg_path = tmp_path / "m4b-config.json"
-        cfg_path.write_text(json.dumps(copy.deepcopy(_M4B_CONFIG)))
+        m4b_path = tmp_path / "m4b-config.json"
+        m4b_path.write_text(json.dumps(copy.deepcopy(_M4B_CONFIG)))
+        usr_path = tmp_path / "user-config.json"
+        usr_path.write_text(json.dumps(copy.deepcopy(_USER_CONFIG)))
 
         with pytest.raises(ValueError, match="Invalid IPv4"):
-            set_dns_mode(str(cfg_path), "custom", ["dns.google.com"])
+            set_dns_mode(str(m4b_path), str(usr_path), "custom", ["dns.google.com"])
 
     def test_set_dns_mode_accepts_valid_ips(self, tmp_path):
         from money4band.system.info import set_dns_mode
 
-        cfg_path = tmp_path / "m4b-config.json"
-        cfg_path.write_text(json.dumps(copy.deepcopy(_M4B_CONFIG)))
+        m4b_path = tmp_path / "m4b-config.json"
+        m4b_path.write_text(json.dumps(copy.deepcopy(_M4B_CONFIG)))
+        usr_path = tmp_path / "user-config.json"
+        usr_path.write_text(json.dumps(copy.deepcopy(_USER_CONFIG)))
 
-        set_dns_mode(str(cfg_path), "custom", ["8.8.4.4", "208.67.222.222"])
+        set_dns_mode(str(m4b_path), str(usr_path), "custom", ["8.8.4.4", "208.67.222.222"])
 
-        result = json.loads(cfg_path.read_text())
-        assert result["system"]["dns"]["servers"] == ["8.8.4.4", "208.67.222.222"]
+        result = json.loads(usr_path.read_text())
+        assert result["settings"]["dns_servers"] == ["8.8.4.4", "208.67.222.222"]
 
 
 # ---------------------------------------------------------------------------
@@ -243,12 +266,12 @@ class TestIPv4Validation:
 
 
 class TestComposeDNSInjection:
-    def _assemble(self, m4b_config, tmp_path):
-        """Helper: run assemble_docker_compose with given m4b_config."""
+    def _assemble(self, m4b_config, tmp_path, user_config=None):
+        """Helper: run assemble_docker_compose with given configs."""
         from money4band.docker.compose_builder import assemble_docker_compose
 
         app_cfg = copy.deepcopy(_APP_CONFIG)
-        usr_cfg = copy.deepcopy(_USER_CONFIG)
+        usr_cfg = copy.deepcopy(user_config or _USER_CONFIG)
         output = str(tmp_path / "docker-compose.yaml")
 
         with (
@@ -272,8 +295,9 @@ class TestComposeDNSInjection:
         import yaml
 
         cfg = copy.deepcopy(_M4B_CONFIG)
-        cfg["system"]["dns"]["mode"] = "default"
-        files = self._assemble(cfg, tmp_path)
+        usr = copy.deepcopy(_USER_CONFIG)
+        usr["settings"]["dns_mode"] = "default"
+        files = self._assemble(cfg, tmp_path, user_config=usr)
 
         with open(files[0]) as f:
             compose = yaml.safe_load(f)
@@ -285,8 +309,10 @@ class TestComposeDNSInjection:
         import yaml
 
         cfg = copy.deepcopy(_M4B_CONFIG)
-        cfg["system"]["dns"] = {"mode": "custom", "servers": ["9.9.9.9"]}
-        files = self._assemble(cfg, tmp_path)
+        usr = copy.deepcopy(_USER_CONFIG)
+        usr["settings"]["dns_mode"] = "custom"
+        usr["settings"]["dns_servers"] = ["9.9.9.9"]
+        files = self._assemble(cfg, tmp_path, user_config=usr)
 
         with open(files[0]) as f:
             compose = yaml.safe_load(f)
@@ -300,8 +326,10 @@ class TestComposeDNSInjection:
 
         servers = ["1.1.1.1", "8.8.8.8", "9.9.9.9"]
         cfg = copy.deepcopy(_M4B_CONFIG)
-        cfg["system"]["dns"] = {"mode": "custom", "servers": servers}
-        files = self._assemble(cfg, tmp_path)
+        usr = copy.deepcopy(_USER_CONFIG)
+        usr["settings"]["dns_mode"] = "custom"
+        usr["settings"]["dns_servers"] = servers
+        files = self._assemble(cfg, tmp_path, user_config=usr)
 
         with open(files[0]) as f:
             compose = yaml.safe_load(f)
@@ -387,9 +415,10 @@ class TestSystemInfo:
         from money4band.system.info import show_system_info
 
         cfg = copy.deepcopy(_M4B_CONFIG)
-        cfg["system"]["dns"] = {"mode": "custom", "servers": ["9.9.9.9"]}
         app_cfg = copy.deepcopy(_APP_CONFIG)
         usr_cfg = copy.deepcopy(_USER_CONFIG)
+        usr_cfg["settings"]["dns_mode"] = "custom"
+        usr_cfg["settings"]["dns_servers"] = ["9.9.9.9"]
 
         with (
             patch("money4band.system.info.check_for_update", return_value=None),
@@ -487,8 +516,8 @@ class TestShowDnsStatus:
     def test_default_mode(self, capsys):
         from money4band.system.info import show_dns_status
 
-        cfg = copy.deepcopy(_M4B_CONFIG)
-        show_dns_status(cfg)
+        usr = copy.deepcopy(_USER_CONFIG)
+        show_dns_status(usr)
         captured = capsys.readouterr()
         assert "default" in captured.out
         assert "host default" in captured.out
@@ -496,9 +525,10 @@ class TestShowDnsStatus:
     def test_custom_mode_shows_servers(self, capsys):
         from money4band.system.info import show_dns_status
 
-        cfg = copy.deepcopy(_M4B_CONFIG)
-        cfg["system"]["dns"] = {"mode": "custom", "servers": ["9.9.9.9", "1.0.0.1"]}
-        show_dns_status(cfg)
+        usr = copy.deepcopy(_USER_CONFIG)
+        usr["settings"]["dns_mode"] = "custom"
+        usr["settings"]["dns_servers"] = ["9.9.9.9", "1.0.0.1"]
+        show_dns_status(usr)
         captured = capsys.readouterr()
         assert "custom" in captured.out
         assert "9.9.9.9" in captured.out
@@ -562,57 +592,65 @@ class TestDnsInteractive:
         """Empty input at the prompt should set DNS to 'default' mode."""
         from money4band.system.info import dns_interactive
 
-        cfg_path = tmp_path / "m4b-config.json"
-        cfg_path.write_text(json.dumps(copy.deepcopy(_M4B_CONFIG)))
+        m4b_path = tmp_path / "m4b-config.json"
+        m4b_path.write_text(json.dumps(copy.deepcopy(_M4B_CONFIG)))
+        usr_path = tmp_path / "user-config.json"
+        usr_path.write_text(json.dumps(copy.deepcopy(_USER_CONFIG)))
 
         with patch("builtins.input", side_effect=["", ""]):
-            dns_interactive(str(cfg_path))
+            dns_interactive(str(m4b_path), str(usr_path))
 
-        result = json.loads(cfg_path.read_text())
-        assert result["system"]["dns"]["mode"] == "default"
+        result = json.loads(usr_path.read_text())
+        assert result["settings"]["dns_mode"] == "default"
 
     def test_valid_custom_servers_persist(self, tmp_path):
         """Entering valid IPs stores them as custom DNS mode."""
         from money4band.system.info import dns_interactive
 
-        cfg_path = tmp_path / "m4b-config.json"
-        cfg_path.write_text(json.dumps(copy.deepcopy(_M4B_CONFIG)))
+        m4b_path = tmp_path / "m4b-config.json"
+        m4b_path.write_text(json.dumps(copy.deepcopy(_M4B_CONFIG)))
+        usr_path = tmp_path / "user-config.json"
+        usr_path.write_text(json.dumps(copy.deepcopy(_USER_CONFIG)))
 
         with patch("builtins.input", side_effect=["9.9.9.9, 1.0.0.1", ""]):
-            dns_interactive(str(cfg_path))
+            dns_interactive(str(m4b_path), str(usr_path))
 
-        result = json.loads(cfg_path.read_text())
-        assert result["system"]["dns"]["mode"] == "custom"
-        assert result["system"]["dns"]["servers"] == ["9.9.9.9", "1.0.0.1"]
+        result = json.loads(usr_path.read_text())
+        assert result["settings"]["dns_mode"] == "custom"
+        assert result["settings"]["dns_servers"] == ["9.9.9.9", "1.0.0.1"]
 
     def test_invalid_ip_retries_then_accepts_valid(self, tmp_path, capsys):
         """Invalid IP is rejected with an error, then valid input is accepted."""
         from money4band.system.info import dns_interactive
 
-        cfg_path = tmp_path / "m4b-config.json"
-        cfg_path.write_text(json.dumps(copy.deepcopy(_M4B_CONFIG)))
+        m4b_path = tmp_path / "m4b-config.json"
+        m4b_path.write_text(json.dumps(copy.deepcopy(_M4B_CONFIG)))
+        usr_path = tmp_path / "user-config.json"
+        usr_path.write_text(json.dumps(copy.deepcopy(_USER_CONFIG)))
 
         with patch("builtins.input", side_effect=["bad.ip", "8.8.4.4", ""]):
-            dns_interactive(str(cfg_path))
+            dns_interactive(str(m4b_path), str(usr_path))
 
         captured = capsys.readouterr()
         assert "Invalid" in captured.out
-        result = json.loads(cfg_path.read_text())
-        assert result["system"]["dns"]["mode"] == "custom"
-        assert result["system"]["dns"]["servers"] == ["8.8.4.4"]
+        result = json.loads(usr_path.read_text())
+        assert result["settings"]["dns_mode"] == "custom"
+        assert result["settings"]["dns_servers"] == ["8.8.4.4"]
 
     def test_shows_current_custom_hint(self, tmp_path, capsys):
         """When current mode is custom, the hint shows current custom servers."""
         from money4band.system.info import dns_interactive
 
-        cfg = copy.deepcopy(_M4B_CONFIG)
-        cfg["system"]["dns"]["mode"] = "custom"
-        cfg["system"]["dns"]["servers"] = ["1.2.3.4"]
-        cfg_path = tmp_path / "m4b-config.json"
-        cfg_path.write_text(json.dumps(cfg))
+        m4b_path = tmp_path / "m4b-config.json"
+        m4b_path.write_text(json.dumps(copy.deepcopy(_M4B_CONFIG)))
+        usr = copy.deepcopy(_USER_CONFIG)
+        usr["settings"]["dns_mode"] = "custom"
+        usr["settings"]["dns_servers"] = ["1.2.3.4"]
+        usr_path = tmp_path / "user-config.json"
+        usr_path.write_text(json.dumps(usr))
 
         with patch("builtins.input", side_effect=["", ""]):
-            dns_interactive(str(cfg_path))
+            dns_interactive(str(m4b_path), str(usr_path))
 
         captured = capsys.readouterr()
         assert "1.2.3.4" in captured.out
@@ -635,7 +673,7 @@ class TestSystemInfoMain:
         mock_load.return_value = copy.deepcopy(_M4B_CONFIG)
         with patch("builtins.input", side_effect=["d", "b"]):
             main("app.json", "m4b.json", "user.json")
-        mock_dns.assert_called_once_with("m4b.json")
+        mock_dns.assert_called_once_with("m4b.json", "user.json")
 
     @patch("money4band.system.info.show_system_info")
     @patch("money4band.system.info.load_json_config")

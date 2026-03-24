@@ -57,7 +57,7 @@ def print_dashboard_status(config_dir: str) -> None:
 
 
 def ensure_api_key_in_config(user_config: dict[str, Any]) -> str:
-    """Ensure *user_config* has an API key under ``m4b_dashboard.api_key``.
+    """Ensure user_config has an API key.
 
     Generates a new key if missing or empty.  Operates on the **in-memory**
     dict — the caller is responsible for persisting.

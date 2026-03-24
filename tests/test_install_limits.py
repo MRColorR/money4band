@@ -94,49 +94,49 @@ class TestToggleInstallLimits:
 
     @patch("builtins.input", return_value="")
     def test_toggle_flips_true_to_false(self, _mock_input, tmp_path):
-        cfg_path = str(tmp_path / "m4b-config.json")
-        cfg = {"system": {"enforce_install_limits": True, "sleep_time": 0}}
+        cfg_path = str(tmp_path / "user-config.json")
+        cfg = {"settings": {"enforce_install_limits": True}}
         with open(cfg_path, "w") as f:
             json.dump(cfg, f)
 
         from money4band.network.proxy_tools import toggle_install_limits
 
-        toggle_install_limits(m4b_config_path=cfg_path)
+        toggle_install_limits(user_config_path=cfg_path)
 
         with open(cfg_path) as f:
             result = json.load(f)
-        assert result["system"]["enforce_install_limits"] is False
+        assert result["settings"]["enforce_install_limits"] is False
 
     @patch("builtins.input", return_value="")
     def test_toggle_flips_false_to_true(self, _mock_input, tmp_path):
-        cfg_path = str(tmp_path / "m4b-config.json")
-        cfg = {"system": {"enforce_install_limits": False, "sleep_time": 0}}
+        cfg_path = str(tmp_path / "user-config.json")
+        cfg = {"settings": {"enforce_install_limits": False}}
         with open(cfg_path, "w") as f:
             json.dump(cfg, f)
 
         from money4band.network.proxy_tools import toggle_install_limits
 
-        toggle_install_limits(m4b_config_path=cfg_path)
+        toggle_install_limits(user_config_path=cfg_path)
 
         with open(cfg_path) as f:
             result = json.load(f)
-        assert result["system"]["enforce_install_limits"] is True
+        assert result["settings"]["enforce_install_limits"] is True
 
     @patch("builtins.input", return_value="")
     def test_toggle_defaults_to_true_when_missing(self, _mock_input, tmp_path):
-        """If the key doesn't exist yet, it defaults to True, so first toggle → False."""
-        cfg_path = str(tmp_path / "m4b-config.json")
-        cfg = {"system": {"sleep_time": 0}}
+        """If the key doesn't exist yet, it defaults to True, so first toggle -> False."""
+        cfg_path = str(tmp_path / "user-config.json")
+        cfg = {"settings": {}}
         with open(cfg_path, "w") as f:
             json.dump(cfg, f)
 
         from money4band.network.proxy_tools import toggle_install_limits
 
-        toggle_install_limits(m4b_config_path=cfg_path)
+        toggle_install_limits(user_config_path=cfg_path)
 
         with open(cfg_path) as f:
             result = json.load(f)
-        assert result["system"]["enforce_install_limits"] is False
+        assert result["settings"]["enforce_install_limits"] is False
 
 
 class TestEnforcementToggleInSetup:
@@ -179,9 +179,9 @@ class TestInstallLimitsStatusLabel:
     """Test the status label helper used in the menu."""
 
     def test_label_when_enabled(self, tmp_path):
-        cfg_path = str(tmp_path / "m4b-config.json")
+        cfg_path = str(tmp_path / "user-config.json")
         with open(cfg_path, "w") as f:
-            json.dump({"system": {"enforce_install_limits": True}}, f)
+            json.dump({"settings": {"enforce_install_limits": True}}, f)
 
         from money4band.network.proxy_tools import _install_limits_status_label
 
@@ -189,9 +189,9 @@ class TestInstallLimitsStatusLabel:
         assert "ON" in label
 
     def test_label_when_disabled(self, tmp_path):
-        cfg_path = str(tmp_path / "m4b-config.json")
+        cfg_path = str(tmp_path / "user-config.json")
         with open(cfg_path, "w") as f:
-            json.dump({"system": {"enforce_install_limits": False}}, f)
+            json.dump({"settings": {"enforce_install_limits": False}}, f)
 
         from money4band.network.proxy_tools import _install_limits_status_label
 
@@ -199,9 +199,9 @@ class TestInstallLimitsStatusLabel:
         assert "OFF" in label
 
     def test_label_defaults_on_when_key_missing(self, tmp_path):
-        cfg_path = str(tmp_path / "m4b-config.json")
+        cfg_path = str(tmp_path / "user-config.json")
         with open(cfg_path, "w") as f:
-            json.dump({"system": {}}, f)
+            json.dump({"settings": {}}, f)
 
         from money4band.network.proxy_tools import _install_limits_status_label
 

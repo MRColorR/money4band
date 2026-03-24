@@ -107,11 +107,11 @@ class TestGenerateEnvFileWatchtower(unittest.TestCase):
         self.assertIn("M4B_WATCHTOWER_SCOPE=money4band", content)
 
     def test_custom_scope_emitted(self):
-        """Custom scope/labels values from m4b-config appear in .env."""
-        cfg = dict(
-            _M4B_CFG, watchtower={"enable_labels": False, "scope": "custom-scope"}
-        )
-        content = self._run(cfg)
+        """Custom scope/labels values appear in .env."""
+        cfg = dict(_M4B_CFG, watchtower={"scope": "custom-scope"})
+        user_cfg = _USER_CFG_BASE.copy()
+        user_cfg["watchtower"] = {"enabled": True, "enable_labels": False}
+        content = self._run(cfg, user_cfg=user_cfg)
         self.assertIn("M4B_WATCHTOWER_LABELS=false", content)
         self.assertIn("M4B_WATCHTOWER_SCOPE=custom-scope", content)
 

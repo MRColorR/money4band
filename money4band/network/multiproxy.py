@@ -280,7 +280,7 @@ def setup_multiproxy_instances(
     reserved_ports = collect_assigned_ports(user_config)
 
     # --- Install-limit enforcement ---
-    enforce_limits = m4b_config.get("system", {}).get("enforce_install_limits", True)
+    enforce_limits = user_config.get("settings", {}).get("enforce_install_limits", True)
     # Total instances = proxies list + 1 main instance.
     total_instances = len(proxies) + 1
     app_limits: dict[str, int] = {}  # app_name -> limit (-1 = unlimited)

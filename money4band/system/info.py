@@ -62,19 +62,28 @@ def compose_regen_reminder() -> None:
     input(f"\nPress {Fore.CYAN}Enter{Style.RESET_ALL} to continue...")
 
 
-def get_dns_config(m4b_config: dict[str, Any]) -> dict[str, Any]:
-    """Return the DNS section from the system config."""
-    return m4b_config.get("system", {}).get(
-        "dns", {"mode": "default", "servers": get_default_servers(m4b_config)}
-    )
+def get_dns_config(user_config: dict[str, Any]) -> dict[str, Any]:
+    """Return the user-selected DNS mode and servers from user-config settings."""
+    settings = user_config.get("settings", {})
+    return {
+        "mode": settings.get("dns_mode", "default"),
+        "servers": settings.get("dns_servers", []),
+    }
 
 
 def set_dns_mode(
-    m4b_config_path: str, mode: str, servers: list[str] | None = None
+    m4b_config_path: str,
+    user_config_path: str,
+    mode: str,
+    servers: list[str] | None = None,
 ) -> None:
-    """Persist a DNS mode (and optional server list) to m4b-config.json."""
-    cfg = load_json_config(m4b_config_path)
-    valid_modes = get_dns_modes(cfg)
+    """Persist a DNS mode (and optional server list) to user-config.json.
+
+    Validation of available modes and presets is done against m4b-config
+    (immutable reference data).
+    """
+    m4b_cfg = load_json_config(m4b_config_path)
+    valid_modes = get_dns_modes(m4b_cfg)
     if mode not in valid_modes:
         raise ValueError(
             f"Invalid DNS mode '{mode}'. Choose from: {', '.join(valid_modes)}"
@@ -83,21 +92,22 @@ def set_dns_mode(
         invalid = [s for s in servers if not is_valid_ipv4(s)]
         if invalid:
             raise ValueError(f"Invalid IPv4 address(es): {', '.join(invalid)}")
-    dns = cfg.setdefault("system", {}).setdefault("dns", {})
-    dns["mode"] = mode
+    usr = load_json_config(user_config_path)
+    settings = usr.setdefault("settings", {})
+    settings["dns_mode"] = mode
     if servers is not None:
-        dns["servers"] = servers
+        settings["dns_servers"] = servers
     else:
-        presets = get_dns_presets(cfg)
+        presets = get_dns_presets(m4b_cfg)
         if mode in presets:
-            dns["servers"] = presets[mode]
-    write_json(cfg, m4b_config_path)
+            settings["dns_servers"] = presets[mode]
+    write_json(usr, user_config_path)
 
 
-def show_dns_status(m4b_config: dict[str, Any]) -> None:
+def show_dns_status(user_config: dict[str, Any]) -> None:
     """Print the current DNS configuration."""
     just_fix_windows_console()
-    dns = get_dns_config(m4b_config)
+    dns = get_dns_config(user_config)
     mode = dns.get("mode", "default")
     servers = dns.get("servers", [])
     print(f"\n{Fore.CYAN}DNS Configuration{Style.RESET_ALL}")
@@ -108,11 +118,13 @@ def show_dns_status(m4b_config: dict[str, Any]) -> None:
         print("  Servers: (host default — Docker inherits from the host resolver)")
 
 
-def show_dns_presets(m4b_config: dict[str, Any]) -> None:
+def show_dns_presets(
+    m4b_config: dict[str, Any], user_config: dict[str, Any]
+) -> None:
     """Print available DNS presets and their server addresses."""
     just_fix_windows_console()
     presets = get_dns_presets(m4b_config)
-    current_mode = get_dns_config(m4b_config).get("mode", "default")
+    current_mode = get_dns_config(user_config).get("mode", "default")
 
     print(f"\n{Fore.CYAN}Available DNS presets:{Style.RESET_ALL}")
     print(f"  {'Preset':<22} {'Servers'}")
@@ -125,14 +137,15 @@ def show_dns_presets(m4b_config: dict[str, Any]) -> None:
     print(f"  {'custom':<22} (specify with --servers){marker if current_mode == 'custom' else ''}")
 
 
-def dns_interactive(m4b_config_path: str) -> None:
+def dns_interactive(m4b_config_path: str, user_config_path: str) -> None:
     """Interactive DNS configuration prompt."""
     just_fix_windows_console()
     m4b_config = load_json_config(m4b_config_path)
-    show_dns_status(m4b_config)
+    user_config = load_json_config(user_config_path)
+    show_dns_status(user_config)
 
     presets = get_dns_presets(m4b_config)
-    show_dns_presets(m4b_config)
+    show_dns_presets(m4b_config, user_config)
 
     print(
         f"\n{Fore.YELLOW}Enter a preset name, custom IP addresses (comma-separated), "
@@ -143,13 +156,13 @@ def dns_interactive(m4b_config_path: str) -> None:
         raw = input(f"{Fore.GREEN}DNS>{Style.RESET_ALL} ").strip()
 
         if not raw:
-            set_dns_mode(m4b_config_path, "default")
+            set_dns_mode(m4b_config_path, user_config_path, "default")
             print(f"{Fore.GREEN}DNS set to host default.{Style.RESET_ALL}")
             break
 
         # Check if input matches a preset name
         if raw.lower() in presets or raw.lower() == "default":
-            set_dns_mode(m4b_config_path, raw.lower())
+            set_dns_mode(m4b_config_path, user_config_path, raw.lower())
             if raw.lower() == "default":
                 print(f"{Fore.GREEN}DNS set to host default.{Style.RESET_ALL}")
             else:
@@ -168,7 +181,7 @@ def dns_interactive(m4b_config_path: str) -> None:
             )
             continue
 
-        set_dns_mode(m4b_config_path, "custom", servers)
+        set_dns_mode(m4b_config_path, user_config_path, "custom", servers)
         print(f"{Fore.GREEN}DNS set to custom: {', '.join(servers)}{Style.RESET_ALL}")
         break
 
@@ -212,7 +225,7 @@ def show_system_info(
     )
 
     # ---- Resource profile ----
-    active_profile = detector.get_active_profile(m4b_config)
+    active_profile = detector.get_active_profile(user_config)
     profile_def = detector.get_profile_definition(m4b_config, active_profile)
     try:
         total_mem, cores = detector.get_system_memory_and_cores()
@@ -220,7 +233,7 @@ def show_system_info(
         total_mem, cores = 0, 0
 
     # ---- DNS ----
-    dns = get_dns_config(m4b_config)
+    dns = get_dns_config(user_config)
     dns_mode = dns.get("mode", "default")
     dns_servers = dns.get("servers", [])
 
@@ -363,7 +376,7 @@ def main(
         )
         choice = input("Select: ").strip().lower()
         if choice == "d":
-            dns_interactive(m4b_config_path)
+            dns_interactive(m4b_config_path, user_config_path)
         elif choice == "q":
             raise SystemExit(0)
         else:

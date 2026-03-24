@@ -23,8 +23,9 @@ def _switch_profile(
     user_config_path: str,
 ) -> dict[str, Any]:
     """Switch to *profile_name*, recalculate limits, regenerate .env."""
-    m4b_config.setdefault("resource_profiles", {})["active"] = profile_name
-    write_json(m4b_config, m4b_config_path)
+    user_config = load_json_config(user_config_path)
+    user_config.setdefault("settings", {})["resource_profile"] = profile_name
+    write_json(user_config, user_config_path)
 
     detector.calculate_resource_limits(user_config_path, m4b_config=m4b_config)
 
@@ -53,7 +54,7 @@ def main(
         detector.show_resource_profile_info(m4b_config, user_config)
 
         valid = detector.get_valid_profiles(m4b_config)
-        active = detector.get_active_profile(m4b_config)
+        active = detector.get_active_profile(user_config)
 
         # Numbered profile picker
         print(f"\n  {Fore.CYAN}Switch profile:{Style.RESET_ALL}")

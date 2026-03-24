@@ -20,21 +20,21 @@ logger = logging.getLogger(__name__)
 
 
 def toggle_install_limits(
-    m4b_config_path: str = "./config/m4b-config.json",
+    user_config_path: str = "./config/user-config.json",
     **_kwargs: Any,
 ) -> None:
-    """Toggle the enforce_install_limits flag in m4b-config.json.
+    """Toggle the enforce_install_limits flag in user-config.json.
 
     When enabled, proxy setup respects the per-app install_limit values.
     When disabled, all apps are allowed on every proxy instance regardless
     of the limits defined in app-config.json.
     """
-    m4b_config = load_json_config(m4b_config_path)
-    system = m4b_config.setdefault("system", {})
-    current = system.get("enforce_install_limits", True)
+    user_config = load_json_config(user_config_path)
+    settings = user_config.setdefault("settings", {})
+    current = settings.get("enforce_install_limits", True)
     new_value = not current
-    system["enforce_install_limits"] = new_value
-    write_json(m4b_config, m4b_config_path)
+    settings["enforce_install_limits"] = new_value
+    write_json(user_config, user_config_path)
 
     state_label = (
         f"{Fore.GREEN}ENABLED{Style.RESET_ALL}"
@@ -266,11 +266,11 @@ def update_multiproxy_instances(
     logger.info("Multiproxy instances updated successfully.")
 
 
-def _install_limits_status_label(m4b_config_path: str) -> str:
+def _install_limits_status_label(user_config_path: str) -> str:
     """Return a coloured ON/OFF label for the current enforce_install_limits state."""
     try:
-        cfg = load_json_config(m4b_config_path)
-        enabled = cfg.get("system", {}).get("enforce_install_limits", True)
+        cfg = load_json_config(user_config_path)
+        enabled = cfg.get("settings", {}).get("enforce_install_limits", True)
     except Exception:
         enabled = True
     if enabled:
@@ -279,9 +279,9 @@ def _install_limits_status_label(m4b_config_path: str) -> str:
 
 
 def submenu_multiproxy_tools(
-    m4b_config_path: str = "./config/m4b-config.json",
+    user_config_path: str = "./config/user-config.json",
 ) -> list[dict[str, str]]:
-    status = _install_limits_status_label(m4b_config_path)
+    status = _install_limits_status_label(user_config_path)
     return [
         {
             "label": "Update Proxies for Multiproxy Instances",
@@ -318,7 +318,7 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
     sleep_time = m4b_config.get("system", {}).get("sleep_time", 3)
 
     while True:
-        menu_options = submenu_multiproxy_tools(m4b_config_path)
+        menu_options = submenu_multiproxy_tools(user_config_path)
         cls()
         print(f"{Fore.YELLOW}\nMultiproxy Tools Menu:{Style.RESET_ALL}")
         print(

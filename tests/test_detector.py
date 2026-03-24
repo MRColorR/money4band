@@ -121,8 +121,10 @@ class TestResourceProfiles(unittest.TestCase):
         }
     }
 
+    _USER_CFG = {"settings": {"resource_profile": "standard"}}
+
     def test_get_active_profile_returns_configured(self):
-        self.assertEqual(get_active_profile(self._M4B_CFG), "standard")
+        self.assertEqual(get_active_profile(self._USER_CFG), "standard")
 
     def test_get_active_profile_defaults_to_standard(self):
         self.assertEqual(get_active_profile({}), "standard")
@@ -147,7 +149,7 @@ class TestResourceProfiles(unittest.TestCase):
         self, mock_load, mock_write, mock_sys
     ):
         """With 8 GB RAM + 4 cores on 'standard' profile, verify all tier values."""
-        mock_load.return_value = {"resource_limits": {}}
+        mock_load.return_value = {"resource_limits": {}, "settings": {"resource_profile": "standard"}}
         calculate_resource_limits("dummy_path", m4b_config=self._M4B_CFG)
 
         # Verify write_json was called
@@ -191,14 +193,14 @@ class TestResourceProfiles(unittest.TestCase):
                 "profiles": self._M4B_CFG["resource_profiles"]["profiles"],
             }
         }
-        mock_load.return_value = {"resource_limits": {}}
+        mock_load.return_value = {"resource_limits": {}, "settings": {"resource_profile": "minimal"}}
         calculate_resource_limits("dummy_path", m4b_config=cfg)
 
         saved = mock_write.call_args[0][0]
         rl = saved["resource_limits"]
 
-        # base_ram = 2048 * 0.10 = 204.8 MB → lower tiers hit minimums for mem
-        # base_cpu = 2 * 0.20 = 0.4 → all tiers hit minimum CPU
+        # base_ram = 2048 * 0.10 = 204.8 MB -> lower tiers hit minimums for mem
+        # base_cpu = 2 * 0.20 = 0.4 -> all tiers hit minimum CPU
         self.assertEqual(rl["app_mem_reserv_little"], "32m")
         self.assertEqual(rl["app_mem_limit_little"], "64m")
         self.assertEqual(rl["app_cpu_limit_little"], 0.1)
@@ -216,7 +218,7 @@ class TestResourceProfiles(unittest.TestCase):
                 "profiles": self._M4B_CFG["resource_profiles"]["profiles"],
             }
         }
-        mock_load.return_value = {"resource_limits": {}}
+        mock_load.return_value = {"resource_limits": {}, "settings": {"resource_profile": "performance"}}
         calculate_resource_limits("dummy_path", m4b_config=cfg)
 
         saved = mock_write.call_args[0][0]
@@ -238,6 +240,7 @@ class TestResourceProfiles(unittest.TestCase):
     def test_show_resource_profile_info_runs(self, mock_sys):
         """Smoke test: show_resource_profile_info should not raise."""
         user_config = {
+            "settings": {"resource_profile": "standard"},
             "resource_limits": {
                 "app_mem_limit_little": "64m",
                 "app_mem_reserv_little": "32m",

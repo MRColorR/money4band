@@ -84,15 +84,24 @@ def _ensure_user_config(args: argparse.Namespace, user_config_path: str) -> None
 
 
 def _has_template_defaults(user_config_path: str) -> bool:
-    """Return True if the user config still contains placeholder values.
+    """Return True if the user config still needs initial setup.
 
-    Only checks *enabled* apps — disabled apps are expected to keep
-    their placeholder credentials until the user decides to enable them.
+    Primary check: the ``settings.setup_completed`` flag.  If set to
+    ``True`` by the setup wizard, subsequent launches skip the wizard
+    regardless of whether any apps are enabled.
+
+    Fallback: if the flag is missing (pre-migration configs), apply the
+    legacy heuristic checking for placeholder credentials in enabled apps.
     """
     try:
         cfg = loader.load_json_config(user_config_path)
     except Exception:
         return False
+    # Primary gate: explicit setup_completed flag
+    settings = cfg.get("settings", {})
+    if settings.get("setup_completed", False):
+        return False
+    # Legacy fallback for configs created before the settings section existed
     apps = cfg.get("apps", {})
     if not apps:
         return True
@@ -660,8 +669,9 @@ def _cmd_limit(args: argparse.Namespace) -> None:
         return
 
     # Switch profile.
-    m4b_config.setdefault("resource_profiles", {})["active"] = profile_name
-    dumper.write_json(m4b_config, m4b_config_path)
+    user_config = loader.load_json_config(user_config_path)
+    user_config.setdefault("settings", {})["resource_profile"] = profile_name
+    dumper.write_json(user_config, user_config_path)
 
     # Recalculate limits with the new profile.
     detector.calculate_resource_limits(user_config_path, m4b_config=m4b_config)
@@ -904,7 +914,7 @@ def _cmd_profile(args: argparse.Namespace) -> None:
 
 def _cmd_dns(args: argparse.Namespace) -> None:
     """View or configure DNS settings for containers."""
-    m4b_config_path, _, _ = _resolve_paths(args)
+    m4b_config_path, _, user_config_path = _resolve_paths(args)
     just_fix_windows_console()
 
     dns_action = getattr(args, "dns_action", None)
@@ -913,13 +923,14 @@ def _cmd_dns(args: argparse.Namespace) -> None:
         from money4band.system.info import show_dns_presets
 
         m4b_config = loader.load_json_config(m4b_config_path)
-        show_dns_presets(m4b_config)
+        user_config = loader.load_json_config(user_config_path)
+        show_dns_presets(m4b_config, user_config)
     elif dns_action == "set":
         mode = args.mode
         servers = [s.strip() for s in args.servers.split(",") if s.strip()] if getattr(args, "servers", None) else None
         from money4band.system.info import set_dns_mode
 
-        set_dns_mode(m4b_config_path, mode, servers)
+        set_dns_mode(m4b_config_path, user_config_path, mode, servers)
         print(f"{Fore.GREEN}DNS mode set to '{mode}'.{Style.RESET_ALL}")
         if servers:
             print(f"  Servers: {', '.join(servers)}")
@@ -931,10 +942,10 @@ def _cmd_dns(args: argparse.Namespace) -> None:
                 print(f"  Servers: {', '.join(presets[mode])}")
         print(f"{Fore.YELLOW}Run 'generate' to rebuild compose files.{Style.RESET_ALL}")
     else:
-        m4b_config = loader.load_json_config(m4b_config_path)
+        user_config = loader.load_json_config(user_config_path)
         from money4band.system.info import show_dns_status
 
-        show_dns_status(m4b_config)
+        show_dns_status(user_config)
 
 
 def _cmd_config(args: argparse.Namespace) -> None:

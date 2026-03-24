@@ -239,7 +239,7 @@ class TestAssembleDockerCompose:
     @patch("money4band.docker.compose_builder.http_client")
     def test_custom_dns_applied(self, _http, _arch, tmp_path: Path) -> None:
         m4b, app, user = _make_configs(tmp_path)
-        m4b["system"]["dns"] = {"mode": "custom", "servers": ["1.1.1.1", "8.8.8.8"]}
+        user["settings"] = {"dns_mode": "custom", "dns_servers": ["1.1.1.1", "8.8.8.8"]}
         out = str(tmp_path / "docker-compose.yaml")
         assemble_docker_compose(m4b, app, user, out, is_main_instance=False)
         data = yaml.safe_load(Path(out).read_text())
