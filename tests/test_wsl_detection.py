@@ -4,7 +4,7 @@ import os
 import unittest
 from unittest.mock import MagicMock, mock_open, patch
 
-from money4band.detector import (
+from money4band.system.detector import (
     detect_wsl_environment,
     get_wsl_networking_mode,
     get_wsl_version,
@@ -204,7 +204,7 @@ class TestGetWSLNetworkingMode(unittest.TestCase):
 class TestDetectWSLEnvironment(unittest.TestCase):
     """Aggregate WSL environment info."""
 
-    @patch("money4band.detector.is_running_in_wsl", return_value=False)
+    @patch("money4band.system.detector.is_running_in_wsl", return_value=False)
     def test_not_wsl_returns_defaults(self, _mock):
         result = detect_wsl_environment()
         self.assertFalse(result["is_wsl"])
@@ -212,9 +212,9 @@ class TestDetectWSLEnvironment(unittest.TestCase):
         self.assertEqual(result["networking_mode"], "not_set")
         self.assertIsNone(result["distro"])
 
-    @patch("money4band.detector.get_wsl_networking_mode", return_value="mirrored")
-    @patch("money4band.detector.get_wsl_version", return_value="2.4.4.0")
-    @patch("money4band.detector.is_running_in_wsl", return_value=True)
+    @patch("money4band.system.detector.get_wsl_networking_mode", return_value="mirrored")
+    @patch("money4band.system.detector.get_wsl_version", return_value="2.4.4.0")
+    @patch("money4band.system.detector.is_running_in_wsl", return_value=True)
     @patch.dict(os.environ, {"WSL_DISTRO_NAME": "Ubuntu-24.04"})
     def test_full_wsl_environment(self, *_mocks):
         result = detect_wsl_environment()
@@ -223,9 +223,9 @@ class TestDetectWSLEnvironment(unittest.TestCase):
         self.assertEqual(result["networking_mode"], "mirrored")
         self.assertEqual(result["distro"], "Ubuntu-24.04")
 
-    @patch("money4band.detector.get_wsl_networking_mode", return_value="not_set")
-    @patch("money4band.detector.get_wsl_version", return_value=None)
-    @patch("money4band.detector.is_running_in_wsl", return_value=True)
+    @patch("money4band.system.detector.get_wsl_networking_mode", return_value="not_set")
+    @patch("money4band.system.detector.get_wsl_version", return_value=None)
+    @patch("money4band.system.detector.is_running_in_wsl", return_value=True)
     @patch.dict(os.environ, {"WSL_DISTRO_NAME": "Debian"})
     def test_wsl_without_version_or_mirror(self, *_mocks):
         """WSL detected but version unavailable and no mirror config."""
@@ -235,9 +235,9 @@ class TestDetectWSLEnvironment(unittest.TestCase):
         self.assertEqual(result["networking_mode"], "not_set")
         self.assertEqual(result["distro"], "Debian")
 
-    @patch("money4band.detector.get_wsl_networking_mode", return_value="nat")
-    @patch("money4band.detector.get_wsl_version", return_value="2.0.0")
-    @patch("money4band.detector.is_running_in_wsl", return_value=True)
+    @patch("money4band.system.detector.get_wsl_networking_mode", return_value="nat")
+    @patch("money4band.system.detector.get_wsl_version", return_value="2.0.0")
+    @patch("money4band.system.detector.is_running_in_wsl", return_value=True)
     @patch.dict(os.environ, {"WSL_DISTRO_NAME": "Alpine"})
     def test_nat_networking_mode(self, *_mocks):
         result = detect_wsl_environment()

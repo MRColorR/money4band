@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from unittest import mock
 
-from money4band.app_wizard import run_app_wizard
+from money4band.apps.wizard import run_app_wizard
 
 
 class TestAppWizard:

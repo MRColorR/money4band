@@ -9,8 +9,8 @@ import time
 
 from colorama import Fore, Style
 
-from money4band.cls import cls
-from money4band.loader import load_json_config
+from money4band.core.loader import load_json_config
+from money4band.ui.cls import cls
 
 logger = logging.getLogger(__name__)
 
@@ -95,7 +95,7 @@ def _action_start_background(config_dir: str, port: int) -> None:
 
     pid = spawn_dashboard_background(config_dir, _BASE_DIR, port=port)
 
-    from money4band.networker import is_port_in_use
+    from money4band.network.networker import is_port_in_use
 
     print(
         f"{Fore.CYAN}Waiting for dashboard to start...{Style.RESET_ALL}",

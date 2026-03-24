@@ -1,11 +1,11 @@
-"""Tests for money4band.fn_multiproxy_tools — multiproxy utilities."""
+"""Tests for money4band.network.proxy_tools — multiproxy utilities."""
 
 from __future__ import annotations
 
 import json
 from unittest.mock import patch
 
-from money4band.fn_multiproxy_tools import (
+from money4band.network.proxy_tools import (
     _install_limits_status_label,
     exit_submenu,
     submenu_multiproxy_tools,
@@ -82,25 +82,25 @@ class TestExitSubmenu:
 
 
 class TestUpdateMultiproxyInstances:
-    @patch("money4band.fn_multiproxy_tools.ask_question_yn", return_value=False)
+    @patch("money4band.network.proxy_tools.ask_question_yn", return_value=False)
     @patch("builtins.input", return_value="")
     def test_user_cancels(self, _inp, _ask, capsys):
         update_multiproxy_instances()
         captured = capsys.readouterr()
         assert "canceled" in captured.out.lower()
 
-    @patch("money4band.fn_multiproxy_tools.ask_question_yn", return_value=True)
+    @patch("money4band.network.proxy_tools.ask_question_yn", return_value=True)
     def test_missing_proxies_file(self, _ask, capsys):
         update_multiproxy_instances(proxies_file="/nonexistent/proxies.txt")
         captured = capsys.readouterr()
         assert "not found" in captured.out.lower()
 
-    @patch("money4band.fn_multiproxy_tools.start_all_stacks")
-    @patch("money4band.fn_multiproxy_tools.stop_all_stacks")
-    @patch("money4band.fn_multiproxy_tools.generate_env_file")
-    @patch("money4band.fn_multiproxy_tools.assemble_docker_compose")
-    @patch("money4band.fn_multiproxy_tools.write_json")
-    @patch("money4band.fn_multiproxy_tools.ask_question_yn", return_value=True)
+    @patch("money4band.network.proxy_tools.start_all_stacks")
+    @patch("money4band.network.proxy_tools.stop_all_stacks")
+    @patch("money4band.network.proxy_tools.generate_env_file")
+    @patch("money4band.network.proxy_tools.assemble_docker_compose")
+    @patch("money4band.network.proxy_tools.write_json")
+    @patch("money4band.network.proxy_tools.ask_question_yn", return_value=True)
     @patch("time.sleep")
     def test_updates_main_and_instances(
         self,

@@ -1,4 +1,4 @@
-"""Tests for money4band.helper — utility functions."""
+"""Tests for money4band.docker.helper — utility functions."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from money4band.helper import (
+from money4band.docker.helper import (
     check_required_files,
     get_compose_project_name,
     is_user_root,
@@ -40,17 +40,17 @@ class TestGetComposeProjectName:
 
 
 class TestRunDockerCommand:
-    @patch("money4band.helper.subprocess")
+    @patch("money4band.docker.helper.subprocess")
     def test_success_returns_zero(self, mock_sp) -> None:
         mock_sp.run.return_value = MagicMock(returncode=0)
         assert run_docker_command(["docker", "ps"]) == 0
 
-    @patch("money4band.helper.subprocess")
+    @patch("money4band.docker.helper.subprocess")
     def test_failure_returns_nonzero(self, mock_sp) -> None:
         mock_sp.run.return_value = MagicMock(returncode=1)
         assert run_docker_command(["docker", "compose", "up"]) == 1
 
-    @patch("money4band.helper.subprocess")
+    @patch("money4band.docker.helper.subprocess")
     def test_command_passed_through(self, mock_sp) -> None:
         mock_sp.run.return_value = MagicMock(returncode=0)
         run_docker_command(["docker", "compose", "-f", "test.yml", "up"])
@@ -106,23 +106,23 @@ class TestGetComposeProjectNameParsing:
 
 
 class TestIsDockerDaemonRunning:
-    @patch("money4band.helper.subprocess")
+    @patch("money4band.docker.helper.subprocess")
     def test_running(self, mock_sp) -> None:
-        from money4band.helper import is_docker_daemon_running
+        from money4band.docker.helper import is_docker_daemon_running
 
         mock_sp.run.return_value = MagicMock(returncode=0)
         assert is_docker_daemon_running() is True
 
-    @patch("money4band.helper.subprocess")
+    @patch("money4band.docker.helper.subprocess")
     def test_not_running(self, mock_sp) -> None:
-        from money4band.helper import is_docker_daemon_running
+        from money4band.docker.helper import is_docker_daemon_running
 
         mock_sp.run.return_value = MagicMock(returncode=1)
         assert is_docker_daemon_running() is False
 
-    @patch("money4band.helper.subprocess")
+    @patch("money4band.docker.helper.subprocess")
     def test_docker_not_installed(self, mock_sp) -> None:
-        from money4band.helper import is_docker_daemon_running
+        from money4band.docker.helper import is_docker_daemon_running
 
         mock_sp.run.side_effect = FileNotFoundError
         assert is_docker_daemon_running() is False
@@ -131,25 +131,25 @@ class TestIsDockerDaemonRunning:
 class TestIsUserInDockerGroup:
     @patch("platform.system", return_value="Windows")
     def test_windows_always_true(self, _mock) -> None:
-        from money4band.helper import is_user_in_docker_group
+        from money4band.docker.helper import is_user_in_docker_group
 
         assert is_user_in_docker_group() is True
 
     @patch("platform.system", return_value="Linux")
-    @patch("money4band.helper.subprocess")
-    @patch("money4band.helper.getpass")
+    @patch("money4band.docker.helper.subprocess")
+    @patch("money4band.docker.helper.getpass")
     def test_linux_in_group(self, mock_gp, mock_sp, _sys) -> None:
-        from money4band.helper import is_user_in_docker_group
+        from money4band.docker.helper import is_user_in_docker_group
 
         mock_gp.getuser.return_value = "user1"
         mock_sp.run.return_value = MagicMock(stdout="user1 : user1 docker sudo")
         assert is_user_in_docker_group() is True
 
     @patch("platform.system", return_value="Linux")
-    @patch("money4band.helper.subprocess")
-    @patch("money4band.helper.getpass")
+    @patch("money4band.docker.helper.subprocess")
+    @patch("money4band.docker.helper.getpass")
     def test_linux_not_in_group(self, mock_gp, mock_sp, _sys) -> None:
-        from money4band.helper import is_user_in_docker_group
+        from money4band.docker.helper import is_user_in_docker_group
 
         mock_gp.getuser.return_value = "user1"
         mock_sp.run.return_value = MagicMock(stdout="user1 : user1 sudo")
@@ -157,9 +157,9 @@ class TestIsUserInDockerGroup:
 
 
 class TestIsMultiarchEmulationAvailable:
-    @patch("money4band.helper.subprocess")
+    @patch("money4band.docker.helper.subprocess")
     def test_detected_via_buildx(self, mock_sp) -> None:
-        from money4band.helper import is_multiarch_emulation_available
+        from money4band.docker.helper import is_multiarch_emulation_available
 
         mock_sp.run.return_value = MagicMock(
             returncode=0,
@@ -167,9 +167,9 @@ class TestIsMultiarchEmulationAvailable:
         )
         assert is_multiarch_emulation_available() is True
 
-    @patch("money4band.helper.subprocess")
+    @patch("money4band.docker.helper.subprocess")
     def test_single_arch_returns_false(self, mock_sp) -> None:
-        from money4band.helper import is_multiarch_emulation_available
+        from money4band.docker.helper import is_multiarch_emulation_available
 
         mock_sp.run.return_value = MagicMock(
             returncode=0, stdout="Platforms: linux/amd64"
@@ -177,9 +177,9 @@ class TestIsMultiarchEmulationAvailable:
         with patch("os.path.isdir", return_value=False):
             assert is_multiarch_emulation_available() is False
 
-    @patch("money4band.helper.subprocess")
+    @patch("money4band.docker.helper.subprocess")
     def test_all_checks_fail_returns_false(self, mock_sp) -> None:
-        from money4band.helper import is_multiarch_emulation_available
+        from money4band.docker.helper import is_multiarch_emulation_available
 
         mock_sp.run.side_effect = Exception("no docker")
         with patch("os.path.isdir", return_value=False):
@@ -189,13 +189,13 @@ class TestIsMultiarchEmulationAvailable:
 class TestRunDockerCommandFailureAndSudo:
     """OSError wrapping and sudo prepending on Linux."""
 
-    @patch("money4band.helper.subprocess")
+    @patch("money4band.docker.helper.subprocess")
     def test_exception_raises_runtime_error(self, mock_sp) -> None:
         mock_sp.run.side_effect = OSError("not found")
         with pytest.raises(RuntimeError, match="Command failed"):
             run_docker_command(["docker", "info"])
 
-    @patch("money4band.helper.subprocess")
+    @patch("money4band.docker.helper.subprocess")
     @patch("platform.system", return_value="Linux")
     def test_sudo_prepended_on_linux(self, _sys, mock_sp) -> None:
         mock_sp.run.return_value = MagicMock(returncode=0, stdout="", stderr="")
@@ -213,45 +213,45 @@ class TestShowSpinner:
 
 class TestCheckDockerReady:
     @patch("platform.system", return_value="Windows")
-    @patch("money4band.helper.is_docker_daemon_running", return_value=True)
+    @patch("money4band.docker.helper.is_docker_daemon_running", return_value=True)
     def test_passes_when_daemon_running(self, _daemon, _sys) -> None:
-        from money4band.helper import check_docker_ready
+        from money4band.docker.helper import check_docker_ready
 
         check_docker_ready()
 
     @patch("platform.system", return_value="Windows")
-    @patch("money4band.helper.is_docker_daemon_running", return_value=False)
+    @patch("money4band.docker.helper.is_docker_daemon_running", return_value=False)
     def test_raises_when_daemon_not_running(self, _daemon, _sys) -> None:
-        from money4band.helper import check_docker_ready
+        from money4band.docker.helper import check_docker_ready
 
         with pytest.raises(RuntimeError, match="not running"):
             check_docker_ready()
 
     @patch("platform.system", return_value="Linux")
-    @patch("money4band.helper.is_docker_daemon_running", return_value=True)
-    @patch("money4band.helper.is_user_root", return_value=True)
+    @patch("money4band.docker.helper.is_docker_daemon_running", return_value=True)
+    @patch("money4band.docker.helper.is_user_root", return_value=True)
     def test_linux_root_passes(self, _root, _daemon, _sys) -> None:
-        from money4band.helper import check_docker_ready
+        from money4band.docker.helper import check_docker_ready
 
         check_docker_ready()
 
     @patch("platform.system", return_value="Linux")
-    @patch("money4band.helper.is_docker_daemon_running", return_value=False)
+    @patch("money4band.docker.helper.is_docker_daemon_running", return_value=False)
     def test_linux_daemon_not_running(self, _daemon, _sys) -> None:
-        from money4band.helper import check_docker_ready
+        from money4band.docker.helper import check_docker_ready
 
         with pytest.raises(RuntimeError):
             check_docker_ready()
 
     @patch("platform.system", return_value="Linux")
-    @patch("money4band.helper.is_docker_daemon_running", return_value=True)
-    @patch("money4band.helper.is_user_root", return_value=False)
-    @patch("money4band.helper.is_user_in_docker_group", return_value=False)
-    @patch("money4band.helper.create_docker_group_if_needed")
+    @patch("money4band.docker.helper.is_docker_daemon_running", return_value=True)
+    @patch("money4band.docker.helper.is_user_root", return_value=False)
+    @patch("money4band.docker.helper.is_user_in_docker_group", return_value=False)
+    @patch("money4band.docker.helper.create_docker_group_if_needed")
     def test_linux_not_in_group_fixes(
         self, mock_fix, _group, _root, _daemon, _sys
     ) -> None:
-        from money4band.helper import check_docker_ready
+        from money4band.docker.helper import check_docker_ready
 
         check_docker_ready()
         mock_fix.assert_called_once()
@@ -262,15 +262,15 @@ class TestCreateDockerGroup:
 
     @patch("platform.system", return_value="Windows")
     def test_skips_on_windows(self, _sys) -> None:
-        from money4band.helper import create_docker_group_if_needed
+        from money4band.docker.helper import create_docker_group_if_needed
 
         create_docker_group_if_needed()  # No crash, no-op
 
     @patch("platform.system", return_value="Linux")
-    @patch("money4band.helper.getpass")
-    @patch("money4band.helper.subprocess")
+    @patch("money4band.docker.helper.getpass")
+    @patch("money4band.docker.helper.subprocess")
     def test_creates_group_and_adds_user(self, mock_sp, mock_gp, _sys) -> None:
-        from money4band.helper import create_docker_group_if_needed
+        from money4band.docker.helper import create_docker_group_if_needed
 
         mock_sp.run.side_effect = [
             MagicMock(returncode=1),  # getent group docker → doesn't exist
@@ -282,10 +282,10 @@ class TestCreateDockerGroup:
         assert mock_sp.run.call_count == 3
 
     @patch("platform.system", return_value="Linux")
-    @patch("money4band.helper.getpass")
-    @patch("money4band.helper.subprocess")
+    @patch("money4band.docker.helper.getpass")
+    @patch("money4band.docker.helper.subprocess")
     def test_existing_group_just_adds_user(self, mock_sp, mock_gp, _sys) -> None:
-        from money4band.helper import create_docker_group_if_needed
+        from money4band.docker.helper import create_docker_group_if_needed
 
         mock_sp.run.side_effect = [
             MagicMock(returncode=0),  # getent → group exists
@@ -301,9 +301,9 @@ class TestSetupService:
 
     @patch("platform.system", return_value="Linux")
     @patch("os.path.exists")
-    @patch("money4band.helper.subprocess")
+    @patch("money4band.docker.helper.subprocess")
     def test_systemd_already_active(self, mock_sp, mock_exists, _sys) -> None:
-        from money4band.helper import setup_service
+        from money4band.docker.helper import setup_service
 
         mock_exists.return_value = True
         mock_sp.run.return_value = MagicMock(stdout="active", returncode=0)
@@ -313,9 +313,9 @@ class TestSetupService:
 
     @patch("platform.system", return_value="Linux")
     @patch("os.path.exists")
-    @patch("money4band.helper.subprocess")
+    @patch("money4band.docker.helper.subprocess")
     def test_systemd_install_and_start(self, mock_sp, mock_exists, _sys) -> None:
-        from money4band.helper import setup_service
+        from money4band.docker.helper import setup_service
 
         # is-active returns "inactive", /etc/systemd/system exists, service file doesn't yet
         mock_exists.side_effect = lambda p: p == "/etc/systemd/system"

@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import os
 
-from money4band.profiles import (
+from money4band.core.profiles import (
     create_profile,
     delete_profile,
     display_profiles,

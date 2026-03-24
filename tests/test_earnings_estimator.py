@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from money4band.earnings_estimator import (
+from money4band.apps.earnings import (
     display_earnings_summary,
     get_app_earnings,
     parse_earnings_range,

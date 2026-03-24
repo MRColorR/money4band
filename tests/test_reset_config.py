@@ -3,8 +3,8 @@ import os
 import tempfile
 import unittest
 
-from money4band.fn_reset_config import main as reset_config_main
-from money4band.fn_reset_config import reset_config
+from money4band.core.reset import main as reset_config_main
+from money4band.core.reset import reset_config
 
 
 class TestResetConfig(unittest.TestCase):

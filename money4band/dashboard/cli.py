@@ -269,7 +269,7 @@ def _start_background(
     pid = spawn_dashboard_background(config_dir, base_dir, host=host, port=port)
 
     # Poll the port briefly to confirm uvicorn actually started.
-    from money4band.networker import is_port_in_use
+    from money4band.network.networker import is_port_in_use
 
     print(
         f"{Fore.CYAN}Waiting for dashboard to start...{Style.RESET_ALL}",

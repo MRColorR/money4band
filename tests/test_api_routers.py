@@ -219,7 +219,7 @@ class TestAppsRouter:
 
 class TestConfigRouter:
     def test_get_user_config_masked(self, client):
-        with patch("money4band.config_viewer._mask_dict", wraps=lambda d: d):
+        with patch("money4band.core.viewer._mask_dict", wraps=lambda d: d):
             resp = client.get("/api/config/user")
         assert resp.status_code == 200
         data = resp.json()
@@ -290,7 +290,7 @@ class TestConfigRouter:
         assert data["available_profiles"]["standard"]["cpu_pct"] == 0.60
 
     def test_set_limits_valid(self, client):
-        with patch("money4band.detector.calculate_resource_limits"):
+        with patch("money4band.system.detector.calculate_resource_limits"):
             resp = client.put("/api/config/limits", json={"profile": "performance"})
         assert resp.status_code == 200
         assert resp.json()["profile"] == "performance"
@@ -307,28 +307,28 @@ class TestConfigRouter:
 
 class TestStackRouter:
     def test_start_stack(self, client):
-        with patch("money4band.fn_startStack.start_all_stacks"):
+        with patch("money4band.docker.start.start_all_stacks"):
             resp = client.post("/api/stack/start")
         assert resp.status_code == 200
         assert resp.json()["status"] == "ok"
 
     def test_start_stack_failure(self, client):
         with patch(
-            "money4band.fn_startStack.start_all_stacks",
+            "money4band.docker.start.start_all_stacks",
             side_effect=RuntimeError("Docker not found"),
         ):
             resp = client.post("/api/stack/start")
         assert resp.status_code == 500
 
     def test_stop_stack(self, client):
-        with patch("money4band.fn_stopStack.stop_all_stacks"):
+        with patch("money4band.docker.stop.stop_all_stacks"):
             resp = client.post("/api/stack/stop")
         assert resp.status_code == 200
 
     def test_restart_stack(self, client):
         with (
-            patch("money4band.fn_stopStack.stop_all_stacks"),
-            patch("money4band.fn_startStack.start_all_stacks"),
+            patch("money4band.docker.stop.stop_all_stacks"),
+            patch("money4band.docker.start.start_all_stacks"),
         ):
             resp = client.post("/api/stack/restart")
         assert resp.status_code == 200
@@ -343,9 +343,9 @@ class TestStackRouter:
 class TestSystemRouter:
     def test_system_info(self, client):
         with (
-            patch("money4band.detector.detect_os", return_value={"os_type": "linux"}),
+            patch("money4band.system.detector.detect_os", return_value={"os_type": "linux"}),
             patch(
-                "money4band.detector.detect_architecture",
+                "money4band.system.detector.detect_architecture",
                 return_value={"arch": "x86_64", "dkarch": "amd64"},
             ),
         ):
@@ -361,7 +361,7 @@ class TestSystemRouter:
         assert resp.status_code == 200
 
     def test_set_dns_valid(self, client):
-        with patch("money4band.system_info.set_dns_mode"):
+        with patch("money4band.system.info.set_dns_mode"):
             resp = client.put("/api/system/dns", json={"mode": "cloudflare"})
         assert resp.status_code == 200
         assert resp.json()["mode"] == "cloudflare"
@@ -389,7 +389,7 @@ class TestMonitorRouter:
         )
         mock_status.name = "container1"
         with patch(
-            "money4band.monitor.get_stack_health",
+            "money4band.docker.monitor.get_stack_health",
             return_value=[mock_status],
         ):
             resp = client.get("/api/monitor/health")
@@ -408,7 +408,7 @@ class TestMonitorRouter:
         healthy = MagicMock(restart_count=0)
         healthy.name = "good-container"
         with patch(
-            "money4band.monitor.get_stack_health",
+            "money4band.docker.monitor.get_stack_health",
             return_value=[looping, healthy],
         ):
             resp = client.get("/api/monitor/restart-loops?threshold=5")
@@ -431,7 +431,7 @@ class TestBackupsRouter:
             size=1024,
         )
         with patch(
-            "money4band.backup.list_backups",
+            "money4band.core.backup.list_backups",
             return_value=[mock_backup],
         ):
             resp = client.get("/api/backups")
@@ -440,7 +440,7 @@ class TestBackupsRouter:
 
     def test_create_backup(self, client):
         with patch(
-            "money4band.backup.create_backup",
+            "money4band.core.backup.create_backup",
             return_value="/backups/new.tar.gz",
         ):
             resp = client.post("/api/backups")
@@ -454,7 +454,7 @@ class TestBackupsRouter:
         backup_file.write_text("fake")
         with (
             patch("money4band.api.router_backups.BACKUP_DIR", fake_backup_dir),
-            patch("money4band.backup.restore_backup"),
+            patch("money4band.core.backup.restore_backup"),
         ):
             resp = client.post(
                 "/api/backups/restore",
@@ -487,7 +487,7 @@ class TestBackupsRouter:
 
     def test_cleanup_backups(self, client):
         with patch(
-            "money4band.backup.cleanup_backups",
+            "money4band.core.backup.cleanup_backups",
             return_value=3,
         ):
             resp = client.delete("/api/backups/cleanup?keep=5")
@@ -503,7 +503,7 @@ class TestBackupsRouter:
 class TestProfilesRouter:
     def test_list_profiles(self, client):
         with patch(
-            "money4band.profiles.list_profiles",
+            "money4band.core.profiles.list_profiles",
             return_value=["default", "gaming"],
         ):
             resp = client.get("/api/profiles")
@@ -512,7 +512,7 @@ class TestProfilesRouter:
 
     def test_create_profile(self, client):
         with patch(
-            "money4band.profiles.create_profile",
+            "money4band.core.profiles.create_profile",
             return_value="/profiles/myprofile",
         ):
             resp = client.post("/api/profiles", json={"name": "myprofile"})
@@ -522,17 +522,17 @@ class TestProfilesRouter:
     def test_switch_profile(self, client):
         with (
             patch(
-                "money4band.profiles.list_profiles",
+                "money4band.core.profiles.list_profiles",
                 return_value=["myprofile"],
             ),
-            patch("money4band.profiles.switch_profile"),
+            patch("money4band.core.profiles.switch_profile"),
         ):
             resp = client.put("/api/profiles/myprofile/switch")
         assert resp.status_code == 200
 
     def test_switch_nonexistent(self, client):
         with patch(
-            "money4band.profiles.list_profiles",
+            "money4band.core.profiles.list_profiles",
             return_value=[],
         ):
             resp = client.put("/api/profiles/nope/switch")
@@ -541,17 +541,17 @@ class TestProfilesRouter:
     def test_delete_profile(self, client):
         with (
             patch(
-                "money4band.profiles.list_profiles",
+                "money4band.core.profiles.list_profiles",
                 return_value=["old"],
             ),
-            patch("money4band.profiles.delete_profile"),
+            patch("money4band.core.profiles.delete_profile"),
         ):
             resp = client.delete("/api/profiles/old")
         assert resp.status_code == 200
 
     def test_delete_nonexistent(self, client):
         with patch(
-            "money4band.profiles.list_profiles",
+            "money4band.core.profiles.list_profiles",
             return_value=[],
         ):
             resp = client.delete("/api/profiles/nope")
@@ -579,7 +579,7 @@ class TestEarningsRouter:
             {"name": "earnapp", "range_low": 0.5, "range_high": 3.0},
         ]
         with patch(
-            "money4band.earnings_estimator.get_app_earnings",
+            "money4band.apps.earnings.get_app_earnings",
             return_value=mock_earnings,
         ):
             resp = client.get("/api/earnings")
@@ -591,7 +591,7 @@ class TestEarningsRouter:
 
     def test_get_earnings_datacenter(self, client):
         with patch(
-            "money4band.earnings_estimator.get_app_earnings",
+            "money4band.apps.earnings.get_app_earnings",
             return_value=[],
         ):
             resp = client.get("/api/earnings?ip_type=datacenter")
@@ -610,7 +610,7 @@ class TestIPRouter:
             {"ip": "1.2.3.4", "score": 15, "rating": "Good"},
         ]
         with patch(
-            "money4band.ip_scorer.analyse_ips",
+            "money4band.network.ip_scorer.analyse_ips",
             return_value=mock_results,
         ):
             resp = client.get("/api/ip/score")
@@ -634,7 +634,7 @@ class TestOffersRouter:
             {"name": "TestOffer", "category": "survey", "url": "https://test.com"},
         ]
         with patch(
-            "money4band.offers.load_all_offers",
+            "money4band.apps.offers.load_all_offers",
             return_value=mock_offers,
         ):
             resp = client.get("/api/offers")
@@ -651,7 +651,7 @@ class TestOffersRouter:
             {"name": "TestOffer", "category": "survey", "url": "https://test.com"},
         ]
         with patch(
-            "money4band.offers.load_all_offers",
+            "money4band.apps.offers.load_all_offers",
             return_value=mock_offers,
         ):
             resp = client.get("/api/offers?category=bandwidth")
@@ -764,7 +764,7 @@ class TestUpdateRouter:
 class TestSecurityRouter:
     def test_stale_images(self, client):
         with patch(
-            "money4band.image_security.check_stale_images",
+            "money4band.docker.image_security.check_stale_images",
             return_value=[{"image": "old:1.0", "days_since_update": 120}],
         ):
             resp = client.get("/api/security/stale")
@@ -773,7 +773,7 @@ class TestSecurityRouter:
 
     def test_image_digests(self, client):
         with patch(
-            "money4band.image_security.log_image_digests",
+            "money4band.docker.image_security.log_image_digests",
             return_value=[{"image": "test:latest", "digest": "sha256:abc"}],
         ):
             resp = client.get("/api/security/digests")
@@ -781,7 +781,7 @@ class TestSecurityRouter:
 
     def test_scan_image(self, client):
         with patch(
-            "money4band.image_security.run_scout_cves",
+            "money4band.docker.image_security.run_scout_cves",
             return_value="No vulnerabilities found",
         ):
             resp = client.post("/api/security/scan/test:latest")

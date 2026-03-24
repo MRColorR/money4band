@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import patch
 
-from money4band.prompt_helper import (
+from money4band.ui.prompt import (
     ask_email,
     ask_question_num,
     ask_question_yn,

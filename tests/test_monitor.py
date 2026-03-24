@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from unittest.mock import MagicMock, patch
 
-from money4band.monitor import (
+from money4band.docker.monitor import (
     HealthStatus,
     check_container_health,
     detect_restart_loops,
@@ -44,7 +44,7 @@ class TestCheckContainerHealth:
         result.stdout = json.dumps(data)
         return result
 
-    @patch("money4band.monitor.subprocess.run")
+    @patch("money4band.docker.monitor.subprocess.run")
     def test_returns_unknown_on_failure(self, mock_run):
         mock_run.return_value = MagicMock(returncode=1, stdout="")
         status = check_container_health("mycontainer")
@@ -52,7 +52,7 @@ class TestCheckContainerHealth:
         assert status.running is False
         assert status.health == "unknown"
 
-    @patch("money4band.monitor.subprocess.run")
+    @patch("money4band.docker.monitor.subprocess.run")
     def test_parses_healthy_container(self, mock_run):
         mock_run.return_value = self._mock_inspect(
             {
@@ -72,7 +72,7 @@ class TestCheckContainerHealth:
         assert status.image == "myimage:latest"
         assert status.ok is True
 
-    @patch("money4band.monitor.subprocess.run")
+    @patch("money4band.docker.monitor.subprocess.run")
     def test_parses_unhealthy_with_error(self, mock_run):
         mock_run.return_value = self._mock_inspect(
             {
@@ -92,7 +92,7 @@ class TestCheckContainerHealth:
         assert status.last_error == "connection refused"
         assert status.restart_count == 3
 
-    @patch("money4band.monitor.subprocess.run")
+    @patch("money4band.docker.monitor.subprocess.run")
     def test_oom_killed(self, mock_run):
         mock_run.return_value = self._mock_inspect(
             {
@@ -104,7 +104,7 @@ class TestCheckContainerHealth:
         status = check_container_health("test")
         assert status.last_error == "OOMKilled"
 
-    @patch("money4band.monitor.subprocess.run")
+    @patch("money4band.docker.monitor.subprocess.run")
     def test_no_healthcheck(self, mock_run):
         mock_run.return_value = self._mock_inspect(
             {
@@ -119,25 +119,25 @@ class TestCheckContainerHealth:
 
 
 class TestDetectRestartLoops:
-    @patch("money4band.monitor.check_container_health")
+    @patch("money4band.docker.monitor.check_container_health")
     def test_detects_loop(self, mock_health):
         mock_health.return_value = HealthStatus(name="x", restart_count=7)
         assert detect_restart_loops("x", threshold=5) is True
 
-    @patch("money4band.monitor.check_container_health")
+    @patch("money4band.docker.monitor.check_container_health")
     def test_no_loop(self, mock_health):
         mock_health.return_value = HealthStatus(name="x", restart_count=2)
         assert detect_restart_loops("x", threshold=5) is False
 
-    @patch("money4band.monitor.check_container_health")
+    @patch("money4band.docker.monitor.check_container_health")
     def test_exact_threshold(self, mock_health):
         mock_health.return_value = HealthStatus(name="x", restart_count=5)
         assert detect_restart_loops("x", threshold=5) is True
 
 
 class TestGetStackHealth:
-    @patch("money4band.monitor.check_container_health")
-    @patch("money4band.monitor._docker_ps_names")
+    @patch("money4band.docker.monitor.check_container_health")
+    @patch("money4band.docker.monitor._docker_ps_names")
     def test_returns_list(self, mock_names, mock_health):
         mock_names.return_value = ["a", "b"]
         mock_health.side_effect = [
@@ -149,7 +149,7 @@ class TestGetStackHealth:
         assert result[0].name == "a"
         assert result[1].name == "b"
 
-    @patch("money4band.monitor._docker_ps_names")
+    @patch("money4band.docker.monitor._docker_ps_names")
     def test_empty_when_no_containers(self, mock_names):
         mock_names.return_value = []
         assert get_stack_health() == []

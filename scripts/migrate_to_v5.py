@@ -319,12 +319,12 @@ def migrate(project_dir: str, *, dry_run: bool = False) -> bool:
     try:
         # Import crypto from the project
         sys.path.insert(0, str(root))
-        from money4band.crypto import ensure_config_encrypted
+        from money4band.core.crypto import ensure_config_encrypted
 
         ensure_config_encrypted(str(user_config_path))
         logger.info("Encrypted config at %s", user_config_path)
     except ImportError:
-        logger.warning("Could not import money4band.crypto — config saved as plaintext")
+        logger.warning("Could not import money4band.core.crypto — config saved as plaintext")
     except Exception:
         logger.exception("Encryption failed — config saved as plaintext")
 

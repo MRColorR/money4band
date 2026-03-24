@@ -294,12 +294,12 @@ class TestNotifySubcommand:
 
 class TestHookHelpers:
     def test_start_stack_has_notify_helper(self):
-        from money4band.fn_startStack import _notify_event
+        from money4band.docker.start import _notify_event
 
         assert callable(_notify_event)
 
     def test_stop_stack_has_notify_helper(self):
-        from money4band.fn_stopStack import _notify_event
+        from money4band.docker.stop import _notify_event
 
         assert callable(_notify_event)
 

@@ -93,7 +93,7 @@ _USER_CONFIG = {
 
 class TestDNSConfig:
     def test_get_dns_config_default(self):
-        from money4band.system_info import get_dns_config
+        from money4band.system.info import get_dns_config
 
         cfg = copy.deepcopy(_M4B_CONFIG)
         dns = get_dns_config(cfg)
@@ -101,14 +101,14 @@ class TestDNSConfig:
         assert "1.1.1.1" in dns["servers"]
 
     def test_get_dns_config_missing_returns_default(self):
-        from money4band.system_info import get_dns_config
+        from money4band.system.info import get_dns_config
 
         cfg = {"system": {}}
         dns = get_dns_config(cfg)
         assert dns["mode"] == "default"
 
     def test_set_dns_mode_custom(self, tmp_path):
-        from money4band.system_info import set_dns_mode
+        from money4band.system.info import set_dns_mode
 
         cfg_path = tmp_path / "m4b-config.json"
         cfg_path.write_text(json.dumps(copy.deepcopy(_M4B_CONFIG)))
@@ -120,7 +120,7 @@ class TestDNSConfig:
         assert result["system"]["dns"]["servers"] == ["9.9.9.9", "149.112.112.112"]
 
     def test_set_dns_mode_default(self, tmp_path):
-        from money4band.system_info import set_dns_mode
+        from money4band.system.info import set_dns_mode
 
         cfg = copy.deepcopy(_M4B_CONFIG)
         cfg["system"]["dns"]["mode"] = "custom"
@@ -133,7 +133,7 @@ class TestDNSConfig:
         assert result["system"]["dns"]["mode"] == "default"
 
     def test_set_dns_mode_invalid_raises(self, tmp_path):
-        from money4band.system_info import set_dns_mode
+        from money4band.system.info import set_dns_mode
 
         cfg_path = tmp_path / "m4b-config.json"
         cfg_path.write_text(json.dumps(copy.deepcopy(_M4B_CONFIG)))
@@ -142,7 +142,7 @@ class TestDNSConfig:
             set_dns_mode(str(cfg_path), "invalid")
 
     def test_set_dns_mode_rejects_invalid_ipv4(self, tmp_path):
-        from money4band.system_info import set_dns_mode
+        from money4band.system.info import set_dns_mode
 
         cfg_path = tmp_path / "m4b-config.json"
         cfg_path.write_text(json.dumps(copy.deepcopy(_M4B_CONFIG)))
@@ -151,7 +151,7 @@ class TestDNSConfig:
             set_dns_mode(str(cfg_path), "custom", ["not-an-ip"])
 
     def test_set_dns_mode_rejects_partial_bad_list(self, tmp_path):
-        from money4band.system_info import set_dns_mode
+        from money4band.system.info import set_dns_mode
 
         cfg_path = tmp_path / "m4b-config.json"
         cfg_path.write_text(json.dumps(copy.deepcopy(_M4B_CONFIG)))
@@ -160,7 +160,7 @@ class TestDNSConfig:
             set_dns_mode(str(cfg_path), "custom", ["1.1.1.1", "999.999.999.999"])
 
     def test_set_dns_mode_rejects_empty_string(self, tmp_path):
-        from money4band.system_info import set_dns_mode
+        from money4band.system.info import set_dns_mode
 
         cfg_path = tmp_path / "m4b-config.json"
         cfg_path.write_text(json.dumps(copy.deepcopy(_M4B_CONFIG)))
@@ -169,7 +169,7 @@ class TestDNSConfig:
             set_dns_mode(str(cfg_path), "custom", [""])
 
     def test_set_dns_mode_rejects_hostname(self, tmp_path):
-        from money4band.system_info import set_dns_mode
+        from money4band.system.info import set_dns_mode
 
         cfg_path = tmp_path / "m4b-config.json"
         cfg_path.write_text(json.dumps(copy.deepcopy(_M4B_CONFIG)))
@@ -178,7 +178,7 @@ class TestDNSConfig:
             set_dns_mode(str(cfg_path), "custom", ["dns.google.com"])
 
     def test_set_dns_mode_accepts_valid_ips(self, tmp_path):
-        from money4band.system_info import set_dns_mode
+        from money4band.system.info import set_dns_mode
 
         cfg_path = tmp_path / "m4b-config.json"
         cfg_path.write_text(json.dumps(copy.deepcopy(_M4B_CONFIG)))
@@ -209,7 +209,7 @@ class TestIPv4Validation:
         ],
     )
     def test_valid_ipv4(self, ip):
-        from money4band.system_info import is_valid_ipv4
+        from money4band.system.info import is_valid_ipv4
 
         assert is_valid_ipv4(ip) is True
 
@@ -232,7 +232,7 @@ class TestIPv4Validation:
         ],
     )
     def test_invalid_ipv4(self, ip):
-        from money4band.system_info import is_valid_ipv4
+        from money4band.system.info import is_valid_ipv4
 
         assert is_valid_ipv4(ip) is False
 
@@ -245,7 +245,7 @@ class TestIPv4Validation:
 class TestComposeDNSInjection:
     def _assemble(self, m4b_config, tmp_path):
         """Helper: run assemble_docker_compose with given m4b_config."""
-        from money4band.compose_builder import assemble_docker_compose
+        from money4band.docker.compose_builder import assemble_docker_compose
 
         app_cfg = copy.deepcopy(_APP_CONFIG)
         usr_cfg = copy.deepcopy(_USER_CONFIG)
@@ -253,10 +253,10 @@ class TestComposeDNSInjection:
 
         with (
             patch(
-                "money4band.compose_builder.check_img_arch_support", return_value=True
+                "money4band.docker.compose_builder.check_img_arch_support", return_value=True
             ),
-            patch("money4band.compose_builder.get_compatible_tag", return_value=None),
-            patch("money4band.compose_builder.show_spinner"),
+            patch("money4band.docker.compose_builder.get_compatible_tag", return_value=None),
+            patch("money4band.docker.compose_builder.show_spinner"),
         ):
             files = assemble_docker_compose(
                 m4b_config,
@@ -361,19 +361,19 @@ class TestNoHardcodedDNS:
 class TestSystemInfo:
     def test_show_system_info_runs(self, capsys):
         """show_system_info should print without error."""
-        from money4band.system_info import show_system_info
+        from money4band.system.info import show_system_info
 
         cfg = copy.deepcopy(_M4B_CONFIG)
         app_cfg = copy.deepcopy(_APP_CONFIG)
         usr_cfg = copy.deepcopy(_USER_CONFIG)
 
         with (
-            patch("money4band.system_info.check_for_update", return_value=None),
+            patch("money4band.system.info.check_for_update", return_value=None),
             patch(
-                "money4band.system_info.detector.get_system_memory_and_cores",
+                "money4band.system.info.detector.get_system_memory_and_cores",
                 return_value=(8192, 4),
             ),
-            patch("money4band.compose_builder.get_compose_files", return_value=[]),
+            patch("money4band.docker.compose_builder.get_compose_files", return_value=[]),
         ):
             show_system_info(cfg, app_cfg, usr_cfg)
 
@@ -384,7 +384,7 @@ class TestSystemInfo:
         assert "default" in captured.out
 
     def test_show_system_info_custom_dns(self, capsys):
-        from money4band.system_info import show_system_info
+        from money4band.system.info import show_system_info
 
         cfg = copy.deepcopy(_M4B_CONFIG)
         cfg["system"]["dns"] = {"mode": "custom", "servers": ["9.9.9.9"]}
@@ -392,12 +392,12 @@ class TestSystemInfo:
         usr_cfg = copy.deepcopy(_USER_CONFIG)
 
         with (
-            patch("money4band.system_info.check_for_update", return_value=None),
+            patch("money4band.system.info.check_for_update", return_value=None),
             patch(
-                "money4band.system_info.detector.get_system_memory_and_cores",
+                "money4band.system.info.detector.get_system_memory_and_cores",
                 return_value=(8192, 4),
             ),
-            patch("money4band.compose_builder.get_compose_files", return_value=[]),
+            patch("money4band.docker.compose_builder.get_compose_files", return_value=[]),
         ):
             show_system_info(cfg, app_cfg, usr_cfg)
 
@@ -406,19 +406,19 @@ class TestSystemInfo:
         assert "9.9.9.9" in captured.out
 
     def test_show_system_info_update_available(self, capsys):
-        from money4band.system_info import show_system_info
+        from money4band.system.info import show_system_info
 
         cfg = copy.deepcopy(_M4B_CONFIG)
         app_cfg = copy.deepcopy(_APP_CONFIG)
         usr_cfg = copy.deepcopy(_USER_CONFIG)
 
         with (
-            patch("money4band.system_info.check_for_update", return_value="6.0.0"),
+            patch("money4band.system.info.check_for_update", return_value="6.0.0"),
             patch(
-                "money4band.system_info.detector.get_system_memory_and_cores",
+                "money4band.system.info.detector.get_system_memory_and_cores",
                 return_value=(8192, 4),
             ),
-            patch("money4band.compose_builder.get_compose_files", return_value=[]),
+            patch("money4band.docker.compose_builder.get_compose_files", return_value=[]),
         ):
             show_system_info(cfg, app_cfg, usr_cfg)
 
@@ -428,27 +428,27 @@ class TestSystemInfo:
 
     def test_show_system_info_docker_installed(self, capsys):
         """When docker is installed and running, multiarch info is shown."""
-        from money4band.system_info import show_system_info
+        from money4band.system.info import show_system_info
 
         cfg = copy.deepcopy(_M4B_CONFIG)
         app_cfg = copy.deepcopy(_APP_CONFIG)
         usr_cfg = copy.deepcopy(_USER_CONFIG)
 
         with (
-            patch("money4band.system_info.check_for_update", return_value=None),
+            patch("money4band.system.info.check_for_update", return_value=None),
             patch(
-                "money4band.system_info.detector.get_system_memory_and_cores",
+                "money4band.system.info.detector.get_system_memory_and_cores",
                 return_value=(16384, 8),
             ),
             patch(
-                "money4band.system_info.shutil.which", return_value="/usr/bin/docker"
+                "money4band.system.info.shutil.which", return_value="/usr/bin/docker"
             ),
-            patch("money4band.helper.is_docker_daemon_running", return_value=True),
+            patch("money4band.docker.helper.is_docker_daemon_running", return_value=True),
             patch(
-                "money4band.helper.is_multiarch_emulation_available", return_value=True
+                "money4band.docker.helper.is_multiarch_emulation_available", return_value=True
             ),
             patch(
-                "money4band.compose_builder.get_compose_files",
+                "money4band.docker.compose_builder.get_compose_files",
                 return_value=["compose.yml", "compose.service.yml"],
             ),
         ):
@@ -461,7 +461,7 @@ class TestSystemInfo:
         assert "layered" in captured.out
 
     def test_show_system_info_dashboard_enabled(self, capsys):
-        from money4band.system_info import show_system_info
+        from money4band.system.info import show_system_info
 
         cfg = copy.deepcopy(_M4B_CONFIG)
         app_cfg = copy.deepcopy(_APP_CONFIG)
@@ -470,12 +470,12 @@ class TestSystemInfo:
         usr_cfg["proxies"]["enabled"] = True
 
         with (
-            patch("money4band.system_info.check_for_update", return_value=None),
+            patch("money4band.system.info.check_for_update", return_value=None),
             patch(
-                "money4band.system_info.detector.get_system_memory_and_cores",
+                "money4band.system.info.detector.get_system_memory_and_cores",
                 return_value=(8192, 4),
             ),
-            patch("money4band.compose_builder.get_compose_files", return_value=[]),
+            patch("money4band.docker.compose_builder.get_compose_files", return_value=[]),
         ):
             show_system_info(cfg, app_cfg, usr_cfg)
 
@@ -485,7 +485,7 @@ class TestSystemInfo:
 
 class TestShowDnsStatus:
     def test_default_mode(self, capsys):
-        from money4band.system_info import show_dns_status
+        from money4band.system.info import show_dns_status
 
         cfg = copy.deepcopy(_M4B_CONFIG)
         show_dns_status(cfg)
@@ -494,7 +494,7 @@ class TestShowDnsStatus:
         assert "host default" in captured.out
 
     def test_custom_mode_shows_servers(self, capsys):
-        from money4band.system_info import show_dns_status
+        from money4band.system.info import show_dns_status
 
         cfg = copy.deepcopy(_M4B_CONFIG)
         cfg["system"]["dns"] = {"mode": "custom", "servers": ["9.9.9.9", "1.0.0.1"]}
@@ -506,7 +506,7 @@ class TestShowDnsStatus:
 
 class TestComposeRegenReminder:
     def test_prints_reminder(self, capsys, monkeypatch):
-        from money4band.system_info import compose_regen_reminder
+        from money4band.system.info import compose_regen_reminder
 
         monkeypatch.setattr("builtins.input", lambda _: "")
         compose_regen_reminder()
@@ -560,7 +560,7 @@ class TestCLISubcommands:
 class TestDnsInteractive:
     def test_empty_input_sets_default(self, tmp_path):
         """Empty input at the prompt should set DNS to 'default' mode."""
-        from money4band.system_info import dns_interactive
+        from money4band.system.info import dns_interactive
 
         cfg_path = tmp_path / "m4b-config.json"
         cfg_path.write_text(json.dumps(copy.deepcopy(_M4B_CONFIG)))
@@ -573,7 +573,7 @@ class TestDnsInteractive:
 
     def test_valid_custom_servers_persist(self, tmp_path):
         """Entering valid IPs stores them as custom DNS mode."""
-        from money4band.system_info import dns_interactive
+        from money4band.system.info import dns_interactive
 
         cfg_path = tmp_path / "m4b-config.json"
         cfg_path.write_text(json.dumps(copy.deepcopy(_M4B_CONFIG)))
@@ -587,7 +587,7 @@ class TestDnsInteractive:
 
     def test_invalid_ip_retries_then_accepts_valid(self, tmp_path, capsys):
         """Invalid IP is rejected with an error, then valid input is accepted."""
-        from money4band.system_info import dns_interactive
+        from money4band.system.info import dns_interactive
 
         cfg_path = tmp_path / "m4b-config.json"
         cfg_path.write_text(json.dumps(copy.deepcopy(_M4B_CONFIG)))
@@ -603,7 +603,7 @@ class TestDnsInteractive:
 
     def test_shows_current_custom_hint(self, tmp_path, capsys):
         """When current mode is custom, the hint shows current custom servers."""
-        from money4band.system_info import dns_interactive
+        from money4band.system.info import dns_interactive
 
         cfg = copy.deepcopy(_M4B_CONFIG)
         cfg["system"]["dns"]["mode"] = "custom"
@@ -624,25 +624,25 @@ class TestDnsInteractive:
 
 
 class TestSystemInfoMain:
-    @patch("money4band.system_info.dns_interactive")
-    @patch("money4band.system_info.show_system_info")
-    @patch("money4band.system_info.load_json_config")
-    @patch("money4band.system_info.cls")
+    @patch("money4band.system.info.dns_interactive")
+    @patch("money4band.system.info.show_system_info")
+    @patch("money4band.system.info.load_json_config")
+    @patch("money4band.system.info.cls")
     def test_d_choice_opens_dns(self, _cls, mock_load, mock_show, mock_dns):
         """Selecting 'd' should invoke dns_interactive, then 'b' exits."""
-        from money4band.system_info import main
+        from money4band.system.info import main
 
         mock_load.return_value = copy.deepcopy(_M4B_CONFIG)
         with patch("builtins.input", side_effect=["d", "b"]):
             main("app.json", "m4b.json", "user.json")
         mock_dns.assert_called_once_with("m4b.json")
 
-    @patch("money4band.system_info.show_system_info")
-    @patch("money4band.system_info.load_json_config")
-    @patch("money4band.system_info.cls")
+    @patch("money4band.system.info.show_system_info")
+    @patch("money4band.system.info.load_json_config")
+    @patch("money4band.system.info.cls")
     def test_b_choice_returns(self, _cls, mock_load, mock_show):
         """Selecting 'b' should exit the menu loop."""
-        from money4band.system_info import main
+        from money4band.system.info import main
 
         mock_load.return_value = copy.deepcopy(_M4B_CONFIG)
         with patch("builtins.input", return_value="b"):
@@ -650,12 +650,12 @@ class TestSystemInfoMain:
         # Should only display once then exit
         mock_show.assert_called_once()
 
-    @patch("money4band.system_info.show_system_info")
-    @patch("money4band.system_info.load_json_config")
-    @patch("money4band.system_info.cls")
+    @patch("money4band.system.info.show_system_info")
+    @patch("money4band.system.info.load_json_config")
+    @patch("money4band.system.info.cls")
     def test_q_choice_exits(self, _cls, mock_load, mock_show):
         """Selecting 'q' should raise SystemExit."""
-        from money4band.system_info import main
+        from money4band.system.info import main
 
         mock_load.return_value = copy.deepcopy(_M4B_CONFIG)
         with patch("builtins.input", return_value="q"), pytest.raises(SystemExit):

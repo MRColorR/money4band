@@ -5,7 +5,7 @@ Test networker module functionality.
 import unittest
 from unittest.mock import patch
 
-from money4band.networker import (
+from money4band.network.networker import (
     ACCEPTED_PROXY_PROTOCOLS,
     check_proxy_connectivity,
     find_next_available_port,
@@ -28,7 +28,7 @@ class TestNetworker(unittest.TestCase):
 
     def test_find_next_available_port_basic(self):
         """Test basic port finding without exclude list."""
-        with patch("money4band.networker.is_port_in_use") as mock_is_port_in_use:
+        with patch("money4band.network.networker.is_port_in_use") as mock_is_port_in_use:
             # First port is available
             mock_is_port_in_use.return_value = False
 
@@ -39,7 +39,7 @@ class TestNetworker(unittest.TestCase):
 
     def test_find_next_available_port_skip_in_use(self):
         """Test that function skips ports that are in use."""
-        with patch("money4band.networker.is_port_in_use") as mock_is_port_in_use:
+        with patch("money4band.network.networker.is_port_in_use") as mock_is_port_in_use:
             # First two ports are in use, third is free
             mock_is_port_in_use.side_effect = [True, True, False]
 
@@ -50,7 +50,7 @@ class TestNetworker(unittest.TestCase):
 
     def test_find_next_available_port_with_exclude_ports(self):
         """Test that function skips ports in the exclude list."""
-        with patch("money4band.networker.is_port_in_use") as mock_is_port_in_use:
+        with patch("money4band.network.networker.is_port_in_use") as mock_is_port_in_use:
             # All ports are free (not in use by system)
             mock_is_port_in_use.return_value = False
 
@@ -61,7 +61,7 @@ class TestNetworker(unittest.TestCase):
 
     def test_find_next_available_port_exclude_and_in_use(self):
         """Test that function skips both excluded and in-use ports."""
-        with patch("money4band.networker.is_port_in_use") as mock_is_port_in_use:
+        with patch("money4band.network.networker.is_port_in_use") as mock_is_port_in_use:
             # Port 8000 is excluded (we won't check it)
             # Port 8001 is in use
             # Port 8002 is free
@@ -78,7 +78,7 @@ class TestNetworker(unittest.TestCase):
 
     def test_find_next_available_port_multiple_exclude(self):
         """Test excluding multiple already assigned ports."""
-        with patch("money4band.networker.is_port_in_use") as mock_is_port_in_use:
+        with patch("money4band.network.networker.is_port_in_use") as mock_is_port_in_use:
             # All ports are free from system perspective
             mock_is_port_in_use.return_value = False
 
@@ -102,7 +102,7 @@ class TestNetworker(unittest.TestCase):
 
     def test_find_next_available_port_with_max_port(self):
         """Test that function respects the max_port limit."""
-        with patch("money4band.networker.is_port_in_use") as mock_is_port_in_use:
+        with patch("money4band.network.networker.is_port_in_use") as mock_is_port_in_use:
             # All ports are in use
             mock_is_port_in_use.return_value = True
 
@@ -115,7 +115,7 @@ class TestNetworker(unittest.TestCase):
 
     def test_find_next_available_port_default_max_port(self):
         """Test that default max_port is 65535."""
-        with patch("money4band.networker.is_port_in_use") as mock_is_port_in_use:
+        with patch("money4band.network.networker.is_port_in_use") as mock_is_port_in_use:
             # Make ports unavailable until 65535, then available at 65535
             def port_checker(port):
                 return port < 65535
@@ -128,7 +128,7 @@ class TestNetworker(unittest.TestCase):
 
     def test_find_next_available_port_none_exclude_ports(self):
         """Test that function handles None exclude_ports gracefully."""
-        with patch("money4band.networker.is_port_in_use") as mock_is_port_in_use:
+        with patch("money4band.network.networker.is_port_in_use") as mock_is_port_in_use:
             mock_is_port_in_use.return_value = False
 
             result = find_next_available_port(8000, exclude_ports=None)
@@ -137,7 +137,7 @@ class TestNetworker(unittest.TestCase):
 
     def test_find_next_available_port_empty_exclude_ports(self):
         """Test that function handles empty exclude_ports list."""
-        with patch("money4band.networker.is_port_in_use") as mock_is_port_in_use:
+        with patch("money4band.network.networker.is_port_in_use") as mock_is_port_in_use:
             mock_is_port_in_use.return_value = False
 
             result = find_next_available_port(8000, exclude_ports=[])
@@ -162,7 +162,7 @@ class TestNetworker(unittest.TestCase):
         - 50006: free, assigned (excludes 50000, 50002, 50004)
         - 50007: free, assigned (excludes 50000, 50002, 50004, 50006)
         """
-        with patch("money4band.networker.is_port_in_use") as mock_is_port_in_use:
+        with patch("money4band.network.networker.is_port_in_use") as mock_is_port_in_use:
             # Simulate some system ports in use
             used_system_ports = {50001, 50003, 50005}
 
@@ -285,14 +285,14 @@ class TestProxyConnectivity(unittest.TestCase):
     """Test suite for TCP reachability check."""
 
     def test_success(self):
-        with patch("money4band.networker.socket.create_connection"):
+        with patch("money4band.network.networker.socket.create_connection"):
             ok, reason = check_proxy_connectivity("http://1.2.3.4:8080", timeout=1.0)
         self.assertTrue(ok)
         self.assertEqual(reason, "")
 
     def test_connection_refused(self):
         with patch(
-            "money4band.networker.socket.create_connection",
+            "money4band.network.networker.socket.create_connection",
             side_effect=OSError("Connection refused"),
         ):
             ok, reason = check_proxy_connectivity("http://1.2.3.4:8080", timeout=1.0)
@@ -301,7 +301,7 @@ class TestProxyConnectivity(unittest.TestCase):
 
     def test_timeout(self):
         with patch(
-            "money4band.networker.socket.create_connection",
+            "money4band.network.networker.socket.create_connection",
             side_effect=TimeoutError("timed out"),
         ):
             ok, reason = check_proxy_connectivity("socks5://10.0.0.1:1080", timeout=0.5)
@@ -313,7 +313,7 @@ class TestProxyConnectivity(unittest.TestCase):
         self.assertIn("host", reason.lower())
 
     def test_uses_correct_host_port(self):
-        with patch("money4band.networker.socket.create_connection") as mock_conn:
+        with patch("money4band.network.networker.socket.create_connection") as mock_conn:
             mock_conn.return_value.__enter__ = lambda s: s
             mock_conn.return_value.__exit__ = lambda s, *a: None
             check_proxy_connectivity("socks5://myproxy.net:9999", timeout=2.0)
@@ -340,7 +340,7 @@ class TestValidateProxyList(unittest.TestCase):
     def test_invalid_skips_connectivity(self):
         """Invalid URLs should never get a connectivity check."""
         urls = ["not-valid"]
-        with patch("money4band.networker.socket.create_connection") as mock_conn:
+        with patch("money4band.network.networker.socket.create_connection") as mock_conn:
             results = validate_proxy_list(urls, check_connectivity=True)
         mock_conn.assert_not_called()
         self.assertFalse(results[0]["valid"])
@@ -348,7 +348,7 @@ class TestValidateProxyList(unittest.TestCase):
 
     def test_connectivity_check_reachable(self):
         urls = ["http://user:pass@1.2.3.4:8080"]
-        with patch("money4band.networker.socket.create_connection"):
+        with patch("money4band.network.networker.socket.create_connection"):
             results = validate_proxy_list(urls, check_connectivity=True, timeout=1.0)
         self.assertTrue(results[0]["valid"])
         self.assertTrue(results[0]["reachable"])
@@ -356,7 +356,7 @@ class TestValidateProxyList(unittest.TestCase):
     def test_connectivity_check_unreachable(self):
         urls = ["http://user:pass@1.2.3.4:8080"]
         with patch(
-            "money4band.networker.socket.create_connection",
+            "money4band.network.networker.socket.create_connection",
             side_effect=OSError("refused"),
         ):
             results = validate_proxy_list(urls, check_connectivity=True, timeout=1.0)
@@ -377,7 +377,7 @@ class TestValidateProxyList(unittest.TestCase):
     def test_multiple_unreachable(self):
         urls = ["http://a:b@1.1.1.1:80", "socks5://2.2.2.2:1080"]
         with patch(
-            "money4band.networker.socket.create_connection",
+            "money4band.network.networker.socket.create_connection",
             side_effect=OSError("no route"),
         ):
             results = validate_proxy_list(urls, check_connectivity=True)

@@ -32,7 +32,7 @@ async def list_all_profiles(
     paths: ConfigPaths = Depends(get_paths),
 ) -> list[str]:
     """Return names of all saved configuration profiles."""
-    from money4band.profiles import list_profiles
+    from money4band.core.profiles import list_profiles
 
     return list_profiles(paths.config_dir)
 
@@ -58,7 +58,7 @@ async def create_profile(
     paths: ConfigPaths = Depends(get_paths),
 ) -> dict[str, str]:
     """Save the current configuration as a named profile."""
-    from money4band.profiles import create_profile
+    from money4band.core.profiles import create_profile
 
     path = create_profile(
         payload.name,
@@ -76,7 +76,7 @@ async def switch_profile(
 ) -> dict[str, str]:
     """Activate a previously saved profile."""
     _validate_profile_name(name)
-    from money4band.profiles import list_profiles, switch_profile
+    from money4band.core.profiles import list_profiles, switch_profile
 
     if name not in list_profiles(paths.config_dir):
         raise HTTPException(status_code=404, detail=f"Profile '{name}' not found")
@@ -96,7 +96,7 @@ async def delete_profile(
 ) -> dict[str, str]:
     """Delete a saved profile."""
     _validate_profile_name(name)
-    from money4band.profiles import delete_profile, list_profiles
+    from money4band.core.profiles import delete_profile, list_profiles
 
     if name not in list_profiles(paths.config_dir):
         raise HTTPException(status_code=404, detail=f"Profile '{name}' not found")

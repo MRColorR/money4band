@@ -169,7 +169,7 @@ def configure(config_dir: str, base_dir: str | None = None) -> None:
     # Load API key from user-config if present (do NOT generate here).
     user_cfg_path = os.path.join(config_dir, "user-config.json")
     try:
-        from money4band.loader import load_json_config
+        from money4band.core.loader import load_json_config
 
         cfg = load_json_config(user_cfg_path)
         _api_key = cfg.get("m4b_dashboard", {}).get("api_key", "")
@@ -390,12 +390,12 @@ def find_dashboard_port(preferred: int = 8088) -> int:
     Uses the shared :func:`networker.find_next_available_port` helper so
     the behaviour is consistent with the rest of the project.
     """
-    from money4band.networker import is_port_in_use
+    from money4band.network.networker import is_port_in_use
 
     if not is_port_in_use(preferred):
         return preferred
 
-    from money4band.networker import find_next_available_port
+    from money4band.network.networker import find_next_available_port
 
     return find_next_available_port(preferred + 1)
 

@@ -1,4 +1,4 @@
-"""Tests for money4band.compose_builder — Docker Compose assembly."""
+"""Tests for money4band.docker.compose_builder — Docker Compose assembly."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ from unittest.mock import patch
 import pytest
 import yaml
 
-from money4band.compose_builder import (
+from money4band.docker.compose_builder import (
     COMPOSE_LAYER_FILES,
     assemble_docker_compose,
     get_compose_files,
@@ -145,8 +145,8 @@ def _make_configs(tmp_path: Path) -> tuple[dict, dict, dict]:
 
 
 class TestAssembleDockerCompose:
-    @patch("money4band.compose_builder.check_img_arch_support", return_value=True)
-    @patch("money4band.compose_builder.http_client")
+    @patch("money4band.docker.compose_builder.check_img_arch_support", return_value=True)
+    @patch("money4band.docker.compose_builder.http_client")
     def test_monolithic_output(self, _http, _arch, tmp_path: Path) -> None:
         m4b, app, user = _make_configs(tmp_path)
         out = str(tmp_path / "docker-compose.yaml")
@@ -156,8 +156,8 @@ class TestAssembleDockerCompose:
         data = yaml.safe_load(Path(out).read_text())
         assert "earnapp" in data["services"]
 
-    @patch("money4band.compose_builder.check_img_arch_support", return_value=True)
-    @patch("money4band.compose_builder.http_client")
+    @patch("money4band.docker.compose_builder.check_img_arch_support", return_value=True)
+    @patch("money4band.docker.compose_builder.http_client")
     def test_layered_output(self, _http, _arch, tmp_path: Path) -> None:
         m4b, app, user = _make_configs(tmp_path)
         out = str(tmp_path / "docker-compose.yaml")
@@ -168,8 +168,8 @@ class TestAssembleDockerCompose:
         for f in result:
             assert os.path.isfile(f)
 
-    @patch("money4band.compose_builder.check_img_arch_support", return_value=True)
-    @patch("money4band.compose_builder.http_client")
+    @patch("money4band.docker.compose_builder.check_img_arch_support", return_value=True)
+    @patch("money4band.docker.compose_builder.http_client")
     def test_watchtower_added_for_main(self, _http, _arch, tmp_path: Path) -> None:
         m4b, app, user = _make_configs(tmp_path)
         out = str(tmp_path / "docker-compose.yaml")
@@ -177,8 +177,8 @@ class TestAssembleDockerCompose:
         data = yaml.safe_load(Path(out).read_text())
         assert "watchtower" in data["services"]
 
-    @patch("money4band.compose_builder.check_img_arch_support", return_value=True)
-    @patch("money4band.compose_builder.http_client")
+    @patch("money4band.docker.compose_builder.check_img_arch_support", return_value=True)
+    @patch("money4band.docker.compose_builder.http_client")
     def test_watchtower_not_added_for_non_main(
         self, _http, _arch, tmp_path: Path
     ) -> None:
@@ -188,24 +188,24 @@ class TestAssembleDockerCompose:
         data = yaml.safe_load(Path(out).read_text())
         assert "watchtower" not in data["services"]
 
-    @patch("money4band.compose_builder.check_img_arch_support", return_value=None)
-    @patch("money4band.compose_builder.http_client")
+    @patch("money4band.docker.compose_builder.check_img_arch_support", return_value=None)
+    @patch("money4band.docker.compose_builder.http_client")
     def test_arch_unknown_falls_back_to_default_platform(
         self, _http, _arch, tmp_path: Path
     ) -> None:
         m4b, app, user = _make_configs(tmp_path)
         out = str(tmp_path / "docker-compose.yaml")
         with patch(
-            "money4band.compose_builder.check_img_arch_support", return_value=None
+            "money4band.docker.compose_builder.check_img_arch_support", return_value=None
         ):
             assemble_docker_compose(m4b, app, user, out, is_main_instance=False)
         data = yaml.safe_load(Path(out).read_text())
         assert data["services"]["earnapp"]["platform"] == "linux/amd64"
 
-    @patch("money4band.compose_builder.check_img_arch_support", return_value=False)
-    @patch("money4band.compose_builder.get_compatible_tag", return_value=None)
-    @patch("money4band.compose_builder.write_json")
-    @patch("money4band.compose_builder.http_client")
+    @patch("money4band.docker.compose_builder.check_img_arch_support", return_value=False)
+    @patch("money4band.docker.compose_builder.get_compatible_tag", return_value=None)
+    @patch("money4band.docker.compose_builder.write_json")
+    @patch("money4band.docker.compose_builder.http_client")
     def test_incompatible_arch_disables_app(
         self, _http, _write, _tag, _arch, tmp_path: Path
     ) -> None:
@@ -215,8 +215,8 @@ class TestAssembleDockerCompose:
         data = yaml.safe_load(Path(out).read_text())
         assert "earnapp" not in data.get("services", {})
 
-    @patch("money4band.compose_builder.check_img_arch_support", return_value=True)
-    @patch("money4band.compose_builder.http_client")
+    @patch("money4band.docker.compose_builder.check_img_arch_support", return_value=True)
+    @patch("money4band.docker.compose_builder.http_client")
     def test_security_opt_added(self, _http, _arch, tmp_path: Path) -> None:
         m4b, app, user = _make_configs(tmp_path)
         out = str(tmp_path / "docker-compose.yaml")
@@ -225,8 +225,8 @@ class TestAssembleDockerCompose:
         for svc in data["services"].values():
             assert "no-new-privileges:true" in svc.get("security_opt", [])
 
-    @patch("money4band.compose_builder.check_img_arch_support", return_value=True)
-    @patch("money4band.compose_builder.http_client")
+    @patch("money4band.docker.compose_builder.check_img_arch_support", return_value=True)
+    @patch("money4band.docker.compose_builder.http_client")
     def test_dashboard_not_in_compose(self, _http, _arch, tmp_path: Path) -> None:
         m4b, app, user = _make_configs(tmp_path)
         user["m4b_dashboard"]["enabled"] = True
@@ -235,8 +235,8 @@ class TestAssembleDockerCompose:
         data = yaml.safe_load(Path(out).read_text())
         assert "m4bwebdashboard" not in data["services"]
 
-    @patch("money4band.compose_builder.check_img_arch_support", return_value=True)
-    @patch("money4band.compose_builder.http_client")
+    @patch("money4band.docker.compose_builder.check_img_arch_support", return_value=True)
+    @patch("money4band.docker.compose_builder.http_client")
     def test_custom_dns_applied(self, _http, _arch, tmp_path: Path) -> None:
         m4b, app, user = _make_configs(tmp_path)
         m4b["system"]["dns"] = {"mode": "custom", "servers": ["1.1.1.1", "8.8.8.8"]}
@@ -246,8 +246,8 @@ class TestAssembleDockerCompose:
         for svc in data["services"].values():
             assert svc["dns"] == ["1.1.1.1", "8.8.8.8"]
 
-    @patch("money4band.compose_builder.check_img_arch_support", return_value=True)
-    @patch("money4band.compose_builder.http_client")
+    @patch("money4band.docker.compose_builder.check_img_arch_support", return_value=True)
+    @patch("money4band.docker.compose_builder.http_client")
     def test_network_config_present(self, _http, _arch, tmp_path: Path) -> None:
         m4b, app, user = _make_configs(tmp_path)
         out = str(tmp_path / "docker-compose.yaml")

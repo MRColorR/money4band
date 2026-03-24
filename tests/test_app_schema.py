@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import os
 
-from money4band.app_schema import (
+from money4band.apps.schema import (
     load_community_apps,
     merge_community_apps,
     validate_app_entry,

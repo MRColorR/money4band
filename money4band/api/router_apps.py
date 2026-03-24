@@ -112,7 +112,7 @@ async def toggle_category(
     paths: ConfigPaths = Depends(get_paths),
 ) -> dict[str, Any]:
     """Toggle the active flag on a category."""
-    from money4band.dumper import write_json
+    from money4band.core.dumper import write_json
 
     app_config = load_app_config()
     categories = get_app_categories(app_config)

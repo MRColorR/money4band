@@ -22,7 +22,7 @@ async def get_offers(
     """Return all referral & passive income offers."""
     import os
 
-    from money4band.offers import load_all_offers
+    from money4band.apps.offers import load_all_offers
 
     offers_path = os.path.join(paths.config_dir, "referral-offers.json")
     all_offers = load_all_offers(

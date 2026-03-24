@@ -1,4 +1,4 @@
-"""Tests for money4band.multiproxy_setup — subnet math, directory management."""
+"""Tests for money4band.network.multiproxy — subnet math, directory management."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ import stat
 from pathlib import Path
 from unittest.mock import patch
 
-from money4band.multiproxy_setup import (
+from money4band.network.multiproxy import (
     calculate_subnet,
     cleanup_multiproxy_instances_dir,
     int_to_ipv4,
@@ -123,10 +123,10 @@ class TestCleanupMultiproxyInstancesDir:
 
 class TestRegenerateUuidsForApps:
     @patch(
-        "money4band.multiproxy_setup.get_active_app_categories",
+        "money4band.network.multiproxy.get_active_app_categories",
         return_value=["supported-apps"],
     )
-    @patch("money4band.multiproxy_setup.get_category_entries")
+    @patch("money4band.network.multiproxy.get_category_entries")
     def test_regenerates_uuid(self, mock_entries, mock_cats) -> None:
         mock_entries.return_value = [
             {
@@ -145,10 +145,10 @@ class TestRegenerateUuidsForApps:
         assert new_uuid != "sdk-node-old"
 
     @patch(
-        "money4band.multiproxy_setup.get_active_app_categories",
+        "money4band.network.multiproxy.get_active_app_categories",
         return_value=["supported-apps"],
     )
-    @patch("money4band.multiproxy_setup.get_category_entries")
+    @patch("money4band.network.multiproxy.get_category_entries")
     def test_skips_disabled(self, mock_entries, mock_cats) -> None:
         mock_entries.return_value = [
             {"name": "EARNAPP", "flags": {"uuid": {"length": 32}}},

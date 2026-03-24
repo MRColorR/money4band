@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
-from money4band.image_security import (
+from money4band.docker.image_security import (
     _docker_available,
     _get_image_names,
     _scout_available,
@@ -93,7 +93,7 @@ class TestCheckStaleImages:
 
 
 class TestLogImageDigests:
-    @patch("money4band.image_security._docker_inspect_image")
+    @patch("money4band.docker.image_security._docker_inspect_image")
     def test_returns_digests(self, mock_inspect):
         mock_inspect.return_value = {
             "RepoDigests": ["honeygain/honeygain@sha256:abc123def456"],
@@ -102,13 +102,13 @@ class TestLogImageDigests:
         assert len(digests) > 0
         assert any(d["digest"].startswith("honeygain/") for d in digests)
 
-    @patch("money4band.image_security._docker_inspect_image")
+    @patch("money4band.docker.image_security._docker_inspect_image")
     def test_handles_missing_image(self, mock_inspect):
         mock_inspect.return_value = None
         digests = log_image_digests(_SAMPLE_CONFIG)
         assert digests == []
 
-    @patch("money4band.image_security._docker_inspect_image")
+    @patch("money4band.docker.image_security._docker_inspect_image")
     def test_handles_no_repo_digests(self, mock_inspect):
         mock_inspect.return_value = {"RepoDigests": []}
         digests = log_image_digests(_SAMPLE_CONFIG)
@@ -205,7 +205,7 @@ class TestGetImageNamesSubServices:
 class TestDockerInspectImage:
     @patch("subprocess.run")
     def test_parses_json_output(self, mock_run):
-        from money4band.image_security import _docker_inspect_image
+        from money4band.docker.image_security import _docker_inspect_image
 
         mock_run.return_value = MagicMock(
             returncode=0,
@@ -217,14 +217,14 @@ class TestDockerInspectImage:
 
     @patch("subprocess.run")
     def test_returns_none_on_failure(self, mock_run):
-        from money4band.image_security import _docker_inspect_image
+        from money4band.docker.image_security import _docker_inspect_image
 
         mock_run.return_value = MagicMock(returncode=1, stdout="")
         assert _docker_inspect_image("missing:image") is None
 
     @patch("subprocess.run", side_effect=Exception("timeout"))
     def test_returns_none_on_exception(self, _mock):
-        from money4band.image_security import _docker_inspect_image
+        from money4band.docker.image_security import _docker_inspect_image
 
         assert _docker_inspect_image("bad:image") is None
 
@@ -232,10 +232,10 @@ class TestDockerInspectImage:
 class TestValidateImagesWithScout:
     """Cover validate_images with scout available — lines 164-193."""
 
-    @patch("money4band.image_security._scout_available", return_value=True)
-    @patch("money4band.image_security.run_scout_cves")
-    @patch("money4band.image_security._docker_inspect_image")
-    @patch("money4band.image_security._docker_available", return_value=True)
+    @patch("money4band.docker.image_security._scout_available", return_value=True)
+    @patch("money4band.docker.image_security.run_scout_cves")
+    @patch("money4band.docker.image_security._docker_inspect_image")
+    @patch("money4band.docker.image_security._docker_available", return_value=True)
     def test_scout_scans_non_deprecated_images(
         self, _docker, mock_inspect, mock_scout, _scout_avail, capsys
     ):
@@ -247,15 +247,15 @@ class TestValidateImagesWithScout:
         assert "Scanning" in captured.out
         assert "critical" in captured.out.lower()
 
-    @patch("money4band.image_security._scout_available", return_value=False)
-    @patch("money4band.image_security._docker_inspect_image", return_value=None)
-    @patch("money4band.image_security._docker_available", return_value=True)
+    @patch("money4band.docker.image_security._scout_available", return_value=False)
+    @patch("money4band.docker.image_security._docker_inspect_image", return_value=None)
+    @patch("money4band.docker.image_security._docker_available", return_value=True)
     def test_no_scout_prints_install_hint(self, _docker, _inspect, _scout, capsys):
         validate_images(_SAMPLE_CONFIG, run_cves=True)
         captured = capsys.readouterr()
         assert "Scout not available" in captured.out or "not available" in captured.out
 
-    @patch("money4band.image_security._docker_available", return_value=False)
+    @patch("money4band.docker.image_security._docker_available", return_value=False)
     def test_no_docker_prints_error(self, _docker, capsys):
         validate_images(_SAMPLE_CONFIG)
         captured = capsys.readouterr()
@@ -263,15 +263,15 @@ class TestValidateImagesWithScout:
 
 
 class TestValidateImages:
-    @patch("money4band.image_security._docker_available", return_value=False)
+    @patch("money4band.docker.image_security._docker_available", return_value=False)
     def test_exits_early_without_docker(self, _mock, capsys):
         validate_images(_SAMPLE_CONFIG)
         captured = capsys.readouterr()
         assert "not available" in captured.out
 
-    @patch("money4band.image_security._scout_available", return_value=False)
-    @patch("money4band.image_security._docker_inspect_image", return_value=None)
-    @patch("money4band.image_security._docker_available", return_value=True)
+    @patch("money4band.docker.image_security._scout_available", return_value=False)
+    @patch("money4band.docker.image_security._docker_inspect_image", return_value=None)
+    @patch("money4band.docker.image_security._docker_available", return_value=True)
     def test_runs_without_scout(self, _docker, _inspect, _scout, capsys):
         validate_images(_SAMPLE_CONFIG, run_cves=True)
         captured = capsys.readouterr()

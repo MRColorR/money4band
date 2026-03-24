@@ -291,7 +291,7 @@ class TestConfigDefaults:
 class TestEarningsDefaults:
     def test_empty_earnings(self, flat_client):
         with patch(
-            "money4band.earnings_estimator.get_app_earnings",
+            "money4band.apps.earnings.get_app_earnings",
             return_value=[],
         ):
             resp = flat_client.get("/api/earnings")
@@ -305,7 +305,7 @@ class TestEarningsDefaults:
     def test_earnings_response_shape(self, flat_client):
         mock_apps = [{"name": "honeygain", "min": 1.0, "max": 5.0}]
         with patch(
-            "money4band.earnings_estimator.get_app_earnings",
+            "money4band.apps.earnings.get_app_earnings",
             return_value=mock_apps,
         ):
             resp = flat_client.get("/api/earnings")
@@ -323,7 +323,7 @@ class TestEarningsDefaults:
 
 class TestOffersDefaults:
     def test_empty_offers(self, flat_client):
-        with patch("money4band.offers.load_all_offers", return_value=[]):
+        with patch("money4band.apps.offers.load_all_offers", return_value=[]):
             resp = flat_client.get("/api/offers")
         assert resp.status_code == 200
         assert resp.json() == []
@@ -332,7 +332,7 @@ class TestOffersDefaults:
         offers = [
             {"name": "A", "category": "bandwidth", "url": "https://a.com"},
         ]
-        with patch("money4band.offers.load_all_offers", return_value=offers):
+        with patch("money4band.apps.offers.load_all_offers", return_value=offers):
             resp = flat_client.get("/api/offers?category=nonexistent")
         assert resp.status_code == 200
         assert resp.json() == []
@@ -345,13 +345,13 @@ class TestOffersDefaults:
 
 class TestMonitorDefaults:
     def test_empty_health(self, flat_client):
-        with patch("money4band.monitor.get_stack_health", return_value=[]):
+        with patch("money4band.docker.monitor.get_stack_health", return_value=[]):
             resp = flat_client.get("/api/monitor/health")
         assert resp.status_code == 200
         assert resp.json() == []
 
     def test_empty_restart_loops(self, flat_client):
-        with patch("money4band.monitor.get_stack_health", return_value=[]):
+        with patch("money4band.docker.monitor.get_stack_health", return_value=[]):
             resp = flat_client.get("/api/monitor/restart-loops")
         assert resp.status_code == 200
         assert resp.json() == []
@@ -366,7 +366,7 @@ class TestMonitorDefaults:
             image="test:latest",
         )
         mock_s.name = "test-container"
-        with patch("money4band.monitor.get_stack_health", return_value=[mock_s]):
+        with patch("money4band.docker.monitor.get_stack_health", return_value=[mock_s]):
             resp = flat_client.get("/api/monitor/health")
         data = resp.json()
         assert len(data) == 1
@@ -390,14 +390,14 @@ class TestMonitorDefaults:
 
 class TestBackupsDefaults:
     def test_empty_backups(self, flat_client):
-        with patch("money4band.backup.list_backups", return_value=[]):
+        with patch("money4band.core.backup.list_backups", return_value=[]):
             resp = flat_client.get("/api/backups")
         assert resp.status_code == 200
         assert resp.json() == []
 
     def test_backup_response_shape(self, flat_client):
         mock_b = MagicMock(path="/backups/b1.tar.gz", timestamp="2026-03-24", size=512)
-        with patch("money4band.backup.list_backups", return_value=[mock_b]):
+        with patch("money4band.core.backup.list_backups", return_value=[mock_b]):
             resp = flat_client.get("/api/backups")
         data = resp.json()
         assert len(data) == 1
@@ -412,7 +412,7 @@ class TestBackupsDefaults:
 
 class TestProfilesDefaults:
     def test_empty_profiles(self, flat_client):
-        with patch("money4band.profiles.list_profiles", return_value=[]):
+        with patch("money4band.core.profiles.list_profiles", return_value=[]):
             resp = flat_client.get("/api/profiles")
         assert resp.status_code == 200
         assert resp.json() == []
@@ -445,13 +445,13 @@ class TestNotificationsDefaults:
 
 class TestSecurityDefaults:
     def test_empty_stale_images(self, flat_client):
-        with patch("money4band.image_security.check_stale_images", return_value=[]):
+        with patch("money4band.docker.image_security.check_stale_images", return_value=[]):
             resp = flat_client.get("/api/security/stale")
         assert resp.status_code == 200
         assert resp.json() == []
 
     def test_empty_digests(self, flat_client):
-        with patch("money4band.image_security.log_image_digests", return_value=[]):
+        with patch("money4band.docker.image_security.log_image_digests", return_value=[]):
             resp = flat_client.get("/api/security/digests")
         assert resp.status_code == 200
         assert resp.json() == []
@@ -488,9 +488,9 @@ class TestUpdateDefaults:
 class TestSystemDefaults:
     def test_info_shape(self, flat_client):
         with (
-            patch("money4band.detector.detect_os", return_value={"os_type": "linux"}),
+            patch("money4band.system.detector.detect_os", return_value={"os_type": "linux"}),
             patch(
-                "money4band.detector.detect_architecture",
+                "money4band.system.detector.detect_architecture",
                 return_value={"arch": "x86_64", "dkarch": "amd64"},
             ),
         ):
@@ -520,21 +520,21 @@ class TestSystemDefaults:
 
 class TestStackDefaults:
     def test_start_returns_ok(self, flat_client):
-        with patch("money4band.fn_startStack.start_all_stacks"):
+        with patch("money4band.docker.start.start_all_stacks"):
             resp = flat_client.post("/api/stack/start")
         assert resp.status_code == 200
         assert resp.json()["status"] == "ok"
 
     def test_stop_returns_ok(self, flat_client):
-        with patch("money4band.fn_stopStack.stop_all_stacks"):
+        with patch("money4band.docker.stop.stop_all_stacks"):
             resp = flat_client.post("/api/stack/stop")
         assert resp.status_code == 200
         assert resp.json()["status"] == "ok"
 
     def test_restart_returns_ok(self, flat_client):
         with (
-            patch("money4band.fn_stopStack.stop_all_stacks"),
-            patch("money4band.fn_startStack.start_all_stacks"),
+            patch("money4band.docker.stop.stop_all_stacks"),
+            patch("money4band.docker.start.start_all_stacks"),
         ):
             resp = flat_client.post("/api/stack/restart")
         assert resp.status_code == 200
@@ -580,7 +580,7 @@ class TestDirectEndpointDefaults:
         assert resp.status_code in (400, 404, 422)
 
     def test_ip_score_empty(self, flat_client):
-        with patch("money4band.ip_scorer.analyse_ips", return_value=[]):
+        with patch("money4band.network.ip_scorer.analyse_ips", return_value=[]):
             resp = flat_client.get("/api/ip/score")
         assert resp.status_code == 200
         assert resp.json() == []

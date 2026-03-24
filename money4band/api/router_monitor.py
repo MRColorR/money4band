@@ -21,7 +21,7 @@ async def stack_health(
     paths: ConfigPaths = Depends(get_paths),
 ) -> list[dict[str, Any]]:
     """Return rich health status for all stack containers."""
-    from money4band.monitor import get_stack_health
+    from money4band.docker.monitor import get_stack_health
 
     statuses = await asyncio.to_thread(get_stack_health, project_filter=project)
     return [
@@ -44,7 +44,7 @@ async def restart_loops(
     paths: ConfigPaths = Depends(get_paths),
 ) -> list[dict[str, Any]]:
     """Detect containers stuck in restart loops."""
-    from money4band.monitor import get_stack_health
+    from money4band.docker.monitor import get_stack_health
 
     statuses = await asyncio.to_thread(get_stack_health)
     loops: list[dict[str, Any]] = []

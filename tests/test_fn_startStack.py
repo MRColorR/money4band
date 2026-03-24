@@ -1,11 +1,11 @@
-"""Tests for money4band.fn_startStack — stack start logic."""
+"""Tests for money4band.docker.start — stack start logic."""
 
 from __future__ import annotations
 
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from money4band.fn_startStack import (
+from money4band.docker.start import (
     _extract_app_names_from_compose,
     get_container_names_from_env,
     get_device_name_from_env,
@@ -36,11 +36,11 @@ class TestGetDeviceNameFromEnv:
 
 
 class TestStartStack:
-    @patch("money4band.fn_startStack._notify_event")
-    @patch("money4band.fn_startStack.run_docker_command", return_value=0)
-    @patch("money4band.fn_startStack.get_compose_project_name", return_value="m4b")
-    @patch("money4band.fn_startStack.show_spinner")
-    @patch("money4band.fn_startStack.is_user_root", return_value=True)
+    @patch("money4band.docker.start._notify_event")
+    @patch("money4band.docker.start.run_docker_command", return_value=0)
+    @patch("money4band.docker.start.get_compose_project_name", return_value="m4b")
+    @patch("money4band.docker.start.show_spinner")
+    @patch("money4band.docker.start.is_user_root", return_value=True)
     def test_successful_start(self, _root, _spin, _proj, mock_run, _notify) -> None:
         result = start_stack(
             compose_file="docker-compose.yaml",
@@ -54,11 +54,11 @@ class TestStartStack:
         assert "up" in cmd
         assert "-d" in cmd
 
-    @patch("money4band.fn_startStack._notify_event")
-    @patch("money4band.fn_startStack.run_docker_command", return_value=1)
-    @patch("money4band.fn_startStack.get_compose_project_name", return_value="m4b")
-    @patch("money4band.fn_startStack.show_spinner")
-    @patch("money4band.fn_startStack.is_user_root", return_value=True)
+    @patch("money4band.docker.start._notify_event")
+    @patch("money4band.docker.start.run_docker_command", return_value=1)
+    @patch("money4band.docker.start.get_compose_project_name", return_value="m4b")
+    @patch("money4band.docker.start.show_spinner")
+    @patch("money4band.docker.start.is_user_root", return_value=True)
     @patch("builtins.input", return_value="")
     def test_failed_start_returns_false(
         self, _inp, _root, _spin, _proj, mock_run, _notify
@@ -70,7 +70,7 @@ class TestStartStack:
         )
         assert result is False
 
-    @patch("money4band.fn_startStack.ask_question_yn", return_value=False)
+    @patch("money4band.docker.start.ask_question_yn", return_value=False)
     @patch("builtins.input", return_value="")
     def test_user_cancels(self, _inp, _ask) -> None:
         result = start_stack(
@@ -80,14 +80,14 @@ class TestStartStack:
         )
         assert result is False
 
-    @patch("money4band.fn_startStack._notify_event")
+    @patch("money4band.docker.start._notify_event")
     @patch(
-        "money4band.fn_startStack.run_docker_command",
+        "money4band.docker.start.run_docker_command",
         side_effect=RuntimeError("docker not found"),
     )
-    @patch("money4band.fn_startStack.get_compose_project_name", return_value=None)
-    @patch("money4band.fn_startStack.show_spinner")
-    @patch("money4band.fn_startStack.is_user_root", return_value=True)
+    @patch("money4band.docker.start.get_compose_project_name", return_value=None)
+    @patch("money4band.docker.start.show_spinner")
+    @patch("money4band.docker.start.is_user_root", return_value=True)
     @patch("builtins.input", return_value="")
     def test_exception_returns_false(
         self, _inp, _root, _spin, _proj, _run, _notify
@@ -99,11 +99,11 @@ class TestStartStack:
         )
         assert result is False
 
-    @patch("money4band.fn_startStack._notify_event")
-    @patch("money4band.fn_startStack.run_docker_command", return_value=0)
-    @patch("money4band.fn_startStack.get_compose_project_name", return_value="m4b")
-    @patch("money4band.fn_startStack.show_spinner")
-    @patch("money4band.fn_startStack.is_user_root", return_value=True)
+    @patch("money4band.docker.start._notify_event")
+    @patch("money4band.docker.start.run_docker_command", return_value=0)
+    @patch("money4band.docker.start.get_compose_project_name", return_value="m4b")
+    @patch("money4band.docker.start.show_spinner")
+    @patch("money4band.docker.start.is_user_root", return_value=True)
     def test_multi_compose_files(self, _root, _spin, _proj, mock_run, _notify) -> None:
         result = start_stack(
             compose_file=["compose.yml", "compose.service.yml"],
@@ -114,11 +114,11 @@ class TestStartStack:
         cmd = mock_run.call_args[0][0]
         assert cmd.count("-f") == 2
 
-    @patch("money4band.fn_startStack._notify_event")
-    @patch("money4band.fn_startStack.run_docker_command", return_value=0)
-    @patch("money4band.fn_startStack.get_compose_project_name", return_value="m4b")
-    @patch("money4band.fn_startStack.show_spinner")
-    @patch("money4band.fn_startStack.is_user_root", return_value=True)
+    @patch("money4band.docker.start._notify_event")
+    @patch("money4band.docker.start.run_docker_command", return_value=0)
+    @patch("money4band.docker.start.get_compose_project_name", return_value="m4b")
+    @patch("money4band.docker.start.show_spinner")
+    @patch("money4band.docker.start.is_user_root", return_value=True)
     def test_passes_profiles(self, _root, _spin, _proj, mock_run, _notify) -> None:
         result = start_stack(
             compose_file="compose.yml",
@@ -134,28 +134,31 @@ class TestStartStack:
 
 
 class TestStartAllStacks:
-    @patch("money4band.fn_startStack.generate_container_url_list")
-    @patch("money4band.fn_startStack.start_stack", return_value=True)
-    @patch("money4band.fn_startStack.is_user_in_docker_group", return_value=True)
-    @patch("money4band.fn_startStack.ask_question_yn", return_value=True)
+    @patch("money4band.docker.start.generate_container_url_list")
+    @patch("money4band.docker.start.start_stack", return_value=True)
+    @patch("money4band.docker.start.is_user_in_docker_group", return_value=True)
+    @patch("money4band.docker.start.ask_question_yn", return_value=True)
     @patch("subprocess.run")
     @patch("builtins.input", return_value="")
     @patch("time.sleep")
     def test_starts_main_stack(
-        self, _sleep, _inp, mock_sub_run, _ask, _group, mock_start, _dashurls
+        self, _sleep, _inp, mock_sub_run, _ask, _group, mock_start, _dashurls,
+        tmp_path,
     ):
         mock_sub_run.return_value = MagicMock(stdout="", returncode=0)
+        env_file = tmp_path / ".env"
+        env_file.write_text("DEVICE_NAME=test\n")
 
         start_all_stacks(
             main_compose_file="compose.yml",
-            main_env_file=".env",
+            main_env_file=str(env_file),
             skip_questions=True,
         )
         mock_start.assert_called()
 
-    @patch("money4band.fn_startStack.generate_container_url_list")
-    @patch("money4band.fn_startStack.start_stack", return_value=True)
-    @patch("money4band.fn_startStack.is_user_in_docker_group", return_value=True)
+    @patch("money4band.docker.start.generate_container_url_list")
+    @patch("money4band.docker.start.start_stack", return_value=True)
+    @patch("money4band.docker.start.is_user_in_docker_group", return_value=True)
     @patch("subprocess.run")
     @patch("builtins.input", return_value="")
     @patch("time.sleep")
@@ -183,7 +186,7 @@ class TestStartAllStacks:
         # Main + 1 instance = at least 2 calls
         assert mock_start.call_count >= 2
 
-    @patch("money4band.fn_startStack.ask_question_yn", return_value=False)
+    @patch("money4band.docker.start.ask_question_yn", return_value=False)
     @patch("builtins.input", return_value="")
     def test_user_cancels(self, _inp, _ask):
         start_all_stacks(skip_questions=False)
@@ -233,9 +236,9 @@ class TestExtractAppNamesFromCompose:
 
 
 class TestStartAllStacksForceClean:
-    @patch("money4band.fn_startStack.generate_container_url_list")
-    @patch("money4band.fn_startStack.start_stack", return_value=True)
-    @patch("money4band.fn_startStack.is_user_in_docker_group", return_value=True)
+    @patch("money4band.docker.start.generate_container_url_list")
+    @patch("money4band.docker.start.start_stack", return_value=True)
+    @patch("money4band.docker.start.is_user_in_docker_group", return_value=True)
     @patch("subprocess.run")
     @patch("builtins.input", return_value="")
     @patch("time.sleep")
@@ -265,9 +268,9 @@ class TestStartAllStacksForceClean:
 
 
 class TestStartAllStacksConflictDetection:
-    @patch("money4band.fn_startStack.generate_container_url_list")
-    @patch("money4band.fn_startStack.start_stack", return_value=True)
-    @patch("money4band.fn_startStack.is_user_in_docker_group", return_value=True)
+    @patch("money4band.docker.start.generate_container_url_list")
+    @patch("money4band.docker.start.start_stack", return_value=True)
+    @patch("money4band.docker.start.is_user_in_docker_group", return_value=True)
     @patch("subprocess.run")
     @patch("builtins.input", return_value="")
     @patch("time.sleep")
@@ -310,9 +313,9 @@ class TestStartAllStacksConflictDetection:
 
 
 class TestStartAllStacksRunningContainerWarning:
-    @patch("money4band.fn_startStack.generate_container_url_list")
-    @patch("money4band.fn_startStack.start_stack", return_value=True)
-    @patch("money4band.fn_startStack.is_user_in_docker_group", return_value=True)
+    @patch("money4band.docker.start.generate_container_url_list")
+    @patch("money4band.docker.start.start_stack", return_value=True)
+    @patch("money4band.docker.start.is_user_in_docker_group", return_value=True)
     @patch("subprocess.run")
     @patch("builtins.input", return_value="")
     @patch("time.sleep")
@@ -345,22 +348,22 @@ class TestStartAllStacksRunningContainerWarning:
 
 
 class TestStartStackMain:
-    @patch("money4band.fn_startStack.start_all_stacks")
-    @patch("money4band.fn_startStack.loader.load_json_config")
-    @patch("money4band.compose_builder.get_compose_files", return_value=["compose.yml"])
-    @patch("money4band.fn_startStack.cls")
+    @patch("money4band.docker.start.start_all_stacks")
+    @patch("money4band.docker.start.loader.load_json_config")
+    @patch("money4band.docker.compose_builder.get_compose_files", return_value=["compose.yml"])
+    @patch("money4band.docker.start.cls")
     @patch("os.path.isfile", return_value=True)
     def test_main_delegates_to_start_all_stacks(
         self, _isfile, _cls, _get_cf, mock_load, mock_start_all
     ):
-        from money4band.fn_startStack import main
+        from money4band.docker.start import main
 
         mock_load.side_effect = [
             {"project": {"compose_project_name": "m4b"}},  # m4b_config
             {"apps": {}},  # user_config
         ]
         with patch(
-            "money4band.helper.get_active_profiles", return_value=["monitoring"]
+            "money4band.docker.helper.get_active_profiles", return_value=["monitoring"]
         ):
             main("app.json", "m4b.json", "user.json")
         mock_start_all.assert_called_once()
@@ -369,15 +372,15 @@ class TestStartStackMain:
             "monitoring",
         ) or "monitoring" in call_kwargs[1].get("profiles", ())
 
-    @patch("money4band.fn_startStack.loader.load_json_config")
-    @patch("money4band.compose_builder.get_compose_files", return_value=[])
-    @patch("money4band.fn_startStack.cls")
+    @patch("money4band.docker.start.loader.load_json_config")
+    @patch("money4band.docker.compose_builder.get_compose_files", return_value=[])
+    @patch("money4band.docker.start.cls")
     @patch("os.path.isfile", return_value=False)
     @patch("builtins.input", return_value="")
     def test_main_missing_files_warns(
         self, _inp, _isfile, _cls, _get_cf, mock_load, capsys
     ):
-        from money4band.fn_startStack import main
+        from money4band.docker.start import main
 
         mock_load.return_value = {"project": {"compose_project_name": "m4b"}}
         main("app.json", "m4b.json", "user.json")

@@ -14,24 +14,24 @@ from money4band.api.server import find_dashboard_port
 
 class TestFindDashboardPort:
     def test_returns_preferred_when_free(self):
-        with patch("money4band.networker.is_port_in_use", return_value=False):
+        with patch("money4band.network.networker.is_port_in_use", return_value=False):
             assert find_dashboard_port(8088) == 8088
 
     def test_falls_back_when_preferred_occupied(self):
         with (
             patch(
-                "money4band.networker.is_port_in_use",
+                "money4band.network.networker.is_port_in_use",
                 side_effect=lambda p: p == 8088,
             ),
             patch(
-                "money4band.networker.find_next_available_port",
+                "money4band.network.networker.find_next_available_port",
                 return_value=8089,
             ),
         ):
             assert find_dashboard_port(8088) == 8089
 
     def test_custom_preferred_port(self):
-        with patch("money4band.networker.is_port_in_use", return_value=False):
+        with patch("money4band.network.networker.is_port_in_use", return_value=False):
             assert find_dashboard_port(9000) == 9000
 
 
@@ -151,7 +151,7 @@ class TestRunDashboardCommand:
             patch("money4band.dashboard.setup.ensure_api_key_on_disk", return_value="k"),
             patch("money4band.dashboard.setup.read_dashboard_pid", return_value=None),
             patch("money4band.dashboard.setup.spawn_dashboard_background", return_value=12345) as mock_spawn,
-            patch("money4band.networker.is_port_in_use", return_value=True),
+            patch("money4band.network.networker.is_port_in_use", return_value=True),
         ):
             from money4band.dashboard.cli import run_dashboard_command
 
@@ -211,7 +211,7 @@ class TestRunDashboardCommand:
         with (
             patch("money4band.api.server.configure"),
             patch("money4band.dashboard.setup.read_dashboard_pid", return_value=99),
-            patch("money4band.loader.load_json_config", return_value={
+            patch("money4band.core.loader.load_json_config", return_value={
                 "m4b_dashboard": {"enabled": True, "port": 8088}
             }),
         ):
@@ -226,7 +226,7 @@ class TestRunDashboardCommand:
         with (
             patch("money4band.api.server.configure"),
             patch("money4band.dashboard.setup.read_dashboard_pid", return_value=None),
-            patch("money4band.loader.load_json_config", return_value={
+            patch("money4band.core.loader.load_json_config", return_value={
                 "m4b_dashboard": {"enabled": False, "port": 8088}
             }),
         ):

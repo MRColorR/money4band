@@ -110,7 +110,7 @@ class TestGetAppCatalog:
 
 
 class TestLoadConfigs:
-    @patch("money4band.loader.load_json_config")
+    @patch("money4band.core.loader.load_json_config")
     def test_load_configs(self, mock_load) -> None:
         from money4band.services import load_configs
 
@@ -121,13 +121,13 @@ class TestLoadConfigs:
 
 
 class TestIsDockerInstalled:
-    @patch("money4band.fn_install_docker.is_docker_installed", return_value=True)
+    @patch("money4band.docker.install.is_docker_installed", return_value=True)
     def test_true(self, _mock) -> None:
         from money4band.services import is_docker_installed
 
         assert is_docker_installed() is True
 
-    @patch("money4band.fn_install_docker.is_docker_installed", return_value=False)
+    @patch("money4band.docker.install.is_docker_installed", return_value=False)
     def test_false(self, _mock) -> None:
         from money4band.services import is_docker_installed
 
@@ -149,7 +149,7 @@ class TestCheckUpdate:
 
 
 class TestStartStack:
-    @patch("money4band.fn_startStack.start_stack", return_value=True)
+    @patch("money4band.docker.start.start_stack", return_value=True)
     def test_delegates(self, mock_fn) -> None:
         from money4band.services import start_stack
 
@@ -158,7 +158,7 @@ class TestStartStack:
 
 
 class TestStopStack:
-    @patch("money4band.fn_stopStack.stop_stack", return_value=True)
+    @patch("money4band.docker.stop.stop_stack", return_value=True)
     def test_delegates(self, mock_fn) -> None:
         from money4band.services import stop_stack
 
@@ -167,8 +167,8 @@ class TestStopStack:
 
 
 class TestGetHealthSummary:
-    @patch("money4band.monitor.get_stack_health")
-    @patch("money4band.helper.get_compose_project_name", return_value="m4b")
+    @patch("money4band.docker.monitor.get_stack_health")
+    @patch("money4band.docker.helper.get_compose_project_name", return_value="m4b")
     def test_returns_list(self, _proj, mock_health) -> None:
         from money4band.services import get_health_summary
 
@@ -191,7 +191,7 @@ class TestLoadM4bConfig:
 
 
 class TestGetStackStatus:
-    @patch("money4band.compose_builder.get_compose_files", return_value=[])
+    @patch("money4band.docker.compose_builder.get_compose_files", return_value=[])
     def test_no_compose_files(self, _mock_files) -> None:
         from money4band.services import get_stack_status
 
@@ -200,10 +200,10 @@ class TestGetStackStatus:
 
     @patch("subprocess.run")
     @patch(
-        "money4band.compose_builder.get_compose_files",
+        "money4band.docker.compose_builder.get_compose_files",
         return_value=["docker-compose.yaml"],
     )
-    @patch("money4band.helper.get_compose_project_name", return_value="money4band")
+    @patch("money4band.docker.helper.get_compose_project_name", return_value="money4band")
     def test_returns_ps_output(self, _proj, _files, mock_run) -> None:
         from money4band.services import get_stack_status
 
@@ -313,8 +313,8 @@ class TestGetSystemInfoStructured:
         "m4b_dashboard": {"enabled": False},
     }
 
-    @patch("money4band.compose_builder.get_compose_files", return_value=[])
-    @patch("money4band.detector.get_system_memory_and_cores", return_value=(8192, 4))
+    @patch("money4band.docker.compose_builder.get_compose_files", return_value=[])
+    @patch("money4band.system.detector.get_system_memory_and_cores", return_value=(8192, 4))
     @patch("money4band.updater.check_for_update", return_value=None)
     @patch("shutil.which", return_value=None)
     def test_returns_dict_with_expected_keys(self, _which, _upd, _mem, _comp):
@@ -325,13 +325,13 @@ class TestGetSystemInfoStructured:
         assert result["compose_mode"] == "none"
 
     @patch(
-        "money4band.compose_builder.get_compose_files",
+        "money4band.docker.compose_builder.get_compose_files",
         return_value=["c1.yml", "c2.yml"],
     )
-    @patch("money4band.detector.get_system_memory_and_cores", return_value=(16384, 8))
+    @patch("money4band.system.detector.get_system_memory_and_cores", return_value=(16384, 8))
     @patch("money4band.updater.check_for_update", return_value="6.0.0")
     @patch("shutil.which", return_value="/usr/bin/docker")
-    @patch("money4band.helper.is_docker_daemon_running", return_value=False)
+    @patch("money4band.docker.helper.is_docker_daemon_running", return_value=False)
     def test_layered_mode_with_update(self, _daemon, _which, _upd, _mem, _comp):
         result = get_system_info_structured(self._M4B, self._APP, self._USR)
         assert result["new_version"] == "6.0.0"
@@ -339,12 +339,12 @@ class TestGetSystemInfoStructured:
 
 
 class TestGetSystemInfoText:
-    @patch("money4band.system_info.check_for_update", return_value=None)
+    @patch("money4band.system.info.check_for_update", return_value=None)
     @patch(
-        "money4band.system_info.detector.get_system_memory_and_cores",
+        "money4band.system.info.detector.get_system_memory_and_cores",
         return_value=(8192, 4),
     )
-    @patch("money4band.compose_builder.get_compose_files", return_value=[])
+    @patch("money4band.docker.compose_builder.get_compose_files", return_value=[])
     def test_returns_string_output(self, _comp, _mem, _upd):
         from money4band.services import get_system_info_text
 
@@ -380,19 +380,21 @@ class TestGetSystemInfoText:
 
 
 class TestStartStopAllStacks:
-    @patch("money4band.fn_startStack.start_stack", return_value=True)
-    @patch("money4band.fn_startStack.is_user_in_docker_group", return_value=True)
+    @patch("money4band.docker.start.start_stack", return_value=True)
+    @patch("money4band.docker.start.is_user_in_docker_group", return_value=True)
     @patch("subprocess.run", return_value=MagicMock(stdout="", returncode=0))
     @patch("builtins.input", return_value="")
     @patch("time.sleep")
-    def test_start_all_returns_string(self, _sleep, _inp, _sub, _group, _start):
+    def test_start_all_returns_string(self, _sleep, _inp, _sub, _group, _start, tmp_path):
         from money4band.services import start_all_stacks as svc_start_all
 
-        result = svc_start_all()
+        env_file = tmp_path / ".env"
+        env_file.write_text("DEVICE_NAME=test\n")
+        result = svc_start_all(main_env_file=str(env_file))
         assert isinstance(result, str)
 
-    @patch("money4band.fn_stopStack.stop_stack", return_value=True)
-    @patch("money4band.fn_stopStack.is_user_in_docker_group", return_value=True)
+    @patch("money4band.docker.stop.stop_stack", return_value=True)
+    @patch("money4band.docker.stop.is_user_in_docker_group", return_value=True)
     @patch("builtins.input", return_value="")
     def test_stop_all_returns_string(self, _inp, _group, _stop):
         from money4band.services import stop_all_stacks as svc_stop_all

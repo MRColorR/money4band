@@ -27,7 +27,7 @@ async def system_info(
     paths: ConfigPaths = Depends(get_paths),
 ) -> dict[str, Any]:
     """Return system information: OS, arch, memory, CPU, Docker version."""
-    from money4band.detector import detect_architecture, detect_os
+    from money4band.system.detector import detect_architecture, detect_os
 
     m4b = load_m4b_config()
     usr = load_user_config()
@@ -64,7 +64,7 @@ async def get_dns(
     paths: ConfigPaths = Depends(get_paths),
 ) -> dict[str, Any]:
     """Return the current DNS configuration."""
-    from money4band.system_info import get_dns_config
+    from money4band.system.info import get_dns_config
 
     m4b = load_m4b_config()
     return get_dns_config(m4b)
@@ -83,7 +83,7 @@ async def set_dns(
     paths: ConfigPaths = Depends(get_paths),
 ) -> dict[str, str]:
     """Update the DNS configuration."""
-    from money4band.system_info import get_dns_modes, set_dns_mode
+    from money4band.system.info import get_dns_modes, set_dns_mode
 
     m4b = load_m4b_config()
     valid_modes = get_dns_modes(m4b)

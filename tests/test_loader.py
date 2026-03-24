@@ -6,7 +6,7 @@ import tempfile
 import types
 import unittest
 
-from money4band.loader import (
+from money4band.core.loader import (
     get_active_app_categories,
     get_all_app_categories,
     get_category_entries,
@@ -198,9 +198,9 @@ class TestLoadJsonConfigEncrypted(unittest.TestCase):
             f.write(encrypted_content)
             path = f.name
         try:
-            with patch("money4band.loader.is_encrypted", return_value=True):
+            with patch("money4band.core.loader.is_encrypted", return_value=True):
                 with patch(
-                    "money4band.loader.decrypt_to_dict", return_value=decrypted
+                    "money4band.core.loader.decrypt_to_dict", return_value=decrypted
                 ) as mock_decrypt:
                     result = load_json_config(path)
                     self.assertEqual(result, decrypted)
@@ -213,7 +213,7 @@ class TestLoadAppConfigWithOverlays(unittest.TestCase):
     """Test load_app_config_with_overlays merging."""
 
     def test_loads_without_apps_d(self):
-        from money4band.loader import load_app_config_with_overlays
+        from money4band.core.loader import load_app_config_with_overlays
 
         with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             json.dump({"supported-apps": {"active": True, "entries": []}}, f)
@@ -225,7 +225,7 @@ class TestLoadAppConfigWithOverlays(unittest.TestCase):
             os.unlink(path)
 
     def test_loads_with_apps_d_dir(self):
-        from money4band.loader import load_app_config_with_overlays
+        from money4band.core.loader import load_app_config_with_overlays
 
         with tempfile.TemporaryDirectory() as d:
             config_path = os.path.join(d, "app-config.json")
@@ -251,7 +251,7 @@ class TestLoaderMain(unittest.TestCase):
     """Test the loader.main() entry point."""
 
     def test_main_loads_config_and_modules(self):
-        from money4band.loader import main
+        from money4band.core.loader import main
 
         with tempfile.TemporaryDirectory() as d:
             config_path = os.path.join(d, "config.json")
@@ -271,7 +271,7 @@ class TestLoaderMain(unittest.TestCase):
             self.assertEqual(sys.modules["sample"].VALUE, 42)
 
     def test_main_with_dict_config(self):
-        from money4band.loader import main
+        from money4band.core.loader import main
 
         with tempfile.TemporaryDirectory() as d:
             mod_dir = os.path.join(d, "modules")
@@ -285,7 +285,7 @@ class TestLoaderMain(unittest.TestCase):
             self.assertTrue(sys.modules["dictmod"].LOADED)
 
     def test_main_missing_config_raises(self):
-        from money4band.loader import main
+        from money4band.core.loader import main
 
         with tempfile.TemporaryDirectory() as d:
             with self.assertRaises(FileNotFoundError):

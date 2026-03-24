@@ -8,7 +8,7 @@ from typing import Any
 
 from colorama import Fore, Style
 
-from money4band.prompt_helper import ask_question_yn
+from money4band.ui.prompt import ask_question_yn
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +19,7 @@ def print_dashboard_status(config_dir: str) -> None:
     """Print a one-line dashboard status summary (running/stopped + auto-start)."""
     import os
 
-    from money4band.loader import load_json_config
+    from money4band.core.loader import load_json_config
 
     pid = read_dashboard_pid(config_dir)
     user_cfg_path = os.path.join(config_dir, "user-config.json")
@@ -85,8 +85,8 @@ def ensure_api_key_on_disk(config_dir: str) -> str:
 
     user_cfg_path = os.path.join(config_dir, "user-config.json")
     try:
-        from money4band.dumper import write_json
-        from money4band.loader import load_json_config
+        from money4band.core.dumper import write_json
+        from money4band.core.loader import load_json_config
 
         cfg = load_json_config(user_cfg_path)
         old_key = cfg.get("m4b_dashboard", {}).get("api_key", "")
@@ -108,8 +108,8 @@ def regenerate_api_key_on_disk(config_dir: str) -> str:
 
     user_cfg_path = os.path.join(config_dir, "user-config.json")
     try:
-        from money4band.dumper import write_json
-        from money4band.loader import load_json_config
+        from money4band.core.dumper import write_json
+        from money4band.core.loader import load_json_config
 
         cfg = load_json_config(user_cfg_path)
         dash = cfg.setdefault("m4b_dashboard", {})
@@ -171,7 +171,7 @@ def setup_m4b_dashboard(user_config: dict[str, Any]) -> None:
 
 def _ask_port(current: int) -> int:
     """Prompt the user for a dashboard port, defaulting to *current*."""
-    from money4band.prompt_helper import ask_question_num
+    from money4band.ui.prompt import ask_question_num
 
     return ask_question_num(
         f"Dashboard port (default {current}): ",
@@ -310,8 +310,8 @@ def set_dashboard_state(
 
     user_cfg_path = os.path.join(config_dir, "user-config.json")
     try:
-        from money4band.dumper import write_json
-        from money4band.loader import load_json_config
+        from money4band.core.dumper import write_json
+        from money4band.core.loader import load_json_config
 
         cfg = load_json_config(user_cfg_path)
         dash = cfg.setdefault("m4b_dashboard", {})
@@ -334,7 +334,7 @@ def auto_start_dashboard(config_dir: str, base_dir: str) -> None:
     import os
     import time
 
-    from money4band.loader import load_json_config
+    from money4band.core.loader import load_json_config
 
     user_cfg_path = os.path.join(config_dir, "user-config.json")
     try:
@@ -365,7 +365,7 @@ def auto_start_dashboard(config_dir: str, base_dir: str) -> None:
 
     pid = spawn_dashboard_background(config_dir, base_dir, port=port)
 
-    from money4band.networker import is_port_in_use
+    from money4band.network.networker import is_port_in_use
 
     started = False
     for _ in range(15):

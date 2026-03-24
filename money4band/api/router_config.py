@@ -31,7 +31,7 @@ async def get_user_config(
     paths: ConfigPaths = Depends(get_paths),
 ) -> dict[str, Any]:
     """Return user-config.json with sensitive values masked."""
-    from money4band.config_viewer import _mask_dict
+    from money4band.core.viewer import _mask_dict
 
     cfg = load_user_config()
     return _mask_dict(cfg)
@@ -54,7 +54,7 @@ async def update_user_config(
     accepted — this prevents injection of arbitrary new keys while
     allowing the API full parity with the CLI menu.
     """
-    from money4band.dumper import write_json
+    from money4band.core.dumper import write_json
 
     cfg = load_user_config()
     unknown = set(payload.data) - set(cfg)
@@ -76,7 +76,7 @@ async def reset_config(
     """Reset user-config.json from the template."""
     import os
 
-    from money4band.fn_reset_config import reset_config
+    from money4band.core.reset import reset_config
 
     template = os.path.join(paths.base_dir, "template", "user-config.json")
     if not os.path.isfile(template):
@@ -116,7 +116,7 @@ async def get_limits(
     paths: ConfigPaths = Depends(get_paths),
 ) -> dict[str, Any]:
     """Return current resource limits, active profile, and available profiles."""
-    from money4band.detector import get_active_profile
+    from money4band.system.detector import get_active_profile
 
     m4b = load_m4b_config()
     usr = load_user_config()
@@ -140,8 +140,8 @@ async def set_limits(
     paths: ConfigPaths = Depends(get_paths),
 ) -> dict[str, str]:
     """Switch the active resource-limit profile and recalculate limits."""
-    from money4band.detector import calculate_resource_limits, get_valid_profiles
-    from money4band.dumper import write_json
+    from money4band.core.dumper import write_json
+    from money4band.system.detector import calculate_resource_limits, get_valid_profiles
 
     m4b = load_m4b_config()
     valid = get_valid_profiles(m4b)

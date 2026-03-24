@@ -103,7 +103,7 @@ _USER_CONFIG = {
 class TestGetComposeFiles:
     def test_discovers_layered_files_in_order(self, tmp_path):
         """Layered files are returned in COMPOSE_LAYER_ORDER."""
-        from money4band.compose_builder import (
+        from money4band.docker.compose_builder import (
             COMPOSE_LAYER_FILES,
             COMPOSE_LAYER_ORDER,
             get_compose_files,
@@ -122,7 +122,7 @@ class TestGetComposeFiles:
 
     def test_falls_back_to_legacy(self, tmp_path):
         """When no layered files exist, returns docker-compose.yaml."""
-        from money4band.compose_builder import get_compose_files
+        from money4band.docker.compose_builder import get_compose_files
 
         (tmp_path / "docker-compose.yaml").write_text("services: {}")
         result = get_compose_files(str(tmp_path))
@@ -131,14 +131,17 @@ class TestGetComposeFiles:
 
     def test_returns_empty_when_nothing(self, tmp_path):
         """Returns empty list when no compose files exist at all."""
-        from money4band.compose_builder import get_compose_files
+        from money4band.docker.compose_builder import get_compose_files
 
         result = get_compose_files(str(tmp_path))
         assert result == []
 
     def test_prefers_layered_over_legacy(self, tmp_path):
         """When both layered and legacy exist, returns only layered."""
-        from money4band.compose_builder import COMPOSE_LAYER_FILES, get_compose_files
+        from money4band.docker.compose_builder import (
+            COMPOSE_LAYER_FILES,
+            get_compose_files,
+        )
 
         (tmp_path / COMPOSE_LAYER_FILES["base"]).write_text("services: {}")
         (tmp_path / "docker-compose.yaml").write_text("services: {}")
@@ -156,11 +159,11 @@ class TestGetComposeFiles:
 class TestLayeredGeneration:
     """Verify that layered=True produces separate compose files per tier."""
 
-    @patch("money4band.compose_builder.check_img_arch_support", return_value=True)
-    @patch("money4band.compose_builder.get_compatible_tag", return_value=None)
-    @patch("money4band.compose_builder.show_spinner")
+    @patch("money4band.docker.compose_builder.check_img_arch_support", return_value=True)
+    @patch("money4band.docker.compose_builder.get_compatible_tag", return_value=None)
+    @patch("money4band.docker.compose_builder.show_spinner")
     def test_layered_creates_per_tier_files(self, _sp, _tag, _arch, tmp_path):
-        from money4band.compose_builder import assemble_docker_compose
+        from money4band.docker.compose_builder import assemble_docker_compose
 
         output = str(tmp_path / "docker-compose.yaml")
         result = assemble_docker_compose(
@@ -180,11 +183,11 @@ class TestLayeredGeneration:
         assert "compose.datacenter.yml" in basenames
         assert "compose.universal.yml" in basenames
 
-    @patch("money4band.compose_builder.check_img_arch_support", return_value=True)
-    @patch("money4band.compose_builder.get_compatible_tag", return_value=None)
-    @patch("money4band.compose_builder.show_spinner")
+    @patch("money4band.docker.compose_builder.check_img_arch_support", return_value=True)
+    @patch("money4band.docker.compose_builder.get_compatible_tag", return_value=None)
+    @patch("money4band.docker.compose_builder.show_spinner")
     def test_layered_removes_legacy_file(self, _sp, _tag, _arch, tmp_path):
-        from money4band.compose_builder import assemble_docker_compose
+        from money4band.docker.compose_builder import assemble_docker_compose
 
         legacy = tmp_path / "docker-compose.yaml"
         legacy.write_text("old content")
@@ -198,11 +201,11 @@ class TestLayeredGeneration:
         )
         assert not legacy.exists(), "Legacy file should be removed in layered mode"
 
-    @patch("money4band.compose_builder.check_img_arch_support", return_value=True)
-    @patch("money4band.compose_builder.get_compatible_tag", return_value=None)
-    @patch("money4band.compose_builder.show_spinner")
+    @patch("money4band.docker.compose_builder.check_img_arch_support", return_value=True)
+    @patch("money4band.docker.compose_builder.get_compatible_tag", return_value=None)
+    @patch("money4band.docker.compose_builder.show_spinner")
     def test_layered_services_in_correct_files(self, _sp, _tag, _arch, tmp_path):
-        from money4band.compose_builder import assemble_docker_compose
+        from money4band.docker.compose_builder import assemble_docker_compose
 
         output = str(tmp_path / "docker-compose.yaml")
         assemble_docker_compose(
@@ -232,11 +235,11 @@ class TestLayeredGeneration:
         uni_data = yaml.safe_load(uni_file.read_text())
         assert "traffmonetizer" in uni_data["services"]
 
-    @patch("money4band.compose_builder.check_img_arch_support", return_value=True)
-    @patch("money4band.compose_builder.get_compatible_tag", return_value=None)
-    @patch("money4band.compose_builder.show_spinner")
+    @patch("money4band.docker.compose_builder.check_img_arch_support", return_value=True)
+    @patch("money4band.docker.compose_builder.get_compatible_tag", return_value=None)
+    @patch("money4band.docker.compose_builder.show_spinner")
     def test_layered_base_has_network_config(self, _sp, _tag, _arch, tmp_path):
-        from money4band.compose_builder import assemble_docker_compose
+        from money4band.docker.compose_builder import assemble_docker_compose
 
         output = str(tmp_path / "docker-compose.yaml")
         assemble_docker_compose(
@@ -251,11 +254,11 @@ class TestLayeredGeneration:
         base_data = yaml.safe_load(base_file.read_text())
         assert "networks" in base_data, "Base layer must contain network config"
 
-    @patch("money4band.compose_builder.check_img_arch_support", return_value=True)
-    @patch("money4band.compose_builder.get_compatible_tag", return_value=None)
-    @patch("money4band.compose_builder.show_spinner")
+    @patch("money4band.docker.compose_builder.check_img_arch_support", return_value=True)
+    @patch("money4band.docker.compose_builder.get_compatible_tag", return_value=None)
+    @patch("money4band.docker.compose_builder.show_spinner")
     def test_monolithic_still_works(self, _sp, _tag, _arch, tmp_path):
-        from money4band.compose_builder import assemble_docker_compose
+        from money4band.docker.compose_builder import assemble_docker_compose
 
         output = str(tmp_path / "docker-compose.yaml")
         result = assemble_docker_compose(
@@ -273,11 +276,11 @@ class TestLayeredGeneration:
         assert "repocket" in data["services"]
         assert "traffmonetizer" in data["services"]
 
-    @patch("money4band.compose_builder.check_img_arch_support", return_value=True)
-    @patch("money4band.compose_builder.get_compatible_tag", return_value=None)
-    @patch("money4band.compose_builder.show_spinner")
+    @patch("money4band.docker.compose_builder.check_img_arch_support", return_value=True)
+    @patch("money4band.docker.compose_builder.get_compatible_tag", return_value=None)
+    @patch("money4band.docker.compose_builder.show_spinner")
     def test_empty_layers_get_stale_files_removed(self, _sp, _tag, _arch, tmp_path):
-        from money4band.compose_builder import assemble_docker_compose
+        from money4band.docker.compose_builder import assemble_docker_compose
 
         # Create a stale service layer file
         stale = tmp_path / "compose.service.yml"
@@ -322,12 +325,12 @@ class TestComposeMode:
 class TestStopStackMultiFile:
     """Verify fn_stopStack accepts str | list[str]."""
 
-    @patch("money4band.fn_stopStack.run_docker_command", return_value=0)
-    @patch("money4band.fn_stopStack.get_compose_project_name", return_value="test")
-    @patch("money4band.fn_stopStack.show_spinner")
-    @patch("money4band.fn_stopStack.ask_question_yn", return_value=True)
+    @patch("money4band.docker.stop.run_docker_command", return_value=0)
+    @patch("money4band.docker.stop.get_compose_project_name", return_value="test")
+    @patch("money4band.docker.stop.show_spinner")
+    @patch("money4band.docker.stop.ask_question_yn", return_value=True)
     def test_stop_stack_single_file(self, _yn, _sp, _proj, mock_cmd):
-        from money4band.fn_stopStack import stop_stack
+        from money4band.docker.stop import stop_stack
 
         result = stop_stack("./docker-compose.yaml", "test", skip_questions=True)
         assert result is True
@@ -335,12 +338,12 @@ class TestStopStackMultiFile:
         assert "-f" in cmd
         assert "./docker-compose.yaml" in cmd
 
-    @patch("money4band.fn_stopStack.run_docker_command", return_value=0)
-    @patch("money4band.fn_stopStack.get_compose_project_name", return_value="test")
-    @patch("money4band.fn_stopStack.show_spinner")
-    @patch("money4band.fn_stopStack.ask_question_yn", return_value=True)
+    @patch("money4band.docker.stop.run_docker_command", return_value=0)
+    @patch("money4band.docker.stop.get_compose_project_name", return_value="test")
+    @patch("money4band.docker.stop.show_spinner")
+    @patch("money4band.docker.stop.ask_question_yn", return_value=True)
     def test_stop_stack_multiple_files(self, _yn, _sp, _proj, mock_cmd):
-        from money4band.fn_stopStack import stop_stack
+        from money4band.docker.stop import stop_stack
 
         files = ["compose.yml", "compose.residential.yml", "compose.datacenter.yml"]
         result = stop_stack(files, "test", skip_questions=True)
@@ -360,13 +363,13 @@ class TestStopStackMultiFile:
 class TestStartStackMultiFile:
     """Verify fn_startStack handles layered files for proxy instances."""
 
-    @patch("money4band.fn_startStack.run_docker_command", return_value=0)
-    @patch("money4band.fn_startStack.get_compose_project_name", return_value="test")
-    @patch("money4band.fn_startStack.get_device_name_from_env", return_value="dev1")
-    @patch("money4band.fn_startStack.show_spinner")
-    @patch("money4band.fn_startStack.ask_question_yn", return_value=True)
+    @patch("money4band.docker.start.run_docker_command", return_value=0)
+    @patch("money4band.docker.start.get_compose_project_name", return_value="test")
+    @patch("money4band.docker.start.get_device_name_from_env", return_value="dev1")
+    @patch("money4band.docker.start.show_spinner")
+    @patch("money4band.docker.start.ask_question_yn", return_value=True)
     def test_start_stack_list_input(self, _yn, _sp, _dev, _proj, mock_cmd):
-        from money4band.fn_startStack import start_stack
+        from money4band.docker.start import start_stack
 
         files = ["compose.yml", "compose.residential.yml"]
         result = start_stack(files, ".env", "test", skip_questions=True)
@@ -408,7 +411,7 @@ class TestLayerFallback:
         """service_layers.get() default must be 'datacenter'."""
         import inspect
 
-        from money4band import compose_builder
+        from money4band.docker import compose_builder
 
         source = inspect.getsource(compose_builder.assemble_docker_compose)
         # The layered bucket assignment line

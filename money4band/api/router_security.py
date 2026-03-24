@@ -26,7 +26,7 @@ async def stale_images(
     paths: ConfigPaths = Depends(get_paths),
 ) -> list[dict[str, Any]]:
     """Return images that haven't been updated in >90 days."""
-    from money4band.image_security import check_stale_images
+    from money4band.docker.image_security import check_stale_images
 
     app_config = load_app_config()
     return await asyncio.to_thread(check_stale_images, app_config)
@@ -37,7 +37,7 @@ async def image_digests(
     paths: ConfigPaths = Depends(get_paths),
 ) -> list[dict[str, Any]]:
     """Return digests for all pulled images."""
-    from money4band.image_security import log_image_digests
+    from money4band.docker.image_security import log_image_digests
 
     app_config = load_app_config()
     return await asyncio.to_thread(log_image_digests, app_config)
@@ -51,7 +51,7 @@ async def scan_image(
     """Run a CVE scan on a specific Docker image using docker scout."""
     import re
 
-    from money4band.image_security import run_scout_cves
+    from money4band.docker.image_security import run_scout_cves
 
     if not re.match(r"^[a-zA-Z0-9._:/@-]+$", image_name):
         from fastapi import HTTPException

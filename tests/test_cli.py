@@ -176,11 +176,11 @@ class TestHandlerArguments:
         monkeypatch.setattr("main._auto_backup", lambda *a, **kw: None)
         monkeypatch.setattr("main._has_template_defaults", lambda *a, **kw: False)
         monkeypatch.setattr(
-            "money4band.helper.check_docker_ready", lambda *a, **kw: None
+            "money4band.docker.helper.check_docker_ready", lambda *a, **kw: None
         )
 
     def test_setup_passes_apps_m4b_user_paths(self, monkeypatch, tmp_path):
-        captured = _capture_module_call(monkeypatch, "money4band.fn_setupApps")
+        captured = _capture_module_call(monkeypatch, "money4band.apps.setup")
         from main import _cmd_setup
 
         _cmd_setup(_make_args(tmp_path, "setup"))
@@ -193,7 +193,7 @@ class TestHandlerArguments:
         assert str(tmp_path) in a
 
     def test_start_passes_apps_m4b_user_paths(self, monkeypatch, tmp_path):
-        captured = _capture_module_call(monkeypatch, "money4band.fn_startStack")
+        captured = _capture_module_call(monkeypatch, "money4band.docker.start")
         from main import _cmd_start
 
         _cmd_start(_make_args(tmp_path, "start"))
@@ -204,7 +204,7 @@ class TestHandlerArguments:
         assert u.endswith("user-config.json")
 
     def test_stop_passes_apps_m4b_user_paths(self, monkeypatch, tmp_path):
-        captured = _capture_module_call(monkeypatch, "money4band.fn_stopStack")
+        captured = _capture_module_call(monkeypatch, "money4band.docker.stop")
         from main import _cmd_stop
 
         _cmd_stop(_make_args(tmp_path, "stop"))
@@ -215,7 +215,7 @@ class TestHandlerArguments:
         assert u.endswith("user-config.json")
 
     def test_generate_passes_apps_m4b_user_paths(self, monkeypatch, tmp_path):
-        captured = _capture_module_call(monkeypatch, "money4band.generator")
+        captured = _capture_module_call(monkeypatch, "money4band.docker.generator")
         from main import _cmd_generate
 
         _cmd_generate(_make_args(tmp_path, "generate"))
@@ -226,7 +226,7 @@ class TestHandlerArguments:
         assert u.endswith("user-config.json")
 
     def test_links_passes_apps_m4b_user_paths(self, monkeypatch, tmp_path):
-        captured = _capture_module_call(monkeypatch, "money4band.fn_app_catalog")
+        captured = _capture_module_call(monkeypatch, "money4band.apps.catalog")
         from main import _cmd_links
 
         _cmd_links(_make_args(tmp_path, "links"))
@@ -237,7 +237,7 @@ class TestHandlerArguments:
         assert u.endswith("user-config.json")
 
     def test_proxy_passes_apps_m4b_user_paths(self, monkeypatch, tmp_path):
-        captured = _capture_module_call(monkeypatch, "money4band.fn_multiproxy_tools")
+        captured = _capture_module_call(monkeypatch, "money4band.network.proxy_tools")
         from main import _cmd_proxy
 
         _cmd_proxy(_make_args(tmp_path, "proxy"))
@@ -287,7 +287,7 @@ class TestAutoBackup:
             lambda path: backup_called.update(yes=True, path=path),
         )
         monkeypatch.setattr(
-            "money4band.helper.check_docker_ready",
+            "money4band.docker.helper.check_docker_ready",
             lambda: None,
         )
         if module_path:
@@ -301,14 +301,14 @@ class TestAutoBackup:
 
     def test_setup_triggers_auto_backup(self, monkeypatch, tmp_path):
         result = self._run_handler(
-            monkeypatch, tmp_path, "_cmd_setup", "money4band.fn_setupApps"
+            monkeypatch, tmp_path, "_cmd_setup", "money4band.apps.setup"
         )
         assert result["yes"], "_auto_backup must be called before setup"
         assert result["path"].endswith("user-config.json")
 
     def test_generate_triggers_auto_backup(self, monkeypatch, tmp_path):
         result = self._run_handler(
-            monkeypatch, tmp_path, "_cmd_generate", "money4band.generator"
+            monkeypatch, tmp_path, "_cmd_generate", "money4band.docker.generator"
         )
         assert result["yes"], "_auto_backup must be called before generate"
 
@@ -319,19 +319,19 @@ class TestAutoBackup:
 
     def test_start_does_not_trigger_auto_backup(self, monkeypatch, tmp_path):
         result = self._run_handler(
-            monkeypatch, tmp_path, "_cmd_start", "money4band.fn_startStack"
+            monkeypatch, tmp_path, "_cmd_start", "money4band.docker.start"
         )
         assert not result["yes"], "start must NOT auto-backup"
 
     def test_stop_does_not_trigger_auto_backup(self, monkeypatch, tmp_path):
         result = self._run_handler(
-            monkeypatch, tmp_path, "_cmd_stop", "money4band.fn_stopStack"
+            monkeypatch, tmp_path, "_cmd_stop", "money4band.docker.stop"
         )
         assert not result["yes"], "stop must NOT auto-backup"
 
     def test_links_does_not_trigger_auto_backup(self, monkeypatch, tmp_path):
         result = self._run_handler(
-            monkeypatch, tmp_path, "_cmd_links", "money4band.fn_app_catalog"
+            monkeypatch, tmp_path, "_cmd_links", "money4band.apps.catalog"
         )
         assert not result["yes"], "links must NOT auto-backup"
 
@@ -376,7 +376,7 @@ class TestMainDispatch:
 
 class TestGetActiveProfiles:
     def test_all_disabled(self):
-        from money4band.helper import get_active_profiles
+        from money4band.docker.helper import get_active_profiles
 
         cfg = {
             "watchtower": {"enabled": False},
@@ -386,7 +386,7 @@ class TestGetActiveProfiles:
         assert get_active_profiles(cfg) == []
 
     def test_all_enabled(self):
-        from money4band.helper import get_active_profiles
+        from money4band.docker.helper import get_active_profiles
 
         cfg = {
             "watchtower": {"enabled": True},
@@ -396,7 +396,7 @@ class TestGetActiveProfiles:
         assert get_active_profiles(cfg) == ["monitoring", "proxy"]
 
     def test_monitoring_only(self):
-        from money4band.helper import get_active_profiles
+        from money4band.docker.helper import get_active_profiles
 
         cfg = {
             "watchtower": {"enabled": True},
@@ -407,13 +407,13 @@ class TestGetActiveProfiles:
 
     def test_empty_config_defaults_watchtower_on(self):
         """Watchtower defaults to enabled when key is missing entirely."""
-        from money4band.helper import get_active_profiles
+        from money4band.docker.helper import get_active_profiles
 
         assert get_active_profiles({}) == ["monitoring"]
 
     def test_partial_config_missing_nested_enabled_key(self):
         """A section present but missing 'enabled' falls back to default."""
-        from money4band.helper import get_active_profiles
+        from money4band.docker.helper import get_active_profiles
 
         cfg = {"watchtower": {}, "m4b_dashboard": {}, "proxies": {}}
         # watchtower defaults to True, others default to False
@@ -421,7 +421,7 @@ class TestGetActiveProfiles:
 
     def test_profile_order_is_stable(self):
         """Profiles always come out in monitoring → proxy order."""
-        from money4band.helper import get_active_profiles
+        from money4band.docker.helper import get_active_profiles
 
         cfg = {
             "proxies": {"enabled": True},

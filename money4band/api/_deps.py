@@ -10,7 +10,7 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass, field
 
-from money4band.loader import load_json_config
+from money4band.core.loader import load_json_config
 
 
 @dataclass(slots=True)

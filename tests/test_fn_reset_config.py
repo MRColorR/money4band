@@ -1,4 +1,4 @@
-"""Tests for money4band.fn_reset_config — config reset logic."""
+"""Tests for money4band.core.reset — config reset logic."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from money4band.fn_reset_config import main, reset_config
+from money4band.core.reset import main, reset_config
 
 
 class TestResetConfig:

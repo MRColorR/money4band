@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from money4band.backup import (
+from money4band.core.backup import (
     cleanup_backups,
     create_backup,
     list_backups,
@@ -19,7 +19,7 @@ def _isolated_backup_dir(monkeypatch, tmp_path):
     """Redirect BACKUP_DIR to a temp location for every test."""
     fake_dir = tmp_path / "backups"
     fake_dir.mkdir()
-    monkeypatch.setattr("money4band.backup.BACKUP_DIR", fake_dir)
+    monkeypatch.setattr("money4band.core.backup.BACKUP_DIR", fake_dir)
     return fake_dir
 
 

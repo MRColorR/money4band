@@ -5,7 +5,7 @@ import unittest.mock
 
 import yaml
 
-from money4band.generator import (
+from money4band.docker.generator import (
     assemble_docker_compose,
     generate_device_name,
     generate_env_file,
@@ -390,7 +390,7 @@ class TestDashboardUrlFileCreation:
     """Verify dashboard URL file is written from container port output."""
 
     def test_writes_file_with_ports(self, tmp_path, monkeypatch):
-        from money4band.generator import generate_container_url_list
+        from money4band.docker.generator import generate_container_url_list
 
         env_file = tmp_path / ".env"
         env_file.write_text("COMPOSE_PROJECT_NAME=m4b\nDEVICE_NAME=test_dev\n")
@@ -402,7 +402,7 @@ class TestDashboardUrlFileCreation:
         )
 
         with unittest.mock.patch(
-            "money4band.generator.subprocess.run", return_value=mock_result
+            "money4band.docker.generator.subprocess.run", return_value=mock_result
         ):
             generate_container_url_list(None, None, str(env_file))
 
@@ -413,20 +413,20 @@ class TestDashboardUrlFileCreation:
         assert "9090" in content
 
     def test_no_env_file_returns(self, tmp_path):
-        from money4band.generator import generate_container_url_list
+        from money4band.docker.generator import generate_container_url_list
 
         generate_container_url_list(None, None, str(tmp_path / "nofile.env"))
         # Should return without crashing
 
     def test_explicit_names_skip_env(self, tmp_path, monkeypatch):
-        from money4band.generator import generate_container_url_list
+        from money4band.docker.generator import generate_container_url_list
 
         monkeypatch.chdir(tmp_path)
         mock_result = unittest.mock.MagicMock()
         mock_result.stdout = ""
 
         with unittest.mock.patch(
-            "money4band.generator.subprocess.run", return_value=mock_result
+            "money4band.docker.generator.subprocess.run", return_value=mock_result
         ):
             generate_container_url_list("proj", "dev", str(tmp_path / ".env"))
 
@@ -536,7 +536,7 @@ class TestAppHealthchecks(unittest.TestCase):
             compose_path = f.name
         try:
             with patch(
-                "money4band.compose_builder.check_img_arch_support", return_value=True
+                "money4band.docker.compose_builder.check_img_arch_support", return_value=True
             ):
                 assemble_docker_compose(
                     _M4B_CFG, app_cfg, user_cfg, compose_path, is_main_instance=True
@@ -602,7 +602,7 @@ class TestProxyDependsOn(unittest.TestCase):
             compose_path = f.name
         try:
             with patch(
-                "money4band.compose_builder.check_img_arch_support", return_value=True
+                "money4band.docker.compose_builder.check_img_arch_support", return_value=True
             ):
                 assemble_docker_compose(
                     _M4B_CFG, app_cfg, user_cfg, compose_path, is_main_instance=True
@@ -629,10 +629,10 @@ class TestProxyDependsOn(unittest.TestCase):
 class TestGenerateDashboardUrls(unittest.TestCase):
     """Test generate_container_url_list with mocked subprocess."""
 
-    @unittest.mock.patch("money4band.generator.subprocess")
-    @unittest.mock.patch("money4band.generator.show_spinner")
+    @unittest.mock.patch("money4band.docker.generator.subprocess")
+    @unittest.mock.patch("money4band.docker.generator.show_spinner")
     def test_does_not_crash(self, _spinner, mock_sp):
-        from money4band.generator import generate_container_url_list
+        from money4band.docker.generator import generate_container_url_list
 
         with tempfile.TemporaryDirectory() as d:
             env_file = os.path.join(d, ".env")

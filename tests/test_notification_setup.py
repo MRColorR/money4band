@@ -1,10 +1,10 @@
-"""Tests for money4band.notification_setup — URL validation."""
+"""Tests for money4band.ui.notification_setup — URL validation."""
 
 from __future__ import annotations
 
 from unittest.mock import patch
 
-from money4band.notification_setup import (
+from money4band.ui.notification_setup import (
     SUPPORTED_NOTIFICATION_SERVICES,
     validate_notification_url,
 )
@@ -42,49 +42,49 @@ class TestValidateNotificationUrl:
 class TestSetupNotifications:
     """Interactive notification setup flow with mocked prompts."""
 
-    @patch("money4band.notification_setup.ask_question_yn", return_value=False)
+    @patch("money4band.ui.notification_setup.ask_question_yn", return_value=False)
     def test_disable_notifications(self, _ask) -> None:
-        from money4band.notification_setup import setup_notifications
+        from money4band.ui.notification_setup import setup_notifications
 
         cfg: dict = {"notifications": {}}
         setup_notifications(cfg)
         assert cfg["notifications"]["enabled"] is False
 
     @patch(
-        "money4band.notification_setup.ask_string", return_value="discord://tok@hook"
+        "money4band.ui.notification_setup.ask_string", return_value="discord://tok@hook"
     )
-    @patch("money4band.notification_setup.validate_notification_url", return_value=True)
-    @patch("money4band.notification_setup.ask_question_yn", return_value=True)
+    @patch("money4band.ui.notification_setup.validate_notification_url", return_value=True)
+    @patch("money4band.ui.notification_setup.ask_question_yn", return_value=True)
     @patch("builtins.input", return_value="")
     def test_enable_with_valid_url(self, _inp, _ask_yn, _validate, _ask_str) -> None:
-        from money4band.notification_setup import setup_notifications
+        from money4band.ui.notification_setup import setup_notifications
 
         cfg: dict = {"notifications": {}}
         setup_notifications(cfg)
         assert cfg["notifications"]["enabled"] is True
         assert cfg["notifications"]["url"] == "discord://tok@hook"
 
-    @patch("money4band.notification_setup.ask_question_yn", return_value=False)
+    @patch("money4band.ui.notification_setup.ask_question_yn", return_value=False)
     def test_keep_existing_settings(self, _ask) -> None:
         """When user declines to change, existing enabled + URL are preserved."""
-        from money4band.notification_setup import setup_notifications
+        from money4band.ui.notification_setup import setup_notifications
 
         cfg: dict = {"notifications": {"enabled": True, "url": "discord://existing"}}
         setup_notifications(cfg)
         assert cfg["notifications"]["enabled"] is True
         assert cfg["notifications"]["url"] == "discord://existing"
 
-    @patch("money4band.notification_setup.ask_question_yn", side_effect=[True, False])
+    @patch("money4band.ui.notification_setup.ask_question_yn", side_effect=[True, False])
     @patch(
-        "money4band.notification_setup.validate_notification_url", return_value=False
+        "money4band.ui.notification_setup.validate_notification_url", return_value=False
     )
-    @patch("money4band.notification_setup.ask_string", return_value="bad-url")
+    @patch("money4band.ui.notification_setup.ask_string", return_value="bad-url")
     @patch("builtins.input", return_value="")
     def test_invalid_url_retry_then_skip(
         self, _inp, _ask_str, _validate, _ask_yn
     ) -> None:
         """Invalid URL + user declines retry: notifications not enabled, no URL stored."""
-        from money4band.notification_setup import setup_notifications
+        from money4band.ui.notification_setup import setup_notifications
 
         cfg: dict = {"notifications": {}}
         setup_notifications(cfg)

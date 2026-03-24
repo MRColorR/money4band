@@ -18,7 +18,7 @@ router = APIRouter(prefix="/api/stack", tags=["stack"])
 @router.post("/start", response_model=StatusMessage)
 async def start_stack(paths: ConfigPaths = Depends(get_paths)) -> dict[str, Any]:
     """Start all Docker Compose stacks (main + proxy instances)."""
-    from money4band.fn_startStack import start_all_stacks
+    from money4band.docker.start import start_all_stacks
 
     try:
         await asyncio.to_thread(start_all_stacks, skip_questions=True)
@@ -31,7 +31,7 @@ async def start_stack(paths: ConfigPaths = Depends(get_paths)) -> dict[str, Any]
 @router.post("/stop", response_model=StatusMessage)
 async def stop_stack(paths: ConfigPaths = Depends(get_paths)) -> dict[str, Any]:
     """Stop all Docker Compose stacks (main + proxy instances)."""
-    from money4band.fn_stopStack import stop_all_stacks
+    from money4band.docker.stop import stop_all_stacks
 
     try:
         await asyncio.to_thread(stop_all_stacks, skip_questions=True)
@@ -44,8 +44,8 @@ async def stop_stack(paths: ConfigPaths = Depends(get_paths)) -> dict[str, Any]:
 @router.post("/restart", response_model=StatusMessage)
 async def restart_stack(paths: ConfigPaths = Depends(get_paths)) -> dict[str, Any]:
     """Stop then start all stacks."""
-    from money4band.fn_startStack import start_all_stacks
-    from money4band.fn_stopStack import stop_all_stacks
+    from money4band.docker.start import start_all_stacks
+    from money4band.docker.stop import stop_all_stacks
 
     try:
         await asyncio.to_thread(stop_all_stacks, skip_questions=True)

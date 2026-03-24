@@ -5,7 +5,7 @@ import re
 import unittest
 from unittest.mock import patch
 
-from money4band.fn_app_catalog import (
+from money4band.apps.catalog import (
     _display_catalog,
     _manage_categories,
     fn_app_catalog,
@@ -62,13 +62,13 @@ class TestFnAppCatalog(unittest.TestCase):
     }
 
     @patch(
-        "money4band.fn_app_catalog.shutil.get_terminal_size",
+        "money4band.apps.catalog.shutil.get_terminal_size",
         return_value=os.terminal_size((200, 24)),
     )
-    @patch("money4band.fn_app_catalog.sys")
-    @patch("money4band.fn_app_catalog.print")
-    @patch("money4band.fn_app_catalog.cls")
-    @patch("money4band.fn_app_catalog.input", create=True)
+    @patch("money4band.apps.catalog.sys")
+    @patch("money4band.apps.catalog.print")
+    @patch("money4band.apps.catalog.cls")
+    @patch("money4band.apps.catalog.input", create=True)
     def test_wide_terminal_single_line_with_links(
         self, mock_input, mock_cls, mock_print, mock_sys, _mock_term
     ):
@@ -102,13 +102,13 @@ class TestFnAppCatalog(unittest.TestCase):
         self.assertNotIn("earnapp.com/dashboard", out)
 
     @patch(
-        "money4band.fn_app_catalog.shutil.get_terminal_size",
+        "money4band.apps.catalog.shutil.get_terminal_size",
         return_value=os.terminal_size((80, 24)),
     )
-    @patch("money4band.fn_app_catalog.sys")
-    @patch("money4band.fn_app_catalog.print")
-    @patch("money4band.fn_app_catalog.cls")
-    @patch("money4band.fn_app_catalog.input", create=True)
+    @patch("money4band.apps.catalog.sys")
+    @patch("money4band.apps.catalog.print")
+    @patch("money4band.apps.catalog.cls")
+    @patch("money4band.apps.catalog.input", create=True)
     def test_compact_mode_link_on_own_line(
         self, mock_input, mock_cls, mock_print, mock_sys, _mock_term
     ):
@@ -133,13 +133,13 @@ class TestFnAppCatalog(unittest.TestCase):
         )
 
     @patch(
-        "money4band.fn_app_catalog.shutil.get_terminal_size",
+        "money4band.apps.catalog.shutil.get_terminal_size",
         return_value=os.terminal_size((80, 24)),
     )
-    @patch("money4band.fn_app_catalog.sys")
-    @patch("money4band.fn_app_catalog.print")
-    @patch("money4band.fn_app_catalog.cls")
-    @patch("money4band.fn_app_catalog.input", create=True)
+    @patch("money4band.apps.catalog.sys")
+    @patch("money4band.apps.catalog.print")
+    @patch("money4band.apps.catalog.cls")
+    @patch("money4band.apps.catalog.input", create=True)
     def test_deprecated_apps_show_links_and_reason(
         self, mock_input, mock_cls, mock_print, mock_sys, _mock_term
     ):
@@ -156,7 +156,7 @@ class TestFnAppCatalog(unittest.TestCase):
         )
         self.assertIn(">> Docker image unavailability", out)
 
-    @patch("money4band.fn_app_catalog.logger.error")
+    @patch("money4band.apps.catalog.logger.error")
     def test_fn_app_catalog_exception(self, mock_logging_error):
         """Test fn_app_catalog exception handling."""
         app_config = None
@@ -165,12 +165,12 @@ class TestFnAppCatalog(unittest.TestCase):
         mock_logging_error.assert_called_once()
 
     @patch(
-        "money4band.fn_app_catalog.shutil.get_terminal_size",
+        "money4band.apps.catalog.shutil.get_terminal_size",
         return_value=os.terminal_size((200, 24)),
     )
-    @patch("money4band.fn_app_catalog.sys")
-    @patch("money4band.fn_app_catalog.cls")
-    @patch("money4band.fn_app_catalog.input", create=True)
+    @patch("money4band.apps.catalog.sys")
+    @patch("money4band.apps.catalog.cls")
+    @patch("money4band.apps.catalog.input", create=True)
     def test_fn_app_catalog_returns_false_on_back(
         self, mock_input, mock_cls, mock_sys, _mock_term
     ):
@@ -180,12 +180,12 @@ class TestFnAppCatalog(unittest.TestCase):
         self.assertFalse(result)
 
     @patch(
-        "money4band.fn_app_catalog.shutil.get_terminal_size",
+        "money4band.apps.catalog.shutil.get_terminal_size",
         return_value=os.terminal_size((200, 24)),
     )
-    @patch("money4band.fn_app_catalog.sys")
-    @patch("money4band.fn_app_catalog.cls")
-    @patch("money4band.fn_app_catalog.input", create=True)
+    @patch("money4band.apps.catalog.sys")
+    @patch("money4band.apps.catalog.cls")
+    @patch("money4band.apps.catalog.input", create=True)
     def test_fn_app_catalog_returns_true_on_manage(
         self, mock_input, mock_cls, mock_sys, _mock_term
     ):
@@ -212,7 +212,7 @@ class TestManageCategories(unittest.TestCase):
         },
     }
 
-    @patch("money4band.fn_app_catalog.input", create=True, return_value="b")
+    @patch("money4band.apps.catalog.input", create=True, return_value="b")
     def test_back_exits(self, _inp):
         import copy
 
@@ -220,7 +220,7 @@ class TestManageCategories(unittest.TestCase):
         _manage_categories(cfg, None)
         # No changes, should not crash
 
-    @patch("money4band.fn_app_catalog.input", create=True, return_value="1")
+    @patch("money4band.apps.catalog.input", create=True, return_value="1")
     def test_toggle_category(self, _inp):
         import copy
 
@@ -230,7 +230,7 @@ class TestManageCategories(unittest.TestCase):
         first_key = list(cfg.keys())[0]
         self.assertFalse(cfg[first_key]["active"])
 
-    @patch("money4band.fn_app_catalog.input", create=True, return_value="1")
+    @patch("money4band.apps.catalog.input", create=True, return_value="1")
     def test_toggle_persists_to_file(self, _inp, tmp_path=None):
         import copy
         import tempfile
@@ -247,7 +247,7 @@ class TestManageCategories(unittest.TestCase):
         finally:
             os.unlink(cfg_path)
 
-    @patch("money4band.fn_app_catalog.input", create=True, return_value="xyz")
+    @patch("money4band.apps.catalog.input", create=True, return_value="xyz")
     def test_invalid_input(self, _inp, capsys=None):
         import copy
 
@@ -271,7 +271,7 @@ class TestDisplayCatalog(unittest.TestCase):
     }
 
     @patch(
-        "money4band.fn_app_catalog.shutil.get_terminal_size",
+        "money4band.apps.catalog.shutil.get_terminal_size",
         return_value=os.terminal_size((200, 24)),
     )
     @patch("sys.stdout", new_callable=io.StringIO)
@@ -301,7 +301,7 @@ class TestManageCategoriesEdgeCases(unittest.TestCase):
         },
     }
 
-    @patch("money4band.fn_app_catalog.input", create=True, return_value="q")
+    @patch("money4band.apps.catalog.input", create=True, return_value="q")
     def test_quit_raises_system_exit(self, _inp):
         import copy
 
@@ -309,7 +309,7 @@ class TestManageCategoriesEdgeCases(unittest.TestCase):
         with self.assertRaises(SystemExit):
             _manage_categories(cfg, None)
 
-    @patch("money4band.fn_app_catalog.input", create=True, return_value="99")
+    @patch("money4band.apps.catalog.input", create=True, return_value="99")
     def test_out_of_range_selection_warns(self, _inp):
         """Selecting a number beyond category count should print 'Invalid'."""
         import copy
@@ -319,7 +319,7 @@ class TestManageCategoriesEdgeCases(unittest.TestCase):
         # Should not crash, active states unchanged
         self.assertTrue(cfg["supported-apps"]["active"])
 
-    @patch("money4band.fn_app_catalog.input", create=True, return_value="")
+    @patch("money4band.apps.catalog.input", create=True, return_value="")
     def test_empty_input_returns(self, _inp):
         import copy
 
@@ -344,12 +344,12 @@ class TestFnAppCatalogQuit(unittest.TestCase):
     }
 
     @patch(
-        "money4band.fn_app_catalog.shutil.get_terminal_size",
+        "money4band.apps.catalog.shutil.get_terminal_size",
         return_value=os.terminal_size((200, 24)),
     )
-    @patch("money4band.fn_app_catalog.sys")
-    @patch("money4band.fn_app_catalog.cls")
-    @patch("money4band.fn_app_catalog.input", create=True, return_value="q")
+    @patch("money4band.apps.catalog.sys")
+    @patch("money4band.apps.catalog.cls")
+    @patch("money4band.apps.catalog.input", create=True, return_value="q")
     def test_q_raises_system_exit(self, _inp, _cls, mock_sys, _term):
         mock_sys.stdout.reconfigure = lambda **kw: None
         with self.assertRaises(SystemExit):

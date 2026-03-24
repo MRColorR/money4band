@@ -158,7 +158,7 @@ def fire_event(event: str, message: str, config_dir: str | None = None) -> None:
     """
     import os
 
-    from money4band.loader import load_json_config
+    from money4band.core.loader import load_json_config
 
     try:
         if config_dir is None:

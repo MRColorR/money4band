@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 
-from money4band.offers import display_offers, load_all_offers, load_external_offers
+from money4band.apps.offers import display_offers, load_all_offers, load_external_offers
 
 
 class TestLoadExternalOffers:

@@ -1,10 +1,10 @@
-"""Tests for money4band.app_configurator — credential collection and app setup."""
+"""Tests for money4band.apps.configurator — credential collection and app setup."""
 
 from __future__ import annotations
 
 from unittest.mock import patch
 
-from money4band.app_configurator import (
+from money4band.apps.configurator import (
     configure_apikey,
     configure_apps,
     configure_cid,
@@ -22,7 +22,7 @@ from money4band.app_configurator import (
 class TestConfigureEmail:
     """Prompt stores user-supplied email in config dict."""
 
-    @patch("money4band.app_configurator.ask_email", return_value="user@test.com")
+    @patch("money4band.apps.configurator.ask_email", return_value="user@test.com")
     def test_stores_email(self, _ask):
         app = {"name": "EARNAPP"}
         config: dict = {}
@@ -33,7 +33,7 @@ class TestConfigureEmail:
 class TestConfigurePassword:
     """Prompt stores user-supplied password in config dict."""
 
-    @patch("money4band.app_configurator.ask_string", return_value="s3cret")
+    @patch("money4band.apps.configurator.ask_string", return_value="s3cret")
     def test_stores_password(self, _ask):
         config: dict = {}
         configure_password({"name": "EARNAPP"}, {}, config)
@@ -43,7 +43,7 @@ class TestConfigurePassword:
 class TestConfigureApikey:
     """Prompt stores user-supplied API key."""
 
-    @patch("money4band.app_configurator.ask_string", return_value="key123")
+    @patch("money4band.apps.configurator.ask_string", return_value="key123")
     def test_stores_apikey(self, _ask):
         config: dict = {}
         configure_apikey({"name": "GRASS"}, {}, config)
@@ -53,7 +53,7 @@ class TestConfigureApikey:
 class TestConfigureUserid:
     """Prompt stores user-supplied user ID."""
 
-    @patch("money4band.app_configurator.ask_string", return_value="uid456")
+    @patch("money4band.apps.configurator.ask_string", return_value="uid456")
     def test_stores_userid(self, _ask):
         config: dict = {}
         configure_userid({"name": "APP"}, {}, config)
@@ -63,7 +63,7 @@ class TestConfigureUserid:
 class TestConfigureCid:
     """Prompt stores user-supplied CID."""
 
-    @patch("money4band.app_configurator.ask_string", return_value="6aTk")
+    @patch("money4band.apps.configurator.ask_string", return_value="6aTk")
     def test_stores_cid(self, _ask):
         config: dict = {}
         configure_cid({"name": "PACKETSTREAM"}, {}, config)
@@ -73,7 +73,7 @@ class TestConfigureCid:
 class TestConfigureCode:
     """Prompt stores user-supplied code."""
 
-    @patch("money4band.app_configurator.ask_string", return_value="mycode")
+    @patch("money4band.apps.configurator.ask_string", return_value="mycode")
     def test_stores_code(self, _ask):
         config: dict = {}
         configure_code({"name": "APP"}, {}, config)
@@ -83,7 +83,7 @@ class TestConfigureCode:
 class TestConfigureToken:
     """Prompt stores user-supplied token."""
 
-    @patch("money4band.app_configurator.ask_string", return_value="tok123")
+    @patch("money4band.apps.configurator.ask_string", return_value="tok123")
     def test_stores_token(self, _ask):
         config: dict = {}
         configure_token({"name": "APP"}, {}, config)
@@ -111,9 +111,9 @@ class TestConfigureManual:
 class TestConfigureUuid:
     """UUID generation branch: auto-generate when user declines import."""
 
-    @patch("money4band.app_configurator.ask_question_yn", return_value=False)
+    @patch("money4band.apps.configurator.ask_question_yn", return_value=False)
     @patch(
-        "money4band.app_configurator.generate_uuid",
+        "money4band.apps.configurator.generate_uuid",
         return_value="abcd1234abcd1234abcd1234abcd1234",
     )
     def test_auto_generates_uuid(self, _gen, _ask):
@@ -122,9 +122,9 @@ class TestConfigureUuid:
         configure_uuid({"name": "EARNAPP"}, flag_config, config)
         assert config["uuid"] == "abcd1234abcd1234abcd1234abcd1234"
 
-    @patch("money4band.app_configurator.ask_question_yn", return_value=True)
+    @patch("money4band.apps.configurator.ask_question_yn", return_value=True)
     @patch(
-        "money4band.app_configurator.ask_uuid",
+        "money4band.apps.configurator.ask_uuid",
         return_value="1234567890abcdef1234567890abcdef",
     )
     def test_imports_existing_uuid(self, _ask_uuid, _ask_yn):
@@ -143,16 +143,16 @@ class TestConfigureUuid:
         configure_uuid({"name": "APP"}, {"length": -1}, config)
         assert "uuid" not in config
 
-    @patch("money4band.app_configurator.ask_question_yn", return_value=False)
-    @patch("money4band.app_configurator.generate_uuid", return_value="abcd1234")
+    @patch("money4band.apps.configurator.ask_question_yn", return_value=False)
+    @patch("money4band.apps.configurator.generate_uuid", return_value="abcd1234")
     def test_prefix_prepended(self, _gen, _ask):
         config: dict = {}
         flag_config = {"length": 8, "prefix": "sdk-node-"}
         configure_uuid({"name": "EARNAPP"}, flag_config, config)
         assert config["uuid"] == "sdk-node-abcd1234"
 
-    @patch("money4band.app_configurator.ask_question_yn", return_value=False)
-    @patch("money4band.app_configurator.generate_uuid", return_value="abcd")
+    @patch("money4band.apps.configurator.ask_question_yn", return_value=False)
+    @patch("money4band.apps.configurator.generate_uuid", return_value="abcd")
     @patch("builtins.input", return_value="")
     def test_claim_url_written(self, _inp, _gen, _ask, tmp_path, monkeypatch):
         monkeypatch.chdir(tmp_path)
@@ -190,11 +190,11 @@ class TestConfigureApps:
     """Integration: configure_apps iterates categories and calls _configure_apps."""
 
     @patch(
-        "money4band.app_configurator.get_active_app_categories",
+        "money4band.apps.configurator.get_active_app_categories",
         return_value=["supported-apps"],
     )
-    @patch("money4band.app_configurator.get_category_entries", return_value=[])
-    @patch("money4band.app_configurator.cls")
+    @patch("money4band.apps.configurator.get_category_entries", return_value=[])
+    @patch("money4band.apps.configurator.cls")
     def test_empty_category_leaves_apps_unchanged(self, _cls, _entries, _cats):
         user_config = {"apps": {}}
         configure_apps(user_config, {}, {})

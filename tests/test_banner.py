@@ -1,10 +1,10 @@
-"""Tests for money4band.banner — shared banner & nickname helpers."""
+"""Tests for money4band.ui.banner — shared banner & nickname helpers."""
 
 from __future__ import annotations
 
 from unittest.mock import patch
 
-from money4band.banner import ensure_nickname, get_system_username, print_banner
+from money4band.ui.banner import ensure_nickname, get_system_username, print_banner
 
 # ---------------------------------------------------------------------------
 # get_system_username
@@ -12,11 +12,11 @@ from money4band.banner import ensure_nickname, get_system_username, print_banner
 
 
 class TestGetSystemUsername:
-    @patch("money4band.banner.getpass.getuser", return_value="alice")
+    @patch("money4band.ui.banner.getpass.getuser", return_value="alice")
     def test_returns_os_username(self, _mock) -> None:
         assert get_system_username() == "alice"
 
-    @patch("money4band.banner.getpass.getuser", side_effect=OSError("no tty"))
+    @patch("money4band.ui.banner.getpass.getuser", side_effect=OSError("no tty"))
     def test_falls_back_to_user_on_error(self, _mock) -> None:
         assert get_system_username() == "user"
 
@@ -29,21 +29,21 @@ class TestGetSystemUsername:
 class TestEnsureNickname:
     """Verify ensure_nickname resolves and mutates the config dict."""
 
-    @patch("money4band.banner.get_system_username", return_value="bob")
+    @patch("money4band.ui.banner.get_system_username", return_value="bob")
     def test_replaces_placeholder(self, _mock) -> None:
         cfg = {"user": {"Nickname": "yourNickname"}}
         result = ensure_nickname(cfg)
         assert result == "bob"
         assert cfg["user"]["Nickname"] == "bob"
 
-    @patch("money4band.banner.get_system_username", return_value="bob")
+    @patch("money4band.ui.banner.get_system_username", return_value="bob")
     def test_replaces_empty_nickname(self, _mock) -> None:
         cfg = {"user": {"Nickname": ""}}
         result = ensure_nickname(cfg)
         assert result == "bob"
         assert cfg["user"]["Nickname"] == "bob"
 
-    @patch("money4band.banner.get_system_username", return_value="bob")
+    @patch("money4band.ui.banner.get_system_username", return_value="bob")
     def test_replaces_your_prefix_case_insensitive(self, _mock) -> None:
         cfg = {"user": {"Nickname": "YourName123"}}
         assert ensure_nickname(cfg) == "bob"
@@ -54,14 +54,14 @@ class TestEnsureNickname:
         assert result == "mattia"
         assert cfg["user"]["Nickname"] == "mattia"
 
-    @patch("money4band.banner.get_system_username", return_value="bob")
+    @patch("money4band.ui.banner.get_system_username", return_value="bob")
     def test_creates_user_section_if_missing(self, _mock) -> None:
         cfg: dict = {}
         result = ensure_nickname(cfg)
         assert result == "bob"
         assert cfg["user"]["Nickname"] == "bob"
 
-    @patch("money4band.banner.get_system_username", return_value="bob")
+    @patch("money4band.ui.banner.get_system_username", return_value="bob")
     def test_creates_nickname_key_if_missing(self, _mock) -> None:
         cfg = {"user": {}}
         result = ensure_nickname(cfg)
@@ -74,7 +74,7 @@ class TestEnsureNickname:
         ensure_nickname(cfg)
         assert cfg["user"]["email"] == original_email
 
-    @patch("money4band.banner.get_system_username", return_value="user")
+    @patch("money4band.ui.banner.get_system_username", return_value="user")
     def test_fallback_username_used_when_getuser_fails(self, _mock) -> None:
         cfg = {"user": {"Nickname": ""}}
         assert ensure_nickname(cfg) == "user"

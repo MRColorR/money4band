@@ -42,7 +42,7 @@ def resolve_config_paths(
 def load_configs(
     m4b_path: str, app_path: str, user_path: str
 ) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
-    from money4band.loader import load_json_config
+    from money4band.core.loader import load_json_config
 
     return (
         load_json_config(m4b_path),
@@ -52,7 +52,7 @@ def load_configs(
 
 
 def load_m4b_config(m4b_path: str) -> dict[str, Any]:
-    from money4band.loader import load_json_config
+    from money4band.core.loader import load_json_config
 
     return load_json_config(m4b_path)
 
@@ -88,7 +88,7 @@ def get_system_info_text(
     """Capture system_info dashboard output as a string."""
     buf = io.StringIO()
     with redirect_stdout(buf):
-        from money4band.system_info import show_system_info
+        from money4band.system.info import show_system_info
 
         show_system_info(m4b_config, app_config, user_config)
     return buf.getvalue()
@@ -100,7 +100,7 @@ def get_system_info_text(
 
 
 def is_docker_installed() -> bool:
-    from money4band.fn_install_docker import is_docker_installed as _check
+    from money4band.docker.install import is_docker_installed as _check
 
     return _check()
 
@@ -111,7 +111,7 @@ def start_stack(
     instance_name: str = "money4band",
     profiles: tuple[str, ...] = (),
 ) -> bool:
-    from money4band.fn_startStack import start_stack as _start
+    from money4band.docker.start import start_stack as _start
 
     return _start(
         compose_file=compose_file,
@@ -126,7 +126,7 @@ def stop_stack(
     compose_file: str | list[str] = "./docker-compose.yaml",
     instance_name: str = "money4band",
 ) -> bool:
-    from money4band.fn_stopStack import stop_stack as _stop
+    from money4band.docker.stop import stop_stack as _stop
 
     return _stop(
         compose_file=compose_file,
@@ -145,7 +145,7 @@ def start_all_stacks(
     """Start all stacks, capture stdout."""
     buf = io.StringIO()
     with redirect_stdout(buf):
-        from money4band.fn_startStack import start_all_stacks as _start_all
+        from money4band.docker.start import start_all_stacks as _start_all
 
         _start_all(
             main_compose_file=main_compose_file,
@@ -166,7 +166,7 @@ def stop_all_stacks(
     """Stop all stacks, capture stdout."""
     buf = io.StringIO()
     with redirect_stdout(buf):
-        from money4band.fn_stopStack import stop_all_stacks as _stop_all
+        from money4band.docker.stop import stop_all_stacks as _stop_all
 
         _stop_all(
             main_compose_file=main_compose_file,
@@ -188,7 +188,7 @@ def regenerate_files(
     """Regenerate compose + env, capture stdout."""
     buf = io.StringIO()
     with redirect_stdout(buf):
-        from money4band.generator import main as gen_main
+        from money4band.docker.generator import main as gen_main
 
         gen_main(app_config_path, m4b_config_path, user_config_path)
     return buf.getvalue()
@@ -203,8 +203,8 @@ def get_stack_status() -> str:
     """Get docker compose ps output."""
     import subprocess
 
-    from money4band.compose_builder import get_compose_files
-    from money4band.helper import get_compose_project_name
+    from money4band.docker.compose_builder import get_compose_files
+    from money4band.docker.helper import get_compose_project_name
 
     compose_files = get_compose_files(_BASE_DIR)
     env_file = os.path.join(_BASE_DIR, ".env")
@@ -231,8 +231,8 @@ def get_stack_status() -> str:
 
 def get_health_summary() -> list[dict[str, Any]]:
     """Return container health summaries."""
-    from money4band.helper import get_compose_project_name
-    from money4band.monitor import get_stack_health
+    from money4band.docker.helper import get_compose_project_name
+    from money4band.docker.monitor import get_stack_health
 
     env_file = os.path.join(_BASE_DIR, ".env")
     project_name = None
@@ -264,7 +264,7 @@ def get_app_catalog_rich(app_config: dict[str, Any]) -> list[dict[str, Any]]:
     Each element: {category, active, apps: [{name, link, layer, payout, reason}]}
     Sorted: active categories first.
     """
-    from money4band.loader import (
+    from money4band.core.loader import (
         get_all_app_categories,
         get_category_entries,
         is_category_active,
@@ -317,8 +317,8 @@ def get_system_info_structured(
     """Return structured system info dict for the TUI."""
     import shutil
 
-    from money4band import detector
-    from money4band.system_info import get_dns_config
+    from money4band.system import detector
+    from money4band.system.info import get_dns_config
     from money4band.updater import check_for_update
 
     version = m4b_config.get("project", {}).get("project_version", "?")
@@ -360,7 +360,7 @@ def get_system_info_structured(
     docker_running = False
     multiarch = False
     if docker_ok:
-        from money4band.helper import (
+        from money4band.docker.helper import (
             is_docker_daemon_running,
             is_multiarch_emulation_available,
         )
@@ -369,7 +369,7 @@ def get_system_info_structured(
         if docker_running:
             multiarch = is_multiarch_emulation_available()
 
-    from money4band.compose_builder import get_compose_files
+    from money4band.docker.compose_builder import get_compose_files
 
     compose_files = get_compose_files(".")
     compose_mode = (
@@ -408,7 +408,7 @@ def get_generator_summary(
     m4b_config_path: str, app_config_path: str, user_config_path: str
 ) -> dict[str, Any]:
     """Return pre-generation config summary for the TUI."""
-    from money4band.loader import load_json_config
+    from money4band.core.loader import load_json_config
 
     user = load_json_config(user_config_path)
     m4b = load_json_config(m4b_config_path)
@@ -468,7 +468,7 @@ def reset_user_config(
     user_config_path: str,
     template_path: str | None = None,
 ) -> None:
-    from money4band.fn_reset_config import reset_config
+    from money4band.core.reset import reset_config
 
     src = template_path or os.path.join(_BASE_DIR, "template", "user-config.json")
     reset_config(src, user_config_path)

@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 import pytest
 
-from money4band.loader import get_install_limit
+from money4band.core.loader import get_install_limit
 
 
 class TestGetInstallLimit:
@@ -99,7 +99,7 @@ class TestToggleInstallLimits:
         with open(cfg_path, "w") as f:
             json.dump(cfg, f)
 
-        from money4band.fn_multiproxy_tools import toggle_install_limits
+        from money4band.network.proxy_tools import toggle_install_limits
 
         toggle_install_limits(m4b_config_path=cfg_path)
 
@@ -114,7 +114,7 @@ class TestToggleInstallLimits:
         with open(cfg_path, "w") as f:
             json.dump(cfg, f)
 
-        from money4band.fn_multiproxy_tools import toggle_install_limits
+        from money4band.network.proxy_tools import toggle_install_limits
 
         toggle_install_limits(m4b_config_path=cfg_path)
 
@@ -130,7 +130,7 @@ class TestToggleInstallLimits:
         with open(cfg_path, "w") as f:
             json.dump(cfg, f)
 
-        from money4band.fn_multiproxy_tools import toggle_install_limits
+        from money4band.network.proxy_tools import toggle_install_limits
 
         toggle_install_limits(m4b_config_path=cfg_path)
 
@@ -183,7 +183,7 @@ class TestInstallLimitsStatusLabel:
         with open(cfg_path, "w") as f:
             json.dump({"system": {"enforce_install_limits": True}}, f)
 
-        from money4band.fn_multiproxy_tools import _install_limits_status_label
+        from money4band.network.proxy_tools import _install_limits_status_label
 
         label = _install_limits_status_label(cfg_path)
         assert "ON" in label
@@ -193,7 +193,7 @@ class TestInstallLimitsStatusLabel:
         with open(cfg_path, "w") as f:
             json.dump({"system": {"enforce_install_limits": False}}, f)
 
-        from money4band.fn_multiproxy_tools import _install_limits_status_label
+        from money4band.network.proxy_tools import _install_limits_status_label
 
         label = _install_limits_status_label(cfg_path)
         assert "OFF" in label
@@ -203,16 +203,16 @@ class TestInstallLimitsStatusLabel:
         with open(cfg_path, "w") as f:
             json.dump({"system": {}}, f)
 
-        from money4band.fn_multiproxy_tools import _install_limits_status_label
+        from money4band.network.proxy_tools import _install_limits_status_label
 
         label = _install_limits_status_label(cfg_path)
         assert "ON" in label
 
     @patch(
-        "money4band.fn_multiproxy_tools.load_json_config", side_effect=Exception("fail")
+        "money4band.network.proxy_tools.load_json_config", side_effect=Exception("fail")
     )
     def test_label_error_defaults_to_on(self, _mock):
-        from money4band.fn_multiproxy_tools import _install_limits_status_label
+        from money4band.network.proxy_tools import _install_limits_status_label
 
         label = _install_limits_status_label("nonexistent.json")
         assert "ON" in label
@@ -222,7 +222,7 @@ class TestExitSubmenu:
     """Test the exit_submenu helper."""
 
     def test_returns_false(self):
-        from money4band.fn_multiproxy_tools import exit_submenu
+        from money4band.network.proxy_tools import exit_submenu
 
         assert exit_submenu() is False
 
@@ -231,10 +231,10 @@ class TestSubmenuMultiproxyTools:
     """Test the submenu builder."""
 
     @patch(
-        "money4band.fn_multiproxy_tools._install_limits_status_label", return_value="ON"
+        "money4band.network.proxy_tools._install_limits_status_label", return_value="ON"
     )
     def test_returns_menu_items(self, _mock):
-        from money4band.fn_multiproxy_tools import submenu_multiproxy_tools
+        from money4band.network.proxy_tools import submenu_multiproxy_tools
 
         items = submenu_multiproxy_tools()
         assert len(items) == 3

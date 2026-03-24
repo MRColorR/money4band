@@ -19,6 +19,6 @@ async def ip_score(
     paths: ConfigPaths = Depends(get_paths),
 ) -> list[dict[str, Any]]:
     """Run IP quality analysis on the host (and proxy IPs if proxies.txt exists)."""
-    from money4band.ip_scorer import analyse_ips
+    from money4band.network.ip_scorer import analyse_ips
 
     return analyse_ips()

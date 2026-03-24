@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from money4band.app_info import _find_app, list_apps, show_app_detail
+from money4band.apps.info import _find_app, list_apps, show_app_detail
 
 # ---------------------------------------------------------------------------
 # Fixtures

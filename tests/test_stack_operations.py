@@ -1,4 +1,4 @@
-"""Tests for money4band.fn_startStack and money4band.fn_stopStack."""
+"""Tests for money4band.docker.start and money4band.docker.stop."""
 
 from __future__ import annotations
 
@@ -14,14 +14,14 @@ import yaml
 
 class TestGetDeviceNameFromEnv:
     def test_extracts_device_name(self, tmp_path: Path) -> None:
-        from money4band.fn_startStack import get_device_name_from_env
+        from money4band.docker.start import get_device_name_from_env
 
         env = tmp_path / ".env"
         env.write_text("OTHER=x\nDEVICE_NAME=mybox\nMORE=y\n")
         assert get_device_name_from_env(str(env)) == "mybox"
 
     def test_missing_device_name(self, tmp_path: Path) -> None:
-        from money4band.fn_startStack import get_device_name_from_env
+        from money4band.docker.start import get_device_name_from_env
 
         env = tmp_path / ".env"
         env.write_text("OTHER=x\n")
@@ -31,7 +31,7 @@ class TestGetDeviceNameFromEnv:
 
 class TestExtractAppNamesFromCompose:
     def test_extracts_services(self, tmp_path: Path) -> None:
-        from money4band.fn_startStack import _extract_app_names_from_compose
+        from money4band.docker.start import _extract_app_names_from_compose
 
         compose = tmp_path / "docker-compose.yaml"
         data = {"services": {"earnapp": {"image": "x"}, "honeygain": {"image": "y"}}}
@@ -41,7 +41,7 @@ class TestExtractAppNamesFromCompose:
 
     def test_empty_services_returns_infra_fallback(self, tmp_path: Path) -> None:
         """When services dict is empty, falls back to infra names."""
-        from money4band.fn_startStack import _extract_app_names_from_compose
+        from money4band.docker.start import _extract_app_names_from_compose
 
         compose = tmp_path / "docker-compose.yaml"
         compose.write_text(yaml.dump({"services": {}}))
@@ -50,7 +50,7 @@ class TestExtractAppNamesFromCompose:
         assert "watchtower" in result
 
     def test_missing_file_returns_infra_fallback(self, tmp_path: Path) -> None:
-        from money4band.fn_startStack import _extract_app_names_from_compose
+        from money4band.docker.start import _extract_app_names_from_compose
 
         result = _extract_app_names_from_compose(str(tmp_path / "nope.yaml"))
         assert "watchtower" in result
@@ -58,7 +58,7 @@ class TestExtractAppNamesFromCompose:
 
 class TestValidateEnvFiles:
     def test_unique_names_returns_true(self, tmp_path: Path) -> None:
-        from money4band.fn_startStack import validate_env_files
+        from money4band.docker.start import validate_env_files
 
         env = tmp_path / ".env"
         env.write_text("DEVICE_NAME=main_box\n")
@@ -69,7 +69,7 @@ class TestValidateEnvFiles:
         assert validate_env_files(str(env), str(instances)) is True
 
     def test_duplicate_names_returns_false(self, tmp_path: Path) -> None:
-        from money4band.fn_startStack import validate_env_files
+        from money4band.docker.start import validate_env_files
 
         env = tmp_path / ".env"
         env.write_text("DEVICE_NAME=same_name\n")
@@ -81,7 +81,7 @@ class TestValidateEnvFiles:
 
     def test_missing_env_still_returns_true(self, tmp_path: Path) -> None:
         """No files = no duplicates = True."""
-        from money4band.fn_startStack import validate_env_files
+        from money4band.docker.start import validate_env_files
 
         assert (
             validate_env_files(str(tmp_path / ".env"), str(tmp_path / "nope")) is True
@@ -90,7 +90,7 @@ class TestValidateEnvFiles:
 
 class TestGetContainerNamesFromEnv:
     def test_extracts_names(self, tmp_path: Path) -> None:
-        from money4band.fn_startStack import get_container_names_from_env
+        from money4band.docker.start import get_container_names_from_env
 
         env = tmp_path / ".env"
         env.write_text(
@@ -109,12 +109,12 @@ class TestGetContainerNamesFromEnv:
 
 
 class TestStartStack:
-    @patch("money4band.fn_startStack.input", return_value="")
-    @patch("money4band.fn_startStack.run_docker_command", return_value=0)
-    @patch("money4band.fn_startStack.show_spinner")
-    @patch("money4band.fn_startStack._notify_event")
+    @patch("money4band.docker.start.input", return_value="")
+    @patch("money4band.docker.start.run_docker_command", return_value=0)
+    @patch("money4band.docker.start.show_spinner")
+    @patch("money4band.docker.start._notify_event")
     def test_success(self, _notify, _spinner, mock_run, _input, tmp_path: Path) -> None:
-        from money4band.fn_startStack import start_stack
+        from money4band.docker.start import start_stack
 
         compose = tmp_path / "docker-compose.yaml"
         compose.write_text(yaml.dump({"services": {"app": {"image": "x"}}}))
@@ -123,12 +123,12 @@ class TestStartStack:
         result = start_stack(str(compose), str(env), "test", skip_questions=True)
         assert result is True
 
-    @patch("money4band.fn_startStack.input", return_value="")
-    @patch("money4band.fn_startStack.run_docker_command", return_value=1)
-    @patch("money4band.fn_startStack.show_spinner")
-    @patch("money4band.fn_startStack._notify_event")
+    @patch("money4band.docker.start.input", return_value="")
+    @patch("money4band.docker.start.run_docker_command", return_value=1)
+    @patch("money4band.docker.start.show_spinner")
+    @patch("money4band.docker.start._notify_event")
     def test_failure(self, _notify, _spinner, mock_run, _input, tmp_path: Path) -> None:
-        from money4band.fn_startStack import start_stack
+        from money4band.docker.start import start_stack
 
         compose = tmp_path / "docker-compose.yaml"
         compose.write_text(yaml.dump({"services": {"app": {"image": "x"}}}))
@@ -144,24 +144,24 @@ class TestStartStack:
 
 
 class TestStopStack:
-    @patch("money4band.fn_stopStack.input", return_value="")
-    @patch("money4band.fn_stopStack.run_docker_command", return_value=0)
-    @patch("money4band.fn_stopStack.show_spinner")
-    @patch("money4band.fn_stopStack._notify_event")
+    @patch("money4band.docker.stop.input", return_value="")
+    @patch("money4band.docker.stop.run_docker_command", return_value=0)
+    @patch("money4band.docker.stop.show_spinner")
+    @patch("money4band.docker.stop._notify_event")
     def test_success(self, _notify, _spinner, mock_run, _input, tmp_path: Path) -> None:
-        from money4band.fn_stopStack import stop_stack
+        from money4band.docker.stop import stop_stack
 
         compose = tmp_path / "docker-compose.yaml"
         compose.write_text(yaml.dump({"services": {}}))
         result = stop_stack(str(compose), "test", skip_questions=True)
         assert result is True
 
-    @patch("money4band.fn_stopStack.input", return_value="")
-    @patch("money4band.fn_stopStack.run_docker_command", return_value=1)
-    @patch("money4band.fn_stopStack.show_spinner")
-    @patch("money4band.fn_stopStack._notify_event")
+    @patch("money4band.docker.stop.input", return_value="")
+    @patch("money4band.docker.stop.run_docker_command", return_value=1)
+    @patch("money4band.docker.stop.show_spinner")
+    @patch("money4band.docker.stop._notify_event")
     def test_failure(self, _notify, _spinner, mock_run, _input, tmp_path: Path) -> None:
-        from money4band.fn_stopStack import stop_stack
+        from money4band.docker.stop import stop_stack
 
         compose = tmp_path / "docker-compose.yaml"
         compose.write_text(yaml.dump({"services": {}}))
@@ -170,10 +170,10 @@ class TestStopStack:
 
 
 class TestStopAllStacks:
-    @patch("money4band.fn_stopStack.input", return_value="")
-    @patch("money4band.fn_stopStack.stop_stack", return_value=True)
+    @patch("money4band.docker.stop.input", return_value="")
+    @patch("money4band.docker.stop.stop_stack", return_value=True)
     def test_stops_main_and_instances(self, mock_stop, _input, tmp_path: Path) -> None:
-        from money4band.fn_stopStack import stop_all_stacks
+        from money4band.docker.stop import stop_all_stacks
 
         compose = tmp_path / "docker-compose.yaml"
         compose.write_text(yaml.dump({"services": {}}))

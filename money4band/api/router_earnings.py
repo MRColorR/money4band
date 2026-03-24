@@ -22,7 +22,7 @@ async def get_earnings(
     paths: ConfigPaths = Depends(get_paths),
 ) -> dict[str, Any]:
     """Return per-app earnings estimates and totals."""
-    from money4band.earnings_estimator import get_app_earnings
+    from money4band.apps.earnings import get_app_earnings
 
     app_config = load_app_config()
     apps = get_app_earnings(app_config, ip_type=ip_type)

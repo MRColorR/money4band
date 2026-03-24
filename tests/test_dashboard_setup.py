@@ -11,7 +11,7 @@ from money4band.dashboard.setup import (
     set_dashboard_state,
     setup_m4b_dashboard,
 )
-from money4band.watchtower_setup import setup_watchtower
+from money4band.docker.watchtower import setup_watchtower
 
 _USER_CONFIG = {
     "m4b_dashboard": {"enabled": False},
@@ -67,7 +67,7 @@ class TestSetupWatchtower:
         cfg["watchtower"]["enabled"] = False
         # First ask: "change settings?" → Yes, Second ask: "enable?" → Yes
         with patch(
-            "money4band.watchtower_setup.ask_question_yn", side_effect=[True, True]
+            "money4band.docker.watchtower.ask_question_yn", side_effect=[True, True]
         ):
             setup_watchtower(cfg)
         assert cfg["watchtower"]["enabled"] is True
@@ -78,7 +78,7 @@ class TestSetupWatchtower:
         cfg = copy.deepcopy(_USER_CONFIG)
         # Currently enabled → ask "change?" → Yes, then "enable?" → No
         with patch(
-            "money4band.watchtower_setup.ask_question_yn", side_effect=[True, False]
+            "money4band.docker.watchtower.ask_question_yn", side_effect=[True, False]
         ):
             setup_watchtower(cfg)
         assert cfg["watchtower"]["enabled"] is False
@@ -88,7 +88,7 @@ class TestSetupWatchtower:
     def test_keep_existing_when_enabled(self, capsys):
         cfg = copy.deepcopy(_USER_CONFIG)
         # Currently enabled → ask "change?" → No
-        with patch("money4band.watchtower_setup.ask_question_yn", return_value=False):
+        with patch("money4band.docker.watchtower.ask_question_yn", return_value=False):
             setup_watchtower(cfg)
         assert cfg["watchtower"]["enabled"] is True
         captured = capsys.readouterr()
@@ -98,7 +98,7 @@ class TestSetupWatchtower:
         cfg = copy.deepcopy(_USER_CONFIG)
         cfg["watchtower"]["enabled"] = False
         # Currently disabled → ask "change?" → No
-        with patch("money4band.watchtower_setup.ask_question_yn", return_value=False):
+        with patch("money4band.docker.watchtower.ask_question_yn", return_value=False):
             setup_watchtower(cfg)
         assert cfg["watchtower"]["enabled"] is False
         captured = capsys.readouterr()

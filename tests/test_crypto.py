@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 from cryptography.fernet import Fernet
 
-from money4band.crypto import (
+from money4band.core.crypto import (
     MAGIC_PREFIX,
     decrypt_file,
     decrypt_to_dict,
@@ -19,8 +19,8 @@ from money4band.crypto import (
     is_encrypted,
     is_file_encrypted,
 )
-from money4band.dumper import write_json
-from money4band.loader import load_json_config
+from money4band.core.dumper import write_json
+from money4band.core.loader import load_json_config
 
 
 class TestKeyManagement(unittest.TestCase):
@@ -34,7 +34,7 @@ class TestKeyManagement(unittest.TestCase):
             self.key_path.unlink()
         os.rmdir(self.tmp_dir)
 
-    @patch("money4band.crypto.get_key_path")
+    @patch("money4band.core.crypto.get_key_path")
     def test_get_or_create_key_creates_new(self, mock_path):
         """First call generates a new key and writes it to disk."""
         mock_path.return_value = self.key_path
@@ -45,7 +45,7 @@ class TestKeyManagement(unittest.TestCase):
         # Verify the key is a valid Fernet key
         Fernet(key)
 
-    @patch("money4band.crypto.get_key_path")
+    @patch("money4band.core.crypto.get_key_path")
     def test_get_or_create_key_loads_existing(self, mock_path):
         """Second call loads the same key from disk."""
         mock_path.return_value = self.key_path
@@ -53,7 +53,7 @@ class TestKeyManagement(unittest.TestCase):
         key2 = get_or_create_key()
         self.assertEqual(key1, key2)
 
-    @patch("money4band.crypto.get_key_path")
+    @patch("money4band.core.crypto.get_key_path")
     def test_key_file_permissions_unix(self, mock_path):
         """On Unix, key file should have 0o600 permissions."""
         if os.name == "nt":
@@ -76,7 +76,7 @@ class TestEncryptDecrypt(unittest.TestCase):
         self.tmp_dir = tempfile.mkdtemp()
         self.key_path = Path(self.tmp_dir) / "master.key"
         self.patcher = patch(
-            "money4band.crypto.get_key_path", return_value=self.key_path
+            "money4band.core.crypto.get_key_path", return_value=self.key_path
         )
         self.patcher.start()
 
@@ -149,7 +149,7 @@ class TestFileOperations(unittest.TestCase):
         self.key_path = Path(self.tmp_dir) / "master.key"
         self.config_path = os.path.join(self.tmp_dir, "user-config.json")
         self.patcher = patch(
-            "money4band.crypto.get_key_path", return_value=self.key_path
+            "money4band.core.crypto.get_key_path", return_value=self.key_path
         )
         self.patcher.start()
 
@@ -275,7 +275,7 @@ class TestLoaderIntegration(unittest.TestCase):
         self.key_path = Path(self.tmp_dir) / "master.key"
         self.config_path = os.path.join(self.tmp_dir, "test-config.json")
         self.patcher = patch(
-            "money4band.crypto.get_key_path", return_value=self.key_path
+            "money4band.core.crypto.get_key_path", return_value=self.key_path
         )
         self.patcher.start()
 
@@ -314,7 +314,7 @@ class TestDumperIntegration(unittest.TestCase):
         self.key_path = Path(self.tmp_dir) / "master.key"
         self.config_path = os.path.join(self.tmp_dir, "test-config.json")
         self.patcher = patch(
-            "money4band.crypto.get_key_path", return_value=self.key_path
+            "money4band.core.crypto.get_key_path", return_value=self.key_path
         )
         self.patcher.start()
 

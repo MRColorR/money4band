@@ -8,8 +8,8 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from money4band.fn_setupApps import assign_app_ports, collect_assigned_ports
-from money4band.generator import generate_env_file, substitute_port_placeholders
+from money4band.apps.setup import assign_app_ports, collect_assigned_ports
+from money4band.docker.generator import generate_env_file, substitute_port_placeholders
 
 
 class TestPortLogic(unittest.TestCase):
@@ -22,7 +22,7 @@ class TestPortLogic(unittest.TestCase):
         config = {"ports": [5000]}
 
         with patch(
-            "money4band.port_manager.find_next_available_port"
+            "money4band.network.port_manager.find_next_available_port"
         ) as mock_find_port:
             mock_find_port.side_effect = lambda x, **kwargs: x  # Return the same port
 
@@ -44,7 +44,7 @@ class TestPortLogic(unittest.TestCase):
         config = {"ports": [5900, 6080]}
 
         with patch(
-            "money4band.port_manager.find_next_available_port"
+            "money4band.network.port_manager.find_next_available_port"
         ) as mock_find_port:
             mock_find_port.side_effect = lambda x, **kwargs: x  # Return the same port
 
@@ -63,7 +63,7 @@ class TestPortLogic(unittest.TestCase):
         config = {}  # No ports in config
 
         with patch(
-            "money4band.port_manager.find_next_available_port"
+            "money4band.network.port_manager.find_next_available_port"
         ) as mock_find_port:
             mock_find_port.side_effect = lambda x, **kwargs: x  # Return the same port
 
@@ -85,7 +85,7 @@ class TestPortLogic(unittest.TestCase):
         reserved_ports = {50000, 50001, 50002}
 
         with patch(
-            "money4band.port_manager.find_next_available_port"
+            "money4band.network.port_manager.find_next_available_port"
         ) as mock_find_port:
             mock_find_port.side_effect = lambda x, **kwargs: next(
                 p for p in range(x, 65535) if p not in kwargs.get("exclude_ports", [])
@@ -155,7 +155,7 @@ class TestPortLogic(unittest.TestCase):
         config = {"ports": [5000]}  # Should be list
 
         with patch(
-            "money4band.port_manager.find_next_available_port"
+            "money4band.network.port_manager.find_next_available_port"
         ) as mock_find_port:
             mock_find_port.return_value = 5000
 
@@ -407,7 +407,7 @@ class TestCollectAssignedPorts(unittest.TestCase):
         # Simulate: main instance already owns 50000, 50001
         reserved_ports: set = {50000, 50001}
 
-        with patch("money4band.port_manager.find_next_available_port") as mock_fp:
+        with patch("money4band.network.port_manager.find_next_available_port") as mock_fp:
             mock_fp.side_effect = lambda x, **kwargs: next(
                 p for p in range(x, 65535) if p not in kwargs.get("exclude_ports", [])
             )

@@ -16,9 +16,9 @@ from typing import Any
 import requests
 from colorama import Fore, Style, just_fix_windows_console
 
-from money4band import http_client
-from money4band.http_client import get_session
-from money4band.loader import load_json_config
+from money4band.core.loader import load_json_config
+from money4band.network import http_client
+from money4band.network.http_client import get_session
 
 logger = logging.getLogger(__name__)
 

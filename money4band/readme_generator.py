@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qs, urlparse
 
-from money4band.loader import get_all_app_categories, get_category_entries
+from money4band.core.loader import get_all_app_categories, get_category_entries
 
 logger = logging.getLogger(__name__)
 
