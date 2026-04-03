@@ -7,7 +7,6 @@ from unittest.mock import patch
 
 from money4band.network.proxy_tools import (
     _install_limits_status_label,
-    exit_submenu,
     submenu_multiproxy_tools,
     toggle_install_limits,
     update_multiproxy_instances,
@@ -72,13 +71,6 @@ class TestSubmenuMultiproxyTools:
         labels = [i["label"] for i in items]
         assert any("Update" in l for l in labels)
         assert any("Toggle" in l for l in labels)
-
-
-class TestExitSubmenu:
-    def test_returns_false(self, capsys):
-        assert exit_submenu() is False
-        captured = capsys.readouterr()
-        assert "Exiting" in captured.out
 
 
 class TestUpdateMultiproxyInstances:

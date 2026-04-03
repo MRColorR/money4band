@@ -294,7 +294,6 @@ class TestGetSystemInfoStructured:
         "project": {"project_version": "5.0.0"},
         "system": {"default_docker_platform": "linux/amd64"},
         "resource_profiles": {
-            "active": "standard",
             "profiles": {
                 "standard": {"description": "Standard", "cpu_pct": 0.60, "ram_pct": 0.40}
             },
@@ -352,7 +351,6 @@ class TestGetSystemInfoText:
             "project": {"project_version": "5.0.0"},
             "system": {"default_docker_platform": "linux/amd64"},
             "resource_profiles": {
-                "active": "standard",
                 "profiles": {
                     "standard": {
                         "description": "Standard",

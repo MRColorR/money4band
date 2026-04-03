@@ -10,10 +10,14 @@ Run standalone:  ``m4b dashboard [--port 8088]``
 from __future__ import annotations
 
 import asyncio
+import collections
+import hashlib
+import hmac
 import json
 import logging
 import os
 import subprocess
+import time
 from typing import Any
 
 from fastapi import FastAPI, HTTPException, Request
@@ -87,6 +91,63 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+@app.middleware("http")
+async def _security_headers(request: Request, call_next):  # type: ignore[no-untyped-def]
+    """Add standard security headers to every response."""
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "no-referrer"
+    if request.url.path.startswith("/api/"):
+        response.headers["Cache-Control"] = "no-store"
+    return response
+
+# ---------------------------------------------------------------------------
+# Rate limiting — per-IP sliding window, 60 requests / minute.
+# ---------------------------------------------------------------------------
+
+_RATE_LIMIT = 60  # max requests per window
+_RATE_WINDOW = 60.0  # window size in seconds
+_rate_log: dict[str, collections.deque[float]] = {}
+
+
+@app.middleware("http")
+async def _rate_limit_middleware(request: Request, call_next):  # type: ignore[no-untyped-def]
+    """Enforce a per-IP rate limit on API endpoints.
+
+    Loopback clients are exempt — the threat model targets remote access.
+    """
+    path = request.url.path
+    if not path.startswith("/api/"):
+        return await call_next(request)
+
+    client_ip = request.client.host if request.client else "unknown"
+    # Rate limit only applies when the server is exposed to the network.
+    # On localhost-only binding, brute-force from remote IPs is impossible.
+    if not _exposed or client_ip in _LOOPBACK:
+        return await call_next(request)
+    now = time.monotonic()
+    timestamps = _rate_log.setdefault(client_ip, collections.deque())
+
+    # Evict entries outside the sliding window.
+    while timestamps and timestamps[0] < now - _RATE_WINDOW:
+        timestamps.popleft()
+
+    # GC: remove empty deques so the dict doesn't grow unboundedly.
+    if not timestamps:
+        del _rate_log[client_ip]
+        timestamps = _rate_log.setdefault(client_ip, collections.deque())
+
+    if len(timestamps) >= _RATE_LIMIT:
+        return JSONResponse(
+            status_code=429,
+            content={"detail": "Rate limit exceeded. Try again later."},
+        )
+
+    timestamps.append(now)
+    return await call_next(request)
+
 # ---------------------------------------------------------------------------
 # API-key auth — auto-generated, stored in user-config, localhost exempt.
 # ---------------------------------------------------------------------------
@@ -107,6 +168,49 @@ _api_key: str = ""
 # When exposed, the auth middleware NEVER skips auth even if no key is set
 # it will reject all non-localhost requests with 401.
 _exposed: bool = False
+
+
+def _get_session_salt() -> bytes:
+    """Return a per-installation random salt, creating it if needed.
+
+    Stored at ``~/.m4b/session.salt`` (32 bytes, hex-encoded on disk).
+    This ensures session tokens are unique per M4B installation.
+    """
+    salt_path = os.path.join(os.path.expanduser("~"), ".m4b", "session.salt")
+    try:
+        with open(salt_path, "rb") as f:
+            return bytes.fromhex(f.read().decode().strip())
+    except (OSError, ValueError):
+        pass
+    salt = os.urandom(32)
+    os.makedirs(os.path.dirname(salt_path), exist_ok=True)
+    fd = os.open(salt_path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    try:
+        os.write(fd, salt.hex().encode())
+    finally:
+        os.close(fd)
+    return salt
+
+
+def _derive_session_token(api_key: str) -> str:
+    """Derive a one-way session token from the API key.
+
+    Uses a per-installation random salt so tokens are not predictable
+    across installations.  Includes an epoch-hour component so tokens
+    roll every 24 hours even if the cookie ``max_age`` is bypassed.
+    """
+    salt = _get_session_salt()
+    epoch_day = str(int(time.time()) // 86400)
+    payload = f"{api_key}:{epoch_day}".encode()
+    return hmac.new(salt, payload, hashlib.sha256).hexdigest()
+
+
+def _derive_session_token_previous(api_key: str) -> str:
+    """Derive session token for the *previous* epoch-day (grace window)."""
+    salt = _get_session_salt()
+    epoch_day = str(int(time.time()) // 86400 - 1)
+    payload = f"{api_key}:{epoch_day}".encode()
+    return hmac.new(salt, payload, hashlib.sha256).hexdigest()
 
 
 def is_exposed() -> bool:
@@ -140,11 +244,17 @@ async def _auth_middleware(request: Request, call_next):  # type: ignore[no-unty
 
     # All callers must supply a valid token (header or cookie).
     auth = request.headers.get("authorization", "")
-    if auth == f"Bearer {_api_key}":
+    if hmac.compare_digest(auth, f"Bearer {_api_key}"):
         return await call_next(request)
 
     cookie_token = request.cookies.get("m4b_token", "")
-    if cookie_token == _api_key:
+    expected_session = _derive_session_token(_api_key)
+    if hmac.compare_digest(cookie_token, expected_session):
+        return await call_next(request)
+    # Grace window: accept tokens from the previous epoch-day so users
+    # aren't force-logged-out at the exact day boundary.
+    expected_prev = _derive_session_token_previous(_api_key)
+    if hmac.compare_digest(cookie_token, expected_prev):
         return await call_next(request)
 
     return JSONResponse(status_code=401, content={"detail": "Unauthorized"})
@@ -162,8 +272,6 @@ class _LoginPayload(BaseModel):
 @app.post("/api/auth/login", tags=["auth"])
 async def login(payload: _LoginPayload) -> JSONResponse:
     """Validate the API key and set an ``m4b_token`` session cookie."""
-    import hmac
-
     if not _api_key or not hmac.compare_digest(payload.token, _api_key):
         return JSONResponse(
             status_code=401, content={"detail": "Invalid API key"}
@@ -171,10 +279,11 @@ async def login(payload: _LoginPayload) -> JSONResponse:
     response = JSONResponse(content={"status": "ok"})
     response.set_cookie(
         key="m4b_token",
-        value=_api_key,
+        value=_derive_session_token(_api_key),
         httponly=True,
         samesite="strict",
-        secure=False,  # dashboard typically runs on plain HTTP
+        secure=_exposed,
+        max_age=86400,
         path="/",
     )
     return response
@@ -290,9 +399,10 @@ async def get_status() -> dict[str, Any]:
         return {"docker_available": False, "error": "Docker is not reachable", "containers": []}
 
     if result.returncode != 0:
+        logger.error("docker ps failed: %s", result.stderr.strip())
         return {
             "docker_available": True,
-            "error": result.stderr.strip() or "docker ps failed",
+            "error": "Failed to list containers",
             "containers": [],
         }
 
@@ -389,7 +499,8 @@ async def container_action(container: str, action: str) -> dict[str, str]:
 
     result = await _run_docker(action, container)
     if result.returncode != 0:
-        raise HTTPException(status_code=500, detail=result.stderr.strip())
+        logger.error("Docker %s %s failed: %s", action, container, result.stderr.strip())
+        raise HTTPException(status_code=500, detail=f"Failed to {action} container '{container}'")
 
     return {"status": "ok", "action": action, "container": container}
 

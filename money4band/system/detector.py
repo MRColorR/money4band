@@ -150,11 +150,10 @@ def calculate_resource_limits(
 ) -> None:
     """Compute per-tier resource limits using the active profile and system specs.
 
-    The active profile stored in ``user_config["settings"]["resource_profile"]``
-    determines the base CPU/RAM allocation via ``cpu_pct`` (fraction of
-    detected cores) and ``ram_pct`` (fraction of total RAM).  Per-app tiers
-    (LITTLE / MEDIUM / BIG / HUGE) then scale these bases with fixed
-    multipliers so heavier apps get proportionally more.
+    The active profile determines the base CPU/RAM allocation via ``cpu_pct``
+    (fraction of detected cores) and ``ram_pct`` (fraction of total RAM).
+    Per-app tiers (LITTLE / MEDIUM / BIG / HUGE) then scale these bases with
+    fixed multipliers so heavier apps get proportionally more.
     """
     logger.debug("Determining resource limits")
     user_config = load_json_config(user_config_path_or_dict)

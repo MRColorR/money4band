@@ -218,15 +218,6 @@ class TestInstallLimitsStatusLabel:
         assert "ON" in label
 
 
-class TestExitSubmenu:
-    """Test the exit_submenu helper."""
-
-    def test_returns_false(self):
-        from money4band.network.proxy_tools import exit_submenu
-
-        assert exit_submenu() is False
-
-
 class TestSubmenuMultiproxyTools:
     """Test the submenu builder."""
 
@@ -237,8 +228,7 @@ class TestSubmenuMultiproxyTools:
         from money4band.network.proxy_tools import submenu_multiproxy_tools
 
         items = submenu_multiproxy_tools()
-        assert len(items) == 3
+        assert len(items) == 2
         funcs = [i["function"] for i in items]
         assert "update_multiproxy_instances" in funcs
         assert "toggle_install_limits" in funcs
-        assert "exit_submenu" in funcs

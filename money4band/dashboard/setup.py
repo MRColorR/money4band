@@ -240,9 +240,55 @@ def read_dashboard_pid(config_dir: str) -> int | None:
 
 
 def write_dashboard_pid(config_dir: str, pid: int) -> None:
-    """Persist the dashboard PID so stop can find it later."""
-    with open(dashboard_pid_file(config_dir), "w") as f:
-        f.write(str(pid))
+    """Persist the dashboard PID so stop can find it later.
+
+    Uses a cross-platform file lock to prevent two processes from
+    writing the PID file simultaneously (e.g. cron + user start).
+    """
+    import sys
+
+    pid_path = dashboard_pid_file(config_dir)
+
+    if sys.platform == "win32":
+        # Windows: use msvcrt file locking.
+        import msvcrt
+
+        f = open(pid_path, "w")  # noqa: SIM115
+        try:
+            msvcrt.locking(f.fileno(), msvcrt.LK_NBLCK, 1)
+        except OSError:
+            f.close()
+            logger.warning("Dashboard PID file is locked by another process.")
+            return
+        try:
+            f.write(str(pid))
+            f.flush()
+        finally:
+            try:
+                msvcrt.locking(f.fileno(), msvcrt.LK_UNLCK, 1)
+            except OSError:
+                pass
+            f.close()
+    else:
+        # POSIX: use fcntl advisory locking.
+        import fcntl
+
+        f = open(pid_path, "w")  # noqa: SIM115
+        try:
+            fcntl.flock(f.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except OSError:
+            f.close()
+            logger.warning("Dashboard PID file is locked by another process.")
+            return
+        try:
+            f.write(str(pid))
+            f.flush()
+        finally:
+            try:
+                fcntl.flock(f.fileno(), fcntl.LOCK_UN)
+            except OSError:
+                pass
+            f.close()
 
 
 def remove_dashboard_pid(config_dir: str) -> None:

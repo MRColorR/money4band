@@ -17,7 +17,7 @@ from money4band.ui.cls import cls
 from money4band.updater import check_for_update
 
 # ---------------------------------------------------------------------------
-# DNS helpers — all data lives in m4b-config.json (system.dns section).
+# DNS helpers: reference data (presets, modes) in m4b-config; user selection in user-config.
 # ---------------------------------------------------------------------------
 
 
@@ -63,7 +63,7 @@ def compose_regen_reminder() -> None:
 
 
 def get_dns_config(user_config: dict[str, Any]) -> dict[str, Any]:
-    """Return the user-selected DNS mode and servers from user-config settings."""
+    """Return the active DNS mode and custom server list."""
     settings = user_config.get("settings", {})
     return {
         "mode": settings.get("dns_mode", "default"),
@@ -77,11 +77,7 @@ def set_dns_mode(
     mode: str,
     servers: list[str] | None = None,
 ) -> None:
-    """Persist a DNS mode (and optional server list) to user-config.json.
-
-    Validation of available modes and presets is done against m4b-config
-    (immutable reference data).
-    """
+    """Persist a DNS mode (and optional server list)."""
     m4b_cfg = load_json_config(m4b_config_path)
     valid_modes = get_dns_modes(m4b_cfg)
     if mode not in valid_modes:
@@ -351,6 +347,43 @@ def show_system_info(
 
 
 # ---------------------------------------------------------------------------
+# Interactive update check
+# ---------------------------------------------------------------------------
+
+
+def _interactive_update(m4b_config: dict[str, Any]) -> None:
+    """Check for updates and optionally apply — mirrors ``m4b update``."""
+    from money4band.updater import apply_update, check_for_update
+
+    new_version = check_for_update(m4b_config)
+    if not new_version:
+        print(f"\n{Fore.GREEN}M4B is up to date.{Style.RESET_ALL}")
+        input(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
+        return
+
+    current = m4b_config.get("project", {}).get("project_version", "?")
+    print(
+        f"\n{Fore.YELLOW}Update available: v{current} → v{new_version}{Style.RESET_ALL}"
+    )
+
+    from money4band.ui.prompt import ask_question_yn
+
+    if not ask_question_yn("Apply update now?", default=False):
+        return
+
+    print(f"{Fore.CYAN}Applying update to v{new_version}...{Style.RESET_ALL}")
+    if apply_update(new_version):
+        print(
+            f"{Fore.GREEN}Updated to v{new_version}. "
+            f"Please restart M4B.{Style.RESET_ALL}"
+        )
+        input(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
+    else:
+        print(f"{Fore.RED}Update failed. See logs for details.{Style.RESET_ALL}")
+        input(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
+
+
+# ---------------------------------------------------------------------------
 # Menu / module entry point
 # ---------------------------------------------------------------------------
 
@@ -370,14 +403,14 @@ def main(
         show_system_info(m4b_config, app_config, user_config)
 
         print(
-            f"\n  {Fore.CYAN}d{Style.RESET_ALL} DNS settings  |  "
-            f"{Fore.CYAN}b{Style.RESET_ALL} Back  |  "
-            f"{Fore.CYAN}q{Style.RESET_ALL} Quit"
+            f"\n  {Fore.CYAN}u{Style.RESET_ALL} Check for updates  |  "
+            f"{Fore.CYAN}d{Style.RESET_ALL} DNS settings  |  "
+            f"{Fore.CYAN}b{Style.RESET_ALL} Back"
         )
         choice = input("Select: ").strip().lower()
-        if choice == "d":
+        if choice == "u":
+            _interactive_update(m4b_config)
+        elif choice == "d":
             dns_interactive(m4b_config_path, user_config_path)
-        elif choice == "q":
-            raise SystemExit(0)
         else:
             break

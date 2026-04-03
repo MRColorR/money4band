@@ -42,7 +42,7 @@ async def create_new_backup(
     """Create a new backup of the current config."""
     from money4band.core.backup import create_backup
 
-    backup_path = create_backup(paths.config_dir)
+    backup_path = create_backup(paths.user_config)
     return {"status": "ok", "path": str(backup_path)}
 
 
@@ -68,7 +68,7 @@ async def restore_from_backup(
         )
     if not resolved.is_file():
         raise HTTPException(status_code=404, detail="Backup file not found")
-    restore_backup(str(resolved), paths.config_dir)
+    restore_backup(str(resolved), paths.user_config)
     return {"status": "ok", "restored_from": str(resolved)}
 
 

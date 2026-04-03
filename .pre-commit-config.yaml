@@ -19,6 +19,28 @@ repos:
     hooks:
       - id: gitleaks
 
+  # App tables — regenerate from app-config.json
+  - repo: local
+    hooks:
+      - id: update-tables
+        name: App tables up-to-date
+        entry: uv run python scripts/update_tables.py --check
+        language: system
+        pass_filenames: false
+        files: (config/app-config\.json|README\.md|docs/APPS\.md|money4band/readme_generator\.py)
+        stages: [pre-commit]
+
+  # Requirements — keep in sync with uv.lock
+  - repo: local
+    hooks:
+      - id: sync-requirements
+        name: Requirements files up-to-date
+        entry: uv run python scripts/sync_requirements.py --check
+        language: system
+        pass_filenames: false
+        files: (pyproject\.toml|uv\.lock)
+        stages: [pre-commit]
+
   # Ruff — linting and formatting
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.15.7

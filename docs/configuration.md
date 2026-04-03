@@ -35,10 +35,11 @@ Project-level settings you can tune:
 | Key | Default | Description |
 |-----|---------|-------------|
 | `system.compose_mode` | `monolithic` | `monolithic` or `layered` compose output |
-| `system.enforce_install_limits` | `true` | Respect per-app instance limits |
-| `system.dns.mode` | `default` | Container DNS mode |
-| `resource_profiles.active` | `standard` | Active resource limit profile |
 | `ports.default_port_base` | `50000` | Starting port for app port allocation |
+
+> **Note:** User-mutable settings (`resource_profile`, `dns_mode`, `dns_servers`,
+> `enforce_install_limits`, `setup_completed`) live in `user-config.json` under
+> the `settings` section. See `template/user-config.json` for defaults.
 
 ## Configuration Profiles
 

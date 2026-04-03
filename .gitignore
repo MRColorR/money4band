@@ -1,5 +1,6 @@
 m4b_proxy_instances
 config/user-config.json
+config/.dashboard.pid
 money4band/resources/www/images
 money4band/resources/www/config
 .data
@@ -34,3 +35,6 @@ dist
 
 # Local-only development instructions
 .github/copilot-instructions.md
+
+# Internal docs
+*.internal.md

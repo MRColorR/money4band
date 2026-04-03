@@ -62,14 +62,11 @@ def main(
             marker = f" {Fore.GREEN}(active){Style.RESET_ALL}" if name == active else ""
             print(f"    {i}. {name}{marker}")
         print(
-            f"\n  {Fore.CYAN}b{Style.RESET_ALL} Back  |  "
-            f"{Fore.CYAN}q{Style.RESET_ALL} Quit"
+            f"\n  {Fore.CYAN}b{Style.RESET_ALL} Back"
         )
 
         choice = input("Select: ").strip().lower()
 
-        if choice == "q":
-            raise SystemExit(0)
         if choice == "b":
             break
 

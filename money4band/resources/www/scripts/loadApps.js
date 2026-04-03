@@ -34,11 +34,22 @@ window.onload = () => {
 
             const tdDashboard = document.createElement('td');
             tdDashboard.className = 'u-border-2 u-border-grey-10 u-border-no-left u-border-no-right u-table-cell';
-            tdDashboard.innerHTML = `<a class="u-active-none u-border-none u-btn u-button-link u-button-style u-hover-none u-none u-text-palette-1-base u-btn-${index+1}" href="${app.dashboard}" target="_blank" rel="nofollow">Dashboard</a>`;
+            const dashLink = document.createElement('a');
+            dashLink.className = `u-active-none u-border-none u-btn u-button-link u-button-style u-hover-none u-none u-text-palette-1-base u-btn-${index+1}`;
+            dashLink.href = (app.dashboard && app.dashboard.startsWith('http')) ? app.dashboard : '#';
+            dashLink.target = '_blank';
+            dashLink.rel = 'nofollow';
+            dashLink.textContent = 'Dashboard';
+            tdDashboard.appendChild(dashLink);
 
             const tdInvite = document.createElement('td');
             tdInvite.className = 'u-border-2 u-border-grey-10 u-border-no-left u-border-no-right u-table-cell';
-            tdInvite.innerHTML = `<a class="u-active-none u-border-none u-btn u-button-link u-button-style u-hover-none u-none u-text-palette-1-base u-btn-${index+2}" href="${app.link}" target="_blank">Invite friends</a>`;
+            const inviteLink = document.createElement('a');
+            inviteLink.className = `u-active-none u-border-none u-btn u-button-link u-button-style u-hover-none u-none u-text-palette-1-base u-btn-${index+2}`;
+            inviteLink.href = (app.link && app.link.startsWith('http')) ? app.link : '#';
+            inviteLink.target = '_blank';
+            inviteLink.textContent = 'Invite friends';
+            tdInvite.appendChild(inviteLink);
 
             tr.appendChild(tdName);
             tr.appendChild(tdDashboard);

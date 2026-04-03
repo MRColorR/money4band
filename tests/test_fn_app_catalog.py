@@ -301,14 +301,6 @@ class TestManageCategoriesEdgeCases(unittest.TestCase):
         },
     }
 
-    @patch("money4band.apps.catalog.input", create=True, return_value="q")
-    def test_quit_raises_system_exit(self, _inp):
-        import copy
-
-        cfg = copy.deepcopy(self._APP_CONFIG)
-        with self.assertRaises(SystemExit):
-            _manage_categories(cfg, None)
-
     @patch("money4band.apps.catalog.input", create=True, return_value="99")
     def test_out_of_range_selection_warns(self, _inp):
         """Selecting a number beyond category count should print 'Invalid'."""
@@ -331,29 +323,6 @@ class TestManageCategoriesEdgeCases(unittest.TestCase):
     def test_empty_config_shows_no_categories(self):
         """No categories found → prints message and returns."""
         _manage_categories({}, None)  # should not crash
-
-
-class TestFnAppCatalogQuit(unittest.TestCase):
-    _APP_CONFIG = {
-        "supported-apps": {
-            "active": True,
-            "entries": [
-                {"name": "X", "link": "", "compose_layer": "res"},
-            ],
-        },
-    }
-
-    @patch(
-        "money4band.apps.catalog.shutil.get_terminal_size",
-        return_value=os.terminal_size((200, 24)),
-    )
-    @patch("money4band.apps.catalog.sys")
-    @patch("money4band.apps.catalog.cls")
-    @patch("money4band.apps.catalog.input", create=True, return_value="q")
-    def test_q_raises_system_exit(self, _inp, _cls, mock_sys, _term):
-        mock_sys.stdout.reconfigure = lambda **kw: None
-        with self.assertRaises(SystemExit):
-            fn_app_catalog(self._APP_CONFIG)
 
 
 if __name__ == "__main__":

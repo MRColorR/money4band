@@ -5,6 +5,7 @@ import logging
 import os
 import platform
 import re
+import stat
 import subprocess
 import sys
 import tempfile
@@ -296,14 +297,15 @@ def _notify_update_available(version: str) -> None:
         logger.debug("Update notification failed (non-critical).", exc_info=True)
 
 
-def _backup_preserved_files(base_dir: str) -> dict[str, bytes]:
-    """Read preserved files into memory before a destructive update."""
-    saved: dict[str, bytes] = {}
+def _backup_preserved_files(base_dir: str) -> dict[str, tuple[bytes, int]]:
+    """Read preserved files and their permissions into memory before a destructive update."""
+    saved: dict[str, tuple[bytes, int]] = {}
     for name in _PRESERVED_FILES:
         path = os.path.join(base_dir, name)
         if os.path.isfile(path):
+            mode = stat.S_IMODE(os.stat(path).st_mode)
             with open(path, "rb") as f:
-                saved[name] = f.read()
+                saved[name] = (f.read(), mode)
     # Also backup config/ directory files
     config_dir = os.path.join(base_dir, "config")
     if os.path.isdir(config_dir):
@@ -311,18 +313,22 @@ def _backup_preserved_files(base_dir: str) -> dict[str, bytes]:
             fpath = os.path.join(config_dir, fname)
             if os.path.isfile(fpath):
                 key = os.path.join("config", fname)
+                mode = stat.S_IMODE(os.stat(fpath).st_mode)
                 with open(fpath, "rb") as f:
-                    saved[key] = f.read()
+                    saved[key] = (f.read(), mode)
     return saved
 
 
-def _restore_preserved_files(base_dir: str, saved: dict[str, bytes]) -> None:
-    """Restore preserved files after an update."""
-    for rel_path, content in saved.items():
+def _restore_preserved_files(base_dir: str, saved: dict[str, tuple[bytes, int]]) -> None:
+    """Restore preserved files after an update, preserving original permissions."""
+    for rel_path, (content, mode) in saved.items():
         full_path = os.path.join(base_dir, rel_path)
         os.makedirs(os.path.dirname(full_path), exist_ok=True)
-        with open(full_path, "wb") as f:
-            f.write(content)
+        fd = os.open(full_path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, mode)
+        try:
+            os.write(fd, content)
+        finally:
+            os.close(fd)
 
 
 def _apply_git_update(target_version: str) -> bool:
@@ -384,10 +390,16 @@ def _get_binary_asset_name() -> str:
 
 
 def _apply_binary_update(target_version: str) -> bool:
-    """Download and replace the running binary for frozen installs."""
+    """Download and replace the running binary for frozen installs.
+
+    Verifies the download against a SHA-256 checksum file published
+    alongside each release (``checksums.sha256``).  Falls back to
+    an unverified install with a warning if no checksum file is available.
+    """
     tag = f"v{target_version}" if not target_version.startswith("v") else target_version
     asset_name = _get_binary_asset_name()
     url = f"https://github.com/{_OWNER}/{_REPO}/releases/download/{tag}/{asset_name}"
+    checksum_url = f"https://github.com/{_OWNER}/{_REPO}/releases/download/{tag}/checksums.sha256"
 
     session = get_session()
     try:
@@ -397,6 +409,19 @@ def _apply_binary_update(target_version: str) -> bool:
         logger.error("Binary download failed: %s", e)
         return False
 
+    # Try to fetch the checksum file for integrity verification.
+    expected_hash: str | None = None
+    try:
+        cs_resp = session.get(checksum_url, timeout=http_client.REQUEST_TIMEOUT)
+        if cs_resp.status_code == 200:
+            for line in cs_resp.text.strip().splitlines():
+                parts = line.split()
+                if len(parts) >= 2 and parts[1].lstrip("*") == asset_name:
+                    expected_hash = parts[0].lower()
+                    break
+    except requests.RequestException:
+        logger.warning("Could not fetch checksums.sha256 — skipping verification.")
+
     current_exe = sys.executable
     backup_exe = current_exe + ".bak"
 
@@ -405,9 +430,29 @@ def _apply_binary_update(target_version: str) -> bool:
         dir=os.path.dirname(current_exe),
     )
     try:
+        import hashlib
+
+        sha256 = hashlib.sha256()
         with os.fdopen(fd, "wb") as f:
             for chunk in resp.iter_content(chunk_size=8192):
                 f.write(chunk)
+                sha256.update(chunk)
+
+        # Verify checksum if available.
+        actual_hash = sha256.hexdigest()
+        if expected_hash:
+            if actual_hash != expected_hash:
+                logger.error(
+                    "Checksum mismatch! expected=%s actual=%s", expected_hash, actual_hash
+                )
+                os.unlink(tmp_path)
+                return False
+            logger.info("Checksum verified: %s", actual_hash)
+        else:
+            logger.warning(
+                "No checksum available for %s — accepting download on HTTPS trust only.",
+                asset_name,
+            )
 
         # Make executable on Unix
         if platform.system() != "Windows":

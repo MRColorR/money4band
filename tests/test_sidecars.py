@@ -108,7 +108,7 @@ def _m4b_config():
         "project": {"name": "money4band"},
         "system": {"default_docker_platform": "linux/amd64", "sleep_time": 0},
         "network": {"driver": "bridge", "subnet": "172.106.0.0", "netmask": "16"},
-        "watchtower": {"enable_labels": True, "scope": "money4band"},
+        "watchtower": {"scope": "money4band"},
     }
 
 

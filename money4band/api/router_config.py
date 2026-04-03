@@ -64,6 +64,15 @@ async def update_user_config(
             detail=f"Unknown config keys: {', '.join(sorted(unknown))}",
         )
 
+    # Reject type changes on dict-valued keys — prevents nuking nested
+    # objects (e.g. m4b_dashboard) with a scalar and bypassing _IMMUTABLE_KEYS.
+    for key, value in payload.data.items():
+        if isinstance(cfg.get(key), dict) and not isinstance(value, dict):
+            raise HTTPException(
+                status_code=400,
+                detail=f"Key '{key}' must be an object, not {type(value).__name__}",
+            )
+
     _deep_merge(cfg, payload.data)
     write_json(cfg, paths.user_config)
     return {"status": "ok"}
@@ -164,9 +173,20 @@ async def set_limits(
 # ---------------------------------------------------------------------------
 
 
+# Keys that must never be overwritten via the config update API.
+_IMMUTABLE_KEYS = frozenset({"api_key", "master_key"})
+
+
 def _deep_merge(base: dict, updates: dict) -> None:
-    """Recursively merge *updates* into *base* in-place."""
+    """Recursively merge *updates* into *base* in-place.
+
+    Keys listed in ``_IMMUTABLE_KEYS`` are silently skipped to prevent
+    API callers from overwriting security-sensitive fields like the
+    dashboard API key.
+    """
     for key, value in updates.items():
+        if key in _IMMUTABLE_KEYS:
+            continue
         if isinstance(value, dict) and isinstance(base.get(key), dict):
             _deep_merge(base[key], value)
         else:

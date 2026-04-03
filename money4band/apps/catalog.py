@@ -149,14 +149,12 @@ def _manage_categories(app_config: dict[str, Any], app_config_path: str | None) 
         print(f"  {idx}. {cat} [{badge}] ({count} apps)")
 
     print(
-        f"\n  {Fore.CYAN}b{Style.RESET_ALL} Back  |  {Fore.CYAN}q{Style.RESET_ALL} Quit"
+        f"\n  {Fore.CYAN}b{Style.RESET_ALL} Back"
     )
     choice = input("Select: ").strip().lower()
 
     if choice in ("b", "0", ""):
         return
-    if choice == "q":
-        raise SystemExit(0)
 
     try:
         choice_num = int(choice)
@@ -208,15 +206,12 @@ def fn_app_catalog(
         print()
         print(
             f"  {Fore.CYAN}m{Style.RESET_ALL} Manage categories  |  "
-            f"{Fore.CYAN}b{Style.RESET_ALL} Back  |  "
-            f"{Fore.CYAN}q{Style.RESET_ALL} Quit"
+            f"{Fore.CYAN}b{Style.RESET_ALL} Back"
         )
         choice = input("Select: ").strip().lower()
         if choice == "m":
             _manage_categories(app_config, app_config_path)
             return True
-        if choice == "q":
-            raise SystemExit(0)
         return False  # b or anything else → back
     except Exception as e:
         logger.error(f"An error occurred in fn_app_catalog: {str(e)}")

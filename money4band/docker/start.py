@@ -13,6 +13,7 @@ import time
 from colorama import Fore, Style, just_fix_windows_console
 
 from money4band.core import loader
+from money4band.docker.env_builder import secure_delete_env
 from money4band.docker.generator import generate_container_url_list
 from money4band.docker.helper import (
     create_docker_group_if_needed,
@@ -39,25 +40,36 @@ def get_device_name_from_env(env_file: str) -> str | None:
     """
     Extract the DEVICE_NAME from an environment file.
 
+    Falls back to ``.env.meta`` when the full ``.env`` has been
+    securely deleted after compose-up.
+
     Args:
         env_file (str): Path to the .env file
 
     Returns:
         str: The DEVICE_NAME value, or None if not found
     """
-    device_name = None
-    try:
-        if os.path.isfile(env_file):
-            with open(env_file) as f:
-                for line in f:
-                    if line.startswith("DEVICE_NAME="):
-                        device_name = line.strip().split("=", 1)[1]
-                        logger.info(f"Found DEVICE_NAME in {env_file}: {device_name}")
-                        break
-    except Exception as e:
-        logger.error(f"Error reading DEVICE_NAME from {env_file}: {str(e)}")
+    candidates = [env_file]
+    meta_file = os.path.join(
+        os.path.dirname(os.path.abspath(env_file)), ".env.meta"
+    )
+    candidates.append(meta_file)
 
-    return device_name
+    for candidate in candidates:
+        try:
+            if os.path.isfile(candidate):
+                with open(candidate) as f:
+                    for line in f:
+                        if line.startswith("DEVICE_NAME="):
+                            device_name = line.strip().split("=", 1)[1]
+                            logger.info(
+                                "Found DEVICE_NAME in %s: %s", candidate, device_name
+                            )
+                            return device_name
+        except Exception as e:
+            logger.error("Error reading DEVICE_NAME from %s: %s", candidate, e)
+
+    return None
 
 
 def start_stack(
@@ -104,6 +116,19 @@ def start_stack(
     spinner_thread.start()
 
     use_sudo = not is_user_root() and platform.system().lower() == "linux"
+
+    # Pre-check: .env must exist for docker compose --env-file.
+    if not os.path.isfile(env_file):
+        event.set()
+        spinner_thread.join()
+        logger.error("Environment file %s not found. Run 'm4b generate' first.", env_file)
+        print(
+            f"{Fore.RED}Environment file not found: {env_file}\n"
+            f"Run 'm4b generate' to regenerate it.{Style.RESET_ALL}"
+        )
+        input(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
+        return False
+
     try:
         # Read COMPOSE_PROJECT_NAME from the .env file
         project_name = get_compose_project_name(env_file)
@@ -138,6 +163,9 @@ def start_stack(
 
         result = run_docker_command(command, use_sudo=use_sudo)
         if result == 0:
+            # Securely wipe the .env — credentials should not persist on disk
+            # after compose-up bakes them into running containers.
+            secure_delete_env(env_file)
             print(
                 f"{Fore.GREEN}All Apps for '{instance_name}' instance started.{Style.RESET_ALL}"
             )
@@ -252,13 +280,9 @@ def start_all_stacks(
         device_names = set()
 
         # Check main instance container names
-        main_device_name = None
-        with open(main_env_file) as f:
-            for line in f:
-                if line.startswith("DEVICE_NAME="):
-                    main_device_name = line.strip().split("=", 1)[1]
-                    device_names.add(main_device_name)
-                    break
+        main_device_name = get_device_name_from_env(main_env_file)
+        if main_device_name:
+            device_names.add(main_device_name)
 
         if main_device_name:
             print(
@@ -274,14 +298,9 @@ def start_all_stacks(
             for instance in os.listdir(instances_dir):
                 instance_dir = os.path.join(instances_dir, instance)
                 env_file = os.path.join(instance_dir, ".env")
-                if os.path.isfile(env_file):
-                    # Get device name from this instance
-                    instance_device_name = None
-                    with open(env_file) as f:
-                        for line in f:
-                            if line.startswith("DEVICE_NAME="):
-                                instance_device_name = line.strip().split("=", 1)[1]
-                                break
+                if os.path.isfile(env_file) or os.path.isfile(os.path.join(instance_dir, ".env.meta")):
+                    # Get device name from this instance (falls back to .env.meta)
+                    instance_device_name = get_device_name_from_env(env_file)
 
                     if instance_device_name:
                         if instance_device_name in device_names:

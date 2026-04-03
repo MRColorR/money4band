@@ -13,7 +13,6 @@ import yaml
 _M4B_CONFIG = {
     "project": {"project_version": "5.0.0", "compose_project_name": "money4band"},
     "system": {
-        "dns": {"mode": "default", "servers": ["1.1.1.1", "8.8.8.8"]},
         "default_docker_platform": "linux/amd64",
         "compose_mode": "monolithic",
     },
@@ -368,11 +367,13 @@ class TestStartStackMultiFile:
     @patch("money4band.docker.start.get_device_name_from_env", return_value="dev1")
     @patch("money4band.docker.start.show_spinner")
     @patch("money4band.docker.start.ask_question_yn", return_value=True)
-    def test_start_stack_list_input(self, _yn, _sp, _dev, _proj, mock_cmd):
+    def test_start_stack_list_input(self, _yn, _sp, _dev, _proj, mock_cmd, tmp_path):
         from money4band.docker.start import start_stack
 
+        env = tmp_path / ".env"
+        env.write_text("DEVICE_NAME=dev1\nCOMPOSE_PROJECT_NAME=test\n")
         files = ["compose.yml", "compose.residential.yml"]
-        result = start_stack(files, ".env", "test", skip_questions=True)
+        result = start_stack(files, str(env), "test", skip_questions=True)
         assert result is True
         cmd = mock_cmd.call_args[0][0]
         for f in files:

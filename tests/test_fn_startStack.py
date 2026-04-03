@@ -34,17 +34,36 @@ class TestGetDeviceNameFromEnv:
         env.write_text("DEVICE_NAME=name=with=equals\n")
         assert get_device_name_from_env(str(env)) == "name=with=equals"
 
+    def test_falls_back_to_env_meta(self, tmp_path: Path) -> None:
+        """When .env is deleted, get_device_name_from_env reads .env.meta instead."""
+        # .env does NOT exist, but .env.meta does
+        meta = tmp_path / ".env.meta"
+        meta.write_text("DEVICE_NAME=from_meta\nCOMPOSE_PROJECT_NAME=m4b\n")
+        assert get_device_name_from_env(str(tmp_path / ".env")) == "from_meta"
+
+    def test_prefers_env_over_meta(self, tmp_path: Path) -> None:
+        """When both .env and .env.meta exist, .env takes priority."""
+        env = tmp_path / ".env"
+        env.write_text("DEVICE_NAME=from_env\n")
+        meta = tmp_path / ".env.meta"
+        meta.write_text("DEVICE_NAME=from_meta\n")
+        assert get_device_name_from_env(str(env)) == "from_env"
+
 
 class TestStartStack:
+    """Tests for start_stack() using real .env files on disk."""
+
     @patch("money4band.docker.start._notify_event")
     @patch("money4band.docker.start.run_docker_command", return_value=0)
     @patch("money4band.docker.start.get_compose_project_name", return_value="m4b")
     @patch("money4band.docker.start.show_spinner")
     @patch("money4band.docker.start.is_user_root", return_value=True)
-    def test_successful_start(self, _root, _spin, _proj, mock_run, _notify) -> None:
+    def test_successful_start(self, _root, _spin, _proj, mock_run, _notify, tmp_path) -> None:
+        env = tmp_path / ".env"
+        env.write_text("DEVICE_NAME=test\nCOMPOSE_PROJECT_NAME=m4b\n")
         result = start_stack(
             compose_file="docker-compose.yaml",
-            env_file=".env",
+            env_file=str(env),
             instance_name="money4band",
             skip_questions=True,
         )
@@ -53,6 +72,7 @@ class TestStartStack:
         cmd = mock_run.call_args[0][0]
         assert "up" in cmd
         assert "-d" in cmd
+        assert "--env-file" in cmd
 
     @patch("money4band.docker.start._notify_event")
     @patch("money4band.docker.start.run_docker_command", return_value=1)
@@ -61,11 +81,13 @@ class TestStartStack:
     @patch("money4band.docker.start.is_user_root", return_value=True)
     @patch("builtins.input", return_value="")
     def test_failed_start_returns_false(
-        self, _inp, _root, _spin, _proj, mock_run, _notify
+        self, _inp, _root, _spin, _proj, mock_run, _notify, tmp_path
     ) -> None:
+        env = tmp_path / ".env"
+        env.write_text("DEVICE_NAME=test\n")
         result = start_stack(
             compose_file="docker-compose.yaml",
-            env_file=".env",
+            env_file=str(env),
             skip_questions=True,
         )
         assert result is False
@@ -80,6 +102,20 @@ class TestStartStack:
         )
         assert result is False
 
+    @patch("builtins.input", return_value="")
+    def test_missing_env_returns_false(self, _inp, tmp_path, capsys) -> None:
+        """When .env doesn't exist, start_stack must return False with a clear error."""
+        missing = str(tmp_path / ".env")
+        result = start_stack(
+            compose_file="docker-compose.yaml",
+            env_file=missing,
+            skip_questions=True,
+        )
+        assert result is False
+        captured = capsys.readouterr()
+        assert "Environment file not found" in captured.out
+        assert "m4b generate" in captured.out
+
     @patch("money4band.docker.start._notify_event")
     @patch(
         "money4band.docker.start.run_docker_command",
@@ -90,11 +126,13 @@ class TestStartStack:
     @patch("money4band.docker.start.is_user_root", return_value=True)
     @patch("builtins.input", return_value="")
     def test_exception_returns_false(
-        self, _inp, _root, _spin, _proj, _run, _notify
+        self, _inp, _root, _spin, _proj, _run, _notify, tmp_path
     ) -> None:
+        env = tmp_path / ".env"
+        env.write_text("DEVICE_NAME=test\n")
         result = start_stack(
             compose_file="docker-compose.yaml",
-            env_file=".env",
+            env_file=str(env),
             skip_questions=True,
         )
         assert result is False
@@ -104,10 +142,12 @@ class TestStartStack:
     @patch("money4band.docker.start.get_compose_project_name", return_value="m4b")
     @patch("money4band.docker.start.show_spinner")
     @patch("money4band.docker.start.is_user_root", return_value=True)
-    def test_multi_compose_files(self, _root, _spin, _proj, mock_run, _notify) -> None:
+    def test_multi_compose_files(self, _root, _spin, _proj, mock_run, _notify, tmp_path) -> None:
+        env = tmp_path / ".env"
+        env.write_text("DEVICE_NAME=test\n")
         result = start_stack(
             compose_file=["compose.yml", "compose.service.yml"],
-            env_file=".env",
+            env_file=str(env),
             skip_questions=True,
         )
         assert result is True
@@ -119,10 +159,12 @@ class TestStartStack:
     @patch("money4band.docker.start.get_compose_project_name", return_value="m4b")
     @patch("money4band.docker.start.show_spinner")
     @patch("money4band.docker.start.is_user_root", return_value=True)
-    def test_passes_profiles(self, _root, _spin, _proj, mock_run, _notify) -> None:
+    def test_passes_profiles(self, _root, _spin, _proj, mock_run, _notify, tmp_path) -> None:
+        env = tmp_path / ".env"
+        env.write_text("DEVICE_NAME=test\n")
         result = start_stack(
             compose_file="compose.yml",
-            env_file=".env",
+            env_file=str(env),
             skip_questions=True,
             profiles=("monitoring", "dashboard"),
         )
@@ -191,6 +233,37 @@ class TestStartAllStacks:
     def test_user_cancels(self, _inp, _ask):
         start_all_stacks(skip_questions=False)
         # Should return without error
+
+    @patch("money4band.docker.start.generate_container_url_list")
+    @patch("money4band.docker.start.start_stack", return_value=True)
+    @patch("money4band.docker.start.is_user_in_docker_group", return_value=True)
+    @patch("subprocess.run")
+    @patch("builtins.input", return_value="")
+    @patch("time.sleep")
+    def test_reads_device_name_from_env_meta(
+        self, _sleep, _inp, mock_sub_run, _group, mock_start, _dashurls, tmp_path
+    ):
+        """After .env is wiped, start_all_stacks reads DEVICE_NAME from .env.meta."""
+        mock_sub_run.return_value = MagicMock(stdout="", returncode=0)
+
+        # Main .env is missing, but .env.meta exists
+        main_meta = tmp_path / ".env.meta"
+        main_meta.write_text("DEVICE_NAME=meta_device\nCOMPOSE_PROJECT_NAME=m4b\n")
+
+        # Create an instance with only .env.meta
+        inst_dir = tmp_path / "instances" / "inst1"
+        inst_dir.mkdir(parents=True)
+        (inst_dir / ".env.meta").write_text("DEVICE_NAME=proxy_meta\n")
+        (inst_dir / "docker-compose.yaml").write_text("version: '3'\nservices: {}\n")
+
+        start_all_stacks(
+            main_compose_file="compose.yml",
+            main_env_file=str(tmp_path / ".env"),
+            instances_dir=str(tmp_path / "instances"),
+            skip_questions=True,
+        )
+        # Main stack should still be attempted
+        mock_start.assert_called()
 
 
 class TestGetContainerNamesFromEnv:

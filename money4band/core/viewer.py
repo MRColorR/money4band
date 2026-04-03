@@ -22,7 +22,14 @@ from money4band.core.loader import load_json_config
 logger = logging.getLogger(__name__)
 
 # Keys whose string values should be displayed unmasked.
-_SAFE_KEYS = frozenset({"enabled", "name", "app_name", "category"})
+_SAFE_KEYS = frozenset({
+    "enabled", "name", "app_name", "category", "docker_platform",
+    "resource_tier", "ip_policy", "manual_onboard", "install_limit",
+    "arch_support", "os_type", "detected_architecture", "detected_docker_arch",
+    "device_name", "compose_project_name", "driver", "subnet", "netmask",
+    "active_profile", "resource_profile", "setup_completed", "ports",
+    "dns_mode", "scope", "version", "type", "mode",
+})
 
 
 def _mask_value(value: str) -> str:
@@ -105,7 +112,9 @@ def edit_config(user_config_path: str) -> None:
             f"Save and close to re-encrypt.{Style.RESET_ALL}"
         )
 
-        result = subprocess.run([editor, tmp_path])  # noqa: S603
+        import shlex
+
+        result = subprocess.run(shlex.split(editor) + [tmp_path])  # noqa: S603
         if result.returncode != 0:
             print(
                 f"{Fore.RED}Editor exited with error "

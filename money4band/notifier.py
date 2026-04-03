@@ -61,6 +61,13 @@ def _send_shoutrrr(url: str, message: str) -> bool:
 
     Returns True on success, False otherwise.
     """
+    # Validate URL against known Shoutrrr service patterns.
+    from money4band.ui.notification_setup import validate_notification_url
+
+    if not validate_notification_url(url):
+        logger.warning("Refusing to send notification: URL failed validation.")
+        return False
+
     try:
         result = subprocess.run(
             [

@@ -15,8 +15,8 @@ RUN apt-get update && \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Install PyInstaller
-RUN pip install --no-cache-dir pyinstaller
+# Install uv (matches CI pipeline)
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
 # Set the working directory
 WORKDIR /app
@@ -24,12 +24,15 @@ WORKDIR /app
 # Copy project files into the container
 COPY . .
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# Install Python dependencies + PyInstaller via uv
+RUN uv sync --frozen && uv pip install pyinstaller
+
+# Update app tables in README before bundling
+RUN uv run python scripts/update_tables.py
 
 # Build the project using PyInstaller at image build time (not CMD)
 # so that failures are caught during `docker build` instead of silently at runtime.
-RUN pyinstaller --onedir \
+RUN uv run pyinstaller --onedir \
     --name Money4Band \
     main.py \
     --hidden-import colorama \
@@ -44,6 +47,15 @@ RUN pyinstaller --onedir \
     --hidden-import uvicorn \
     --hidden-import textual \
     --hidden-import money4band \
+    --hidden-import money4band.apps \
+    --hidden-import money4band.core \
+    --hidden-import money4band.docker \
+    --hidden-import money4band.network \
+    --hidden-import money4band.system \
+    --hidden-import money4band.ui \
+    --hidden-import money4band.api \
+    --hidden-import money4band.dashboard \
+    --hidden-import money4band.resources \
     --add-data "config:config" \
     --add-data "money4band:money4band" \
     --add-data "template:template" \

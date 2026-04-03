@@ -85,7 +85,6 @@ def _make_configs(tmp_path: Path) -> tuple[dict, dict, dict]:
         "system": {
             "default_docker_platform": "linux/amd64",
             "sleep_time": 0,
-            "dns": {"mode": "default"},
         },
         "project": {"project_version": "5.0.0"},
     }

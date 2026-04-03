@@ -22,11 +22,19 @@
 
 <p align="center"><b>If you like this project, leave a ⭐. It helps more than you think.</b></p>
 
-<!-- TODO: Add demo GIF/screenshot here once available
-<p align="center">
-  <img src="money4band/resources/assets/m4b-demo.gif" alt="M4B Quick Demo" width="720">
-</p>
--->
+---
+
+## Table of Contents
+
+- [What is Money4Band?](#what-is-money4band)
+- [Prerequisites](#prerequisites)
+- [Quick Start](#-quick-start)
+- [Key Features](#-key-features)
+- [Supported Apps](#-supported-apps)
+- [Tested On](#-tested-on)
+- [Documentation](#-documentation)
+- [Community & Support](#-community--support)
+- [Contributing](#-contributing)
 
 ---
 
@@ -34,11 +42,17 @@
 
 **Money4Band (M4B)** turns your unused internet bandwidth into passive income. That bandwidth is there anyway whether you're using it or not. Why not put it to work? One command. All the bandwidth-sharing apps. Each one runs in its own isolated Docker container, so your system stays clean, your setup is safer than installing each app natively, and you earn more than any single app could deliver alone.
 
-Our maintainers and community are passionate about this space. We **research** every app, **verify** its background, **track** payout history, and **monitor** real-world behavior over time. You don't have to figure out which apps are legit and which are a waste of time. That work is already done.
+Our maintainers and community **research** every app, **verify** its background, **track** payout history, and **monitor** real-world behavior over time. You don't have to figure out which apps are legit and which are a waste of time. That work is already done.
 
-We created M4B because nothing like it existed. We were the first to create and share a complete, structured, engineered, and easy-to-use open source project. If something like this had already existed, we would have joined that project. But nobody was out there, so we created it ourselves, for everyone.
+## Prerequisites
 
-Since then, others have followed. Good. That means we got it right. The original keeps moving forward, and the community behind it is open to everyone. Not just experts. Not just contributors. Everyone. [Come build with us.](https://discord.com/invite/Fq8eeazBAD)
+| Requirement | Details |
+|-------------|---------|
+| **Docker** | Docker Engine 20.10+ or Docker Desktop |
+| **OS** | Windows 10/11 (WSL2), Linux, macOS |
+| **Architecture** | amd64 or arm64 |
+| **RAM** | 1 GB minimum (2 GB+ recommended) |
+| **Python** | 3.10+ (only for "from source" installs) |
 
 ## ⚡ Quick Start
 
@@ -54,10 +68,12 @@ Since then, others have followed. Good. That means we got it right. The original
 
 ```bash
 git clone https://github.com/MRColorR/money4band.git && cd money4band
-pip install -r requirements.txt && python3 main.py
+uv sync && uv run python main.py
 ```
 
-> Requires Python 3.10+ and Docker. See the [**Full Setup Guide**](https://github.com/MRColorR/money4band/wiki) for details.
+> **No uv?** `pip install -r requirements.txt && python3 main.py` also works.
+
+> See the [**Full Setup Guide**](https://github.com/MRColorR/money4band/wiki) for details.
 
 ### What Happens Next?
 
@@ -67,28 +83,29 @@ pip install -r requirements.txt && python3 main.py
 
 ---
 
-## 🚀 Why Money4Band (Key Features)
+## 🚀 Key Features
 
-- 🧭 **CLI + Guided Setup.** Interactive wizard for beginners, `m4b` subcommands for power users.
+- 🧭 **CLI + Guided Setup.** Interactive wizard for beginners, `m4b` subcommands for power users — no Docker Compose files or manual configs needed.
 - 🔒 **Safer than running apps natively.** Every app runs in its own isolated Docker container — no host installs, no conflicts, no leftover junk.
-- 🔐 **Encrypted credentials.** All tokens, passwords, and API keys are encrypted at rest inside your config. Nothing is stored in plain text.
-- ⚡ **One command setup.** No Docker Compose files, no manual configs. Beginners get a guided wizard, power users get `m4b` subcommands.
-- 🌍 **Multi‑proxy scaling.** Multiple IPs, multiple instances, one unified configuration.
-- 🔄 **Auto‑updates.** Watchtower keeps every app image fresh without you doing anything.
+- 🔐 **Encrypted credentials.** All tokens, passwords, and API keys are encrypted at rest. Nothing is stored in plain text.
+- 🌍 **Multi-proxy scaling.** Multiple IPs, multiple instances, one unified configuration.
+- 🔄 **Auto-updates.** Watchtower keeps every app image fresh without you doing anything.
 - 📊 **Web dashboard.** All your apps, one clean interface.
-- 🧠 **Auto‑claim sidecars.** Daily rewards like Lucky Pot are claimed automatically for you.
-- 🧩 **Resource limit profiles.** Fine‑tune CPU and RAM per app with simple presets.
+- 🧠 **Auto-claim sidecars.** Daily rewards like Lucky Pot are claimed automatically for you.
+- 🧩 **Resource limit profiles.** Fine-tune CPU and RAM per app with simple presets.
 - 🛰️ **IP quality scoring.** Know your IP reputation before deploying.
 - 💾 **Backup & restore.** One command to back up or restore your encrypted config.
 - 🔔 **Webhook notifications.** Stack events pushed to Discord, Telegram, or anywhere Shoutrrr reaches.
-- 🖥️ **Cross‑platform.** Windows, Linux, macOS. amd64 and arm64.
-- 🔧 **Self‑update.** `m4b update` keeps the CLI itself up to date.
+- 🖥️ **Cross-platform.** Windows, Linux, macOS. amd64 and arm64.
+- 🔧 **Self-update.** `m4b update` keeps the CLI itself up to date.
 
 ---
 
 ## 📋 Supported Apps
 
-**35 apps** tracked. [Full details and status here.](docs/APPS.md)
+**35 apps** tracked. [Full details, earnings estimates, and registration links here.](docs/APPS.md)
+
+> App links below include referral codes that support the project at no cost to you.
 
 <!-- BEGIN:APPS_TABLE -->
 | App | Residential | VPS/DC | Payout |
@@ -148,7 +165,7 @@ pip install -r requirements.txt && python3 main.py
 
 | | |
 |---|---|
-| � [Getting Started](docs/getting-started.md) | 🏗️ [Architecture](docs/ARCHITECTURE.md) |
+| 📖 [Getting Started](docs/getting-started.md) | 🏗️ [Architecture](docs/ARCHITECTURE.md) |
 | 📋 [CLI Reference](docs/cli-reference.md) | 📦 [Package Structure](docs/package-structure.md) |
 | 📊 [Dashboard & API](docs/dashboard-api.md) | 🌍 [Proxy & Multi-Proxy](docs/proxy-setup.md) |
 | 🧩 [App Management](docs/app-management.md) | ⚙️ [Configuration](docs/configuration.md) |
@@ -162,6 +179,10 @@ pip install -r requirements.txt && python3 main.py
 - 🚀 [**Discord**](https://discord.com/invite/Fq8eeazBAD) for chat, help, and shared experiences
 - 💡 [**Discussions**](https://github.com/MRColorR/money4band/discussions) for feature requests and ideas
 - 🐛 [**Issues**](https://github.com/MRColorR/money4band/issues) for bug reports
+
+## 🤝 Contributing
+
+Contributions are welcome! Please read the [Contributing Guide](.github/CONTRIBUTING.md) and [Code of Conduct](.github/CODE_OF_CONDUCT.md) before opening a pull request.
 
 ---
 
@@ -189,10 +210,6 @@ If M4B saves you time or earns you money, consider giving back. Every bit helps 
 
 ---
 
-### ⚠️ Disclaimer
+## ⚠️ Disclaimer
 
 This project and its artifacts are provided "as is" and without warranty of any kind. The author makes no warranties, express or implied, that this script is free of errors, defects, or suitable for any particular purpose. The author shall not be retained liable for any damages suffered by any user of this script, whether direct, indirect, incidental, consequential, or special, arising from the use of or inability to use this script or its documentation, even if the author has been advised of the possibility of such damages. Always verify that the laws of your country and your ISP's terms allow these applications.
-
-### License
-
-[GPL 3.0](https://www.gnu.org/licenses/gpl-3.0.html)

@@ -252,8 +252,20 @@ def main(
                     "Create a proxies.txt file in the same folder and add proxies in the following format: protocol://user:pass@ip:port (one proxy per line)"
                 )
                 input(f"\nPress {Fore.CYAN}Enter{Style.RESET_ALL} to continue...")
-                with open("proxies.txt") as file:
-                    proxies = [line.strip() for line in file if line.strip()]
+                if not os.path.isfile("proxies.txt"):
+                    print(
+                        f"{Fore.RED}proxies.txt not found. "
+                        f"Create it with one proxy per line and re-run setup.{Style.RESET_ALL}"
+                    )
+                    logger.error("Setup aborted: proxies.txt not found.")
+                    return
+                try:
+                    with open("proxies.txt", encoding="utf-8") as file:
+                        proxies = [line.strip() for line in file if line.strip()]
+                except OSError as exc:
+                    print(f"{Fore.RED}Failed to read proxies.txt: {exc}{Style.RESET_ALL}")
+                    logger.error("Setup aborted: could not read proxies.txt: %s", exc)
+                    return
 
                 # Validate proxy URLs
                 validation = validate_proxy_list(

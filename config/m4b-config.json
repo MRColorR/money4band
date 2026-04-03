@@ -92,43 +92,43 @@
     "resource_profiles": {
         "tiers": {
             "little": {
-                "mem_reserv": 0.03,
-                "mem_limit": 0.06,
-                "cpu": 0.04
+                "mem_reserv": 0.04,
+                "mem_limit": 0.07,
+                "cpu": 0.05
             },
             "medium": {
-                "mem_reserv": 0.05,
-                "mem_limit": 0.10,
-                "cpu": 0.08
+                "mem_reserv": 0.06,
+                "mem_limit": 0.12,
+                "cpu": 0.10
             },
             "big": {
-                "mem_reserv": 0.08,
-                "mem_limit": 0.15,
-                "cpu": 0.12
+                "mem_reserv": 0.09,
+                "mem_limit": 0.17,
+                "cpu": 0.14
             },
             "huge": {
-                "mem_reserv": 0.12,
-                "mem_limit": 0.20,
-                "cpu": 0.18
+                "mem_reserv": 0.14,
+                "mem_limit": 0.22,
+                "cpu": 0.20
             }
         },
         "minimums": {
             "mem_reserv_mb": {
-                "little": 32,
-                "medium": 64,
-                "big": 96,
-                "huge": 128
+                "little": 64,
+                "medium": 80,
+                "big": 112,
+                "huge": 160
             },
             "mem_limit_mb": {
-                "little": 64,
-                "medium": 128,
+                "little": 80,
+                "medium": 144,
                 "big": 192,
-                "huge": 256
+                "huge": 288
             },
             "cpu": {
                 "little": 0.10,
-                "medium": 0.15,
-                "big": 0.25,
+                "medium": 0.20,
+                "big": 0.30,
                 "huge": 0.50
             }
         },

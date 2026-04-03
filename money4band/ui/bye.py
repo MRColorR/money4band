@@ -66,6 +66,21 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
     m4b_config_path -- the path to the m4b configuration file
     user_config_path -- the path to the user configuration file
     """
+    # Stop the background dashboard (if running) before exiting.
+    try:
+        config_dir = os.path.dirname(user_config_path)
+        from money4band.dashboard.setup import read_dashboard_pid, remove_dashboard_pid
+
+        pid = read_dashboard_pid(config_dir)
+        if pid is not None:
+            import signal
+
+            os.kill(pid, signal.SIGTERM)
+            remove_dashboard_pid(config_dir)
+            logger.info("Stopped background dashboard (PID %d) on exit", pid)
+    except Exception:  # noqa: BLE001
+        pass  # best-effort; don't block exit
+
     m4b_config = load_json_config(m4b_config_path)
     fn_bye(m4b_config)
 

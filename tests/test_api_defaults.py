@@ -29,13 +29,11 @@ def _flat_config(tmp_path):
         "project": {"project_version": "5.0.0"},
         "system": {"sleep_time": 1},
         "resource_profiles": {
-            "active": "standard",
             "profiles": {
                 "conservative": {"cpu_pct": 0.40, "ram_pct": 0.25, "description": "Conservative"},
                 "standard": {"cpu_pct": 0.60, "ram_pct": 0.40, "description": "Standard"},
             },
         },
-        "dns": {"mode": "default", "servers": []},
     }
     (config_dir / "m4b-config.json").write_text(json.dumps(m4b))
 
@@ -119,8 +117,7 @@ def _empty_config(tmp_path):
     m4b = {
         "project": {"project_version": "5.0.0"},
         "system": {"sleep_time": 1},
-        "resource_profiles": {"active": "standard", "profiles": {}},
-        "dns": {"mode": "default", "servers": []},
+        "resource_profiles": {"profiles": {}},
     }
     (config_dir / "m4b-config.json").write_text(json.dumps(m4b))
     (config_dir / "app-config.json").write_text(json.dumps({"app_config_version": 1.2}))

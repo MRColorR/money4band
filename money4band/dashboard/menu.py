@@ -284,7 +284,6 @@ _MENU_ITEMS = [
     ("Dashboard + API status", "status"),
     ("Show API key", "show_key"),
     ("Regenerate API key", "regen_key"),
-    ("Back", "back"),
 ]
 
 
@@ -327,8 +326,6 @@ def _dashboard_menu(config_dir: str, port: int) -> None:
 
         action = _MENU_ITEMS[idx][1]
 
-        if action == "back":
-            return
         if action == "foreground":
             _action_start_foreground(config_dir, port)
             input("\nPress Enter to go back...")

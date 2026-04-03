@@ -28,6 +28,14 @@ class TestGetDeviceNameFromEnv:
         result = get_device_name_from_env(str(env))
         assert result is None or result == ""
 
+    def test_falls_back_to_env_meta(self, tmp_path: Path) -> None:
+        """When .env is wiped, device name is read from .env.meta."""
+        from money4band.docker.start import get_device_name_from_env
+
+        meta = tmp_path / ".env.meta"
+        meta.write_text("DEVICE_NAME=meta_box\n")
+        assert get_device_name_from_env(str(tmp_path / ".env")) == "meta_box"
+
 
 class TestExtractAppNamesFromCompose:
     def test_extracts_services(self, tmp_path: Path) -> None:
@@ -135,6 +143,15 @@ class TestStartStack:
         env = tmp_path / ".env"
         env.write_text("COMPOSE_PROJECT_NAME=test\n")
         result = start_stack(str(compose), str(env), "test", skip_questions=True)
+        assert result is False
+
+    @patch("builtins.input", return_value="")
+    def test_missing_env_returns_false(self, _input, tmp_path: Path) -> None:
+        """start_stack must fail gracefully when the .env file doesn't exist."""
+        from money4band.docker.start import start_stack
+
+        missing_env = str(tmp_path / ".env")
+        result = start_stack("docker-compose.yaml", missing_env, "test", skip_questions=True)
         assert result is False
 
 

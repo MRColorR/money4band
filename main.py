@@ -139,8 +139,25 @@ def _encrypt_on_exit() -> None:
             pass  # Best-effort during shutdown
 
 
+def _stop_dashboard_best_effort() -> None:
+    """Best-effort stop the background dashboard using its PID file."""
+    try:
+        from money4band.dashboard.setup import read_dashboard_pid, remove_dashboard_pid
+
+        for path in _encrypt_on_exit_paths:
+            config_dir = os.path.dirname(path)
+            pid = read_dashboard_pid(config_dir)
+            if pid is not None:
+                os.kill(pid, signal.SIGTERM)
+                remove_dashboard_pid(config_dir)
+                break
+    except Exception:  # noqa: BLE001
+        pass  # best-effort; don't block exit
+
+
 def _sigterm_handler(signum: int, frame: object) -> None:
-    """Handle SIGTERM by encrypting configs before exit."""
+    """Handle SIGTERM by stopping dashboard and encrypting configs before exit."""
+    _stop_dashboard_best_effort()
     _encrypt_on_exit()
     sys.exit(128 + signum)
 
@@ -332,6 +349,16 @@ def mainmenu(
                     f"{Fore.YELLOW}Invalid selection. Choose 1\u2013{len(menu_options)} or a shortcut.{Style.RESET_ALL}"
                 )
                 time.sleep(sleep_time)
+        except KeyboardInterrupt:
+            print(f"\n{Fore.YELLOW}Interrupted.{Style.RESET_ALL}")
+            # Graceful shutdown — stop dashboard & exit cleanly.
+            try:
+                menu_dispatch["fn_bye"](
+                    apps_config_path, m4b_config_path, user_config_path
+                )
+            except SystemExit:
+                pass
+            return
         except Exception as e:
             logger.error(f"An error occurred while processing the menu: {str(e)}")
             raise
@@ -1405,7 +1432,10 @@ def _handle_dashboard_auto_start(args: argparse.Namespace) -> None:
 
 
 def main() -> None:
-    locale.setlocale(locale.LC_ALL, "C")
+    try:
+        locale.setlocale(locale.LC_ALL, "C")
+    except locale.Error:
+        pass
     parser = _build_parser()
     args = parser.parse_args()
 

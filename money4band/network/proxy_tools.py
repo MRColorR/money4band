@@ -291,14 +291,7 @@ def submenu_multiproxy_tools(
             "label": f"Toggle Install-Limit Enforcement [{status}]",
             "function": "toggle_install_limits",
         },
-        {"label": "Exit", "function": "exit_submenu"},
     ]
-
-
-def exit_submenu(*args: Any, **kwargs: Any) -> bool:
-    print("Exiting Multiproxy Tools.")
-    logger.info("User exited the Multiproxy Tools menu.")
-    return False
 
 
 def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> None:
@@ -328,15 +321,13 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
         for i, option in enumerate(menu_options, start=1):
             print(f"{i}. {option['label']}")
         print(
-            f"\n  {Fore.CYAN}b{Style.RESET_ALL} Back  |  {Fore.CYAN}q{Style.RESET_ALL} Quit"
+            f"\n  {Fore.CYAN}b{Style.RESET_ALL} Back"
         )
 
         choice = input("Select: ").strip().lower()
 
         if choice == "b":
             break
-        if choice == "q":
-            raise SystemExit(0)
 
         try:
             choice = int(choice)
@@ -351,11 +342,7 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
             selected_option = menu_options[choice - 1]
             logger.info(f"User selected menu option: {selected_option['label']}")
 
-            if selected_option["function"] == "exit_submenu":
-                if not exit_submenu():
-                    break
-            else:
-                globals()[selected_option["function"]](
+            globals()[selected_option["function"]](
                     app_config_path=app_config_path,
                     m4b_config_path=m4b_config_path,
                     user_config_path=user_config_path,

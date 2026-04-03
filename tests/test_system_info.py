@@ -15,8 +15,6 @@ _M4B_CONFIG = {
     "project": {"project_version": "5.0.0"},
     "system": {
         "dns": {
-            "mode": "default",
-            "servers": ["1.1.1.1", "8.8.8.8"],
             "available_modes": [
                 "default", "cloudflare", "cloudflare-security",
                 "google", "quad9", "quad9-unfiltered",
@@ -39,7 +37,6 @@ _M4B_CONFIG = {
         "os_map": {"linux": "Linux"},
     },
     "resource_profiles": {
-        "active": "standard",
         "profiles": {
             "standard": {"description": "Standard", "cpu_pct": 0.60, "ram_pct": 0.40},
         },
@@ -687,14 +684,3 @@ class TestSystemInfoMain:
             main("app.json", "m4b.json", "user.json")
         # Should only display once then exit
         mock_show.assert_called_once()
-
-    @patch("money4band.system.info.show_system_info")
-    @patch("money4band.system.info.load_json_config")
-    @patch("money4band.system.info.cls")
-    def test_q_choice_exits(self, _cls, mock_load, mock_show):
-        """Selecting 'q' should raise SystemExit."""
-        from money4band.system.info import main
-
-        mock_load.return_value = copy.deepcopy(_M4B_CONFIG)
-        with patch("builtins.input", return_value="q"), pytest.raises(SystemExit):
-            main("app.json", "m4b.json", "user.json")

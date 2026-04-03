@@ -92,7 +92,6 @@ class TestResourceProfiles(unittest.TestCase):
 
     _M4B_CFG = {
         "resource_profiles": {
-            "active": "standard",
             "tiers": {
                 "little":  {"mem_reserv": 0.03, "mem_limit": 0.06, "cpu": 0.04},
                 "medium":  {"mem_reserv": 0.05, "mem_limit": 0.10, "cpu": 0.08},
@@ -187,7 +186,6 @@ class TestResourceProfiles(unittest.TestCase):
         """Minimal profile on a 2 GB / 2-core system should hit absolute minimums for lower tiers."""
         cfg = {
             "resource_profiles": {
-                "active": "minimal",
                 "tiers": self._M4B_CFG["resource_profiles"]["tiers"],
                 "minimums": self._M4B_CFG["resource_profiles"]["minimums"],
                 "profiles": self._M4B_CFG["resource_profiles"]["profiles"],
@@ -212,7 +210,6 @@ class TestResourceProfiles(unittest.TestCase):
         """Performance profile on a 16 GB / 8-core system."""
         cfg = {
             "resource_profiles": {
-                "active": "performance",
                 "tiers": self._M4B_CFG["resource_profiles"]["tiers"],
                 "minimums": self._M4B_CFG["resource_profiles"]["minimums"],
                 "profiles": self._M4B_CFG["resource_profiles"]["profiles"],

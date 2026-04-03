@@ -20,6 +20,9 @@ def get_compose_project_name(env_file: str) -> str | None:
     """
     Extract the COMPOSE_PROJECT_NAME from an environment file.
 
+    Falls back to ``.env.meta`` (non-sensitive metadata) when the full
+    ``.env`` has been securely deleted after compose-up.
+
     Args:
         env_file (str): Path to the .env file (or a compose file path,
                         which is automatically converted to the .env path).
@@ -30,21 +33,27 @@ def get_compose_project_name(env_file: str) -> str | None:
     # Handle if compose file was passed instead of .env
     env_file = os.path.join(os.path.dirname(env_file), ".env") if not env_file.endswith(".env") else env_file
 
+    # Try .env first, then fall back to .env.meta (persists after secure delete).
+    candidates = [env_file]
+    meta_file = os.path.join(os.path.dirname(os.path.abspath(env_file)), ".env.meta")
+    candidates.append(meta_file)
+
     project_name = None
-    try:
-        if os.path.isfile(env_file):
-            with open(env_file) as f:
-                for line in f:
-                    if line.startswith("COMPOSE_PROJECT_NAME="):
-                        project_name = line.strip().split("=", 1)[1]
-                        logger.info(
-                            "Found COMPOSE_PROJECT_NAME in %s: %s",
-                            env_file,
-                            project_name,
-                        )
-                        break
-    except Exception as e:
-        logger.error("Error reading COMPOSE_PROJECT_NAME from %s: %s", env_file, e)
+    for candidate in candidates:
+        try:
+            if os.path.isfile(candidate):
+                with open(candidate) as f:
+                    for line in f:
+                        if line.startswith("COMPOSE_PROJECT_NAME="):
+                            project_name = line.strip().split("=", 1)[1]
+                            logger.info(
+                                "Found COMPOSE_PROJECT_NAME in %s: %s",
+                                candidate,
+                                project_name,
+                            )
+                            return project_name
+        except Exception as e:
+            logger.error("Error reading COMPOSE_PROJECT_NAME from %s: %s", candidate, e)
 
     return project_name
 

@@ -47,7 +47,6 @@ def tmp_config(tmp_path):
             },
         },
         "resource_profiles": {
-            "active": "standard",
             "profiles": {
                 "conservative": {"cpu_pct": 0.40, "ram_pct": 0.25, "description": "Conservative"},
                 "standard": {"cpu_pct": 0.60, "ram_pct": 0.40, "description": "Standard"},
@@ -140,6 +139,7 @@ def tmp_config(tmp_path):
         },
         "notifications": {"enabled": False, "url": ""},
         "proxies": {"enabled": False},
+        "m4b_dashboard": {"enabled": True, "api_key": "original-secret-key", "port": 8088},
     }
     (config_dir / "user-config.json").write_text(json.dumps(user_cfg))
 
@@ -152,9 +152,12 @@ def tmp_config(tmp_path):
     return tmp_path
 
 
+_TEST_API_KEY = "original-secret-key"
+
+
 @pytest.fixture
 def client(tmp_config):
-    return TestClient(app)
+    return TestClient(app, headers={"Authorization": f"Bearer {_TEST_API_KEY}"})
 
 
 # ===========================================================================
@@ -270,6 +273,31 @@ class TestConfigRouter:
         )
         assert resp.status_code == 400
         assert "Unknown config keys" in resp.json()["detail"]
+
+    def test_update_cannot_overwrite_api_key(self, client, tmp_config):
+        """The api_key inside m4b_dashboard must be immutable via the config API."""
+        resp = client.put(
+            "/api/config/user",
+            json={"data": {"m4b_dashboard": {"api_key": "attacker-key"}}},
+        )
+        assert resp.status_code == 200
+        # Verify the api_key was NOT changed on disk
+        cfg_path = tmp_config / "config" / "user-config.json"
+        updated = json.loads(cfg_path.read_text())
+        assert updated["m4b_dashboard"]["api_key"] == "original-secret-key"
+
+    def test_update_allows_non_immutable_dashboard_keys(self, client, tmp_config):
+        """Other m4b_dashboard fields (e.g. port) should still be updatable."""
+        resp = client.put(
+            "/api/config/user",
+            json={"data": {"m4b_dashboard": {"port": 9090}}},
+        )
+        assert resp.status_code == 200
+        cfg_path = tmp_config / "config" / "user-config.json"
+        updated = json.loads(cfg_path.read_text())
+        assert updated["m4b_dashboard"]["port"] == 9090
+        # api_key still untouched
+        assert updated["m4b_dashboard"]["api_key"] == "original-secret-key"
 
     def test_reset_config(self, client, tmp_config):
         resp = client.post("/api/config/reset")

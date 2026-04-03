@@ -44,11 +44,19 @@ def validate_notification_url(url: str) -> bool:
     Returns:
         bool: True if the URL is valid, False otherwise.
     """
+    # Mask credentials in the URL for safe logging.
+    from urllib.parse import urlparse
+    try:
+        _parsed = urlparse(url)
+        _safe_url = f"{_parsed.scheme}://{_parsed.hostname or '?'}..."
+    except Exception:
+        _safe_url = "<unparseable>"
+
     for service, pattern in SUPPORTED_NOTIFICATION_SERVICES.items():
         if re.match(pattern, url):
-            logger.info(f"Given URL {url} matches notification service {service}")
+            logger.info("URL matches notification service %s (%s)", service, _safe_url)
             return True
-    logger.error(f"Given URL {url} does not match any supported notification service")
+    logger.error("URL does not match any supported notification service (%s)", _safe_url)
     return False
 
 

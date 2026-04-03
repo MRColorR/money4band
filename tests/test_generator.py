@@ -39,7 +39,7 @@ _M4B_CFG = {
     "project": {"project_version": "test"},
     "network": {"subnet": "172.19.0.0", "netmask": "24"},
     "system": {"default_docker_platform": "linux/amd64"},
-    "watchtower": {"enable_labels": True, "scope": "money4band"},
+    "watchtower": {"scope": "money4band"},
 }
 
 _APP_CFG = {"supported-apps": {"active": True, "entries": []}}

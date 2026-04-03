@@ -90,3 +90,30 @@ class TestSetupNotifications:
         setup_notifications(cfg)
         assert cfg["notifications"].get("enabled") is not True
         assert "url" not in cfg["notifications"]
+
+
+class TestUrlMaskingInLogs:
+    """Validate that credential-bearing URLs are masked in log output."""
+
+    def test_valid_url_logs_masked(self, caplog) -> None:
+        """A matching URL should log only scheme://hostname, not credentials."""
+        import logging
+
+        with caplog.at_level(logging.INFO, logger="money4band.ui.notification_setup"):
+            validate_notification_url("discord://secret-token@webhook123")
+
+        # The raw credentials must NOT appear in the log
+        for record in caplog.records:
+            assert "secret-token" not in record.message
+            assert "webhook123" not in record.message or "discord://" in record.message
+
+    def test_invalid_url_logs_masked(self, caplog) -> None:
+        """Even invalid URLs with credentials must not leak them in logs."""
+        import logging
+
+        with caplog.at_level(logging.ERROR, logger="money4band.ui.notification_setup"):
+            validate_notification_url("smtp://user:p%40ssword@mail.example.com:587")
+
+        for record in caplog.records:
+            assert "p%40ssword" not in record.message
+            assert "user:" not in record.message

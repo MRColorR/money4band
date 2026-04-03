@@ -42,7 +42,7 @@ def get_session() -> requests.Session:
         total=MAX_RETRIES,
         backoff_factor=BACKOFF_FACTOR,
         status_forcelist=list(_STATUS_FORCELIST),
-        allowed_methods=["GET"],
+        allowed_methods=["GET", "POST"],
     )
     adapter = HTTPAdapter(max_retries=retry_strategy)
     session.mount("https://", adapter)

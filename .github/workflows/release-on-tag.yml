@@ -104,6 +104,7 @@ jobs:
             --hidden-import money4band.ui \
             --hidden-import money4band.api \
             --hidden-import money4band.dashboard \
+            --hidden-import money4band.resources \
             --add-data "config${SEP}config" \
             --add-data "money4band${SEP}money4band" \
             --add-data "template${SEP}template" \

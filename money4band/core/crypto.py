@@ -4,6 +4,7 @@ import json
 import logging
 import os
 import stat
+import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -87,7 +88,7 @@ def decrypt_to_dict(content: str) -> dict[str, Any]:
 
 
 def encrypt_file(filepath: str) -> None:
-    """Encrypt a plaintext JSON config file in-place."""
+    """Encrypt a plaintext JSON config file in-place (atomic)."""
     if is_file_encrypted(filepath):
         logger.debug("%s is already encrypted, skipping", filepath)
         return
@@ -97,12 +98,11 @@ def encrypt_file(filepath: str) -> None:
         data = json.load(f)
 
     encrypted_content = encrypt_dict(data)
-    with open(filepath, "w") as f:
-        f.write(encrypted_content)
+    _atomic_write(filepath, encrypted_content)
 
 
 def decrypt_file(filepath: str) -> None:
-    """Decrypt an encrypted config file back to plaintext JSON (for export)."""
+    """Decrypt an encrypted config file back to plaintext JSON (atomic)."""
     if not is_file_encrypted(filepath):
         logger.debug("%s is not encrypted, skipping", filepath)
         return
@@ -112,8 +112,23 @@ def decrypt_file(filepath: str) -> None:
         content = f.read()
 
     data = decrypt_to_dict(content)
-    with open(filepath, "w") as f:
-        json.dump(data, f, indent=4)
+    _atomic_write(filepath, json.dumps(data, indent=4))
+
+
+def _atomic_write(filepath: str, content: str) -> None:
+    """Write *content* to *filepath* atomically via temp file + os.replace()."""
+    dir_name = os.path.dirname(os.path.abspath(filepath))
+    fd, tmp_path = tempfile.mkstemp(dir=dir_name, suffix=".tmp")
+    try:
+        with os.fdopen(fd, "w") as tmp_file:
+            tmp_file.write(content)
+        os.replace(tmp_path, filepath)
+    except BaseException:
+        try:
+            os.unlink(tmp_path)
+        except OSError:
+            pass
+        raise
 
 
 def ensure_config_encrypted(filepath: str) -> None:
