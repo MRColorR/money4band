@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass, field
+from typing import Any
 
 from money4band.core.loader import load_json_config
 
@@ -145,3 +146,104 @@ def iter_all_apps(
         for cat_name, cat_data in categories.items()
         for app in cat_data.get("entries", [])
     ]
+
+
+# ---------------------------------------------------------------------------
+# Provenance helpers (phase-8.2)
+# ---------------------------------------------------------------------------
+#
+# ``source`` describes *where* a catalog entry came from:
+#   * ``builtin``   — shipped inside ``config/app-config.json``.
+#   * ``community`` — user overlay from ``config/apps.d/*.json``.
+#   * ``remote``    — fetched from a remote catalog (phase-8.5).
+#   * ``local``     — user-local override (phase-8.4+).
+#
+# Until the pluggable ``CatalogSource`` interface lands in phase-8.4, every
+# entry loaded through the legacy ``iter_all_apps`` path is ``builtin``.
+# The resolver below is the single seam where future sources will hook in.
+
+
+def resolve_source(entry: dict) -> str:
+    """Return the catalog source for a single app entry."""
+    explicit = entry.get("_source")
+    if isinstance(explicit, str) and explicit:
+        return explicit
+    return "builtin"
+
+
+def is_managed_by_m4b(category: str, source: str) -> bool:
+    """Return True when M4B ships + maintains this entry.
+
+    Only ``supported`` entries from the ``builtin`` catalog are considered
+    fully managed. Newcomers, deprecated, and overlay entries are not.
+    """
+    return category == "supported" and source == "builtin"
+
+
+def get_picked_referrals() -> dict[str, str]:
+    """Return the ``settings.picked_referrals`` map from user-config.
+
+    Returns an empty dict when the section is absent so callers can treat
+    "no sticky pick" uniformly.
+    """
+    user = load_user_config()
+    settings = user.get("settings") if isinstance(user, dict) else None
+    if not isinstance(settings, dict):
+        return {}
+    picked = settings.get("picked_referrals")
+    if not isinstance(picked, dict):
+        return {}
+    return {str(k): str(v) for k, v in picked.items() if isinstance(v, str)}
+
+
+def pick_referral_url(
+    app_name: str, referrals: list[dict], picked: dict[str, str]
+) -> str:
+    """Resolve the effective referral URL for an app.
+
+    Preference order:
+      1. ``settings.picked_referrals[<app_name lowercase>]`` when set.
+      2. First valid URL in the referrals pool.
+      3. Empty string.
+    """
+    key = app_name.lower()
+    sticky = picked.get(key) or picked.get(app_name)
+    if isinstance(sticky, str) and sticky.strip():
+        return sticky.strip()
+    for ref in referrals:
+        if isinstance(ref, dict):
+            url = ref.get("url")
+            if isinstance(url, str) and url.strip():
+                return url.strip()
+    return ""
+
+
+def normalize_referrals(raw: Any) -> list[dict]:
+    """Return the referrals pool as a list of plain dicts.
+
+    Unknown/malformed entries are dropped silently — the API contract
+    only promises well-formed referrals.
+    """
+    if not isinstance(raw, list):
+        return []
+    out: list[dict] = []
+    for item in raw:
+        if not isinstance(item, dict):
+            continue
+        url = item.get("url")
+        if not isinstance(url, str) or not url.strip():
+            continue
+        out.append(
+            {
+                "url": url.strip(),
+                "contributor": str(item.get("contributor") or "MRColorR"),
+                "added": item["added"] if isinstance(item.get("added"), str) else None,
+                "verified": bool(item.get("verified", False)),
+                "verified_by": [
+                    str(v)
+                    for v in (item.get("verified_by") or [])
+                    if isinstance(v, str)
+                ],
+            }
+        )
+    return out

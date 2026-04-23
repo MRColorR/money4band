@@ -12,8 +12,13 @@ from money4band.api._deps import (
     ConfigPaths,
     get_app_categories,
     get_paths,
+    get_picked_referrals,
+    is_managed_by_m4b,
     iter_all_apps,
     load_app_config,
+    normalize_referrals,
+    pick_referral_url,
+    resolve_source,
 )
 from money4band.api.schemas import AppSummary, CategorySummary, CategoryToggle
 
@@ -67,14 +72,18 @@ async def list_apps(
 ) -> list[dict[str, Any]]:
     """Return a compact listing of all apps, optionally filtered by category."""
     results: list[dict[str, Any]] = []
+    picked = get_picked_referrals()
 
     for cat_name, cat_data, app in iter_all_apps():
         if category and cat_name != category:
             continue
         details = app.get("app_details", {})
+        source = resolve_source(app)
+        referrals = normalize_referrals(app.get("referrals"))
+        name = app.get("name", "")
         results.append(
             {
-                "name": app.get("name", ""),
+                "name": name,
                 "category": cat_name,
                 "active": cat_data.get("active", False),
                 "image": _extract_image(app),
@@ -83,6 +92,10 @@ async def list_apps(
                 "compose_layer": app.get("compose_layer", ""),
                 "status": details.get("status", ""),
                 "dashboard_url": app.get("dashboard", ""),
+                "source": source,
+                "managed_by_m4b": is_managed_by_m4b(cat_name, source),
+                "referrals": referrals,
+                "picked_referral_url": pick_referral_url(name, referrals, picked),
             }
         )
     return results
@@ -132,9 +145,21 @@ async def get_app_detail(
 ) -> dict[str, Any]:
     """Return full detail for a single app (case-insensitive match)."""
     lower = app_name.lower()
+    picked = get_picked_referrals()
 
     for cat_name, _cat_data, app in iter_all_apps():
         if app.get("name", "").lower() == lower:
-            return {**app, "category": cat_name}
+            source = resolve_source(app)
+            referrals = normalize_referrals(app.get("referrals"))
+            return {
+                **app,
+                "category": cat_name,
+                "source": source,
+                "managed_by_m4b": is_managed_by_m4b(cat_name, source),
+                "referrals": referrals,
+                "picked_referral_url": pick_referral_url(
+                    app.get("name", ""), referrals, picked
+                ),
+            }
 
     raise HTTPException(status_code=404, detail=f"App '{app_name}' not found")

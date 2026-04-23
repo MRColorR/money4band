@@ -47,7 +47,8 @@ window.onload = () => {
             const inviteLink = document.createElement('a');
             inviteLink.className = `u-active-none u-border-none u-btn u-button-link u-button-style u-hover-none u-none u-text-palette-1-base u-btn-${index+2}`;
             const primaryReferral = Array.isArray(app.referrals) && app.referrals.length > 0 ? app.referrals[0] : null;
-            const referralUrl = primaryReferral && typeof primaryReferral.url === 'string' ? primaryReferral.url : '';
+            const pickedUrl = typeof app.picked_referral_url === 'string' ? app.picked_referral_url : '';
+            const referralUrl = pickedUrl || (primaryReferral && typeof primaryReferral.url === 'string' ? primaryReferral.url : '');
             inviteLink.href = (referralUrl && referralUrl.startsWith('http')) ? referralUrl : '#';
             inviteLink.target = '_blank';
             inviteLink.textContent = 'Invite friends';
