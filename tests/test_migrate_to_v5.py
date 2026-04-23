@@ -60,7 +60,7 @@ def sample_flag_map() -> dict[str, list[str]]:
 @pytest.fixture()
 def sample_app_config() -> dict:
     return {
-        "supported-apps": {
+        "supported": {
             "active": True,
             "entries": [
                 {"name": "EARNAPP", "flags": {"uuid": "sdk-node-..."}},
@@ -75,7 +75,7 @@ def sample_app_config() -> dict:
                 {"name": "PACKETSTREAM", "flags": {"cid": "..."}},
             ],
         },
-        "deprecated-apps": {
+        "deprecated": {
             "active": False,
             "entries": [
                 {"name": "WIPTER", "flags": {"email": "...", "password": "..."}},
@@ -363,7 +363,7 @@ class TestMigrate:
         # app-config
         (root / "config").mkdir()
         app_config = {
-            "supported-apps": {
+            "supported": {
                 "active": True,
                 "entries": [
                     {"name": "EARNAPP", "flags": {"uuid": "..."}},

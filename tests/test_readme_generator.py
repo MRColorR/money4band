@@ -28,12 +28,14 @@ from money4band.readme_generator import (
 
 _SAMPLE_CONFIG: dict[str, Any] = {
     "app_config_version": 1.2,
-    "supported-apps": {
+    "supported": {
         "active": True,
         "entries": [
             {
                 "name": "TESTAPP",
-                "link": "https://example.com/ref/123",
+                "referrals": [
+                    {"url": "https://example.com/ref/123", "contributor": "MRColorR"}
+                ],
                 "app_details": {
                     "official_name": "TestApp",
                     "status": "active",
@@ -50,7 +52,12 @@ _SAMPLE_CONFIG: dict[str, Any] = {
             },
             {
                 "name": "UNSTABLEAPP",
-                "link": "https://example.com/signup?code=ABC123",
+                "referrals": [
+                    {
+                        "url": "https://example.com/signup?code=ABC123",
+                        "contributor": "MRColorR",
+                    }
+                ],
                 "app_details": {
                     "official_name": "UnstableApp",
                     "status": "unstable",
@@ -67,13 +74,15 @@ _SAMPLE_CONFIG: dict[str, Any] = {
             },
         ],
     },
-    "deprecated-apps": {
+    "deprecated": {
         "active": False,
         "entries": [
             {
                 "name": "OLDAPP",
-                "link": "https://old.example.com",
-                "removal_reason": "Service discontinued",
+                "referrals": [
+                    {"url": "https://old.example.com", "contributor": "MRColorR"}
+                ],
+                "additional_details": "Service discontinued",
                 "app_details": {
                     "official_name": "OldApp",
                     "status": "deprecated",
@@ -90,12 +99,14 @@ _SAMPLE_CONFIG: dict[str, Any] = {
             },
         ],
     },
-    "candidate-apps": {
+    "newcomers": {
         "active": False,
         "entries": [
             {
                 "name": "NEWAPP",
-                "link": "https://new.example.com",
+                "referrals": [
+                    {"url": "https://new.example.com", "contributor": "MRColorR"}
+                ],
                 "app_details": {
                     "official_name": "NewApp",
                     "status": "active",
@@ -141,19 +152,16 @@ class TestBoolMd:
 
 class TestEffectiveStatus:
     def test_active(self) -> None:
-        assert _effective_status("supported-apps", {"status": "active"}) == "active"
+        assert _effective_status("supported", {"status": "active"}) == "active"
 
     def test_unstable(self) -> None:
-        assert _effective_status("supported-apps", {"status": "unstable"}) == "unstable"
+        assert _effective_status("supported", {"status": "unstable"}) == "unstable"
 
     def test_deprecated(self) -> None:
-        assert (
-            _effective_status("deprecated-apps", {"status": "deprecated"})
-            == "deprecated"
-        )
+        assert _effective_status("deprecated", {"status": "deprecated"}) == "deprecated"
 
     def test_candidate(self) -> None:
-        assert _effective_status("candidate-apps", {"status": "active"}) == "candidate"
+        assert _effective_status("newcomers", {"status": "active"}) == "candidate"
 
 
 # ---------------------------------------------------------------------------
@@ -245,7 +253,7 @@ class TestCollectApps:
 
     def test_candidate_status(self) -> None:
         apps = _collect_apps(_SAMPLE_CONFIG)
-        candidate = [a for a in apps if a["category"] == "candidate-apps"][0]
+        candidate = [a for a in apps if a["category"] == "newcomers"][0]
         assert candidate["status"] == "candidate"
 
 

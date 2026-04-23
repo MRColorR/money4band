@@ -96,9 +96,7 @@ def generate_setup_summary(
     # --- Resource estimate ---
     lines.append("")
     lines.append("Estimated Resource Usage")
-    lines.append(
-        f"  Active containers: ~{len(enabled_apps) + 1}"
-    )
+    lines.append(f"  Active containers: ~{len(enabled_apps) + 1}")
     lines.append("  (watchtower + one per enabled app)")
 
     lines.append("")

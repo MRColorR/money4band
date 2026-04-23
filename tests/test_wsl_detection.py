@@ -212,7 +212,9 @@ class TestDetectWSLEnvironment(unittest.TestCase):
         self.assertEqual(result["networking_mode"], "not_set")
         self.assertIsNone(result["distro"])
 
-    @patch("money4band.system.detector.get_wsl_networking_mode", return_value="mirrored")
+    @patch(
+        "money4band.system.detector.get_wsl_networking_mode", return_value="mirrored"
+    )
     @patch("money4band.system.detector.get_wsl_version", return_value="2.4.4.0")
     @patch("money4band.system.detector.is_running_in_wsl", return_value=True)
     @patch.dict(os.environ, {"WSL_DISTRO_NAME": "Ubuntu-24.04"})

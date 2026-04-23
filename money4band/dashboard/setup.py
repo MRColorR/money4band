@@ -201,7 +201,9 @@ def _is_pid_alive(pid: int) -> bool:
         import ctypes
 
         kernel32 = ctypes.windll.kernel32  # type: ignore[attr-defined]
-        handle = kernel32.OpenProcess(0x1000, False, pid)  # PROCESS_QUERY_LIMITED_INFORMATION
+        handle = kernel32.OpenProcess(
+            0x1000, False, pid
+        )  # PROCESS_QUERY_LIMITED_INFORMATION
         if handle:
             kernel32.CloseHandle(handle)
             return True
@@ -431,4 +433,3 @@ def auto_start_dashboard(config_dir: str, base_dir: str) -> None:
             f"may still be starting.{Style.RESET_ALL}"
         )
     logger.info("Dashboard + API auto-started (PID %d, port %d).", pid, port)
-

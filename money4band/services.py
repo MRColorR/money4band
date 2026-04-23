@@ -280,13 +280,19 @@ def get_app_catalog_rich(app_config: dict[str, Any]) -> list[dict[str, Any]]:
         apps = []
         for e in entries:
             earnings = e.get("app_details", {}).get("earnings", {})
+            referrals = e.get("referrals") or []
+            primary_link = (
+                referrals[0].get("url", "")
+                if referrals and isinstance(referrals[0], dict)
+                else ""
+            )
             apps.append(
                 {
                     "name": e.get("name", "?"),
-                    "link": e.get("link", ""),
+                    "link": primary_link,
                     "layer": e.get("compose_layer", "-"),
                     "payout": earnings.get("min_payout", "-"),
-                    "reason": e.get("removal_reason", ""),
+                    "reason": e.get("additional_details", ""),
                 }
             )
         result.append(
@@ -302,7 +308,7 @@ def get_app_catalog_rich(app_config: dict[str, Any]) -> list[dict[str, Any]]:
 def get_app_catalog(app_config: dict[str, Any]) -> dict[str, list[dict[str, Any]]]:
     """Return apps grouped by category (legacy compat)."""
     result: dict[str, list[dict[str, Any]]] = {}
-    for category_key in ("supported-apps", "deprecated-apps", "candidate-apps"):
+    for category_key in ("supported", "deprecated", "newcomers"):
         cat = app_config.get(category_key, {})
         entries = cat.get("entries", [])
         result[category_key] = entries

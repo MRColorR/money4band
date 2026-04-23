@@ -38,7 +38,7 @@ class TestParseEarningsRange:
 class TestGetAppEarnings:
     def _config(self, earnings=None):
         return {
-            "supported-apps": {
+            "supported": {
                 "active": True,
                 "entries": [
                     {
@@ -76,7 +76,7 @@ class TestGetAppEarnings:
 
     def test_skips_inactive_categories(self):
         cfg = {
-            "supported-apps": {
+            "supported": {
                 "active": True,
                 "entries": [
                     {
@@ -87,7 +87,7 @@ class TestGetAppEarnings:
                     }
                 ],
             },
-            "deprecated-apps": {
+            "deprecated": {
                 "active": False,
                 "entries": [
                     {
@@ -107,7 +107,7 @@ class TestGetAppEarnings:
 class TestDisplayEarningsSummary:
     def test_prints_without_error(self, capsys):
         cfg = {
-            "supported-apps": {
+            "supported": {
                 "active": True,
                 "entries": [
                     {
@@ -130,6 +130,6 @@ class TestDisplayEarningsSummary:
         assert "TOTAL" in out
 
     def test_no_active_apps(self, capsys):
-        display_earnings_summary({"deprecated-apps": {"active": False, "entries": []}})
+        display_earnings_summary({"deprecated": {"active": False, "entries": []}})
         out = capsys.readouterr().out
         assert "No active apps" in out

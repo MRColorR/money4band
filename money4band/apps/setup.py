@@ -263,7 +263,9 @@ def main(
                     with open("proxies.txt", encoding="utf-8") as file:
                         proxies = [line.strip() for line in file if line.strip()]
                 except OSError as exc:
-                    print(f"{Fore.RED}Failed to read proxies.txt: {exc}{Style.RESET_ALL}")
+                    print(
+                        f"{Fore.RED}Failed to read proxies.txt: {exc}{Style.RESET_ALL}"
+                    )
                     logger.error("Setup aborted: could not read proxies.txt: %s", exc)
                     return
 

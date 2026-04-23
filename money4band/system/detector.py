@@ -102,7 +102,9 @@ def _get_tiers(m4b_config: dict[str, Any]) -> dict[str, dict[str, float]]:
     return m4b_config["resource_profiles"]["tiers"]
 
 
-def _get_minimums(m4b_config: dict[str, Any]) -> tuple[dict[str, dict[str, int]], dict[str, float]]:
+def _get_minimums(
+    m4b_config: dict[str, Any],
+) -> tuple[dict[str, dict[str, int]], dict[str, float]]:
     """Return ``(min_mem, min_cpu)`` from ``resource_profiles.minimums`` in *m4b_config*.
 
     ``min_mem`` maps ``"reserv"`` and ``"limit"`` to per-tier dicts
@@ -116,8 +118,8 @@ def _get_minimums(m4b_config: dict[str, Any]) -> tuple[dict[str, dict[str, int]]
         min_mem = {"reserv": raw_reserv, "limit": raw_limit}
     else:
         min_mem = {
-            "reserv": {t: raw_reserv for t in ("little", "medium", "big", "huge")},
-            "limit": {t: raw_limit for t in ("little", "medium", "big", "huge")},
+            "reserv": dict.fromkeys(("little", "medium", "big", "huge"), raw_reserv),
+            "limit": dict.fromkeys(("little", "medium", "big", "huge"), raw_limit),
         }
     min_cpu = mins["cpu"]
     return min_mem, min_cpu
@@ -135,7 +137,10 @@ def get_active_profile(user_config: dict[str, Any]) -> str:
 
 
 def get_profile_definition(
-    m4b_config: dict[str, Any], name: str | None = None, *, user_config: dict[str, Any] | None = None
+    m4b_config: dict[str, Any],
+    name: str | None = None,
+    *,
+    user_config: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Return the profile dict for *name* defaulting to standard."""
     rp = m4b_config.get("resource_profiles", {})
@@ -171,8 +176,12 @@ def calculate_resource_limits(
 
     resource_limits = {}
     for tier, mult in tiers.items():
-        mem_r = int(max(base_ram_mb * mult["mem_reserv"], min_mem["reserv"].get(tier, 64)))
-        mem_l = int(max(base_ram_mb * mult["mem_limit"], min_mem["limit"].get(tier, 128)))
+        mem_r = int(
+            max(base_ram_mb * mult["mem_reserv"], min_mem["reserv"].get(tier, 64))
+        )
+        mem_l = int(
+            max(base_ram_mb * mult["mem_limit"], min_mem["limit"].get(tier, 128))
+        )
         cpu = round(max(base_cpu * mult["cpu"], min_cpu.get(tier, 0.5)), 1)
         resource_limits[f"app_mem_reserv_{tier}"] = f"{mem_r}m"
         resource_limits[f"app_mem_limit_{tier}"] = f"{mem_l}m"
@@ -199,8 +208,12 @@ def show_resource_profile_info(
     active = get_active_profile(user_config)
     profile = get_profile_definition(m4b_config, active)
 
-    print(f"\n{Fore.CYAN}System:{Style.RESET_ALL} {total_mem:.0f} MB RAM, {cores} cores")
-    print(f"{Fore.CYAN}Active profile:{Style.RESET_ALL} {Fore.GREEN}{active}{Style.RESET_ALL} — {profile.get('description', '')}")
+    print(
+        f"\n{Fore.CYAN}System:{Style.RESET_ALL} {total_mem:.0f} MB RAM, {cores} cores"
+    )
+    print(
+        f"{Fore.CYAN}Active profile:{Style.RESET_ALL} {Fore.GREEN}{active}{Style.RESET_ALL} — {profile.get('description', '')}"
+    )
 
     rl = user_config.get("resource_limits", {})
     print(f"\n  {'Tier':<8} {'Mem Limit':<12} {'Mem Reserv':<12} {'CPU Limit'}")

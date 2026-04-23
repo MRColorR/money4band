@@ -37,12 +37,17 @@ class TestLoadExternalOffers:
 class TestLoadAllOffers:
     def _write_app_config(self, tmp_path):
         cfg = {
-            "supported-apps": {
+            "supported": {
                 "active": True,
                 "entries": [
                     {
                         "name": "TESTAPP",
-                        "link": "https://testapp.com/ref",
+                        "referrals": [
+                            {
+                                "url": "https://testapp.com/ref",
+                                "contributor": "MRColorR",
+                            }
+                        ],
                         "compose_config": {"image": "x"},
                         "flags": {},
                         "install_limit": -1,
@@ -94,13 +99,15 @@ class TestLoadAllOffers:
 
     def test_skips_deprecated_apps(self, tmp_path):
         cfg = {
-            "supported-apps": {"active": True, "entries": []},
-            "deprecated-apps": {
+            "supported": {"active": True, "entries": []},
+            "deprecated": {
                 "active": False,
                 "entries": [
                     {
                         "name": "OLDAPP",
-                        "link": "https://old.com",
+                        "referrals": [
+                            {"url": "https://old.com", "contributor": "MRColorR"}
+                        ],
                         "compose_config": {"image": "x"},
                         "flags": {},
                         "install_limit": -1,
@@ -126,12 +133,14 @@ class TestLoadAllOffers:
 class TestDisplayOffers:
     def _write_files(self, tmp_path):
         cfg = {
-            "supported-apps": {
+            "supported": {
                 "active": True,
                 "entries": [
                     {
                         "name": "MYAPP",
-                        "link": "https://myapp.com/ref",
+                        "referrals": [
+                            {"url": "https://myapp.com/ref", "contributor": "MRColorR"}
+                        ],
                         "compose_config": {"image": "x"},
                         "flags": {},
                         "install_limit": -1,

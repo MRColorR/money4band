@@ -60,7 +60,9 @@ def _action_start_foreground(config_dir: str, port: int) -> None:
     api_key = ensure_api_key_on_disk(config_dir)
     set_dashboard_state(config_dir, enabled=True, port=port)
 
-    print(f"{Fore.GREEN}Starting M4B Dashboard + API on 127.0.0.1:{port}...{Style.RESET_ALL}")
+    print(
+        f"{Fore.GREEN}Starting M4B Dashboard + API on 127.0.0.1:{port}...{Style.RESET_ALL}"
+    )
     print(f"  Dashboard: http://localhost:{port}/")
     print(f"  API docs:  http://localhost:{port}/api/docs")
     if api_key:
@@ -184,10 +186,7 @@ def _action_start_background_web(config_dir: str, port: int) -> None:
         f"{Fore.YELLOW}WARNING: Dashboard will be reachable from the "
         f"network ({host}).{Style.RESET_ALL}"
     )
-    print(
-        "  All API requests require the Bearer token.  "
-        "Keep your API key secret."
-    )
+    print("  All API requests require the Bearer token.  Keep your API key secret.")
 
     from money4band.dashboard.setup import spawn_dashboard_background
 

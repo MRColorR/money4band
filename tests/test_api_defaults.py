@@ -30,8 +30,16 @@ def _flat_config(tmp_path):
         "system": {"sleep_time": 1},
         "resource_profiles": {
             "profiles": {
-                "conservative": {"cpu_pct": 0.40, "ram_pct": 0.25, "description": "Conservative"},
-                "standard": {"cpu_pct": 0.60, "ram_pct": 0.40, "description": "Standard"},
+                "conservative": {
+                    "cpu_pct": 0.40,
+                    "ram_pct": 0.25,
+                    "description": "Conservative",
+                },
+                "standard": {
+                    "cpu_pct": 0.60,
+                    "ram_pct": 0.40,
+                    "description": "Standard",
+                },
             },
         },
     }
@@ -39,7 +47,7 @@ def _flat_config(tmp_path):
 
     app_cfg = {
         "app_config_version": 1.2,
-        "supported-apps": {
+        "supported": {
             "active": True,
             "entries": [
                 {
@@ -72,7 +80,7 @@ def _flat_config(tmp_path):
                 },
             ],
         },
-        "deprecated-apps": {
+        "deprecated": {
             "active": False,
             "entries": [
                 {
@@ -127,7 +135,13 @@ def _empty_config(tmp_path):
         "device_info": {},
         "apps": {},
         "resource_limits": {},
-        "settings": {"resource_profile": "standard", "dns_mode": "default", "dns_servers": [], "enforce_install_limits": True, "setup_completed": True},
+        "settings": {
+            "resource_profile": "standard",
+            "dns_mode": "default",
+            "dns_servers": [],
+            "enforce_install_limits": True,
+            "setup_completed": True,
+        },
         "notifications": {"enabled": False, "url": ""},
         "proxies": {"enabled": False},
     }
@@ -175,22 +189,22 @@ class TestAppsFlat:
         data = resp.json()
         assert len(data) == 2
         cat_names = {c["name"] for c in data}
-        assert "supported-apps" in cat_names
-        assert "deprecated-apps" in cat_names
+        assert "supported" in cat_names
+        assert "deprecated" in cat_names
 
     def test_category_counts(self, flat_client):
         resp = flat_client.get("/api/apps/categories")
         data = resp.json()
-        supported = next(c for c in data if c["name"] == "supported-apps")
+        supported = next(c for c in data if c["name"] == "supported")
         assert supported["app_count"] == 2
         assert supported["active"] is True
 
     def test_filter_by_category_flat(self, flat_client):
-        resp = flat_client.get("/api/apps?category=supported-apps")
+        resp = flat_client.get("/api/apps?category=supported")
         assert resp.status_code == 200
         data = resp.json()
         assert len(data) == 2
-        assert all(a["category"] == "supported-apps" for a in data)
+        assert all(a["category"] == "supported" for a in data)
 
     def test_filter_nonexistent_category(self, flat_client):
         resp = flat_client.get("/api/apps?category=no-such-cat")
@@ -202,7 +216,7 @@ class TestAppsFlat:
         assert resp.status_code == 200
         data = resp.json()
         assert data["name"] == "honeygain"
-        assert data["category"] == "supported-apps"
+        assert data["category"] == "supported"
 
     def test_get_app_detail_case_insensitive(self, flat_client):
         resp = flat_client.get("/api/apps/EARNAPP")
@@ -210,7 +224,7 @@ class TestAppsFlat:
         assert resp.json()["name"] == "EARNAPP"
 
     def test_toggle_category_flat(self, flat_client):
-        resp = flat_client.post("/api/apps/categories/deprecated-apps/toggle")
+        resp = flat_client.post("/api/apps/categories/deprecated/toggle")
         assert resp.status_code == 200
         assert resp.json()["active"] is True
 
@@ -443,13 +457,17 @@ class TestNotificationsDefaults:
 
 class TestSecurityDefaults:
     def test_empty_stale_images(self, flat_client):
-        with patch("money4band.docker.image_security.check_stale_images", return_value=[]):
+        with patch(
+            "money4band.docker.image_security.check_stale_images", return_value=[]
+        ):
             resp = flat_client.get("/api/security/stale")
         assert resp.status_code == 200
         assert resp.json() == []
 
     def test_empty_digests(self, flat_client):
-        with patch("money4band.docker.image_security.log_image_digests", return_value=[]):
+        with patch(
+            "money4band.docker.image_security.log_image_digests", return_value=[]
+        ):
             resp = flat_client.get("/api/security/digests")
         assert resp.status_code == 200
         assert resp.json() == []
@@ -486,7 +504,10 @@ class TestUpdateDefaults:
 class TestSystemDefaults:
     def test_info_shape(self, flat_client):
         with (
-            patch("money4band.system.detector.detect_os", return_value={"os_type": "linux"}),
+            patch(
+                "money4band.system.detector.detect_os",
+                return_value={"os_type": "linux"},
+            ),
             patch(
                 "money4band.system.detector.detect_architecture",
                 return_value={"arch": "x86_64", "dkarch": "amd64"},
@@ -566,8 +587,6 @@ class TestDirectEndpointDefaults:
             resp = flat_client.get("/api/stats")
         assert resp.status_code == 200
         assert resp.json() == []
-
-
 
     def test_action_invalid_action(self, flat_client):
         resp = flat_client.post("/api/action/mycontainer/delete")

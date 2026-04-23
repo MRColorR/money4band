@@ -177,7 +177,7 @@ class TestPortLogic(unittest.TestCase):
         }
 
         app_config = {
-            "supported-apps": {
+            "supported": {
                 "active": True,
                 "entries": [
                     {
@@ -249,7 +249,7 @@ class TestPortLogic(unittest.TestCase):
             "system": {},
             "watchtower": {"scope": "custom-scope"},
         }
-        app_config = {"supported-apps": {"active": True, "entries": []}}
+        app_config = {"supported": {"active": True, "entries": []}}
         user_config = {
             "device_info": {"device_name": "testdev"},
             "resource_limits": {},
@@ -408,7 +408,9 @@ class TestCollectAssignedPorts(unittest.TestCase):
         # Simulate: main instance already owns 50000, 50001
         reserved_ports: set = {50000, 50001}
 
-        with patch("money4band.network.port_manager.find_next_available_port") as mock_fp:
+        with patch(
+            "money4band.network.port_manager.find_next_available_port"
+        ) as mock_fp:
             mock_fp.side_effect = lambda x, **kwargs: next(
                 p for p in range(x, 65535) if p not in kwargs.get("exclude_ports", [])
             )

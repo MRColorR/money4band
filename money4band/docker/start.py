@@ -50,9 +50,7 @@ def get_device_name_from_env(env_file: str) -> str | None:
         str: The DEVICE_NAME value, or None if not found
     """
     candidates = [env_file]
-    meta_file = os.path.join(
-        os.path.dirname(os.path.abspath(env_file)), ".env.meta"
-    )
+    meta_file = os.path.join(os.path.dirname(os.path.abspath(env_file)), ".env.meta")
     candidates.append(meta_file)
 
     for candidate in candidates:
@@ -121,7 +119,9 @@ def start_stack(
     if not os.path.isfile(env_file):
         event.set()
         spinner_thread.join()
-        logger.error("Environment file %s not found. Run 'm4b generate' first.", env_file)
+        logger.error(
+            "Environment file %s not found. Run 'm4b generate' first.", env_file
+        )
         print(
             f"{Fore.RED}Environment file not found: {env_file}\n"
             f"Run 'm4b generate' to regenerate it.{Style.RESET_ALL}"
@@ -298,7 +298,9 @@ def start_all_stacks(
             for instance in os.listdir(instances_dir):
                 instance_dir = os.path.join(instances_dir, instance)
                 env_file = os.path.join(instance_dir, ".env")
-                if os.path.isfile(env_file) or os.path.isfile(os.path.join(instance_dir, ".env.meta")):
+                if os.path.isfile(env_file) or os.path.isfile(
+                    os.path.join(instance_dir, ".env.meta")
+                ):
                     # Get device name from this instance (falls back to .env.meta)
                     instance_device_name = get_device_name_from_env(env_file)
 

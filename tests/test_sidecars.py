@@ -13,7 +13,7 @@ import pytest
 _HONEYGAIN_APP = {
     "name": "HONEYGAIN",
     "dashboard": "https://dashboard.honeygain.com/",
-    "link": "https://r.honeygain.me/X",
+    "referrals": [{"url": "https://r.honeygain.me/X", "contributor": "MRColorR"}],
     "compose_config": {
         "container_name": "${DEVICE_NAME}_honeygain",
         "hostname": "${DEVICE_NAME}_honeygain",
@@ -76,7 +76,9 @@ _HONEYGAIN_APP = {
 _NO_SERVICE_APP = {
     "name": "TRAFFMONETIZER",
     "dashboard": "https://app.traffmonetizer.com/dashboard",
-    "link": "https://traffmonetizer.com/?aff=1",
+    "referrals": [
+        {"url": "https://traffmonetizer.com/?aff=1", "contributor": "MRColorR"}
+    ],
     "compose_config": {
         "container_name": "${DEVICE_NAME}_traffmonetizer",
         "hostname": "${DEVICE_NAME}_traffmonetizer",
@@ -100,7 +102,7 @@ _NO_SERVICE_APP = {
 
 
 def _app_config(*apps):
-    return {"supported-apps": {"active": True, "entries": list(apps)}}
+    return {"supported": {"active": True, "entries": list(apps)}}
 
 
 def _m4b_config():
@@ -145,8 +147,12 @@ def _user_config(apps_override=None):
 class TestSidecarComposeGeneration:
     """Verify compose_builder emits sidecar services correctly."""
 
-    @mock.patch("money4band.docker.compose_builder.check_img_arch_support", return_value=True)
-    @mock.patch("money4band.docker.compose_builder.get_compatible_tag", return_value=None)
+    @mock.patch(
+        "money4band.docker.compose_builder.check_img_arch_support", return_value=True
+    )
+    @mock.patch(
+        "money4band.docker.compose_builder.get_compatible_tag", return_value=None
+    )
     def test_sidecar_added_when_service_enabled(self, _tag, _arch, tmp_path):
         from money4band.docker.compose_builder import assemble_docker_compose
 
@@ -174,8 +180,12 @@ class TestSidecarComposeGeneration:
         assert "EMAIL=${HONEYGAIN_EMAIL}" in pot["environment"]
         assert pot["restart"] == "always"
 
-    @mock.patch("money4band.docker.compose_builder.check_img_arch_support", return_value=True)
-    @mock.patch("money4band.docker.compose_builder.get_compatible_tag", return_value=None)
+    @mock.patch(
+        "money4band.docker.compose_builder.check_img_arch_support", return_value=True
+    )
+    @mock.patch(
+        "money4band.docker.compose_builder.get_compatible_tag", return_value=None
+    )
     def test_sidecar_not_added_when_service_disabled(self, _tag, _arch, tmp_path):
         from money4band.docker.compose_builder import assemble_docker_compose
 
@@ -199,8 +209,12 @@ class TestSidecarComposeGeneration:
         assert "honeygain" in compose["services"]
         assert "honeygain-pot" not in compose["services"]
 
-    @mock.patch("money4band.docker.compose_builder.check_img_arch_support", return_value=True)
-    @mock.patch("money4band.docker.compose_builder.get_compatible_tag", return_value=None)
+    @mock.patch(
+        "money4band.docker.compose_builder.check_img_arch_support", return_value=True
+    )
+    @mock.patch(
+        "money4band.docker.compose_builder.get_compatible_tag", return_value=None
+    )
     def test_sidecar_not_added_when_no_service_field(self, _tag, _arch, tmp_path):
         from money4band.docker.compose_builder import assemble_docker_compose
 
@@ -220,8 +234,12 @@ class TestSidecarComposeGeneration:
         # No sidecar for traffmonetizer
         assert len([k for k in compose["services"] if "pot" in k]) == 0
 
-    @mock.patch("money4band.docker.compose_builder.check_img_arch_support", return_value=True)
-    @mock.patch("money4band.docker.compose_builder.get_compatible_tag", return_value=None)
+    @mock.patch(
+        "money4band.docker.compose_builder.check_img_arch_support", return_value=True
+    )
+    @mock.patch(
+        "money4band.docker.compose_builder.get_compatible_tag", return_value=None
+    )
     def test_sidecar_inherits_platform_from_parent(self, _tag, _arch, tmp_path):
         from money4band.docker.compose_builder import assemble_docker_compose
 
@@ -248,8 +266,12 @@ class TestSidecarComposeGeneration:
         pot = compose["services"]["honeygain-pot"]
         assert pot.get("platform") == "linux/arm64"
 
-    @mock.patch("money4band.docker.compose_builder.check_img_arch_support", return_value=True)
-    @mock.patch("money4band.docker.compose_builder.get_compatible_tag", return_value=None)
+    @mock.patch(
+        "money4band.docker.compose_builder.check_img_arch_support", return_value=True
+    )
+    @mock.patch(
+        "money4band.docker.compose_builder.get_compatible_tag", return_value=None
+    )
     def test_sidecar_has_security_opt(self, _tag, _arch, tmp_path):
         from money4band.docker.compose_builder import assemble_docker_compose
 
@@ -273,8 +295,12 @@ class TestSidecarComposeGeneration:
         pot = compose["services"]["honeygain-pot"]
         assert "no-new-privileges:true" in pot.get("security_opt", [])
 
-    @mock.patch("money4band.docker.compose_builder.check_img_arch_support", return_value=True)
-    @mock.patch("money4band.docker.compose_builder.get_compatible_tag", return_value=None)
+    @mock.patch(
+        "money4band.docker.compose_builder.check_img_arch_support", return_value=True
+    )
+    @mock.patch(
+        "money4band.docker.compose_builder.get_compatible_tag", return_value=None
+    )
     def test_sidecar_default_service_enabled_missing(self, _tag, _arch, tmp_path):
         """When user-config has no service_enabled key, sidecar is NOT added."""
         from money4band.docker.compose_builder import assemble_docker_compose
@@ -388,9 +414,7 @@ class TestAppConfigServiceDefinitions:
 
     def test_honeygain_has_service(self, app_config):
         hg = next(
-            a
-            for a in app_config["supported-apps"]["entries"]
-            if a["name"] == "HONEYGAIN"
+            a for a in app_config["supported"]["entries"] if a["name"] == "HONEYGAIN"
         )
         svc = hg["service"]
         assert svc["name"] == "honeygain-pot"
@@ -399,9 +423,7 @@ class TestAppConfigServiceDefinitions:
 
     def test_packetshare_has_service(self, app_config):
         ps = next(
-            a
-            for a in app_config["supported-apps"]["entries"]
-            if a["name"] == "PACKETSHARE"
+            a for a in app_config["supported"]["entries"] if a["name"] == "PACKETSHARE"
         )
         svc = ps["service"]
         assert svc["name"] == "packetshare-pot"
@@ -410,7 +432,7 @@ class TestAppConfigServiceDefinitions:
 
     def test_service_compose_config_has_required_keys(self, app_config):
         required = {"container_name", "image", "environment", "restart", "labels"}
-        for app in app_config["supported-apps"]["entries"]:
+        for app in app_config["supported"]["entries"]:
             svc = app.get("service")
             if svc:
                 cc = svc["compose_config"]
@@ -418,7 +440,7 @@ class TestAppConfigServiceDefinitions:
                 assert not missing, f"{app['name']} sidecar missing keys: {missing}"
 
     def test_apps_without_service_have_none(self, app_config):
-        for app in app_config["supported-apps"]["entries"]:
+        for app in app_config["supported"]["entries"]:
             if app["name"] not in ("HONEYGAIN", "PACKETSHARE", "BEARSHARE"):
                 assert "service" not in app, f"{app['name']} should not have a service"
 

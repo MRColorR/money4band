@@ -5,6 +5,7 @@ from __future__ import annotations
 import collections
 import json
 import time
+from contextlib import contextmanager
 from unittest import mock
 
 import pytest
@@ -92,7 +93,7 @@ class TestDashboardAPI:
     def test_get_app_config(self, client, tmp_path):
         config = {
             "app_config_version": 1.2,
-            "supported-apps": {"active": True, "entries": []},
+            "supported": {"active": True, "entries": []},
         }
         config_file = tmp_path / "app-config.json"
         config_file.write_text(json.dumps(config))
@@ -129,10 +130,14 @@ class TestRateLimiterGC:
 
             client = TestClient(app)
             # Force the middleware to run for this IP.
-            with mock.patch.object(
-                type(client).__enter__,
-                lambda *a: client,
-            ) if False else _noop():
+            with (
+                mock.patch.object(
+                    type(client).__enter__,
+                    lambda *a: client,
+                )
+                if False
+                else _noop()
+            ):
                 pass
             # Instead, call the endpoint directly — the middleware evicts
             # old entries and should delete the empty deque.
@@ -188,7 +193,6 @@ class TestSessionToken:
     def test_session_token_changes_with_different_salt(self, tmp_path):
         import money4band.api.server as api
 
-        salt_path = str(tmp_path / "salt1")
         with mock.patch.object(api, "_get_session_salt", return_value=b"salt-aaa"):
             token_a = api._derive_session_token("my-api-key")
 
@@ -225,8 +229,6 @@ class TestSessionToken:
         assert len(current) == 64
         assert len(previous) == 64
 
-
-from contextlib import contextmanager
 
 @contextmanager
 def _noop():

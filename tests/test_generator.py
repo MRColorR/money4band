@@ -42,7 +42,7 @@ _M4B_CFG = {
     "watchtower": {"scope": "money4band"},
 }
 
-_APP_CFG = {"supported-apps": {"active": True, "entries": []}}
+_APP_CFG = {"supported": {"active": True, "entries": []}}
 
 _USER_CFG_BASE = {
     "device_info": {"device_name": "testdev"},
@@ -479,7 +479,7 @@ class TestAppHealthchecks(unittest.TestCase):
     _HC_APP = {
         "name": "HCAPP",
         "dashboard": "http://example.com",
-        "link": "http://example.com",
+        "referrals": [{"url": "http://example.com", "contributor": "MRColorR"}],
         "compose_config": {
             "container_name": "${DEVICE_NAME}_hcapp",
             "image": "example/hcapp:latest",
@@ -501,7 +501,7 @@ class TestAppHealthchecks(unittest.TestCase):
     _HTTP_HC_APP = {
         "name": "HTTPAPP",
         "dashboard": "http://example.com",
-        "link": "http://example.com",
+        "referrals": [{"url": "http://example.com", "contributor": "MRColorR"}],
         "compose_config": {
             "container_name": "${DEVICE_NAME}_httpapp",
             "image": "example/httpapp:latest",
@@ -528,7 +528,7 @@ class TestAppHealthchecks(unittest.TestCase):
         from unittest.mock import patch
 
         app_name = app_entry["name"].lower()
-        app_cfg = {"supported-apps": {"active": True, "entries": [app_entry]}}
+        app_cfg = {"supported": {"active": True, "entries": [app_entry]}}
         user_cfg = copy.deepcopy(_USER_CFG_BASE)
         user_cfg["apps"] = {app_name: {"enabled": True}}
 
@@ -536,7 +536,8 @@ class TestAppHealthchecks(unittest.TestCase):
             compose_path = f.name
         try:
             with patch(
-                "money4band.docker.compose_builder.check_img_arch_support", return_value=True
+                "money4band.docker.compose_builder.check_img_arch_support",
+                return_value=True,
             ):
                 assemble_docker_compose(
                     _M4B_CFG, app_cfg, user_cfg, compose_path, is_main_instance=True
@@ -573,7 +574,7 @@ class TestProxyDependsOn(unittest.TestCase):
     _PROXY_APP = {
         "name": "TESTAPP",
         "dashboard": "http://example.com",
-        "link": "http://example.com",
+        "referrals": [{"url": "http://example.com", "contributor": "MRColorR"}],
         "compose_config": {
             "container_name": "${DEVICE_NAME}_testapp",
             "image": "example/testapp:latest",
@@ -593,7 +594,7 @@ class TestProxyDependsOn(unittest.TestCase):
         import copy
         from unittest.mock import patch
 
-        app_cfg = {"supported-apps": {"active": True, "entries": [self._PROXY_APP]}}
+        app_cfg = {"supported": {"active": True, "entries": [self._PROXY_APP]}}
         user_cfg = copy.deepcopy(_USER_CFG_BASE)
         user_cfg["proxies"]["enabled"] = proxy_enabled
         user_cfg["apps"] = {"testapp": {"enabled": True}}
@@ -602,7 +603,8 @@ class TestProxyDependsOn(unittest.TestCase):
             compose_path = f.name
         try:
             with patch(
-                "money4band.docker.compose_builder.check_img_arch_support", return_value=True
+                "money4band.docker.compose_builder.check_img_arch_support",
+                return_value=True,
             ):
                 assemble_docker_compose(
                     _M4B_CFG, app_cfg, user_cfg, compose_path, is_main_instance=True

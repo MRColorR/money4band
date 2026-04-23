@@ -43,4 +43,3 @@ def get_client() -> httpx.Client:
         timeout=httpx.Timeout(REQUEST_TIMEOUT),
         follow_redirects=True,
     )
-

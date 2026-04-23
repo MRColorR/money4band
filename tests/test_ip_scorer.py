@@ -192,7 +192,9 @@ class TestTestProxyConnectivity:
         from money4band.network.ip_scorer import test_proxy_connectivity
 
         assert test_proxy_connectivity("socks5://1.2.3.4:1080") == "203.0.113.5"
-        mock_client_cls.assert_called_once_with(proxy="socks5://1.2.3.4:1080", timeout=10)
+        mock_client_cls.assert_called_once_with(
+            proxy="socks5://1.2.3.4:1080", timeout=10
+        )
 
     @patch("money4band.network.ip_scorer.httpx.Client")
     def test_returns_none_on_failure(self, mock_client_cls):
@@ -302,8 +304,13 @@ class TestAnalyseIps:
 
     @patch("money4band.network.ip_scorer.check_blacklist", return_value=False)
     @patch("money4band.network.ip_scorer.score_ips")
-    @patch("money4band.network.ip_scorer.test_proxy_connectivity", return_value="5.6.7.8")
-    @patch("money4band.network.ip_scorer.parse_proxy_file", return_value=["http://proxy:8080"])
+    @patch(
+        "money4band.network.ip_scorer.test_proxy_connectivity", return_value="5.6.7.8"
+    )
+    @patch(
+        "money4band.network.ip_scorer.parse_proxy_file",
+        return_value=["http://proxy:8080"],
+    )
     @patch("money4band.network.ip_scorer.get_public_ip", return_value="1.2.3.4")
     @patch("money4band.network.ip_scorer.display_ip_table")
     def test_with_proxy_file(self, _display, _pub, _parse, _test, mock_score, _bl):

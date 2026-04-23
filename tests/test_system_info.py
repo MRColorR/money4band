@@ -16,9 +16,16 @@ _M4B_CONFIG = {
     "system": {
         "dns": {
             "available_modes": [
-                "default", "cloudflare", "cloudflare-security",
-                "google", "quad9", "quad9-unfiltered",
-                "opendns", "dns4eu", "dns4eu-unfiltered", "custom",
+                "default",
+                "cloudflare",
+                "cloudflare-security",
+                "google",
+                "quad9",
+                "quad9-unfiltered",
+                "opendns",
+                "dns4eu",
+                "dns4eu-unfiltered",
+                "custom",
             ],
             "presets": {
                 "cloudflare": ["1.1.1.1", "1.0.0.1"],
@@ -44,13 +51,15 @@ _M4B_CONFIG = {
 }
 
 _APP_CONFIG = {
-    "supported-apps": {
+    "supported": {
         "active": True,
         "entries": [
             {
                 "name": "TESTAPP",
                 "dashboard": "https://example.com",
-                "link": "https://example.com",
+                "referrals": [
+                    {"url": "https://example.com", "contributor": "MRColorR"}
+                ],
                 "compose_config": {
                     "container_name": "test",
                     "image": "test:latest",
@@ -119,7 +128,9 @@ class TestDNSConfig:
         usr_path = tmp_path / "user-config.json"
         usr_path.write_text(json.dumps(copy.deepcopy(_USER_CONFIG)))
 
-        set_dns_mode(str(m4b_path), str(usr_path), "custom", ["9.9.9.9", "149.112.112.112"])
+        set_dns_mode(
+            str(m4b_path), str(usr_path), "custom", ["9.9.9.9", "149.112.112.112"]
+        )
 
         result = json.loads(usr_path.read_text())
         assert result["settings"]["dns_mode"] == "custom"
@@ -171,7 +182,9 @@ class TestDNSConfig:
         usr_path.write_text(json.dumps(copy.deepcopy(_USER_CONFIG)))
 
         with pytest.raises(ValueError, match="999.999.999.999"):
-            set_dns_mode(str(m4b_path), str(usr_path), "custom", ["1.1.1.1", "999.999.999.999"])
+            set_dns_mode(
+                str(m4b_path), str(usr_path), "custom", ["1.1.1.1", "999.999.999.999"]
+            )
 
     def test_set_dns_mode_rejects_empty_string(self, tmp_path):
         from money4band.system.info import set_dns_mode
@@ -203,7 +216,9 @@ class TestDNSConfig:
         usr_path = tmp_path / "user-config.json"
         usr_path.write_text(json.dumps(copy.deepcopy(_USER_CONFIG)))
 
-        set_dns_mode(str(m4b_path), str(usr_path), "custom", ["8.8.4.4", "208.67.222.222"])
+        set_dns_mode(
+            str(m4b_path), str(usr_path), "custom", ["8.8.4.4", "208.67.222.222"]
+        )
 
         result = json.loads(usr_path.read_text())
         assert result["settings"]["dns_servers"] == ["8.8.4.4", "208.67.222.222"]
@@ -273,9 +288,13 @@ class TestComposeDNSInjection:
 
         with (
             patch(
-                "money4band.docker.compose_builder.check_img_arch_support", return_value=True
+                "money4band.docker.compose_builder.check_img_arch_support",
+                return_value=True,
             ),
-            patch("money4band.docker.compose_builder.get_compatible_tag", return_value=None),
+            patch(
+                "money4band.docker.compose_builder.get_compatible_tag",
+                return_value=None,
+            ),
             patch("money4band.docker.compose_builder.show_spinner"),
         ):
             files = assemble_docker_compose(
@@ -398,7 +417,9 @@ class TestSystemInfo:
                 "money4band.system.info.detector.get_system_memory_and_cores",
                 return_value=(8192, 4),
             ),
-            patch("money4band.docker.compose_builder.get_compose_files", return_value=[]),
+            patch(
+                "money4band.docker.compose_builder.get_compose_files", return_value=[]
+            ),
         ):
             show_system_info(cfg, app_cfg, usr_cfg)
 
@@ -423,7 +444,9 @@ class TestSystemInfo:
                 "money4band.system.info.detector.get_system_memory_and_cores",
                 return_value=(8192, 4),
             ),
-            patch("money4band.docker.compose_builder.get_compose_files", return_value=[]),
+            patch(
+                "money4band.docker.compose_builder.get_compose_files", return_value=[]
+            ),
         ):
             show_system_info(cfg, app_cfg, usr_cfg)
 
@@ -444,7 +467,9 @@ class TestSystemInfo:
                 "money4band.system.info.detector.get_system_memory_and_cores",
                 return_value=(8192, 4),
             ),
-            patch("money4band.docker.compose_builder.get_compose_files", return_value=[]),
+            patch(
+                "money4band.docker.compose_builder.get_compose_files", return_value=[]
+            ),
         ):
             show_system_info(cfg, app_cfg, usr_cfg)
 
@@ -469,9 +494,12 @@ class TestSystemInfo:
             patch(
                 "money4band.system.info.shutil.which", return_value="/usr/bin/docker"
             ),
-            patch("money4band.docker.helper.is_docker_daemon_running", return_value=True),
             patch(
-                "money4band.docker.helper.is_multiarch_emulation_available", return_value=True
+                "money4band.docker.helper.is_docker_daemon_running", return_value=True
+            ),
+            patch(
+                "money4band.docker.helper.is_multiarch_emulation_available",
+                return_value=True,
             ),
             patch(
                 "money4band.docker.compose_builder.get_compose_files",
@@ -501,7 +529,9 @@ class TestSystemInfo:
                 "money4band.system.info.detector.get_system_memory_and_cores",
                 return_value=(8192, 4),
             ),
-            patch("money4band.docker.compose_builder.get_compose_files", return_value=[]),
+            patch(
+                "money4band.docker.compose_builder.get_compose_files", return_value=[]
+            ),
         ):
             show_system_info(cfg, app_cfg, usr_cfg)
 

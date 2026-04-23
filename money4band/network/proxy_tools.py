@@ -320,9 +320,7 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
 
         for i, option in enumerate(menu_options, start=1):
             print(f"{i}. {option['label']}")
-        print(
-            f"\n  {Fore.CYAN}b{Style.RESET_ALL} Back"
-        )
+        print(f"\n  {Fore.CYAN}b{Style.RESET_ALL} Back")
 
         choice = input("Select: ").strip().lower()
 
@@ -343,10 +341,10 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
             logger.info(f"User selected menu option: {selected_option['label']}")
 
             globals()[selected_option["function"]](
-                    app_config_path=app_config_path,
-                    m4b_config_path=m4b_config_path,
-                    user_config_path=user_config_path,
-                )
+                app_config_path=app_config_path,
+                m4b_config_path=m4b_config_path,
+                user_config_path=user_config_path,
+            )
         else:
             print(
                 f"{Fore.YELLOW}Invalid selection. Choose 1\u2013{len(menu_options)} or a shortcut.{Style.RESET_ALL}"

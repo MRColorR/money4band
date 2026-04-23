@@ -29,9 +29,16 @@ def tmp_config(tmp_path):
                 "mode": "default",
                 "servers": [],
                 "available_modes": [
-                    "default", "cloudflare", "cloudflare-security",
-                    "google", "quad9", "quad9-unfiltered",
-                    "opendns", "dns4eu", "dns4eu-unfiltered", "custom",
+                    "default",
+                    "cloudflare",
+                    "cloudflare-security",
+                    "google",
+                    "quad9",
+                    "quad9-unfiltered",
+                    "opendns",
+                    "dns4eu",
+                    "dns4eu-unfiltered",
+                    "custom",
                 ],
                 "presets": {
                     "cloudflare": ["1.1.1.1", "1.0.0.1"],
@@ -48,9 +55,21 @@ def tmp_config(tmp_path):
         },
         "resource_profiles": {
             "profiles": {
-                "conservative": {"cpu_pct": 0.40, "ram_pct": 0.25, "description": "Conservative"},
-                "standard": {"cpu_pct": 0.60, "ram_pct": 0.40, "description": "Standard"},
-                "performance": {"cpu_pct": 0.85, "ram_pct": 0.65, "description": "Performance"},
+                "conservative": {
+                    "cpu_pct": 0.40,
+                    "ram_pct": 0.25,
+                    "description": "Conservative",
+                },
+                "standard": {
+                    "cpu_pct": 0.60,
+                    "ram_pct": 0.40,
+                    "description": "Standard",
+                },
+                "performance": {
+                    "cpu_pct": 0.85,
+                    "ram_pct": 0.65,
+                    "description": "Performance",
+                },
             },
         },
     }
@@ -59,13 +78,18 @@ def tmp_config(tmp_path):
     app_cfg = {
         "app_config_version": 2.0,
         "categories": {
-            "supported-apps": {
+            "supported": {
                 "active": True,
                 "entries": [
                     {
                         "name": "honeygain",
                         "dashboard": "https://dashboard.honeygain.com/",
-                        "link": "https://r.honeygain.me/TEST",
+                        "referrals": [
+                            {
+                                "url": "https://r.honeygain.me/TEST",
+                                "contributor": "MRColorR",
+                            }
+                        ],
                         "compose_config": {
                             "container_name": "m4b_honeygain",
                             "image": "honeygain/honeygain:latest",
@@ -82,7 +106,12 @@ def tmp_config(tmp_path):
                     {
                         "name": "earnapp",
                         "dashboard": "https://earnapp.com/dashboard",
-                        "link": "https://earnapp.com/i/TEST",
+                        "referrals": [
+                            {
+                                "url": "https://earnapp.com/i/TEST",
+                                "contributor": "MRColorR",
+                            }
+                        ],
                         "compose_config": {
                             "container_name": "m4b_earnapp",
                             "image": "fazalfarhan01/earnapp:latest",
@@ -98,7 +127,7 @@ def tmp_config(tmp_path):
                     },
                 ],
             },
-            "candidate-apps": {
+            "newcomers": {
                 "active": False,
                 "entries": [
                     {
@@ -139,7 +168,11 @@ def tmp_config(tmp_path):
         },
         "notifications": {"enabled": False, "url": ""},
         "proxies": {"enabled": False},
-        "m4b_dashboard": {"enabled": True, "api_key": "original-secret-key", "port": 8088},
+        "m4b_dashboard": {
+            "enabled": True,
+            "api_key": "original-secret-key",
+            "port": 8088,
+        },
     }
     (config_dir / "user-config.json").write_text(json.dumps(user_cfg))
 
@@ -176,11 +209,11 @@ class TestAppsRouter:
         assert "testapp" in names
 
     def test_list_apps_by_category(self, client):
-        resp = client.get("/api/apps?category=supported-apps")
+        resp = client.get("/api/apps?category=supported")
         assert resp.status_code == 200
         data = resp.json()
         assert len(data) == 2
-        assert all(a["category"] == "supported-apps" for a in data)
+        assert all(a["category"] == "supported" for a in data)
 
     def test_list_categories(self, client):
         resp = client.get("/api/apps/categories")
@@ -189,16 +222,16 @@ class TestAppsRouter:
         assert len(data) == 2
         active_cats = [c for c in data if c["active"]]
         assert len(active_cats) == 1
-        assert active_cats[0]["name"] == "supported-apps"
+        assert active_cats[0]["name"] == "supported"
 
     def test_toggle_category(self, client):
-        resp = client.post("/api/apps/categories/candidate-apps/toggle")
+        resp = client.post("/api/apps/categories/newcomers/toggle")
         assert resp.status_code == 200
         data = resp.json()
         assert data["active"] is True
 
         # Toggle back
-        resp = client.post("/api/apps/categories/candidate-apps/toggle")
+        resp = client.post("/api/apps/categories/newcomers/toggle")
         assert resp.json()["active"] is False
 
     def test_toggle_nonexistent_category(self, client):
@@ -210,7 +243,7 @@ class TestAppsRouter:
         assert resp.status_code == 200
         data = resp.json()
         assert data["name"] == "honeygain"
-        assert data["category"] == "supported-apps"
+        assert data["category"] == "supported"
 
     def test_get_app_detail_case_insensitive(self, client):
         resp = client.get("/api/apps/HoneyGain")
@@ -378,7 +411,10 @@ class TestStackRouter:
 class TestSystemRouter:
     def test_system_info(self, client):
         with (
-            patch("money4band.system.detector.detect_os", return_value={"os_type": "linux"}),
+            patch(
+                "money4band.system.detector.detect_os",
+                return_value={"os_type": "linux"},
+            ),
             patch(
                 "money4band.system.detector.detect_architecture",
                 return_value={"arch": "x86_64", "dkarch": "amd64"},

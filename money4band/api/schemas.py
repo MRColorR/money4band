@@ -215,9 +215,7 @@ class ProfileDeleted(StatusOk):
 class ApiKeyInfo(BaseModel):
     """Masked view of the dashboard API key."""
 
-    key_preview: str = Field(
-        "", description="Last 8 characters of the key, masked"
-    )
+    key_preview: str = Field("", description="Last 8 characters of the key, masked")
     has_key: bool = Field(False, description="Whether an API key is configured")
 
 

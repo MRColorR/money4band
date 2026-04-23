@@ -273,9 +273,7 @@ class TestInstallWindows:
         assert "winget" in cmd
         assert "Docker.DockerDesktop" in cmd
 
-    @patch(
-        "money4band.docker.install.subprocess.run", side_effect=OSError("no winget")
-    )
+    @patch("money4band.docker.install.subprocess.run", side_effect=OSError("no winget"))
     def test_failure_returns_false(self, _run):
         from money4band.docker.install import _install_windows
 
@@ -294,9 +292,7 @@ class TestInstallMacos:
         cmd = mock_run.call_args[0][0]
         assert cmd == ["brew", "install", "--cask", "docker"]
 
-    @patch(
-        "money4band.docker.install.subprocess.run", side_effect=OSError("no brew")
-    )
+    @patch("money4band.docker.install.subprocess.run", side_effect=OSError("no brew"))
     def test_failure_returns_false(self, _run):
         from money4band.docker.install import _install_macos
 

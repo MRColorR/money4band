@@ -19,13 +19,15 @@ _M4B_CONFIG = {
 }
 
 _APP_CONFIG = {
-    "supported-apps": {
+    "supported": {
         "active": True,
         "entries": [
             {
                 "name": "EARNAPP",
                 "dashboard": "https://example.com",
-                "link": "https://example.com",
+                "referrals": [
+                    {"url": "https://example.com", "contributor": "MRColorR"}
+                ],
                 "compose_config": {
                     "container_name": "earnapp",
                     "image": "fazalfarhan01/earnapp:lite",
@@ -39,7 +41,9 @@ _APP_CONFIG = {
             {
                 "name": "REPOCKET",
                 "dashboard": "https://example.com",
-                "link": "https://example.com",
+                "referrals": [
+                    {"url": "https://example.com", "contributor": "MRColorR"}
+                ],
                 "compose_config": {
                     "container_name": "repocket",
                     "image": "repocket/repocket:latest",
@@ -53,7 +57,9 @@ _APP_CONFIG = {
             {
                 "name": "TRAFFMONETIZER",
                 "dashboard": "https://example.com",
-                "link": "https://example.com",
+                "referrals": [
+                    {"url": "https://example.com", "contributor": "MRColorR"}
+                ],
                 "compose_config": {
                     "container_name": "traffmonetizer",
                     "image": "traffmonetizer/cli_v2:latest",
@@ -158,7 +164,9 @@ class TestGetComposeFiles:
 class TestLayeredGeneration:
     """Verify that layered=True produces separate compose files per tier."""
 
-    @patch("money4band.docker.compose_builder.check_img_arch_support", return_value=True)
+    @patch(
+        "money4band.docker.compose_builder.check_img_arch_support", return_value=True
+    )
     @patch("money4band.docker.compose_builder.get_compatible_tag", return_value=None)
     @patch("money4band.docker.compose_builder.show_spinner")
     def test_layered_creates_per_tier_files(self, _sp, _tag, _arch, tmp_path):
@@ -182,7 +190,9 @@ class TestLayeredGeneration:
         assert "compose.datacenter.yml" in basenames
         assert "compose.universal.yml" in basenames
 
-    @patch("money4band.docker.compose_builder.check_img_arch_support", return_value=True)
+    @patch(
+        "money4band.docker.compose_builder.check_img_arch_support", return_value=True
+    )
     @patch("money4band.docker.compose_builder.get_compatible_tag", return_value=None)
     @patch("money4band.docker.compose_builder.show_spinner")
     def test_layered_removes_legacy_file(self, _sp, _tag, _arch, tmp_path):
@@ -200,7 +210,9 @@ class TestLayeredGeneration:
         )
         assert not legacy.exists(), "Legacy file should be removed in layered mode"
 
-    @patch("money4band.docker.compose_builder.check_img_arch_support", return_value=True)
+    @patch(
+        "money4band.docker.compose_builder.check_img_arch_support", return_value=True
+    )
     @patch("money4band.docker.compose_builder.get_compatible_tag", return_value=None)
     @patch("money4band.docker.compose_builder.show_spinner")
     def test_layered_services_in_correct_files(self, _sp, _tag, _arch, tmp_path):
@@ -234,7 +246,9 @@ class TestLayeredGeneration:
         uni_data = yaml.safe_load(uni_file.read_text())
         assert "traffmonetizer" in uni_data["services"]
 
-    @patch("money4band.docker.compose_builder.check_img_arch_support", return_value=True)
+    @patch(
+        "money4band.docker.compose_builder.check_img_arch_support", return_value=True
+    )
     @patch("money4band.docker.compose_builder.get_compatible_tag", return_value=None)
     @patch("money4band.docker.compose_builder.show_spinner")
     def test_layered_base_has_network_config(self, _sp, _tag, _arch, tmp_path):
@@ -253,7 +267,9 @@ class TestLayeredGeneration:
         base_data = yaml.safe_load(base_file.read_text())
         assert "networks" in base_data, "Base layer must contain network config"
 
-    @patch("money4band.docker.compose_builder.check_img_arch_support", return_value=True)
+    @patch(
+        "money4band.docker.compose_builder.check_img_arch_support", return_value=True
+    )
     @patch("money4band.docker.compose_builder.get_compatible_tag", return_value=None)
     @patch("money4band.docker.compose_builder.show_spinner")
     def test_monolithic_still_works(self, _sp, _tag, _arch, tmp_path):
@@ -275,7 +291,9 @@ class TestLayeredGeneration:
         assert "repocket" in data["services"]
         assert "traffmonetizer" in data["services"]
 
-    @patch("money4band.docker.compose_builder.check_img_arch_support", return_value=True)
+    @patch(
+        "money4band.docker.compose_builder.check_img_arch_support", return_value=True
+    )
     @patch("money4band.docker.compose_builder.get_compatible_tag", return_value=None)
     @patch("money4band.docker.compose_builder.show_spinner")
     def test_empty_layers_get_stale_files_removed(self, _sp, _tag, _arch, tmp_path):

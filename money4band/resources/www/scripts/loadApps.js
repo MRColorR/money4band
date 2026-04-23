@@ -27,8 +27,8 @@ window.onload = () => {
             const tdName = document.createElement('td');
             tdName.className = 'u-border-2 u-border-grey-10 u-border-no-left u-border-no-right u-table-cell';
             let nameText = app.name;
-            if (!isActive && app.removal_reason) {
-              nameText += ` (${app.removal_reason})`;
+            if (!isActive && app.additional_details) {
+              nameText += ` (${app.additional_details})`;
             }
             tdName.textContent = nameText;
 
@@ -46,7 +46,9 @@ window.onload = () => {
             tdInvite.className = 'u-border-2 u-border-grey-10 u-border-no-left u-border-no-right u-table-cell';
             const inviteLink = document.createElement('a');
             inviteLink.className = `u-active-none u-border-none u-btn u-button-link u-button-style u-hover-none u-none u-text-palette-1-base u-btn-${index+2}`;
-            inviteLink.href = (app.link && app.link.startsWith('http')) ? app.link : '#';
+            const primaryReferral = Array.isArray(app.referrals) && app.referrals.length > 0 ? app.referrals[0] : null;
+            const referralUrl = primaryReferral && typeof primaryReferral.url === 'string' ? primaryReferral.url : '';
+            inviteLink.href = (referralUrl && referralUrl.startsWith('http')) ? referralUrl : '#';
             inviteLink.target = '_blank';
             inviteLink.textContent = 'Invite friends';
             tdInvite.appendChild(inviteLink);

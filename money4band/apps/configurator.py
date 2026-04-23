@@ -231,8 +231,14 @@ def _configure_apps(
         )
         if not config["enabled"]:
             continue
+        referrals = app.get("referrals") or []
+        primary_link = (
+            referrals[0].get("url", "")
+            if referrals and isinstance(referrals[0], dict)
+            else ""
+        )
         print(
-            f"{Fore.CYAN}Go to {app['name'].title()} {app['link']} and register{Style.RESET_ALL}"
+            f"{Fore.CYAN}Go to {app['name'].title()} {primary_link} and register{Style.RESET_ALL}"
         )
         print(
             f"{Fore.GREEN}Use CTRL+Click to open links or copy them:{Style.RESET_ALL}"

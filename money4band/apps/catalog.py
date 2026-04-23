@@ -60,15 +60,21 @@ def _display_catalog(app_config: dict[str, Any]) -> None:
         # Collect rows
         rows: list[dict[str, str]] = []
         for app in apps:
+            referrals = app.get("referrals") or []
+            primary_link = (
+                referrals[0].get("url", "")
+                if referrals and isinstance(referrals[0], dict)
+                else ""
+            )
             rows.append(
                 {
                     "name": app["name"],
-                    "link": app.get("link", ""),
+                    "link": primary_link,
                     "payout": app.get("app_details", {})
                     .get("earnings", {})
                     .get("min_payout", "-"),
                     "layer": app.get("compose_layer", "-"),
-                    "reason": app.get("removal_reason", ""),
+                    "reason": app.get("additional_details", ""),
                 }
             )
 
@@ -148,9 +154,7 @@ def _manage_categories(app_config: dict[str, Any], app_config_path: str | None) 
         count = len(get_category_entries(app_config, cat))
         print(f"  {idx}. {cat} [{badge}] ({count} apps)")
 
-    print(
-        f"\n  {Fore.CYAN}b{Style.RESET_ALL} Back"
-    )
+    print(f"\n  {Fore.CYAN}b{Style.RESET_ALL} Back")
     choice = input("Select: ").strip().lower()
 
     if choice in ("b", "0", ""):

@@ -113,8 +113,8 @@ def get_app_categories(app_config: dict | None = None) -> dict:
     """Return the ``{category_name: {active, entries}}`` mapping.
 
     Supports two config layouts:
-    * Wrapped:  ``{"categories": {"supported-apps": {...}, ...}}``
-    * Flat:     ``{"supported-apps": {...}, "deprecated-apps": {...}, ...}``
+    * Wrapped:  ``{"categories": {"supported": {...}, ...}}``
+    * Flat:     ``{"supported": {...}, "deprecated": {...}, ...}``
     """
     if app_config is None:
         app_config = load_app_config()

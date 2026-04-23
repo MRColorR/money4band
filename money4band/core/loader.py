@@ -7,9 +7,12 @@ import logging
 import os
 import sys
 import types
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from money4band.core.crypto import decrypt_to_dict, is_encrypted
+
+if TYPE_CHECKING:
+    from money4band.apps.schema import CatalogEntry
 
 logger = logging.getLogger(__name__)
 
@@ -110,8 +113,6 @@ def get_active_app_categories(app_config: dict[str, Any]) -> list[str]:
 
     Each category is a dict with ``"active": true/false`` and
     ``"entries": [...]``.  Only categories marked active are returned.
-
-    Falls back to ``["supported-apps"]`` for legacy flat-list configs.
     """
     return [
         key
@@ -136,6 +137,44 @@ def get_category_entries(
 def get_install_limit(app_entry: dict[str, Any]) -> int:
     """Return the install_limit for an app entry (-1 = unlimited)."""
     return app_entry.get("install_limit", -1)
+
+
+def load_catalog_entries(
+    app_config: dict[str, Any],
+    *,
+    categories: list[str] | None = None,
+) -> list[CatalogEntry]:
+    """Return typed :class:`CatalogEntry` objects for *app_config*.
+
+    Phase-8.1 additive helper.  Existing consumers that use
+    :func:`get_category_entries` keep working unchanged — this function
+    simply wraps the same dicts in dataclasses.
+
+    Arguments:
+    app_config -- previously loaded app-config (post-overlay merge).
+    categories -- explicit list of category keys to include.  When
+        ``None`` (default), every category that carries an ``entries``
+        list is included regardless of its ``active`` flag — callers that
+        want only active ones should filter the result on ``.category``
+        after calling :func:`get_active_app_categories`.
+    """
+    from money4band.apps.schema import SOURCE_BUILTIN, CatalogEntry
+
+    if categories is None:
+        categories = get_all_app_categories(app_config)
+
+    out: list[CatalogEntry] = []
+    for cat_key in categories:
+        for raw in get_category_entries(app_config, cat_key):
+            if not isinstance(raw, dict):
+                continue
+            try:
+                out.append(
+                    CatalogEntry.from_raw(raw, source=SOURCE_BUILTIN, category=cat_key)
+                )
+            except (TypeError, ValueError) as exc:
+                logger.warning("Skipping invalid catalog entry in %s: %s", cat_key, exc)
+    return out
 
 
 def load_module_from_file(module_name: str, file_path: str) -> types.ModuleType:

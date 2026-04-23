@@ -137,7 +137,9 @@ class TestRunDashboardCommand:
             patch("money4band.api.server.configure"),
             patch("money4band.api.server.find_dashboard_port", return_value=8088),
             patch("money4band.api.server.start_server") as mock_start,
-            patch("money4band.dashboard.setup.ensure_api_key_on_disk", return_value="k"),
+            patch(
+                "money4band.dashboard.setup.ensure_api_key_on_disk", return_value="k"
+            ),
         ):
             from money4band.dashboard.cli import run_dashboard_command
 
@@ -148,9 +150,14 @@ class TestRunDashboardCommand:
         with (
             patch("money4band.api.server.configure"),
             patch("money4band.api.server.find_dashboard_port", return_value=8088),
-            patch("money4band.dashboard.setup.ensure_api_key_on_disk", return_value="k"),
+            patch(
+                "money4band.dashboard.setup.ensure_api_key_on_disk", return_value="k"
+            ),
             patch("money4band.dashboard.setup.read_dashboard_pid", return_value=None),
-            patch("money4band.dashboard.setup.spawn_dashboard_background", return_value=12345) as mock_spawn,
+            patch(
+                "money4band.dashboard.setup.spawn_dashboard_background",
+                return_value=12345,
+            ) as mock_spawn,
             patch("money4band.network.networker.is_port_in_use", return_value=True),
         ):
             from money4band.dashboard.cli import run_dashboard_command
@@ -163,7 +170,9 @@ class TestRunDashboardCommand:
             patch("money4band.api.server.configure"),
             patch("money4band.api.server.find_dashboard_port", return_value=8089),
             patch("money4band.api.server.start_server"),
-            patch("money4band.dashboard.setup.ensure_api_key_on_disk", return_value="k"),
+            patch(
+                "money4band.dashboard.setup.ensure_api_key_on_disk", return_value="k"
+            ),
         ):
             from money4band.dashboard.cli import run_dashboard_command
 
@@ -177,7 +186,9 @@ class TestRunDashboardCommand:
             patch("money4band.api.server.configure"),
             patch("money4band.api.server.find_dashboard_port", return_value=9090),
             patch("money4band.api.server.start_server") as mock_start,
-            patch("money4band.dashboard.setup.ensure_api_key_on_disk", return_value="k"),
+            patch(
+                "money4band.dashboard.setup.ensure_api_key_on_disk", return_value="k"
+            ),
         ):
             from money4band.dashboard.cli import run_dashboard_command
 
@@ -211,9 +222,10 @@ class TestRunDashboardCommand:
         with (
             patch("money4band.api.server.configure"),
             patch("money4band.dashboard.setup.read_dashboard_pid", return_value=99),
-            patch("money4band.core.loader.load_json_config", return_value={
-                "m4b_dashboard": {"enabled": True, "port": 8088}
-            }),
+            patch(
+                "money4band.core.loader.load_json_config",
+                return_value={"m4b_dashboard": {"enabled": True, "port": 8088}},
+            ),
         ):
             from money4band.dashboard.cli import run_dashboard_command
 
@@ -226,9 +238,10 @@ class TestRunDashboardCommand:
         with (
             patch("money4band.api.server.configure"),
             patch("money4band.dashboard.setup.read_dashboard_pid", return_value=None),
-            patch("money4band.core.loader.load_json_config", return_value={
-                "m4b_dashboard": {"enabled": False, "port": 8088}
-            }),
+            patch(
+                "money4band.core.loader.load_json_config",
+                return_value={"m4b_dashboard": {"enabled": False, "port": 8088}},
+            ),
         ):
             from money4band.dashboard.cli import run_dashboard_command
 
@@ -329,7 +342,9 @@ class TestRunDashboardCommand:
         with (
             patch("money4band.api.server.configure"),
             patch("money4band.api.server.find_dashboard_port", return_value=8088),
-            patch("money4band.dashboard.setup.ensure_api_key_on_disk", return_value="k"),
+            patch(
+                "money4band.dashboard.setup.ensure_api_key_on_disk", return_value="k"
+            ),
             patch("money4band.dashboard.setup.read_dashboard_pid", return_value=999),
         ):
             from money4band.dashboard.cli import run_dashboard_command
@@ -380,9 +395,7 @@ class TestCmdDashboard:
         assert "start" in out
 
     def test_start_delegates_to_dashboard_cli(self):
-        with patch(
-            "money4band.dashboard.cli.run_dashboard_command"
-        ) as mock_run:
+        with patch("money4band.dashboard.cli.run_dashboard_command") as mock_run:
             from main import _cmd_dashboard
 
             args = argparse.Namespace(
@@ -402,9 +415,7 @@ class TestCmdDashboard:
             )
 
     def test_stop_delegates_to_dashboard_cli(self):
-        with patch(
-            "money4band.dashboard.cli.run_dashboard_command"
-        ) as mock_run:
+        with patch("money4band.dashboard.cli.run_dashboard_command") as mock_run:
             from main import _cmd_dashboard
 
             args = argparse.Namespace(
@@ -419,9 +430,7 @@ class TestCmdDashboard:
             )
 
     def test_status_delegates_to_dashboard_cli(self):
-        with patch(
-            "money4band.dashboard.cli.run_dashboard_command"
-        ) as mock_run:
+        with patch("money4band.dashboard.cli.run_dashboard_command") as mock_run:
             from main import _cmd_dashboard
 
             args = argparse.Namespace(

@@ -79,20 +79,20 @@ class TestGetAppCatalog:
     @pytest.fixture()
     def app_config(self) -> dict:
         return {
-            "supported-apps": {
+            "supported": {
                 "active": True,
                 "entries": [{"name": "EARNAPP", "link": "https://example.com"}],
             },
-            "deprecated-apps": {
+            "deprecated": {
                 "active": False,
-                "entries": [{"name": "WIPTER", "removal_reason": "broken"}],
+                "entries": [{"name": "WIPTER", "additional_details": "broken"}],
             },
         }
 
     def test_returns_dict(self, app_config: dict) -> None:
         result = get_app_catalog(app_config)
         assert isinstance(result, dict)
-        assert "supported-apps" in result
+        assert "supported" in result
 
     def test_rich_returns_list(self, app_config: dict) -> None:
         result = get_app_catalog_rich(app_config)
@@ -100,7 +100,7 @@ class TestGetAppCatalog:
 
     def test_missing_category(self) -> None:
         result = get_app_catalog({})
-        assert result["supported-apps"] == []
+        assert result["supported"] == []
 
 
 # ---------------------------------------------------------------------------
@@ -203,7 +203,9 @@ class TestGetStackStatus:
         "money4band.docker.compose_builder.get_compose_files",
         return_value=["docker-compose.yaml"],
     )
-    @patch("money4band.docker.helper.get_compose_project_name", return_value="money4band")
+    @patch(
+        "money4band.docker.helper.get_compose_project_name", return_value="money4band"
+    )
     def test_returns_ps_output(self, _proj, _files, mock_run) -> None:
         from money4band.services import get_stack_status
 
@@ -258,18 +260,18 @@ class TestResetUserConfig:
 
 class TestGetAppCatalogRich:
     SAMPLE_APP_CFG: dict[str, Any] = {
-        "supported-apps": {
+        "supported": {
             "active": True,
             "entries": [
                 {"name": "EARNAPP", "link": "https://earnapp.com"},
                 {"name": "HONEYGAIN", "link": "https://honeygain.com"},
             ],
         },
-        "deprecated-apps": {
+        "deprecated": {
             "active": False,
-            "entries": [{"name": "GRASS", "removal_reason": "TOS violations"}],
+            "entries": [{"name": "GRASS", "additional_details": "TOS violations"}],
         },
-        "candidate-apps": {
+        "newcomers": {
             "active": True,
             "entries": [{"name": "SPIDE"}],
         },
@@ -295,11 +297,15 @@ class TestGetSystemInfoStructured:
         "system": {"default_docker_platform": "linux/amd64"},
         "resource_profiles": {
             "profiles": {
-                "standard": {"description": "Standard", "cpu_pct": 0.60, "ram_pct": 0.40}
+                "standard": {
+                    "description": "Standard",
+                    "cpu_pct": 0.60,
+                    "ram_pct": 0.40,
+                }
             },
         },
     }
-    _APP = {"supported-apps": {"active": True, "entries": [{"name": "A"}]}}
+    _APP = {"supported": {"active": True, "entries": [{"name": "A"}]}}
     _USR = {
         "device_info": {
             "os_type": "Linux",
@@ -313,7 +319,9 @@ class TestGetSystemInfoStructured:
     }
 
     @patch("money4band.docker.compose_builder.get_compose_files", return_value=[])
-    @patch("money4band.system.detector.get_system_memory_and_cores", return_value=(8192, 4))
+    @patch(
+        "money4band.system.detector.get_system_memory_and_cores", return_value=(8192, 4)
+    )
     @patch("money4band.updater.check_for_update", return_value=None)
     @patch("shutil.which", return_value=None)
     def test_returns_dict_with_expected_keys(self, _which, _upd, _mem, _comp):
@@ -327,7 +335,10 @@ class TestGetSystemInfoStructured:
         "money4band.docker.compose_builder.get_compose_files",
         return_value=["c1.yml", "c2.yml"],
     )
-    @patch("money4band.system.detector.get_system_memory_and_cores", return_value=(16384, 8))
+    @patch(
+        "money4band.system.detector.get_system_memory_and_cores",
+        return_value=(16384, 8),
+    )
     @patch("money4band.updater.check_for_update", return_value="6.0.0")
     @patch("shutil.which", return_value="/usr/bin/docker")
     @patch("money4band.docker.helper.is_docker_daemon_running", return_value=False)
@@ -360,7 +371,7 @@ class TestGetSystemInfoText:
                 },
             },
         }
-        app_cfg = {"supported-apps": {"active": True, "entries": []}}
+        app_cfg = {"supported": {"active": True, "entries": []}}
         usr_cfg = {
             "device_info": {
                 "os_type": "Linux",
@@ -383,7 +394,9 @@ class TestStartStopAllStacks:
     @patch("subprocess.run", return_value=MagicMock(stdout="", returncode=0))
     @patch("builtins.input", return_value="")
     @patch("time.sleep")
-    def test_start_all_returns_string(self, _sleep, _inp, _sub, _group, _start, tmp_path):
+    def test_start_all_returns_string(
+        self, _sleep, _inp, _sub, _group, _start, tmp_path
+    ):
         from money4band.services import start_all_stacks as svc_start_all
 
         env_file = tmp_path / ".env"

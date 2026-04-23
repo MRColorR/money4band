@@ -191,7 +191,7 @@ class TestConfigureApps:
 
     @patch(
         "money4band.apps.configurator.get_active_app_categories",
-        return_value=["supported-apps"],
+        return_value=["supported"],
     )
     @patch("money4band.apps.configurator.get_category_entries", return_value=[])
     @patch("money4band.apps.configurator.cls")

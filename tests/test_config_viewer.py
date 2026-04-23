@@ -30,10 +30,10 @@ class TestMaskDict:
         assert masked["apps"]["honeygain"]["enabled"] is True
 
     def test_preserves_safe_keys(self):
-        data = {"name": "my-device", "category": "supported-apps"}
+        data = {"name": "my-device", "category": "supported"}
         masked = _mask_dict(data)
         assert masked["name"] == "my-device"
-        assert masked["category"] == "supported-apps"
+        assert masked["category"] == "supported"
 
     def test_preserves_non_string_values(self):
         data = {"port": 8080, "enabled": False, "tags": ["a", "b"]}
@@ -131,9 +131,7 @@ class TestEditConfig:
 
         with (
             patch("money4band.core.viewer.load_json_config", return_value=cfg),
-            patch(
-                "money4band.core.viewer.subprocess.run", side_effect=corrupt_editor
-            ),
+            patch("money4band.core.viewer.subprocess.run", side_effect=corrupt_editor),
         ):
             edit_config(str(config_file))
 
