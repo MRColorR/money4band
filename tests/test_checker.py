@@ -142,7 +142,9 @@ class TestFetchDockerTags(unittest.TestCase):
     def test_http_error_returns_none(self, mock_get_client):
         mock_client = MagicMock()
         mock_resp = MagicMock()
-        mock_resp.raise_for_status.side_effect = httpx.HTTPStatusError("404 Not Found", request=MagicMock(), response=MagicMock())
+        mock_resp.raise_for_status.side_effect = httpx.HTTPStatusError(
+            "404 Not Found", request=MagicMock(), response=MagicMock()
+        )
         mock_client.get.return_value = mock_resp
         mock_get_client.return_value = mock_client
 
@@ -167,18 +169,27 @@ class TestFetchDockerTags(unittest.TestCase):
 
 
 class TestCheckImgArchSupport(unittest.TestCase):
-    @patch("money4band.docker.checker.fetch_docker_tags", return_value=DOCKERHUB_TAGS_RESPONSE)
+    @patch(
+        "money4band.docker.checker.fetch_docker_tags",
+        return_value=DOCKERHUB_TAGS_RESPONSE,
+    )
     def test_arch_supported(self, _mock):
         result = check_img_arch_support("honeygain/honeygain", "latest", "linux/amd64")
         self.assertTrue(result)
 
-    @patch("money4band.docker.checker.fetch_docker_tags", return_value=DOCKERHUB_TAGS_RESPONSE)
+    @patch(
+        "money4band.docker.checker.fetch_docker_tags",
+        return_value=DOCKERHUB_TAGS_RESPONSE,
+    )
     def test_arch_not_supported(self, _mock):
         # "lite" tag only has amd64
         result = check_img_arch_support("honeygain/honeygain", "lite", "linux/arm64")
         self.assertFalse(result)
 
-    @patch("money4band.docker.checker.fetch_docker_tags", return_value=DOCKERHUB_TAGS_RESPONSE)
+    @patch(
+        "money4band.docker.checker.fetch_docker_tags",
+        return_value=DOCKERHUB_TAGS_RESPONSE,
+    )
     def test_tag_not_found(self, _mock):
         result = check_img_arch_support(
             "honeygain/honeygain", "nonexistent", "linux/amd64"
@@ -199,7 +210,10 @@ class TestCheckImgArchSupport(unittest.TestCase):
         )
         self.assertIsNone(result)
 
-    @patch("money4band.docker.checker.fetch_docker_tags", return_value=DOCKERHUB_TAGS_RESPONSE)
+    @patch(
+        "money4band.docker.checker.fetch_docker_tags",
+        return_value=DOCKERHUB_TAGS_RESPONSE,
+    )
     def test_multi_arch_tag(self, _mock):
         """'latest' has both amd64 and arm64 — both should be detected."""
         self.assertTrue(check_img_arch_support("img", "latest", "linux/amd64"))
@@ -207,13 +221,19 @@ class TestCheckImgArchSupport(unittest.TestCase):
 
 
 class TestGetCompatibleTag(unittest.TestCase):
-    @patch("money4band.docker.checker.fetch_docker_tags", return_value=DOCKERHUB_TAGS_RESPONSE)
+    @patch(
+        "money4band.docker.checker.fetch_docker_tags",
+        return_value=DOCKERHUB_TAGS_RESPONSE,
+    )
     def test_finds_compatible_tag(self, _mock):
         # Both "latest" and "lite" support amd64
         result = get_compatible_tag("honeygain/honeygain", "linux/amd64")
         self.assertIn(result, ["latest", "lite"])
 
-    @patch("money4band.docker.checker.fetch_docker_tags", return_value=DOCKERHUB_TAGS_RESPONSE)
+    @patch(
+        "money4band.docker.checker.fetch_docker_tags",
+        return_value=DOCKERHUB_TAGS_RESPONSE,
+    )
     @patch("money4band.docker.checker.ensure_service")
     def test_no_compatible_tag_triggers_binfmt(self, mock_ensure, _mock_tags):
         # No tag supports "riscv64"

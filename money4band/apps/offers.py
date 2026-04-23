@@ -38,8 +38,8 @@ def load_external_offers(offers_path: str) -> list[dict[str, Any]]:
 def _app_offers_from_config(app_config_path: str) -> list[dict[str, Any]]:
     """Derive referral offers from app-config.json — single source of truth.
 
-    Each supported app with a ``link`` field becomes an offer entry
-    with ``m4b_app=True``.  Earnings metadata is pulled from
+    Each supported app with a non-empty ``referrals`` pool becomes an
+    offer entry with ``m4b_app=True``.  Earnings metadata is pulled from
     ``app_details`` when available.
     """
     if not os.path.isfile(app_config_path):
@@ -52,10 +52,15 @@ def _app_offers_from_config(app_config_path: str) -> list[dict[str, Any]]:
 
     offers: list[dict[str, Any]] = []
     for cat in get_all_app_categories(app_config):
-        if "deprecated" in cat:
+        if cat == "deprecated":
             continue  # skip deprecated apps in offers
         for entry in get_category_entries(app_config, cat):
-            link = entry.get("link")
+            referrals = entry.get("referrals") or []
+            link = (
+                referrals[0].get("url")
+                if referrals and isinstance(referrals[0], dict)
+                else None
+            )
             if not link:
                 continue
             details = entry.get("app_details", {})

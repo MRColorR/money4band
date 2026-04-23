@@ -9,12 +9,14 @@ from money4band.apps.info import _find_app, list_apps, show_app_detail
 # ---------------------------------------------------------------------------
 
 _SAMPLE_CONFIG = {
-    "supported-apps": {
+    "supported": {
         "active": True,
         "entries": [
             {
                 "name": "EARNAPP",
-                "link": "https://earnapp.com/i/ref123",
+                "referrals": [
+                    {"url": "https://earnapp.com/i/ref123", "contributor": "MRColorR"}
+                ],
                 "install_limit": 1,
                 "compose_layer": "residential",
                 "compose_config": {"image": "fazalfarhan01/earnapp:lite"},
@@ -57,7 +59,9 @@ _SAMPLE_CONFIG = {
             },
             {
                 "name": "HONEYGAIN",
-                "link": "https://honeygain.com/ref",
+                "referrals": [
+                    {"url": "https://honeygain.com/ref", "contributor": "MRColorR"}
+                ],
                 "install_limit": -1,
                 "compose_layer": "residential",
                 "compose_config": {"image": "honeygain/honeygain"},
@@ -72,12 +76,12 @@ _SAMPLE_CONFIG = {
             },
         ],
     },
-    "deprecated-apps": {
+    "deprecated": {
         "active": False,
         "entries": [
             {
                 "name": "WIPTER",
-                "link": "https://wipter.com",
+                "referrals": [{"url": "https://wipter.com", "contributor": "MRColorR"}],
                 "install_limit": -1,
                 "compose_layer": "residential",
                 "compose_config": {"image": "wipter/wipter"},
@@ -92,12 +96,14 @@ _SAMPLE_CONFIG = {
             },
         ],
     },
-    "candidate-apps": {
+    "newcomers": {
         "active": False,
         "entries": [
             {
                 "name": "SPIDE",
-                "link": "https://spide.network",
+                "referrals": [
+                    {"url": "https://spide.network", "contributor": "MRColorR"}
+                ],
                 "install_limit": -1,
                 "compose_config": {"image": "spide/spide"},
                 "app_details": {
@@ -124,7 +130,7 @@ class TestFindApp:
         entry, cat = _find_app(_SAMPLE_CONFIG, "EARNAPP")
         assert entry is not None
         assert entry["name"] == "EARNAPP"
-        assert cat == "supported-apps"
+        assert cat == "supported"
 
     def test_find_case_insensitive(self):
         entry, cat = _find_app(_SAMPLE_CONFIG, "earnapp")
@@ -139,12 +145,12 @@ class TestFindApp:
     def test_find_deprecated(self):
         entry, cat = _find_app(_SAMPLE_CONFIG, "wipter")
         assert entry is not None
-        assert cat == "deprecated-apps"
+        assert cat == "deprecated"
 
     def test_find_candidate(self):
         entry, cat = _find_app(_SAMPLE_CONFIG, "spide")
         assert entry is not None
-        assert cat == "candidate-apps"
+        assert cat == "newcomers"
 
     def test_not_found(self):
         entry, cat = _find_app(_SAMPLE_CONFIG, "nonexistent")

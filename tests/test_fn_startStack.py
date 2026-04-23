@@ -58,7 +58,9 @@ class TestStartStack:
     @patch("money4band.docker.start.get_compose_project_name", return_value="m4b")
     @patch("money4band.docker.start.show_spinner")
     @patch("money4band.docker.start.is_user_root", return_value=True)
-    def test_successful_start(self, _root, _spin, _proj, mock_run, _notify, tmp_path) -> None:
+    def test_successful_start(
+        self, _root, _spin, _proj, mock_run, _notify, tmp_path
+    ) -> None:
         env = tmp_path / ".env"
         env.write_text("DEVICE_NAME=test\nCOMPOSE_PROJECT_NAME=m4b\n")
         result = start_stack(
@@ -142,7 +144,9 @@ class TestStartStack:
     @patch("money4band.docker.start.get_compose_project_name", return_value="m4b")
     @patch("money4band.docker.start.show_spinner")
     @patch("money4band.docker.start.is_user_root", return_value=True)
-    def test_multi_compose_files(self, _root, _spin, _proj, mock_run, _notify, tmp_path) -> None:
+    def test_multi_compose_files(
+        self, _root, _spin, _proj, mock_run, _notify, tmp_path
+    ) -> None:
         env = tmp_path / ".env"
         env.write_text("DEVICE_NAME=test\n")
         result = start_stack(
@@ -159,7 +163,9 @@ class TestStartStack:
     @patch("money4band.docker.start.get_compose_project_name", return_value="m4b")
     @patch("money4band.docker.start.show_spinner")
     @patch("money4band.docker.start.is_user_root", return_value=True)
-    def test_passes_profiles(self, _root, _spin, _proj, mock_run, _notify, tmp_path) -> None:
+    def test_passes_profiles(
+        self, _root, _spin, _proj, mock_run, _notify, tmp_path
+    ) -> None:
         env = tmp_path / ".env"
         env.write_text("DEVICE_NAME=test\n")
         result = start_stack(
@@ -184,7 +190,14 @@ class TestStartAllStacks:
     @patch("builtins.input", return_value="")
     @patch("time.sleep")
     def test_starts_main_stack(
-        self, _sleep, _inp, mock_sub_run, _ask, _group, mock_start, _dashurls,
+        self,
+        _sleep,
+        _inp,
+        mock_sub_run,
+        _ask,
+        _group,
+        mock_start,
+        _dashurls,
         tmp_path,
     ):
         mock_sub_run.return_value = MagicMock(stdout="", returncode=0)
@@ -423,7 +436,10 @@ class TestStartAllStacksRunningContainerWarning:
 class TestStartStackMain:
     @patch("money4band.docker.start.start_all_stacks")
     @patch("money4band.docker.start.loader.load_json_config")
-    @patch("money4band.docker.compose_builder.get_compose_files", return_value=["compose.yml"])
+    @patch(
+        "money4band.docker.compose_builder.get_compose_files",
+        return_value=["compose.yml"],
+    )
     @patch("money4band.docker.start.cls")
     @patch("os.path.isfile", return_value=True)
     def test_main_delegates_to_start_all_stacks(

@@ -17,7 +17,7 @@ _BEGIN_MARKER = "<!-- BEGIN:APPS_TABLE -->"
 _END_MARKER = "<!-- END:APPS_TABLE -->"
 
 # Category → display order (lower = first)
-_CATEGORY_ORDER = {"supported-apps": 0, "candidate-apps": 1, "deprecated-apps": 2}
+_CATEGORY_ORDER = {"supported": 0, "newcomers": 1, "deprecated": 2}
 
 # Status → emoji mapping
 _STATUS_EMOJI: dict[str, str] = {
@@ -45,9 +45,9 @@ def _bool_md(val: Any) -> str:
 
 def _effective_status(category: str, details: dict[str, Any]) -> str:
     """Derive display status from category + app_details.status."""
-    if "deprecated" in category:
+    if category == "deprecated":
         return details.get("status", "deprecated")
-    if "candidate" in category:
+    if category == "newcomers":
         return "candidate"
     return details.get("status", "active")
 
@@ -107,6 +107,12 @@ def _collect_apps(app_config: dict[str, Any]) -> list[dict[str, Any]]:
         order = _CATEGORY_ORDER.get(cat, 99)
         for entry in get_category_entries(app_config, cat):
             details = entry.get("app_details", {})
+            referrals = entry.get("referrals") or []
+            primary_link = (
+                referrals[0].get("url", "")
+                if referrals and isinstance(referrals[0], dict)
+                else ""
+            )
             apps.append(
                 {
                     "entry": entry,
@@ -114,7 +120,7 @@ def _collect_apps(app_config: dict[str, Any]) -> list[dict[str, Any]]:
                     "category": cat,
                     "order": order,
                     "name": details.get("official_name", entry.get("name", "?")),
-                    "link": entry.get("link", ""),
+                    "link": primary_link,
                     "status": _effective_status(cat, details),
                 }
             )
@@ -128,7 +134,7 @@ def _collect_apps(app_config: dict[str, Any]) -> list[dict[str, Any]]:
 
 
 def generate_readme_table(app_config: dict[str, Any]) -> str:
-    """Generate the compact supported-apps markdown table for README.md."""
+    """Generate the compact supported markdown table for README.md."""
     apps = _collect_apps(app_config)
 
     lines = [

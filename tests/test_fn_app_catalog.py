@@ -23,38 +23,58 @@ def _collect_output(mock_print) -> str:
 
 class TestFnAppCatalog(unittest.TestCase):
     _APP_CONFIG = {
-        "supported-apps": {
+        "supported": {
             "active": True,
             "entries": [
                 {
                     "name": "EARNAPP",
                     "dashboard": "https://earnapp.com/dashboard",
-                    "link": "https://earnapp.com/i/3zulx7k",
+                    "referrals": [
+                        {
+                            "url": "https://earnapp.com/i/3zulx7k",
+                            "contributor": "MRColorR",
+                        }
+                    ],
                     "compose_layer": "residential",
                 },
                 {
                     "name": "HONEYGAIN",
                     "dashboard": "https://dashboard.honeygain.com/",
-                    "link": "https://r.honeygain.me/MINDL15721",
+                    "referrals": [
+                        {
+                            "url": "https://r.honeygain.me/MINDL15721",
+                            "contributor": "MRColorR",
+                        }
+                    ],
                     "compose_layer": "residential",
                 },
                 {
                     "name": "MYSTNODE",
                     "manual_onboard": True,
                     "dashboard": "https://mystnodes.com/nodes",
-                    "link": "https://mystnodes.co/?referral_code=Tc7RaS7Fm12K3Xun6mlU9q9hbnjojjl9aRBW8ZA9",
+                    "referrals": [
+                        {
+                            "url": "https://mystnodes.co/?referral_code=Tc7RaS7Fm12K3Xun6mlU9q9hbnjojjl9aRBW8ZA9",
+                            "contributor": "MRColorR",
+                        }
+                    ],
                     "compose_layer": "universal",
                 },
             ],
         },
-        "deprecated-apps": {
+        "deprecated": {
             "active": False,
             "entries": [
                 {
                     "name": "GRASS",
-                    "removal_reason": "Docker image unavailability",
+                    "additional_details": "Docker image unavailability",
                     "dashboard": "https://app.getgrass.io/dashboard",
-                    "link": "https://app.getgrass.io/register/?referralCode=qyvJmxgNUhcLo2f",
+                    "referrals": [
+                        {
+                            "url": "https://app.getgrass.io/register/?referralCode=qyvJmxgNUhcLo2f",
+                            "contributor": "MRColorR",
+                        }
+                    ],
                     "compose_layer": "residential",
                 },
             ],
@@ -80,8 +100,8 @@ class TestFnAppCatalog(unittest.TestCase):
         out = _collect_output(mock_print)
 
         # Category headers
-        self.assertIn("--- SUPPORTED-APPS [ACTIVE] ---", out)
-        self.assertIn("--- DEPRECATED-APPS [INACTIVE] ---", out)
+        self.assertIn("--- SUPPORTED [ACTIVE] ---", out)
+        self.assertIn("--- DEPRECATED [INACTIVE] ---", out)
 
         # All four column headers present (wide = single-line mode)
         self.assertIn("Name", out)
@@ -198,13 +218,13 @@ class TestFnAppCatalog(unittest.TestCase):
 
 class TestManageCategories(unittest.TestCase):
     _APP_CONFIG = {
-        "supported-apps": {
+        "supported": {
             "active": True,
             "entries": [
                 {"name": "APP1", "link": "", "compose_layer": "residential"},
             ],
         },
-        "deprecated-apps": {
+        "deprecated": {
             "active": False,
             "entries": [
                 {"name": "APP2", "link": "", "compose_layer": "universal"},
@@ -257,12 +277,14 @@ class TestManageCategories(unittest.TestCase):
 
 class TestDisplayCatalog(unittest.TestCase):
     _APP_CONFIG = {
-        "supported-apps": {
+        "supported": {
             "active": True,
             "entries": [
                 {
                     "name": "TESTAPP",
-                    "link": "https://example.com",
+                    "referrals": [
+                        {"url": "https://example.com", "contributor": "MRColorR"}
+                    ],
                     "compose_layer": "residential",
                     "app_details": {"earnings": {"min_payout": "$5"}},
                 },
@@ -287,13 +309,13 @@ class TestDisplayCatalog(unittest.TestCase):
 
 class TestManageCategoriesEdgeCases(unittest.TestCase):
     _APP_CONFIG = {
-        "supported-apps": {
+        "supported": {
             "active": True,
             "entries": [
                 {"name": "A1", "link": "", "compose_layer": "residential"},
             ],
         },
-        "deprecated-apps": {
+        "deprecated": {
             "active": False,
             "entries": [
                 {"name": "A2", "link": "", "compose_layer": "universal"},
@@ -309,7 +331,7 @@ class TestManageCategoriesEdgeCases(unittest.TestCase):
         cfg = copy.deepcopy(self._APP_CONFIG)
         _manage_categories(cfg, None)
         # Should not crash, active states unchanged
-        self.assertTrue(cfg["supported-apps"]["active"])
+        self.assertTrue(cfg["supported"]["active"])
 
     @patch("money4band.apps.catalog.input", create=True, return_value="")
     def test_empty_input_returns(self, _inp):
@@ -318,7 +340,7 @@ class TestManageCategoriesEdgeCases(unittest.TestCase):
         cfg = copy.deepcopy(self._APP_CONFIG)
         _manage_categories(cfg, None)
         # No change
-        self.assertTrue(cfg["supported-apps"]["active"])
+        self.assertTrue(cfg["supported"]["active"])
 
     def test_empty_config_shows_no_categories(self):
         """No categories found → prints message and returns."""

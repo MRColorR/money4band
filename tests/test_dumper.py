@@ -23,7 +23,9 @@ class TestDumperWriteJson(unittest.TestCase):
             os.unlink(path)
 
     @patch("money4band.core.dumper.is_file_encrypted", return_value=True)
-    @patch("money4band.core.dumper.encrypt_dict", return_value="M4B_ENCRYPTED:ciphertext")
+    @patch(
+        "money4band.core.dumper.encrypt_dict", return_value="M4B_ENCRYPTED:ciphertext"
+    )
     def test_write_encrypted(self, mock_encrypt, mock_is_enc):
         data = {"secret": "password123"}
         with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:

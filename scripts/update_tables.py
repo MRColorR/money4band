@@ -15,6 +15,12 @@ import json
 import sys
 from pathlib import Path
 
+# Force UTF-8 on stdout/stderr so emoji/unicode logging works under Windows cp1252.
+for _stream in (sys.stdout, sys.stderr):
+    reconfigure = getattr(_stream, "reconfigure", None)
+    if callable(reconfigure):
+        reconfigure(encoding="utf-8", errors="replace")
+
 # Ensure project root is importable
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
@@ -50,7 +56,9 @@ def main() -> int:
     if args.check:
         # Snapshot current content
         readme_before = readme_path.read_text(encoding="utf-8")
-        apps_md_before = apps_md_path.read_text(encoding="utf-8") if apps_md_path.exists() else ""
+        apps_md_before = (
+            apps_md_path.read_text(encoding="utf-8") if apps_md_path.exists() else ""
+        )
 
         # Regenerate in place
         update_readme(app_config, readme_path)
@@ -58,7 +66,9 @@ def main() -> int:
             update_apps_md(app_config, apps_md_path)
 
         readme_after = readme_path.read_text(encoding="utf-8")
-        apps_md_after = apps_md_path.read_text(encoding="utf-8") if apps_md_path.exists() else ""
+        apps_md_after = (
+            apps_md_path.read_text(encoding="utf-8") if apps_md_path.exists() else ""
+        )
 
         # Restore originals
         readme_path.write_text(readme_before, encoding="utf-8")

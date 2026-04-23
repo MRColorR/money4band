@@ -81,25 +81,22 @@ class TestAuthMiddleware:
         with mock.patch.object(api, "_get_session_salt", return_value=b"salt"):
             with mock.patch("money4band.api.server._run_docker") as m:
                 m.return_value = mock.Mock(returncode=0, stdout="", stderr="")
-                resp = auth_client.get(
-                    "/api/status", cookies={"m4b_token": token}
-                )
+                resp = auth_client.get("/api/status", cookies={"m4b_token": token})
         assert resp.status_code == 200
 
     def test_expired_session_cookie_returns_401(self, auth_client: TestClient):
         # Manually craft a token from 3 days ago — well past the grace window.
         with mock.patch.object(api, "_get_session_salt", return_value=b"salt"):
             old_epoch = str(int(time.time()) // 86400 - 3)
-            import hashlib, hmac as _hmac
+            import hashlib
+            import hmac as _hmac
 
             stale_token = _hmac.new(
                 b"salt", f"{_TEST_KEY}:{old_epoch}".encode(), hashlib.sha256
             ).hexdigest()
 
         with mock.patch.object(api, "_get_session_salt", return_value=b"salt"):
-            resp = auth_client.get(
-                "/api/status", cookies={"m4b_token": stale_token}
-            )
+            resp = auth_client.get("/api/status", cookies={"m4b_token": stale_token})
         assert resp.status_code == 401
 
     def test_previous_day_grace_window_returns_200(self, auth_client: TestClient):
@@ -109,9 +106,7 @@ class TestAuthMiddleware:
         with mock.patch.object(api, "_get_session_salt", return_value=b"salt"):
             with mock.patch("money4band.api.server._run_docker") as m:
                 m.return_value = mock.Mock(returncode=0, stdout="", stderr="")
-                resp = auth_client.get(
-                    "/api/status", cookies={"m4b_token": prev_token}
-                )
+                resp = auth_client.get("/api/status", cookies={"m4b_token": prev_token})
         assert resp.status_code == 200
 
     def test_public_endpoints_bypass_auth(self, auth_client: TestClient):
@@ -124,7 +119,6 @@ class TestAuthMiddleware:
         """When *not* exposed, loopback clients skip auth entirely."""
         api._api_key = _TEST_KEY
         api._exposed = False
-        client = TestClient(app)
         # TestClient default host is "testclient" — *not* in _LOOPBACK,
         # so we can't truly test the loopback path via TestClient.
         # Instead, verify the logic directly:
@@ -178,9 +172,7 @@ class TestRateLimiter:
 
         # Simulate window expiration by shifting all timestamps back.
         for ip, dq in api._rate_log.items():
-            api._rate_log[ip] = collections.deque(
-                t - api._RATE_WINDOW - 1 for t in dq
-            )
+            api._rate_log[ip] = collections.deque(t - api._RATE_WINDOW - 1 for t in dq)
 
         with mock.patch("money4band.api.server._run_docker") as m:
             m.return_value = mock.Mock(returncode=0, stdout="", stderr="")
@@ -264,8 +256,6 @@ class TestDeepMergeTypeGuard:
             "money4band.api.router_config.load_user_config",
             return_value={"m4b_dashboard": {"api_key": "secret"}},
         ):
-            resp = client.put(
-                "/api/config/user", json=payload, headers=headers
-            )
+            resp = client.put("/api/config/user", json=payload, headers=headers)
         assert resp.status_code == 400
         assert "must be an object" in resp.json()["detail"].lower()

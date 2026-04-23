@@ -16,8 +16,9 @@ import os
 import stat
 import tempfile
 import threading
+from collections.abc import Generator
 from contextlib import contextmanager
-from typing import Any, Generator
+from typing import Any
 
 from money4band.core.loader import (
     get_active_app_categories,
@@ -29,14 +30,16 @@ from money4band.docker.helper import show_spinner
 logger = logging.getLogger(__name__)
 
 # Keys whose values are safe to persist in unencrypted .env.meta.
-_META_KEYS = frozenset({
-    "COMPOSE_PROJECT_NAME",
-    "DEVICE_NAME",
-    "PROJECT_VERSION",
-    "PROJECT_NAME",
-    "M4B_WATCHTOWER_LABELS",
-    "M4B_WATCHTOWER_SCOPE",
-})
+_META_KEYS = frozenset(
+    {
+        "COMPOSE_PROJECT_NAME",
+        "DEVICE_NAME",
+        "PROJECT_VERSION",
+        "PROJECT_NAME",
+        "M4B_WATCHTOWER_LABELS",
+        "M4B_WATCHTOWER_SCOPE",
+    }
+)
 
 
 # ---------------------------------------------------------------------------
@@ -135,7 +138,7 @@ def extract_env_value(env_lines: list[str], key: str) -> str | None:
     prefix = f"{key}="
     for line in env_lines:
         if line.startswith(prefix):
-            return line[len(prefix):]
+            return line[len(prefix) :]
     return None
 
 
@@ -272,7 +275,9 @@ def generate_env_file(
         app_config = load_json_config(app_config_path_or_dict)
         user_config = load_json_config(user_config_path_or_dict)
 
-        env_lines = build_env_lines(m4b_config, app_config, user_config, is_main_instance)
+        env_lines = build_env_lines(
+            m4b_config, app_config, user_config, is_main_instance
+        )
 
         # Write the credentials env with restricted permissions.
         _write_secure(env_output_path, "\n".join(env_lines))

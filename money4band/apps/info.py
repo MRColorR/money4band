@@ -52,9 +52,9 @@ def _bool_icon(val: Any) -> str:
 
 
 def _category_badge(app_config: dict[str, Any], category: str) -> str:
-    if "deprecated" in category:
+    if category == "deprecated":
         return f"{Fore.RED}DEPRECATED{Style.RESET_ALL}"
-    if "candidate" in category:
+    if category == "newcomers":
         return f"{Fore.YELLOW}CANDIDATE{Style.RESET_ALL}"
     if is_category_active(app_config, category):
         return f"{Fore.GREEN}ACTIVE{Style.RESET_ALL}"
@@ -88,7 +88,13 @@ def show_app_detail(app_config: dict[str, Any], app_name: str) -> bool:
 
     # Identity
     publisher = details.get("publisher", "—")
-    url = details.get("official_url", entry.get("link", "—"))
+    referrals = entry.get("referrals") or []
+    primary_referral = (
+        referrals[0].get("url", "")
+        if referrals and isinstance(referrals[0], dict)
+        else ""
+    )
+    url = details.get("official_url", primary_referral or "—")
     print(f"\n{Fore.CYAN}Identity{Style.RESET_ALL}")
     print(f"  {'Publisher:':<{w}} {publisher}")
     print(f"  {'Website:':<{w}} {url}")
@@ -97,9 +103,8 @@ def show_app_detail(app_config: dict[str, Any], app_name: str) -> bool:
     if tos:
         print(f"  {'Terms of Service:':<{w}} {tos}")
 
-    link = entry.get("link", "")
-    if link:
-        print(f"  {'Referral link:':<{w}} {link}")
+    if primary_referral:
+        print(f"  {'Referral link:':<{w}} {primary_referral}")
 
     # IP Policy
     ip_policy = details.get("ip_policy", {})
@@ -236,9 +241,9 @@ def list_apps(app_config: dict[str, Any], category_filter: str | None = None) ->
             limit_str = "\u221e" if install_limit == -1 else str(install_limit)
 
             # Status color
-            if "deprecated" in cat:
+            if cat == "deprecated":
                 status = f"{Fore.RED}deprecated{Style.RESET_ALL}"
-            elif "candidate" in cat:
+            elif cat == "newcomers":
                 status = f"{Fore.YELLOW}candidate{Style.RESET_ALL}"
             else:
                 status = f"{Fore.GREEN}active{Style.RESET_ALL}"
@@ -248,8 +253,8 @@ def list_apps(app_config: dict[str, Any], category_filter: str | None = None) ->
             )
 
             # Show removal reason for deprecated apps
-            removal_reason = entry.get("removal_reason", "")
-            if removal_reason and "deprecated" in cat:
-                print(f"    {Fore.YELLOW}↳ {removal_reason}{Style.RESET_ALL}")
+            additional = entry.get("additional_details", "")
+            if additional and cat == "deprecated":
+                print(f"    {Fore.YELLOW}↳ {additional}{Style.RESET_ALL}")
 
     print()

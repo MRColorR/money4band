@@ -68,7 +68,7 @@ def build_app_flag_map(app_config: dict) -> dict[str, list[str]]:
     This lets us know which .env vars to look for per app.
     """
     flag_map: dict[str, list[str]] = {}
-    for category_key in ("supported-apps", "deprecated-apps", "candidate-apps"):
+    for category_key in ("supported", "deprecated", "newcomers"):
         category = app_config.get(category_key, {})
         entries = (
             category.get("entries", category)
@@ -324,7 +324,9 @@ def migrate(project_dir: str, *, dry_run: bool = False) -> bool:
         ensure_config_encrypted(str(user_config_path))
         logger.info("Encrypted config at %s", user_config_path)
     except ImportError:
-        logger.warning("Could not import money4band.core.crypto — config saved as plaintext")
+        logger.warning(
+            "Could not import money4band.core.crypto — config saved as plaintext"
+        )
     except Exception:
         logger.exception("Encryption failed — config saved as plaintext")
 

@@ -15,7 +15,7 @@ from money4band.docker.image_security import (
 )
 
 _SAMPLE_CONFIG = {
-    "supported-apps": {
+    "supported": {
         "active": True,
         "entries": [
             {
@@ -34,7 +34,7 @@ _SAMPLE_CONFIG = {
             },
         ],
     },
-    "deprecated-apps": {
+    "deprecated": {
         "active": False,
         "entries": [
             {
@@ -46,7 +46,7 @@ _SAMPLE_CONFIG = {
             },
         ],
     },
-    "candidate-apps": {
+    "newcomers": {
         "active": False,
         "entries": [
             {

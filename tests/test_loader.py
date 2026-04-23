@@ -129,15 +129,15 @@ class TestCategoryHelpers(unittest.TestCase):
     """Test app-config category query helpers."""
 
     SAMPLE = {
-        "supported-apps": {
+        "supported": {
             "active": True,
             "entries": [{"name": "a", "install_limit": 2}],
         },
-        "deprecated-apps": {
+        "deprecated": {
             "active": False,
             "entries": [{"name": "b"}],
         },
-        "candidate-apps": {
+        "newcomers": {
             "active": True,
             "entries": [],
         },
@@ -146,19 +146,19 @@ class TestCategoryHelpers(unittest.TestCase):
 
     def test_get_all_app_categories(self):
         cats = get_all_app_categories(self.SAMPLE)
-        self.assertIn("supported-apps", cats)
-        self.assertIn("deprecated-apps", cats)
-        self.assertIn("candidate-apps", cats)
+        self.assertIn("supported", cats)
+        self.assertIn("deprecated", cats)
+        self.assertIn("newcomers", cats)
         self.assertNotIn("project", cats)
 
     def test_get_active_app_categories(self):
         cats = get_active_app_categories(self.SAMPLE)
-        self.assertIn("supported-apps", cats)
-        self.assertIn("candidate-apps", cats)
-        self.assertNotIn("deprecated-apps", cats)
+        self.assertIn("supported", cats)
+        self.assertIn("newcomers", cats)
+        self.assertNotIn("deprecated", cats)
 
     def test_get_category_entries(self):
-        entries = get_category_entries(self.SAMPLE, "supported-apps")
+        entries = get_category_entries(self.SAMPLE, "supported")
         self.assertEqual(len(entries), 1)
         self.assertEqual(entries[0]["name"], "a")
 
@@ -216,11 +216,11 @@ class TestLoadAppConfigWithOverlays(unittest.TestCase):
         from money4band.core.loader import load_app_config_with_overlays
 
         with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
-            json.dump({"supported-apps": {"active": True, "entries": []}}, f)
+            json.dump({"supported": {"active": True, "entries": []}}, f)
             path = f.name
         try:
             cfg = load_app_config_with_overlays(path)
-            self.assertIn("supported-apps", cfg)
+            self.assertIn("supported", cfg)
         finally:
             os.unlink(path)
 
@@ -230,11 +230,11 @@ class TestLoadAppConfigWithOverlays(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             config_path = os.path.join(d, "app-config.json")
             with open(config_path, "w") as f:
-                json.dump({"supported-apps": {"active": True, "entries": []}}, f)
+                json.dump({"supported": {"active": True, "entries": []}}, f)
             apps_d = os.path.join(d, "apps.d")
             os.makedirs(apps_d)
             cfg = load_app_config_with_overlays(config_path, apps_d)
-            self.assertIn("supported-apps", cfg)
+            self.assertIn("supported", cfg)
 
 
 class TestGetCategoryEntriesLegacy(unittest.TestCase):

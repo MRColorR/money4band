@@ -148,7 +148,7 @@ def run_app_wizard(apps_d_dir: str) -> dict[str, Any] | None:
     if dashboard:
         entry["dashboard"] = dashboard
     if link:
-        entry["link"] = link
+        entry["referrals"] = [{"url": link, "contributor": "MRColorR"}]
 
     # --- Validate ---
     errors = validate_app_entry(entry)
@@ -178,7 +178,7 @@ def run_app_wizard(apps_d_dir: str) -> dict[str, Any] | None:
 
     print(f"\n{Fore.GREEN}App '{name}' saved to {filepath}{Style.RESET_ALL}")
     print(
-        f"{Fore.CYAN}It will be merged into candidate-apps on next startup.{Style.RESET_ALL}"
+        f"{Fore.CYAN}It will be merged into newcomers on next startup.{Style.RESET_ALL}"
     )
 
     return entry

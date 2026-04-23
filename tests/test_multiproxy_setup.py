@@ -124,7 +124,7 @@ class TestCleanupMultiproxyInstancesDir:
 class TestRegenerateUuidsForApps:
     @patch(
         "money4band.network.multiproxy.get_active_app_categories",
-        return_value=["supported-apps"],
+        return_value=["supported"],
     )
     @patch("money4band.network.multiproxy.get_category_entries")
     def test_regenerates_uuid(self, mock_entries, mock_cats) -> None:
@@ -146,7 +146,7 @@ class TestRegenerateUuidsForApps:
 
     @patch(
         "money4band.network.multiproxy.get_active_app_categories",
-        return_value=["supported-apps"],
+        return_value=["supported"],
     )
     @patch("money4band.network.multiproxy.get_category_entries")
     def test_skips_disabled(self, mock_entries, mock_cats) -> None:

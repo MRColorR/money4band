@@ -151,7 +151,9 @@ class TestStartStack:
         from money4band.docker.start import start_stack
 
         missing_env = str(tmp_path / ".env")
-        result = start_stack("docker-compose.yaml", missing_env, "test", skip_questions=True)
+        result = start_stack(
+            "docker-compose.yaml", missing_env, "test", skip_questions=True
+        )
         assert result is False
 
 

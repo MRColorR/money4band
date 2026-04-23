@@ -53,7 +53,9 @@ class TestSetupNotifications:
     @patch(
         "money4band.ui.notification_setup.ask_string", return_value="discord://tok@hook"
     )
-    @patch("money4band.ui.notification_setup.validate_notification_url", return_value=True)
+    @patch(
+        "money4band.ui.notification_setup.validate_notification_url", return_value=True
+    )
     @patch("money4band.ui.notification_setup.ask_question_yn", return_value=True)
     @patch("builtins.input", return_value="")
     def test_enable_with_valid_url(self, _inp, _ask_yn, _validate, _ask_str) -> None:
@@ -74,7 +76,9 @@ class TestSetupNotifications:
         assert cfg["notifications"]["enabled"] is True
         assert cfg["notifications"]["url"] == "discord://existing"
 
-    @patch("money4band.ui.notification_setup.ask_question_yn", side_effect=[True, False])
+    @patch(
+        "money4band.ui.notification_setup.ask_question_yn", side_effect=[True, False]
+    )
     @patch(
         "money4band.ui.notification_setup.validate_notification_url", return_value=False
     )

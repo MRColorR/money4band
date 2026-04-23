@@ -11,8 +11,7 @@ class TestAppConfigCommands(unittest.TestCase):
         from money4band.core.loader import get_category_entries
 
         apps_by_name = {
-            app["name"]: app
-            for app in get_category_entries(app_config, "supported-apps")
+            app["name"]: app for app in get_category_entries(app_config, "supported")
         }
 
         honeygain_cmd = apps_by_name["HONEYGAIN"]["compose_config"].get("command")

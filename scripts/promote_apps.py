@@ -1,4 +1,4 @@
-"""Promote candidate apps to supported-apps."""
+"""Promote newcomer apps to supported."""
 
 import json
 from pathlib import Path
@@ -60,10 +60,10 @@ def main():
         config = json.load(f)
 
     to_promote = [
-        a for a in config["candidate-apps"]["entries"] if a["name"] in PROMOTE_NAMES
+        a for a in config["newcomers"]["entries"] if a["name"] in PROMOTE_NAMES
     ]
     remaining = [
-        a for a in config["candidate-apps"]["entries"] if a["name"] not in PROMOTE_NAMES
+        a for a in config["newcomers"]["entries"] if a["name"] not in PROMOTE_NAMES
     ]
 
     for app in to_promote:
@@ -76,7 +76,7 @@ def main():
         # Mark as promoted
         app["app_details"]["recommendation"] = "promoted"
         app["app_details"]["recommendation_reasoning"] = (
-            "Promoted to supported-apps. Docker image verified on Docker Hub."
+            "Promoted to supported. Docker image verified on Docker Hub."
         )
         app["app_details"]["last_verified"] = "2026-03-23"
 
@@ -109,16 +109,16 @@ def main():
                 },
             }
 
-    # Move promoted ➜ supported, keep remainder in candidates
-    config["supported-apps"]["entries"].extend(to_promote)
-    config["candidate-apps"]["entries"] = remaining
+    # Move promoted ➜ supported, keep remainder in newcomers
+    config["supported"]["entries"].extend(to_promote)
+    config["newcomers"]["entries"] = remaining
 
     with open(CONFIG, "w", encoding="utf-8") as f:
         json.dump(config, f, indent=4, ensure_ascii=False)
 
     print(f"Promoted: {[a['name'] for a in to_promote]}")
-    print(f"Supported: {len(config['supported-apps']['entries'])} apps")
-    print(f"Candidates remaining: {len(config['candidate-apps']['entries'])}")
+    print(f"Supported: {len(config['supported']['entries'])} apps")
+    print(f"Newcomers remaining: {len(config['newcomers']['entries'])}")
     print("Done.")
 
 

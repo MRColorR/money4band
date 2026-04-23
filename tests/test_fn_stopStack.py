@@ -219,7 +219,10 @@ class TestStopAllStacksInstances:
 class TestStopStackMain:
     @patch("money4band.docker.stop.stop_all_stacks")
     @patch("money4band.docker.stop.loader.load_json_config")
-    @patch("money4band.docker.compose_builder.get_compose_files", return_value=["compose.yml"])
+    @patch(
+        "money4band.docker.compose_builder.get_compose_files",
+        return_value=["compose.yml"],
+    )
     @patch("money4band.docker.stop.cls")
     def test_main_delegates_to_stop_all(self, _cls, _get_cf, mock_load, mock_stop_all):
         from money4band.docker.stop import main

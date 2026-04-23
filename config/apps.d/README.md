@@ -1,7 +1,7 @@
 # Community App Definitions
 
 Place per-app JSON files here. Each file defines a single app entry
-that will be merged into `candidate-apps` at startup.
+that will be merged into `newcomers` at startup.
 
 **Usage:**
 ```bash
