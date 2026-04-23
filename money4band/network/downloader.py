@@ -4,10 +4,10 @@ import argparse
 import logging
 import os
 
-import requests
+import httpx
 
 from money4band.network import http_client
-from money4band.network.http_client import get_session
+from money4band.network.http_client import get_client
 
 logger = logging.getLogger(__name__)
 
@@ -18,28 +18,28 @@ _DOWNLOAD_TIMEOUT = 300  # seconds
 def download_file(url: str, dest_path: str) -> None:
     """Download a file from *url* and save it to *dest_path*.
 
-    Uses the shared HTTP session (retry + back-off) from :mod:`utils.http_client`.
+    Uses the shared HTTP client (retry + back-off) from :mod:`utils.http_client`.
     A generous timeout is applied because some installers are several hundred MB.
 
     Raises:
-        requests.RequestException: On any network / HTTP error.
+        httpx.HTTPError: On any network / HTTP error.
         OSError: If writing to *dest_path* fails.
     """
-    session = get_session()
+    client = get_client()
     timeout = max(_DOWNLOAD_TIMEOUT, http_client.REQUEST_TIMEOUT)
     try:
         logger.info("Starting download from %s", url)
-        response = session.get(url, stream=True, timeout=timeout)
-        response.raise_for_status()
+        with client.stream("GET", url, timeout=timeout) as response:
+            response.raise_for_status()
 
-        os.makedirs(os.path.dirname(dest_path), exist_ok=True)
+            os.makedirs(os.path.dirname(dest_path), exist_ok=True)
 
-        with open(dest_path, "wb") as file:
-            for chunk in response.iter_content(chunk_size=8192):
-                if chunk:
-                    file.write(chunk)
+            with open(dest_path, "wb") as file:
+                for chunk in response.iter_bytes(chunk_size=8192):
+                    if chunk:
+                        file.write(chunk)
         logger.info("File downloaded successfully from %s to %s", url, dest_path)
-    except requests.RequestException as e:
+    except httpx.HTTPError as e:
         logger.error("Download failed for %s: %s", url, e)
         raise
     except OSError as e:

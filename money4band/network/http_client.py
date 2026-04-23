@@ -1,18 +1,16 @@
 from __future__ import annotations
 
-"""Shared HTTP session factory with retry-on-failure and configurable timeouts.
+"""Shared HTTP client factory with retry-on-failure and configurable timeouts.
 
-Every module that makes HTTP requests should use ``get_session()`` from here
-instead of creating bare ``requests.get()`` calls.  This guarantees consistent
+Every module that makes HTTP requests should use ``get_client()`` from here
+instead of creating bare ``httpx.get()`` calls.  This guarantees consistent
 retry behaviour, timeouts, and back-off across the whole codebase.
 """
 
 import logging
 from typing import Any
 
-import requests
-from requests.adapters import HTTPAdapter
-from urllib3.util.retry import Retry
+import httpx
 
 logger = logging.getLogger(__name__)
 # ── Defaults (overridable via configure()) ──────────────────────────────
@@ -35,16 +33,14 @@ def configure(m4b_config: dict[str, Any]) -> None:
     )
 
 
-def get_session() -> requests.Session:
-    """Return a :class:`requests.Session` wired with retry + back-off."""
-    session = requests.Session()
-    retry_strategy = Retry(
-        total=MAX_RETRIES,
-        backoff_factor=BACKOFF_FACTOR,
-        status_forcelist=list(_STATUS_FORCELIST),
-        allowed_methods=["GET", "POST"],
+def get_client() -> httpx.Client:
+    """Return an :class:`httpx.Client` wired with retry + back-off."""
+    transport = httpx.HTTPTransport(
+        retries=MAX_RETRIES,
     )
-    adapter = HTTPAdapter(max_retries=retry_strategy)
-    session.mount("https://", adapter)
-    session.mount("http://", adapter)
-    return session
+    return httpx.Client(
+        transport=transport,
+        timeout=httpx.Timeout(REQUEST_TIMEOUT),
+        follow_redirects=True,
+    )
+

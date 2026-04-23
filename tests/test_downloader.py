@@ -1,41 +1,44 @@
 import unittest
 from unittest.mock import MagicMock, mock_open, patch
 
-import requests
+import httpx
 
 from money4band.network.downloader import download_file
 
 
 class TestDownloadFile(unittest.TestCase):
-    @patch("money4band.network.downloader.get_session")
-    def test_download_file_success(self, mock_get_session):
+    @patch("money4band.network.downloader.get_client")
+    def test_download_file_success(self, mock_get_client):
         """Test successful download of a file."""
         mock_response = MagicMock()
-        mock_response.iter_content = lambda chunk_size: [b"test data"]
+        mock_response.iter_bytes = lambda chunk_size: iter([b"test data"])
         mock_response.raise_for_status = MagicMock()
-        mock_session = MagicMock()
-        mock_session.get.return_value = mock_response
-        mock_get_session.return_value = mock_session
+        mock_response.__enter__ = MagicMock(return_value=mock_response)
+        mock_response.__exit__ = MagicMock(return_value=False)
+        mock_client = MagicMock()
+        mock_client.stream.return_value = mock_response
+        mock_get_client.return_value = mock_client
 
         with patch("builtins.open", mock_open()) as mocked_file:
             download_file("http://example.com/testfile", "/tmp/testfile")
             mocked_file.assert_called_once_with("/tmp/testfile", "wb")
             mocked_file().write.assert_called_once_with(b"test data")
 
-        # Verify timeout was passed
-        _, kwargs = mock_session.get.call_args
+        # Verify stream was called with timeout
+        mock_client.stream.assert_called_once()
+        _, kwargs = mock_client.stream.call_args
         self.assertIn("timeout", kwargs)
         self.assertGreaterEqual(kwargs["timeout"], 15)
 
     @patch("money4band.network.downloader.logger.error")
-    @patch("money4band.network.downloader.get_session")
-    def test_download_file_failure(self, mock_get_session, mock_logging_error):
-        """Test download failure due to a request exception."""
-        mock_session = MagicMock()
-        mock_session.get.side_effect = requests.RequestException("Error")
-        mock_get_session.return_value = mock_session
+    @patch("money4band.network.downloader.get_client")
+    def test_download_file_failure(self, mock_get_client, mock_logging_error):
+        """Test download failure due to an HTTP error."""
+        mock_client = MagicMock()
+        mock_client.stream.side_effect = httpx.HTTPError("Error")
+        mock_get_client.return_value = mock_client
 
-        with self.assertRaises(requests.RequestException):
+        with self.assertRaises(httpx.HTTPError):
             download_file("http://example.com/testfile", "/tmp/testfile")
 
         mock_logging_error.assert_called_once()

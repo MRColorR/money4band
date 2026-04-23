@@ -14,12 +14,12 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-import requests
+import httpx
 from colorama import Fore, Style, just_fix_windows_console
 
 from money4band.core.loader import load_json_config
 from money4band.network import http_client
-from money4band.network.http_client import get_session
+from money4band.network.http_client import get_client
 
 logger = logging.getLogger(__name__)
 
@@ -147,9 +147,9 @@ def get_latest_releases(count: int = 5) -> list[dict[str, Any]]:
     owner = "MRColorR"
     repo = "money4band"
     url = f"https://api.github.com/repos/{owner}/{repo}/releases"
-    session = get_session()
+    client = get_client()
     try:
-        response = session.get(url, timeout=http_client.REQUEST_TIMEOUT)
+        response = client.get(url, timeout=http_client.REQUEST_TIMEOUT)
         response.raise_for_status()
         releases = response.json()
         stripped_releases = []
@@ -177,13 +177,13 @@ def get_latest_releases(count: int = 5) -> list[dict[str, Any]]:
             )
         stripped_releases.sort(key=lambda x: x["version"], reverse=True)
         return stripped_releases[:count]
-    except requests.ConnectionError as e:
+    except httpx.ConnectError as e:
         raise RuntimeError(f"Cannot reach GitHub API: {e}") from e
-    except requests.Timeout as e:
+    except httpx.TimeoutException as e:
         raise RuntimeError(
             f"GitHub API timed out after {http_client.REQUEST_TIMEOUT}s"
         ) from e
-    except requests.HTTPError as e:
+    except httpx.HTTPStatusError as e:
         raise RuntimeError(f"GitHub API HTTP error: {e}") from e
     except json.JSONDecodeError as e:
         raise RuntimeError("Failed to parse GitHub API response") from e
@@ -401,25 +401,25 @@ def _apply_binary_update(target_version: str) -> bool:
     url = f"https://github.com/{_OWNER}/{_REPO}/releases/download/{tag}/{asset_name}"
     checksum_url = f"https://github.com/{_OWNER}/{_REPO}/releases/download/{tag}/checksums.sha256"
 
-    session = get_session()
+    client = get_client()
     try:
-        resp = session.get(url, timeout=http_client.REQUEST_TIMEOUT, stream=True)
+        resp = client.get(url, timeout=http_client.REQUEST_TIMEOUT)
         resp.raise_for_status()
-    except requests.RequestException as e:
+    except httpx.HTTPError as e:
         logger.error("Binary download failed: %s", e)
         return False
 
     # Try to fetch the checksum file for integrity verification.
     expected_hash: str | None = None
     try:
-        cs_resp = session.get(checksum_url, timeout=http_client.REQUEST_TIMEOUT)
+        cs_resp = client.get(checksum_url, timeout=http_client.REQUEST_TIMEOUT)
         if cs_resp.status_code == 200:
             for line in cs_resp.text.strip().splitlines():
                 parts = line.split()
                 if len(parts) >= 2 and parts[1].lstrip("*") == asset_name:
                     expected_hash = parts[0].lower()
                     break
-    except requests.RequestException:
+    except httpx.HTTPError:
         logger.warning("Could not fetch checksums.sha256 — skipping verification.")
 
     current_exe = sys.executable
@@ -434,7 +434,7 @@ def _apply_binary_update(target_version: str) -> bool:
 
         sha256 = hashlib.sha256()
         with os.fdopen(fd, "wb") as f:
-            for chunk in resp.iter_content(chunk_size=8192):
+            for chunk in resp.iter_bytes(chunk_size=8192):
                 f.write(chunk)
                 sha256.update(chunk)
 

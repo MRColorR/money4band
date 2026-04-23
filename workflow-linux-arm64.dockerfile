@@ -37,7 +37,7 @@ RUN uv run pyinstaller --onedir \
     main.py \
     --hidden-import colorama \
     --hidden-import docker \
-    --hidden-import requests \
+    --hidden-import httpx \
     --hidden-import pyyaml \
     --hidden-import psutil \
     --hidden-import yaml \
@@ -45,7 +45,6 @@ RUN uv run pyinstaller --onedir \
     --hidden-import cryptography \
     --hidden-import fastapi \
     --hidden-import uvicorn \
-    --hidden-import textual \
     --hidden-import money4band \
     --hidden-import money4band.apps \
     --hidden-import money4band.core \

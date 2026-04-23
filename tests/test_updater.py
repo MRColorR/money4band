@@ -244,11 +244,11 @@ class TestGetLatestReleases:
                 "published_at": "2025-06-01T00:00:00Z",
             },
         ]
-        mock_session = MagicMock()
+        mock_client = MagicMock()
         mock_resp = MagicMock()
         mock_resp.json.return_value = api_response
-        mock_session.get.return_value = mock_resp
-        monkeypatch.setattr("money4band.updater.get_session", lambda: mock_session)
+        mock_client.get.return_value = mock_resp
+        monkeypatch.setattr("money4band.updater.get_client", lambda: mock_client)
 
         releases = get_latest_releases(count=5)
         assert len(releases) == 2
@@ -273,30 +273,30 @@ class TestGetLatestReleases:
                 "published_at": "2025-01-01T00:00:00Z",
             },
         ]
-        mock_session = MagicMock()
+        mock_client = MagicMock()
         mock_resp = MagicMock()
         mock_resp.json.return_value = api_response
-        mock_session.get.return_value = mock_resp
-        monkeypatch.setattr("money4band.updater.get_session", lambda: mock_session)
+        mock_client.get.return_value = mock_resp
+        monkeypatch.setattr("money4band.updater.get_client", lambda: mock_client)
 
         assert get_latest_releases() == []
 
     def test_connection_error_raises_runtime(self, monkeypatch):
-        import requests
+        import httpx
 
-        mock_session = MagicMock()
-        mock_session.get.side_effect = requests.ConnectionError("DNS fail")
-        monkeypatch.setattr("money4band.updater.get_session", lambda: mock_session)
+        mock_client = MagicMock()
+        mock_client.get.side_effect = httpx.ConnectError("DNS fail")
+        monkeypatch.setattr("money4band.updater.get_client", lambda: mock_client)
 
         with pytest.raises(RuntimeError, match="Cannot reach GitHub"):
             get_latest_releases()
 
     def test_timeout_raises_runtime(self, monkeypatch):
-        import requests
+        import httpx
 
-        mock_session = MagicMock()
-        mock_session.get.side_effect = requests.Timeout("slow")
-        monkeypatch.setattr("money4band.updater.get_session", lambda: mock_session)
+        mock_client = MagicMock()
+        mock_client.get.side_effect = httpx.TimeoutException("slow")
+        monkeypatch.setattr("money4band.updater.get_client", lambda: mock_client)
 
         with pytest.raises(RuntimeError, match="timed out"):
             get_latest_releases()
@@ -414,10 +414,10 @@ class TestApplyBinaryUpdate:
 
         # Mock the HTTP response with chunked content
         mock_resp = MagicMock()
-        mock_resp.iter_content.return_value = [b"new-binary-data"]
-        mock_session = MagicMock()
-        mock_session.get.return_value = mock_resp
-        monkeypatch.setattr("money4band.updater.get_session", lambda: mock_session)
+        mock_resp.iter_bytes.return_value = [b"new-binary-data"]
+        mock_client = MagicMock()
+        mock_client.get.return_value = mock_resp
+        monkeypatch.setattr("money4band.updater.get_client", lambda: mock_client)
 
         result = _apply_binary_update("5.1.0")
         assert result is True
@@ -428,13 +428,13 @@ class TestApplyBinaryUpdate:
 
     def test_download_failure_returns_false(self, monkeypatch):
         """HTTP error during download should return False."""
-        import requests
+        import httpx
 
         from money4band.updater import _apply_binary_update
 
-        mock_session = MagicMock()
-        mock_session.get.side_effect = requests.RequestException("network error")
-        monkeypatch.setattr("money4band.updater.get_session", lambda: mock_session)
+        mock_client = MagicMock()
+        mock_client.get.side_effect = httpx.HTTPError("network error")
+        monkeypatch.setattr("money4band.updater.get_client", lambda: mock_client)
         monkeypatch.setattr("money4band.updater._get_binary_asset_name", lambda: "m4b")
 
         assert _apply_binary_update("5.1.0") is False
@@ -453,10 +453,10 @@ class TestApplyBinaryUpdate:
         monkeypatch.setattr("money4band.updater.platform.system", lambda: "Windows")
 
         mock_resp = MagicMock()
-        mock_resp.iter_content.return_value = [b"new"]
-        mock_session = MagicMock()
-        mock_session.get.return_value = mock_resp
-        monkeypatch.setattr("money4band.updater.get_session", lambda: mock_session)
+        mock_resp.iter_bytes.return_value = [b"new"]
+        mock_client = MagicMock()
+        mock_client.get.return_value = mock_resp
+        monkeypatch.setattr("money4band.updater.get_client", lambda: mock_client)
 
         # Make the second rename fail (new → current)
         original_rename = os.rename

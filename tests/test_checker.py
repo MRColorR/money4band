@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import MagicMock, patch
 
-import requests
+import httpx
 
 import money4band.network.http_client as http_client_mod
 from money4band.docker.checker import (
@@ -9,7 +9,7 @@ from money4band.docker.checker import (
     fetch_docker_tags,
     get_compatible_tag,
 )
-from money4band.network.http_client import configure, get_session
+from money4band.network.http_client import configure, get_client
 
 # Realistic Docker Hub API response fragments for testing
 DOCKERHUB_TAGS_RESPONSE = {
@@ -68,102 +68,100 @@ class TestConfigure(unittest.TestCase):
         self.assertEqual(http_client_mod.MAX_RETRIES, 3)
 
 
-class TestGetSession(unittest.TestCase):
-    def test_session_has_retry_adapter(self):
-        session = get_session()
-        adapter = session.get_adapter("https://example.com")
-        self.assertEqual(adapter.max_retries.total, 3)
-        self.assertIn(429, adapter.max_retries.status_forcelist)
-        self.assertIn(503, adapter.max_retries.status_forcelist)
+class TestGetClient(unittest.TestCase):
+    def test_client_is_httpx_client(self):
+        client = get_client()
+        self.assertIsInstance(client, httpx.Client)
+        client.close()
 
-    def test_session_respects_configured_retries(self):
-        configure({"system": {"registry_max_retries": 7}})
-        session = get_session()
-        adapter = session.get_adapter("https://example.com")
-        self.assertEqual(adapter.max_retries.total, 7)
+    def test_client_respects_configured_timeout(self):
+        configure({"system": {"registry_request_timeout": 30}})
+        client = get_client()
+        self.assertEqual(client.timeout.read, 30)
+        client.close()
         # Reset
-        configure({"system": {"registry_max_retries": 3}})
+        configure({"system": {"registry_request_timeout": 15}})
 
 
 class TestFetchDockerTags(unittest.TestCase):
-    @patch("money4band.docker.checker.get_session")
-    def test_dockerhub_success(self, mock_get_session):
+    @patch("money4band.docker.checker.get_client")
+    def test_dockerhub_success(self, mock_get_client):
         mock_resp = MagicMock()
         mock_resp.json.return_value = DOCKERHUB_TAGS_RESPONSE
         mock_resp.raise_for_status.return_value = None
-        mock_session = MagicMock()
-        mock_session.get.return_value = mock_resp
-        mock_get_session.return_value = mock_session
+        mock_client = MagicMock()
+        mock_client.get.return_value = mock_resp
+        mock_get_client.return_value = mock_client
 
         result = fetch_docker_tags("honeygain/honeygain")
 
-        mock_session.get.assert_called_once()
-        call_url = mock_session.get.call_args[0][0]
+        mock_client.get.assert_called_once()
+        call_url = mock_client.get.call_args[0][0]
         self.assertIn("registry.hub.docker.com", call_url)
         self.assertIn("honeygain/honeygain", call_url)
         self.assertEqual(result, DOCKERHUB_TAGS_RESPONSE)
 
-    @patch("money4band.docker.checker.get_session")
-    def test_ghcr_success(self, mock_get_session):
+    @patch("money4band.docker.checker.get_client")
+    def test_ghcr_success(self, mock_get_client):
         mock_resp = MagicMock()
         mock_resp.json.return_value = GHCR_TAGS_RESPONSE
         mock_resp.raise_for_status.return_value = None
-        mock_session = MagicMock()
-        mock_session.get.return_value = mock_resp
-        mock_get_session.return_value = mock_session
+        mock_client = MagicMock()
+        mock_client.get.return_value = mock_resp
+        mock_get_client.return_value = mock_client
 
         result = fetch_docker_tags("ghcr.io/techroy23/docker-wipter")
 
-        call_url = mock_session.get.call_args[0][0]
+        call_url = mock_client.get.call_args[0][0]
         self.assertIn("ghcr.io", call_url)
         # GHCR response is normalized to Docker Hub-like structure
         self.assertIn("results", result)
         tag_names = [t["name"] for t in result["results"]]
         self.assertEqual(tag_names, ["latest", "v1.0", "v2.0"])
 
-    @patch("money4band.docker.checker.get_session")
-    def test_connection_error_returns_none(self, mock_get_session):
+    @patch("money4band.docker.checker.get_client")
+    def test_connection_error_returns_none(self, mock_get_client):
         """KI-003 core fix: network failure must return None, not crash."""
-        mock_session = MagicMock()
-        mock_session.get.side_effect = requests.ConnectionError("DNS resolution failed")
-        mock_get_session.return_value = mock_session
+        mock_client = MagicMock()
+        mock_client.get.side_effect = httpx.ConnectError("DNS resolution failed")
+        mock_get_client.return_value = mock_client
 
         result = fetch_docker_tags("honeygain/honeygain")
         self.assertIsNone(result)
 
-    @patch("money4band.docker.checker.get_session")
-    def test_timeout_returns_none(self, mock_get_session):
-        mock_session = MagicMock()
-        mock_session.get.side_effect = requests.Timeout("Read timed out")
-        mock_get_session.return_value = mock_session
+    @patch("money4band.docker.checker.get_client")
+    def test_timeout_returns_none(self, mock_get_client):
+        mock_client = MagicMock()
+        mock_client.get.side_effect = httpx.TimeoutException("Read timed out")
+        mock_get_client.return_value = mock_client
 
         result = fetch_docker_tags("honeygain/honeygain")
         self.assertIsNone(result)
 
-    @patch("money4band.docker.checker.get_session")
-    def test_http_error_returns_none(self, mock_get_session):
-        mock_session = MagicMock()
+    @patch("money4band.docker.checker.get_client")
+    def test_http_error_returns_none(self, mock_get_client):
+        mock_client = MagicMock()
         mock_resp = MagicMock()
-        mock_resp.raise_for_status.side_effect = requests.HTTPError("404 Not Found")
-        mock_session.get.return_value = mock_resp
-        mock_get_session.return_value = mock_session
+        mock_resp.raise_for_status.side_effect = httpx.HTTPStatusError("404 Not Found", request=MagicMock(), response=MagicMock())
+        mock_client.get.return_value = mock_resp
+        mock_get_client.return_value = mock_client
 
         result = fetch_docker_tags("nonexistent/image")
         self.assertIsNone(result)
 
-    @patch("money4band.docker.checker.get_session")
-    def test_timeout_kwarg_is_passed(self, mock_get_session):
-        """Verify session.get() is called with the configured timeout."""
+    @patch("money4band.docker.checker.get_client")
+    def test_timeout_kwarg_is_passed(self, mock_get_client):
+        """Verify client.get() is called with the configured timeout."""
         mock_resp = MagicMock()
         mock_resp.json.return_value = DOCKERHUB_TAGS_RESPONSE
         mock_resp.raise_for_status.return_value = None
-        mock_session = MagicMock()
-        mock_session.get.return_value = mock_resp
-        mock_get_session.return_value = mock_session
+        mock_client = MagicMock()
+        mock_client.get.return_value = mock_resp
+        mock_get_client.return_value = mock_client
 
         fetch_docker_tags("owner/image")
 
-        _, kwargs = mock_session.get.call_args
+        _, kwargs = mock_client.get.call_args
         self.assertIn("timeout", kwargs)
         self.assertEqual(kwargs["timeout"], 15)
 

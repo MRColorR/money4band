@@ -12,9 +12,10 @@ import re
 from typing import Any
 from urllib.parse import urlparse
 
+import httpx
 from colorama import Fore, Style
 
-from money4band.network.http_client import get_session
+from money4band.network.http_client import get_client
 
 logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
@@ -60,10 +61,10 @@ _SUSPICIOUS_ISP_KEYWORDS = frozenset(
 
 def get_public_ip(timeout: int = 5) -> str | None:
     """Return the machine's public IPv4 address, trying multiple providers."""
-    session = get_session()
+    client = get_client()
     for url in _IP_PROVIDERS:
         try:
-            resp = session.get(url, timeout=timeout)
+            resp = client.get(url, timeout=timeout)
             ip = resp.text.strip()
             if _IPV4_RE.match(ip):
                 return ip
@@ -95,13 +96,9 @@ def extract_proxy_ip(proxy_url: str) -> str:
 
 def test_proxy_connectivity(proxy_url: str, timeout: int = 10) -> str | None:
     """Connect through *proxy_url* and return the exit IP, or ``None`` on failure."""
-    session = get_session()
     try:
-        resp = session.get(
-            "https://api.ipify.org",
-            proxies={"http": proxy_url, "https": proxy_url},
-            timeout=timeout,
-        )
+        with httpx.Client(proxy=proxy_url, timeout=timeout) as client:
+            resp = client.get("https://api.ipify.org")
         ip = resp.text.strip()
         if _IPV4_RE.match(ip):
             return ip
@@ -115,11 +112,11 @@ def score_ips(ips: list[str]) -> list[dict[str, Any]]:
     if not ips:
         return []
     payload = [{"query": ip, "fields": _IP_API_FIELDS} for ip in ips[:100]]
-    session = get_session()
+    client = get_client()
     try:
-        resp = session.post(
+        resp = client.post(
             _IP_API_BATCH_URL,
-            data=json.dumps(payload),
+            content=json.dumps(payload),
             headers={"Content-Type": "application/json"},
             timeout=15,
         )
@@ -137,9 +134,9 @@ def check_blacklist(ip: str) -> bool:
     """
     reversed_ip = ".".join(ip.split(".")[::-1])
     qname = f"{reversed_ip}.zen.spamhaus.org"
-    session = get_session()
+    client = get_client()
     try:
-        resp = session.get(
+        resp = client.get(
             _CLOUDFLARE_DOH,
             params={"name": qname, "type": "A"},
             headers={"Accept": "application/dns-json"},

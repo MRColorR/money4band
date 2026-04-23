@@ -16,25 +16,25 @@ from money4band.network.ip_scorer import (
 
 
 class TestGetPublicIp:
-    @patch("money4band.network.ip_scorer.get_session")
-    def test_returns_ip_from_first_provider(self, mock_sess):
+    @patch("money4band.network.ip_scorer.get_client")
+    def test_returns_ip_from_first_provider(self, mock_get_client):
         resp = MagicMock()
         resp.text = "1.2.3.4"
-        mock_sess.return_value.get.return_value = resp
+        mock_get_client.return_value.get.return_value = resp
         assert get_public_ip() == "1.2.3.4"
 
-    @patch("money4band.network.ip_scorer.get_session")
-    def test_returns_none_when_all_fail(self, mock_sess):
-        mock_sess.return_value.get.side_effect = Exception("fail")
+    @patch("money4band.network.ip_scorer.get_client")
+    def test_returns_none_when_all_fail(self, mock_get_client):
+        mock_get_client.return_value.get.side_effect = Exception("fail")
         assert get_public_ip() is None
 
-    @patch("money4band.network.ip_scorer.get_session")
-    def test_skips_non_ip_response(self, mock_sess):
+    @patch("money4band.network.ip_scorer.get_client")
+    def test_skips_non_ip_response(self, mock_get_client):
         bad = MagicMock()
         bad.text = "<html>not an ip</html>"
         good = MagicMock()
         good.text = "5.6.7.8"
-        mock_sess.return_value.get.side_effect = [bad, good]
+        mock_get_client.return_value.get.side_effect = [bad, good]
         assert get_public_ip() == "5.6.7.8"
 
 
@@ -64,21 +64,21 @@ class TestScoreIps:
     def test_empty_list(self):
         assert score_ips([]) == []
 
-    @patch("money4band.network.ip_scorer.get_session")
-    def test_batch_request(self, mock_sess):
+    @patch("money4band.network.ip_scorer.get_client")
+    def test_batch_request(self, mock_get_client):
         resp = MagicMock()
         resp.json.return_value = [
             {"status": "success", "query": "1.2.3.4", "proxy": False, "hosting": False}
         ]
         resp.raise_for_status = MagicMock()
-        mock_sess.return_value.post.return_value = resp
+        mock_get_client.return_value.post.return_value = resp
         result = score_ips(["1.2.3.4"])
         assert len(result) == 1
         assert result[0]["query"] == "1.2.3.4"
 
-    @patch("money4band.network.ip_scorer.get_session")
-    def test_returns_empty_on_error(self, mock_sess):
-        mock_sess.return_value.post.side_effect = Exception("timeout")
+    @patch("money4band.network.ip_scorer.get_client")
+    def test_returns_empty_on_error(self, mock_get_client):
+        mock_get_client.return_value.post.side_effect = Exception("timeout")
         assert score_ips(["1.2.3.4"]) == []
 
 
@@ -149,58 +149,71 @@ class TestFormatIspType:
 
 
 class TestCheckBlacklist:
-    """DNS-over-HTTPS Spamhaus query via mocked HTTP session."""
+    """DNS-over-HTTPS Spamhaus query via Cloudflare DoH."""
 
-    @patch("money4band.network.ip_scorer.get_session")
-    def test_blacklisted_ip(self, mock_sess):
+    @patch("money4band.network.ip_scorer.get_client")
+    def test_blacklisted_ip(self, mock_get_client):
         resp = MagicMock()
         resp.json.return_value = {"Answer": [{"data": "127.0.0.2"}]}
-        mock_sess.return_value.get.return_value = resp
+        mock_get_client.return_value.get.return_value = resp
         from money4band.network.ip_scorer import check_blacklist
 
         assert check_blacklist("1.2.3.4") is True
 
-    @patch("money4band.network.ip_scorer.get_session")
-    def test_clean_ip(self, mock_sess):
+    @patch("money4band.network.ip_scorer.get_client")
+    def test_clean_ip(self, mock_get_client):
         resp = MagicMock()
         resp.json.return_value = {}
-        mock_sess.return_value.get.return_value = resp
+        mock_get_client.return_value.get.return_value = resp
         from money4band.network.ip_scorer import check_blacklist
 
         assert check_blacklist("8.8.8.8") is False
 
-    @patch("money4band.network.ip_scorer.get_session")
-    def test_exception_returns_false(self, mock_sess):
-        mock_sess.return_value.get.side_effect = ConnectionError("timeout")
+    @patch("money4band.network.ip_scorer.get_client")
+    def test_exception_returns_false(self, mock_get_client):
+        mock_get_client.return_value.get.side_effect = ConnectionError("timeout")
         from money4band.network.ip_scorer import check_blacklist
 
         assert check_blacklist("1.2.3.4") is False
 
 
 class TestTestProxyConnectivity:
-    """Connectivity test via mocked HTTP session through proxy."""
+    """Connectivity test via mocked httpx.Client with proxy."""
 
-    @patch("money4band.network.ip_scorer.get_session")
-    def test_returns_ip_on_success(self, mock_sess):
+    @patch("money4band.network.ip_scorer.httpx.Client")
+    def test_returns_ip_on_success(self, mock_client_cls):
         resp = MagicMock()
         resp.text = "  203.0.113.5  "
-        mock_sess.return_value.get.return_value = resp
+        mock_client = MagicMock()
+        mock_client.get.return_value = resp
+        mock_client.__enter__ = MagicMock(return_value=mock_client)
+        mock_client.__exit__ = MagicMock(return_value=False)
+        mock_client_cls.return_value = mock_client
         from money4band.network.ip_scorer import test_proxy_connectivity
 
         assert test_proxy_connectivity("socks5://1.2.3.4:1080") == "203.0.113.5"
+        mock_client_cls.assert_called_once_with(proxy="socks5://1.2.3.4:1080", timeout=10)
 
-    @patch("money4band.network.ip_scorer.get_session")
-    def test_returns_none_on_failure(self, mock_sess):
-        mock_sess.return_value.get.side_effect = ConnectionError
+    @patch("money4band.network.ip_scorer.httpx.Client")
+    def test_returns_none_on_failure(self, mock_client_cls):
+        mock_client = MagicMock()
+        mock_client.get.side_effect = ConnectionError
+        mock_client.__enter__ = MagicMock(return_value=mock_client)
+        mock_client.__exit__ = MagicMock(return_value=False)
+        mock_client_cls.return_value = mock_client
         from money4band.network.ip_scorer import test_proxy_connectivity
 
         assert test_proxy_connectivity("http://bad:8080") is None
 
-    @patch("money4band.network.ip_scorer.get_session")
-    def test_rejects_non_ip_response(self, mock_sess):
+    @patch("money4band.network.ip_scorer.httpx.Client")
+    def test_rejects_non_ip_response(self, mock_client_cls):
         resp = MagicMock()
         resp.text = "not-an-ip"
-        mock_sess.return_value.get.return_value = resp
+        mock_client = MagicMock()
+        mock_client.get.return_value = resp
+        mock_client.__enter__ = MagicMock(return_value=mock_client)
+        mock_client.__exit__ = MagicMock(return_value=False)
+        mock_client_cls.return_value = mock_client
         from money4band.network.ip_scorer import test_proxy_connectivity
 
         assert test_proxy_connectivity("http://proxy:8080") is None

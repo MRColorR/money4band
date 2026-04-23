@@ -3,11 +3,11 @@ from __future__ import annotations
 import logging
 import time
 
-import requests
+import httpx
 
 from money4band.docker.helper import ensure_service
 from money4band.network import http_client
-from money4band.network.http_client import get_session
+from money4band.network.http_client import get_client
 
 logger = logging.getLogger(__name__)
 
@@ -28,22 +28,22 @@ def fetch_docker_tags(image: str) -> dict | None:
     Returns:
         dict | None: Tag information if successful, None otherwise.
     """
-    session = get_session()
+    client = get_client()
     timeout = http_client.REQUEST_TIMEOUT
     try:
         if image.startswith("ghcr.io/"):
             ghcr_image = image.replace("ghcr.io/", "")
             url = f"{GHCR_BASE_URL}{ghcr_image}/tags/list"
-            response = session.get(url, timeout=timeout)
+            response = client.get(url, timeout=timeout)
             response.raise_for_status()
             tags = response.json().get("tags", [])
             return {"results": [{"name": tag, "images": []} for tag in tags]}
         else:
             url = f"{DOCKERHUB_BASE_URL}repositories/{image}/tags"
-            response = session.get(url, timeout=timeout)
+            response = client.get(url, timeout=timeout)
             response.raise_for_status()
             return response.json()
-    except requests.ConnectionError:
+    except httpx.ConnectError:
         logger.error(
             "Cannot reach registry for %s — network may be down. "
             "Retries exhausted after %s attempts.",
@@ -51,10 +51,10 @@ def fetch_docker_tags(image: str) -> dict | None:
             http_client.MAX_RETRIES,
         )
         return None
-    except requests.Timeout:
+    except httpx.TimeoutException:
         logger.error("Registry request timed out for %s after %ss.", image, timeout)
         return None
-    except requests.RequestException as e:
+    except httpx.HTTPError as e:
         logger.error("Error fetching Docker tags for %s: %s", image, e)
         return None
 
