@@ -1,0 +1,115 @@
+{
+  "name": "DAWN",
+  "dashboard": "https://dawninternet.com",
+  "compose_config": {
+    "container_name": "${DEVICE_NAME}_dawn",
+    "hostname": "${DEVICE_NAME}_dawn",
+    "image": "carbon2029/dockweb:latest",
+    "environment": [
+      "DAWN_EMAIL=$DAWN_EMAIL",
+      "DAWN_PASS=$DAWN_PASSWORD"
+    ],
+    "volumes": [
+      ".data/.dawn:/app/chrome_user_data"
+    ],
+    "ports": [
+      "${DAWN_PORT}:5000"
+    ],
+    "labels": [
+      "com.centurylinklabs.watchtower.enable=true",
+      "com.centurylinklabs.watchtower.scope=${M4B_WATCHTOWER_SCOPE}"
+    ],
+    "restart": "always",
+    "cpus": "${APP_CPU_LIMIT_BIG}",
+    "mem_reservation": "${APP_MEM_RESERV_BIG}",
+    "mem_limit": "${APP_MEM_LIMIT_BIG}",
+    "logging": {
+      "driver": "json-file",
+      "options": {
+        "max-size": "10m",
+        "max-file": "3"
+      }
+    }
+  },
+  "compose_config_proxy": {
+    "network_mode": "service:proxy",
+    "hostname": null,
+    "ports": null
+  },
+  "flags": {
+    "email": {},
+    "password": {}
+  },
+  "install_limit": -1,
+  "compose_layer": "residential",
+  "app_details": {
+    "official_name": "Dawn Internet",
+    "publisher": "Dawn Internet",
+    "official_url": "https://dawninternet.com",
+    "tos_url": "undocumented",
+    "status": "deprecated",
+    "removal_history": "Moved to third-party image, unreliable service. Browser-extension product with no official Docker support.",
+    "device_limits": {
+      "max_devices_per_account": "undocumented",
+      "max_devices_per_ip": "undocumented",
+      "max_ips_per_account": "undocumented",
+      "notes": "Originally a browser-extension product."
+    },
+    "ip_policy": {
+      "residential": true,
+      "datacenter": "undocumented",
+      "vps": "undocumented",
+      "vpn": false,
+      "proxy": "undocumented",
+      "mobile": "undocumented",
+      "adjacent_ips_accepted": "undocumented",
+      "adjacent_ips_max": "undocumented",
+      "ipv6": "undocumented",
+      "geo_restrictions": "none known",
+      "quality_notes": "Primarily residential extension-based model."
+    },
+    "docker": {
+      "image_official": false,
+      "image_maintained": false,
+      "last_update": "unknown"
+    },
+    "earnings": {
+      "model": "points -> token",
+      "min_payout": "undocumented",
+      "payout_methods": [
+        "undocumented"
+      ],
+      "avg_monthly_residential_usd": "unknown",
+      "avg_monthly_datacenter_usd": "unknown"
+    },
+    "warnings": [
+      "No official Docker image — relies on third-party browser-container workaround",
+      "Third-party image shared with Teneo and Gradient"
+    ],
+    "confidence": "low",
+    "sources": [
+      "https://www.youtube.com/watch?v=nFlf83zjD-Y"
+    ],
+    "last_verified": "2026-03-21",
+    "compose_layer_reasoning": "Browser-extension product. No official Docker support. Third-party browser-container workaround only.",
+    "install_limit_reasoning": "Browser extension model. Limits undocumented.",
+    "recommendation": "deprecate",
+    "recommendation_reasoning": "No other project supports Dawn as a standalone app. carbon2029/dockweb is the only Docker approach and unreliable. Browser extension not suitable for headless Docker.",
+    "confidence_notes": "Absent from other known projects."
+  },
+  "referrals": [
+    {
+      "url": "https://dawninternet.com?code=xo23vynw",
+      "contributor": "MRColorR"
+    }
+  ],
+  "additional_details": "Moved to third-party image, unreliable service",
+  "user_config_template": {
+    "enabled": false,
+    "email": "yourDAWNMail",
+    "password": "yourDAWNPw",
+    "ports": [
+      5000
+    ]
+  }
+}

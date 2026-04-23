@@ -1,0 +1,106 @@
+{
+  "name": "PACKETSTREAM",
+  "dashboard": "https://packetstream.io/dashboard",
+  "compose_config": {
+    "container_name": "${DEVICE_NAME}_packetstream",
+    "hostname": "${DEVICE_NAME}_packetstream",
+    "image": "packetstream/psclient:latest",
+    "environment": [
+      "CID=$PACKETSTREAM_CID"
+    ],
+    "labels": [
+      "com.centurylinklabs.watchtower.enable=true",
+      "com.centurylinklabs.watchtower.scope=${M4B_WATCHTOWER_SCOPE}"
+    ],
+    "restart": "always",
+    "cpus": "${APP_CPU_LIMIT_MEDIUM}",
+    "mem_reservation": "${APP_MEM_RESERV_MEDIUM}",
+    "mem_limit": "${APP_MEM_LIMIT_MEDIUM}",
+    "logging": {
+      "driver": "json-file",
+      "options": {
+        "max-size": "10m",
+        "max-file": "3"
+      }
+    },
+    "healthcheck": {
+      "test": [
+        "CMD-SHELL",
+        "pgrep -f psclient || exit 1"
+      ],
+      "interval": "120s",
+      "timeout": "10s",
+      "retries": 3,
+      "start_period": "60s"
+    }
+  },
+  "compose_config_proxy": {
+    "network_mode": "service:proxy",
+    "hostname": null
+  },
+  "flags": {
+    "cid": {}
+  },
+  "install_limit": -1,
+  "compose_layer": "residential",
+  "app_details": {
+    "official_name": "PacketStream",
+    "publisher": "PacketStream",
+    "official_url": "https://packetstream.io",
+    "tos_url": "https://packetstream.io/tos",
+    "status": "active",
+    "device_limits": {
+      "max_devices_per_account": "unlimited",
+      "max_devices_per_ip": "undocumented",
+      "max_ips_per_account": "unlimited",
+      "notes": "No explicit device cap found. Multiple instances possible with different IPs."
+    },
+    "ip_policy": {
+      "residential": true,
+      "datacenter": false,
+      "vps": false,
+      "vpn": false,
+      "proxy": false,
+      "mobile": "undocumented",
+      "adjacent_ips_accepted": "undocumented",
+      "adjacent_ips_max": "undocumented",
+      "ipv6": "undocumented",
+      "geo_restrictions": "none known",
+      "quality_notes": "Official FAQ explicitly states datacenter and business IPs not accepted. Requires 'geographic diversity and residential characteristics'."
+    },
+    "docker": {
+      "image_official": true,
+      "image_maintained": true,
+      "last_update": "2024-12"
+    },
+    "earnings": {
+      "model": "per-GB",
+      "min_payout": "$5",
+      "payout_methods": [
+        "PayPal"
+      ],
+      "avg_monthly_residential_usd": "0.5-1.5",
+      "avg_monthly_datacenter_usd": null
+    },
+    "confidence": "high",
+    "sources": [
+      "https://packetstream.io/share-bandwidth/"
+    ],
+    "last_verified": "2026-03-21",
+    "compose_layer_reasoning": "Official FAQ explicitly states datacenter and business IPs not accepted. Requires 'geographic diversity and residential characteristics'.",
+    "install_limit_reasoning": "No explicit device cap found in official documentation. Multiple instances possible with different IPs.",
+    "recommendation": "keep",
+    "recommendation_reasoning": "No config changes needed. Residential layer and unlimited limit are correct.",
+    "confidence_notes": "PacketStream share-bandwidth page and FAQ verified."
+  },
+  "referrals": [
+    {
+      "url": "https://packetstream.io/?psr=3zSD",
+      "contributor": "MRColorR"
+    }
+  ],
+  "user_config_template": {
+    "enabled": false,
+    "cid": "yourPACKETSTREAMCID"
+  }
+}

@@ -82,12 +82,35 @@ def get_all_app_categories(app_config: dict[str, Any]) -> list[str]:
 def load_app_config_with_overlays(
     config_path: str, apps_d_dir: str | None = None
 ) -> dict[str, Any]:
-    """Load app-config.json and merge community apps from ``apps.d/``.
+    """Load the catalog envelope + per-file bundles and merge community apps.
 
-    If *apps_d_dir* is ``None``, it defaults to ``config/apps.d/`` relative
-    to the config file directory.
+    Aggregation pipeline (phase-8.3b):
+
+    1. Auto-migrate legacy monolithic ``app-config.json`` to the per-file
+       layout if needed (one-shot, idempotent).
+    2. Read the envelope and expand it into the historical in-memory
+       shape ``{<category>: {"active": bool, "entries": [...]}}`` by
+       reading ``config/catalog/<category>/*.json``.
+    3. Overlay hand-written community apps from ``config/apps.d/``
+       (falls back to ``os.path.dirname(config_path) + "/apps.d"``).
+
+    Consumers that previously accessed ``app_config["supported"]["entries"]``
+    keep working unchanged — the shape is identical.
     """
-    config = load_json_config(config_path)
+    from money4band.core.catalog_migration import migrate_catalog_file
+    from money4band.core.catalog_store import aggregate, is_envelope
+
+    # One-shot migration — no-op after first run.
+    migrate_catalog_file(config_path)
+
+    envelope = load_json_config(config_path)
+
+    # Either already an envelope (normal path) or still monolithic
+    # (migration skipped — e.g. tests that write in-memory dicts directly).
+    if is_envelope(envelope):
+        config = aggregate(envelope, config_path)
+    else:
+        config = envelope
 
     if apps_d_dir is None:
         apps_d_dir = os.path.join(os.path.dirname(config_path), "apps.d")

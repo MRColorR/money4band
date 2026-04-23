@@ -1,0 +1,134 @@
+{
+  "name": "BEARSHARE",
+  "dashboard": "https://bearshare.io/dashboard",
+  "compose_config": {
+    "container_name": "${DEVICE_NAME}_bearshare",
+    "hostname": "${DEVICE_NAME}_bearshare",
+    "image": "bearshare/bearshare",
+    "command": "-email=${BEARSHARE_EMAIL} -password=${BEARSHARE_PASSWORD}",
+    "labels": [
+      "com.centurylinklabs.watchtower.enable=true",
+      "com.centurylinklabs.watchtower.scope=${M4B_WATCHTOWER_SCOPE}"
+    ],
+    "restart": "always",
+    "cpus": "${APP_CPU_LIMIT_MEDIUM}",
+    "mem_reservation": "${APP_MEM_RESERV_MEDIUM}",
+    "mem_limit": "${APP_MEM_LIMIT_MEDIUM}",
+    "logging": {
+      "driver": "json-file",
+      "options": {
+        "max-size": "10m",
+        "max-file": "3"
+      }
+    },
+    "healthcheck": {
+      "test": [
+        "CMD-SHELL",
+        "pgrep -f bearshare || exit 1"
+      ],
+      "interval": "120s",
+      "timeout": "10s",
+      "retries": 3,
+      "start_period": "60s"
+    }
+  },
+  "compose_config_proxy": {
+    "network_mode": "service:proxy",
+    "hostname": null
+  },
+  "flags": {
+    "email": {},
+    "password": {}
+  },
+  "install_limit": -1,
+  "compose_layer": "residential",
+  "app_details": {
+    "official_name": "BearShare",
+    "publisher": "BearShare",
+    "official_url": "https://bearshare.io",
+    "tos_url": "undocumented",
+    "status": "active",
+    "device_limits": {
+      "max_devices_per_account": "undocumented",
+      "max_devices_per_ip": "undocumented",
+      "max_ips_per_account": "undocumented",
+      "notes": "Official Docker image exists. Companion auto-claim sidecar service available."
+    },
+    "ip_policy": {
+      "residential": true,
+      "datacenter": "undocumented",
+      "vps": "undocumented",
+      "vpn": "undocumented",
+      "proxy": "undocumented",
+      "mobile": "undocumented",
+      "adjacent_ips_accepted": "undocumented",
+      "adjacent_ips_max": "undocumented",
+      "ipv6": "undocumented",
+      "geo_restrictions": "none known",
+      "quality_notes": "Insufficient documentation. Supports email/password auth."
+    },
+    "docker": {
+      "image_official": true,
+      "image_maintained": true,
+      "last_update": "2024-12"
+    },
+    "earnings": {
+      "model": "undocumented",
+      "min_payout": "undocumented",
+      "payout_methods": [
+        "undocumented"
+      ],
+      "avg_monthly_residential_usd": "unknown",
+      "avg_monthly_datacenter_usd": "unknown"
+    },
+    "compose_layer_reasoning": "Conservative residential classification. No IP policy documentation found.",
+    "install_limit_reasoning": "No documented device caps.",
+    "recommendation": "promoted",
+    "recommendation_reasoning": "Promoted to supported. Docker image verified on Docker Hub.",
+    "confidence": "low",
+    "confidence_notes": "Limited external validation. Minimal public documentation.",
+    "sources": [],
+    "last_verified": "2026-03-23"
+  },
+  "service": {
+    "name": "bearshare-pot",
+    "description": "Auto-claims daily BearShare reward",
+    "credentials_shared": true,
+    "compose_config": {
+      "container_name": "${DEVICE_NAME}_bearshare-pot",
+      "hostname": "${DEVICE_NAME}_bearshare-pot",
+      "image": "ghcr.io/xterna/bearshare-pot:latest",
+      "environment": [
+        "EMAIL=${BEARSHARE_EMAIL}",
+        "PASSWORD=${BEARSHARE_PASSWORD}"
+      ],
+      "labels": [
+        "com.centurylinklabs.watchtower.enable=true",
+        "com.centurylinklabs.watchtower.scope=${M4B_WATCHTOWER_SCOPE}"
+      ],
+      "restart": "always",
+      "cpus": "${APP_CPU_LIMIT_LITTLE}",
+      "mem_reservation": "${APP_MEM_RESERV_LITTLE}",
+      "mem_limit": "${APP_MEM_LIMIT_LITTLE}",
+      "logging": {
+        "driver": "json-file",
+        "options": {
+          "max-size": "10m",
+          "max-file": "3"
+        }
+      }
+    }
+  },
+  "referrals": [
+    {
+      "url": "https://bearshare.io",
+      "contributor": "MRColorR"
+    }
+  ],
+  "user_config_template": {
+    "enabled": false,
+    "email": "yourBEARSHAREMail",
+    "password": "yourBEARSHAREPw",
+    "service_enabled": false
+  }
+}

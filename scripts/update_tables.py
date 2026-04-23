@@ -11,7 +11,6 @@ Flags:
 from __future__ import annotations
 
 import argparse
-import json
 import sys
 from pathlib import Path
 
@@ -25,13 +24,13 @@ for _stream in (sys.stdout, sys.stderr):
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
+from money4band.core.loader import load_app_config_with_overlays  # noqa: E402
 from money4band.readme_generator import update_apps_md, update_readme  # noqa: E402
 
 
 def load_app_config() -> dict:
     config_path = ROOT / "config" / "app-config.json"
-    with open(config_path, encoding="utf-8") as f:
-        return json.load(f)
+    return load_app_config_with_overlays(str(config_path))
 
 
 def files_changed(readme: Path, apps_md: Path) -> tuple[str, str]:

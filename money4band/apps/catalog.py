@@ -10,12 +10,11 @@ from typing import Any
 
 from colorama import Back, Fore, Style, just_fix_windows_console
 
-from money4band.core.dumper import write_json
 from money4band.core.loader import (
     get_all_app_categories,
     get_category_entries,
     is_category_active,
-    load_json_config,
+    load_app_config_with_overlays,
 )
 from money4band.ui.cls import cls
 
@@ -183,7 +182,11 @@ def _manage_categories(app_config: dict[str, Any], app_config_path: str | None) 
     print(f"\n{cat_key} is now [{new_badge}]")
 
     if app_config_path:
-        write_json(app_config, app_config_path)
+        # Write only the envelope's active flag — per-file bundles are
+        # not rewritten here (phase-8.3b per-file layout).
+        from money4band.core.catalog_store import set_category_active
+
+        set_category_active(app_config_path, cat_key, new_status)
         logger.info("Saved category status change: %s → active=%s", cat_key, new_status)
         print(f"{Fore.GREEN}Saved to {app_config_path}{Style.RESET_ALL}")
     else:
@@ -232,7 +235,7 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
     user_config_path -- the path to the user configuration file
     """
     while True:
-        app_config = load_json_config(app_config_path)
+        app_config = load_app_config_with_overlays(app_config_path)
         if not fn_app_catalog(app_config, app_config_path):
             break
 

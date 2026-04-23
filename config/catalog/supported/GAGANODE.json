@@ -1,0 +1,111 @@
+{
+  "name": "GAGANODE",
+  "dashboard": "https://www.gaganode.com/dashboard",
+  "compose_config": {
+    "container_name": "${DEVICE_NAME}_gaganode",
+    "hostname": "${DEVICE_NAME}_gaganode",
+    "image": "xterna/gaga-node",
+    "environment": [
+      "TOKEN=${GAGANODE_TOKEN}"
+    ],
+    "labels": [
+      "com.centurylinklabs.watchtower.enable=true",
+      "com.centurylinklabs.watchtower.scope=${M4B_WATCHTOWER_SCOPE}"
+    ],
+    "restart": "always",
+    "cpus": "${APP_CPU_LIMIT_MEDIUM}",
+    "mem_reservation": "${APP_MEM_RESERV_MEDIUM}",
+    "mem_limit": "${APP_MEM_LIMIT_MEDIUM}",
+    "logging": {
+      "driver": "json-file",
+      "options": {
+        "max-size": "10m",
+        "max-file": "3"
+      }
+    },
+    "healthcheck": {
+      "test": [
+        "CMD-SHELL",
+        "pgrep -f gaga || exit 1"
+      ],
+      "interval": "120s",
+      "timeout": "10s",
+      "retries": 3,
+      "start_period": "60s"
+    }
+  },
+  "compose_config_proxy": {
+    "network_mode": "service:proxy",
+    "hostname": null
+  },
+  "flags": {
+    "token": {}
+  },
+  "install_limit": -1,
+  "compose_layer": "residential",
+  "app_details": {
+    "official_name": "GaGaNode",
+    "publisher": "GaGaNode",
+    "official_url": "https://www.gaganode.com",
+    "tos_url": "undocumented",
+    "status": "active",
+    "device_limits": {
+      "max_devices_per_account": "undocumented",
+      "max_devices_per_ip": "undocumented",
+      "max_ips_per_account": "undocumented",
+      "notes": "Decentralized edge cloud platform. No hard limits documented."
+    },
+    "ip_policy": {
+      "residential": true,
+      "datacenter": "undocumented",
+      "vps": "undocumented",
+      "vpn": "undocumented",
+      "proxy": "undocumented",
+      "mobile": "undocumented",
+      "adjacent_ips_accepted": "undocumented",
+      "adjacent_ips_max": "undocumented",
+      "ipv6": "undocumented",
+      "geo_restrictions": "none known",
+      "quality_notes": "Markets itself as 'decentralized edge cloud'. IP acceptance policy unclear."
+    },
+    "docker": {
+      "image_official": false,
+      "image_maintained": true,
+      "last_update": "2024-10"
+    },
+    "earnings": {
+      "model": "per-GB/task (GaGa token)",
+      "min_payout": "undocumented",
+      "payout_methods": [
+        "GaGa token (crypto)"
+      ],
+      "avg_monthly_residential_usd": "unknown",
+      "avg_monthly_datacenter_usd": "unknown"
+    },
+    "warnings": [
+      "Community Docker image only — no official container verified",
+      "Requires deeper research before promoting to supported"
+    ],
+    "confidence": "low",
+    "sources": [
+      "https://www.gaganode.com",
+      "https://www.youtube.com/watch?v=nFlf83zjD-Y"
+    ],
+    "last_verified": "2026-03-23",
+    "compose_layer_reasoning": "Markets itself as 'decentralized edge cloud'. IP acceptance policy unclear. Conservative residential classification.",
+    "install_limit_reasoning": "No documented device caps. Decentralized platform.",
+    "recommendation": "promoted",
+    "recommendation_reasoning": "Promoted to supported. Docker image verified on Docker Hub.",
+    "confidence_notes": "Limited external validation. Requires deeper research before promoting to supported."
+  },
+  "referrals": [
+    {
+      "url": "https://www.gaganode.com",
+      "contributor": "MRColorR"
+    }
+  ],
+  "user_config_template": {
+    "enabled": false,
+    "token": "yourGAGANODEToken"
+  }
+}

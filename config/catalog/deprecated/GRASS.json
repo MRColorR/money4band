@@ -1,0 +1,103 @@
+{
+  "name": "GRASS",
+  "dashboard": "https://app.getgrass.io/dashboard",
+  "compose_config": {
+    "container_name": "${DEVICE_NAME}_grass",
+    "hostname": "${DEVICE_NAME}_grass",
+    "image": "ghcr.io/xterna/grass-node",
+    "environment": [
+      "USER_ID=$GRASS_USERID"
+    ],
+    "labels": [
+      "com.centurylinklabs.watchtower.enable=true",
+      "com.centurylinklabs.watchtower.scope=${M4B_WATCHTOWER_SCOPE}"
+    ],
+    "restart": "always",
+    "cpus": "${APP_CPU_LIMIT_BIG}",
+    "mem_reservation": "${APP_MEM_RESERV_BIG}",
+    "mem_limit": "${APP_MEM_LIMIT_BIG}",
+    "logging": {
+      "driver": "json-file",
+      "options": {
+        "max-size": "10m",
+        "max-file": "3"
+      }
+    }
+  },
+  "compose_config_proxy": {
+    "network_mode": "service:proxy",
+    "hostname": null
+  },
+  "flags": {
+    "userid": {}
+  },
+  "install_limit": -1,
+  "compose_layer": "residential",
+  "app_details": {
+    "official_name": "Grass (Wynd Network)",
+    "publisher": "Wynd Network",
+    "official_url": "https://www.getgrass.io",
+    "tos_url": "https://www.getgrass.io/terms",
+    "status": "deprecated",
+    "removal_history": "Removed due to Docker image unavailability and service instability. No official Docker image exists. Significant VC backing but no official container as of 2026.",
+    "device_limits": {
+      "max_devices_per_account": "undocumented",
+      "max_devices_per_ip": "undocumented",
+      "max_ips_per_account": "undocumented",
+      "notes": "Browser-extension primary architecture. No official Docker support as of March 2026."
+    },
+    "ip_policy": {
+      "residential": true,
+      "datacenter": false,
+      "vps": false,
+      "vpn": false,
+      "proxy": false,
+      "mobile": "undocumented",
+      "adjacent_ips_accepted": "undocumented",
+      "adjacent_ips_max": "undocumented",
+      "ipv6": "undocumented",
+      "geo_restrictions": "none known",
+      "quality_notes": "Residential-only by design. VPN and datacenter IPs blocked. Evolved into major DePIN player on Solana."
+    },
+    "docker": {
+      "image_official": false,
+      "image_maintained": true,
+      "last_update": "2025"
+    },
+    "earnings": {
+      "model": "points -> GRASS token",
+      "min_payout": "varies (token)",
+      "payout_methods": [
+        "GRASS token (crypto)"
+      ],
+      "avg_monthly_residential_usd": "unknown (token-based)",
+      "avg_monthly_datacenter_usd": "N/A"
+    },
+    "warnings": [
+      "No official Docker image — community-maintained only",
+      "Worth monitoring — if official Docker image is released, reconsider"
+    ],
+    "confidence": "medium",
+    "sources": [
+      "https://www.getgrass.io",
+      "https://www.reddit.com/r/AirdropCryptoAlpha/comments/1i23595/"
+    ],
+    "last_verified": "2026-03-21",
+    "compose_layer_reasoning": "Residential-only by design. VPN and datacenter IPs blocked. Browser-extension primary architecture.",
+    "install_limit_reasoning": "No official Docker support. Browser extension model limits practical deployment.",
+    "recommendation": "deprecate",
+    "recommendation_reasoning": "No official Docker image exists. Multiple third-party images exist (XternA websocket vs carbon2029 browser-wrapper). Worth monitoring for official Docker release.",
+    "confidence_notes": "Major DePIN player on Solana but no official container as of March 2026. Two different community approaches exist."
+  },
+  "referrals": [
+    {
+      "url": "https://app.getgrass.io/register/?referralCode=qyvJmxgNUhcLo2f",
+      "contributor": "MRColorR"
+    }
+  ],
+  "additional_details": "Docker image unavailability / service instability",
+  "user_config_template": {
+    "enabled": false,
+    "userid": "yourGRASSUserID"
+  }
+}

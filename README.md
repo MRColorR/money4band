@@ -110,39 +110,39 @@ uv sync && uv run python main.py
 <!-- BEGIN:APPS_TABLE -->
 | App | Residential | VPS/DC | Payout |
 |-----|:-----------:|:------:|--------|
-| [**EarnApp**](https://earnapp.com/i/3zulx7k) | ✅ | ❌ | PayPal, gift cards, crypto |
-| [**Honeygain**](https://r.honeygain.me/MINDL15721) | ✅ | ❌ | JumpToken (crypto), PayPal (via JumpTask) |
-| [**Pawns (IPRoyal)**](https://pawns.app?r=MiNe) | ✅ | ❌ | PayPal, crypto, gift cards |
-| [**PacketStream**](https://packetstream.io/?psr=3zSD) | ✅ | ❌ | PayPal |
-| [**TraffMonetizer**](https://traffmonetizer.com/?aff=366499) | ✅ | ✅ | PayPal, crypto, wire transfer |
-| [**Repocket**](https://link.repocket.co/hr8i) | ✅ | ✅ | PayPal, crypto |
-| [**Earn.FM**](https://earn.fm/ref/MATTTAV6) | ✅ | ✅ | PayPal, USDT, gift cards |
-| [**Proxyrack Peer Program**](https://peer.proxyrack.com/ref/myoas6qttvhuvkzh8ffx90ns1ouhwgilfgamo5ex) | ✅ | ✅ | PayPal, crypto |
-| [**ProxyLite**](https://proxylite.ru/?r=PJTKXWN3) | ✅ | ✅ | crypto |
-| [**Bitping**](https://app.bitping.com?r=qm7mIuX3) | ✅ | ✅ | BITPING token (crypto), USDC |
-| [**PacketShare**](https://www.packetshare.io/?code=A260871CFD822E35) | ✅ | — | — |
-| [**Gradient**](https://app.gradient.network/signup?code=9WOBKP) | ✅ | — | — |
-| [**ProxyBase**](http://peer.proxybase.org/signup?ref=XfOz3zeURm) | — | — | — |
-| [**Mysterium**](https://mystnodes.co/?referral_code=Tc7RaS7Fm12K3Xun6mlU9q9hbnjojjl9aRBW8ZA9) | ✅ | ✅ | MYST token, ETH, BNB |
-| [**Spide Network**](https://spide.network) | ✅ | ✅ | PayPal, crypto |
-| [**GaGaNode**](https://www.gaganode.com) | ✅ | — | GaGa token (crypto) |
-| [**WizardGain**](https://wizardgain.com) | ✅ | ✅ | — |
 | [**AntGain**](https://antgain.app) | ✅ | — | — |
 | [**BearShare**](https://bearshare.io) | ✅ | — | — |
-| [**URnetwork**](https://urnetwork.com) | ✅ | — | — |
+| [**Bitping**](https://app.bitping.com?r=qm7mIuX3) | ✅ | ✅ | BITPING token (crypto), USDC |
+| [**EarnApp**](https://earnapp.com/i/3zulx7k) | ✅ | ❌ | PayPal, gift cards, crypto |
+| [**Earn.FM**](https://earn.fm/ref/MATTTAV6) | ✅ | ✅ | PayPal, USDT, gift cards |
+| [**GaGaNode**](https://www.gaganode.com) | ✅ | — | GaGa token (crypto) |
+| [**Gradient**](https://app.gradient.network/signup?code=9WOBKP) | ✅ | — | — |
+| [**Honeygain**](https://r.honeygain.me/MINDL15721) | ✅ | ❌ | JumpToken (crypto), PayPal (via JumpTask) |
+| [**Pawns (IPRoyal)**](https://pawns.app?r=MiNe) | ✅ | ❌ | PayPal, crypto, gift cards |
+| [**Mysterium**](https://mystnodes.co/?referral_code=Tc7RaS7Fm12K3Xun6mlU9q9hbnjojjl9aRBW8ZA9) | ✅ | ✅ | MYST token, ETH, BNB |
+| [**PacketShare**](https://www.packetshare.io/?code=A260871CFD822E35) | ✅ | — | — |
+| [**PacketStream**](https://packetstream.io/?psr=3zSD) | ✅ | ❌ | PayPal |
+| [**ProxyBase**](http://peer.proxybase.org/signup?ref=XfOz3zeURm) | — | — | — |
+| [**ProxyLite**](https://proxylite.ru/?r=PJTKXWN3) | ✅ | ✅ | crypto |
+| [**Proxyrack Peer Program**](https://peer.proxyrack.com/ref/myoas6qttvhuvkzh8ffx90ns1ouhwgilfgamo5ex) | ✅ | ✅ | PayPal, crypto |
+| [**Repocket**](https://link.repocket.co/hr8i) | ✅ | ✅ | PayPal, crypto |
+| [**Spide Network**](https://spide.network) | ✅ | ✅ | PayPal, crypto |
 | [**Titan Network**](https://titannet.io) | ✅ | — | — |
-| [**Ebesucher**](https://www.ebesucher.com) | ✅ | — | — |
-| [**UpRock**](https://uprock.com) | ✅ | — | — |
-| [**PassiveApp**](https://passiveapp.io) | ✅ | — | — |
-| [**Bytelixir**](https://bytelixir.com) | ✅ | — | crypto |
-| [**ByteBenefit**](https://bytebenefit.com) | ✅ | — | — |
-| [**Earn.cc**](https://earn.cc) | ✅ | — | — |
+| [**TraffMonetizer**](https://traffmonetizer.com/?aff=366499) | ✅ | ✅ | PayPal, crypto, wire transfer |
+| [**URnetwork**](https://urnetwork.com) | ✅ | — | — |
+| [**WizardGain**](https://wizardgain.com) | ✅ | ✅ | — |
 | [**Adnade**](https://adnade.com) | ✅ | — | — |
+| [**ByteBenefit**](https://bytebenefit.com) | ✅ | — | — |
+| [**Bytelixir**](https://bytelixir.com) | ✅ | — | crypto |
+| [**Earn.cc**](https://earn.cc) | ✅ | — | — |
+| [**Ebesucher**](https://www.ebesucher.com) | ✅ | — | — |
+| [**PassiveApp**](https://passiveapp.io) | ✅ | — | — |
 | [**Salad**](https://salad.com) | ✅ | ❌ | — |
-| [**SpeedShare**](https://speedshare.app/?ref=mindlessnerd) | — | — | — |
+| [**UpRock**](https://uprock.com) | ✅ | — | — |
+| [**Dawn Internet**](https://dawninternet.com?code=xo23vynw) | ✅ | — | — |
 | [**Grass (Wynd Network)**](https://app.getgrass.io/register/?referralCode=qyvJmxgNUhcLo2f) | ✅ | ❌ | GRASS token (crypto) |
 | [**Peer2Profit**](https://t.me/peer2profit_app_bot?start=165849012262da8d0aa13c8) | — | — | — |
-| [**Dawn Internet**](https://dawninternet.com?code=xo23vynw) | ✅ | — | — |
+| [**SpeedShare**](https://speedshare.app/?ref=mindlessnerd) | — | — | — |
 | [**Teneo Protocol**](https://dashboard.teneo.pro/?code=qPgLn) | ✅ | — | — |
 | [**Wipter**](https://wipter.com/signup?ref=money4band) | — | — | — |
 <!-- END:APPS_TABLE -->

@@ -406,11 +406,12 @@ class TestAppConfigServiceDefinitions:
 
     @pytest.fixture()
     def app_config(self):
+        from money4band.core.loader import load_app_config_with_overlays
+
         config_path = os.path.join(
             os.path.dirname(__file__), os.pardir, "config", "app-config.json"
         )
-        with open(config_path) as f:
-            return json.load(f)
+        return load_app_config_with_overlays(config_path)
 
     def test_honeygain_has_service(self, app_config):
         hg = next(
@@ -455,11 +456,12 @@ class TestUserConfigTemplate:
 
     @pytest.fixture()
     def app_config(self):
+        from money4band.core.loader import load_app_config_with_overlays
+
         config_path = os.path.join(
             os.path.dirname(__file__), os.pardir, "config", "app-config.json"
         )
-        with open(config_path) as f:
-            return json.load(f)
+        return load_app_config_with_overlays(config_path)
 
     @pytest.fixture()
     def app_entries(self, app_config):

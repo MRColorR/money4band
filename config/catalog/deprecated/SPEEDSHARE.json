@@ -1,0 +1,93 @@
+{
+  "name": "SPEEDSHARE",
+  "dashboard": "https://dashboard.speedshare.app/",
+  "compose_config": {
+    "container_name": "${DEVICE_NAME}_speedshare",
+    "hostname": "${DEVICE_NAME}_speedshare",
+    "image": "mrcolorrain/speedshare:latest",
+    "environment": [
+      "CODE=$SPEEDSHARE_CODE",
+      "SPEEDSHARE_UUID=$SPEEDSHARE_UUID"
+    ],
+    "labels": [
+      "com.centurylinklabs.watchtower.enable=true",
+      "com.centurylinklabs.watchtower.scope=${M4B_WATCHTOWER_SCOPE}"
+    ],
+    "restart": "always",
+    "cpus": "${APP_CPU_LIMIT_BIG}",
+    "mem_reservation": "${APP_MEM_RESERV_BIG}",
+    "mem_limit": "${APP_MEM_LIMIT_BIG}"
+  },
+  "compose_config_proxy": {
+    "network_mode": "service:proxy",
+    "hostname": null
+  },
+  "flags": {
+    "code": {},
+    "uuid": {
+      "length": 32,
+      "claimURLBase": "Speedshare nodes are automatically claimed. After starting it, go to the app's dashboard to see it. Its UUID is: "
+    }
+  },
+  "install_limit": -1,
+  "compose_layer": "residential",
+  "app_details": {
+    "official_name": "SpeedShare",
+    "publisher": "unknown",
+    "official_url": "unknown",
+    "tos_url": "N/A",
+    "status": "discontinued",
+    "removal_history": "Removed due to service discontinuation and unreliable payouts.",
+    "device_limits": {
+      "max_devices_per_account": "N/A",
+      "max_devices_per_ip": "N/A",
+      "max_ips_per_account": "N/A",
+      "notes": "Service discontinued."
+    },
+    "ip_policy": {
+      "residential": "N/A",
+      "datacenter": "N/A",
+      "vps": "N/A",
+      "vpn": "N/A",
+      "proxy": "N/A",
+      "mobile": "N/A",
+      "adjacent_ips_accepted": "N/A",
+      "adjacent_ips_max": "N/A",
+      "ipv6": "N/A",
+      "geo_restrictions": "N/A",
+      "quality_notes": "N/A"
+    },
+    "docker": {
+      "image_official": false,
+      "image_maintained": false,
+      "last_update": "unknown"
+    },
+    "earnings": {
+      "model": "N/A",
+      "min_payout": "N/A",
+      "payout_methods": [],
+      "avg_monthly_residential_usd": "N/A",
+      "avg_monthly_datacenter_usd": "N/A"
+    },
+    "confidence": "medium",
+    "sources": [],
+    "last_verified": "2026-03-21",
+    "compose_layer_reasoning": "Service discontinued. Historical classification retained.",
+    "install_limit_reasoning": "Service discontinued.",
+    "recommendation": "deprecate",
+    "recommendation_reasoning": "Service fully discontinued. Other projects have either removed or disabled it. mrcolorrain image is the only available Docker image.",
+    "confidence_notes": "Multiple sources confirm discontinuation."
+  },
+  "referrals": [
+    {
+      "url": "https://speedshare.app/?ref=mindlessnerd",
+      "contributor": "MRColorR"
+    }
+  ],
+  "additional_details": "Service discontinued / unreliable payouts",
+  "user_config_template": {
+    "enabled": false,
+    "code": "yourSPEEDSHARECode",
+    "uuid": "yourSPEEDSHAREDeviceUUID"
+  }
+}

@@ -1,0 +1,108 @@
+{
+  "name": "PEER2PROFIT",
+  "dashboard": "https://t.me/peer2profit_app_bot",
+  "compose_config": {
+    "container_name": "${DEVICE_NAME}_peer2profit",
+    "hostname": "${DEVICE_NAME}_peer2profit",
+    "image": "xterna/peer2profit",
+    "environment": [
+      "P2P_EMAIL=$PEER2PROFIT_EMAIL"
+    ],
+    "ports": [
+      "5901:5900"
+    ],
+    "labels": [
+      "com.centurylinklabs.watchtower.enable=true",
+      "com.centurylinklabs.watchtower.scope=${M4B_WATCHTOWER_SCOPE}"
+    ],
+    "restart": "always",
+    "cpus": "${APP_CPU_LIMIT_HUGE}",
+    "mem_reservation": "${APP_MEM_RESERV_HUGE}",
+    "mem_limit": "${APP_MEM_LIMIT_HUGE}",
+    "logging": {
+      "driver": "json-file",
+      "options": {
+        "max-size": "10m",
+        "max-file": "3"
+      }
+    },
+    "platform": "linux/amd64"
+  },
+  "compose_config_proxy": {
+    "network_mode": "service:proxy",
+    "hostname": null,
+    "ports": null
+  },
+  "flags": {
+    "email": {},
+    "manual": {
+      "instructions": "Use any VNC client to connect to localhost:5901 using the password money4band and follow the onscreen instruction to complete the setup"
+    }
+  },
+  "install_limit": -1,
+  "compose_layer": "residential",
+  "app_details": {
+    "official_name": "Peer2Profit",
+    "publisher": "Peer2Profit",
+    "official_url": "https://peer2profit.app",
+    "tos_url": "N/A",
+    "status": "discontinued",
+    "removal_history": "Docker Hub image was pulled (GitHub issue #56). Website has been down. Service fully discontinued.",
+    "device_limits": {
+      "max_devices_per_account": "N/A",
+      "max_devices_per_ip": "N/A",
+      "max_ips_per_account": "N/A",
+      "notes": "Service discontinued. Website down. Docker Hub image pulled."
+    },
+    "ip_policy": {
+      "residential": "N/A",
+      "datacenter": "N/A",
+      "vps": "N/A",
+      "vpn": "N/A",
+      "proxy": "N/A",
+      "mobile": "N/A",
+      "adjacent_ips_accepted": "N/A",
+      "adjacent_ips_max": "N/A",
+      "ipv6": "N/A",
+      "geo_restrictions": "N/A",
+      "quality_notes": "N/A"
+    },
+    "docker": {
+      "image_official": false,
+      "image_maintained": false,
+      "last_update": "unknown"
+    },
+    "earnings": {
+      "model": "N/A",
+      "min_payout": "N/A",
+      "payout_methods": [],
+      "avg_monthly_residential_usd": "N/A",
+      "avg_monthly_datacenter_usd": "N/A"
+    },
+    "confidence": "high",
+    "sources": [
+      "https://www.youtube.com/watch?v=toiEukWY5O4",
+      "https://www.trustpilot.com/review/dashboard.peer2profit.app"
+    ],
+    "last_verified": "2026-03-21",
+    "compose_layer_reasoning": "Service discontinued. Website down. Docker Hub image pulled.",
+    "install_limit_reasoning": "Service discontinued.",
+    "recommendation": "deprecate",
+    "recommendation_reasoning": "Docker Hub image was pulled. Website down. All three projects use different third-party images (mrcolorrain, xterna, enwaiax). Service is fully dead.",
+    "confidence_notes": "YouTube reports and Trustpilot reviews confirm service shutdown. Multiple community images exist but service backend is offline."
+  },
+  "referrals": [
+    {
+      "url": "https://t.me/peer2profit_app_bot?start=165849012262da8d0aa13c8",
+      "contributor": "MRColorR"
+    }
+  ],
+  "additional_details": "Docker Hub image pulled (#56) / service discontinued",
+  "user_config_template": {
+    "enabled": false,
+    "email": "yourPEER2PROFITMail",
+    "ports": [
+      5901
+    ]
+  }
+}

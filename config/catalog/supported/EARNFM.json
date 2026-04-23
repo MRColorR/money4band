@@ -1,0 +1,114 @@
+{
+  "name": "EARNFM",
+  "dashboard": "https://app.earn.fm/",
+  "compose_config": {
+    "container_name": "${DEVICE_NAME}_earnfm",
+    "hostname": "${DEVICE_NAME}_earnfm",
+    "image": "earnfm/earnfm-client:latest",
+    "environment": [
+      "EARNFM_TOKEN=$EARNFM_APIKEY"
+    ],
+    "labels": [
+      "com.centurylinklabs.watchtower.enable=true",
+      "com.centurylinklabs.watchtower.scope=${M4B_WATCHTOWER_SCOPE}"
+    ],
+    "restart": "always",
+    "cpus": "${APP_CPU_LIMIT_MEDIUM}",
+    "mem_reservation": "${APP_MEM_RESERV_MEDIUM}",
+    "mem_limit": "${APP_MEM_LIMIT_MEDIUM}",
+    "logging": {
+      "driver": "json-file",
+      "options": {
+        "max-size": "10m",
+        "max-file": "3"
+      }
+    },
+    "healthcheck": {
+      "test": [
+        "CMD-SHELL",
+        "pgrep -f earnfm || exit 1"
+      ],
+      "interval": "120s",
+      "timeout": "10s",
+      "retries": 3,
+      "start_period": "60s"
+    }
+  },
+  "compose_config_proxy": {
+    "network_mode": "service:proxy",
+    "hostname": null
+  },
+  "flags": {
+    "apikey": {}
+  },
+  "install_limit": -1,
+  "compose_layer": "universal",
+  "app_details": {
+    "official_name": "Earn.FM",
+    "publisher": "Earn.FM",
+    "official_url": "https://earn.fm",
+    "tos_url": "https://earn.fm/terms",
+    "status": "active",
+    "device_limits": {
+      "max_devices_per_account": "unlimited",
+      "max_devices_per_ip": "undocumented",
+      "max_ips_per_account": "unlimited",
+      "notes": "Fleetshare allows bulk sharing of IPs (min 50) via socks5 or static routing. No meaningful device cap. Designed for scale."
+    },
+    "ip_policy": {
+      "residential": true,
+      "datacenter": true,
+      "vps": true,
+      "vpn": "partial",
+      "proxy": true,
+      "mobile": true,
+      "adjacent_ips_accepted": true,
+      "adjacent_ips_max": "unlimited",
+      "ipv6": "undocumented",
+      "geo_restrictions": "none known",
+      "quality_notes": "Fleetshare image explicitly designed for 'multiple proxies or static IP addresses routed to a server'. Confirms datacenter/proxy acceptance."
+    },
+    "docker": {
+      "image_official": true,
+      "image_maintained": true,
+      "last_update": "2025-04",
+      "alternative_images": {
+        "fleetshare": "earnfm/fleetshare"
+      }
+    },
+    "earnings": {
+      "model": "per-GB",
+      "min_payout": "$5-15",
+      "payout_methods": [
+        "PayPal",
+        "USDT",
+        "gift cards"
+      ],
+      "avg_monthly_residential_usd": "0.6-3",
+      "avg_monthly_datacenter_usd": "0.3-2"
+    },
+    "confidence": "high",
+    "sources": [
+      "https://hub.docker.com/r/earnfm/fleetshare",
+      "https://hub.docker.com/r/earnfm/earnfm-client",
+      "https://help.earn.fm/portal/en/kb/articles/can-i-run-earnfm-at-scale-8-10-2023",
+      "https://earn.fm/fleetshare"
+    ],
+    "last_verified": "2026-03-21",
+    "compose_layer_reasoning": "Fleetshare image explicitly designed for 'multiple proxies or static IP addresses routed to a server'. Docker Hub description confirms datacenter and static IP block support.",
+    "install_limit_reasoning": "No documented device caps. Fleetshare allows bulk sharing of IPs (min 50) via socks5 or static routing. Designed for scale.",
+    "recommendation": "update-config",
+    "recommendation_reasoning": "Changed compose_layer from datacenter to universal. Fleetshare confirms both residential and DC/VPS acceptance.",
+    "confidence_notes": "Fleetshare Docker Hub docs and Earn.FM help articles confirm DC/VPS acceptance."
+  },
+  "referrals": [
+    {
+      "url": "https://earn.fm/ref/MATTTAV6",
+      "contributor": "MRColorR"
+    }
+  ],
+  "user_config_template": {
+    "enabled": false,
+    "apikey": "yourEARNFMAPIKey"
+  }
+}

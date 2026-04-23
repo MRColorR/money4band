@@ -1,0 +1,69 @@
+{
+  "name": "UPROCK",
+  "dashboard": "https://app.uprock.com",
+  "compose_config": {},
+  "compose_config_proxy": {
+    "network_mode": "service:proxy",
+    "hostname": null
+  },
+  "flags": {},
+  "install_limit": -1,
+  "compose_layer": "residential",
+  "app_details": {
+    "official_name": "UpRock",
+    "publisher": "UpRock",
+    "official_url": "https://uprock.com",
+    "tos_url": "undocumented",
+    "status": "active",
+    "device_limits": {
+      "max_devices_per_account": "undocumented",
+      "max_devices_per_ip": "undocumented",
+      "max_ips_per_account": "undocumented",
+      "notes": "AI-focused bandwidth sharing network."
+    },
+    "ip_policy": {
+      "residential": true,
+      "datacenter": "undocumented",
+      "vps": "undocumented",
+      "vpn": "undocumented",
+      "proxy": "undocumented",
+      "mobile": "undocumented",
+      "adjacent_ips_accepted": "undocumented",
+      "adjacent_ips_max": "undocumented",
+      "ipv6": "undocumented",
+      "geo_restrictions": "none known",
+      "quality_notes": "AI data collection network."
+    },
+    "docker": {
+      "image_official": false,
+      "image_maintained": false,
+      "last_update": "unknown"
+    },
+    "earnings": {
+      "model": "undocumented",
+      "min_payout": "undocumented",
+      "payout_methods": [
+        "undocumented"
+      ],
+      "avg_monthly_residential_usd": "unknown",
+      "avg_monthly_datacenter_usd": "unknown"
+    },
+    "compose_layer_reasoning": "Conservative residential classification. No IP policy documentation.",
+    "install_limit_reasoning": "No documented caps.",
+    "recommendation": "evaluate",
+    "recommendation_reasoning": "AI-focused bandwidth network. No official Docker image found. Needs deeper research.",
+    "confidence": "low",
+    "confidence_notes": "Minimal public documentation.",
+    "sources": [],
+    "last_verified": "2026-03-21"
+  },
+  "referrals": [
+    {
+      "url": "https://uprock.com",
+      "contributor": "MRColorR"
+    }
+  ],
+  "user_config_template": {
+    "enabled": false
+  }
+}

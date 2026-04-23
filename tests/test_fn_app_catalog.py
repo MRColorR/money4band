@@ -255,15 +255,23 @@ class TestManageCategories(unittest.TestCase):
         import copy
         import tempfile
 
+        from money4band.core.catalog_store import default_envelope, write_envelope
+
         cfg = copy.deepcopy(self._APP_CONFIG)
-        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".json") as f:
-            json.dump(cfg, f)
+        # Persistence now targets the v2 envelope (phase-8.3b). The in-memory
+        # aggregated dict (cfg) is what _manage_categories displays; the
+        # companion envelope file is what it writes back.
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".json") as f:
             cfg_path = f.name
         try:
+            envelope = default_envelope()
+            first_key = list(cfg.keys())[0]
+            envelope["categories"][first_key] = {"active": True}
+            write_envelope(envelope, cfg_path)
+
             _manage_categories(cfg, cfg_path)
             saved = json.loads(open(cfg_path).read())
-            first_key = list(saved.keys())[0]
-            self.assertFalse(saved[first_key]["active"])
+            assert saved["categories"][first_key]["active"] is False
         finally:
             os.unlink(cfg_path)
 

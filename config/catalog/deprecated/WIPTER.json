@@ -1,0 +1,113 @@
+{
+  "name": "WIPTER",
+  "dashboard": "https://wipter.com/dashboard",
+  "compose_config": {
+    "container_name": "${DEVICE_NAME}_wipter",
+    "hostname": "${DEVICE_NAME}_wipter",
+    "image": "ghcr.io/xterna/wipter",
+    "environment": [
+      "WIPTER_EMAIL=$WIPTER_EMAIL",
+      "WIPTER_PASSWORD=$WIPTER_PASSWORD"
+    ],
+    "labels": [
+      "com.centurylinklabs.watchtower.enable=true",
+      "com.centurylinklabs.watchtower.scope=${M4B_WATCHTOWER_SCOPE}"
+    ],
+    "ports": [
+      "${WIPTER_PORT_1}:5900",
+      "${WIPTER_PORT_2}:6080"
+    ],
+    "restart": "always",
+    "cpus": "${APP_CPU_LIMIT_MEDIUM}",
+    "mem_reservation": "${APP_MEM_RESERV_MEDIUM}",
+    "mem_limit": "${APP_MEM_LIMIT_MEDIUM}",
+    "logging": {
+      "driver": "json-file",
+      "options": {
+        "max-size": "10m",
+        "max-file": "3"
+      }
+    }
+  },
+  "compose_config_proxy": {
+    "network_mode": "service:proxy",
+    "hostname": null,
+    "ports": null
+  },
+  "flags": {
+    "email": {},
+    "password": {}
+  },
+  "install_limit": -1,
+  "compose_layer": "residential",
+  "app_details": {
+    "official_name": "Wipter",
+    "publisher": "Wipter",
+    "official_url": "https://wipter.com",
+    "tos_url": "undocumented",
+    "status": "deprecated",
+    "removal_history": "Removed by M4B community vote in March 2026 due to excessive CPU/RAM/temperature usage. Unofficial Docker image. Resource pattern suggests compute-sharing rather than bandwidth-sharing.",
+    "device_limits": {
+      "max_devices_per_account": "undocumented",
+      "max_devices_per_ip": "undocumented",
+      "max_ips_per_account": "undocumented",
+      "notes": "Community vote removed it from M4B due to excessive resource usage."
+    },
+    "ip_policy": {
+      "residential": "undocumented",
+      "datacenter": "undocumented",
+      "vps": "undocumented",
+      "vpn": "undocumented",
+      "proxy": "undocumented",
+      "mobile": "undocumented",
+      "adjacent_ips_accepted": "undocumented",
+      "adjacent_ips_max": "undocumented",
+      "ipv6": "undocumented",
+      "geo_restrictions": "undocumented",
+      "quality_notes": "Resource pattern (excessive CPU/RAM) suggests compute-sharing rather than bandwidth-sharing."
+    },
+    "docker": {
+      "image_official": false,
+      "image_maintained": false,
+      "last_update": "unknown"
+    },
+    "earnings": {
+      "model": "undocumented",
+      "min_payout": "undocumented",
+      "payout_methods": [
+        "undocumented"
+      ],
+      "avg_monthly_residential_usd": "unknown",
+      "avg_monthly_datacenter_usd": "unknown"
+    },
+    "warnings": [
+      "Excessive CPU/RAM/temperature usage reported by community",
+      "No official Docker image — community GHCR image only",
+      "Removed by community vote March 2026"
+    ],
+    "confidence": "medium",
+    "sources": [],
+    "last_verified": "2026-03-21",
+    "compose_layer_reasoning": "Compute-sharing rather than bandwidth-sharing pattern. Excessive CPU/RAM usage reported.",
+    "install_limit_reasoning": "Removed by M4B community vote. Resource pattern unsuitable for bandwidth-sharing tool.",
+    "recommendation": "deprecate",
+    "recommendation_reasoning": "Removed by M4B community vote March 2026 due to excessive resource usage. Multiple Docker images exist. Some projects throttle CPU to mitigate. Consider keeping as opt-in with resource warnings.",
+    "confidence_notes": "Community vote and multiple Docker image variants confirm problematic resource pattern."
+  },
+  "referrals": [
+    {
+      "url": "https://wipter.com/signup?ref=money4band",
+      "contributor": "MRColorR"
+    }
+  ],
+  "additional_details": "Unofficial Docker image, excessive CPU/RAM/temp",
+  "user_config_template": {
+    "enabled": false,
+    "email": "yourWIPTERMail",
+    "password": "yourWIPTERPw",
+    "ports": [
+      5900,
+      6080
+    ]
+  }
+}

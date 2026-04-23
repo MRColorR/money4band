@@ -1,0 +1,122 @@
+{
+  "name": "EARNAPP",
+  "dashboard": "https://earnapp.com/dashboard",
+  "compose_config": {
+    "container_name": "${DEVICE_NAME}_earnapp",
+    "hostname": "${DEVICE_NAME}_earnapp",
+    "image": "fazalfarhan01/earnapp:lite",
+    "environment": [
+      "EARNAPP_UUID=$EARNAPP_UUID",
+      "EARNAPP_TERM=yes"
+    ],
+    "labels": [
+      "com.centurylinklabs.watchtower.enable=true",
+      "com.centurylinklabs.watchtower.scope=${M4B_WATCHTOWER_SCOPE}"
+    ],
+    "volumes": [
+      ".data/.earnapp:/etc/earnapp"
+    ],
+    "restart": "always",
+    "cpus": "${APP_CPU_LIMIT_MEDIUM}",
+    "mem_reservation": "${APP_MEM_RESERV_MEDIUM}",
+    "mem_limit": "${APP_MEM_LIMIT_MEDIUM}",
+    "logging": {
+      "driver": "json-file",
+      "options": {
+        "max-size": "10m",
+        "max-file": "3"
+      }
+    },
+    "healthcheck": {
+      "test": [
+        "CMD-SHELL",
+        "pgrep -f earnapp || exit 1"
+      ],
+      "interval": "120s",
+      "timeout": "10s",
+      "retries": 3,
+      "start_period": "60s"
+    }
+  },
+  "compose_config_proxy": {
+    "network_mode": "service:proxy",
+    "hostname": null
+  },
+  "flags": {
+    "uuid": {
+      "length": 32,
+      "claimURLBase": "To claim your node, after starting it, go to the app's dashboard and then visit the following link: https://earnapp.com/r/sdk-node-",
+      "prefix": "sdk-node-"
+    }
+  },
+  "install_limit": 1,
+  "compose_layer": "residential",
+  "app_details": {
+    "official_name": "EarnApp",
+    "publisher": "Bright Data",
+    "official_url": "https://earnapp.com",
+    "tos_url": "https://earnapp.com/eula",
+    "status": "active",
+    "device_limits": {
+      "max_devices_per_account": "undocumented",
+      "max_devices_per_ip": 1,
+      "max_ips_per_account": "undocumented",
+      "notes": "1 device per IP for meaningful earnings. Multiple devices on same IP are deprioritized. Community-reported 15-device limit unverified in current official docs."
+    },
+    "ip_policy": {
+      "residential": true,
+      "datacenter": false,
+      "vps": false,
+      "vpn": false,
+      "proxy": false,
+      "mobile": true,
+      "adjacent_ips_accepted": "partial",
+      "adjacent_ips_max": "undocumented",
+      "ipv6": "undocumented",
+      "geo_restrictions": "none known",
+      "quality_notes": "Bright Data IP reputation scoring. Datacenter ASNs filtered. Daily per-device bandwidth throttled (200-400 MB/day reported)."
+    },
+    "docker": {
+      "image_official": false,
+      "image_maintained": false,
+      "last_update": "2023-06"
+    },
+    "earnings": {
+      "model": "per-GB",
+      "min_payout": "$2.50 PayPal / $5 gift card",
+      "payout_methods": [
+        "PayPal",
+        "gift cards",
+        "crypto"
+      ],
+      "avg_monthly_residential_usd": "1-9",
+      "avg_monthly_datacenter_usd": null
+    },
+    "warnings": [
+      "EULA explicitly prohibits Docker and Linux hosting usage",
+      "Third-party unmaintained Docker image (last updated 2023-06)",
+      "Usage may violate Bright Data Terms of Service"
+    ],
+    "confidence": "high",
+    "sources": [
+      "https://earnapp.com/eula",
+      "https://help.earnapp.com/hc/en-us/articles/10198969950353"
+    ],
+    "last_verified": "2026-03-21",
+    "compose_layer_reasoning": "Explicitly targets residential IPs for proxy resale via Bright Data network. Datacenter ASNs are frequently blocked.",
+    "install_limit_reasoning": "System architecture prioritizes unique IPs; multiple nodes on one IP earn negligible rewards. EULA bans Docker/Linux entirely.",
+    "recommendation": "update-config",
+    "recommendation_reasoning": "Corrected install_limit to 1 to align with IP priority policies. Kept residential layer. Users should be warned about EULA risk.",
+    "confidence_notes": "Terms of Use and Bright Data integration verified from official EULA and community research."
+  },
+  "referrals": [
+    {
+      "url": "https://earnapp.com/i/3zulx7k",
+      "contributor": "MRColorR"
+    }
+  ],
+  "user_config_template": {
+    "enabled": false,
+    "uuid": "sdk-node-yourEARNAPPDeviceUUID"
+  }
+}
