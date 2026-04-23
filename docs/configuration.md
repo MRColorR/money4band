@@ -8,9 +8,17 @@
 
 | File | Location | Purpose |
 |------|----------|---------|
-| `m4b-config.json` | `config/` | Project settings — ports, DNS, profiles, menu, word lists |
-| `app-config.json` | `config/` | App definitions — Docker images, metadata, earnings, limits |
-| `user-config.json` | `config/` | **Your settings** — credentials, proxy config, preferences |
+| `m4b-config.json` | `config/` | Project settings — ports, DNS presets, menu, word lists, compose mode |
+| `app-config.json` | `config/` | **Envelope** — `app_config_version`, `catalog_sources[]`, per-category `active` flags. See [App Management](app-management.md#on-disk-layout-v20-phase-83b). |
+| `catalog/` | `config/` | Per-file app bundles under `supported/` / `newcomers/` / `deprecated/` (one JSON file per app) |
+| `apps.d/` | `config/` | Hand-written community overlays merged into `newcomers` at load time |
+| `user-config.json` | `config/` | **Your settings** — credentials, proxy config, preferences (encrypted at rest) |
+
+> The `app-config.json` envelope + `catalog/` + `apps.d/` are aggregated
+> in-memory at load time via the pluggable catalog-source interface in
+> [`money4band/apps/sources.py`](../money4band/apps/sources.py). See the
+> [Catalog Sources](app-management.md#catalog-sources) section for the
+> source model and ordering rules.
 
 ### user-config.json
 
@@ -36,10 +44,43 @@ Project-level settings you can tune:
 |-----|---------|-------------|
 | `system.compose_mode` | `monolithic` | `monolithic` or `layered` compose output |
 | `ports.default_port_base` | `50000` | Starting port for app port allocation |
+| `ports.port_offset_per_app` | `1000` | Port stride between apps |
+| `ports.port_offset_per_instance` | `3` | Port stride between multi-proxy instances |
+| `system.dns.available_modes` | list | Selectable DNS presets exposed by `m4b dns` |
+| `system.registry_request_timeout` | `15` | Seconds before giving up on a Docker-registry probe |
+| `system.registry_max_retries` | `3` | Docker-registry retry attempts |
 
 > **Note:** User-mutable settings (`resource_profile`, `dns_mode`, `dns_servers`,
-> `enforce_install_limits`, `setup_completed`) live in `user-config.json` under
-> the `settings` section. See `template/user-config.json` for defaults.
+> `enforce_install_limits`, `setup_completed`, `picked_referrals`) live in
+> `user-config.json` under the `settings` section. See
+> [`template/user-config.json`](../template/user-config.json) for defaults.
+
+### app-config.json (envelope)
+
+The envelope is intentionally small:
+
+```jsonc
+{
+  "app_config_version": 2.0,
+  "catalog_sources": [
+    { "type": "local", "path": "catalog", "default_source": "builtin", "enabled": true }
+  ],
+  "categories": {
+    "supported":  { "active": true  },
+    "newcomers":  { "active": false },
+    "deprecated": { "active": false }
+  }
+}
+```
+
+Per-app bundles live under `config/catalog/<category>/<NAME>.json` — one
+file per app. See [App Management → On-Disk Layout](app-management.md#on-disk-layout-v20-phase-83b)
+for the full schema and the source-plugin model.
+
+If you upgrade from a checkout that still has a monolithic
+`app-config.json`, the loader auto-migrates it on first run (one-time
+`app-config.json.v1.bak` backup). You can also run the migration by
+hand: `python scripts/migrate_catalog_v1_to_v2.py`.
 
 ## Configuration Profiles
 
@@ -108,10 +149,13 @@ compose.service.yml          # auto-claim sidecars
 compose.proxy.yml            # VPN tunnel
 ```
 
-Enable layered mode:
-```json
-// m4b-config.json
-"compose_mode": "layered"
+Enable layered mode by editing `config/m4b-config.json`:
+```jsonc
+{
+  "system": {
+    "compose_mode": "layered"
+  }
+}
 ```
 
 Layered mode is useful for advanced users who want to selectively start/stop app groups.

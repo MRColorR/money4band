@@ -67,7 +67,7 @@ m4b dashboard start
 
 ## Next Steps
 
-- [CLI Reference](cli-reference.md) — all 23 subcommands
+- [CLI Reference](cli-reference.md) — all 22 subcommands
 - [App Management](app-management.md) — enable / disable apps, community plugins
 - [Proxy Setup](proxy-setup.md) — scale across multiple proxies
 - [Dashboard & API](dashboard-api.md) — web UI for monitoring

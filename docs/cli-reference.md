@@ -117,29 +117,35 @@ m4b generate
 ## Apps
 
 ### `apps`
-List all supported apps grouped by category.
+List all apps grouped by category.
 
 ```bash
-m4b apps
-m4b apps --category supported
+m4b apps                           # all categories
+m4b apps --category supported      # supported (default, always active)
+m4b apps --category candidate      # newcomers (candidates, opt-in)
+m4b apps --category deprecated     # deprecated (removed for cause)
 ```
 
 ### `apps <name>`
-Show detailed information for a specific app.
+Show the detailed info card (publisher, IP policy, device limits,
+earnings estimate, referrals, last-verified date) for a specific app.
 
 ```bash
 m4b apps honeygain
 ```
 
 ### `app add`
-Launch the community app plugin wizard.
+Launch the community app plugin wizard. Writes a new per-file bundle to
+`config/apps.d/<NAME>.json` which is merged into the `newcomers`
+category on next load.
 
 ```bash
 m4b app add
 ```
 
 ### `app validate`
-Validate a community app plugin JSON file.
+Validate every JSON file under `config/apps.d/` against the app schema.
+Reports the exact error per file and exits non-zero if any file fails.
 
 ```bash
 m4b app validate
@@ -253,14 +259,30 @@ m4b dashboard start
 ### `dashboard stop`
 Stop a running background dashboard.
 
+```bash
+m4b dashboard stop
+```
+
 ### `dashboard status`
 Check whether the dashboard is running.
+
+```bash
+m4b dashboard status
+```
 
 ### `dashboard show-key`
 Display the current API key.
 
+```bash
+m4b dashboard show-key
+```
+
 ### `dashboard regenerate-key`
-Generate a new API key.
+Generate a new API key (invalidates the old one).
+
+```bash
+m4b dashboard regenerate-key
+```
 
 ### `dashboard restart`
 Restart the background dashboard.
@@ -271,7 +293,12 @@ m4b dashboard restart --host 0.0.0.0 --port 9000
 ```
 
 ### `dashboard enable` / `dashboard disable`
-Toggle dashboard auto-start.
+Toggle dashboard auto-start on M4B launch.
+
+```bash
+m4b dashboard enable
+m4b dashboard disable
+```
 
 ---
 

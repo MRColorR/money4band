@@ -95,8 +95,12 @@ Or use the **interactive menu** which shows the same presets.
 ### How do I switch between monolithic and layered compose?
 
 Edit `config/m4b-config.json`:
-```json
-"compose_mode": "layered"
+```jsonc
+{
+  "system": {
+    "compose_mode": "layered"
+  }
+}
 ```
 Then regenerate: `m4b generate`.
 
