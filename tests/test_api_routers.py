@@ -256,6 +256,85 @@ class TestAppsRouter:
 
 
 # ===========================================================================
+# Apps router — provenance fields (phase-8.2)
+# ===========================================================================
+
+
+class TestAppsProvenance:
+    """Verify source, managed_by_m4b, referrals[] and picked_referral_url."""
+
+    def test_list_exposes_provenance_fields(self, client):
+        resp = client.get("/api/apps")
+        assert resp.status_code == 200
+        data = resp.json()
+        for entry in data:
+            assert "source" in entry
+            assert "managed_by_m4b" in entry
+            assert "referrals" in entry
+            assert "picked_referral_url" in entry
+            assert isinstance(entry["referrals"], list)
+
+    def test_default_source_is_builtin(self, client):
+        resp = client.get("/api/apps")
+        data = resp.json()
+        assert all(a["source"] == "builtin" for a in data)
+
+    def test_supported_builtin_is_managed_by_m4b(self, client):
+        resp = client.get("/api/apps?category=supported")
+        data = resp.json()
+        assert data and all(a["managed_by_m4b"] is True for a in data)
+
+    def test_newcomers_not_managed_by_m4b(self, client):
+        resp = client.get("/api/apps?category=newcomers")
+        data = resp.json()
+        assert data and all(a["managed_by_m4b"] is False for a in data)
+
+    def test_referrals_normalized_from_pool(self, client):
+        resp = client.get("/api/apps/honeygain")
+        data = resp.json()
+        assert data["referrals"] == [
+            {
+                "url": "https://r.honeygain.me/TEST",
+                "contributor": "MRColorR",
+                "added": None,
+                "verified": False,
+                "verified_by": [],
+            }
+        ]
+
+    def test_picked_referral_url_falls_back_to_first_pool_entry(self, client):
+        resp = client.get("/api/apps/honeygain")
+        data = resp.json()
+        assert data["picked_referral_url"] == "https://r.honeygain.me/TEST"
+
+    def test_picked_referral_url_uses_user_setting_when_set(self, tmp_config):
+        """A sticky pick in user-config wins over the first pool entry."""
+        import json as _json
+
+        user_cfg_path = tmp_config / "config" / "user-config.json"
+        user_cfg = _json.loads(user_cfg_path.read_text())
+        user_cfg["settings"]["picked_referrals"] = {
+            "honeygain": "https://r.honeygain.me/STICKY",
+        }
+        user_cfg_path.write_text(_json.dumps(user_cfg))
+
+        # Invalidate the config cache so the test reads fresh data.
+        from money4band.api._deps import _cache
+
+        _cache.invalidate()
+
+        c = TestClient(app, headers={"Authorization": f"Bearer {_TEST_API_KEY}"})
+        resp = c.get("/api/apps/honeygain")
+        assert resp.json()["picked_referral_url"] == "https://r.honeygain.me/STICKY"
+
+    def test_app_without_referrals_pool_returns_empty(self, client):
+        resp = client.get("/api/apps/testapp")
+        data = resp.json()
+        assert data["referrals"] == []
+        assert data["picked_referral_url"] == ""
+
+
+# ===========================================================================
 # Config router
 # ===========================================================================
 

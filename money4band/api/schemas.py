@@ -34,6 +34,16 @@ class StatusPath(StatusOk):
 # ---------------------------------------------------------------------------
 
 
+class ReferralOut(BaseModel):
+    """A single referral/affiliate URL contributed by a catalog author."""
+
+    url: str
+    contributor: str = "MRColorR"
+    added: str | None = None
+    verified: bool = False
+    verified_by: list[str] = Field(default_factory=list)
+
+
 class AppSummary(BaseModel):
     name: str
     category: str
@@ -44,6 +54,32 @@ class AppSummary(BaseModel):
     compose_layer: str = ""
     status: str = ""
     dashboard_url: str = ""
+    # Provenance fields (phase-8.2)
+    source: str = Field(
+        "builtin",
+        description=(
+            "Catalog source: 'builtin' (shipped), 'community' (apps.d overlay), "
+            "'remote' (fetched community catalog), 'local' (user override)."
+        ),
+    )
+    managed_by_m4b: bool = Field(
+        True,
+        description=(
+            "True when M4B ships + maintains this entry (supported + builtin). "
+            "False for newcomers, deprecated, or user-contributed overlays."
+        ),
+    )
+    referrals: list[ReferralOut] = Field(
+        default_factory=list,
+        description="Full referral pool for this app (attributed + verifiable).",
+    )
+    picked_referral_url: str = Field(
+        "",
+        description=(
+            "Referral URL currently selected for this user/device. "
+            "Sticky via user-config settings.picked_referrals[app_name]."
+        ),
+    )
 
 
 class CategorySummary(BaseModel):

@@ -142,7 +142,8 @@
     "resource_profile": "standard",
     "dns_mode": "default",
     "dns_servers": [],
-    "enforce_install_limits": true
+    "enforce_install_limits": true,
+    "picked_referrals": {}
   },
   "m4b_dashboard": {
     "enabled": true,
