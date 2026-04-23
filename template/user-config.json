@@ -9,134 +9,7 @@
     "detected_architecture": "amd64",
     "detected_docker_arch": "amd64"
   },
-  "apps": {
-    "earnapp": {
-      "enabled": false,
-      "uuid": "sdk-node-yourEARNAPPDeviceUUID"
-    },
-    "honeygain": {
-      "enabled": false,
-      "email": "yourHONEYGAINMail",
-      "password": "yourHONEYGAINPw",
-      "service_enabled": false
-    },
-    "iproyalpawns": {
-      "enabled": false,
-      "email": "yourIPROYALPAWNSMail",
-      "password": "yourIPROYALPAWNSPw"
-    },
-    "packetstream": {
-      "enabled": false,
-      "cid": "yourPACKETSTREAMCID"
-    },
-    "traffmonetizer": {
-      "enabled": false,
-      "token": "yourTRAFFMONETIZERToken"
-    },
-    "repocket": {
-      "enabled": false,
-      "email": "yourREPOCKETMail",
-      "apikey": "yourREPOCKETAPIKey"
-    },
-    "earnfm": {
-      "enabled": false,
-      "apikey": "yourEARNFMAPIKey"
-    },
-    "proxyrack": {
-      "enabled": false,
-      "apikey": "yourPROXYRACKAPIKey",
-      "uuid": "yourPROXYRACKDeviceUUID"
-    },
-    "proxylite": {
-      "enabled": false,
-      "userid": "yourPROXYLITEUserID"
-    },
-    "bitping": {
-      "enabled": false,
-      "email": "yourBITPINGMail",
-      "password": "yourBITPINGPw"
-    },
-    "packetshare": {
-      "enabled": false,
-      "email": "yourPACKETSHAREMail",
-      "password": "yourPACKETSHAREPw",
-      "service_enabled": false
-    },
-    "gradient": {
-      "enabled": false,
-      "email": "yourGRADIENTMail",
-      "password": "yourGRADIENTPw"
-    },
-    "proxybase": {
-      "enabled": false,
-      "userid": "yourPROXYBASEUserID"
-    },
-    "mystnode": {
-      "enabled": false,
-      "ports": [4449]
-    },
-    "spide": {
-      "enabled": false,
-      "machine_id": "yourSPIDEMachineID"
-    },
-    "gaganode": {
-      "enabled": false,
-      "token": "yourGAGANODEToken"
-    },
-    "wizardgain": {
-      "enabled": false,
-      "email": "yourWIZARDGAINMail"
-    },
-    "antgain": {
-      "enabled": false,
-      "apikey": "yourANTGAINAPIKey"
-    },
-    "bearshare": {
-      "enabled": false,
-      "email": "yourBEARSHAREMail",
-      "password": "yourBEARSHAREPw",
-      "service_enabled": false
-    },
-    "urnetwork": {
-      "enabled": false,
-      "auth_token": "yourURNETWORKAuthToken"
-    },
-    "titan": {
-      "enabled": false,
-      "hash": "yourTITANHash"
-    },
-    "speedshare": {
-      "enabled": false,
-      "code": "yourSPEEDSHARECode",
-      "uuid": "yourSPEEDSHAREDeviceUUID"
-    },
-    "grass": {
-      "enabled": false,
-      "userid": "yourGRASSUserID"
-    },
-    "peer2profit": {
-      "enabled": false,
-      "email": "yourPEER2PROFITMail",
-      "ports": [5901]
-    },
-    "dawn": {
-      "enabled": false,
-      "email": "yourDAWNMail",
-      "password": "yourDAWNPw",
-      "ports": [5000]
-    },
-    "teneo": {
-      "enabled": false,
-      "email": "yourTENEOMail",
-      "password": "yourTENEOPw"
-    },
-    "wipter": {
-      "enabled": false,
-      "email": "yourWIPTERMail",
-      "password": "yourWIPTERPw",
-      "ports": [5900, 6080]
-    }
-  },
+  "apps": {},
   "settings": {
     "setup_completed": false,
     "resource_profile": "standard",
@@ -188,11 +61,15 @@
         "com.centurylinklabs.watchtower.enable=true",
         "com.centurylinklabs.watchtower.scope=${M4B_WATCHTOWER_SCOPE}"
       ],
-      "cap_add": ["NET_ADMIN"],
+      "cap_add": [
+        "NET_ADMIN"
+      ],
       "privileged": true,
       "network_mode": "bridge",
       "ports": [],
-      "volumes": ["/dev/net/tun:/dev/net/tun"],
+      "volumes": [
+        "/dev/net/tun:/dev/net/tun"
+      ],
       "restart": "always",
       "cpus": "${APP_CPU_LIMIT_BIG}",
       "mem_reservation": "${APP_MEM_RESERV_BIG}",
@@ -216,7 +93,9 @@
           "com.centurylinklabs.watchtower.enable=true",
           "com.centurylinklabs.watchtower.scope=${M4B_WATCHTOWER_SCOPE}"
         ],
-        "volumes": ["/var/run/docker.sock:/var/run/docker.sock"],
+        "volumes": [
+          "/var/run/docker.sock:/var/run/docker.sock"
+        ],
         "restart": "always",
         "cpus": "${APP_CPU_LIMIT_MEDIUM}",
         "mem_reservation": "${APP_MEM_RESERV_MEDIUM}",
@@ -239,7 +118,9 @@
           "com.centurylinklabs.watchtower.enable=true",
           "com.centurylinklabs.watchtower.scope=${M4B_WATCHTOWER_SCOPE}"
         ],
-        "volumes": ["/var/run/docker.sock:/var/run/docker.sock"],
+        "volumes": [
+          "/var/run/docker.sock:/var/run/docker.sock"
+        ],
         "restart": "always",
         "cpus": "${APP_CPU_LIMIT_MEDIUM}",
         "mem_reservation": "${APP_MEM_RESERV_MEDIUM}",

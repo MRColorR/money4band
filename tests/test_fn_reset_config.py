@@ -45,3 +45,65 @@ class TestMain:
         dest = tmp_path / "dest.json"
         main("a.json", "m.json", "u.json", src_path=str(src), dest_path=str(dest))
         assert json.loads(dest.read_text()) == {"reset": True}
+
+
+class TestResetSeedsFromCatalog:
+    """Verify reset applies user_config_template defaults from app-config.json."""
+
+    def test_seeds_app_slices_from_catalog_templates(self, tmp_path: Path) -> None:
+        config_dir = tmp_path / "config"
+        config_dir.mkdir()
+
+        # Template without per-app block — per-app defaults come from catalog.
+        template = {
+            "user": {"Nickname": ""},
+            "apps": {},
+            "settings": {"setup_completed": False},
+        }
+        src = tmp_path / "template" / "user-config.json"
+        src.parent.mkdir()
+        src.write_text(json.dumps(template))
+
+        # Catalog carries the bundle-complete user_config_template per entry.
+        app_config = {
+            "app_config_version": 2.0,
+            "supported": {
+                "active": True,
+                "entries": [
+                    {
+                        "name": "HONEYGAIN",
+                        "user_config_template": {
+                            "enabled": False,
+                            "email": "yourHONEYGAINMail",
+                            "password": "yourHONEYGAINPw",
+                            "service_enabled": False,
+                        },
+                    }
+                ],
+            },
+            "newcomers": {"active": False, "entries": []},
+            "deprecated": {"active": False, "entries": []},
+        }
+        (config_dir / "app-config.json").write_text(json.dumps(app_config))
+
+        dest = config_dir / "user-config.json"
+        reset_config(str(src), str(dest))
+
+        data = json.loads(dest.read_text())
+        assert data["apps"]["honeygain"] == {
+            "enabled": False,
+            "email": "yourHONEYGAINMail",
+            "password": "yourHONEYGAINPw",
+            "service_enabled": False,
+        }
+
+    def test_reset_silently_skips_seed_when_app_config_missing(
+        self, tmp_path: Path
+    ) -> None:
+        """Odd filesystem layouts must not break reset."""
+        src = tmp_path / "template.json"
+        src.write_text(json.dumps({"apps": {}, "settings": {}}))
+        dest = tmp_path / "out" / "user-config.json"
+        reset_config(str(src), str(dest))
+        # No app-config.json next to dest → apps stays empty, no crash.
+        assert json.loads(dest.read_text())["apps"] == {}

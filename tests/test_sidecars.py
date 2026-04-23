@@ -451,28 +451,59 @@ class TestAppConfigServiceDefinitions:
 
 
 class TestUserConfigTemplate:
-    """Verify user-config template includes service_enabled for sidecar apps."""
+    """Verify per-bundle user_config_template carries service_enabled."""
 
     @pytest.fixture()
-    def template(self):
+    def app_config(self):
+        config_path = os.path.join(
+            os.path.dirname(__file__), os.pardir, "config", "app-config.json"
+        )
+        with open(config_path) as f:
+            return json.load(f)
+
+    @pytest.fixture()
+    def app_entries(self, app_config):
+        """Flatten {lower_name: entry} across all catalog categories."""
+        entries: dict[str, dict] = {}
+        for cat in ("supported", "newcomers", "deprecated"):
+            for entry in app_config.get(cat, {}).get("entries", []):
+                entries[entry["name"].lower()] = entry
+        return entries
+
+    def _template_for(self, app_entries, name: str) -> dict:
+        entry = app_entries[name]
+        tpl = entry.get("user_config_template")
+        assert isinstance(tpl, dict), f"{entry['name']} is missing user_config_template"
+        return tpl
+
+    def test_honeygain_template_has_service_enabled(self, app_entries):
+        assert self._template_for(app_entries, "honeygain")["service_enabled"] is False
+
+    def test_packetshare_template_has_service_enabled(self, app_entries):
+        assert (
+            self._template_for(app_entries, "packetshare")["service_enabled"] is False
+        )
+
+    def test_bearshare_template_has_service_enabled(self, app_entries):
+        assert self._template_for(app_entries, "bearshare")["service_enabled"] is False
+
+    def test_other_apps_no_service_enabled(self, app_entries):
+        sidecar_apps = {"honeygain", "packetshare", "bearshare"}
+        for name, entry in app_entries.items():
+            tpl = entry.get("user_config_template", {})
+            if name not in sidecar_apps:
+                assert "service_enabled" not in tpl, (
+                    f"{name} should not have service_enabled"
+                )
+
+    def test_root_template_has_no_per_app_block(self):
+        """template/user-config.json must not duplicate per-app knowledge."""
         tpl_path = os.path.join(
             os.path.dirname(__file__), os.pardir, "template", "user-config.json"
         )
         with open(tpl_path) as f:
-            return json.load(f)
-
-    def test_honeygain_template_has_service_enabled(self, template):
-        assert template["apps"]["honeygain"]["service_enabled"] is False
-
-    def test_packetshare_template_has_service_enabled(self, template):
-        assert template["apps"]["packetshare"]["service_enabled"] is False
-
-    def test_bearshare_template_has_service_enabled(self, template):
-        assert template["apps"]["bearshare"]["service_enabled"] is False
-
-    def test_other_apps_no_service_enabled(self, template):
-        for name, cfg in template["apps"].items():
-            if name not in ("honeygain", "packetshare", "bearshare"):
-                assert "service_enabled" not in cfg, (
-                    f"{name} should not have service_enabled"
-                )
+            template = json.load(f)
+        assert template["apps"] == {}, (
+            "template/user-config.json must have apps: {} — "
+            "per-app slices are declared in each catalog bundle."
+        )

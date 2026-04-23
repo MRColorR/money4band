@@ -34,6 +34,11 @@ def reset_config(src_path: str, dest_path: str) -> None:
         shutil.copyfile(src_path, dest_path)
         logger.info(f"Successfully copied {src_path} to {dest_path}.")
 
+        # Seed per-app slices from the catalog's user_config_template fields.
+        # template/user-config.json intentionally has no per-app block;
+        # every bundle declares its own default slice.
+        _seed_app_slices_from_catalog(dest_path)
+
     except FileNotFoundError as e:
         logger.error(f"File not found: {str(e)}")
         raise
@@ -43,6 +48,41 @@ def reset_config(src_path: str, dest_path: str) -> None:
     except Exception as e:
         logger.error(f"An unexpected error occurred: {str(e)}")
         raise
+
+
+def _seed_app_slices_from_catalog(user_config_path: str) -> None:
+    """Apply ``user_config_template`` defaults from the catalog into user-config.
+
+    Silently no-ops when the companion ``app-config.json`` cannot be
+    located or parsed — the caller (reset) must remain resilient in
+    unusual filesystem layouts (tests, custom installs).
+    """
+    logger = logging.getLogger(__name__)
+    config_dir = os.path.dirname(user_config_path)
+    app_config_path = os.path.join(config_dir, "app-config.json")
+    if not os.path.exists(app_config_path):
+        logger.debug(
+            "Skipping user_config_template seed: %s not found", app_config_path
+        )
+        return
+    try:
+        with open(user_config_path, encoding="utf-8") as f:
+            user_config = json.load(f)
+        with open(app_config_path, encoding="utf-8") as f:
+            app_config = json.load(f)
+    except (OSError, json.JSONDecodeError) as exc:
+        logger.warning("Skipping user_config_template seed: %s", exc)
+        return
+
+    from money4band.apps.user_config_merger import apply_user_config_templates
+
+    added = apply_user_config_templates(user_config, app_config)
+    if added:
+        logger.info("Seeded %d app slice(s) from catalog templates.", added)
+
+    with open(user_config_path, "w", encoding="utf-8") as f:
+        json.dump(user_config, f, indent=2, ensure_ascii=False)
+        f.write("\n")
 
 
 def main(

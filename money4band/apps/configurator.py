@@ -305,6 +305,13 @@ def configure_apps(
         app_config (dict): The app configuration dictionary.
         m4b_config (dict): The m4b configuration dictionary.
     """
+    # Ensure every catalog entry has a user-config slice before prompting.
+    # New apps (added via catalog update, community overlay, or remote fetch)
+    # gain their default slice here; existing user values are untouched.
+    from money4band.apps.user_config_merger import apply_user_config_templates
+
+    apply_user_config_templates(user_config, app_config)
+
     offset = 0
     for category in get_active_app_categories(app_config):
         entries = get_category_entries(app_config, category)
