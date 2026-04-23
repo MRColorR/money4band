@@ -217,7 +217,7 @@ def default_envelope() -> dict[str, Any]:
         "catalog_sources": [
             {
                 "type": "local",
-                "path": f"config/{CATALOG_DIRNAME}",
+                "path": CATALOG_DIRNAME,
                 "default_source": "builtin",
                 "enabled": True,
             }

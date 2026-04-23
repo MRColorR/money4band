@@ -3,7 +3,7 @@
   "catalog_sources": [
     {
       "type": "local",
-      "path": "config/catalog",
+      "path": "catalog",
       "default_source": "builtin",
       "enabled": true
     }

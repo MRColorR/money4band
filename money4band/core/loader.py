@@ -97,8 +97,9 @@ def load_app_config_with_overlays(
     Consumers that previously accessed ``app_config["supported"]["entries"]``
     keep working unchanged — the shape is identical.
     """
+    from money4band.apps.sources import aggregate_from_sources
     from money4band.core.catalog_migration import migrate_catalog_file
-    from money4band.core.catalog_store import aggregate, is_envelope
+    from money4band.core.catalog_store import is_envelope
 
     # One-shot migration — no-op after first run.
     migrate_catalog_file(config_path)
@@ -108,7 +109,7 @@ def load_app_config_with_overlays(
     # Either already an envelope (normal path) or still monolithic
     # (migration skipped — e.g. tests that write in-memory dicts directly).
     if is_envelope(envelope):
-        config = aggregate(envelope, config_path)
+        config = aggregate_from_sources(envelope, config_path)
     else:
         config = envelope
 
