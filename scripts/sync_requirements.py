@@ -18,11 +18,29 @@ ROOT = Path(__file__).resolve().parent.parent
 TARGETS: list[tuple[Path, list[str]]] = [
     (
         ROOT / "requirements.txt",
-        ["uv", "export", "--format", "requirements-txt", "--no-hashes", "--no-emit-project", "--frozen"],
+        [
+            "uv",
+            "export",
+            "--format",
+            "requirements-txt",
+            "--no-hashes",
+            "--no-emit-project",
+            "--frozen",
+        ],
     ),
     (
         ROOT / "requirements-dev.txt",
-        ["uv", "export", "--format", "requirements-txt", "--no-hashes", "--no-emit-project", "--frozen", "--group", "dev"],
+        [
+            "uv",
+            "export",
+            "--format",
+            "requirements-txt",
+            "--no-hashes",
+            "--no-emit-project",
+            "--frozen",
+            "--group",
+            "dev",
+        ],
     ),
 ]
 
@@ -34,7 +52,9 @@ def _generate(cmd: list[str]) -> str:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Sync requirements from uv.lock")
-    parser.add_argument("--check", action="store_true", help="Exit 1 if files are stale (CI mode)")
+    parser.add_argument(
+        "--check", action="store_true", help="Exit 1 if files are stale (CI mode)"
+    )
     args = parser.parse_args()
 
     stale = False

@@ -35,7 +35,9 @@ def _switch_profile(
         m4b_config_path,
         app_config_path,
         user_config_path,
-        env_output_path=os.path.join(os.path.dirname(m4b_config_path), os.pardir, ".env"),
+        env_output_path=os.path.join(
+            os.path.dirname(m4b_config_path), os.pardir, ".env"
+        ),
     )
     return load_json_config(user_config_path)
 
@@ -61,9 +63,7 @@ def main(
         for i, name in enumerate(valid, 1):
             marker = f" {Fore.GREEN}(active){Style.RESET_ALL}" if name == active else ""
             print(f"    {i}. {name}{marker}")
-        print(
-            f"\n  {Fore.CYAN}b{Style.RESET_ALL} Back"
-        )
+        print(f"\n  {Fore.CYAN}b{Style.RESET_ALL} Back")
 
         choice = input("Select: ").strip().lower()
 
@@ -78,8 +78,11 @@ def main(
                     print(f"{Fore.YELLOW}Already on '{selected}'.{Style.RESET_ALL}")
                 else:
                     user_config = _switch_profile(
-                        selected, m4b_config, m4b_config_path,
-                        app_config_path, user_config_path,
+                        selected,
+                        m4b_config,
+                        m4b_config_path,
+                        app_config_path,
+                        user_config_path,
                     )
                     print(f"\n{Fore.GREEN}Switched to: {selected}{Style.RESET_ALL}")
                     print(

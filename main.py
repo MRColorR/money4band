@@ -336,9 +336,7 @@ def mainmenu(
                 )
                 handler = menu_dispatch.get(function_name)
                 if handler:
-                    handler(
-                        apps_config_path, m4b_config_path, user_config_path
-                    )
+                    handler(apps_config_path, m4b_config_path, user_config_path)
                 else:
                     print(
                         f"{Fore.RED}Unknown menu function: {function_name}{Style.RESET_ALL}"
@@ -954,7 +952,11 @@ def _cmd_dns(args: argparse.Namespace) -> None:
         show_dns_presets(m4b_config, user_config)
     elif dns_action == "set":
         mode = args.mode
-        servers = [s.strip() for s in args.servers.split(",") if s.strip()] if getattr(args, "servers", None) else None
+        servers = (
+            [s.strip() for s in args.servers.split(",") if s.strip()]
+            if getattr(args, "servers", None)
+            else None
+        )
         from money4band.system.info import set_dns_mode
 
         set_dns_mode(m4b_config_path, user_config_path, mode, servers)
@@ -1070,7 +1072,9 @@ def _build_parser() -> argparse.ArgumentParser:
         default=False,
         help="Resume a previously interrupted setup, skipping completed steps",
     )
-    stack_parser = sub.add_parser("stack", help="Start, stop, or restart the Docker Compose stack")
+    stack_parser = sub.add_parser(
+        "stack", help="Start, stop, or restart the Docker Compose stack"
+    )
     stack_sub = stack_parser.add_subparsers(dest="stack_action")
     stack_sub.add_parser("start", help="Start the Docker Compose stack")
     stack_sub.add_parser("stop", help="Stop the Docker Compose stack")

@@ -319,7 +319,9 @@ def _backup_preserved_files(base_dir: str) -> dict[str, tuple[bytes, int]]:
     return saved
 
 
-def _restore_preserved_files(base_dir: str, saved: dict[str, tuple[bytes, int]]) -> None:
+def _restore_preserved_files(
+    base_dir: str, saved: dict[str, tuple[bytes, int]]
+) -> None:
     """Restore preserved files after an update, preserving original permissions."""
     for rel_path, (content, mode) in saved.items():
         full_path = os.path.join(base_dir, rel_path)
@@ -399,7 +401,9 @@ def _apply_binary_update(target_version: str) -> bool:
     tag = f"v{target_version}" if not target_version.startswith("v") else target_version
     asset_name = _get_binary_asset_name()
     url = f"https://github.com/{_OWNER}/{_REPO}/releases/download/{tag}/{asset_name}"
-    checksum_url = f"https://github.com/{_OWNER}/{_REPO}/releases/download/{tag}/checksums.sha256"
+    checksum_url = (
+        f"https://github.com/{_OWNER}/{_REPO}/releases/download/{tag}/checksums.sha256"
+    )
 
     client = get_client()
     try:
@@ -443,7 +447,9 @@ def _apply_binary_update(target_version: str) -> bool:
         if expected_hash:
             if actual_hash != expected_hash:
                 logger.error(
-                    "Checksum mismatch! expected=%s actual=%s", expected_hash, actual_hash
+                    "Checksum mismatch! expected=%s actual=%s",
+                    expected_hash,
+                    actual_hash,
                 )
                 os.unlink(tmp_path)
                 return False

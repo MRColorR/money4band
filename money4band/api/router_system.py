@@ -91,5 +91,7 @@ async def set_dns(
             status_code=400,
             detail=f"Invalid mode '{payload.mode}'. Valid: {', '.join(valid_modes)}",
         )
-    set_dns_mode(paths.m4b_config, paths.user_config, payload.mode, servers=payload.servers)
+    set_dns_mode(
+        paths.m4b_config, paths.user_config, payload.mode, servers=payload.servers
+    )
     return {"status": "ok", "mode": payload.mode}

@@ -103,6 +103,7 @@ async def _security_headers(request: Request, call_next):  # type: ignore[no-unt
         response.headers["Cache-Control"] = "no-store"
     return response
 
+
 # ---------------------------------------------------------------------------
 # Rate limiting — per-IP sliding window, 60 requests / minute.
 # ---------------------------------------------------------------------------
@@ -147,6 +148,7 @@ async def _rate_limit_middleware(request: Request, call_next):  # type: ignore[n
 
     timestamps.append(now)
     return await call_next(request)
+
 
 # ---------------------------------------------------------------------------
 # API-key auth — auto-generated, stored in user-config, localhost exempt.
@@ -273,9 +275,7 @@ class _LoginPayload(BaseModel):
 async def login(payload: _LoginPayload) -> JSONResponse:
     """Validate the API key and set an ``m4b_token`` session cookie."""
     if not _api_key or not hmac.compare_digest(payload.token, _api_key):
-        return JSONResponse(
-            status_code=401, content={"detail": "Invalid API key"}
-        )
+        return JSONResponse(status_code=401, content={"detail": "Invalid API key"})
     response = JSONResponse(content={"status": "ok"})
     response.set_cookie(
         key="m4b_token",
@@ -396,7 +396,11 @@ async def get_status() -> dict[str, Any]:
             "{{.Names}}\t{{.Status}}\t{{.State}}\t{{.Ports}}",
         )
     except Exception:
-        return {"docker_available": False, "error": "Docker is not reachable", "containers": []}
+        return {
+            "docker_available": False,
+            "error": "Docker is not reachable",
+            "containers": [],
+        }
 
     if result.returncode != 0:
         logger.error("docker ps failed: %s", result.stderr.strip())
@@ -499,8 +503,12 @@ async def container_action(container: str, action: str) -> dict[str, str]:
 
     result = await _run_docker(action, container)
     if result.returncode != 0:
-        logger.error("Docker %s %s failed: %s", action, container, result.stderr.strip())
-        raise HTTPException(status_code=500, detail=f"Failed to {action} container '{container}'")
+        logger.error(
+            "Docker %s %s failed: %s", action, container, result.stderr.strip()
+        )
+        raise HTTPException(
+            status_code=500, detail=f"Failed to {action} container '{container}'"
+        )
 
     return {"status": "ok", "action": action, "container": container}
 

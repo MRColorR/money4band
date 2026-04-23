@@ -114,9 +114,7 @@ def show_dns_status(user_config: dict[str, Any]) -> None:
         print("  Servers: (host default — Docker inherits from the host resolver)")
 
 
-def show_dns_presets(
-    m4b_config: dict[str, Any], user_config: dict[str, Any]
-) -> None:
+def show_dns_presets(m4b_config: dict[str, Any], user_config: dict[str, Any]) -> None:
     """Print available DNS presets and their server addresses."""
     just_fix_windows_console()
     presets = get_dns_presets(m4b_config)
@@ -130,7 +128,9 @@ def show_dns_presets(
     for name, servers in presets.items():
         active = marker if name == current_mode else ""
         print(f"  {name:<22} {', '.join(servers)}{active}")
-    print(f"  {'custom':<22} (specify with --servers){marker if current_mode == 'custom' else ''}")
+    print(
+        f"  {'custom':<22} (specify with --servers){marker if current_mode == 'custom' else ''}"
+    )
 
 
 def dns_interactive(m4b_config_path: str, user_config_path: str) -> None:

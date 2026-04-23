@@ -109,7 +109,9 @@ def rewrite_file(filepath: str) -> int:
 
         # Match: from <old_path> import ... OR import <old_path>
         # Also match inside string literals (for @patch decorators)
-        pattern = re.compile(rf"(?<!\w){old_escaped}(?=[\s.,\"\'\)\]:]|$)", re.MULTILINE)
+        pattern = re.compile(
+            rf"(?<!\w){old_escaped}(?=[\s.,\"\'\)\]:]|$)", re.MULTILINE
+        )
 
         new_content = pattern.sub(new_path, content)
         if new_content != content:

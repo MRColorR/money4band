@@ -31,7 +31,11 @@ def get_compose_project_name(env_file: str) -> str | None:
         str | None: The COMPOSE_PROJECT_NAME value, or None if not found.
     """
     # Handle if compose file was passed instead of .env
-    env_file = os.path.join(os.path.dirname(env_file), ".env") if not env_file.endswith(".env") else env_file
+    env_file = (
+        os.path.join(os.path.dirname(env_file), ".env")
+        if not env_file.endswith(".env")
+        else env_file
+    )
 
     # Try .env first, then fall back to .env.meta (persists after secure delete).
     candidates = [env_file]

@@ -54,7 +54,9 @@ async def apply_update(
     """
     client = request.client.host if request.client else ""
     if client not in _LOOPBACK:
-        raise HTTPException(status_code=403, detail="Updates can only be applied from localhost")
+        raise HTTPException(
+            status_code=403, detail="Updates can only be applied from localhost"
+        )
 
     from money4band.updater import apply_update, check_for_update
 

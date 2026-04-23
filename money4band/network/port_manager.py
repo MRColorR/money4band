@@ -24,7 +24,11 @@ _port_constants_loaded = False
 
 def _load_port_constants() -> None:
     """Load port constants from config on first use."""
-    global DEFAULT_PORT_BASE, PORT_OFFSET_PER_APP, PORT_OFFSET_PER_INSTANCE, _port_constants_loaded
+    global \
+        DEFAULT_PORT_BASE, \
+        PORT_OFFSET_PER_APP, \
+        PORT_OFFSET_PER_INSTANCE, \
+        _port_constants_loaded
     if _port_constants_loaded:
         return
     try:

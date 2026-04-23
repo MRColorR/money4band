@@ -122,7 +122,9 @@ def run_dashboard_command(
     if restart:
         _handle_stop(config_dir, read_dashboard_pid, remove_dashboard_pid)
         time.sleep(0.5)
-        _start_background(config_dir, base_dir, host=host, port=find_dashboard_port(preferred_port))
+        _start_background(
+            config_dir, base_dir, host=host, port=find_dashboard_port(preferred_port)
+        )
         return
 
     # --status: check if a background dashboard is running.
@@ -182,12 +184,11 @@ def run_dashboard_command(
             f"{Fore.YELLOW}WARNING: Dashboard will be reachable from the "
             f"network ({host}).{Style.RESET_ALL}"
         )
-        print(
-            "  All API requests require the Bearer token.  "
-            "Keep your API key secret."
-        )
+        print("  All API requests require the Bearer token.  Keep your API key secret.")
 
-    print(f"{Fore.GREEN}Starting M4B Dashboard + API on {host}:{port}...{Style.RESET_ALL}")
+    print(
+        f"{Fore.GREEN}Starting M4B Dashboard + API on {host}:{port}...{Style.RESET_ALL}"
+    )
     print(f"  Dashboard: http://{display_host}:{port}/")
     print(f"  API docs:  http://{display_host}:{port}/api/docs")
     print(f"  Status:    http://{display_host}:{port}/api/status")
