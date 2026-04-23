@@ -1,18 +1,20 @@
-"""Generic catalog v1 → v2 migration (monolithic → per-file layout).
+"""Generic catalog migrations (monolithic → per-file → folded).
 
-Idempotent. Safe to call on every load — it detects whether migration is
-needed and no-ops otherwise. The first call on a legacy repo:
+All migrations are idempotent and safe to call on every load.
 
-1. Backs up the monolithic ``config/app-config.json`` to
-   ``config/app-config.json.v1.bak`` (once — never overwritten).
-2. Splits each entry into ``config/catalog/<category>/<NAME>.json``.
-3. Replaces ``config/app-config.json`` with the v2 envelope
-   (``app_config_version`` + ``catalog_sources`` + ``categories.active``).
+* Phase-8.3b — :func:`migrate_catalog_file` converts a monolithic
+  ``config/app-config.json`` into the per-file layout
+  ``config/catalog/<category>/<NAME>.json`` and rewrites the source file
+  as a v2 envelope.
+* Phase-8.4.1 — :func:`fold_legacy_envelope_into_m4b` takes that
+  standalone envelope file and folds it under the
+  ``catalog`` key of ``config/m4b-config.json``, renaming the legacy
+  file to ``app-config.json.v1.bak``.
 
-The migration is intentionally offline-only: no network, no user prompts,
-no re-encryption. User credentials live in ``user-config.json`` and are
-untouched. See also :mod:`scripts.migrate_catalog_v1_to_v2` — a thin CLI
-wrapper around :func:`migrate_catalog_file`.
+Both migrations are offline-only: no network, no user prompts, no
+re-encryption. User credentials live in ``user-config.json`` and are
+untouched. See also :mod:`scripts.migrate_catalog_v1_to_v2` — a thin
+CLI wrapper around :func:`migrate_catalog_file`.
 """
 
 from __future__ import annotations
@@ -24,6 +26,7 @@ from pathlib import Path
 
 from money4band.core.catalog_store import (
     is_envelope,
+    is_folded,
     is_legacy_monolithic,
     split_monolithic,
     write_envelope,
@@ -32,6 +35,7 @@ from money4band.core.catalog_store import (
 logger = logging.getLogger(__name__)
 
 LEGACY_BACKUP_SUFFIX = ".v1.bak"
+LEGACY_APP_CONFIG_FILENAME = "app-config.json"
 
 
 def migrate_catalog_file(config_path: str | Path) -> bool:
@@ -78,4 +82,89 @@ def migrate_catalog_file(config_path: str | Path) -> bool:
     return True
 
 
-__all__ = ["migrate_catalog_file", "LEGACY_BACKUP_SUFFIX"]
+__all__ = [
+    "fold_legacy_envelope_into_m4b",
+    "migrate_catalog_file",
+    "LEGACY_BACKUP_SUFFIX",
+    "LEGACY_APP_CONFIG_FILENAME",
+]
+
+
+def fold_legacy_envelope_into_m4b(config_path: str | Path) -> bool:
+    """Fold a sibling legacy ``app-config.json`` into ``m4b-config.json``.
+
+    When *config_path* points to ``config/m4b-config.json`` and a
+    legacy envelope file ``config/app-config.json`` still exists, this:
+
+    1. Migrates the legacy file to per-file layout if still monolithic.
+    2. Splices the resulting envelope under ``m4b-config.json → catalog``
+       (leaves any existing folded envelope untouched). Creates
+       ``m4b-config.json`` with an otherwise-empty payload when it
+       doesn't exist yet — this handles fresh test fixtures and users
+       who only have the legacy file.
+    3. Renames the legacy file to ``app-config.json.v1.bak`` (or
+       removes it silently if the backup already exists).
+
+    Returns ``True`` when a fold happened, ``False`` otherwise. Safe to
+    call on every startup — no-ops when there is nothing to do.
+    """
+    m4b_path = Path(config_path)
+    # Only fold when we were invoked against m4b-config.json itself; any
+    # other path is treated as a direct envelope file and skipped.
+    if m4b_path.name != "m4b-config.json":
+        return False
+
+    legacy = m4b_path.parent / LEGACY_APP_CONFIG_FILENAME
+    if not legacy.is_file():
+        return False
+
+    # Normalise the legacy file first (monolithic → envelope).
+    migrate_catalog_file(legacy)
+
+    try:
+        with open(legacy, encoding="utf-8") as f:
+            legacy_payload = json.load(f)
+    except (OSError, json.JSONDecodeError) as exc:
+        logger.warning("Cannot read legacy envelope %s: %s", legacy, exc)
+        return False
+
+    if not is_envelope(legacy_payload) or is_folded(legacy_payload):
+        # Unrecognised content — leave the file alone.
+        return False
+
+    m4b_payload: dict = {}
+    if m4b_path.is_file():
+        try:
+            with open(m4b_path, encoding="utf-8") as f:
+                m4b_payload = json.load(f)
+        except (OSError, json.JSONDecodeError) as exc:
+            logger.warning("Cannot read m4b-config for folding: %s", exc)
+            return False
+        if not isinstance(m4b_payload, dict):
+            return False
+
+    if is_folded(m4b_payload):
+        # Already folded — just retire the legacy file.
+        _retire_legacy_file(legacy)
+        return False
+
+    m4b_payload["catalog"] = legacy_payload
+    write_envelope(m4b_payload, m4b_path)
+    _retire_legacy_file(legacy)
+    logger.info("Folded legacy %s into %s (key: catalog)", legacy.name, m4b_path.name)
+    return True
+
+
+def _retire_legacy_file(legacy: Path) -> None:
+    """Move *legacy* aside as ``<name>.v1.bak`` (or delete if backup exists)."""
+    backup = legacy.with_suffix(legacy.suffix + LEGACY_BACKUP_SUFFIX)
+    if backup.exists():
+        try:
+            legacy.unlink()
+        except OSError:
+            pass
+        return
+    try:
+        legacy.rename(backup)
+    except OSError as exc:
+        logger.warning("Could not rename %s -> %s: %s", legacy, backup, exc)

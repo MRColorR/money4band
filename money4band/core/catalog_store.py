@@ -1,19 +1,21 @@
 """Catalog store — read/write the per-file catalog layout.
 
-Layout (v2.0, phase-8.3b):
+Layout (v2.1, phase-8.4.1):
 
-    config/app-config.json      ← envelope only
+    config/m4b-config.json      ← project config + catalog envelope
+                                  (``"catalog": {app_config_version,
+                                   catalog_sources, categories}``)
     config/catalog/
         supported/<NAME>.json   ← one CatalogEntry per file
         newcomers/<NAME>.json
         deprecated/<NAME>.json
 
-Envelope shape::
+Envelope shape (lives under ``m4b-config.json → catalog``)::
 
     {
         "app_config_version": 2.0,
         "catalog_sources": [
-            {"type": "local", "path": "config/catalog",
+            {"type": "local", "path": "catalog",
              "default_source": "builtin", "enabled": true}
         ],
         "categories": {
@@ -26,6 +28,10 @@ Envelope shape::
 The loader aggregates per-file bundles back into the historical in-memory
 shape ``{<category>: {"active": bool, "entries": [...]}}`` so every
 existing consumer keeps working unchanged.
+
+For backward compatibility the store still understands a standalone
+envelope file (the pre-8.4.1 ``config/app-config.json`` layout) and the
+pre-8.3b monolithic format. Both paths funnel through the same loader.
 """
 
 from __future__ import annotations
@@ -54,11 +60,16 @@ def _entry_filename(name: str) -> str:
 
 
 def is_envelope(payload: dict[str, Any]) -> bool:
-    """Return ``True`` if *payload* looks like a v2.0 envelope (post-migration).
+    """Return ``True`` if *payload* looks like a v2 envelope (post-migration).
 
     An envelope carries ``categories`` (active flags only) and does *not*
     carry per-category ``entries`` at the top level.
+
+    Also returns ``True`` when *payload* is an m4b-config file that
+    contains a folded-in ``catalog`` envelope (phase-8.4.1).
     """
+    if isinstance(payload.get("catalog"), dict):
+        return is_envelope(payload["catalog"])
     if "categories" not in payload:
         return False
     # If any legacy top-level category dict carries "entries", it's still
@@ -68,6 +79,24 @@ def is_envelope(payload: dict[str, Any]) -> bool:
         if isinstance(cat_val, dict) and "entries" in cat_val:
             return False
     return True
+
+
+def extract_envelope(payload: dict[str, Any]) -> dict[str, Any]:
+    """Return the envelope subtree — unwraps ``payload["catalog"]`` if present.
+
+    After phase-8.4.1 the envelope lives under ``m4b-config.json → catalog``.
+    For legacy standalone envelope files the payload *is* the envelope.
+    """
+    inner = payload.get("catalog")
+    if isinstance(inner, dict) and "categories" in inner:
+        return inner
+    return payload
+
+
+def is_folded(payload: dict[str, Any]) -> bool:
+    """Return ``True`` when *payload* carries a folded ``catalog`` envelope."""
+    inner = payload.get("catalog")
+    return isinstance(inner, dict) and "categories" in inner
 
 
 def is_legacy_monolithic(payload: dict[str, Any]) -> bool:
@@ -102,9 +131,13 @@ def read_entries_dir(root: Path, category: str) -> list[dict[str, Any]]:
 def aggregate(envelope: dict[str, Any], config_path: str | Path) -> dict[str, Any]:
     """Expand an envelope + per-file bundles into the historical in-memory shape.
 
+    Accepts either a raw envelope or an m4b-config payload with a folded
+    ``catalog`` key; the inner envelope is used transparently.
+
     Output matches the pre-8.3b monolithic structure so every existing
     consumer (catalog, docker, API, tests) keeps working unchanged.
     """
+    envelope = extract_envelope(envelope)
     result: dict[str, Any] = {
         "app_config_version": envelope.get("app_config_version", 2.0),
     }
@@ -198,16 +231,21 @@ def move_entry(
 
 
 def set_category_active(config_path: str | Path, category: str, active: bool) -> None:
-    """Flip the ``active`` flag for *category* in the envelope file."""
+    """Flip the ``active`` flag for *category* inside the envelope.
+
+    Supports both the folded layout (``m4b-config.json → catalog``) and a
+    standalone envelope file; writes back in whatever shape was read.
+    """
     if category not in CATEGORIES:
         raise ValueError(f"Unknown catalog category: {category}")
     path = Path(config_path)
     with open(path, encoding="utf-8") as f:
-        envelope = json.load(f)
+        payload = json.load(f)
+    envelope = payload["catalog"] if is_folded(payload) else payload
     cats = envelope.setdefault("categories", {})
     cat_meta = cats.setdefault(category, {})
     cat_meta["active"] = bool(active)
-    write_envelope(envelope, path)
+    write_envelope(payload, path)
 
 
 def default_envelope() -> dict[str, Any]:
@@ -278,7 +316,9 @@ __all__ = [
     "default_envelope",
     "delete_entry",
     "ensure_catalog_dirs",
+    "extract_envelope",
     "is_envelope",
+    "is_folded",
     "is_legacy_monolithic",
     "move_entry",
     "read_entries_dir",

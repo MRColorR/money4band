@@ -25,11 +25,20 @@ _BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 def resolve_config_paths(
     config_dir: str | None = None,
 ) -> tuple[str, str, str]:
-    """Return (m4b_config_path, app_config_path, user_config_path)."""
+    """Return ``(m4b_config_path, app_config_path, user_config_path)``.
+
+    Since phase-8.4.1 the catalog envelope lives under
+    ``m4b-config.json → catalog``; the ``app_config_path`` slot aliases
+    the m4b-config path so every legacy caller that still asks for an
+    ``app_config_path`` transparently reads the same file. Consumers
+    that want the aggregated catalog dict should call
+    :func:`money4band.core.loader.load_app_config_with_overlays`.
+    """
     config_dir = config_dir or os.path.join(_BASE_DIR, "config")
+    m4b_path = os.path.join(config_dir, "m4b-config.json")
     return (
-        os.path.join(config_dir, "m4b-config.json"),
-        os.path.join(config_dir, "app-config.json"),
+        m4b_path,
+        m4b_path,
         os.path.join(config_dir, "user-config.json"),
     )
 

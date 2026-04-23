@@ -6,7 +6,7 @@ from money4band.core.loader import load_app_config_with_overlays
 
 class TestAppConfigCommands(unittest.TestCase):
     def test_sensitive_commands_are_exec_form_lists(self):
-        app_config_path = os.path.join("config", "app-config.json")
+        app_config_path = os.path.join("config", "m4b-config.json")
         app_config = load_app_config_with_overlays(app_config_path)
         from money4band.core.loader import get_category_entries
 

@@ -73,7 +73,7 @@ def tmp_config(tmp_path):
             },
         },
     }
-    (config_dir / "m4b-config.json").write_text(json.dumps(m4b))
+    # m4b-config written below once the catalog envelope is known.
 
     app_cfg = {
         "app_config_version": 2.0,
@@ -149,7 +149,9 @@ def tmp_config(tmp_path):
             },
         },
     }
-    (config_dir / "app-config.json").write_text(json.dumps(app_cfg))
+    # Phase-8.4.1: fold envelope under m4b-config.json → catalog
+    m4b["catalog"] = app_cfg
+    (config_dir / "m4b-config.json").write_text(json.dumps(m4b))
 
     user_cfg = {
         "user": {"Nickname": "testuser"},
@@ -219,7 +221,8 @@ class TestAppsRouter:
         resp = client.get("/api/apps/categories")
         assert resp.status_code == 200
         data = resp.json()
-        assert len(data) == 2
+        # v2 envelope always exposes all three canonical categories.
+        assert len(data) == 3
         active_cats = [c for c in data if c["active"]]
         assert len(active_cats) == 1
         assert active_cats[0]["name"] == "supported"
@@ -419,7 +422,11 @@ class TestConfigRouter:
     def test_get_app_config(self, client):
         resp = client.get("/api/config/app")
         assert resp.status_code == 200
-        assert "categories" in resp.json()
+        data = resp.json()
+        # Aggregated shape carries the 3 canonical categories at top level.
+        assert "supported" in data
+        assert "newcomers" in data
+        assert "deprecated" in data
 
     def test_get_m4b_config(self, client):
         resp = client.get("/api/config/m4b")

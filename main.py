@@ -867,14 +867,20 @@ def _cmd_offers(args: argparse.Namespace) -> None:
     """Show referral and passive income offers."""
     just_fix_windows_console()
     config_dir = getattr(args, "config_dir", os.path.join(BASE_DIR, "config"))
-    offers_path = os.path.join(config_dir, "referral-offers.json")
-    apps_config_path = os.path.join(config_dir, "app-config.json")
+    m4b_config_path = os.path.join(config_dir, "m4b-config.json")
+
+    # One-shot split of the legacy monolithic referral-offers.json.
+    from money4band.core.offers_migration import migrate_offers_file
+
+    migrate_offers_file(m4b_config_path)
+
+    offers_dir = os.path.join(config_dir, "offers.d")
     category = getattr(args, "offer_category", None)
 
     from money4band.apps.offers import display_offers
 
     display_offers(
-        offers_path, category_filter=category, app_config_path=apps_config_path
+        offers_dir, category_filter=category, app_config_path=m4b_config_path
     )
 
 

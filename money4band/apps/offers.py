@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import logging
 import os
 from typing import Any
@@ -12,6 +11,7 @@ from money4band.core.loader import (
     get_category_entries,
     load_json_config,
 )
+from money4band.core.offers_store import read_offers_dir
 
 logger = logging.getLogger(__name__)
 
@@ -22,17 +22,32 @@ logger = logging.getLogger(__name__)
 
 
 def load_external_offers(offers_path: str) -> list[dict[str, Any]]:
-    """Load external (non-app) referral offers from ``referral-offers.json``."""
-    if not os.path.isfile(offers_path):
-        logger.warning("Offers file not found: %s", offers_path)
-        return []
-    try:
-        with open(offers_path, encoding="utf-8") as f:
-            data = json.load(f)
-        return data.get("offers", [])
-    except (json.JSONDecodeError, OSError) as exc:
-        logger.error("Failed to load offers file: %s", exc)
-        return []
+    """Load external (non-app) referral offers.
+
+    *offers_path* may be either the ``config/offers.d/`` directory
+    (current layout) or the legacy ``config/referral-offers.json`` file
+    (auto-migrated on first access when its sibling m4b-config triggers
+    the migration path). When a monolithic JSON file is passed and no
+    ``offers.d/`` sibling exists yet, its ``offers[]`` array is read
+    directly — this keeps ad-hoc/test callers working.
+    """
+    if os.path.isdir(offers_path):
+        return read_offers_dir(offers_path)
+    parent = os.path.dirname(offers_path) or "."
+    sibling_dir = os.path.join(parent, "offers.d")
+    if os.path.isdir(sibling_dir):
+        return read_offers_dir(sibling_dir)
+    if os.path.isfile(offers_path):
+        # Legacy monolithic JSON — read directly as a last resort.
+        try:
+            data = load_json_config(offers_path)
+        except Exception:  # noqa: BLE001
+            logger.warning("Failed to read monolithic offers file: %s", offers_path)
+            return []
+        entries = data.get("offers") if isinstance(data, dict) else None
+        return [e for e in entries if isinstance(e, dict)] if entries else []
+    logger.warning("Offers directory not found: %s", offers_path)
+    return []
 
 
 def _app_offers_from_config(app_config_path: str) -> list[dict[str, Any]]:
@@ -193,5 +208,5 @@ def display_offers(
         f"  {Fore.YELLOW}App reflinks come from app-config.json (single source of truth){Style.RESET_ALL}"
     )
     print(
-        f"  {Fore.YELLOW}Add external offers in config/referral-offers.json{Style.RESET_ALL}\n"
+        f"  {Fore.YELLOW}Add external offers in config/offers.d/ (one JSON per offer){Style.RESET_ALL}\n"
     )

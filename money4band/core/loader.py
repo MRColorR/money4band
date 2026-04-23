@@ -84,34 +84,46 @@ def load_app_config_with_overlays(
 ) -> dict[str, Any]:
     """Load the catalog envelope + per-file bundles and merge community apps.
 
-    Aggregation pipeline (phase-8.3b):
+    Aggregation pipeline (phase-8.4.1):
 
-    1. Auto-migrate legacy monolithic ``app-config.json`` to the per-file
-       layout if needed (one-shot, idempotent).
-    2. Read the envelope and expand it into the historical in-memory
-       shape ``{<category>: {"active": bool, "entries": [...]}}`` by
-       reading ``config/catalog/<category>/*.json``.
-    3. Overlay hand-written community apps from ``config/apps.d/``
+    1. If *config_path* still points at a legacy standalone envelope
+       file (``config/app-config.json``), one-shot auto-migrate it:
+       first to the per-file layout (phase-8.3b) then fold the envelope
+       into ``m4b-config.json → catalog`` (phase-8.4.1). The legacy
+       file is renamed to ``app-config.json.v1.bak``.
+    2. Read the payload and extract its envelope (unwrap the
+       ``catalog`` key if it's an m4b-config payload).
+    3. Expand the envelope into the historical in-memory shape
+       ``{<category>: {"active": bool, "entries": [...]}}`` by reading
+       ``config/catalog/<category>/*.json`` via the pluggable
+       ``CatalogSource`` interface.
+    4. Overlay hand-written community apps from ``config/apps.d/``
        (falls back to ``os.path.dirname(config_path) + "/apps.d"``).
 
     Consumers that previously accessed ``app_config["supported"]["entries"]``
     keep working unchanged — the shape is identical.
     """
     from money4band.apps.sources import aggregate_from_sources
-    from money4band.core.catalog_migration import migrate_catalog_file
-    from money4band.core.catalog_store import is_envelope
+    from money4band.core.catalog_migration import (
+        fold_legacy_envelope_into_m4b,
+        migrate_catalog_file,
+    )
+    from money4band.core.catalog_store import extract_envelope, is_envelope
 
-    # One-shot migration — no-op after first run.
+    # One-shot migrations — both no-op after first run.
     migrate_catalog_file(config_path)
+    fold_legacy_envelope_into_m4b(config_path)
 
-    envelope = load_json_config(config_path)
+    payload = load_json_config(config_path)
 
-    # Either already an envelope (normal path) or still monolithic
-    # (migration skipped — e.g. tests that write in-memory dicts directly).
-    if is_envelope(envelope):
+    # Either already an envelope / folded m4b-config (normal path) or
+    # still monolithic (migration skipped — e.g. tests that pass an
+    # in-memory dict directly).
+    if is_envelope(payload):
+        envelope = extract_envelope(payload)
         config = aggregate_from_sources(envelope, config_path)
     else:
-        config = envelope
+        config = payload
 
     if apps_d_dir is None:
         apps_d_dir = os.path.join(os.path.dirname(config_path), "apps.d")

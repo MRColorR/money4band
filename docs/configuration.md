@@ -8,13 +8,13 @@
 
 | File | Location | Purpose |
 |------|----------|---------|
-| `m4b-config.json` | `config/` | Project settings — ports, DNS presets, menu, word lists, compose mode |
-| `app-config.json` | `config/` | **Envelope** — `app_config_version`, `catalog_sources[]`, per-category `active` flags. See [App Management](app-management.md#on-disk-layout-v20-phase-83b). |
+| `m4b-config.json` | `config/` | Project settings — ports, DNS presets, menu, word lists, compose mode **and** catalog envelope under `catalog` key (`app_config_version`, `catalog_sources[]`, per-category `active` flags — see [App Management](app-management.md#on-disk-layout-v20-phase-83b)) |
 | `catalog/` | `config/` | Per-file app bundles under `supported/` / `newcomers/` / `deprecated/` (one JSON file per app) |
 | `apps.d/` | `config/` | Hand-written community overlays merged into `newcomers` at load time |
+| `offers.d/` | `config/` | Per-file external referral offers (one JSON file per offer) |
 | `user-config.json` | `config/` | **Your settings** — credentials, proxy config, preferences (encrypted at rest) |
 
-> The `app-config.json` envelope + `catalog/` + `apps.d/` are aggregated
+> The catalog envelope (folded under `m4b-config.json → catalog`) + `catalog/` + `apps.d/` are aggregated
 > in-memory at load time via the pluggable catalog-source interface in
 > [`money4band/apps/sources.py`](../money4band/apps/sources.py). See the
 > [Catalog Sources](app-management.md#catalog-sources) section for the
@@ -55,20 +55,26 @@ Project-level settings you can tune:
 > `user-config.json` under the `settings` section. See
 > [`template/user-config.json`](../template/user-config.json) for defaults.
 
-### app-config.json (envelope)
+### Catalog envelope (folded into `m4b-config.json`)
 
-The envelope is intentionally small:
+As of phase-8.4.1 the catalog envelope lives under the `catalog` key of
+`m4b-config.json`; no separate `app-config.json` file ships anymore.
+The envelope itself is intentionally small:
 
 ```jsonc
+// m4b-config.json (excerpt)
 {
-  "app_config_version": 2.0,
-  "catalog_sources": [
-    { "type": "local", "path": "catalog", "default_source": "builtin", "enabled": true }
-  ],
-  "categories": {
-    "supported":  { "active": true  },
-    "newcomers":  { "active": false },
-    "deprecated": { "active": false }
+  "project": { "project_version": "5.0.0" },
+  "catalog": {
+    "app_config_version": 2.0,
+    "catalog_sources": [
+      { "type": "local", "path": "catalog", "default_source": "builtin", "enabled": true }
+    ],
+    "categories": {
+      "supported":  { "active": true  },
+      "newcomers":  { "active": false },
+      "deprecated": { "active": false }
+    }
   }
 }
 ```
@@ -77,10 +83,12 @@ Per-app bundles live under `config/catalog/<category>/<NAME>.json` — one
 file per app. See [App Management → On-Disk Layout](app-management.md#on-disk-layout-v20-phase-83b)
 for the full schema and the source-plugin model.
 
-If you upgrade from a checkout that still has a monolithic
-`app-config.json`, the loader auto-migrates it on first run (one-time
-`app-config.json.v1.bak` backup). You can also run the migration by
-hand: `python scripts/migrate_catalog_v1_to_v2.py`.
+If you upgrade from a checkout that still has a standalone
+`app-config.json`, the loader auto-folds it into `m4b-config.json` on
+first run (one-time `app-config.json.v1.bak` backup). The legacy
+monolithic `referral-offers.json` is likewise auto-split into
+`config/offers.d/<SLUG>.json` per-file bundles. You can also run the
+migration by hand: `python scripts/migrate_catalog_v1_to_v2.py`.
 
 ## Configuration Profiles
 

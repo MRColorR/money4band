@@ -187,10 +187,12 @@ class TestAppsFlat:
         resp = flat_client.get("/api/apps/categories")
         assert resp.status_code == 200
         data = resp.json()
-        assert len(data) == 2
+        # v2 envelope always exposes all three canonical categories.
+        assert len(data) == 3
         cat_names = {c["name"] for c in data}
         assert "supported" in cat_names
         assert "deprecated" in cat_names
+        assert "newcomers" in cat_names
 
     def test_category_counts(self, flat_client):
         resp = flat_client.get("/api/apps/categories")

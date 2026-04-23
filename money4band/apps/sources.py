@@ -225,6 +225,26 @@ def aggregate_from_sources(
     seen_names: dict[str, set[str]] = {cat: set() for cat in CATEGORIES}
     merged: dict[str, list[dict[str, Any]]] = {cat: [] for cat in CATEGORIES}
 
+    # Inline entries (``categories.<name>.entries``) count as the first,
+    # highest-priority source. Shipped envelopes keep the list empty, so
+    # this is a no-op in production — but test fixtures and in-memory
+    # envelopes can provide entries without touching the filesystem.
+    for cat in CATEGORIES:
+        meta = cats.get(cat) if isinstance(cats, dict) else None
+        if not isinstance(meta, dict):
+            continue
+        for entry in meta.get("entries") or []:
+            if not isinstance(entry, dict):
+                continue
+            raw_name = entry.get("name")
+            if not isinstance(raw_name, str) or not raw_name:
+                continue
+            key = raw_name.upper()
+            if key in seen_names[cat]:
+                continue
+            seen_names[cat].add(key)
+            merged[cat].append(entry)
+
     for src in sources:
         if not src.available():
             continue

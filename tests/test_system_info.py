@@ -361,11 +361,12 @@ class TestComposeDNSInjection:
 class TestNoHardcodedDNS:
     def test_no_dns_in_app_entries(self):
         """No app or sidecar compose_config should have a hardcoded dns field."""
+        from money4band.core.loader import load_app_config_with_overlays
+
         config_path = os.path.join(
-            os.path.dirname(__file__), "..", "config", "app-config.json"
+            os.path.dirname(__file__), "..", "config", "m4b-config.json"
         )
-        with open(config_path) as f:
-            app_config = json.load(f)
+        app_config = load_app_config_with_overlays(config_path)
 
         for category in app_config.values():
             if not isinstance(category, dict):

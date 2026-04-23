@@ -32,13 +32,15 @@ Interactively, the **App Catalog** screen also exposes a `m` shortcut to
 **manage category status** — toggle `newcomers` / `deprecated` on or off
 so they appear during `m4b setup`.
 
-## On-Disk Layout (v2.0, phase-8.3b)
+## On-Disk Layout (v2.0, phase-8.3b / 8.4.1)
 
 As of schema v2.0 the catalog is **per-file**: one JSON bundle per app.
+As of phase-8.4.1 the envelope is **folded into `m4b-config.json`**
+under the `catalog` key — no standalone `app-config.json` ships.
 
 ```
 config/
-├── app-config.json              ← envelope (catalog_sources + category flags)
+├── m4b-config.json              ← project config + catalog envelope (under "catalog")
 ├── catalog/
 │   ├── supported/
 │   │   ├── HONEYGAIN.json       ← one CatalogEntry per file
@@ -46,14 +48,18 @@ config/
 │   │   └── …
 │   ├── newcomers/
 │   └── deprecated/
-└── apps.d/
-    └── <MYAPP>.json             ← hand-written community overlay (merged into newcomers)
+├── apps.d/
+│   └── <MYAPP>.json             ← hand-written community overlay (merged into newcomers)
+├── offers.d/
+│   └── <SLUG>.json              ← one external referral offer per file
+└── user-config.json             ← your settings (encrypted at rest)
 ```
 
-The envelope is tiny:
+The envelope is tiny (lives under `m4b-config.json → catalog`):
 
 ```jsonc
-{
+// m4b-config.json (excerpt)
+"catalog": {
   "app_config_version": 2.0,
   "catalog_sources": [
     {
@@ -79,21 +85,26 @@ a 3600-line monolith.
 
 ### Migration
 
-If you open an older checkout, the loader detects the legacy monolithic
-`app-config.json` on first run and migrates it automatically:
+If you open an older checkout, the loader auto-migrates on first run:
 
-* Creates a one-time `config/app-config.json.v1.bak` backup.
-* Splits each entry into `config/catalog/<category>/<NAME>.json`.
-* Replaces `app-config.json` with the v2.0 envelope.
+* Monolithic `app-config.json` is split into
+  `config/catalog/<category>/<NAME>.json` per-file bundles.
+* The resulting envelope is folded under
+  `m4b-config.json → catalog` (phase-8.4.1).
+* The legacy `app-config.json` is renamed to `app-config.json.v1.bak`.
+* Monolithic `referral-offers.json` is split into
+  `config/offers.d/<SLUG>.json` and the original renamed to
+  `referral-offers.json.v1.bak`.
 
 You can also trigger migration explicitly:
 
 ```bash
-python scripts/migrate_catalog_v1_to_v2.py        # default: config/app-config.json
+python scripts/migrate_catalog_v1_to_v2.py        # defaults to config/m4b-config.json
 python scripts/migrate_catalog_v1_to_v2.py -v     # verbose
 ```
 
-The migration is idempotent: running it again on an envelope is a no-op.
+The migration is idempotent: running it again on an already-folded
+config is a no-op.
 
 ## Catalog Sources
 

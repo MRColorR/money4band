@@ -409,7 +409,7 @@ class TestAppConfigServiceDefinitions:
         from money4band.core.loader import load_app_config_with_overlays
 
         config_path = os.path.join(
-            os.path.dirname(__file__), os.pardir, "config", "app-config.json"
+            os.path.dirname(__file__), os.pardir, "config", "m4b-config.json"
         )
         return load_app_config_with_overlays(config_path)
 
@@ -459,7 +459,7 @@ class TestUserConfigTemplate:
         from money4band.core.loader import load_app_config_with_overlays
 
         config_path = os.path.join(
-            os.path.dirname(__file__), os.pardir, "config", "app-config.json"
+            os.path.dirname(__file__), os.pardir, "config", "m4b-config.json"
         )
         return load_app_config_with_overlays(config_path)
 

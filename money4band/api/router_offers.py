@@ -23,11 +23,15 @@ async def get_offers(
     import os
 
     from money4band.apps.offers import load_all_offers
+    from money4band.core.offers_migration import migrate_offers_file
 
-    offers_path = os.path.join(paths.config_dir, "referral-offers.json")
+    # One-shot split of the legacy monolithic referral-offers.json.
+    migrate_offers_file(paths.m4b_config)
+
+    offers_dir = os.path.join(paths.config_dir, "offers.d")
     all_offers = load_all_offers(
-        app_config_path=paths.app_config,
-        offers_path=offers_path,
+        app_config_path=paths.m4b_config,
+        offers_path=offers_dir,
     )
     if category:
         all_offers = [o for o in all_offers if o.get("category") == category]

@@ -125,7 +125,7 @@ async def toggle_category(
     paths: ConfigPaths = Depends(get_paths),
 ) -> dict[str, Any]:
     """Toggle the active flag on a category."""
-    from money4band.core.dumper import write_json
+    from money4band.core.catalog_store import set_category_active
 
     app_config = load_app_config()
     categories = get_app_categories(app_config)
@@ -133,8 +133,7 @@ async def toggle_category(
         raise HTTPException(status_code=404, detail=f"Category '{name}' not found")
 
     new_state = not categories[name].get("active", False)
-    categories[name]["active"] = new_state
-    write_json(app_config, paths.app_config)
+    set_category_active(paths.m4b_config, name, new_state)
     return {"category": name, "active": new_state}
 
 
