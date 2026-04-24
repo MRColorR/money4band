@@ -1,0 +1,44 @@
+name: Compute contributor weights
+
+on:
+  # Weekly on Sunday at 03:00 UTC — keeps weights.json fresh enough for
+  # the half-life algorithm without creating churn on every push.
+  schedule:
+    - cron: "0 3 * * 0"
+  # Manual trigger from the Actions tab for on-demand refreshes.
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  compute:
+    name: Recompute weights.json
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Full history is required so git log --numstat sees every
+          # commit, not just the shallow default.
+          fetch-depth: 0
+
+      - uses: astral-sh/setup-uv@v5
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Recompute weights
+        run: uv run python scripts/compute_weights.py
+
+      - name: Commit weights.json if changed
+        run: |
+          if git diff --quiet weights.json; then
+            echo "weights.json unchanged — nothing to commit"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add weights.json
+          git commit -m "chore(weights): refresh contributor weights"
+          git push

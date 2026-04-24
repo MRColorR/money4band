@@ -225,26 +225,59 @@ def get_picked_referrals() -> dict[str, str]:
     return {str(k): str(v) for k, v in picked.items() if isinstance(v, str)}
 
 
+def _weights_path() -> str:
+    """Resolve the path to the repo's ``weights.json`` artifact."""
+    from money4band.apps.contributor_pool import WEIGHTS_FILENAME
+
+    base = _paths.base_dir or os.getcwd()
+    return os.path.join(base, WEIGHTS_FILENAME)
+
+
+def load_contributor_weights() -> dict[str, float]:
+    """Return the cached contributor weights map (keyed by mtime)."""
+    from money4band.apps.contributor_pool import load_weights
+
+    path = _weights_path()
+    cache_key = f"weights::{path}"
+    try:
+        current_mtime = os.path.getmtime(path)
+    except OSError:
+        # No weights.json shipped — everyone is equal (DEFAULT_WEIGHT).
+        return {}
+    entry = _cache._entries.get(cache_key)  # noqa: SLF001
+    if entry is not None and entry.mtime == current_mtime:
+        return entry.data  # type: ignore[return-value]
+    data = load_weights(path)
+    _cache._entries[cache_key] = _CacheEntry(  # noqa: SLF001
+        data=data,  # type: ignore[arg-type]
+        mtime=current_mtime,
+    )
+    return data
+
+
 def pick_referral_url(
     app_name: str, referrals: list[dict], picked: dict[str, str]
 ) -> str:
     """Resolve the effective referral URL for an app.
 
-    Preference order:
+    Preference order (phase-8.6):
       1. ``settings.picked_referrals[<app_name lowercase>]`` when set.
-      2. First valid URL in the referrals pool.
-      3. Empty string.
+      2. Weighted-random pick across the referrals pool, where every
+         referral's weight is the contributor's entry in
+         ``weights.json`` (fallback :data:`DEFAULT_WEIGHT`).
+      3. Empty string when the pool has no usable entries.
+
+    The picker is pure: the whole pool is considered on every call.
+    Determinism comes from sticky picks stored in user-config.
     """
-    key = app_name.lower()
-    sticky = picked.get(key) or picked.get(app_name)
-    if isinstance(sticky, str) and sticky.strip():
-        return sticky.strip()
-    for ref in referrals:
-        if isinstance(ref, dict):
-            url = ref.get("url")
-            if isinstance(url, str) and url.strip():
-                return url.strip()
-    return ""
+    from money4band.apps.contributor_pool import resolve_referral_url
+
+    return resolve_referral_url(
+        app_name,
+        referrals,
+        weights=load_contributor_weights(),
+        sticky=picked,
+    )
 
 
 def normalize_referrals(raw: Any) -> list[dict]:
