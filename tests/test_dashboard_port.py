@@ -140,6 +140,7 @@ class TestRunDashboardCommand:
             patch(
                 "money4band.dashboard.setup.ensure_api_key_on_disk", return_value="k"
             ),
+            patch("money4band.dashboard.setup.read_dashboard_pid", return_value=None),
         ):
             from money4band.dashboard.cli import run_dashboard_command
 
@@ -173,6 +174,7 @@ class TestRunDashboardCommand:
             patch(
                 "money4band.dashboard.setup.ensure_api_key_on_disk", return_value="k"
             ),
+            patch("money4band.dashboard.setup.read_dashboard_pid", return_value=None),
         ):
             from money4band.dashboard.cli import run_dashboard_command
 
@@ -189,6 +191,7 @@ class TestRunDashboardCommand:
             patch(
                 "money4band.dashboard.setup.ensure_api_key_on_disk", return_value="k"
             ),
+            patch("money4band.dashboard.setup.read_dashboard_pid", return_value=None),
         ):
             from money4band.dashboard.cli import run_dashboard_command
 
@@ -297,6 +300,7 @@ class TestRunDashboardCommand:
                 "money4band.dashboard.setup.regenerate_api_key_on_disk",
                 return_value="auto-gen-key",
             ) as mock_regen,
+            patch("money4band.dashboard.setup.read_dashboard_pid", return_value=None),
         ):
             from money4band.dashboard.cli import run_dashboard_command
 
@@ -314,6 +318,7 @@ class TestRunDashboardCommand:
                 "money4band.dashboard.setup.ensure_api_key_on_disk",
                 return_value="my-key",
             ),
+            patch("money4band.dashboard.setup.read_dashboard_pid", return_value=None),
         ):
             from money4band.dashboard.cli import run_dashboard_command
 
@@ -331,6 +336,7 @@ class TestRunDashboardCommand:
                 "money4band.dashboard.setup.ensure_api_key_on_disk",
                 return_value="my-key",
             ),
+            patch("money4band.dashboard.setup.read_dashboard_pid", return_value=None),
         ):
             from money4band.dashboard.cli import run_dashboard_command
 
@@ -362,6 +368,7 @@ class TestRunDashboardCommand:
                 "money4band.dashboard.setup.ensure_api_key_on_disk",
                 return_value="my-key",
             ),
+            patch("money4band.dashboard.setup.read_dashboard_pid", return_value=None),
         ):
             from money4band.dashboard.cli import run_dashboard_command
 

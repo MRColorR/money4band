@@ -48,20 +48,17 @@ parent_dir = os.path.dirname(BASE_DIR)
 
 
 def _resolve_paths(args: argparse.Namespace) -> tuple[str, str, str]:
-    """Compute the three config paths + utils dir from parsed args.
+    """Compute the three config paths from parsed args.
 
     Since phase-8.4.1 the catalog envelope lives folded under
-    ``m4b-config.json -> catalog``, so the ``apps_config_path`` slot
-    aliases the m4b-config path — callers that previously loaded
-    ``app-config.json`` now transparently read the same folded file.
-    Callers that need the aggregated catalog shape should use
-    :func:`money4band.core.loader.load_app_config_with_overlays`.
+    ``m4b-config.json -> catalog``; there is no separate
+    ``app-config.json``. The ``apps_config_path`` slot is kept for
+    historical call-site compatibility and always aliases the
+    m4b-config path. Callers that need the aggregated catalog shape
+    should use :func:`money4band.core.loader.load_app_config_with_overlays`.
     """
     m4b_config_path = os.path.join(args.config_dir, args.config_m4b_file)
-    legacy_app_path = os.path.join(args.config_dir, args.config_app_file)
-    apps_config_path = (
-        legacy_app_path if os.path.isfile(legacy_app_path) else m4b_config_path
-    )
+    apps_config_path = m4b_config_path
     user_config_path = os.path.join(args.config_dir, args.config_usr_file)
     return m4b_config_path, apps_config_path, user_config_path
 
@@ -715,10 +712,9 @@ def _cmd_limit(args: argparse.Namespace) -> None:
     # Regenerate .env so Docker picks up the new limits.
     from money4band.docker.generator import generate_env_file
 
-    apps_config_path = os.path.join(args.config_dir, args.config_app_file)
     generate_env_file(
         m4b_config_path,
-        apps_config_path,
+        m4b_config_path,
         user_config_path,
         env_output_path=os.path.join(BASE_DIR, ".env"),
     )
@@ -1055,11 +1051,6 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Set the user config file name",
     )
     parser.add_argument(
-        "--config-app-file",
-        default="app-config.json",
-        help="Set the apps config file name",
-    )
-    parser.add_argument(
         "--requirements-path",
         default=os.path.join(script_dir, "requirements.toml"),
         help="Set the requirements path",
@@ -1114,7 +1105,7 @@ def _build_parser() -> argparse.ArgumentParser:
     gen_parser.add_argument(
         "--docs",
         action="store_true",
-        help="Regenerate README.md and docs/APPS.md app tables from app-config.json",
+        help="Regenerate README.md and docs/APPS.md app tables from m4b-config.json",
     )
     sub.add_parser("links", help="Show app dashboard and referral links")
     sub.add_parser("reset", help="Reset user-config to template defaults")
