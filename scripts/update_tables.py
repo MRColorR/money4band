@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Regenerate the app tables in README.md and docs/APPS.md from app-config.json.
+"""Regenerate the app tables in README.md and docs/APPS.md from m4b-config.json.
+
+Since phase-8.4.1 the catalog envelope is folded into ``config/m4b-config.json``
+under the ``catalog`` key, and per-file bundles live under ``config/catalog/``.
 
 Usage (from project root):
     python scripts/update_tables.py [--check]
@@ -29,7 +32,7 @@ from money4band.readme_generator import update_apps_md, update_readme  # noqa: E
 
 
 def load_app_config() -> dict:
-    config_path = ROOT / "config" / "app-config.json"
+    config_path = ROOT / "config" / "m4b-config.json"
     return load_app_config_with_overlays(str(config_path))
 
 

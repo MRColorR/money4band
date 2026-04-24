@@ -44,10 +44,11 @@ config/
 ├── catalog/
 │   ├── supported/
 │   │   ├── HONEYGAIN.json       ← one CatalogEntry per file
-│   │   ├── EARNAPP.json
+│   │   ├── TRAFFMONETIZER.json
 │   │   └── …
 │   ├── newcomers/
-│   └── deprecated/
+│   ├── deprecated/
+│   └── addons/                  ← sidecars with parent_id (phase-8.8)
 ├── apps.d/
 │   └── <MYAPP>.json             ← hand-written community overlay (merged into newcomers)
 ├── offers.d/
@@ -250,36 +251,32 @@ During `m4b setup`, you choose which apps to enable. To modify later:
 
 ## Auto-Claim Sidecars (Addons)
 
-A few apps have an optional **sidecar container** that automatically
-claims daily rewards. Sidecars ship as standalone **addon bundles**
-under `config/catalog/addons/<NAME>.json`, each referencing a parent
-app via `parent_id`. The loader merges them in when the parent is
-enabled AND the user opted in.
+Some apps can be paired with an optional **sidecar container** that
+automatically claims daily rewards. Sidecars ship as standalone **addon
+bundles** under `config/catalog/addons/<NAME>.json`, each referencing a
+parent app via `parent_id`. The loader merges them in when the parent
+is enabled AND the user opted in.
 
-The two addons shipped today are:
-
-| Parent app | Addon file | Effect |
-|------------|------------|--------|
-| Honeygain | `HONEYGAIN_POT.json` | Auto-claims the daily Lucky Pot (~2x revenue) |
-| PacketShare | `PACKETSHARE_POT.json` | Auto-claims the daily reward |
-
-Addons share credentials with their parent app (`credentials_shared: true`),
-use their own CPU/RAM reservations, and land on the **service** compose
-layer.
+> **ToS note (phase-8.9):** auto-claim sidecars for Honeygain and
+> PacketShare are **not shipped in the core Money4Band catalog** because
+> they bypass the daily reward flow the host service expects. They live
+> in the opt-in [community catalog](https://github.com/MRColorR/money4band-community-catalog)
+> alongside EarnApp. Enable that source from `m4b catalog add` if you
+> want them.
 
 ### Addon bundle shape
 
 ```jsonc
 {
-  "name": "HONEYGAIN_POT",
-  "parent_id": "HONEYGAIN",
-  "description": "Auto-claims daily Lucky Pot reward (~2x revenue)",
+  "name": "MYAPP_POT",
+  "parent_id": "MYAPP",
+  "description": "Auto-claims daily reward",
   "credentials_shared": true,
   "compose_layer": "service",
   "compose_config": {
-    "container_name": "${DEVICE_NAME}_honeygain-pot",
-    "image": "ghcr.io/xterna/honeygain-pot:latest",
-    "environment": ["EMAIL=${HONEYGAIN_EMAIL}", "PASSWORD=${HONEYGAIN_PASSWORD}"],
+    "container_name": "${DEVICE_NAME}_myapp-pot",
+    "image": "ghcr.io/contrib/myapp-pot:latest",
+    "environment": ["EMAIL=${MYAPP_EMAIL}", "PASSWORD=${MYAPP_PASSWORD}"],
     "restart": "always"
   }
 }
@@ -289,9 +286,9 @@ layer.
 for a parent app that has a matching addon, the wizard asks:
 
 ```
-Honeygain has an auto-claim sidecar: HONEYGAIN_POT
-  Auto-claims daily Lucky Pot reward (~2x revenue)  (currently OFF)
-Enable HONEYGAIN_POT for Honeygain? (y/n)
+MyApp has an auto-claim sidecar: MYAPP_POT
+  Auto-claims daily reward  (currently OFF)
+Enable MYAPP_POT for MyApp? (y/n)
 ```
 
 Your choice is stored as `apps.<name_lower>.service_enabled` in

@@ -419,7 +419,14 @@ class TestSidecarSetupPrompt:
 
 
 class TestAppConfigServiceDefinitions:
-    """Verify addon entries in the catalog are well-formed."""
+    """Verify addon entries in the catalog are well-formed.
+
+    As of phase-8.9 the core Money4Band catalog ships no ToS-violating
+    auto-claim addons (Honeygain/PacketShare pots moved to the opt-in
+    community catalog). These tests validate the *shape* of any addons
+    that remain; the parent-specific assertions live in the community
+    catalog repo.
+    """
 
     @pytest.fixture()
     def app_config(self):
@@ -430,33 +437,18 @@ class TestAppConfigServiceDefinitions:
         )
         return load_app_config_with_overlays(config_path)
 
-    def _addon_for(self, app_config, parent: str) -> dict:
-        from money4band.apps.addons import get_addons_for
-
-        addons = get_addons_for(parent, app_config)
-        assert addons, f"no addon found for parent {parent}"
-        return addons[0]
-
-    def test_honeygain_has_addon(self, app_config):
-        addon = self._addon_for(app_config, "HONEYGAIN")
-        assert addon["name"] == "HONEYGAIN_POT"
-        assert addon["parent_id"] == "HONEYGAIN"
-        assert "image" in addon["compose_config"]
-        assert addon["credentials_shared"] is True
-
-    def test_packetshare_has_addon(self, app_config):
-        addon = self._addon_for(app_config, "PACKETSHARE")
-        assert addon["name"] == "PACKETSHARE_POT"
-        assert addon["parent_id"] == "PACKETSHARE"
-        assert "image" in addon["compose_config"]
-        assert addon["credentials_shared"] is True
-
     def test_addon_compose_config_has_required_keys(self, app_config):
         required = {"container_name", "image", "environment", "restart", "labels"}
         for addon in app_config.get("addons", []):
             cc = addon["compose_config"]
             missing = required - set(cc.keys())
             assert not missing, f"{addon['name']} addon missing keys: {missing}"
+
+    def test_every_addon_has_parent_id(self, app_config):
+        for addon in app_config.get("addons", []):
+            assert addon.get("parent_id"), (
+                f"{addon['name']} addon must declare parent_id"
+            )
 
     def test_apps_without_addon_have_no_match(self, app_config):
         from money4band.apps.addons import get_addons_for

@@ -103,7 +103,7 @@ uv sync && uv run python main.py
 
 ## 📋 Supported Apps
 
-**35 apps** tracked. [Full details, earnings estimates, and registration links here.](docs/APPS.md)
+**34 apps** tracked. [Full details, earnings estimates, and registration links here.](docs/APPS.md)
 
 > App links below include referral codes that support the project at no cost to you.
 
@@ -113,7 +113,6 @@ uv sync && uv run python main.py
 | [**AntGain**](https://antgain.app) | ✅ | — | — |
 | [**BearShare**](https://bearshare.io) | ✅ | — | — |
 | [**Bitping**](https://app.bitping.com?r=qm7mIuX3) | ✅ | ✅ | BITPING token (crypto), USDC |
-| [**EarnApp**](https://earnapp.com/i/3zulx7k) | ✅ | ❌ | PayPal, gift cards, crypto |
 | [**Earn.FM**](https://earn.fm/ref/MATTTAV6) | ✅ | ✅ | PayPal, USDT, gift cards |
 | [**GaGaNode**](https://www.gaganode.com) | ✅ | — | GaGa token (crypto) |
 | [**Gradient**](https://app.gradient.network/signup?code=9WOBKP) | ✅ | — | — |
