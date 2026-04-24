@@ -189,6 +189,16 @@ class RemoteSource(CatalogSource):
         p = Path(self.cache_path)
         return p if p.is_absolute() else Path(config_path).parent / p
 
+    def _cache_has_bundles(self, cache_dir: Path) -> bool:
+        """Return True when cache has at least one category/addon JSON bundle."""
+        if not cache_dir.is_dir():
+            return False
+        for cat in (*CATEGORIES, "addons"):
+            cat_dir = cache_dir / cat
+            if cat_dir.is_dir() and any(cat_dir.glob("*.json")):
+                return True
+        return False
+
     def _fetch_manifest(self, etag: str | None) -> tuple[int, dict | None, str | None]:
         """Perform the HTTP GET. Returns ``(status, payload, new_etag)``.
 
@@ -264,7 +274,8 @@ class RemoteSource(CatalogSource):
             return {cat: [] for cat in CATEGORIES}
 
         cache_dir = self._resolve_cache_dir(config_path)
-        etag = read_etag(cache_dir)
+        # If cache has no bundles, ignore stale ETag so we force a full 200 fetch.
+        etag = read_etag(cache_dir) if self._cache_has_bundles(cache_dir) else None
         status, payload, new_etag = self._fetch_manifest(etag)
 
         if status == 200 and payload is not None:

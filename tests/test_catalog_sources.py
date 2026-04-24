@@ -205,7 +205,11 @@ class TestRemoteSource:
     def test_sends_if_none_match_header(self, tmp_path, monkeypatch) -> None:
         # Seed a pre-existing etag.
         cache_dir = tmp_path / "catalog" / "community"
-        cache_dir.mkdir(parents=True)
+        (cache_dir / "supported").mkdir(parents=True)
+        (cache_dir / "supported" / "CACHED.json").write_text(
+            '{"name": "CACHED", "compose_config": {"image": "y"}}',
+            encoding="utf-8",
+        )
         (cache_dir / ".etag").write_text('"seed-etag"', encoding="utf-8")
 
         _patch_httpx(monkeypatch, [_FakeResponse(304)])
@@ -229,6 +233,26 @@ class TestRemoteSource:
         out = src.load(tmp_path / "m4b-config.json")
         assert len(out["supported"]) == 1
         assert out["supported"][0]["name"] == "CACHED"
+
+    def test_empty_cache_ignores_stale_etag_and_fetches_full_manifest(
+        self, tmp_path, monkeypatch
+    ) -> None:
+        cache_dir = tmp_path / "catalog" / "community"
+        cache_dir.mkdir(parents=True)
+        (cache_dir / ".etag").write_text('"etag-1"', encoding="utf-8")
+
+        _patch_httpx(
+            monkeypatch,
+            [_FakeResponse(200, self._manifest(), etag='"etag-2"')],
+        )
+        src = RemoteSource(url="https://example/catalog", enabled=True)
+        out = src.load(tmp_path / "m4b-config.json")
+
+        assert _FakeClient.last_headers is not None
+        assert _FakeClient.last_headers.get("If-None-Match") is None
+        assert [e["name"] for e in out["supported"]] == ["REMOTEAPP"]
+        assert (cache_dir / "supported" / "REMOTEAPP.json").is_file()
+        assert (cache_dir / ".etag").read_text(encoding="utf-8").strip() == '"etag-2"'
 
     def test_network_failure_falls_back_to_cache(self, tmp_path, monkeypatch) -> None:
         import httpx

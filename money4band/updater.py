@@ -297,6 +297,20 @@ def _notify_update_available(version: str) -> None:
         logger.debug("Update notification failed (non-critical).", exc_info=True)
 
 
+# ---------------------------------------------------------------------------
+# Update preservation policy:
+#
+# config/m4b-config.json is *not* preserved across updates — it is a
+# shipped-defaults file owned by the release. User-mutable catalog state
+# (source enable/disable, custom remote sources, category toggles) lives
+# in user-config.json under catalog_overrides (see
+# money4band.core.catalog_overrides) and rides along on user-config
+# preservation below.
+# ---------------------------------------------------------------------------
+
+_M4B_CONFIG_RELPATH = os.path.join("config", "m4b-config.json")
+
+
 def _backup_preserved_files(base_dir: str) -> dict[str, tuple[bytes, int]]:
     """Read preserved files and their permissions into memory before a destructive update."""
     saved: dict[str, tuple[bytes, int]] = {}
@@ -306,16 +320,20 @@ def _backup_preserved_files(base_dir: str) -> dict[str, tuple[bytes, int]]:
             mode = stat.S_IMODE(os.stat(path).st_mode)
             with open(path, "rb") as f:
                 saved[name] = (f.read(), mode)
-    # Also backup config/ directory files
+    # Also backup config/ directory files EXCEPT m4b-config.json which is
+    # release-owned and must reflect the newly shipped defaults.
     config_dir = os.path.join(base_dir, "config")
     if os.path.isdir(config_dir):
         for fname in os.listdir(config_dir):
             fpath = os.path.join(config_dir, fname)
-            if os.path.isfile(fpath):
-                key = os.path.join("config", fname)
-                mode = stat.S_IMODE(os.stat(fpath).st_mode)
-                with open(fpath, "rb") as f:
-                    saved[key] = (f.read(), mode)
+            if not os.path.isfile(fpath):
+                continue
+            key = os.path.join("config", fname)
+            if key == _M4B_CONFIG_RELPATH:
+                continue
+            mode = stat.S_IMODE(os.stat(fpath).st_mode)
+            with open(fpath, "rb") as f:
+                saved[key] = (f.read(), mode)
     return saved
 
 

@@ -288,9 +288,19 @@ def default_envelope() -> dict[str, Any]:
         "catalog_sources": [
             {
                 "type": "local",
+                "name": "builtin",
                 "path": CATALOG_DIRNAME,
                 "default_source": "builtin",
                 "enabled": True,
+            },
+            {
+                "type": "remote",
+                "name": "community",
+                "url": "https://raw.githubusercontent.com/MRColorR/money4band-community-catalog/main/manifest.json",
+                "default_source": "community",
+                "enabled": False,
+                "cache_path": "catalog/community",
+                "timeout": 5.0,
             }
         ],
         "categories": {

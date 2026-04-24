@@ -182,6 +182,9 @@ def _count_cached_entries(base: Path) -> int:
         cat_dir = base / cat
         if cat_dir.is_dir():
             total += sum(1 for _ in cat_dir.glob("*.json"))
+    addons_dir = base / "addons"
+    if addons_dir.is_dir():
+        total += sum(1 for _ in addons_dir.glob("*.json"))
     return total
 
 
@@ -317,8 +320,11 @@ def refresh_source(
                 if etag_file.is_file():
                     etag_file.unlink()
                 loaded = obj.load(m4b_config_path)
+                addons = obj.load_addons(m4b_config_path)
                 entry["status"] = "refreshed"
-                entry["cached_entries"] = sum(len(v) for v in loaded.values())
+                entry["cached_entries"] = sum(len(v) for v in loaded.values()) + len(
+                    addons
+                )
             except Exception as exc:  # pragma: no cover — network errors
                 entry["status"] = "error"
                 entry["error"] = str(exc)

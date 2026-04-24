@@ -372,6 +372,13 @@
                 "path": "catalog",
                 "default_source": "builtin",
                 "enabled": true
+            },
+            {
+                "type": "remote",
+                "name": "community",
+                "enabled": false,
+                "default_source": "community",
+                "url": "https://raw.githubusercontent.com/MRColorR/money4band-community-catalog/main/manifest.json"
             }
         ],
         "categories": {

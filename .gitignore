@@ -38,3 +38,10 @@ dist
 
 # Internal docs
 *.internal.md
+
+# Catalog runtime cache (populated by `m4b catalog refresh`)
+# Shipped: config/catalog/{supported,newcomers,deprecated,addons}
+# Anything else under config/catalog/ is runtime state from remote sources.
+config/catalog/community/
+**/.etag
+**/.fetched_at
