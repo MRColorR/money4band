@@ -48,7 +48,11 @@ class TestMain:
 
 
 class TestResetSeedsFromCatalog:
-    """Verify reset applies user_config_template defaults from app-config.json."""
+    """Verify reset applies user_config_template defaults from the catalog.
+
+    Since phase-8.4.1 the catalog envelope is folded into ``m4b-config.json``
+    and the per-app bundles live under ``config/catalog/<category>/``.
+    """
 
     def test_seeds_app_slices_from_catalog_templates(self, tmp_path: Path) -> None:
         config_dir = tmp_path / "config"
@@ -64,27 +68,43 @@ class TestResetSeedsFromCatalog:
         src.parent.mkdir()
         src.write_text(json.dumps(template))
 
-        # Catalog carries the bundle-complete user_config_template per entry.
-        app_config = {
-            "app_config_version": 2.0,
-            "supported": {
-                "active": True,
-                "entries": [
+        # Folded envelope (phase-8.4.1) — m4b-config.json carries the
+        # catalog key; per-file bundles live under config/catalog/.
+        m4b_config = {
+            "project": {"project_version": "5.0.0"},
+            "catalog": {
+                "app_config_version": 2.0,
+                "catalog_sources": [
                     {
-                        "name": "HONEYGAIN",
-                        "user_config_template": {
-                            "enabled": False,
-                            "email": "yourHONEYGAINMail",
-                            "password": "yourHONEYGAINPw",
-                            "service_enabled": False,
-                        },
+                        "type": "local",
+                        "name": "builtin",
+                        "path": "catalog",
+                        "enabled": True,
                     }
                 ],
+                "categories": {
+                    "supported": {"active": True},
+                    "newcomers": {"active": False},
+                    "deprecated": {"active": False},
+                },
             },
-            "newcomers": {"active": False, "entries": []},
-            "deprecated": {"active": False, "entries": []},
         }
-        (config_dir / "app-config.json").write_text(json.dumps(app_config))
+        (config_dir / "m4b-config.json").write_text(json.dumps(m4b_config))
+        (config_dir / "catalog" / "supported").mkdir(parents=True)
+        (config_dir / "catalog" / "supported" / "HONEYGAIN.json").write_text(
+            json.dumps(
+                {
+                    "name": "HONEYGAIN",
+                    "compose_config": {"image": "honeygain/honeygain:latest"},
+                    "user_config_template": {
+                        "enabled": False,
+                        "email": "yourHONEYGAINMail",
+                        "password": "yourHONEYGAINPw",
+                        "service_enabled": False,
+                    },
+                }
+            )
+        )
 
         dest = config_dir / "user-config.json"
         reset_config(str(src), str(dest))
@@ -97,7 +117,7 @@ class TestResetSeedsFromCatalog:
             "service_enabled": False,
         }
 
-    def test_reset_silently_skips_seed_when_app_config_missing(
+    def test_reset_silently_skips_seed_when_m4b_config_missing(
         self, tmp_path: Path
     ) -> None:
         """Odd filesystem layouts must not break reset."""
@@ -105,5 +125,5 @@ class TestResetSeedsFromCatalog:
         src.write_text(json.dumps({"apps": {}, "settings": {}}))
         dest = tmp_path / "out" / "user-config.json"
         reset_config(str(src), str(dest))
-        # No app-config.json next to dest → apps stays empty, no crash.
+        # No m4b-config.json next to dest → apps stays empty, no crash.
         assert json.loads(dest.read_text())["apps"] == {}

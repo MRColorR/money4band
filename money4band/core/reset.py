@@ -53,23 +53,28 @@ def reset_config(src_path: str, dest_path: str) -> None:
 def _seed_app_slices_from_catalog(user_config_path: str) -> None:
     """Apply ``user_config_template`` defaults from the catalog into user-config.
 
-    Silently no-ops when the companion ``app-config.json`` cannot be
-    located or parsed — the caller (reset) must remain resilient in
-    unusual filesystem layouts (tests, custom installs).
+    Loads the aggregated catalog via
+    :func:`money4band.core.loader.load_app_config_with_overlays` (which since
+    phase-8.4.1 reads the folded envelope from ``m4b-config.json`` plus the
+    per-file bundles under ``config/catalog/``). Silently no-ops when the
+    companion ``m4b-config.json`` cannot be located or parsed — the caller
+    (reset) must remain resilient in unusual filesystem layouts
+    (tests, custom installs).
     """
     logger = logging.getLogger(__name__)
     config_dir = os.path.dirname(user_config_path)
-    app_config_path = os.path.join(config_dir, "app-config.json")
-    if not os.path.exists(app_config_path):
+    m4b_config_path = os.path.join(config_dir, "m4b-config.json")
+    if not os.path.exists(m4b_config_path):
         logger.debug(
-            "Skipping user_config_template seed: %s not found", app_config_path
+            "Skipping user_config_template seed: %s not found", m4b_config_path
         )
         return
     try:
         with open(user_config_path, encoding="utf-8") as f:
             user_config = json.load(f)
-        with open(app_config_path, encoding="utf-8") as f:
-            app_config = json.load(f)
+        from money4band.core.loader import load_app_config_with_overlays
+
+        app_config = load_app_config_with_overlays(m4b_config_path)
     except (OSError, json.JSONDecodeError) as exc:
         logger.warning("Skipping user_config_template seed: %s", exc)
         return

@@ -57,7 +57,7 @@ def update_multiproxy_instances(
     instances_dir: str = "m4b_proxy_instances",
     user_config_path: str = "./config/user-config.json",
     m4b_config_path: str = "./config/m4b-config.json",
-    app_config_path: str = "./config/app-config.json",
+    app_config_path: str = "./config/m4b-config.json",
     sleep_time: int = 3,
 ) -> None:
     """
@@ -68,7 +68,9 @@ def update_multiproxy_instances(
         instances_dir (str): Directory containing the multiproxy instances.
         user_config_path (str): Path to the main user-config file.
         m4b_config_path (str): Path to the main m4b-config file.
-        app_config_path (str): Path to the main app-config file.
+        app_config_path (str): Path to the config file holding the folded
+            catalog envelope — since phase-8.4.1 this is the same m4b-config
+            file; the argument is kept for call-site clarity.
         sleep_time (int): Time to wait between operations.
     """
 

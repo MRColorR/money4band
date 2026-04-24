@@ -376,13 +376,13 @@ class TestNoHardcodedDNS:
                 assert "dns" not in cc, (
                     f"{entry['name']} compose_config should not have hardcoded dns"
                 )
-                # Check sidecars too
-                svc = entry.get("service", {})
-                if svc:
-                    svc_cc = svc.get("compose_config", {})
-                    assert "dns" not in svc_cc, (
-                        f"{entry['name']} sidecar compose_config should not have hardcoded dns"
-                    )
+
+        # Addons (phase-8.8): standalone bundles with parent_id.
+        for addon in app_config.get("addons", []):
+            acc = addon.get("compose_config", {})
+            assert "dns" not in acc, (
+                f"{addon['name']} addon compose_config should not have hardcoded dns"
+            )
 
     def test_no_dns_in_proxy_template(self):
         """The proxy service template should not have hardcoded dns."""
