@@ -147,9 +147,8 @@ class TestResolvePaths:
         args = _make_args(tmp_path)
         m4b, apps, user = _resolve_paths(args)
         assert os.path.basename(m4b) == "m4b-config.json"
-        # The catalog envelope is folded into m4b-config.json; when the
-        # legacy app-config.json is absent the apps slot aliases to it.
-        assert os.path.basename(apps) in {"m4b-config.json", "app-config.json"}
+        # The apps slot aliases to the folded catalog envelope in m4b-config.json.
+        assert os.path.basename(apps) == "m4b-config.json"
         assert os.path.basename(user) == "user-config.json"
         # All must share the same directory
         assert os.path.dirname(m4b) == os.path.dirname(apps) == os.path.dirname(user)

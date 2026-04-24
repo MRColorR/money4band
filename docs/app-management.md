@@ -36,7 +36,7 @@ so they appear during `m4b setup`.
 
 The catalog is **per-file**: one JSON bundle per app. The envelope is
 **folded into `m4b-config.json`** under the `catalog` key — no standalone
-`app-config.json` ships.
+catalog-envelope file ships.
 
 ```
 config/
@@ -88,10 +88,10 @@ monolith.
 
 If you open an older checkout, the loader auto-migrates on first run:
 
-* Monolithic `app-config.json` is split into
+* The legacy monolithic catalog file is split into
   `config/catalog/<category>/<NAME>.json` per-file bundles.
 * The resulting envelope is folded under `m4b-config.json → catalog`.
-* The legacy `app-config.json` is renamed to `app-config.json.v1.bak`.
+* The legacy catalog file is renamed with a `.v1.bak` suffix.
 * Monolithic `referral-offers.json` is split into
   `config/offers.d/<SLUG>.json` and the original renamed to
   `referral-offers.json.v1.bak`.

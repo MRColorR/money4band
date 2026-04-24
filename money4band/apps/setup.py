@@ -382,7 +382,10 @@ if __name__ == "__main__":
         description="Run the setup apps module standalone."
     )
     parser.add_argument(
-        "--app-config", type=str, required=True, help="Path to app_config JSON file"
+        "--app-config",
+        type=str,
+        required=True,
+        help="Path to catalog JSON file (m4b-config.json envelope)",
     )
     parser.add_argument(
         "--m4b-config", type=str, required=True, help="Path to m4b_config JSON file"

@@ -3,14 +3,13 @@
 from __future__ import annotations
 
 import collections
-import json
 import time
 from contextlib import contextmanager
 from unittest import mock
 
 import pytest
 
-from money4band.api.server import _ALLOWED_ACTIONS, app, configure
+from money4band.api.server import _ALLOWED_ACTIONS, app
 
 
 @pytest.fixture
@@ -89,18 +88,6 @@ class TestDashboardAPI:
     def test_container_action_bad_name(self, client):
         resp = client.post("/api/action/; rm -rf /start")
         assert resp.status_code in (400, 404, 422)
-
-    def test_get_app_config(self, client, tmp_path):
-        config = {
-            "app_config_version": 1.2,
-            "supported": {"active": True, "entries": []},
-        }
-        config_file = tmp_path / "app-config.json"
-        config_file.write_text(json.dumps(config))
-        configure(str(tmp_path))
-        resp = client.get("/api/config/app")
-        assert resp.status_code == 200
-        assert resp.json()["app_config_version"] == 1.2
 
     def test_allowed_actions(self):
         assert _ALLOWED_ACTIONS == {"start", "stop", "restart"}

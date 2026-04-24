@@ -58,7 +58,7 @@ Project-level settings you can tune:
 ### Catalog envelope (folded into `m4b-config.json`)
 
 The catalog envelope lives under the `catalog` key of
-`m4b-config.json`; no separate `app-config.json` file ships.
+`m4b-config.json`; no separate standalone catalog file ships.
 The envelope itself is intentionally small:
 
 ```jsonc
@@ -83,9 +83,9 @@ Per-app bundles live under `config/catalog/<category>/<NAME>.json` — one
 file per app. See [App Management → On-Disk Layout](app-management.md#on-disk-layout-v20)
 for the full schema and the source-plugin model.
 
-If you upgrade from a checkout that still has a standalone
-`app-config.json`, the loader auto-folds it into `m4b-config.json` on
-first run (one-time `app-config.json.v1.bak` backup). The legacy
+If you upgrade from a checkout that still has a standalone legacy
+catalog file, the loader auto-folds it into `m4b-config.json` on
+first run (one-time `.v1.bak` backup). The legacy
 monolithic `referral-offers.json` is likewise auto-split into
 `config/offers.d/<SLUG>.json` per-file bundles. You can also run the
 migration by hand: `python scripts/migrate_catalog_v1_to_v2.py`.

@@ -213,15 +213,13 @@ class TestApplyUpdate:
     def test_unsupported_install_returns_false(self, monkeypatch, capsys):
         monkeypatch.setattr("money4band.updater.is_git_install", lambda: False)
         monkeypatch.setattr("money4band.updater.sys", MagicMock(frozen=False))
-        # sys.frozen = False and NOT git → unsupported
-        monkeypatch.setattr("builtins.getattr", lambda o, a, d=None: False)
-
-        # This will fall through to the else branch
+        # sys.frozen = False and NOT git -> unsupported
         result = apply_update("5.1.0")
-        # Result depends on whether sys.frozen is False
-        # The function should print a message and return False
+
+        # Unsupported install should print guidance and return False.
         captured = capsys.readouterr()
-        assert result is False or "not supported" in captured.out.lower()
+        assert result is False
+        assert "not supported" in captured.out.lower()
 
 
 class TestGetLatestReleases:

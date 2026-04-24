@@ -66,21 +66,21 @@ class TestDetection:
 
 class TestWriteAndRead:
     def test_write_entry_creates_per_category_file(self, tmp_path: Path):
-        config = tmp_path / "app-config.json"
+        config = tmp_path / "m4b-config.json"
         dest = write_entry({"name": "FOO"}, config, "supported")
         assert dest == catalog_root(config) / "supported" / "FOO.json"
         assert json.loads(dest.read_text()) == {"name": "FOO"}
 
     def test_write_entry_rejects_unknown_category(self, tmp_path: Path):
         with pytest.raises(ValueError):
-            write_entry({"name": "X"}, tmp_path / "app-config.json", "nope")
+            write_entry({"name": "X"}, tmp_path / "m4b-config.json", "nope")
 
     def test_write_entry_requires_name(self, tmp_path: Path):
         with pytest.raises(ValueError):
-            write_entry({}, tmp_path / "app-config.json", "supported")
+            write_entry({}, tmp_path / "m4b-config.json", "supported")
 
     def test_read_entries_dir_sorted(self, tmp_path: Path):
-        config = tmp_path / "app-config.json"
+        config = tmp_path / "m4b-config.json"
         write_entry({"name": "ZULU"}, config, "supported")
         write_entry({"name": "ALPHA"}, config, "supported")
         entries = read_entries_dir(catalog_root(config), "supported")
@@ -90,7 +90,7 @@ class TestWriteAndRead:
         assert read_entries_dir(catalog_root(tmp_path / "a.json"), "supported") == []
 
     def test_delete_entry(self, tmp_path: Path):
-        config = tmp_path / "app-config.json"
+        config = tmp_path / "m4b-config.json"
         write_entry({"name": "FOO"}, config, "supported")
         assert delete_entry(config, "supported", "FOO") is True
         assert delete_entry(config, "supported", "FOO") is False
@@ -98,7 +98,7 @@ class TestWriteAndRead:
 
 class TestMove:
     def test_move_between_categories(self, tmp_path: Path):
-        config = tmp_path / "app-config.json"
+        config = tmp_path / "m4b-config.json"
         write_entry({"name": "X", "v": 1}, config, "newcomers")
         dest = move_entry(config, "X", "newcomers", "supported")
         assert dest.exists()
@@ -106,7 +106,7 @@ class TestMove:
         assert json.loads(dest.read_text())["v"] == 1
 
     def test_move_with_updates(self, tmp_path: Path):
-        config = tmp_path / "app-config.json"
+        config = tmp_path / "m4b-config.json"
         write_entry({"name": "X", "v": 1}, config, "newcomers")
         move_entry(
             config,
@@ -126,7 +126,7 @@ class TestMove:
 
 class TestEnvelope:
     def test_set_category_active_flips_flag(self, tmp_path: Path):
-        config = tmp_path / "app-config.json"
+        config = tmp_path / "m4b-config.json"
         write_envelope(default_envelope(), config)
         set_category_active(config, "newcomers", True)
         env = json.loads(config.read_text())
@@ -141,7 +141,7 @@ class TestEnvelope:
 
 class TestSplit:
     def test_split_writes_all_entries(self, tmp_path, monolithic_payload):
-        config = tmp_path / "app-config.json"
+        config = tmp_path / "m4b-config.json"
         envelope, count = split_monolithic(monolithic_payload, config)
         assert count == 3
         assert is_envelope(envelope)
@@ -156,7 +156,7 @@ class TestSplit:
 
 class TestAggregate:
     def test_roundtrip_via_split_and_aggregate(self, tmp_path, monolithic_payload):
-        config = tmp_path / "app-config.json"
+        config = tmp_path / "m4b-config.json"
         envelope, _ = split_monolithic(monolithic_payload, config)
         write_envelope(envelope, config)
 
@@ -170,7 +170,7 @@ class TestAggregate:
         assert result["deprecated"]["entries"] == []
 
     def test_preserves_catalog_sources(self, tmp_path):
-        config = tmp_path / "app-config.json"
+        config = tmp_path / "m4b-config.json"
         env = default_envelope()
         result = aggregate(env, config)
         assert "catalog_sources" in result
@@ -179,7 +179,7 @@ class TestAggregate:
 
 class TestMigration:
     def test_migrate_writes_envelope_and_bundles(self, tmp_path, monolithic_payload):
-        config = tmp_path / "app-config.json"
+        config = tmp_path / "m4b-config.json"
         config.write_text(json.dumps(monolithic_payload))
         assert migrate_catalog_file(config) is True
 
@@ -194,7 +194,7 @@ class TestMigration:
         assert (root / "supported" / "HONEYGAIN.json").exists()
 
     def test_migration_is_idempotent(self, tmp_path, monolithic_payload):
-        config = tmp_path / "app-config.json"
+        config = tmp_path / "m4b-config.json"
         config.write_text(json.dumps(monolithic_payload))
         assert migrate_catalog_file(config) is True
         # Second call: no-op
@@ -204,12 +204,12 @@ class TestMigration:
         assert migrate_catalog_file(tmp_path / "nope.json") is False
 
     def test_already_envelope_returns_false(self, tmp_path):
-        config = tmp_path / "app-config.json"
+        config = tmp_path / "m4b-config.json"
         config.write_text(json.dumps(default_envelope()))
         assert migrate_catalog_file(config) is False
 
     def test_backup_not_overwritten(self, tmp_path, monolithic_payload):
-        config = tmp_path / "app-config.json"
+        config = tmp_path / "m4b-config.json"
         config.write_text(json.dumps(monolithic_payload))
         migrate_catalog_file(config)
         backup = config.with_suffix(config.suffix + LEGACY_BACKUP_SUFFIX)
@@ -231,7 +231,7 @@ class TestLoaderIntegration:
     ):
         from money4band.core.loader import load_app_config_with_overlays
 
-        config = tmp_path / "app-config.json"
+        config = tmp_path / "m4b-config.json"
         config.write_text(json.dumps(monolithic_payload))
         result = load_app_config_with_overlays(str(config))
         # Migrated → per-file bundles exist
@@ -248,7 +248,7 @@ class TestLoaderIntegration:
     ):
         from money4band.core.loader import load_app_config_with_overlays
 
-        config = tmp_path / "app-config.json"
+        config = tmp_path / "m4b-config.json"
         config.write_text(json.dumps(monolithic_payload))
         load_app_config_with_overlays(str(config))  # migrate
         # Subsequent loads: file is already an envelope

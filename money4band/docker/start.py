@@ -568,7 +568,10 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Start the Docker Compose stack.")
     parser.add_argument(
-        "--app-config", type=str, required=True, help="Path to app_config JSON file"
+        "--app-config",
+        type=str,
+        required=True,
+        help="Path to catalog JSON file (m4b-config.json envelope)",
     )
     parser.add_argument(
         "--m4b-config", type=str, required=True, help="Path to m4b_config JSON file"

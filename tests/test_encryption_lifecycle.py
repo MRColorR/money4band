@@ -105,7 +105,6 @@ class TestCmdConfig:
         args = MagicMock()
         args.config_dir = str(tmp_path)
         args.config_m4b_file = "m4b-config.json"
-        args.config_app_file = "app-config.json"
         args.config_usr_file = "user-config.json"
         args.config_action = "view"
 
@@ -124,7 +123,6 @@ class TestCmdConfig:
         args = MagicMock()
         args.config_dir = str(tmp_path)
         args.config_m4b_file = "m4b-config.json"
-        args.config_app_file = "app-config.json"
         args.config_usr_file = "user-config.json"
         args.config_action = "edit"
 
@@ -147,7 +145,6 @@ class TestCmdConfig:
         args = MagicMock()
         args.config_dir = "/tmp/config"
         args.config_m4b_file = "m4b-config.json"
-        args.config_app_file = "app-config.json"
         args.config_usr_file = "user-config.json"
         args.config_action = None
 

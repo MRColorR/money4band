@@ -237,16 +237,6 @@ class TestLoadAppConfigWithOverlays(unittest.TestCase):
             self.assertIn("supported", cfg)
 
 
-class TestGetCategoryEntriesLegacy(unittest.TestCase):
-    """Test legacy list-style category fallback."""
-
-    def test_list_fallback(self):
-        legacy = {"old-cat": [{"name": "legacy_app"}]}
-        result = get_category_entries(legacy, "old-cat")
-        self.assertEqual(len(result), 1)
-        self.assertEqual(result[0]["name"], "legacy_app")
-
-
 class TestLoaderMain(unittest.TestCase):
     """Test the loader.main() entry point."""
 

@@ -163,9 +163,6 @@ def get_category_entries(
     cat = app_config.get(category)
     if isinstance(cat, dict):
         return cat.get("entries", [])
-    # Legacy fallback: category value is already a list
-    if isinstance(cat, list):
-        return cat
     return []
 
 
@@ -185,7 +182,7 @@ def load_catalog_entries(
     unchanged — this function simply wraps the same dicts in dataclasses.
 
     Arguments:
-    app_config -- previously loaded app-config (post-overlay merge).
+    app_config -- previously loaded catalog config (post-overlay merge).
     categories -- explicit list of category keys to include.  When
         ``None`` (default), every category that carries an ``entries``
         list is included regardless of its ``active`` flag — callers that
