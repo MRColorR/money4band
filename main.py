@@ -48,9 +48,20 @@ parent_dir = os.path.dirname(BASE_DIR)
 
 
 def _resolve_paths(args: argparse.Namespace) -> tuple[str, str, str]:
-    """Compute the three config paths + utils dir from parsed args."""
+    """Compute the three config paths + utils dir from parsed args.
+
+    Since phase-8.4.1 the catalog envelope lives folded under
+    ``m4b-config.json -> catalog``, so the ``apps_config_path`` slot
+    aliases the m4b-config path — callers that previously loaded
+    ``app-config.json`` now transparently read the same folded file.
+    Callers that need the aggregated catalog shape should use
+    :func:`money4band.core.loader.load_app_config_with_overlays`.
+    """
     m4b_config_path = os.path.join(args.config_dir, args.config_m4b_file)
-    apps_config_path = os.path.join(args.config_dir, args.config_app_file)
+    legacy_app_path = os.path.join(args.config_dir, args.config_app_file)
+    apps_config_path = (
+        legacy_app_path if os.path.isfile(legacy_app_path) else m4b_config_path
+    )
     user_config_path = os.path.join(args.config_dir, args.config_usr_file)
     return m4b_config_path, apps_config_path, user_config_path
 
@@ -523,7 +534,7 @@ def _cmd_status(args: argparse.Namespace) -> None:
         print()
 
     # Earnings estimation
-    app_config = loader.load_json_config(apps_config_path)
+    app_config = loader.load_app_config_with_overlays(apps_config_path)
     from money4band.apps.earnings import display_earnings_summary
 
     display_earnings_summary(app_config)
@@ -534,10 +545,10 @@ def _cmd_generate(args: argparse.Namespace) -> None:
     m4b_config_path, apps_config_path, user_config_path = _resolve_paths(args)
 
     if getattr(args, "docs", False):
-        from money4band.core.loader import load_json_config
+        from money4band.core.loader import load_app_config_with_overlays
         from money4band.readme_generator import update_apps_md, update_readme
 
-        app_config = load_json_config(apps_config_path)
+        app_config = load_app_config_with_overlays(apps_config_path)
         readme_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)), "README.md"
         )
@@ -737,7 +748,7 @@ def _cmd_info(args: argparse.Namespace) -> None:
     just_fix_windows_console()
 
     m4b_config = loader.load_json_config(m4b_config_path)
-    app_config = loader.load_json_config(apps_config_path)
+    app_config = loader.load_app_config_with_overlays(apps_config_path)
     user_config = loader.load_json_config(user_config_path)
 
     from money4band.system.info import show_system_info
@@ -796,7 +807,7 @@ def _cmd_apps(args: argparse.Namespace) -> None:
     _, apps_config_path, _ = _resolve_paths(args)
     just_fix_windows_console()
 
-    app_config = loader.load_json_config(apps_config_path)
+    app_config = loader.load_app_config_with_overlays(apps_config_path)
 
     app_name = getattr(args, "app_name", None)
     if app_name:
@@ -814,7 +825,7 @@ def _cmd_validate(args: argparse.Namespace) -> None:
     """Run Docker image security checks."""
     _, apps_config_path, _ = _resolve_paths(args)
 
-    app_config = loader.load_json_config(apps_config_path)
+    app_config = loader.load_app_config_with_overlays(apps_config_path)
 
     from money4band.docker.image_security import validate_images
 
