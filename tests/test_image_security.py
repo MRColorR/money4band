@@ -174,14 +174,16 @@ class TestGetImageNamesSubServices:
                     {
                         "name": "MYAPP",
                         "compose_config": {"image": "myapp:latest"},
-                        "service": {
-                            "sidecar": {
-                                "compose_config": {"image": "sidecar:v1"},
-                            }
-                        },
                     },
                 ],
             },
+            "addons": [
+                {
+                    "name": "MYAPP_POT",
+                    "parent_id": "MYAPP",
+                    "compose_config": {"image": "sidecar:v1"},
+                }
+            ],
         }
         pairs = _get_image_names(config)
         images = [p[1] for p in pairs]

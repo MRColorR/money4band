@@ -27,7 +27,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from money4band.core.catalog_store import CATEGORIES
+from money4band.core.catalog_store import ADDONS_DIRNAME, CATEGORIES
 
 logger = logging.getLogger(__name__)
 
@@ -65,13 +65,16 @@ def touch_fetched_at(cache_dir: Path) -> None:
 
 
 def replace_entries(
-    cache_dir: Path, entries_by_category: dict[str, list[dict[str, Any]]]
+    cache_dir: Path,
+    entries_by_category: dict[str, list[dict[str, Any]]],
+    addons: list[dict[str, Any]] | None = None,
 ) -> int:
-    """Wipe category subdirs and rewrite per-file bundles atomically.
+    """Wipe category subdirs + addons dir and rewrite per-file bundles.
 
-    Only the canonical ``CATEGORIES`` subdirectories are wiped — any
-    stray file under the cache root (e.g. ``.etag``, user notes) stays.
-    Returns the total number of bundles written.
+    Only the canonical ``CATEGORIES`` subdirectories and the ``addons/``
+    subdirectory are wiped — any stray file under the cache root (e.g.
+    ``.etag``, user notes) stays. Returns the total number of bundles
+    written (entries + addons).
     """
     cache_dir.mkdir(parents=True, exist_ok=True)
     total = 0
@@ -95,6 +98,25 @@ def replace_entries(
                 encoding="utf-8",
             )
             total += 1
+    # Addons (parallel to categories, attached to parents via parent_id)
+    addons_dir = cache_dir / ADDONS_DIRNAME
+    if addons_dir.exists():
+        shutil.rmtree(addons_dir)
+    for addon in addons or []:
+        if not isinstance(addon, dict):
+            continue
+        name = addon.get("name")
+        if not isinstance(name, str) or not name:
+            continue
+        if not addon.get("parent_id"):
+            continue
+        addons_dir.mkdir(parents=True, exist_ok=True)
+        filename = f"{name.upper()}.json"
+        (addons_dir / filename).write_text(
+            json.dumps(addon, indent=2, ensure_ascii=False) + "\n",
+            encoding="utf-8",
+        )
+        total += 1
     return total
 
 
@@ -141,11 +163,52 @@ def split_manifest(payload: dict[str, Any]) -> dict[str, list[dict[str, Any]]]:
     return out
 
 
+def split_addons_from_manifest(payload: dict[str, Any]) -> list[dict[str, Any]]:
+    """Extract addons from a fetched manifest.
+
+    Accepts the same two shapes as :func:`split_manifest`:
+
+    1. **Aggregated** — ``{addons: [...]}`` at the top level.
+    2. **Flat list** — ``{entries: [{..., category: "addons", ...}]}``.
+
+    Entries without a ``name`` or ``parent_id`` are dropped.
+    """
+    out: list[dict[str, Any]] = []
+    if not isinstance(payload, dict):
+        return out
+
+    # Shape 2: flat list with per-entry "category"
+    flat = payload.get("entries")
+    if isinstance(flat, list):
+        for entry in flat:
+            if not isinstance(entry, dict):
+                continue
+            if entry.get("category") != ADDONS_DIRNAME:
+                continue
+            if entry.get("name") and entry.get("parent_id"):
+                out.append(entry)
+        return out
+
+    # Shape 1: top-level addons array
+    block = payload.get(ADDONS_DIRNAME)
+    if isinstance(block, dict):
+        items = block.get("entries") or []
+    elif isinstance(block, list):
+        items = block
+    else:
+        items = []
+    for entry in items:
+        if isinstance(entry, dict) and entry.get("name") and entry.get("parent_id"):
+            out.append(entry)
+    return out
+
+
 __all__ = [
     "ETAG_FILENAME",
     "FETCHED_AT_FILENAME",
     "read_etag",
     "replace_entries",
+    "split_addons_from_manifest",
     "split_manifest",
     "touch_fetched_at",
     "write_etag",

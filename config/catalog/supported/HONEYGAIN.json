@@ -53,35 +53,6 @@
   },
   "install_limit": 1,
   "compose_layer": "residential",
-  "service": {
-    "name": "honeygain-pot",
-    "description": "Auto-claims daily Lucky Pot reward (~2x revenue)",
-    "credentials_shared": true,
-    "compose_config": {
-      "container_name": "${DEVICE_NAME}_honeygain-pot",
-      "hostname": "${DEVICE_NAME}_honeygain-pot",
-      "image": "ghcr.io/xterna/honeygain-pot:latest",
-      "environment": [
-        "EMAIL=${HONEYGAIN_EMAIL}",
-        "PASSWORD=${HONEYGAIN_PASSWORD}"
-      ],
-      "labels": [
-        "com.centurylinklabs.watchtower.enable=true",
-        "com.centurylinklabs.watchtower.scope=${M4B_WATCHTOWER_SCOPE}"
-      ],
-      "restart": "always",
-      "cpus": "${APP_CPU_LIMIT_LITTLE}",
-      "mem_reservation": "${APP_MEM_RESERV_LITTLE}",
-      "mem_limit": "${APP_MEM_LIMIT_LITTLE}",
-      "logging": {
-        "driver": "json-file",
-        "options": {
-          "max-size": "10m",
-          "max-file": "3"
-        }
-      }
-    }
-  },
   "app_details": {
     "official_name": "Honeygain",
     "publisher": "Honeygain UAB",

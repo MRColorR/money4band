@@ -1,0 +1,31 @@
+{
+  "name": "BEARSHARE_POT",
+  "parent_id": "BEARSHARE",
+  "description": "Auto-claims daily BearShare reward",
+  "credentials_shared": true,
+  "compose_layer": "service",
+  "compose_config": {
+    "container_name": "${DEVICE_NAME}_bearshare-pot",
+    "hostname": "${DEVICE_NAME}_bearshare-pot",
+    "image": "ghcr.io/xterna/bearshare-pot:latest",
+    "environment": [
+      "EMAIL=${BEARSHARE_EMAIL}",
+      "PASSWORD=${BEARSHARE_PASSWORD}"
+    ],
+    "labels": [
+      "com.centurylinklabs.watchtower.enable=true",
+      "com.centurylinklabs.watchtower.scope=${M4B_WATCHTOWER_SCOPE}"
+    ],
+    "restart": "always",
+    "cpus": "${APP_CPU_LIMIT_LITTLE}",
+    "mem_reservation": "${APP_MEM_RESERV_LITTLE}",
+    "mem_limit": "${APP_MEM_LIMIT_LITTLE}",
+    "logging": {
+      "driver": "json-file",
+      "options": {
+        "max-size": "10m",
+        "max-file": "3"
+      }
+    }
+  }
+}

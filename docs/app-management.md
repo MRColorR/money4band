@@ -205,7 +205,6 @@ schema. The required fields are validated by
 | `referrals` | array | `[{url, contributor, added?, verified?, verified_by?[]}]` — referral pool (never a bare `link` string) |
 | `additional_details` | string | Optional Markdown note — explains removal reason, ToS caveats, etc. |
 | `app_details` | object | Rich metadata (publisher, IP policy, device limits, earnings, Docker status, `last_verified`). Used by `m4b apps <name>` and the dashboard |
-| `service` | object | Auto-claim sidecar (see below) |
 | `user_config_template` | object | Default user-config slice (`{enabled: false, <cred_key>: "", service_enabled?: false}`) merged into `user-config.json → apps.<name_lower>` on reset / first enable |
 
 > **Bundle completeness (phase-8.3a):** every bundle that declares
@@ -249,33 +248,57 @@ During `m4b setup`, you choose which apps to enable. To modify later:
    and run `m4b generate` to regenerate the compose files.
 3. Or use the REST API / web dashboard (`PUT /api/apps/<name>`).
 
-## Auto-Claim Sidecars
+## Auto-Claim Sidecars (Addons)
 
 A few apps have an optional **sidecar container** that automatically
-claims daily rewards. The two that ship today are:
+claims daily rewards. Sidecars ship as standalone **addon bundles**
+under `config/catalog/addons/<NAME>.json`, each referencing a parent
+app via `parent_id`. The loader merges them in when the parent is
+enabled AND the user opted in.
 
-| Parent app | Sidecar | Effect |
-|------------|---------|--------|
-| Honeygain | `honeygain-pot` | Auto-claims the daily Lucky Pot (~2x revenue) |
-| PacketShare | `packetshare-pot` | Auto-claims the daily reward |
+The two addons shipped today are:
 
-Sidecars share credentials with their parent app, use their own CPU/RAM
-reservations, and land on the **service** compose layer.
+| Parent app | Addon file | Effect |
+|------------|------------|--------|
+| Honeygain | `HONEYGAIN_POT.json` | Auto-claims the daily Lucky Pot (~2x revenue) |
+| PacketShare | `PACKETSHARE_POT.json` | Auto-claims the daily reward |
+
+Addons share credentials with their parent app (`credentials_shared: true`),
+use their own CPU/RAM reservations, and land on the **service** compose
+layer.
+
+### Addon bundle shape
+
+```jsonc
+{
+  "name": "HONEYGAIN_POT",
+  "parent_id": "HONEYGAIN",
+  "description": "Auto-claims daily Lucky Pot reward (~2x revenue)",
+  "credentials_shared": true,
+  "compose_layer": "service",
+  "compose_config": {
+    "container_name": "${DEVICE_NAME}_honeygain-pot",
+    "image": "ghcr.io/xterna/honeygain-pot:latest",
+    "environment": ["EMAIL=${HONEYGAIN_EMAIL}", "PASSWORD=${HONEYGAIN_PASSWORD}"],
+    "restart": "always"
+  }
+}
+```
 
 **Enablement is opt-in.** During `m4b setup`, after you enter credentials
-for a parent app that declares a `service`, the wizard asks:
+for a parent app that has a matching addon, the wizard asks:
 
 ```
-Honeygain has an auto-claim sidecar: honeygain-pot
+Honeygain has an auto-claim sidecar: HONEYGAIN_POT
   Auto-claims daily Lucky Pot reward (~2x revenue)  (currently OFF)
-Enable honeygain-pot for Honeygain? (y/n)
+Enable HONEYGAIN_POT for Honeygain? (y/n)
 ```
 
 Your choice is stored as `apps.<name_lower>.service_enabled` in
 `user-config.json`. Toggle it later by re-running `m4b setup`, editing
 the JSON directly (then `m4b generate`), or via the web dashboard.
 
-> **Layered compose:** sidecars are written into `compose.service.yml`
+> **Layered compose:** addons are written into `compose.service.yml`
 > (layered mode) or merged into `docker-compose.yaml` (monolithic mode —
 > the default).
 

@@ -44,31 +44,35 @@ _HONEYGAIN_APP = {
     "compose_config_proxy": {"network_mode": "service:proxy", "hostname": None},
     "flags": {"email": {}, "password": {}},
     "install_limit": 10,
-    "service": {
-        "name": "honeygain-pot",
-        "description": "Auto-claims daily Lucky Pot reward (~2x revenue)",
-        "credentials_shared": True,
-        "compose_config": {
-            "container_name": "${DEVICE_NAME}_honeygain-pot",
-            "hostname": "${DEVICE_NAME}_honeygain-pot",
-            "image": "ghcr.io/xterna/honeygain-pot:latest",
-            "environment": [
-                "EMAIL=${HONEYGAIN_EMAIL}",
-                "PASSWORD=${HONEYGAIN_PASSWORD}",
-            ],
-            "labels": [
-                "com.centurylinklabs.watchtower.enable=true",
-                "com.centurylinklabs.watchtower.scope=${M4B_WATCHTOWER_SCOPE}",
-            ],
-            "dns": ["1.1.1.1", "8.8.8.8"],
-            "restart": "always",
-            "cpus": "${APP_CPU_LIMIT_LITTLE}",
-            "mem_reservation": "${APP_MEM_RESERV_LITTLE}",
-            "mem_limit": "${APP_MEM_LIMIT_LITTLE}",
-            "logging": {
-                "driver": "json-file",
-                "options": {"max-size": "10m", "max-file": "3"},
-            },
+}
+
+
+_HONEYGAIN_POT_ADDON = {
+    "name": "HONEYGAIN_POT",
+    "parent_id": "HONEYGAIN",
+    "description": "Auto-claims daily Lucky Pot reward (~2x revenue)",
+    "credentials_shared": True,
+    "compose_layer": "service",
+    "compose_config": {
+        "container_name": "${DEVICE_NAME}_honeygain-pot",
+        "hostname": "${DEVICE_NAME}_honeygain-pot",
+        "image": "ghcr.io/xterna/honeygain-pot:latest",
+        "environment": [
+            "EMAIL=${HONEYGAIN_EMAIL}",
+            "PASSWORD=${HONEYGAIN_PASSWORD}",
+        ],
+        "labels": [
+            "com.centurylinklabs.watchtower.enable=true",
+            "com.centurylinklabs.watchtower.scope=${M4B_WATCHTOWER_SCOPE}",
+        ],
+        "dns": ["1.1.1.1", "8.8.8.8"],
+        "restart": "always",
+        "cpus": "${APP_CPU_LIMIT_LITTLE}",
+        "mem_reservation": "${APP_MEM_RESERV_LITTLE}",
+        "mem_limit": "${APP_MEM_LIMIT_LITTLE}",
+        "logging": {
+            "driver": "json-file",
+            "options": {"max-size": "10m", "max-file": "3"},
         },
     },
 }
@@ -101,8 +105,11 @@ _NO_SERVICE_APP = {
 }
 
 
-def _app_config(*apps):
-    return {"supported": {"active": True, "entries": list(apps)}}
+def _app_config(*apps, addons=None):
+    return {
+        "supported": {"active": True, "entries": list(apps)},
+        "addons": list(addons or []),
+    }
 
 
 def _m4b_config():
@@ -167,7 +174,7 @@ class TestSidecarComposeGeneration:
             }
         )
         out = str(tmp_path / "docker-compose.yaml")
-        assemble_docker_compose(_m4b_config(), _app_config(_HONEYGAIN_APP), user, out)
+        assemble_docker_compose(_m4b_config(), _app_config(_HONEYGAIN_APP, addons=[_HONEYGAIN_POT_ADDON]), user, out)
 
         import yaml
 
@@ -200,7 +207,7 @@ class TestSidecarComposeGeneration:
             }
         )
         out = str(tmp_path / "docker-compose.yaml")
-        assemble_docker_compose(_m4b_config(), _app_config(_HONEYGAIN_APP), user, out)
+        assemble_docker_compose(_m4b_config(), _app_config(_HONEYGAIN_APP, addons=[_HONEYGAIN_POT_ADDON]), user, out)
 
         import yaml
 
@@ -257,7 +264,7 @@ class TestSidecarComposeGeneration:
         m4b = _m4b_config()
         m4b["system"]["default_docker_platform"] = "linux/arm64"
         out = str(tmp_path / "docker-compose.yaml")
-        assemble_docker_compose(m4b, _app_config(_HONEYGAIN_APP), user, out)
+        assemble_docker_compose(m4b, _app_config(_HONEYGAIN_APP, addons=[_HONEYGAIN_POT_ADDON]), user, out)
 
         import yaml
 
@@ -286,7 +293,7 @@ class TestSidecarComposeGeneration:
             }
         )
         out = str(tmp_path / "docker-compose.yaml")
-        assemble_docker_compose(_m4b_config(), _app_config(_HONEYGAIN_APP), user, out)
+        assemble_docker_compose(_m4b_config(), _app_config(_HONEYGAIN_APP, addons=[_HONEYGAIN_POT_ADDON]), user, out)
 
         import yaml
 
@@ -311,7 +318,7 @@ class TestSidecarComposeGeneration:
             }
         )
         out = str(tmp_path / "docker-compose.yaml")
-        assemble_docker_compose(_m4b_config(), _app_config(_HONEYGAIN_APP), user, out)
+        assemble_docker_compose(_m4b_config(), _app_config(_HONEYGAIN_APP, addons=[_HONEYGAIN_POT_ADDON]), user, out)
 
         import yaml
 
@@ -347,7 +354,12 @@ class TestSidecarSetupPrompt:
                     with mock.patch("money4band.apps.configurator.cls"):
                         with mock.patch("builtins.input"):
                             _configure_apps(
-                                user_config, [_HONEYGAIN_APP], _m4b_config()
+                                user_config,
+                                [_HONEYGAIN_APP],
+                                _m4b_config(),
+                                app_config=_app_config(
+                                    _HONEYGAIN_APP, addons=[_HONEYGAIN_POT_ADDON]
+                                ),
                             )
 
         assert user_config["apps"]["honeygain"]["service_enabled"] is True
@@ -370,7 +382,12 @@ class TestSidecarSetupPrompt:
                     with mock.patch("money4band.apps.configurator.cls"):
                         with mock.patch("builtins.input"):
                             _configure_apps(
-                                user_config, [_HONEYGAIN_APP], _m4b_config()
+                                user_config,
+                                [_HONEYGAIN_APP],
+                                _m4b_config(),
+                                app_config=_app_config(
+                                    _HONEYGAIN_APP, addons=[_HONEYGAIN_POT_ADDON]
+                                ),
                             )
 
         assert user_config["apps"]["honeygain"]["service_enabled"] is False
@@ -402,7 +419,7 @@ class TestSidecarSetupPrompt:
 
 
 class TestAppConfigServiceDefinitions:
-    """Verify app-config.json service entries are well-formed."""
+    """Verify addon entries in the catalog are well-formed."""
 
     @pytest.fixture()
     def app_config(self):
@@ -413,37 +430,43 @@ class TestAppConfigServiceDefinitions:
         )
         return load_app_config_with_overlays(config_path)
 
-    def test_honeygain_has_service(self, app_config):
-        hg = next(
-            a for a in app_config["supported"]["entries"] if a["name"] == "HONEYGAIN"
-        )
-        svc = hg["service"]
-        assert svc["name"] == "honeygain-pot"
-        assert "image" in svc["compose_config"]
-        assert svc["credentials_shared"] is True
+    def _addon_for(self, app_config, parent: str) -> dict:
+        from money4band.apps.addons import get_addons_for
 
-    def test_packetshare_has_service(self, app_config):
-        ps = next(
-            a for a in app_config["supported"]["entries"] if a["name"] == "PACKETSHARE"
-        )
-        svc = ps["service"]
-        assert svc["name"] == "packetshare-pot"
-        assert "image" in svc["compose_config"]
-        assert svc["credentials_shared"] is True
+        addons = get_addons_for(parent, app_config)
+        assert addons, f"no addon found for parent {parent}"
+        return addons[0]
 
-    def test_service_compose_config_has_required_keys(self, app_config):
+    def test_honeygain_has_addon(self, app_config):
+        addon = self._addon_for(app_config, "HONEYGAIN")
+        assert addon["name"] == "HONEYGAIN_POT"
+        assert addon["parent_id"] == "HONEYGAIN"
+        assert "image" in addon["compose_config"]
+        assert addon["credentials_shared"] is True
+
+    def test_packetshare_has_addon(self, app_config):
+        addon = self._addon_for(app_config, "PACKETSHARE")
+        assert addon["name"] == "PACKETSHARE_POT"
+        assert addon["parent_id"] == "PACKETSHARE"
+        assert "image" in addon["compose_config"]
+        assert addon["credentials_shared"] is True
+
+    def test_addon_compose_config_has_required_keys(self, app_config):
         required = {"container_name", "image", "environment", "restart", "labels"}
-        for app in app_config["supported"]["entries"]:
-            svc = app.get("service")
-            if svc:
-                cc = svc["compose_config"]
-                missing = required - set(cc.keys())
-                assert not missing, f"{app['name']} sidecar missing keys: {missing}"
+        for addon in app_config.get("addons", []):
+            cc = addon["compose_config"]
+            missing = required - set(cc.keys())
+            assert not missing, f"{addon['name']} addon missing keys: {missing}"
 
-    def test_apps_without_service_have_none(self, app_config):
+    def test_apps_without_addon_have_no_match(self, app_config):
+        from money4band.apps.addons import get_addons_for
+
+        parents_with_addons = {
+            a["parent_id"] for a in app_config.get("addons", [])
+        }
         for app in app_config["supported"]["entries"]:
-            if app["name"] not in ("HONEYGAIN", "PACKETSHARE", "BEARSHARE"):
-                assert "service" not in app, f"{app['name']} should not have a service"
+            if app["name"] not in parents_with_addons:
+                assert not get_addons_for(app["name"], app_config)
 
 
 # ---------------------------------------------------------------------------

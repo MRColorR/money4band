@@ -47,6 +47,7 @@ logger = logging.getLogger(__name__)
 
 CATALOG_DIRNAME = "catalog"
 CATEGORIES = ("supported", "newcomers", "deprecated")
+ADDONS_DIRNAME = "addons"
 
 
 def catalog_root(config_path: str | Path) -> Path:
@@ -128,6 +129,36 @@ def read_entries_dir(root: Path, category: str) -> list[dict[str, Any]]:
     return entries
 
 
+def read_addons_dir(root: Path) -> list[dict[str, Any]]:
+    """Read all addon bundles in ``root/addons/`` sorted by name.
+
+    Addons are parallel to categories: they attach to a parent app via
+    ``parent_id`` and are merged into the parent's compose_config when
+    the parent is enabled AND the user opted in (``service_enabled``).
+    """
+    addons_dir = root / ADDONS_DIRNAME
+    if not addons_dir.is_dir():
+        return []
+    addons: list[dict[str, Any]] = []
+    for path in sorted(addons_dir.glob("*.json")):
+        try:
+            with open(path, encoding="utf-8") as f:
+                data = json.load(f)
+        except (OSError, json.JSONDecodeError) as exc:
+            logger.warning("Skipping unreadable addon bundle %s: %s", path, exc)
+            continue
+        if not isinstance(data, dict):
+            logger.warning("Skipping non-object addon bundle: %s", path)
+            continue
+        if not data.get("parent_id"):
+            logger.warning(
+                "Skipping addon bundle missing 'parent_id': %s", path
+            )
+            continue
+        addons.append(data)
+    return addons
+
+
 def aggregate(envelope: dict[str, Any], config_path: str | Path) -> dict[str, Any]:
     """Expand an envelope + per-file bundles into the historical in-memory shape.
 
@@ -156,6 +187,7 @@ def aggregate(envelope: dict[str, Any], config_path: str | Path) -> dict[str, An
             "active": active,
             "entries": read_entries_dir(root, cat),
         }
+    result["addons"] = read_addons_dir(root)
     return result
 
 

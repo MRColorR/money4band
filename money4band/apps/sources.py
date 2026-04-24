@@ -34,7 +34,7 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any
 
-from money4band.core.catalog_store import CATEGORIES, read_entries_dir
+from money4band.core.catalog_store import CATEGORIES, read_addons_dir, read_entries_dir
 
 logger = logging.getLogger(__name__)
 
@@ -67,6 +67,14 @@ class CatalogSource(ABC):
     @abstractmethod
     def load(self, config_path: str | Path) -> dict[str, list[dict[str, Any]]]:
         """Return ``{category: [entry_dict, ...]}`` for this source."""
+
+    def load_addons(self, config_path: str | Path) -> list[dict[str, Any]]:
+        """Return ``[addon_dict, ...]`` for this source. Default: none.
+
+        Addons are parallel to categories (attached to parent apps via
+        ``parent_id``) and merged in phase-8.8.
+        """
+        return []
 
     def __repr__(self) -> str:  # pragma: no cover - debug aid
         return (
@@ -114,6 +122,14 @@ class LocalSource(CatalogSource):
             logger.debug("Local catalog root missing: %s", root)
             return {cat: [] for cat in CATEGORIES}
         return {cat: read_entries_dir(root, cat) for cat in CATEGORIES}
+
+    def load_addons(self, config_path: str | Path) -> list[dict[str, Any]]:
+        if not self.enabled:
+            return []
+        root = self._resolve_root(config_path)
+        if not root.is_dir():
+            return []
+        return read_addons_dir(root)
 
 
 class RemoteSource(CatalogSource):
@@ -237,6 +253,7 @@ class RemoteSource(CatalogSource):
         from money4band.apps.remote_cache import (
             read_etag,
             replace_entries,
+            split_addons_from_manifest,
             split_manifest,
             touch_fetched_at,
             write_etag,
@@ -252,7 +269,8 @@ class RemoteSource(CatalogSource):
 
         if status == 200 and payload is not None:
             entries_by_cat = split_manifest(payload)
-            written = replace_entries(cache_dir, entries_by_cat)
+            addons = split_addons_from_manifest(payload)
+            written = replace_entries(cache_dir, entries_by_cat, addons)
             touch_fetched_at(cache_dir)
             if new_etag:
                 write_etag(cache_dir, new_etag)
@@ -266,6 +284,14 @@ class RemoteSource(CatalogSource):
         if not cache_dir.is_dir():
             return {cat: [] for cat in CATEGORIES}
         return {cat: read_entries_dir(cache_dir, cat) for cat in CATEGORIES}
+
+    def load_addons(self, config_path: str | Path) -> list[dict[str, Any]]:
+        if not self.available():
+            return []
+        cache_dir = self._resolve_cache_dir(config_path)
+        if not cache_dir.is_dir():
+            return []
+        return read_addons_dir(cache_dir)
 
 
 def build_sources(
@@ -393,6 +419,32 @@ def aggregate_from_sources(
         meta = cats.get(cat) if isinstance(cats, dict) else None
         active = bool(meta.get("active", False)) if isinstance(meta, dict) else False
         result[cat] = {"active": active, "entries": merged[cat]}
+
+    # Aggregate addons across sources (first-wins by NAME, like entries).
+    seen_addons: set[str] = set()
+    merged_addons: list[dict[str, Any]] = []
+    for src in sources:
+        if not src.available():
+            continue
+        try:
+            addons = src.load_addons(config_path)
+        except Exception as exc:  # noqa: BLE001 - source failures must not crash
+            logger.warning(
+                "Catalog source %r failed to load addons: %s", src.name, exc
+            )
+            continue
+        for addon in addons:
+            if not isinstance(addon, dict):
+                continue
+            raw_name = addon.get("name")
+            if not isinstance(raw_name, str) or not raw_name:
+                continue
+            key = raw_name.upper()
+            if key in seen_addons:
+                continue
+            seen_addons.add(key)
+            merged_addons.append(addon)
+    result["addons"] = merged_addons
 
     return result
 

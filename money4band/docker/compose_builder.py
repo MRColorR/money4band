@@ -312,20 +312,31 @@ def assemble_docker_compose(
                     services[app_name] = app_compose_config
                     service_layers[app_name] = app.get("compose_layer", "datacenter")
 
-                    # Auto-claim sidecar: add if app has a service definition
-                    # and the user has enabled it.
-                    service_def = app.get("service")
-                    if service_def and user_app_config.get("service_enabled", False):
-                        sidecar_name = service_def["name"].lower()
-                        sidecar_config = copy.deepcopy(service_def["compose_config"])
-                        # Apply same platform as the parent app
-                        if "platform" in app_compose_config:
-                            sidecar_config["platform"] = app_compose_config["platform"]
-                        services[sidecar_name] = sidecar_config
-                        service_layers[sidecar_name] = "service"
-                        logger.info(
-                            f"Added auto-claim sidecar '{sidecar_name}' for {app_name}"
-                        )
+                    # Auto-claim sidecar: look up addons attached to this parent
+                    # (phase-8.8) and inject each if the user opted in.
+                    from money4band.apps.addons import get_addons_for
+
+                    addons_for_app = get_addons_for(app_name, app_config)
+                    if addons_for_app and user_app_config.get(
+                        "service_enabled", False
+                    ):
+                        for addon in addons_for_app:
+                            # Addon IDs are UPPER_SNAKE; compose service
+                            # names are kebab-case (HONEYGAIN_POT → honeygain-pot).
+                            sidecar_name = addon["name"].lower().replace("_", "-")
+                            sidecar_config = copy.deepcopy(addon["compose_config"])
+                            # Apply same platform as the parent app
+                            if "platform" in app_compose_config:
+                                sidecar_config["platform"] = app_compose_config[
+                                    "platform"
+                                ]
+                            services[sidecar_name] = sidecar_config
+                            service_layers[sidecar_name] = addon.get(
+                                "compose_layer", "service"
+                            )
+                            logger.info(
+                                f"Added auto-claim sidecar '{sidecar_name}' for {app_name}"
+                            )
 
         # Add common services only if this is the main instance
         compose_config_common = user_config.get("compose_config_common", {})

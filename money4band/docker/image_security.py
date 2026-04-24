@@ -31,19 +31,14 @@ def _get_image_names(app_config: dict[str, Any]) -> list[tuple[str, str]]:
             image = entry.get("compose_config", {}).get("image")
             if image:
                 pairs.append((name, image))
-            # Check for sub-services
-            for svc in (
-                entry.get("service", {}).values()
-                if isinstance(entry.get("service"), dict)
-                else []
-            ):
-                sub_img = (
-                    svc.get("compose_config", {}).get("image")
-                    if isinstance(svc, dict)
-                    else None
-                )
-                if sub_img:
-                    pairs.append((f"{name} (service)", sub_img))
+    # Addon bundles (phase-8.8): one image per addon, parallel to apps.
+    for addon in app_config.get("addons") or []:
+        if not isinstance(addon, dict):
+            continue
+        parent = addon.get("parent_id", "?")
+        img = addon.get("compose_config", {}).get("image")
+        if img:
+            pairs.append((f"{parent} (addon)", img))
     return pairs
 
 

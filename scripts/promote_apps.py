@@ -7,7 +7,7 @@ from pathlib import Path
 
 from money4band.core.catalog_store import catalog_root, move_entry
 
-CONFIG = Path("config/app-config.json")
+CONFIG = Path("config/m4b-config.json")
 
 PROMOTE_NAMES = {
     "SPIDE",
@@ -58,10 +58,12 @@ DOCKER_UPDATES = {
     },
 }
 
-BEARSHARE_SIDECAR = {
-    "name": "bearshare-pot",
+BEARSHARE_ADDON = {
+    "name": "BEARSHARE_POT",
+    "parent_id": "BEARSHARE",
     "description": "Auto-claims daily BearShare reward",
     "credentials_shared": True,
+    "compose_layer": "service",
     "compose_config": {
         "container_name": "${DEVICE_NAME}_bearshare-pot",
         "hostname": "${DEVICE_NAME}_bearshare-pot",
@@ -109,7 +111,14 @@ def main() -> None:
         entry["app_details"]["last_verified"] = "2026-03-23"
 
         if name == "BEARSHARE":
-            entry["service"] = BEARSHARE_SIDECAR
+            addon_path = (
+                catalog_root(CONFIG) / "addons" / "BEARSHARE_POT.json"
+            )
+            addon_path.parent.mkdir(parents=True, exist_ok=True)
+            addon_path.write_text(
+                json.dumps(BEARSHARE_ADDON, indent=2, ensure_ascii=False) + "\n",
+                encoding="utf-8",
+            )
 
         # Move per-file bundle: newcomers/ → supported/
         move_entry(CONFIG, name, "newcomers", "supported", updates=entry)

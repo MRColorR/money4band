@@ -192,6 +192,7 @@ def _configure_apps(
     apps: list[dict[str, Any]],
     m4b_config: dict[str, Any],
     app_index_offset: int = 0,
+    app_config: dict[str, Any] | None = None,
 ) -> None:
     """
     Configure apps by collecting user inputs.
@@ -271,11 +272,17 @@ def _configure_apps(
                 f"Docker platform for {app_name} set to: {config['docker_platform']}"
             )
 
-        # Auto-claim sidecar prompt
-        service_def = app.get("service")
-        if service_def:
-            sidecar_name = service_def["name"]
-            description = service_def.get("description", "auto-claim sidecar")
+        # Auto-claim sidecar prompt (phase-8.8 addon lookup via parent_id)
+        from money4band.apps.addons import get_addons_for
+
+        addons_for_app = (
+            get_addons_for(app_name, app_config) if app_config else []
+        )
+        if addons_for_app:
+            names = ", ".join(a.get("name", "?") for a in addons_for_app)
+            descriptions = " / ".join(
+                a.get("description", "auto-claim sidecar") for a in addons_for_app
+            )
             current = config.get("service_enabled", False)
             status = (
                 f"{Fore.GREEN}ON{Style.RESET_ALL}"
@@ -284,11 +291,11 @@ def _configure_apps(
             )
             print(
                 f"\n{Fore.CYAN}{app['name'].title()} has an auto-claim sidecar: "
-                f"{sidecar_name}{Style.RESET_ALL}"
+                f"{names}{Style.RESET_ALL}"
             )
-            print(f"  {description}  (currently {status})")
+            print(f"  {descriptions}  (currently {status})")
             config["service_enabled"] = ask_question_yn(
-                f"Enable {sidecar_name} for {app['name'].title()}?"
+                f"Enable {names} for {app['name'].title()}?"
             )
 
         user_config["apps"][app_name] = config
@@ -315,6 +322,12 @@ def configure_apps(
     offset = 0
     for category in get_active_app_categories(app_config):
         entries = get_category_entries(app_config, category)
-        _configure_apps(user_config, entries, m4b_config, app_index_offset=offset)
+        _configure_apps(
+            user_config,
+            entries,
+            m4b_config,
+            app_index_offset=offset,
+            app_config=app_config,
+        )
         # Advance offset by number of apps with ports in this category
         offset += sum(1 for e in entries if "ports" in e.get("compose_config", {}))

@@ -1,0 +1,31 @@
+{
+  "name": "PACKETSHARE_POT",
+  "parent_id": "PACKETSHARE",
+  "description": "Auto-claims daily PacketShare reward",
+  "credentials_shared": true,
+  "compose_layer": "service",
+  "compose_config": {
+    "container_name": "${DEVICE_NAME}_packetshare-pot",
+    "hostname": "${DEVICE_NAME}_packetshare-pot",
+    "image": "ghcr.io/xterna/packetshare-pot:latest",
+    "environment": [
+      "EMAIL=${PACKETSHARE_EMAIL}",
+      "PASSWORD=${PACKETSHARE_PASSWORD}"
+    ],
+    "labels": [
+      "com.centurylinklabs.watchtower.enable=true",
+      "com.centurylinklabs.watchtower.scope=${M4B_WATCHTOWER_SCOPE}"
+    ],
+    "restart": "always",
+    "cpus": "${APP_CPU_LIMIT_LITTLE}",
+    "mem_reservation": "${APP_MEM_RESERV_LITTLE}",
+    "mem_limit": "${APP_MEM_LIMIT_LITTLE}",
+    "logging": {
+      "driver": "json-file",
+      "options": {
+        "max-size": "10m",
+        "max-file": "3"
+      }
+    }
+  }
+}
