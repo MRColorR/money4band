@@ -909,6 +909,17 @@ def _cmd_dashboard(args: argparse.Namespace) -> None:
     )
 
 
+def _cmd_catalog(args: argparse.Namespace) -> None:
+    """Manage catalog sources (local & remote) and category flags."""
+    from money4band.apps.catalog_cli import handle_catalog_action
+
+    m4b_config_path, _apps, _user = _resolve_paths(args)
+    action = getattr(args, "catalog_action", None)
+    rc = handle_catalog_action(action, args, m4b_config_path)
+    if rc:
+        raise SystemExit(rc)
+
+
 def _cmd_profile(args: argparse.Namespace) -> None:
     """Manage configuration profiles."""
     _, _, user_config_path = _resolve_paths(args)
@@ -1287,6 +1298,76 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Comma-separated DNS servers (e.g. '1.1.1.1,8.8.8.8'). Only used with 'custom' mode.",
     )
 
+    # m4b catalog: manage catalog sources (local & remote) + category flags.
+    catalog_parser = sub.add_parser(
+        "catalog",
+        help="Manage catalog sources (local & remote) and category flags",
+    )
+    cat_sub = catalog_parser.add_subparsers(dest="catalog_action")
+
+    cat_sub.add_parser("list", help="List configured catalog sources")
+    cat_sub.add_parser(
+        "status",
+        help="Show per-source cache status (ETag, last fetch, entry count)",
+    )
+
+    cat_add = cat_sub.add_parser("add", help="Add a catalog source")
+    cat_add.add_argument("name", help="Unique source name (e.g. 'community')")
+    cat_add.add_argument(
+        "--type",
+        required=True,
+        choices=["local", "remote"],
+        help="Source type: local (filesystem) or remote (HTTPS manifest)",
+    )
+    cat_add.add_argument("--url", default=None, help="URL (required for --type remote)")
+    cat_add.add_argument(
+        "--path", default=None, help="Filesystem path (required for --type local)"
+    )
+    cat_add.add_argument(
+        "--default-source",
+        dest="default_source",
+        default=None,
+        help="Default provenance label applied to entries (builtin/community/...)",
+    )
+    cat_add.add_argument(
+        "--cache-path",
+        dest="cache_path",
+        default=None,
+        help="Custom cache dir for remote sources (default: catalog/community)",
+    )
+    cat_add.add_argument(
+        "--timeout", type=float, default=None, help="Remote fetch timeout in seconds"
+    )
+    cat_add.add_argument(
+        "--disabled",
+        action="store_true",
+        help="Create the source in the disabled state",
+    )
+
+    cat_rm = cat_sub.add_parser("remove", help="Remove a catalog source by name")
+    cat_rm.add_argument("name")
+
+    cat_en = cat_sub.add_parser("enable", help="Enable a catalog source")
+    cat_en.add_argument("name")
+    cat_di = cat_sub.add_parser("disable", help="Disable a catalog source")
+    cat_di.add_argument("name")
+
+    cat_rf = cat_sub.add_parser(
+        "refresh",
+        help="Force-refresh remote source caches (clears ETag and re-fetches)",
+    )
+    cat_rf.add_argument(
+        "name", nargs="?", default=None, help="Specific source (omit for all)"
+    )
+
+    cat_cat = cat_sub.add_parser("category", help="Toggle or list catalog categories")
+    cat_cat_sub = cat_cat.add_subparsers(dest="category_action")
+    cat_cat_sub.add_parser("list", help="List categories and their active flag")
+    cat_cat_en = cat_cat_sub.add_parser("enable", help="Activate a category")
+    cat_cat_en.add_argument("category_name", help="supported | newcomers | deprecated")
+    cat_cat_di = cat_cat_sub.add_parser("disable", help="Deactivate a category")
+    cat_cat_di.add_argument("category_name", help="supported | newcomers | deprecated")
+
     return parser
 
 
@@ -1317,6 +1398,7 @@ _SUBCOMMAND_DISPATCH = {
     "offers": _cmd_offers,
     "dashboard": _cmd_dashboard,
     "profile": _cmd_profile,
+    "catalog": _cmd_catalog,
 }
 
 

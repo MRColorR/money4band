@@ -168,6 +168,67 @@ m4b offers --category bandwidth
 
 ---
 
+## Catalog
+
+Manage catalog sources and category activation. Every subcommand maps 1:1 to the
+`/api/catalog/*` REST endpoints and to the `c Catalog sources` shortcut inside
+the interactive App Catalog screen, so the three surfaces stay in sync.
+
+### `catalog list`
+List every declared catalog source with its type, enabled state, default source
+tag, and target (path for local, URL for remote).
+
+### `catalog status`
+Print the same list enriched with cache metadata (resolved path, cached-entry
+count, last `fetched_at` age for remote sources) plus the active/inactive flag
+for each category.
+
+### `catalog add <name> --type {local,remote}`
+Register a new source. Required flags per type:
+
+- `--url URL` (remote)
+- `--path PATH` (local, relative to `m4b-config.json`)
+
+Optional:
+
+- `--default-source NAME` – tag entries with this provenance (defaults to
+  `community` for remote, `builtin` for local)
+- `--cache-path PATH`, `--timeout SECONDS` – remote-only
+- `--disabled` – register the source disabled
+
+Duplicate names are rejected.
+
+### `catalog remove <name>`
+Delete the source declaration. Cache directories are left on disk.
+
+### `catalog enable <name>` / `catalog disable <name>`
+Flip the `enabled` flag without touching anything else.
+
+### `catalog refresh [name]`
+Force-refresh every enabled remote source (or just `<name>`) by deleting the
+stored ETag and re-downloading. Local sources are skipped.
+
+### `catalog category list`
+Show `active` status for `supported`, `newcomers`, and `deprecated`.
+
+### `catalog category enable <name>` / `catalog category disable <name>`
+Toggle one category on or off — inactive categories are hidden from the app
+catalog, stack generation, and all surfaces.
+
+**Examples:**
+
+```bash
+m4b catalog list
+m4b catalog status
+m4b catalog add community --type remote --url https://example.com/manifest.json --disabled
+m4b catalog enable community
+m4b catalog refresh community
+m4b catalog category disable newcomers
+m4b catalog remove community
+```
+
+---
+
 ## Network & Proxy
 
 ### `proxy`

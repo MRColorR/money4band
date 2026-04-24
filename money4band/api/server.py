@@ -29,6 +29,7 @@ from pydantic import BaseModel
 from money4band.api._deps import configure_paths
 from money4band.api.router_apps import router as apps_router
 from money4band.api.router_backups import router as backups_router
+from money4band.api.router_catalog import router as catalog_router
 from money4band.api.router_config import router as config_router
 from money4band.api.router_earnings import router as earnings_router
 from money4band.api.router_ip import router as ip_router
@@ -311,6 +312,7 @@ app.include_router(offers_router)
 app.include_router(notifications_router)
 app.include_router(update_router)
 app.include_router(security_router)
+app.include_router(catalog_router)
 
 # Config directory — set at startup via configure()
 _config_dir: str = ""

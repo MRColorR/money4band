@@ -90,6 +90,7 @@ class TestBuildParser:
             "offers",
             "dashboard",
             "profile",
+            "catalog",
         }
         assert set(sub_action.choices.keys()) == expected
 

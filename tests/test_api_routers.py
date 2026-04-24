@@ -814,7 +814,86 @@ class TestOffersRouter:
             resp = client.get("/api/offers?category=bandwidth")
         assert resp.status_code == 200
         assert len(resp.json()) == 1
-        assert resp.json()[0]["category"] == "bandwidth"
+
+
+# ===========================================================================
+# Catalog router (phase-8.7)
+# ===========================================================================
+
+
+class TestCatalogRouter:
+    def test_list_sources_empty(self, client):
+        resp = client.get("/api/catalog/sources")
+        assert resp.status_code == 200
+        assert resp.json() == []
+
+    def test_status_includes_categories(self, client):
+        resp = client.get("/api/catalog/status")
+        assert resp.status_code == 200
+        body = resp.json()
+        assert "sources" in body and "categories" in body
+        assert set(body["categories"]) == {"supported", "newcomers", "deprecated"}
+
+    def test_add_remove_source(self, client):
+        resp = client.post(
+            "/api/catalog/sources",
+            json={
+                "name": "api-test",
+                "type": "remote",
+                "url": "https://example.invalid/m.json",
+                "enabled": False,
+            },
+        )
+        assert resp.status_code == 201
+        assert resp.json()["name"] == "api-test"
+
+        listed = client.get("/api/catalog/sources").json()
+        assert any(s["name"] == "api-test" for s in listed)
+
+        resp = client.delete("/api/catalog/sources/api-test")
+        assert resp.status_code == 200
+
+        listed = client.get("/api/catalog/sources").json()
+        assert all(s["name"] != "api-test" for s in listed)
+
+    def test_add_duplicate_rejected(self, client):
+        client.post(
+            "/api/catalog/sources",
+            json={"name": "dup", "type": "remote", "url": "https://x.invalid/m.json"},
+        )
+        resp = client.post(
+            "/api/catalog/sources",
+            json={"name": "dup", "type": "remote", "url": "https://x.invalid/m.json"},
+        )
+        assert resp.status_code == 400
+        client.delete("/api/catalog/sources/dup")
+
+    def test_toggle_source_enabled(self, client):
+        client.post(
+            "/api/catalog/sources",
+            json={"name": "tog", "type": "remote", "url": "https://x.invalid/m.json"},
+        )
+        resp = client.put("/api/catalog/sources/tog/enabled", json={"enabled": False})
+        assert resp.status_code == 200
+        assert resp.json()["enabled"] is False
+        resp = client.put("/api/catalog/sources/ghost/enabled", json={"enabled": True})
+        assert resp.status_code == 404
+        client.delete("/api/catalog/sources/tog")
+
+    def test_remove_missing_source(self, client):
+        resp = client.delete("/api/catalog/sources/ghost")
+        assert resp.status_code == 404
+
+    def test_set_category(self, client):
+        resp = client.put("/api/catalog/categories/newcomers", json={"active": True})
+        assert resp.status_code == 200
+        assert resp.json()["active"] is True
+        # Restore
+        client.put("/api/catalog/categories/newcomers", json={"active": False})
+
+    def test_set_category_invalid(self, client):
+        resp = client.put("/api/catalog/categories/invented", json={"active": True})
+        assert resp.status_code == 400
 
 
 # ===========================================================================

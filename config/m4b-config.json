@@ -368,6 +368,7 @@
         "catalog_sources": [
             {
                 "type": "local",
+                "name": "builtin",
                 "path": "catalog",
                 "default_source": "builtin",
                 "enabled": true
