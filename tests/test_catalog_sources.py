@@ -103,23 +103,174 @@ class TestLocalSource:
 
 
 # ---------------------------------------------------------------------------
-# RemoteSource (stub — real impl in 8.5)
+# RemoteSource (phase-8.5)
 # ---------------------------------------------------------------------------
 
 
-class TestRemoteSourceStub:
+class _FakeResponse:
+    def __init__(
+        self,
+        status_code: int,
+        payload: object | None = None,
+        etag: str | None = None,
+        raise_json: bool = False,
+    ) -> None:
+        self.status_code = status_code
+        self._payload = payload
+        self.headers = {"ETag": etag} if etag else {}
+        self._raise_json = raise_json
+
+    def json(self) -> object:
+        if self._raise_json:
+            raise ValueError("invalid json")
+        return self._payload
+
+
+class _FakeClient:
+    """Minimal drop-in for ``httpx.Client`` used by RemoteSource.
+
+    ``responses`` is consumed in order per ``get()`` call; each entry can
+    be a ``_FakeResponse`` or an ``Exception`` instance to raise.
+    """
+
+    last_headers: dict[str, str] | None = None
+
+    def __init__(self, responses: list) -> None:
+        self._responses = list(responses)
+
+    def __enter__(self) -> _FakeClient:
+        return self
+
+    def __exit__(self, *exc: object) -> None:
+        return None
+
+    def get(self, url: str, headers: dict[str, str] | None = None) -> _FakeResponse:
+        _FakeClient.last_headers = dict(headers or {})
+        resp = self._responses.pop(0)
+        if isinstance(resp, Exception):
+            raise resp
+        return resp
+
+
+def _patch_httpx(monkeypatch, responses: list) -> None:
+    """Patch ``httpx.Client`` with a fake that yields ``responses``."""
+    import httpx
+
+    client_factory = lambda *a, **kw: _FakeClient(responses)  # noqa: E731
+    monkeypatch.setattr(httpx, "Client", client_factory)
+
+
+class TestRemoteSource:
+    def _manifest(self) -> dict:
+        return {
+            "supported": {
+                "entries": [{"name": "REMOTEAPP", "compose_config": {"image": "x"}}]
+            },
+            "newcomers": {"entries": []},
+            "deprecated": {"entries": []},
+        }
+
     def test_type_is_remote(self) -> None:
         assert RemoteSource(url="https://example/catalog").type == "remote"
 
-    def test_never_available(self) -> None:
-        # Stub: always unavailable regardless of the enabled flag.
-        assert RemoteSource(url="https://x", enabled=True).available() is False
+    def test_available_needs_enabled_and_url(self) -> None:
+        assert RemoteSource(url="https://x", enabled=True).available() is True
         assert RemoteSource(url="https://x", enabled=False).available() is False
+        assert RemoteSource(url="", enabled=True).available() is False
 
-    def test_load_returns_empty_categories(self, tmp_path: Path) -> None:
-        src = RemoteSource(url="https://example/catalog", enabled=True)
+    def test_disabled_yields_empty_and_skips_fetch(self, tmp_path: Path) -> None:
+        src = RemoteSource(url="https://x", enabled=False)
         out = src.load(tmp_path / "config.json")
         assert out == {"supported": [], "newcomers": [], "deprecated": []}
+
+    def test_successful_fetch_populates_cache(self, tmp_path, monkeypatch) -> None:
+        _patch_httpx(
+            monkeypatch,
+            [_FakeResponse(200, self._manifest(), etag='W/"abc"')],
+        )
+        src = RemoteSource(
+            url="https://example/catalog",
+            enabled=True,
+            cache_path="catalog/community",
+        )
+        out = src.load(tmp_path / "m4b-config.json")
+        assert len(out["supported"]) == 1
+        assert out["supported"][0]["name"] == "REMOTEAPP"
+
+        cache_dir = tmp_path / "catalog" / "community"
+        assert (cache_dir / "supported" / "REMOTEAPP.json").is_file()
+        assert (cache_dir / ".etag").read_text(encoding="utf-8").strip() == 'W/"abc"'
+        assert (cache_dir / ".fetched_at").is_file()
+
+    def test_sends_if_none_match_header(self, tmp_path, monkeypatch) -> None:
+        # Seed a pre-existing etag.
+        cache_dir = tmp_path / "catalog" / "community"
+        cache_dir.mkdir(parents=True)
+        (cache_dir / ".etag").write_text('"seed-etag"', encoding="utf-8")
+
+        _patch_httpx(monkeypatch, [_FakeResponse(304)])
+        src = RemoteSource(url="https://example/catalog", enabled=True)
+        src.load(tmp_path / "m4b-config.json")
+
+        assert _FakeClient.last_headers is not None
+        assert _FakeClient.last_headers.get("If-None-Match") == '"seed-etag"'
+
+    def test_304_keeps_cached_entries(self, tmp_path, monkeypatch) -> None:
+        cache_dir = tmp_path / "catalog" / "community"
+        (cache_dir / "supported").mkdir(parents=True)
+        (cache_dir / "supported" / "CACHED.json").write_text(
+            '{"name": "CACHED", "compose_config": {"image": "y"}}',
+            encoding="utf-8",
+        )
+        (cache_dir / ".etag").write_text('"etag-1"', encoding="utf-8")
+
+        _patch_httpx(monkeypatch, [_FakeResponse(304)])
+        src = RemoteSource(url="https://example/catalog", enabled=True)
+        out = src.load(tmp_path / "m4b-config.json")
+        assert len(out["supported"]) == 1
+        assert out["supported"][0]["name"] == "CACHED"
+
+    def test_network_failure_falls_back_to_cache(self, tmp_path, monkeypatch) -> None:
+        import httpx
+
+        cache_dir = tmp_path / "catalog" / "community"
+        (cache_dir / "supported").mkdir(parents=True)
+        (cache_dir / "supported" / "OFFLINE.json").write_text(
+            '{"name": "OFFLINE", "compose_config": {"image": "z"}}',
+            encoding="utf-8",
+        )
+
+        _patch_httpx(monkeypatch, [httpx.ConnectError("boom")])
+        src = RemoteSource(url="https://example/catalog", enabled=True)
+        out = src.load(tmp_path / "m4b-config.json")
+        assert [e["name"] for e in out["supported"]] == ["OFFLINE"]
+
+    def test_non_200_status_uses_cache(self, tmp_path, monkeypatch) -> None:
+        _patch_httpx(monkeypatch, [_FakeResponse(503)])
+        src = RemoteSource(url="https://example/catalog", enabled=True)
+        out = src.load(tmp_path / "m4b-config.json")
+        # No cache seeded — empty result but no raise.
+        assert out == {"supported": [], "newcomers": [], "deprecated": []}
+
+    def test_invalid_json_uses_cache(self, tmp_path, monkeypatch) -> None:
+        _patch_httpx(monkeypatch, [_FakeResponse(200, raise_json=True)])
+        src = RemoteSource(url="https://example/catalog", enabled=True)
+        out = src.load(tmp_path / "m4b-config.json")
+        assert out == {"supported": [], "newcomers": [], "deprecated": []}
+
+    def test_refresh_replaces_stale_entries(self, tmp_path, monkeypatch) -> None:
+        cache_dir = tmp_path / "catalog" / "community"
+        (cache_dir / "supported").mkdir(parents=True)
+        (cache_dir / "supported" / "OLD.json").write_text(
+            '{"name": "OLD"}', encoding="utf-8"
+        )
+
+        _patch_httpx(monkeypatch, [_FakeResponse(200, self._manifest(), etag='"new"')])
+        src = RemoteSource(url="https://example/catalog", enabled=True)
+        src.load(tmp_path / "m4b-config.json")
+
+        assert not (cache_dir / "supported" / "OLD.json").exists()
+        assert (cache_dir / "supported" / "REMOTEAPP.json").is_file()
 
 
 # ---------------------------------------------------------------------------

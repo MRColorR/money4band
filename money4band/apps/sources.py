@@ -117,14 +117,39 @@ class LocalSource(CatalogSource):
 
 
 class RemoteSource(CatalogSource):
-    """Remote catalog source stub (phase-8.4).
+    """Remote catalog source (phase-8.5).
 
-    The real HTTP fetch, ETag cache, and offline fallback arrive in
-    phase-8.5. For now the source is always unavailable, ``load()``
-    yields nothing, and a one-time debug log records that it was skipped.
+    Fetches an aggregated catalog manifest over HTTPS (``httpx``),
+    caches per-file bundles under ``config/catalog/community/``, and
+    falls back to the on-disk cache when the fetch fails or times out.
+
+    **Wire protocol.** A ``GET <url>`` is expected to return either:
+
+    * a category-keyed envelope ``{supported: {entries: [...]}, ...}``
+      (same shape the loader exposes in-memory), or
+    * a flat list ``{entries: [{category: ..., ...}, ...]}``.
+
+    Both forms are normalised by
+    :func:`money4band.apps.remote_cache.split_manifest`.
+
+    **Caching.** The last ETag is persisted at
+    ``<cache_dir>/.etag``. Every fetch re-sends it via
+    ``If-None-Match`` so well-behaved upstreams answer ``304 Not
+    Modified`` and we skip the rewrite cycle.
+
+    **Offline fallback.** On any network failure (timeout, non-2xx,
+    JSON parse error) the last-known cache is used. An empty cache
+    yields no entries but never raises.
+
+    **Path resolution.** ``cache_path`` is relative to the envelope file
+    when not absolute (default: ``"catalog/community"`` → sibling of
+    ``config/m4b-config.json``).
     """
 
     type = "remote"
+
+    DEFAULT_CACHE_PATH = "catalog/community"
+    DEFAULT_TIMEOUT = 5.0
 
     def __init__(
         self,
@@ -133,25 +158,114 @@ class RemoteSource(CatalogSource):
         name: str = "remote",
         default_source: str = "community",
         enabled: bool = False,
-        timeout: float = 5.0,
+        timeout: float | None = None,
+        cache_path: str | None = None,
     ) -> None:
         super().__init__(name=name, default_source=default_source, enabled=enabled)
         self.url = url
-        self.timeout = timeout
+        self.timeout = float(timeout) if timeout is not None else self.DEFAULT_TIMEOUT
+        self.cache_path = cache_path or self.DEFAULT_CACHE_PATH
 
     def available(self) -> bool:
-        # Remote fetch not yet implemented — never available.
-        return False
+        return self.enabled and bool(self.url)
+
+    def _resolve_cache_dir(self, config_path: str | Path) -> Path:
+        p = Path(self.cache_path)
+        return p if p.is_absolute() else Path(config_path).parent / p
+
+    def _fetch_manifest(self, etag: str | None) -> tuple[int, dict | None, str | None]:
+        """Perform the HTTP GET. Returns ``(status, payload, new_etag)``.
+
+        * ``status=200`` + payload + etag: fresh manifest.
+        * ``status=304``: no body, caller must use cache.
+        * ``status=0``: network/parse failure (see log); caller falls
+          back to cache.
+        """
+        import httpx  # local import — httpx is optional at import time in tests
+
+        headers = {"Accept": "application/json", "User-Agent": "money4band/5.0"}
+        if etag:
+            headers["If-None-Match"] = etag
+
+        try:
+            with httpx.Client(
+                timeout=httpx.Timeout(self.timeout),
+                follow_redirects=True,
+            ) as client:
+                response = client.get(self.url, headers=headers)
+        except httpx.HTTPError as exc:
+            logger.warning(
+                "RemoteSource %r: fetch failed (%s); using offline cache",
+                self.name,
+                exc,
+            )
+            return (0, None, None)
+
+        if response.status_code == 304:
+            logger.info("RemoteSource %r: 304 Not Modified — cache fresh", self.name)
+            return (304, None, None)
+
+        if response.status_code != 200:
+            logger.warning(
+                "RemoteSource %r: unexpected status %s; using offline cache",
+                self.name,
+                response.status_code,
+            )
+            return (0, None, None)
+
+        try:
+            payload = response.json()
+        except ValueError as exc:
+            logger.warning(
+                "RemoteSource %r: invalid JSON (%s); using offline cache",
+                self.name,
+                exc,
+            )
+            return (0, None, None)
+
+        if not isinstance(payload, dict):
+            logger.warning(
+                "RemoteSource %r: manifest is not a JSON object; using offline cache",
+                self.name,
+            )
+            return (0, None, None)
+
+        new_etag = response.headers.get("ETag") or response.headers.get("etag")
+        return (200, payload, new_etag)
 
     def load(self, config_path: str | Path) -> dict[str, list[dict[str, Any]]]:
-        if self.enabled:
+        from money4band.apps.remote_cache import (
+            read_etag,
+            replace_entries,
+            split_manifest,
+            touch_fetched_at,
+            write_etag,
+        )
+        from money4band.core.catalog_store import read_entries_dir
+
+        if not self.available():
+            return {cat: [] for cat in CATEGORIES}
+
+        cache_dir = self._resolve_cache_dir(config_path)
+        etag = read_etag(cache_dir)
+        status, payload, new_etag = self._fetch_manifest(etag)
+
+        if status == 200 and payload is not None:
+            entries_by_cat = split_manifest(payload)
+            written = replace_entries(cache_dir, entries_by_cat)
+            touch_fetched_at(cache_dir)
+            if new_etag:
+                write_etag(cache_dir, new_etag)
             logger.info(
-                "RemoteSource %r enabled but remote fetch is not yet "
-                "implemented (phase-8.5); skipping %s",
-                self.name,
-                self.url,
+                "RemoteSource %r: refreshed cache with %d entries", self.name, written
             )
-        return {cat: [] for cat in CATEGORIES}
+        elif status == 304:
+            touch_fetched_at(cache_dir)
+
+        # Offline path (status=0) or cache hit — read from disk.
+        if not cache_dir.is_dir():
+            return {cat: [] for cat in CATEGORIES}
+        return {cat: read_entries_dir(cache_dir, cat) for cat in CATEGORIES}
 
 
 def build_sources(
@@ -192,7 +306,8 @@ def build_sources(
                     name=name,
                     default_source=default_source,
                     enabled=enabled,
-                    timeout=float(decl.get("timeout", 5.0)),
+                    timeout=float(decl.get("timeout", RemoteSource.DEFAULT_TIMEOUT)),
+                    cache_path=decl.get("cache_path"),
                 )
             )
         else:

@@ -115,15 +115,54 @@ source types ship today:
 | Type | Implementation | Status |
 |------|----------------|--------|
 | `local` | `LocalSource` — reads per-file bundles under `path` (relative to the envelope file's parent). | Active |
-| `remote` | `RemoteSource` — HTTPS fetch of community-catalog bundles. | Stub (real httpx fetch lands in phase-8.5) |
+| `remote` | `RemoteSource` — HTTPS fetch of an aggregated manifest, cached per-file on disk. | Active |
 
 Sources are processed **in order**. The first source to claim a given
 entry name (case-insensitive) wins — local/builtin bundles remain
-authoritative over any future remote fetch. Source failures are
-isolated: a broken source is logged and skipped, never crashes the
-loader.
+authoritative over any remote fetch. Source failures are isolated: a
+broken source is logged and skipped, never crashes the loader.
 
-Example envelope with a second (disabled) remote source:
+### Remote source behaviour
+
+`RemoteSource` fetches a single aggregated `manifest.json` from the
+configured `url` and rehydrates it into the local filesystem cache so
+the on-disk layout mirrors a built-in catalog exactly:
+
+```
+<cache_path>/
+├── .etag           # last server ETag (used for If-None-Match)
+├── .fetched_at     # ISO-8601 UTC timestamp of last successful call
+├── supported/<NAME>.json
+├── newcomers/<NAME>.json
+└── deprecated/<NAME>.json
+```
+
+- **Opt-in** — no remote source ships enabled by default. Users add an
+  entry to `m4b-config.json → catalog.catalog_sources`.
+- **Timeout** — defaults to `5.0` seconds; override via `timeout`.
+- **ETag / 304** — the cached ETag is sent as `If-None-Match`; on 304
+  the existing cache is reused untouched.
+- **Offline fallback** — on network error, timeout, non-200 status, or
+  invalid JSON, the cache is read as-is; no exception reaches the
+  loader.
+- **Atomic replace** — a successful 200 wipes the `supported/`,
+  `newcomers/`, and `deprecated/` subdirs and writes fresh bundles
+  (`.etag` and `.fetched_at` are preserved across refreshes).
+
+Accepted manifest shapes (the server may emit any of these):
+
+```jsonc
+// 1. Category envelope
+{ "supported": { "entries": [ {"name": "FOO", ...} ] }, "newcomers": {"entries": []} }
+
+// 2. Bare category lists
+{ "supported": [ {"name": "FOO", ...} ], "deprecated": [] }
+
+// 3. Flat list with per-entry category
+{ "entries": [ {"name": "FOO", "category": "supported", ...} ] }
+```
+
+Example envelope with a second (disabled by default) remote source:
 
 ```jsonc
 {
@@ -131,10 +170,11 @@ Example envelope with a second (disabled) remote source:
   "catalog_sources": [
     { "type": "local",  "path": "catalog", "default_source": "builtin", "enabled": true },
     { "type": "remote",
-      "url":  "https://raw.githubusercontent.com/MRColorR/money4band-community-catalog/main/catalog.json",
+      "url":  "https://raw.githubusercontent.com/MRColorR/money4band-community-catalog/main/manifest.json",
       "default_source": "community",
+      "cache_path": "catalog/community",
       "enabled": false,
-      "timeout": 5 }
+      "timeout": 5.0 }
   ],
   "categories": { "supported": {"active": true}, "newcomers": {"active": false}, "deprecated": {"active": false} }
 }
