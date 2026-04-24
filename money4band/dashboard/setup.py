@@ -193,6 +193,56 @@ def dashboard_pid_file(config_dir: str) -> str:
     return os.path.join(config_dir, ".dashboard.pid")
 
 
+def dashboard_owner_file(config_dir: str) -> str:
+    """Return the path to the dashboard owner sidecar file.
+
+    The owner file records who spawned the running dashboard so the
+    lifecycle hooks know whether to kill it on m4b exit:
+
+    * ``auto``   -- spawned by ``auto_start_dashboard`` for an interactive
+      m4b session; bound to this process's lifetime.
+    * ``manual`` -- spawned by an explicit ``m4b dashboard start -b``;
+      persistent service that outlives this m4b run.
+    """
+    import os
+
+    return os.path.join(config_dir, ".dashboard.owner")
+
+
+def write_dashboard_owner(config_dir: str, owner: str) -> None:
+    """Persist the dashboard owner tag (``auto`` or ``manual``)."""
+    try:
+        with open(dashboard_owner_file(config_dir), "w") as f:
+            f.write(owner)
+    except OSError:
+        logger.debug("Could not write dashboard owner file", exc_info=True)
+
+
+def read_dashboard_owner(config_dir: str) -> str | None:
+    """Return the dashboard owner tag, or ``None`` if not recorded."""
+    import os
+
+    path = dashboard_owner_file(config_dir)
+    if not os.path.isfile(path):
+        return None
+    try:
+        with open(path) as f:
+            value = f.read().strip()
+    except OSError:
+        return None
+    return value or None
+
+
+def remove_dashboard_owner(config_dir: str) -> None:
+    """Remove the dashboard owner sidecar file."""
+    import os
+
+    try:
+        os.remove(dashboard_owner_file(config_dir))
+    except OSError:
+        pass
+
+
 def _is_pid_alive(pid: int) -> bool:
     """Return True if a process with *pid* exists (cross-platform)."""
     import sys
@@ -301,6 +351,7 @@ def remove_dashboard_pid(config_dir: str) -> None:
         os.remove(dashboard_pid_file(config_dir))
     except OSError:
         pass
+    remove_dashboard_owner(config_dir)
 
 
 def spawn_dashboard_background(
@@ -309,12 +360,17 @@ def spawn_dashboard_background(
     *,
     host: str = "127.0.0.1",
     port: int,
+    owner: str = "manual",
 ) -> int:
     """Spawn the dashboard in a detached background process (cross-platform).
 
     Returns the PID of the spawned process.  Handles Windows
     ``DETACHED_PROCESS`` and POSIX ``start_new_session`` transparently
     so callers don't need platform-specific code.
+
+    *owner* is recorded in a sidecar file so the lifecycle hooks know
+    whether to terminate the dashboard on m4b exit (``auto``) or leave
+    it running as a persistent service (``manual``).
     """
     import subprocess
     import sys
@@ -342,6 +398,7 @@ def spawn_dashboard_background(
 
     proc = subprocess.Popen(cmd, **popen_kwargs)  # noqa: S603
     write_dashboard_pid(config_dir, proc.pid)
+    write_dashboard_owner(config_dir, owner)
     return proc.pid
 
 
@@ -409,7 +466,8 @@ def auto_start_dashboard(config_dir: str, base_dir: str) -> None:
 
     api_key = ensure_api_key_on_disk(config_dir)
 
-    pid = spawn_dashboard_background(config_dir, base_dir, port=port)
+    pid = spawn_dashboard_background(config_dir, base_dir, port=port, owner="auto")
+    _register_auto_dashboard_cleanup(config_dir, pid)
 
     from money4band.network.networker import is_port_in_use
 
@@ -425,6 +483,11 @@ def auto_start_dashboard(config_dir: str, base_dir: str) -> None:
             f"{Fore.GREEN}Dashboard + API auto-started on port {port}.{Style.RESET_ALL}"
         )
         print(f"  Dashboard: http://localhost:{port}/")
+        print(
+            f"  {Fore.CYAN}Will stop automatically when m4b exits.{Style.RESET_ALL}"
+            f"  Run {Fore.CYAN}m4b dashboard start -b{Style.RESET_ALL} "
+            f"for a persistent service."
+        )
         if api_key:
             print(f"  API key:   {api_key}")
     else:
@@ -433,3 +496,70 @@ def auto_start_dashboard(config_dir: str, base_dir: str) -> None:
             f"may still be starting.{Style.RESET_ALL}"
         )
     logger.info("Dashboard + API auto-started (PID %d, port %d).", pid, port)
+
+
+# ---------------------------------------------------------------------------
+# Lifecycle binding for auto-started dashboards
+# ---------------------------------------------------------------------------
+
+
+_CLEANUP_REGISTERED = False
+
+
+def _register_auto_dashboard_cleanup(config_dir: str, pid: int) -> None:
+    """Bind an auto-started dashboard's lifetime to this m4b process.
+
+    Registers an :mod:`atexit` hook plus SIGINT/SIGTERM handlers that
+    terminate the spawned dashboard PID and clean up the PID + owner
+    files when m4b exits. Only ``owner=auto`` dashboards are affected;
+    dashboards spawned via explicit ``m4b dashboard start -b`` are
+    tagged ``owner=manual`` and survive.
+    """
+    global _CLEANUP_REGISTERED
+    if _CLEANUP_REGISTERED:
+        return
+    _CLEANUP_REGISTERED = True
+
+    import atexit
+    import signal as _signal
+
+    def _shutdown(*_args: object) -> None:
+        # Re-read the owner; user may have promoted it via "dashboard stop"
+        # then "dashboard start -b" within the same session.
+        owner = read_dashboard_owner(config_dir)
+        if owner != "auto":
+            return
+        current_pid = read_dashboard_pid(config_dir)
+        if current_pid is None or current_pid != pid:
+            return
+        try:
+            import os
+
+            os.kill(pid, _signal.SIGTERM)
+        except OSError:
+            pass
+        remove_dashboard_pid(config_dir)
+
+    atexit.register(_shutdown)
+
+    def _signal_handler(signum: int, _frame: object) -> None:
+        _shutdown()
+        # Restore default and re-raise so the process actually exits with
+        # the conventional 128+signum status.
+        try:
+            _signal.signal(signum, _signal.SIG_DFL)
+            import os
+
+            os.kill(os.getpid(), signum)
+        except OSError:
+            raise SystemExit(128 + signum) from None
+
+    for _sig_name in ("SIGINT", "SIGTERM", "SIGBREAK"):
+        sig = getattr(_signal, _sig_name, None)
+        if sig is None:
+            continue
+        try:
+            _signal.signal(sig, _signal_handler)
+        except (ValueError, OSError):
+            # Not in main thread or signal not supported on platform.
+            pass

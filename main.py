@@ -1471,11 +1471,25 @@ def _handle_dashboard_auto_start(args: argparse.Namespace) -> None:
     It can also be toggled via ``m4b dashboard enable|disable`` or the
     interactive dashboard menu.
 
+    Auto-start runs **only when entering the interactive menu** (no
+    subcommand). One-shot CLI invocations (e.g. ``m4b apps``, ``m4b status``)
+    do not spin up a web server they would never use. Auto-started
+    dashboards are tagged ``owner=auto`` and bound to this m4b process's
+    lifetime via :func:`money4band.dashboard.setup._register_auto_dashboard_cleanup`,
+    so they shut down cleanly when the menu exits. For a persistent
+    service, use ``m4b dashboard start -b``.
+
     Skipped entirely when the user invoked the explicit ``dashboard``
     subcommand (that handles its own lifecycle).
     """
     # Don't interfere with the explicit "m4b dashboard" command.
     if getattr(args, "command", None) == "dashboard":
+        return
+
+    # Only auto-start for interactive menu sessions, not one-shot CLI.
+    # The dashboard is tied to the m4b process lifetime, so spinning it
+    # up for a 200ms `m4b status` invocation is pointless noise.
+    if getattr(args, "command", None) is not None:
         return
 
     config_dir = getattr(args, "config_dir", os.path.join(BASE_DIR, "config"))
