@@ -80,7 +80,9 @@ def get_all_app_categories(app_config: dict[str, Any]) -> list[str]:
 
 
 def load_app_config_with_overlays(
-    config_path: str, apps_d_dir: str | None = None
+    config_path: str,
+    apps_d_dir: str | None = None,
+    user_config_path: str | None = None,
 ) -> dict[str, Any]:
     """Load the catalog envelope + per-file bundles and merge community apps.
 
@@ -92,11 +94,14 @@ def load_app_config_with_overlays(
        legacy file is renamed with a ``.v1.bak`` suffix.
     2. Read the payload and extract its envelope (unwrap the
        ``catalog`` key if it's an m4b-config payload).
-    3. Expand the envelope into the in-memory shape
+    3. Overlay user-owned catalog overrides from
+       ``user-config.json → catalog_overrides`` (source enable/disable,
+       custom user-added sources, category activation, removals).
+    4. Expand the envelope into the in-memory shape
        ``{<category>: {"active": bool, "entries": [...]}}`` by reading
        ``config/catalog/<category>/*.json`` via the pluggable
        ``CatalogSource`` interface.
-    4. Overlay hand-written community apps from ``config/apps.d/``
+    5. Overlay hand-written community apps from ``config/apps.d/``
        (falls back to ``os.path.dirname(config_path) + "/apps.d"``).
 
     Consumers that access ``app_config["supported"]["entries"]`` keep
@@ -106,6 +111,10 @@ def load_app_config_with_overlays(
     from money4band.core.catalog_migration import (
         fold_legacy_envelope_into_m4b,
         migrate_catalog_file,
+    )
+    from money4band.core.catalog_overrides import (
+        apply_overrides,
+        load_user_overrides,
     )
     from money4band.core.catalog_store import extract_envelope, is_envelope
 
@@ -120,6 +129,17 @@ def load_app_config_with_overlays(
     # in-memory dict directly).
     if is_envelope(payload):
         envelope = extract_envelope(payload)
+        # Apply user-owned overrides before aggregation so the shaped
+        # output reflects the effective state.
+        if user_config_path is None:
+            sibling = os.path.join(
+                os.path.dirname(config_path), "user-config.json"
+            )
+            if os.path.isfile(sibling):
+                user_config_path = sibling
+        overrides = load_user_overrides(user_config_path)
+        if overrides:
+            envelope = apply_overrides(envelope, overrides)
         config = aggregate_from_sources(envelope, config_path)
     else:
         config = payload

@@ -1,13 +1,14 @@
 """Catalog-source management — the single API behind the CLI/TUI/REST surfaces.
 
-Every mutation of the ``m4b-config.json → catalog.catalog_sources[]`` list
-or ``catalog.categories.<name>.active`` flag goes through the functions
-defined here so CLI, API, and TUI behave identically.
+Mutations of the ``catalog_sources[]`` list or ``categories.<name>.active``
+flag are persisted to ``user-config.json → catalog_overrides``, leaving
+``m4b-config.json`` untouched. That separation means updates can safely
+overwrite the shipped envelope without clobbering user toggles.
 
 Design contract
 ---------------
 
-The envelope lives under ``m4b-config.json``'s ``catalog`` key::
+Shipped defaults live in ``m4b-config.json`` under the ``catalog`` key::
 
     {
       "catalog": {
@@ -27,12 +28,16 @@ The envelope lives under ``m4b-config.json``'s ``catalog`` key::
       }
     }
 
+User overrides live in ``user-config.json`` under ``catalog_overrides``
+(see :mod:`money4band.core.catalog_overrides` for the schema). Every
+reader below serves the *merged* view; every writer mutates only the
+user config.
+
 All functions in this module:
 
-- take ``m4b_config_path`` (string or :class:`pathlib.Path`)
-- read the folded or standalone envelope transparently via
-  :mod:`money4band.core.catalog_store`
-- write the envelope back in whatever shape was read
+- take ``m4b_config_path`` (string or :class:`pathlib.Path`); the sibling
+  ``user-config.json`` is discovered automatically and can be overridden
+  via the ``user_config_path`` kwarg
 - return structured dicts (never print), so the same call sites can be
   wrapped by a colour CLI formatter, a JSON-serialising router, or a
   TUI menu handler.
@@ -44,6 +49,7 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
 
 from money4band.apps.remote_cache import (
     ETAG_FILENAME,
@@ -55,13 +61,72 @@ from money4band.apps.sources import (
     RemoteSource,
     build_sources,
 )
+from money4band.core.catalog_overrides import (
+    apply_overrides,
+    load_user_overrides,
+    save_user_overrides,
+)
 from money4band.core.catalog_store import (
     CATEGORIES,
     is_folded,
-    set_category_active,
 )
 
 SOURCE_TYPES = ("local", "remote")
+
+
+def _sibling_user_config(m4b_config_path: str | Path) -> Path:
+    """Return the default ``user-config.json`` path next to *m4b_config_path*."""
+    return Path(m4b_config_path).parent / "user-config.json"
+
+
+def _resolve_user_config_path(
+    m4b_config_path: str | Path,
+    user_config_path: str | Path | None,
+) -> Path:
+    """Return *user_config_path* if provided, else the sibling default."""
+    if user_config_path:
+        return Path(user_config_path)
+    return _sibling_user_config(m4b_config_path)
+
+
+def _normalize_remote_manifest_url(url: str) -> str:
+    """Normalize common GitHub URLs to a raw ``manifest.json`` URL.
+
+    Accepted inputs include:
+    - ``https://github.com/<owner>/<repo>``
+    - ``https://github.com/<owner>/<repo>/blob/<branch>/manifest.json``
+    - ``https://raw.githubusercontent.com/<owner>/<repo>/<branch>/manifest.json``
+    """
+    raw = (url or "").strip()
+    if not raw:
+        return raw
+
+    parsed = urlparse(raw)
+    host = parsed.netloc.lower()
+    parts = [p for p in parsed.path.split("/") if p]
+
+    if host == "github.com" and len(parts) >= 2:
+        owner, repo = parts[0], parts[1]
+        # github.com/<owner>/<repo>/blob/<branch>/manifest.json
+        if len(parts) >= 5 and parts[2] == "blob" and parts[-1] == "manifest.json":
+            branch = parts[3]
+            return (
+                f"https://raw.githubusercontent.com/{owner}/{repo}/{branch}/manifest.json"
+            )
+        # github.com/<owner>/<repo> -> default to main/manifest.json
+        return f"https://raw.githubusercontent.com/{owner}/{repo}/main/manifest.json"
+
+    if host == "raw.githubusercontent.com" and len(parts) >= 2:
+        # raw.githubusercontent.com/<owner>/<repo>
+        if len(parts) == 2:
+            owner, repo = parts[0], parts[1]
+            return f"https://raw.githubusercontent.com/{owner}/{repo}/main/manifest.json"
+        # Ensure manifest file suffix when pointing to branch root.
+        if len(parts) == 3:
+            owner, repo, branch = parts
+            return f"https://raw.githubusercontent.com/{owner}/{repo}/{branch}/manifest.json"
+
+    return raw
 
 
 # ---------------------------------------------------------------------------
@@ -75,22 +140,47 @@ def _load_payload(m4b_config_path: str | Path) -> dict[str, Any]:
         return json.load(f)
 
 
-def _write_payload(m4b_config_path: str | Path, payload: dict[str, Any]) -> None:
-    path = Path(m4b_config_path)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with open(path, "w", encoding="utf-8") as f:
-        # Match project convention (core.dumper.write_json uses indent=4).
-        json.dump(payload, f, indent=4, ensure_ascii=False)
-        f.write("\n")
-
-
 def _envelope(payload: dict[str, Any]) -> dict[str, Any]:
-    """Return a reference to the catalog envelope inside *payload*.
-
-    Mutations to the returned dict will be visible in *payload* (and
-    therefore persisted by :func:`_write_payload`).
-    """
+    """Return a reference to the catalog envelope inside *payload*."""
     return payload["catalog"] if is_folded(payload) else payload
+
+
+def _effective_envelope(
+    m4b_config_path: str | Path,
+    user_config_path: str | Path | None = None,
+) -> dict[str, Any]:
+    """Return the envelope from m4b-config overlaid with user overrides."""
+    payload = _load_payload(m4b_config_path)
+    envelope = _envelope(payload)
+    user_path = _resolve_user_config_path(m4b_config_path, user_config_path)
+    overrides = load_user_overrides(user_path)
+    return apply_overrides(envelope, overrides)
+
+
+def _load_overrides(
+    m4b_config_path: str | Path,
+    user_config_path: str | Path | None = None,
+) -> tuple[Path, dict[str, Any]]:
+    """Return the resolved user-config path and a mutable overrides dict."""
+    user_path = _resolve_user_config_path(m4b_config_path, user_config_path)
+    overrides = load_user_overrides(user_path)
+    # Ensure the nested containers exist; callers mutate these in place.
+    overrides.setdefault("sources", {})
+    overrides.setdefault("removed_sources", [])
+    overrides.setdefault("categories", {})
+    return user_path, overrides
+
+
+def _trim_overrides(overrides: dict[str, Any]) -> dict[str, Any]:
+    """Drop empty sub-dicts/lists so the override section stays tidy."""
+    trimmed = dict(overrides)
+    if not trimmed.get("sources"):
+        trimmed.pop("sources", None)
+    if not trimmed.get("removed_sources"):
+        trimmed.pop("removed_sources", None)
+    if not trimmed.get("categories"):
+        trimmed.pop("categories", None)
+    return trimmed
 
 
 # ---------------------------------------------------------------------------
@@ -98,18 +188,22 @@ def _envelope(payload: dict[str, Any]) -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 
-def list_sources(m4b_config_path: str | Path) -> list[dict[str, Any]]:
-    """Return a copy of ``catalog_sources[]`` from the envelope."""
-    payload = _load_payload(m4b_config_path)
-    env = _envelope(payload)
+def list_sources(
+    m4b_config_path: str | Path,
+    user_config_path: str | Path | None = None,
+) -> list[dict[str, Any]]:
+    """Return the effective ``catalog_sources[]`` (shipped + overrides)."""
+    env = _effective_envelope(m4b_config_path, user_config_path)
     raw = env.get("catalog_sources") or []
     return [dict(s) for s in raw if isinstance(s, dict)]
 
 
-def list_categories(m4b_config_path: str | Path) -> dict[str, dict[str, Any]]:
-    """Return the ``categories`` map (``{name: {active: bool}}``)."""
-    payload = _load_payload(m4b_config_path)
-    env = _envelope(payload)
+def list_categories(
+    m4b_config_path: str | Path,
+    user_config_path: str | Path | None = None,
+) -> dict[str, dict[str, Any]]:
+    """Return the effective categories map (shipped + user overrides)."""
+    env = _effective_envelope(m4b_config_path, user_config_path)
     cats = env.get("categories") or {}
     out: dict[str, dict[str, Any]] = {}
     for name in CATEGORIES:
@@ -118,7 +212,10 @@ def list_categories(m4b_config_path: str | Path) -> dict[str, dict[str, Any]]:
     return out
 
 
-def source_status(m4b_config_path: str | Path) -> list[dict[str, Any]]:
+def source_status(
+    m4b_config_path: str | Path,
+    user_config_path: str | Path | None = None,
+) -> list[dict[str, Any]]:
     """Return per-source status enriched with cache metadata.
 
     Each entry contains the declaration fields (``name``, ``type``,
@@ -127,14 +224,12 @@ def source_status(m4b_config_path: str | Path) -> list[dict[str, Any]]:
     ``fetched_at`` (ISO-8601 or None), and ``cached_entries`` (count
     of bundle files under the cache dir across all categories).
     """
-    sources_raw = list_sources(m4b_config_path)
-    results: list[dict[str, Any]] = []
-    # Build objects so we can reuse the source path/cache resolution logic.
-    payload = _load_payload(m4b_config_path)
-    env = _envelope(payload)
+    sources_raw = list_sources(m4b_config_path, user_config_path)
+    env = _effective_envelope(m4b_config_path, user_config_path)
     objects = build_sources(env, m4b_config_path)
     obj_by_name = {obj.name: obj for obj in objects}
 
+    results: list[dict[str, Any]] = []
     for idx, decl in enumerate(sources_raw):
         # Mirror the fallback used by build_sources so the lookup key lines up.
         name = decl.get("name") or f"{decl.get('type', 'source')}-{idx}"
@@ -197,6 +292,18 @@ class CatalogSourceError(ValueError):
     """Raised when a mutation would produce an invalid envelope."""
 
 
+def _shipped_source_names(m4b_config_path: str | Path) -> set[str]:
+    """Return the set of source names shipped in m4b-config.json."""
+    payload = _load_payload(m4b_config_path)
+    envelope = _envelope(payload)
+    shipped = envelope.get("catalog_sources") or []
+    return {
+        s.get("name")
+        for s in shipped
+        if isinstance(s, dict) and s.get("name")
+    }
+
+
 def add_source(
     m4b_config_path: str | Path,
     *,
@@ -208,8 +315,9 @@ def add_source(
     enabled: bool = True,
     cache_path: str | None = None,
     timeout: float | None = None,
+    user_config_path: str | Path | None = None,
 ) -> dict[str, Any]:
-    """Append a new source to ``catalog_sources[]``. Returns the stored decl.
+    """Persist a new source into user-config overrides. Returns the decl.
 
     Raises :class:`CatalogSourceError` on invalid input (unknown type,
     duplicate name, missing url/path, etc.).
@@ -224,10 +332,14 @@ def add_source(
     if type == "local" and not path:
         raise CatalogSourceError("local sources require 'path'")
 
-    payload = _load_payload(m4b_config_path)
-    env = _envelope(payload)
-    sources = env.setdefault("catalog_sources", [])
-    if any(isinstance(s, dict) and s.get("name") == name for s in sources):
+    shipped = _shipped_source_names(m4b_config_path)
+    user_path, overrides = _load_overrides(m4b_config_path, user_config_path)
+    sources = overrides["sources"]
+    removed = overrides["removed_sources"]
+
+    if name in shipped and name not in removed:
+        raise CatalogSourceError(f"source {name!r} already exists")
+    if name in sources and name not in shipped:
         raise CatalogSourceError(f"source {name!r} already exists")
 
     decl: dict[str, Any] = {
@@ -238,9 +350,9 @@ def add_source(
     if default_source:
         decl["default_source"] = default_source
     else:
-        decl["default_source"] = "builtin" if type == "local" else "community"
+        decl["default_source"] = "builtin" if type == "local" else name
     if type == "remote":
-        decl["url"] = url
+        decl["url"] = _normalize_remote_manifest_url(str(url))
         if cache_path:
             decl["cache_path"] = cache_path
         if timeout is not None:
@@ -248,41 +360,80 @@ def add_source(
     else:
         decl["path"] = path
 
-    sources.append(decl)
-    _write_payload(m4b_config_path, payload)
+    # If the user is re-adding a previously removed shipped source, drop
+    # it from the tombstone list so it shows up again.
+    if name in removed:
+        overrides["removed_sources"] = [n for n in removed if n != name]
+
+    sources[name] = decl
+    save_user_overrides(user_path, _trim_overrides(overrides))
     return dict(decl)
 
 
-def remove_source(m4b_config_path: str | Path, name: str) -> bool:
-    """Remove the source with the given *name*. Returns True if removed."""
-    payload = _load_payload(m4b_config_path)
-    env = _envelope(payload)
-    sources = env.get("catalog_sources") or []
-    filtered = [
-        s for s in sources if not (isinstance(s, dict) and s.get("name") == name)
-    ]
-    if len(filtered) == len(sources):
+def remove_source(
+    m4b_config_path: str | Path,
+    name: str,
+    user_config_path: str | Path | None = None,
+) -> bool:
+    """Remove the source with the given *name*. Returns True if removed.
+
+    - Shipped sources are tombstoned via ``removed_sources``.
+    - User-added sources are dropped from ``sources``.
+    """
+    shipped = _shipped_source_names(m4b_config_path)
+    user_path, overrides = _load_overrides(m4b_config_path, user_config_path)
+    sources = overrides["sources"]
+    removed = overrides["removed_sources"]
+
+    changed = False
+    if name in sources:
+        sources.pop(name, None)
+        changed = True
+    if name in shipped and name not in removed:
+        overrides["removed_sources"] = [*removed, name]
+        changed = True
+    if not changed:
         return False
-    env["catalog_sources"] = filtered
-    _write_payload(m4b_config_path, payload)
+    save_user_overrides(user_path, _trim_overrides(overrides))
     return True
 
 
-def set_source_enabled(m4b_config_path: str | Path, name: str, enabled: bool) -> bool:
-    """Flip ``enabled`` on the named source. Returns True if the source exists."""
-    payload = _load_payload(m4b_config_path)
-    env = _envelope(payload)
-    sources = env.get("catalog_sources") or []
-    for decl in sources:
-        if isinstance(decl, dict) and decl.get("name") == name:
-            decl["enabled"] = bool(enabled)
-            _write_payload(m4b_config_path, payload)
-            return True
-    return False
+def set_source_enabled(
+    m4b_config_path: str | Path,
+    name: str,
+    enabled: bool,
+    user_config_path: str | Path | None = None,
+) -> bool:
+    """Flip ``enabled`` on the named source. Returns True if the source exists.
+
+    Shipped sources receive a partial override; user-added sources are
+    mutated in place within ``catalog_overrides.sources``.
+    """
+    shipped = _shipped_source_names(m4b_config_path)
+    user_path, overrides = _load_overrides(m4b_config_path, user_config_path)
+    sources = overrides["sources"]
+    removed = set(overrides["removed_sources"])
+
+    if name in removed:
+        # The source was tombstoned — nothing to flip.
+        return False
+
+    existing = sources.get(name)
+    if isinstance(existing, dict):
+        existing["enabled"] = bool(enabled)
+    elif name in shipped:
+        sources[name] = {"enabled": bool(enabled)}
+    else:
+        return False
+
+    save_user_overrides(user_path, _trim_overrides(overrides))
+    return True
 
 
 def refresh_source(
-    m4b_config_path: str | Path, name: str | None = None
+    m4b_config_path: str | Path,
+    name: str | None = None,
+    user_config_path: str | Path | None = None,
 ) -> list[dict[str, Any]]:
     """Force-refresh the named remote source (or every remote if *name* is None).
 
@@ -295,8 +446,7 @@ def refresh_source(
 
     Local sources are skipped with ``status="skipped"``.
     """
-    payload = _load_payload(m4b_config_path)
-    env = _envelope(payload)
+    env = _effective_envelope(m4b_config_path, user_config_path)
     objects = build_sources(env, m4b_config_path)
     results: list[dict[str, Any]] = []
 
@@ -332,13 +482,21 @@ def refresh_source(
     return results
 
 
-def set_category(m4b_config_path: str | Path, category: str, active: bool) -> None:
-    """Flip ``categories.<category>.active``. Raises on unknown category."""
+def set_category(
+    m4b_config_path: str | Path,
+    category: str,
+    active: bool,
+    user_config_path: str | Path | None = None,
+) -> None:
+    """Flip ``categories.<category>.active`` in user-config overrides."""
     if category not in CATEGORIES:
         raise CatalogSourceError(
             f"unknown category {category!r} (expected one of {CATEGORIES})"
         )
-    set_category_active(m4b_config_path, category, active)
+    user_path, overrides = _load_overrides(m4b_config_path, user_config_path)
+    cats = overrides["categories"]
+    cats[category] = {"active": bool(active)}
+    save_user_overrides(user_path, _trim_overrides(overrides))
 
 
 # ---------------------------------------------------------------------------

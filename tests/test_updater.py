@@ -167,6 +167,67 @@ class TestPreservedFiles:
         assert (tmp_path / ".env").read_text() == "FOO=bar"
         assert (config_dir / "app-config.json").read_text() == '{"app": true}'
 
+    def test_m4b_config_is_overwritten_on_update(self, tmp_path):
+        """m4b-config.json is release-owned: update replaces it wholesale.
+
+        User-mutable state (catalog source toggles, category flags,
+        custom remote sources) lives in user-config.json under
+        ``catalog_overrides`` and is preserved independently.
+        """
+        import json
+
+        config_dir = tmp_path / "config"
+        config_dir.mkdir()
+        m4b = config_dir / "m4b-config.json"
+        user = config_dir / "user-config.json"
+
+        # OLD install: user has customised m4b-config in-place (legacy behaviour
+        # pre-overrides) and has written overrides into user-config.json.
+        old_m4b = {
+            "project": {"project_version": "5.0.0"},
+            "catalog": {
+                "app_config_version": 2.0,
+                "catalog_sources": [
+                    {"type": "local", "name": "builtin", "path": "catalog"},
+                ],
+            },
+        }
+        old_user = {
+            "device_name": "mybox",
+            "catalog_overrides": {
+                "sources": {"builtin": {"enabled": False}},
+                "categories": {"supported": {"active": False}},
+            },
+        }
+        m4b.write_text(json.dumps(old_m4b))
+        user.write_text(json.dumps(old_user))
+
+        saved = _backup_preserved_files(str(tmp_path))
+
+        # NEW shipped m4b-config written by the installer.
+        new_m4b = {
+            "project": {"project_version": "5.1.0"},
+            "new_shipped_key": "hello",
+            "catalog": {
+                "app_config_version": 2.0,
+                "catalog_sources": [
+                    {"type": "local", "name": "builtin", "path": "catalog"},
+                    {"type": "remote", "name": "community", "url": "https://x/m.json"},
+                ],
+            },
+        }
+        m4b.write_text(json.dumps(new_m4b))
+
+        _restore_preserved_files(str(tmp_path), saved)
+
+        # m4b-config.json reflects the newly shipped defaults verbatim.
+        result_m4b = json.loads(m4b.read_text())
+        assert result_m4b == new_m4b
+
+        # user-config.json was preserved byte-for-byte.
+        result_user = json.loads(user.read_text())
+        assert result_user == old_user
+
 
 class TestGetBinaryAssetName:
     @patch("money4band.updater.platform.system", return_value="Windows")

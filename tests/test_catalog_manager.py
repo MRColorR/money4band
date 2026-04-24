@@ -103,6 +103,40 @@ def test_add_source_persists(tmp_path: Path) -> None:
     assert added["enabled"] is False
 
 
+def test_add_source_normalizes_github_repo_url(tmp_path: Path) -> None:
+    cfg = _seed(tmp_path)
+    cm.add_source(
+        cfg,
+        name="community",
+        type="remote",
+        url="https://github.com/MRColorR/money4band-community-catalog",
+        enabled=True,
+    )
+    sources = cm.list_sources(cfg)
+    added = next(s for s in sources if s["name"] == "community")
+    assert (
+        added["url"]
+        == "https://raw.githubusercontent.com/MRColorR/money4band-community-catalog/main/manifest.json"
+    )
+
+
+def test_add_source_normalizes_github_blob_manifest_url(tmp_path: Path) -> None:
+    cfg = _seed(tmp_path)
+    cm.add_source(
+        cfg,
+        name="community",
+        type="remote",
+        url="https://github.com/MRColorR/money4band-community-catalog/blob/main/manifest.json",
+        enabled=True,
+    )
+    sources = cm.list_sources(cfg)
+    added = next(s for s in sources if s["name"] == "community")
+    assert (
+        added["url"]
+        == "https://raw.githubusercontent.com/MRColorR/money4band-community-catalog/main/manifest.json"
+    )
+
+
 def test_add_source_rejects_duplicate(tmp_path: Path) -> None:
     cfg = _seed(tmp_path)
     with pytest.raises(cm.CatalogSourceError):
