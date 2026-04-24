@@ -1,4 +1,4 @@
-"""Tests for the typed catalog loader helper (phase-8.1)."""
+"""Tests for the typed catalog loader helper."""
 
 from __future__ import annotations
 

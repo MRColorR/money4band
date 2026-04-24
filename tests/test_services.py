@@ -29,7 +29,7 @@ class TestResolveConfigPaths:
     def test_default_paths(self) -> None:
         m4b, app, user = resolve_config_paths()
         assert m4b.endswith("m4b-config.json")
-        # Phase-8.4.1: app_config slot aliases m4b_config (envelope folded in).
+        # app_config slot aliases m4b_config (envelope folded in).
         assert app == m4b
         assert user.endswith("user-config.json")
 

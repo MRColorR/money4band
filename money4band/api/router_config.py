@@ -103,7 +103,7 @@ async def reset_config(
 async def get_app_config_endpoint(
     paths: ConfigPaths = Depends(get_paths),
 ) -> dict[str, Any]:
-    """Return the full app-config.json."""
+    """Return the aggregated catalog dict."""
     return load_app_config()
 
 

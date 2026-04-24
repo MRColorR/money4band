@@ -1,8 +1,7 @@
 """Catalog-source management — the single API behind the CLI/TUI/REST surfaces.
 
-Phase-8.7 of the catalog split plan. Every mutation of the
-``m4b-config.json → catalog.catalog_sources[]`` list or
-``catalog.categories.<name>.active`` flag goes through the functions
+Every mutation of the ``m4b-config.json → catalog.catalog_sources[]`` list
+or ``catalog.categories.<name>.active`` flag goes through the functions
 defined here so CLI, API, and TUI behave identically.
 
 Design contract

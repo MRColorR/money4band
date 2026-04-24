@@ -146,13 +146,13 @@ def merge_community_apps(app_config: dict[str, Any], apps_d_dir: str) -> dict[st
 
 
 # ---------------------------------------------------------------------------
-# Typed catalog model (phase-8.1)
+# Typed catalog model
 # ---------------------------------------------------------------------------
 #
 # These dataclasses are the canonical in-memory representation of a catalog
-# entry.  They map 1:1 onto the ``app-config.json`` v2.0 shape; no legacy
-# v1.2 tolerance is attempted — a dedicated migration ran once at the schema
-# bump and no long-lived dual-stack code is carried.
+# entry.  They map 1:1 onto the v2.0 catalog shape; no legacy v1.2 tolerance
+# is attempted — a dedicated migration ran once at the schema bump and no
+# long-lived dual-stack code is carried.
 #
 # Shape contract (v2.0):
 #   * Top-level categories are ``supported`` / ``newcomers`` / ``deprecated``.
@@ -167,7 +167,7 @@ def merge_community_apps(app_config: dict[str, Any], apps_d_dir: str) -> dict[st
 SOURCE_LOCAL = "local"
 SOURCE_REMOTE = "remote"
 SOURCE_COMMUNITY = "community"  # user-overlay apps from ``config/apps.d/``
-SOURCE_BUILTIN = "builtin"  # apps shipped inside ``config/app-config.json``
+SOURCE_BUILTIN = "builtin"  # apps shipped inside the core catalog envelope
 
 # Canonical v2.0 category keys.
 CATEGORY_SUPPORTED = "supported"
@@ -183,8 +183,8 @@ class Referral:
     """A single referral/affiliate URL contributed by a catalog author.
 
     Multiple referrals form a *pool* that the contributor-weighted picker
-    (phase-8.6) rotates through.  Only ``url`` and ``contributor`` are
-    required; the remaining fields are optional provenance hints.
+    rotates through.  Only ``url`` and ``contributor`` are required; the
+    remaining fields are optional provenance hints.
     """
 
     url: str
@@ -359,11 +359,7 @@ class CatalogEntry:
 
 @dataclass
 class Addon:
-    """A sidecar/companion container attached to a parent app entry.
-
-    Introduced in phase-8.1 as a typed placeholder; the loader that
-    resolves addons against their ``parent_id`` will land in phase-8.8.
-    """
+    """A sidecar/companion container attached to a parent app entry."""
 
     id: str
     parent_id: str

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-"""Auto-generate app tables in README.md and docs/APPS.md from app-config.json."""
+"""Auto-generate app tables in README.md and docs/APPS.md from m4b-config.json."""
 
 import logging
 import re

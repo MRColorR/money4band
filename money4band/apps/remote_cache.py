@@ -1,4 +1,4 @@
-"""On-disk cache for ``RemoteSource`` (phase-8.5).
+"""On-disk cache for ``RemoteSource``.
 
 A minimal ETag-aware cache sitting next to the local catalog tree::
 

@@ -84,24 +84,23 @@ def load_app_config_with_overlays(
 ) -> dict[str, Any]:
     """Load the catalog envelope + per-file bundles and merge community apps.
 
-    Aggregation pipeline (phase-8.4.1):
+    Aggregation pipeline:
 
     1. If *config_path* still points at a legacy standalone envelope
-       file (``config/app-config.json``), one-shot auto-migrate it:
-       first to the per-file layout (phase-8.3b) then fold the envelope
-       into ``m4b-config.json → catalog`` (phase-8.4.1). The legacy
-       file is renamed to ``app-config.json.v1.bak``.
+       file, one-shot auto-migrate it: first to the per-file layout,
+       then fold the envelope into ``m4b-config.json → catalog``. The
+       legacy file is renamed with a ``.v1.bak`` suffix.
     2. Read the payload and extract its envelope (unwrap the
        ``catalog`` key if it's an m4b-config payload).
-    3. Expand the envelope into the historical in-memory shape
+    3. Expand the envelope into the in-memory shape
        ``{<category>: {"active": bool, "entries": [...]}}`` by reading
        ``config/catalog/<category>/*.json`` via the pluggable
        ``CatalogSource`` interface.
     4. Overlay hand-written community apps from ``config/apps.d/``
        (falls back to ``os.path.dirname(config_path) + "/apps.d"``).
 
-    Consumers that previously accessed ``app_config["supported"]["entries"]``
-    keep working unchanged — the shape is identical.
+    Consumers that access ``app_config["supported"]["entries"]`` keep
+    working unchanged — the shape is identical.
     """
     from money4band.apps.sources import aggregate_from_sources
     from money4band.core.catalog_migration import (
@@ -182,9 +181,8 @@ def load_catalog_entries(
 ) -> list[CatalogEntry]:
     """Return typed :class:`CatalogEntry` objects for *app_config*.
 
-    Phase-8.1 additive helper.  Existing consumers that use
-    :func:`get_category_entries` keep working unchanged — this function
-    simply wraps the same dicts in dataclasses.
+    Existing consumers that use :func:`get_category_entries` keep working
+    unchanged — this function simply wraps the same dicts in dataclasses.
 
     Arguments:
     app_config -- previously loaded app-config (post-overlay merge).

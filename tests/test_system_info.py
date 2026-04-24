@@ -354,7 +354,7 @@ class TestComposeDNSInjection:
 
 
 # ---------------------------------------------------------------------------
-# No hardcoded DNS in app-config.json
+# No hardcoded DNS in catalog bundles
 # ---------------------------------------------------------------------------
 
 
@@ -377,7 +377,7 @@ class TestNoHardcodedDNS:
                     f"{entry['name']} compose_config should not have hardcoded dns"
                 )
 
-        # Addons (phase-8.8): standalone bundles with parent_id.
+        # Addons: standalone bundles with parent_id.
         for addon in app_config.get("addons", []):
             acc = addon.get("compose_config", {})
             assert "dns" not in acc, (

@@ -50,8 +50,8 @@ class TestMain:
 class TestResetSeedsFromCatalog:
     """Verify reset applies user_config_template defaults from the catalog.
 
-    Since phase-8.4.1 the catalog envelope is folded into ``m4b-config.json``
-    and the per-app bundles live under ``config/catalog/<category>/``.
+    The catalog envelope is folded into ``m4b-config.json`` and the
+    per-app bundles live under ``config/catalog/<category>/``.
     """
 
     def test_seeds_app_slices_from_catalog_templates(self, tmp_path: Path) -> None:
@@ -68,8 +68,8 @@ class TestResetSeedsFromCatalog:
         src.parent.mkdir()
         src.write_text(json.dumps(template))
 
-        # Folded envelope (phase-8.4.1) — m4b-config.json carries the
-        # catalog key; per-file bundles live under config/catalog/.
+        # Folded envelope — m4b-config.json carries the catalog key;
+        # per-file bundles live under config/catalog/.
         m4b_config = {
             "project": {"project_version": "5.0.0"},
             "catalog": {

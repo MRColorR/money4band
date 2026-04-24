@@ -1,4 +1,4 @@
-"""CLI presenter for ``m4b catalog`` — phase-8.7.
+"""CLI presenter for ``m4b catalog``.
 
 Thin wrapper around :mod:`money4band.apps.catalog_manager`. The manager
 owns all mutation logic; this module is responsible for argparse

@@ -19,7 +19,7 @@ repos:
     hooks:
       - id: gitleaks
 
-  # App tables — regenerate from app-config.json
+  # App tables — regenerate from m4b-config.json catalog envelope
   - repo: local
     hooks:
       - id: update-tables
@@ -27,7 +27,7 @@ repos:
         entry: uv run python scripts/update_tables.py --check
         language: system
         pass_filenames: false
-        files: (config/app-config\.json|README\.md|docs/APPS\.md|money4band/readme_generator\.py)
+        files: (config/m4b-config\.json|config/catalog/.*\.json|README\.md|docs/APPS\.md|money4band/readme_generator\.py)
         stages: [pre-commit]
 
   # Requirements — keep in sync with uv.lock

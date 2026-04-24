@@ -27,7 +27,7 @@ def toggle_install_limits(
 
     When enabled, proxy setup respects the per-app install_limit values.
     When disabled, all apps are allowed on every proxy instance regardless
-    of the limits defined in app-config.json.
+    of the limits defined in the catalog.
     """
     user_config = load_json_config(user_config_path)
     settings = user_config.setdefault("settings", {})
@@ -69,8 +69,8 @@ def update_multiproxy_instances(
         user_config_path (str): Path to the main user-config file.
         m4b_config_path (str): Path to the main m4b-config file.
         app_config_path (str): Path to the config file holding the folded
-            catalog envelope — since phase-8.4.1 this is the same m4b-config
-            file; the argument is kept for call-site clarity.
+            catalog envelope — this aliases the m4b-config file; the
+            argument is kept for call-site clarity.
         sleep_time (int): Time to wait between operations.
     """
 

@@ -54,7 +54,7 @@ def apply_user_config_templates(
     user_config
         The live user-config dictionary.  Mutated in place.
     app_config
-        The catalog (``app-config.json`` content).  Read-only.
+        The aggregated catalog dict (from ``m4b-config.json``).  Read-only.
 
     Returns
     -------

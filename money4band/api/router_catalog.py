@@ -1,4 +1,4 @@
-"""Catalog source management API — phase-8.7.
+"""Catalog source management API.
 
 Mirrors the ``m4b catalog`` CLI one-to-one so CLI, TUI, and REST all
 behave identically. All business logic is delegated to

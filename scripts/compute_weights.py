@@ -1,7 +1,7 @@
 """Compute per-contributor weights from the repo's git history.
 
-Phase-8.6 of the catalog split plan. Writes ``weights.json`` at the
-repo root, consumed by :mod:`money4band.apps.contributor_pool`.
+Writes ``weights.json`` at the repo root, consumed by
+:mod:`money4band.apps.contributor_pool`.
 
 Algorithm (locked in plan.md)
 -----------------------------

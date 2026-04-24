@@ -258,9 +258,9 @@ class TestManageCategories(unittest.TestCase):
         from money4band.core.catalog_store import default_envelope, write_envelope
 
         cfg = copy.deepcopy(self._APP_CONFIG)
-        # Persistence now targets the v2 envelope (phase-8.3b). The in-memory
-        # aggregated dict (cfg) is what _manage_categories displays; the
-        # companion envelope file is what it writes back.
+        # Persistence targets the v2 envelope. The in-memory aggregated
+        # dict (cfg) is what _manage_categories displays; the companion
+        # envelope file is what it writes back.
         with tempfile.NamedTemporaryFile(delete=False, suffix=".json") as f:
             cfg_path = f.name
         try:

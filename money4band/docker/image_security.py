@@ -31,7 +31,7 @@ def _get_image_names(app_config: dict[str, Any]) -> list[tuple[str, str]]:
             image = entry.get("compose_config", {}).get("image")
             if image:
                 pairs.append((name, image))
-    # Addon bundles (phase-8.8): one image per addon, parallel to apps.
+    # Addon bundles: one image per addon, parallel to apps.
     for addon in app_config.get("addons") or []:
         if not isinstance(addon, dict):
             continue

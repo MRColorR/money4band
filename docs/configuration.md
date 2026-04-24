@@ -8,7 +8,7 @@
 
 | File | Location | Purpose |
 |------|----------|---------|
-| `m4b-config.json` | `config/` | Project settings — ports, DNS presets, menu, word lists, compose mode **and** catalog envelope under `catalog` key (`app_config_version`, `catalog_sources[]`, per-category `active` flags — see [App Management](app-management.md#on-disk-layout-v20-phase-83b)) |
+| `m4b-config.json` | `config/` | Project settings — ports, DNS presets, menu, word lists, compose mode **and** catalog envelope under `catalog` key (`app_config_version`, `catalog_sources[]`, per-category `active` flags — see [App Management](app-management.md#on-disk-layout-v20)) |
 | `catalog/` | `config/` | Per-file app bundles under `supported/` / `newcomers/` / `deprecated/` (one JSON file per app) |
 | `apps.d/` | `config/` | Hand-written community overlays merged into `newcomers` at load time |
 | `offers.d/` | `config/` | Per-file external referral offers (one JSON file per offer) |
@@ -57,8 +57,8 @@ Project-level settings you can tune:
 
 ### Catalog envelope (folded into `m4b-config.json`)
 
-As of phase-8.4.1 the catalog envelope lives under the `catalog` key of
-`m4b-config.json`; no separate `app-config.json` file ships anymore.
+The catalog envelope lives under the `catalog` key of
+`m4b-config.json`; no separate `app-config.json` file ships.
 The envelope itself is intentionally small:
 
 ```jsonc
@@ -80,7 +80,7 @@ The envelope itself is intentionally small:
 ```
 
 Per-app bundles live under `config/catalog/<category>/<NAME>.json` — one
-file per app. See [App Management → On-Disk Layout](app-management.md#on-disk-layout-v20-phase-83b)
+file per app. See [App Management → On-Disk Layout](app-management.md#on-disk-layout-v20)
 for the full schema and the source-plugin model.
 
 If you upgrade from a checkout that still has a standalone

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Regenerate the app tables in README.md and docs/APPS.md from m4b-config.json.
 
-Since phase-8.4.1 the catalog envelope is folded into ``config/m4b-config.json``
-under the ``catalog`` key, and per-file bundles live under ``config/catalog/``.
+The catalog envelope is folded into ``config/m4b-config.json`` under the
+``catalog`` key, and per-file bundles live under ``config/catalog/``.
 
 Usage (from project root):
     python scripts/update_tables.py [--check]

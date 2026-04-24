@@ -2,14 +2,13 @@
 
 All migrations are idempotent and safe to call on every load.
 
-* Phase-8.3b — :func:`migrate_catalog_file` converts a monolithic
+* :func:`migrate_catalog_file` converts a monolithic
   ``config/app-config.json`` into the per-file layout
   ``config/catalog/<category>/<NAME>.json`` and rewrites the source file
   as a v2 envelope.
-* Phase-8.4.1 — :func:`fold_legacy_envelope_into_m4b` takes that
-  standalone envelope file and folds it under the
-  ``catalog`` key of ``config/m4b-config.json``, renaming the legacy
-  file to ``app-config.json.v1.bak``.
+* :func:`fold_legacy_envelope_into_m4b` takes that standalone envelope
+  file and folds it under the ``catalog`` key of ``m4b-config.json``,
+  renaming the legacy file with a ``.v1.bak`` suffix.
 
 Both migrations are offline-only: no network, no user prompts, no
 re-encryption. User credentials live in ``user-config.json`` and are

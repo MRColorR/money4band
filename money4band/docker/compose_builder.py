@@ -312,8 +312,8 @@ def assemble_docker_compose(
                     services[app_name] = app_compose_config
                     service_layers[app_name] = app.get("compose_layer", "datacenter")
 
-                    # Auto-claim sidecar: look up addons attached to this parent
-                    # (phase-8.8) and inject each if the user opted in.
+                    # Auto-claim sidecar: look up addons attached to this
+                    # parent and inject each if the user opted in.
                     from money4band.apps.addons import get_addons_for
 
                     addons_for_app = get_addons_for(app_name, app_config)

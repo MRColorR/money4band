@@ -1,4 +1,4 @@
-"""Tests for scripts/compute_weights.py — phase-8.6 contributor weights."""
+"""Tests for scripts/compute_weights.py — contributor weights."""
 
 from __future__ import annotations
 

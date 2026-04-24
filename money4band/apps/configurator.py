@@ -272,7 +272,7 @@ def _configure_apps(
                 f"Docker platform for {app_name} set to: {config['docker_platform']}"
             )
 
-        # Auto-claim sidecar prompt (phase-8.8 addon lookup via parent_id)
+        # Auto-claim sidecar prompt (addon lookup via parent_id)
         from money4band.apps.addons import get_addons_for
 
         addons_for_app = (

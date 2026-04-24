@@ -1,4 +1,4 @@
-"""Addon lookup helpers (phase-8.8).
+"""Addon lookup helpers.
 
 Addons are companion containers (auto-claim sidecars, etc.) attached to
 a parent app via ``parent_id``. They live in per-file bundles under

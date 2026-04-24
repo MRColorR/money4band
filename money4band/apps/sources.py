@@ -1,11 +1,11 @@
-"""Pluggable catalog sources (phase-8.4).
+"""Pluggable catalog sources.
 
 A :class:`CatalogSource` yields catalog entries grouped by category.
-The envelope file (``config/app-config.json``) lists the sources under
-``catalog_sources[]`` and the per-category ``active`` flags under
+The envelope (under ``m4b-config.json → catalog``) lists the sources
+under ``catalog_sources[]`` and the per-category ``active`` flags under
 ``categories.<name>.active``. This module turns those declarations into
 concrete :class:`CatalogSource` objects and merges their output into the
-historical in-memory shape consumed by the rest of the codebase::
+in-memory shape consumed by the rest of the codebase::
 
     {
         "app_config_version": 2.0,
@@ -19,12 +19,12 @@ Source ordering matters: the first enabled source that yields a given
 entry name wins. Later sources cannot override earlier ones — this keeps
 local/builtin entries authoritative over remote fetches.
 
-This phase ships two concrete sources:
+Two concrete sources are shipped:
 
 * :class:`LocalSource` — reads per-file bundles from a catalog directory
-  on disk (the default ``config/catalog`` layout introduced in 8.3b).
-* :class:`RemoteSource` — stub placeholder. Real HTTP fetch arrives in
-  phase-8.5; for now it is always unavailable and yields nothing.
+  on disk (the default ``config/catalog`` layout).
+* :class:`RemoteSource` — HTTP fetch with on-disk caching; see
+  :mod:`money4band.apps.remote_cache`.
 """
 
 from __future__ import annotations
@@ -72,7 +72,7 @@ class CatalogSource(ABC):
         """Return ``[addon_dict, ...]`` for this source. Default: none.
 
         Addons are parallel to categories (attached to parent apps via
-        ``parent_id``) and merged in phase-8.8.
+        ``parent_id``).
         """
         return []
 
@@ -87,9 +87,9 @@ class LocalSource(CatalogSource):
     """On-disk catalog source reading per-file bundles.
 
     ``path`` is resolved relative to the envelope file's parent directory
-    when not absolute, so ``"catalog"`` from ``.../config/app-config.json``
-    points to ``.../config/catalog``. Missing category directories yield
-    empty lists — they are not errors.
+    when not absolute, so ``"catalog"`` from
+    ``.../config/m4b-config.json`` points to ``.../config/catalog``.
+    Missing category directories yield empty lists — they are not errors.
     """
 
     type = "local"
@@ -133,7 +133,7 @@ class LocalSource(CatalogSource):
 
 
 class RemoteSource(CatalogSource):
-    """Remote catalog source (phase-8.5).
+    """Remote catalog source.
 
     Fetches an aggregated catalog manifest over HTTPS (``httpx``),
     caches per-file bundles under ``config/catalog/community/``, and

@@ -1,4 +1,4 @@
-"""Offers store — read/write the per-file offers layout (phase-8.4.1).
+"""Offers store — read/write the per-file offers layout.
 
 Layout::
 

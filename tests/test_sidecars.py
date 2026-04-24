@@ -414,18 +414,17 @@ class TestSidecarSetupPrompt:
 
 
 # ---------------------------------------------------------------------------
-# app-config.json structural tests
+# Catalog structural tests
 # ---------------------------------------------------------------------------
 
 
 class TestAppConfigServiceDefinitions:
     """Verify addon entries in the catalog are well-formed.
 
-    As of phase-8.9 the core Money4Band catalog ships no ToS-violating
-    auto-claim addons (Honeygain/PacketShare pots moved to the opt-in
-    community catalog). These tests validate the *shape* of any addons
-    that remain; the parent-specific assertions live in the community
-    catalog repo.
+    The core Money4Band catalog ships no ToS-violating auto-claim addons
+    (Honeygain/PacketShare pots live in the opt-in community catalog).
+    These tests validate the *shape* of any addons that remain; the
+    parent-specific assertions live in the community catalog repo.
     """
 
     @pytest.fixture()

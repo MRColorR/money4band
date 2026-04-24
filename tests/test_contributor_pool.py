@@ -1,4 +1,4 @@
-"""Tests for money4band.apps.contributor_pool — phase-8.6 picker."""
+"""Tests for money4band.apps.contributor_pool — weighted picker."""
 
 from __future__ import annotations
 

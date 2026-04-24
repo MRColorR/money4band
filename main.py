@@ -50,12 +50,11 @@ parent_dir = os.path.dirname(BASE_DIR)
 def _resolve_paths(args: argparse.Namespace) -> tuple[str, str, str]:
     """Compute the three config paths from parsed args.
 
-    Since phase-8.4.1 the catalog envelope lives folded under
-    ``m4b-config.json -> catalog``; there is no separate
-    ``app-config.json``. The ``apps_config_path`` slot is kept for
-    historical call-site compatibility and always aliases the
-    m4b-config path. Callers that need the aggregated catalog shape
-    should use :func:`money4band.core.loader.load_app_config_with_overlays`.
+    The catalog envelope lives folded under ``m4b-config.json -> catalog``.
+    The ``apps_config_path`` slot is kept for call-site compatibility and
+    always aliases the m4b-config path. Callers that need the aggregated
+    catalog shape should use
+    :func:`money4band.core.loader.load_app_config_with_overlays`.
     """
     m4b_config_path = os.path.join(args.config_dir, args.config_m4b_file)
     apps_config_path = m4b_config_path

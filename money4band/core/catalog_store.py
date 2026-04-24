@@ -1,6 +1,6 @@
 """Catalog store — read/write the per-file catalog layout.
 
-Layout (v2.1, phase-8.4.1):
+Layout (v2.1):
 
     config/m4b-config.json      ← project config + catalog envelope
                                   (``"catalog": {app_config_version,
@@ -25,13 +25,13 @@ Envelope shape (lives under ``m4b-config.json → catalog``)::
         }
     }
 
-The loader aggregates per-file bundles back into the historical in-memory
-shape ``{<category>: {"active": bool, "entries": [...]}}`` so every
-existing consumer keeps working unchanged.
+The loader aggregates per-file bundles back into the in-memory shape
+``{<category>: {"active": bool, "entries": [...]}}`` so every consumer
+keeps working unchanged.
 
 For backward compatibility the store still understands a standalone
-envelope file (the pre-8.4.1 ``config/app-config.json`` layout) and the
-pre-8.3b monolithic format. Both paths funnel through the same loader.
+envelope file and the older monolithic format. Both paths funnel
+through the same loader.
 """
 
 from __future__ import annotations
@@ -67,7 +67,7 @@ def is_envelope(payload: dict[str, Any]) -> bool:
     carry per-category ``entries`` at the top level.
 
     Also returns ``True`` when *payload* is an m4b-config file that
-    contains a folded-in ``catalog`` envelope (phase-8.4.1).
+    contains a folded-in ``catalog`` envelope.
     """
     if isinstance(payload.get("catalog"), dict):
         return is_envelope(payload["catalog"])
@@ -85,8 +85,9 @@ def is_envelope(payload: dict[str, Any]) -> bool:
 def extract_envelope(payload: dict[str, Any]) -> dict[str, Any]:
     """Return the envelope subtree — unwraps ``payload["catalog"]`` if present.
 
-    After phase-8.4.1 the envelope lives under ``m4b-config.json → catalog``.
-    For legacy standalone envelope files the payload *is* the envelope.
+    When the envelope is folded into ``m4b-config.json`` it lives under
+    the ``catalog`` key. For legacy standalone envelope files the payload
+    *is* the envelope.
     """
     inner = payload.get("catalog")
     if isinstance(inner, dict) and "categories" in inner:

@@ -32,11 +32,11 @@ Interactively, the **App Catalog** screen also exposes a `m` shortcut to
 **manage category status** — toggle `newcomers` / `deprecated` on or off
 so they appear during `m4b setup`.
 
-## On-Disk Layout (v2.0, phase-8.3b / 8.4.1)
+## On-Disk Layout (v2.0)
 
-As of schema v2.0 the catalog is **per-file**: one JSON bundle per app.
-As of phase-8.4.1 the envelope is **folded into `m4b-config.json`**
-under the `catalog` key — no standalone `app-config.json` ships.
+The catalog is **per-file**: one JSON bundle per app. The envelope is
+**folded into `m4b-config.json`** under the `catalog` key — no standalone
+`app-config.json` ships.
 
 ```
 config/
@@ -48,7 +48,7 @@ config/
 │   │   └── …
 │   ├── newcomers/
 │   ├── deprecated/
-│   └── addons/                  ← sidecars with parent_id (phase-8.8)
+│   └── addons/                  ← sidecars with parent_id
 ├── apps.d/
 │   └── <MYAPP>.json             ← hand-written community overlay (merged into newcomers)
 ├── offers.d/
@@ -79,10 +79,10 @@ The envelope is tiny (lives under `m4b-config.json → catalog`):
 ```
 
 At load time the loader walks every declared `catalog_sources[]` entry,
-reads the per-file bundles, and aggregates them back into the historical
-in-memory shape used by the rest of the codebase. Adding, moving or
-removing an app is now a single-file change — no more merge conflicts on
-a 3600-line monolith.
+reads the per-file bundles, and aggregates them back into the in-memory
+shape used by the rest of the codebase. Adding, moving or removing an
+app is a single-file change — no more merge conflicts on a 3600-line
+monolith.
 
 ### Migration
 
@@ -90,8 +90,7 @@ If you open an older checkout, the loader auto-migrates on first run:
 
 * Monolithic `app-config.json` is split into
   `config/catalog/<category>/<NAME>.json` per-file bundles.
-* The resulting envelope is folded under
-  `m4b-config.json → catalog` (phase-8.4.1).
+* The resulting envelope is folded under `m4b-config.json → catalog`.
 * The legacy `app-config.json` is renamed to `app-config.json.v1.bak`.
 * Monolithic `referral-offers.json` is split into
   `config/offers.d/<SLUG>.json` and the original renamed to
@@ -208,10 +207,9 @@ schema. The required fields are validated by
 | `app_details` | object | Rich metadata (publisher, IP policy, device limits, earnings, Docker status, `last_verified`). Used by `m4b apps <name>` and the dashboard |
 | `user_config_template` | object | Default user-config slice (`{enabled: false, <cred_key>: "", service_enabled?: false}`) merged into `user-config.json → apps.<name_lower>` on reset / first enable |
 
-> **Bundle completeness (phase-8.3a):** every bundle that declares
-> credential `flags` MUST carry a matching `user_config_template`. The
-> template is a non-destructive merge — existing user values are never
-> overwritten.
+> **Bundle completeness:** every bundle that declares credential `flags`
+> MUST carry a matching `user_config_template`. The template is a
+> non-destructive merge — existing user values are never overwritten.
 
 ### Minimal example
 
@@ -257,10 +255,10 @@ bundles** under `config/catalog/addons/<NAME>.json`, each referencing a
 parent app via `parent_id`. The loader merges them in when the parent
 is enabled AND the user opted in.
 
-> **ToS note (phase-8.9):** auto-claim sidecars for Honeygain and
-> PacketShare are **not shipped in the core Money4Band catalog** because
-> they bypass the daily reward flow the host service expects. They live
-> in the opt-in [community catalog](https://github.com/MRColorR/money4band-community-catalog)
+> **ToS note:** auto-claim sidecars for Honeygain and PacketShare are
+> **not shipped in the core Money4Band catalog** because they bypass the
+> daily reward flow the host service expects. They live in the opt-in
+> [community catalog](https://github.com/MRColorR/money4band-community-catalog)
 > alongside EarnApp. Enable that source from `m4b catalog add` if you
 > want them.
 

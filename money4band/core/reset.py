@@ -54,11 +54,11 @@ def _seed_app_slices_from_catalog(user_config_path: str) -> None:
     """Apply ``user_config_template`` defaults from the catalog into user-config.
 
     Loads the aggregated catalog via
-    :func:`money4band.core.loader.load_app_config_with_overlays` (which since
-    phase-8.4.1 reads the folded envelope from ``m4b-config.json`` plus the
-    per-file bundles under ``config/catalog/``). Silently no-ops when the
-    companion ``m4b-config.json`` cannot be located or parsed — the caller
-    (reset) must remain resilient in unusual filesystem layouts
+    :func:`money4band.core.loader.load_app_config_with_overlays` (which
+    reads the folded envelope from ``m4b-config.json`` plus the per-file
+    bundles under ``config/catalog/``). Silently no-ops when the
+    companion ``m4b-config.json`` cannot be located or parsed — the
+    caller (reset) must remain resilient in unusual filesystem layouts
     (tests, custom installs).
     """
     logger = logging.getLogger(__name__)

@@ -147,8 +147,8 @@ class TestResolvePaths:
         args = _make_args(tmp_path)
         m4b, apps, user = _resolve_paths(args)
         assert os.path.basename(m4b) == "m4b-config.json"
-        # Since phase-8.4.1 the catalog envelope is folded into m4b-config.json;
-        # when the legacy app-config.json is absent the apps slot aliases to it.
+        # The catalog envelope is folded into m4b-config.json; when the
+        # legacy app-config.json is absent the apps slot aliases to it.
         assert os.path.basename(apps) in {"m4b-config.json", "app-config.json"}
         assert os.path.basename(user) == "user-config.json"
         # All must share the same directory
@@ -188,7 +188,7 @@ class TestHandlerArguments:
         _cmd_setup(_make_args(tmp_path, "setup"))
 
         a, m, u = captured["args"]
-        assert a.endswith("m4b-config.json")  # phase-8.4.1 alias
+        assert a.endswith("m4b-config.json")  # apps slot aliases m4b-config
         assert m.endswith("m4b-config.json")
         assert u.endswith("user-config.json")
         # The dir portion must match --config-dir
@@ -201,7 +201,7 @@ class TestHandlerArguments:
         _cmd_stack(_make_args(tmp_path, extra_argv=["stack", "start"]))
 
         a, m, u = captured["args"]
-        assert a.endswith("m4b-config.json")  # phase-8.4.1 alias
+        assert a.endswith("m4b-config.json")  # apps slot aliases m4b-config
         assert m.endswith("m4b-config.json")
         assert u.endswith("user-config.json")
 
@@ -212,7 +212,7 @@ class TestHandlerArguments:
         _cmd_stack(_make_args(tmp_path, extra_argv=["stack", "stop"]))
 
         a, m, u = captured["args"]
-        assert a.endswith("m4b-config.json")  # phase-8.4.1 alias
+        assert a.endswith("m4b-config.json")  # apps slot aliases m4b-config
         assert m.endswith("m4b-config.json")
         assert u.endswith("user-config.json")
 
@@ -239,7 +239,7 @@ class TestHandlerArguments:
         _cmd_generate(_make_args(tmp_path, "generate"))
 
         a, m, u = captured["args"]
-        assert a.endswith("m4b-config.json")  # phase-8.4.1 alias
+        assert a.endswith("m4b-config.json")  # apps slot aliases m4b-config
         assert m.endswith("m4b-config.json")
         assert u.endswith("user-config.json")
 
@@ -250,7 +250,7 @@ class TestHandlerArguments:
         _cmd_links(_make_args(tmp_path, "links"))
 
         a, m, u = captured["args"]
-        assert a.endswith("m4b-config.json")  # phase-8.4.1 alias
+        assert a.endswith("m4b-config.json")  # apps slot aliases m4b-config
         assert m.endswith("m4b-config.json")
         assert u.endswith("user-config.json")
 
@@ -261,7 +261,7 @@ class TestHandlerArguments:
         _cmd_proxy(_make_args(tmp_path, "proxy"))
 
         a, m, u = captured["args"]
-        assert a.endswith("m4b-config.json")  # phase-8.4.1 alias
+        assert a.endswith("m4b-config.json")  # apps slot aliases m4b-config
         assert m.endswith("m4b-config.json")
         assert u.endswith("user-config.json")
 

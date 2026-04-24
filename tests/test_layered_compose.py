@@ -1,4 +1,4 @@
-"""Tests for Phase 2.9 — layered compose architecture."""
+"""Tests for the layered compose architecture."""
 
 import copy
 import os

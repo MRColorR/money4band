@@ -1,4 +1,4 @@
-"""Phase-8.8 tests: addon bundles with parent_id merge.
+"""Addon bundles with parent_id merge.
 
 Covers:
 * catalog_store.read_addons_dir (filesystem reader).

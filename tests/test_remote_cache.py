@@ -1,4 +1,4 @@
-"""Tests for money4band.apps.remote_cache — phase-8.5 offline cache."""
+"""Tests for money4band.apps.remote_cache — offline cache."""
 
 from __future__ import annotations
 

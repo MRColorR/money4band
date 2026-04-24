@@ -1,4 +1,4 @@
-"""Unit tests for `money4band.apps.catalog_manager` (phase-8.7).
+"""Unit tests for `money4band.apps.catalog_manager`.
 
 Covers the single source of truth used by the CLI (`catalog_cli`),
 the REST API (`router_catalog`), and the TUI submenu

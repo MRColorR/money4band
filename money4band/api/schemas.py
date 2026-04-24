@@ -54,7 +54,7 @@ class AppSummary(BaseModel):
     compose_layer: str = ""
     status: str = ""
     dashboard_url: str = ""
-    # Provenance fields (phase-8.2)
+    # Provenance fields
     source: str = Field(
         "builtin",
         description=(

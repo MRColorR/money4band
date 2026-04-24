@@ -183,7 +183,7 @@ def _manage_categories(app_config: dict[str, Any], app_config_path: str | None) 
 
     if app_config_path:
         # Write only the envelope's active flag — per-file bundles are
-        # not rewritten here (phase-8.3b per-file layout).
+        # not rewritten here.
         from money4band.core.catalog_store import set_category_active
 
         set_category_active(app_config_path, cat_key, new_status)

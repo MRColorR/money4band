@@ -1,4 +1,4 @@
-"""Tests for the M4B REST API routers (Phase 7)."""
+"""Tests for the M4B REST API routers."""
 
 from __future__ import annotations
 
@@ -149,7 +149,7 @@ def tmp_config(tmp_path):
             },
         },
     }
-    # Phase-8.4.1: fold envelope under m4b-config.json → catalog
+    # Fold envelope under m4b-config.json → catalog
     m4b["catalog"] = app_cfg
     (config_dir / "m4b-config.json").write_text(json.dumps(m4b))
 
@@ -259,7 +259,7 @@ class TestAppsRouter:
 
 
 # ===========================================================================
-# Apps router — provenance fields (phase-8.2)
+# Apps router — provenance fields
 # ===========================================================================
 
 
@@ -817,7 +817,7 @@ class TestOffersRouter:
 
 
 # ===========================================================================
-# Catalog router (phase-8.7)
+# Catalog router
 # ===========================================================================
 
 

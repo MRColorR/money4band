@@ -1,7 +1,7 @@
 """Weighted referral picker — the unified pool used everywhere in M4B.
 
-Phase-8.6 of the catalog split plan. One module, one algorithm, used
-by the CLI, TUI setup wizard, and REST API.
+One module, one algorithm, used by the CLI, TUI setup wizard, and
+REST API.
 
 Design contract
 ---------------

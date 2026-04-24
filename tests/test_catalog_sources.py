@@ -1,4 +1,4 @@
-"""Tests for the pluggable catalog source interface (phase-8.4)."""
+"""Tests for the pluggable catalog source interface."""
 
 from __future__ import annotations
 
@@ -103,7 +103,7 @@ class TestLocalSource:
 
 
 # ---------------------------------------------------------------------------
-# RemoteSource (phase-8.5)
+# RemoteSource
 # ---------------------------------------------------------------------------
 
 

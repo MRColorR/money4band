@@ -51,7 +51,7 @@ def load_external_offers(offers_path: str) -> list[dict[str, Any]]:
 
 
 def _app_offers_from_config(app_config_path: str) -> list[dict[str, Any]]:
-    """Derive referral offers from app-config.json — single source of truth.
+    """Derive referral offers from the catalog — single source of truth.
 
     Each supported app with a non-empty ``referrals`` pool becomes an
     offer entry with ``m4b_app=True``.  Earnings metadata is pulled from
@@ -127,7 +127,7 @@ def load_all_offers(
     app_config_path: str,
     offers_path: str,
 ) -> list[dict[str, Any]]:
-    """Merge M4B app offers (from app-config.json) with external offers.
+    """Merge M4B app offers (from the catalog) with external offers.
 
     App offers appear first, followed by external offers.  This is the
     single entry-point for ``m4b offers`` and the dashboard Offers tab.
@@ -151,7 +151,7 @@ def display_offers(
     """Print referral offers table to stdout.
 
     When *app_config_path* is provided, M4B app reflinks are derived
-    from app-config.json (single source of truth) and merged with
+    from the catalog (single source of truth) and merged with
     external offers from *offers_path*.
 
     *category_filter* can be ``'bandwidth'``, ``'compute'``, ``'vpn'``,
@@ -205,7 +205,7 @@ def display_offers(
     )
     print(f"  Categories: {', '.join(categories)}")
     print(
-        f"  {Fore.YELLOW}App reflinks come from app-config.json (single source of truth){Style.RESET_ALL}"
+        f"  {Fore.YELLOW}App reflinks come from the catalog (single source of truth){Style.RESET_ALL}"
     )
     print(
         f"  {Fore.YELLOW}Add external offers in config/offers.d/ (one JSON per offer){Style.RESET_ALL}\n"

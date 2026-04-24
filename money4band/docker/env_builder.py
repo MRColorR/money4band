@@ -259,7 +259,7 @@ def generate_env_file(
 
     Args:
         m4b_config_path_or_dict: Path or loaded dict for m4b-config.json.
-        app_config_path_or_dict: Path or loaded dict for app-config.json.
+        app_config_path_or_dict: Path or loaded dict for the aggregated catalog.
         user_config_path_or_dict: Path or loaded dict for user-config.json.
         env_output_path: Destination path for the ``.env`` file.
         is_main_instance: Whether this is the main instance.

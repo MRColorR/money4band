@@ -28,7 +28,7 @@ build
 dist
 *.spec
 
-# Credential / keystore files (Phase 1.1)
+# Credential / keystore files
 *.keystore
 *.key
 .m4b_secrets/

@@ -80,8 +80,8 @@ def configure_paths(
 ) -> None:
     """Set the config paths for the API lifetime.
 
-    Since phase-8.4.1 the catalog envelope lives in ``m4b-config.json``
-    under a ``catalog`` key, so ``app_config`` aliases ``m4b_config``.
+    The catalog envelope lives in ``m4b-config.json`` under a
+    ``catalog`` key, so ``app_config`` aliases ``m4b_config``.
     The ``app_file`` kwarg is accepted for backward compatibility but
     ignored — catalog reads always go through
     :func:`money4band.core.loader.load_app_config_with_overlays`.
@@ -107,10 +107,10 @@ def load_m4b_config() -> dict:
 def load_app_config() -> dict:
     """Return the aggregated catalog dict (cached by m4b-config mtime).
 
-    Since phase-8.4.1 the envelope lives under
-    ``m4b-config.json → catalog``; this helper always returns the
-    *aggregated* historical shape (``{supported: {active, entries: [...]},
-    ...}``) via :func:`load_app_config_with_overlays`.
+    The envelope lives under ``m4b-config.json → catalog``; this helper
+    returns the aggregated shape
+    (``{supported: {active, entries: [...]}, ...}``) via
+    :func:`load_app_config_with_overlays`.
     """
     from money4band.core.loader import load_app_config_with_overlays
 
@@ -178,18 +178,18 @@ def iter_all_apps(
 
 
 # ---------------------------------------------------------------------------
-# Provenance helpers (phase-8.2)
+# Provenance helpers
 # ---------------------------------------------------------------------------
 #
 # ``source`` describes *where* a catalog entry came from:
-#   * ``builtin``   — shipped inside ``config/app-config.json``.
+#   * ``builtin``   — shipped inside the core catalog envelope.
 #   * ``community`` — user overlay from ``config/apps.d/*.json``.
-#   * ``remote``    — fetched from a remote catalog (phase-8.5).
-#   * ``local``     — user-local override (phase-8.4+).
+#   * ``remote``    — fetched from a remote catalog source.
+#   * ``local``     — user-local override.
 #
-# Until the pluggable ``CatalogSource`` interface lands in phase-8.4, every
-# entry loaded through the legacy ``iter_all_apps`` path is ``builtin``.
-# The resolver below is the single seam where future sources will hook in.
+# Entries loaded through the legacy ``iter_all_apps`` path are ``builtin``
+# by default; the resolver below is the single seam where other sources
+# override the provenance.
 
 
 def resolve_source(entry: dict) -> str:
@@ -260,7 +260,7 @@ def pick_referral_url(
 ) -> str:
     """Resolve the effective referral URL for an app.
 
-    Preference order (phase-8.6):
+    Preference order:
       1. ``settings.picked_referrals[<app_name lowercase>]`` when set.
       2. Weighted-random pick across the referrals pool, where every
          referral's weight is the contributor's entry in
