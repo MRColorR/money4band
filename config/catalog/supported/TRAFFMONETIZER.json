@@ -103,7 +103,7 @@
     "install_limit_reasoning": "No documented device cap. Multiple VPS instances widely used by community with no ban reports.",
     "recommendation": "keep",
     "recommendation_reasoning": "Universal layer and unlimited limit are correct. VPS/DC-friendly confirmed by community evidence.",
-    "confidence_notes": "Community VPS deployment reports and blog analyses confirm permissive policy. No official documentation on limits."
+    "confidence_notes": "Community VPS deployment reports and blog analyses confirm permissive policy. No official documentation on limits. Verified 2026-05-15 via container test: 'status' positional in 'start accept status --token X --device-name Y' is a valid CLI mode that prints a 'Connected: <ip> - <bool>; Accepting: <bool>' summary at startup in addition to the periodic 'Status: <ip> - connecting/disconnected' lines. Kept for clearer startup observability."
   },
   "referrals": [
     {

@@ -113,7 +113,7 @@
     "install_limit_reasoning": "Decentralized architecture supports massive scaling. Unique IP required per node for network discoverability.",
     "recommendation": "update-config",
     "recommendation_reasoning": "Changed compose_layer from datacenter to universal. Verified residential+DC support in official docs and Docker Hub.",
-    "confidence_notes": "Official GitHub, Docker Hub, and Mysterium docs verified. Well-documented open-source project."
+    "confidence_notes": "Official GitHub, Docker Hub, and Mysterium docs verified. Well-documented open-source project. Verified 2026-05-15 via container test: vendor default binds dashboard to 0.0.0.0:4449 inside the container; the published port mapping reaches the dashboard from the host without any extra startup flag. Command 'service --agreed-terms-and-conditions' is sufficient."
   },
   "referrals": [
     {
