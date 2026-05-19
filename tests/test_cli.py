@@ -74,6 +74,7 @@ class TestBuildParser:
             "generate",
             "links",
             "reset",
+            "clean",
             "proxy",
             "backup",
             "restore",

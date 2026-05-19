@@ -33,12 +33,12 @@ jobs:
 
       - name: Commit weights.json if changed
         run: |
-          if git diff --quiet weights.json; then
-            echo "weights.json unchanged — nothing to commit"
+          if git diff --quiet config/weights.json; then
+            echo "config/weights.json unchanged — nothing to commit"
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add weights.json
+          git add config/weights.json
           git commit -m "chore(weights): refresh contributor weights"
           git push

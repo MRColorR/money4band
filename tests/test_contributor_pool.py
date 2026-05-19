@@ -7,7 +7,6 @@ import random
 from pathlib import Path
 
 from money4band.apps.contributor_pool import (
-    DEFAULT_WEIGHT,
     load_weights,
     pick_weighted,
     resolve_referral_url,
@@ -44,15 +43,15 @@ class TestWeightFor:
     def test_known_contributor(self) -> None:
         assert weight_for("alice", {"alice": 4.0, "bob": 1.0}) == 4.0
 
-    def test_unknown_contributor_falls_back(self) -> None:
-        assert weight_for("dave", {"alice": 4.0}) == DEFAULT_WEIGHT
+    def test_unknown_contributor_returns_zero(self) -> None:
+        assert weight_for("dave", {"alice": 4.0}) == 0.0
 
-    def test_empty_name_returns_default(self) -> None:
-        assert weight_for("", {"alice": 9.0}) == DEFAULT_WEIGHT
+    def test_empty_name_returns_zero(self) -> None:
+        assert weight_for("", {"alice": 9.0}) == 0.0
 
-    def test_floor_applied(self) -> None:
-        # Even if a contributor is explicitly 0.0 we floor to DEFAULT_WEIGHT.
-        assert weight_for("alice", {"alice": 0.0}) == DEFAULT_WEIGHT
+    def test_explicit_zero_stays_zero(self) -> None:
+        # Hand-edited 0.0 in weights.json means "never pick" — honored.
+        assert weight_for("alice", {"alice": 0.0}) == 0.0
 
     def test_case_insensitive_lookup(self) -> None:
         # Catalog entries use display-case names like "MRColorr"; the
@@ -108,26 +107,27 @@ class TestPickWeighted:
         # Alice should win vastly more than bob.
         assert counts["https://a"] > counts["https://b"] * 50
 
-    def test_all_zero_weights_falls_back_to_uniform(self) -> None:
-        # Impossible in practice (floor = 0.1) but should not crash.
+    def test_non_contributors_locked_out_when_contributor_present(self) -> None:
+        # mrcolorr has weight, alice + bob do not -> mrcolorr always wins.
+        pool = [
+            {"url": "https://mr", "contributor": "mrcolorr"},
+            {"url": "https://a", "contributor": "alice"},
+            {"url": "https://b", "contributor": "bob"},
+        ]
+        weights = {"mrcolorr": 100.0}
+        rng = random.Random(0)
+        for _ in range(50):
+            assert pick_weighted(pool, weights, rng=rng)["url"] == "https://mr"
+
+    def test_all_non_contributors_falls_back_to_uniform(self) -> None:
+        # No contributor in weights.json -> all weights 0 -> uniform pick.
         pool = [
             {"url": "https://a", "contributor": "x"},
             {"url": "https://b", "contributor": "y"},
         ]
-        # Bypass weight_for floor by passing negative weights as "unknown"
-        # contributors — they'll all default to DEFAULT_WEIGHT anyway,
-        # so instead hit the degenerate branch explicitly:
-        import money4band.apps.contributor_pool as cp
-
-        # Use a custom monkey-patched weight_for via a zero map.
-        orig = cp.weight_for
-        cp.weight_for = lambda c, w: 0.0  # type: ignore[assignment]
-        try:
-            rng = random.Random(7)
-            chosen = pick_weighted(pool, {}, rng=rng)
-            assert chosen in pool
-        finally:
-            cp.weight_for = orig
+        rng = random.Random(7)
+        chosen = pick_weighted(pool, {}, rng=rng)
+        assert chosen in pool
 
 
 class TestResolveReferralUrl:

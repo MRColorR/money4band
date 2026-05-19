@@ -1,118 +1,118 @@
 {
-  "name": "TRAFFMONETIZER",
-  "dashboard": "https://app.traffmonetizer.com/dashboard",
-  "compose_config": {
-    "container_name": "${DEVICE_NAME}_traffmonetizer",
-    "hostname": "${DEVICE_NAME}_traffmonetizer",
-    "image": "traffmonetizer/cli_v2:latest",
-    "environment": [
-      "TRAFFMONETIZER_DUMMY=''"
+    "name": "TRAFFMONETIZER",
+    "dashboard": "https://app.traffmonetizer.com/dashboard",
+    "compose_config": {
+        "container_name": "${DEVICE_NAME}_traffmonetizer",
+        "hostname": "${DEVICE_NAME}_traffmonetizer",
+        "image": "traffmonetizer/cli_v2:latest",
+        "environment": [
+            "TRAFFMONETIZER_DUMMY=''"
+        ],
+        "labels": [
+            "com.centurylinklabs.watchtower.enable=true",
+            "com.centurylinklabs.watchtower.scope=${M4B_WATCHTOWER_SCOPE}"
+        ],
+        "command": [
+            "start",
+            "accept",
+            "status",
+            "--token",
+            "${TRAFFMONETIZER_TOKEN}",
+            "--device-name",
+            "${DEVICE_NAME}"
+        ],
+        "restart": "always",
+        "cpus": "${APP_CPU_LIMIT_LITTLE}",
+        "mem_reservation": "${APP_MEM_RESERV_LITTLE}",
+        "mem_limit": "${APP_MEM_LIMIT_LITTLE}",
+        "logging": {
+            "driver": "json-file",
+            "options": {
+                "max-size": "10m",
+                "max-file": "3"
+            }
+        },
+        "healthcheck": {
+            "test": [
+                "CMD-SHELL",
+                "pgrep -f Cli || exit 1"
+            ],
+            "interval": "120s",
+            "timeout": "10s",
+            "retries": 3,
+            "start_period": "60s"
+        }
+    },
+    "compose_config_proxy": {
+        "network_mode": "service:proxy",
+        "hostname": null
+    },
+    "flags": {
+        "token": {}
+    },
+    "install_limit": -1,
+    "app_details": {
+        "official_name": "TraffMonetizer",
+        "publisher": "TraffMonetizer",
+        "official_url": "https://traffmonetizer.com",
+        "tos_url": "https://traffmonetizer.com/en/terms-of-service",
+        "status": "active",
+        "device_limits": {
+            "max_devices_per_account": "unlimited",
+            "max_devices_per_ip": "undocumented",
+            "max_ips_per_account": "unlimited",
+            "notes": "No documented device cap. Multiple VPS instances widely used by community with no ban reports."
+        },
+        "ip_policy": {
+            "residential": true,
+            "datacenter": true,
+            "vps": true,
+            "vpn": "partial",
+            "proxy": "undocumented",
+            "mobile": true,
+            "adjacent_ips_accepted": true,
+            "adjacent_ips_max": "undocumented",
+            "ipv6": "undocumented",
+            "geo_restrictions": "none known",
+            "quality_notes": "One of the most permissive platforms. Datacenter and VPS IPs widely used. No ban waves reported as of 2026."
+        },
+        "docker": {
+            "image_official": true,
+            "image_maintained": true,
+            "last_update": "2025-01"
+        },
+        "earnings": {
+            "model": "per-GB (credits)",
+            "min_payout": "$10",
+            "payout_methods": [
+                "PayPal",
+                "crypto",
+                "wire transfer"
+            ],
+            "avg_monthly_residential_usd": "0.5-2",
+            "avg_monthly_datacenter_usd": "0.3-1"
+        },
+        "confidence": "medium",
+        "sources": [
+            "https://blog.vpslog.org/blog/profit/",
+            "https://traffmonetizer.com/en/terms-of-service"
+        ],
+        "last_verified": "2026-03-21",
+        "compose_layer_reasoning": "One of the most permissive platforms. Datacenter and VPS IPs widely used with no ban waves reported as of 2026.",
+        "install_limit_reasoning": "No documented device cap. Multiple VPS instances widely used by community with no ban reports.",
+        "recommendation": "keep",
+        "recommendation_reasoning": "Universal layer and unlimited limit are correct. VPS/DC-friendly confirmed by community evidence.",
+        "confidence_notes": "Community VPS deployment reports and blog analyses confirm permissive policy. No official documentation on limits. Verified 2026-05-15 via container test: 'status' positional in 'start accept status --token X --device-name Y' is a valid CLI mode that prints a 'Connected: <ip> - <bool>; Accepting: <bool>' summary at startup in addition to the periodic 'Status: <ip> - connecting/disconnected' lines. Kept for clearer startup observability."
+    },
+    "referrals": [
+        {
+            "url": "https://traffmonetizer.com/?aff=366499",
+            "contributor": "MRColorR"
+        }
     ],
-    "labels": [
-      "com.centurylinklabs.watchtower.enable=true",
-      "com.centurylinklabs.watchtower.scope=${M4B_WATCHTOWER_SCOPE}"
-    ],
-    "command": [
-      "start",
-      "accept",
-      "status",
-      "--token",
-      "${TRAFFMONETIZER_TOKEN}",
-      "--device-name",
-      "${DEVICE_NAME}"
-    ],
-    "restart": "always",
-    "cpus": "${APP_CPU_LIMIT_LITTLE}",
-    "mem_reservation": "${APP_MEM_RESERV_LITTLE}",
-    "mem_limit": "${APP_MEM_LIMIT_LITTLE}",
-    "logging": {
-      "driver": "json-file",
-      "options": {
-        "max-size": "10m",
-        "max-file": "3"
-      }
+    "user_config_template": {
+        "enabled": false,
+        "token": "yourTRAFFMONETIZERToken"
     },
-    "healthcheck": {
-      "test": [
-        "CMD-SHELL",
-        "pgrep -f Cli || exit 1"
-      ],
-      "interval": "120s",
-      "timeout": "10s",
-      "retries": 3,
-      "start_period": "60s"
-    }
-  },
-  "compose_config_proxy": {
-    "network_mode": "service:proxy",
-    "hostname": null
-  },
-  "flags": {
-    "token": {}
-  },
-  "install_limit": -1,
-  "compose_layer": "universal",
-  "app_details": {
-    "official_name": "TraffMonetizer",
-    "publisher": "TraffMonetizer",
-    "official_url": "https://traffmonetizer.com",
-    "tos_url": "https://traffmonetizer.com/en/terms-of-service",
-    "status": "active",
-    "device_limits": {
-      "max_devices_per_account": "unlimited",
-      "max_devices_per_ip": "undocumented",
-      "max_ips_per_account": "unlimited",
-      "notes": "No documented device cap. Multiple VPS instances widely used by community with no ban reports."
-    },
-    "ip_policy": {
-      "residential": true,
-      "datacenter": true,
-      "vps": true,
-      "vpn": "partial",
-      "proxy": "undocumented",
-      "mobile": true,
-      "adjacent_ips_accepted": true,
-      "adjacent_ips_max": "undocumented",
-      "ipv6": "undocumented",
-      "geo_restrictions": "none known",
-      "quality_notes": "One of the most permissive platforms. Datacenter and VPS IPs widely used. No ban waves reported as of 2026."
-    },
-    "docker": {
-      "image_official": true,
-      "image_maintained": true,
-      "last_update": "2025-01"
-    },
-    "earnings": {
-      "model": "per-GB (credits)",
-      "min_payout": "$10",
-      "payout_methods": [
-        "PayPal",
-        "crypto",
-        "wire transfer"
-      ],
-      "avg_monthly_residential_usd": "0.5-2",
-      "avg_monthly_datacenter_usd": "0.3-1"
-    },
-    "confidence": "medium",
-    "sources": [
-      "https://blog.vpslog.org/blog/profit/",
-      "https://traffmonetizer.com/en/terms-of-service"
-    ],
-    "last_verified": "2026-03-21",
-    "compose_layer_reasoning": "One of the most permissive platforms. Datacenter and VPS IPs widely used with no ban waves reported as of 2026.",
-    "install_limit_reasoning": "No documented device cap. Multiple VPS instances widely used by community with no ban reports.",
-    "recommendation": "keep",
-    "recommendation_reasoning": "Universal layer and unlimited limit are correct. VPS/DC-friendly confirmed by community evidence.",
-    "confidence_notes": "Community VPS deployment reports and blog analyses confirm permissive policy. No official documentation on limits. Verified 2026-05-15 via container test: 'status' positional in 'start accept status --token X --device-name Y' is a valid CLI mode that prints a 'Connected: <ip> - <bool>; Accepting: <bool>' summary at startup in addition to the periodic 'Status: <ip> - connecting/disconnected' lines. Kept for clearer startup observability."
-  },
-  "referrals": [
-    {
-      "url": "https://traffmonetizer.com/?aff=366499",
-      "contributor": "MRColorR"
-    }
-  ],
-  "user_config_template": {
-    "enabled": false,
-    "token": "yourTRAFFMONETIZERToken"
-  }
+    "profile": "universal"
 }

@@ -10,14 +10,16 @@ from typing import Any
 
 from cryptography.fernet import Fernet, InvalidToken
 
+from money4band.core.paths import get_m4b_data_dir
+
 MAGIC_PREFIX = "M4B_ENCRYPTED:"
 
 logger = logging.getLogger(__name__)
 
 
 def get_key_path() -> Path:
-    """Return the path to the master encryption key file (~/.m4b/master.key)."""
-    return Path.home() / ".m4b" / "master.key"
+    """Return the path to the master encryption key file."""
+    return get_m4b_data_dir() / "master.key"
 
 
 def get_or_create_key() -> bytes:
@@ -80,9 +82,10 @@ def decrypt_to_dict(content: str) -> dict[str, Any]:
     try:
         json_bytes = fernet.decrypt(token)
     except InvalidToken as err:
+        key_path = get_key_path()
         raise ValueError(
             "Decryption failed — wrong key or corrupted data. "
-            "Check that ~/.m4b/master.key matches the key used to encrypt."
+            f"Check that {key_path} matches the key used to encrypt."
         ) from err
     return json.loads(json_bytes)
 

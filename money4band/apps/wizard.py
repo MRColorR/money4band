@@ -96,7 +96,7 @@ def run_app_wizard(apps_d_dir: str) -> dict[str, Any] | None:
             "3": ("datacenter", "Datacenter / VPS"),
         },
     )
-    compose_layer = _LAYER_CHOICES[layer_choice]
+    profile = _LAYER_CHOICES[layer_choice]
 
     # --- Install limit ---
     limit_str = _prompt("Install limit (-1 = unlimited)", "-1")
@@ -143,7 +143,7 @@ def run_app_wizard(apps_d_dir: str) -> dict[str, Any] | None:
         },
         "flags": flags,
         "install_limit": install_limit,
-        "compose_layer": compose_layer,
+        "profile": profile,
     }
     if dashboard:
         entry["dashboard"] = dashboard

@@ -72,7 +72,7 @@ def _display_catalog(app_config: dict[str, Any]) -> None:
                     "payout": app.get("app_details", {})
                     .get("earnings", {})
                     .get("min_payout", "-"),
-                    "layer": app.get("compose_layer", "-"),
+                    "layer": app.get("profile", "-"),
                     "reason": app.get("additional_details", ""),
                 }
             )

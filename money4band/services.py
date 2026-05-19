@@ -298,7 +298,7 @@ def get_app_catalog_rich(app_config: dict[str, Any]) -> list[dict[str, Any]]:
                 {
                     "name": e.get("name", "?"),
                     "link": primary_link,
-                    "layer": e.get("compose_layer", "-"),
+                    "layer": e.get("profile", "-"),
                     "payout": earnings.get("min_payout", "-"),
                     "reason": e.get("additional_details", ""),
                 }
@@ -386,11 +386,6 @@ def get_system_info_structured(
     from money4band.docker.compose_builder import get_compose_files
 
     compose_files = get_compose_files(".")
-    compose_mode = (
-        "layered"
-        if len(compose_files) > 1
-        else ("monolithic" if compose_files else "none")
-    )
 
     return {
         "version": version,
@@ -413,7 +408,6 @@ def get_system_info_structured(
         "proxy_enabled": proxy_enabled,
         "watchtower_enabled": wt_enabled,
         "dashboard_enabled": dash_enabled,
-        "compose_mode": compose_mode,
         "compose_files": [os.path.basename(f) for f in compose_files],
     }
 
@@ -437,7 +431,6 @@ def get_generator_summary(
     ]
     dash = user.get("m4b_dashboard", {})
     dash_port = dash.get("port", 8088) if dash.get("enabled") else None
-    compose_mode = m4b.get("system", {}).get("compose_mode", "monolithic")
 
     # Count proxy instances
     instances_dir = os.path.join(_BASE_DIR, "m4b_proxy_instances")
@@ -456,7 +449,6 @@ def get_generator_summary(
         "proxy_enabled": proxy_enabled,
         "dashboard_port": dash_port,
         "enabled_apps": enabled_apps,
-        "compose_mode": compose_mode,
         "proxy_instances": proxy_count,
     }
 

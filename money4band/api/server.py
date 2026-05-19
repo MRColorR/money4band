@@ -94,6 +94,25 @@ app.add_middleware(
 
 
 @app.middleware("http")
+async def _security_headers(request: Request, call_next):
+    """Apply baseline hardening headers on every response.
+
+    - ``X-Content-Type-Options: nosniff`` blocks MIME-type sniffing.
+    - ``X-Frame-Options: DENY`` blocks clickjacking on the dashboard.
+    - ``Referrer-Policy: no-referrer`` prevents credential leakage in Referer.
+    - ``Cache-Control: no-store`` on ``/api/*`` keeps sensitive responses
+      out of browser/proxy caches.
+    """
+    response = await call_next(request)
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("X-Frame-Options", "DENY")
+    response.headers.setdefault("Referrer-Policy", "no-referrer")
+    if request.url.path.startswith("/api/"):
+        response.headers["Cache-Control"] = "no-store"
+    return response
+
+
+@app.middleware("http")
 async def _security_headers(request: Request, call_next):  # type: ignore[no-untyped-def]
     """Add standard security headers to every response."""
     response = await call_next(request)
@@ -176,10 +195,13 @@ _exposed: bool = False
 def _get_session_salt() -> bytes:
     """Return a per-installation random salt, creating it if needed.
 
-    Stored at ``~/.m4b/session.salt`` (32 bytes, hex-encoded on disk).
+    Stored as ``session.salt`` (32 bytes, hex-encoded on disk) inside the
+    M4B data directory resolved by ``money4band.core.paths.get_m4b_data_dir``.
     This ensures session tokens are unique per M4B installation.
     """
-    salt_path = os.path.join(os.path.expanduser("~"), ".m4b", "session.salt")
+    from money4band.core.paths import get_m4b_data_dir
+
+    salt_path = str(get_m4b_data_dir() / "session.salt")
     try:
         with open(salt_path, "rb") as f:
             return bytes.fromhex(f.read().decode().strip())

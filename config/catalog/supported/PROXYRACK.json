@@ -1,114 +1,114 @@
 {
-  "name": "PROXYRACK",
-  "dashboard": "https://peer.proxyrack.com/dashboard",
-  "compose_config": {
-    "container_name": "${DEVICE_NAME}_proxyrack",
-    "hostname": "${DEVICE_NAME}_proxyrack",
-    "image": "proxyrack/pop:latest",
-    "environment": [
-      "API_KEY=$PROXYRACK_APIKEY",
-      "DEVICE_NAME=$DEVICE_NAME",
-      "UUID=$PROXYRACK_UUID"
+    "name": "PROXYRACK",
+    "dashboard": "https://peer.proxyrack.com/dashboard",
+    "compose_config": {
+        "container_name": "${DEVICE_NAME}_proxyrack",
+        "hostname": "${DEVICE_NAME}_proxyrack",
+        "image": "proxyrack/pop:latest",
+        "environment": [
+            "API_KEY=$PROXYRACK_APIKEY",
+            "DEVICE_NAME=$DEVICE_NAME",
+            "UUID=$PROXYRACK_UUID"
+        ],
+        "labels": [
+            "com.centurylinklabs.watchtower.enable=true",
+            "com.centurylinklabs.watchtower.scope=${M4B_WATCHTOWER_SCOPE}"
+        ],
+        "restart": "always",
+        "cpus": "${APP_CPU_LIMIT_BIG}",
+        "mem_reservation": "${APP_MEM_RESERV_BIG}",
+        "mem_limit": "${APP_MEM_LIMIT_BIG}",
+        "logging": {
+            "driver": "json-file",
+            "options": {
+                "max-size": "10m",
+                "max-file": "3"
+            }
+        },
+        "healthcheck": {
+            "test": [
+                "CMD-SHELL",
+                "pgrep -f pop || exit 1"
+            ],
+            "interval": "120s",
+            "timeout": "10s",
+            "retries": 3,
+            "start_period": "60s"
+        }
+    },
+    "compose_config_proxy": {
+        "network_mode": "service:proxy",
+        "hostname": null
+    },
+    "flags": {
+        "apikey": {},
+        "uuid": {
+            "length": 64,
+            "claimURLBase": "To claim your node, after starting it, go to the app's dashboard and then add the device using the following UUID: "
+        }
+    },
+    "install_limit": 500,
+    "app_details": {
+        "official_name": "Proxyrack Peer Program",
+        "publisher": "Proxyrack",
+        "official_url": "https://proxyrack.com/peer-program/",
+        "tos_url": "https://proxyrack.com/terms/",
+        "status": "active",
+        "device_limits": {
+            "max_devices_per_account": 500,
+            "max_devices_per_ip": "undocumented",
+            "max_ips_per_account": 500,
+            "notes": "Official help article confirms hard 500-device limit per account for 'fair usage and optimal performance'."
+        },
+        "ip_policy": {
+            "residential": true,
+            "datacenter": true,
+            "vps": true,
+            "vpn": "partial",
+            "proxy": "undocumented",
+            "mobile": "undocumented",
+            "adjacent_ips_accepted": true,
+            "adjacent_ips_max": "undocumented",
+            "ipv6": "undocumented",
+            "geo_restrictions": "none known",
+            "quality_notes": "Community confirms VPS/DC IPs accepted. One of the more permissive platforms."
+        },
+        "docker": {
+            "image_official": true,
+            "image_maintained": true,
+            "last_update": "2024-09"
+        },
+        "earnings": {
+            "model": "per-GB",
+            "min_payout": "$5",
+            "payout_methods": [
+                "PayPal",
+                "crypto"
+            ],
+            "avg_monthly_residential_usd": "0.5-2",
+            "avg_monthly_datacenter_usd": "0.2-1"
+        },
+        "confidence": "high",
+        "sources": [
+            "https://help.proxyrack.com/en/articles/6532812-device-limit"
+        ],
+        "last_verified": "2026-03-21",
+        "compose_layer_reasoning": "Community confirms VPS/DC IPs accepted. One of the more permissive platforms for datacenter proxies.",
+        "install_limit_reasoning": "Official help article confirms hard 500-device limit per account for 'fair usage and optimal performance'.",
+        "recommendation": "keep",
+        "recommendation_reasoning": "Datacenter layer and 500-device limit are correct per official documentation.",
+        "confidence_notes": "Official Proxyrack help center article on device limits verified."
+    },
+    "referrals": [
+        {
+            "url": "https://peer.proxyrack.com/ref/myoas6qttvhuvkzh8ffx90ns1ouhwgilfgamo5ex",
+            "contributor": "MRColorR"
+        }
     ],
-    "labels": [
-      "com.centurylinklabs.watchtower.enable=true",
-      "com.centurylinklabs.watchtower.scope=${M4B_WATCHTOWER_SCOPE}"
-    ],
-    "restart": "always",
-    "cpus": "${APP_CPU_LIMIT_BIG}",
-    "mem_reservation": "${APP_MEM_RESERV_BIG}",
-    "mem_limit": "${APP_MEM_LIMIT_BIG}",
-    "logging": {
-      "driver": "json-file",
-      "options": {
-        "max-size": "10m",
-        "max-file": "3"
-      }
+    "user_config_template": {
+        "enabled": false,
+        "apikey": "yourPROXYRACKAPIKey",
+        "uuid": "yourPROXYRACKDeviceUUID"
     },
-    "healthcheck": {
-      "test": [
-        "CMD-SHELL",
-        "pgrep -f pop || exit 1"
-      ],
-      "interval": "120s",
-      "timeout": "10s",
-      "retries": 3,
-      "start_period": "60s"
-    }
-  },
-  "compose_config_proxy": {
-    "network_mode": "service:proxy",
-    "hostname": null
-  },
-  "flags": {
-    "apikey": {},
-    "uuid": {
-      "length": 64,
-      "claimURLBase": "To claim your node, after starting it, go to the app's dashboard and then add the device using the following UUID: "
-    }
-  },
-  "install_limit": 500,
-  "compose_layer": "datacenter",
-  "app_details": {
-    "official_name": "Proxyrack Peer Program",
-    "publisher": "Proxyrack",
-    "official_url": "https://proxyrack.com/peer-program/",
-    "tos_url": "https://proxyrack.com/terms/",
-    "status": "active",
-    "device_limits": {
-      "max_devices_per_account": 500,
-      "max_devices_per_ip": "undocumented",
-      "max_ips_per_account": 500,
-      "notes": "Official help article confirms hard 500-device limit per account for 'fair usage and optimal performance'."
-    },
-    "ip_policy": {
-      "residential": true,
-      "datacenter": true,
-      "vps": true,
-      "vpn": "partial",
-      "proxy": "undocumented",
-      "mobile": "undocumented",
-      "adjacent_ips_accepted": true,
-      "adjacent_ips_max": "undocumented",
-      "ipv6": "undocumented",
-      "geo_restrictions": "none known",
-      "quality_notes": "Community confirms VPS/DC IPs accepted. One of the more permissive platforms."
-    },
-    "docker": {
-      "image_official": true,
-      "image_maintained": true,
-      "last_update": "2024-09"
-    },
-    "earnings": {
-      "model": "per-GB",
-      "min_payout": "$5",
-      "payout_methods": [
-        "PayPal",
-        "crypto"
-      ],
-      "avg_monthly_residential_usd": "0.5-2",
-      "avg_monthly_datacenter_usd": "0.2-1"
-    },
-    "confidence": "high",
-    "sources": [
-      "https://help.proxyrack.com/en/articles/6532812-device-limit"
-    ],
-    "last_verified": "2026-03-21",
-    "compose_layer_reasoning": "Community confirms VPS/DC IPs accepted. One of the more permissive platforms for datacenter proxies.",
-    "install_limit_reasoning": "Official help article confirms hard 500-device limit per account for 'fair usage and optimal performance'.",
-    "recommendation": "keep",
-    "recommendation_reasoning": "Datacenter layer and 500-device limit are correct per official documentation.",
-    "confidence_notes": "Official Proxyrack help center article on device limits verified."
-  },
-  "referrals": [
-    {
-      "url": "https://peer.proxyrack.com/ref/myoas6qttvhuvkzh8ffx90ns1ouhwgilfgamo5ex",
-      "contributor": "MRColorR"
-    }
-  ],
-  "user_config_template": {
-    "enabled": false,
-    "apikey": "yourPROXYRACKAPIKey",
-    "uuid": "yourPROXYRACKDeviceUUID"
-  }
+    "profile": "datacenter"
 }

@@ -63,12 +63,11 @@ class TestKeyManagement(unittest.TestCase):
         mode = self.key_path.stat().st_mode & 0o777
         self.assertEqual(mode, 0o600)
 
-    def test_get_key_path_returns_home_dir(self):
-        """Key path should be under ~/.m4b/."""
+    def test_get_key_path_returns_m4b_data_dir(self):
+        """Key path lives in the resolved M4B data directory (.m4b/master.key)."""
         key_path = get_key_path()
         self.assertEqual(key_path.parent.name, ".m4b")
         self.assertEqual(key_path.name, "master.key")
-        self.assertTrue(str(key_path).startswith(str(Path.home())))
 
 
 class TestEncryptDecrypt(unittest.TestCase):

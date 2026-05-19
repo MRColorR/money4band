@@ -151,4 +151,5 @@ class TestCmdConfig:
         main._cmd_config(args)
 
         captured = capsys.readouterr()
-        assert "config {view,edit}" in captured.out
+        assert "Usage: m4b config" in captured.out
+        assert "view" in captured.out and "edit" in captured.out

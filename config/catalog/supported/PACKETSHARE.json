@@ -1,114 +1,114 @@
 {
-  "name": "PACKETSHARE",
-  "dashboard": "https://packetshare.io/ucenter.html",
-  "compose_config": {
-    "container_name": "${DEVICE_NAME}_packetshare",
-    "hostname": "${DEVICE_NAME}_packetshare",
-    "image": "packetshare/packetshare:latest",
-    "command": "-accept-tos -email=${PACKETSHARE_EMAIL} -password=${PACKETSHARE_PASSWORD}",
-    "environment": [
-      "PACKETSHARE_DUMMY=''"
+    "name": "PACKETSHARE",
+    "dashboard": "https://packetshare.io/ucenter.html",
+    "compose_config": {
+        "container_name": "${DEVICE_NAME}_packetshare",
+        "hostname": "${DEVICE_NAME}_packetshare",
+        "image": "packetshare/packetshare:latest",
+        "command": "-accept-tos -email=${PACKETSHARE_EMAIL} -password=${PACKETSHARE_PASSWORD}",
+        "environment": [
+            "PACKETSHARE_DUMMY=''"
+        ],
+        "labels": [
+            "com.centurylinklabs.watchtower.enable=true",
+            "com.centurylinklabs.watchtower.scope=${M4B_WATCHTOWER_SCOPE}"
+        ],
+        "restart": "always",
+        "cpus": "${APP_CPU_LIMIT_MEDIUM}",
+        "mem_reservation": "${APP_MEM_RESERV_MEDIUM}",
+        "mem_limit": "${APP_MEM_LIMIT_MEDIUM}",
+        "logging": {
+            "driver": "json-file",
+            "options": {
+                "max-size": "10m",
+                "max-file": "3"
+            }
+        },
+        "healthcheck": {
+            "test": [
+                "CMD-SHELL",
+                "pgrep -f packetshare || exit 1"
+            ],
+            "interval": "120s",
+            "timeout": "10s",
+            "retries": 3,
+            "start_period": "60s"
+        }
+    },
+    "compose_config_proxy": {
+        "network_mode": "service:proxy",
+        "hostname": null
+    },
+    "flags": {
+        "email": {},
+        "password": {}
+    },
+    "install_limit": -1,
+    "app_details": {
+        "official_name": "PacketShare",
+        "publisher": "PacketShare",
+        "official_url": "https://packetshare.io",
+        "tos_url": "undocumented",
+        "status": "active",
+        "device_limits": {
+            "max_devices_per_account": "undocumented",
+            "max_devices_per_ip": "undocumented",
+            "max_ips_per_account": "undocumented",
+            "notes": "Very sparse official documentation. No official limits found."
+        },
+        "ip_policy": {
+            "residential": true,
+            "datacenter": "undocumented",
+            "vps": "undocumented",
+            "vpn": false,
+            "proxy": "undocumented",
+            "mobile": "undocumented",
+            "adjacent_ips_accepted": "undocumented",
+            "adjacent_ips_max": "undocumented",
+            "ipv6": "undocumented",
+            "geo_restrictions": "none known",
+            "quality_notes": "Insufficient official documentation to confirm IP type policy. Community evidence suggests residential focus."
+        },
+        "docker": {
+            "image_official": true,
+            "image_maintained": "unknown",
+            "last_update": "unknown"
+        },
+        "earnings": {
+            "model": "per-GB",
+            "min_payout": "undocumented",
+            "payout_methods": [
+                "undocumented"
+            ],
+            "avg_monthly_residential_usd": "unknown",
+            "avg_monthly_datacenter_usd": "unknown"
+        },
+        "warnings": [
+            "Very sparse official documentation",
+            "IP policy and earnings unverified"
+        ],
+        "confidence": "low",
+        "sources": [
+            "https://essay.utwente.nl/fileshare/file/108490/thesis-1.pdf"
+        ],
+        "last_verified": "2026-03-21",
+        "compose_layer_reasoning": "Insufficient official documentation to confirm IP type policy. Community evidence suggests residential focus. Conservative residential classification applied.",
+        "install_limit_reasoning": "Very sparse official documentation. No official limits found.",
+        "recommendation": "keep",
+        "recommendation_reasoning": "Residential layer and unlimited limit kept. Low confidence \u2014 needs re-verification when more docs become available.",
+        "confidence_notes": "Only academic thesis reference found. Official documentation is extremely sparse."
+    },
+    "referrals": [
+        {
+            "url": "https://www.packetshare.io/?code=A260871CFD822E35",
+            "contributor": "MRColorR"
+        }
     ],
-    "labels": [
-      "com.centurylinklabs.watchtower.enable=true",
-      "com.centurylinklabs.watchtower.scope=${M4B_WATCHTOWER_SCOPE}"
-    ],
-    "restart": "always",
-    "cpus": "${APP_CPU_LIMIT_MEDIUM}",
-    "mem_reservation": "${APP_MEM_RESERV_MEDIUM}",
-    "mem_limit": "${APP_MEM_LIMIT_MEDIUM}",
-    "logging": {
-      "driver": "json-file",
-      "options": {
-        "max-size": "10m",
-        "max-file": "3"
-      }
+    "user_config_template": {
+        "enabled": false,
+        "email": "yourPACKETSHAREMail",
+        "password": "yourPACKETSHAREPw",
+        "service_enabled": false
     },
-    "healthcheck": {
-      "test": [
-        "CMD-SHELL",
-        "pgrep -f packetshare || exit 1"
-      ],
-      "interval": "120s",
-      "timeout": "10s",
-      "retries": 3,
-      "start_period": "60s"
-    }
-  },
-  "compose_config_proxy": {
-    "network_mode": "service:proxy",
-    "hostname": null
-  },
-  "flags": {
-    "email": {},
-    "password": {}
-  },
-  "install_limit": -1,
-  "compose_layer": "residential",
-  "app_details": {
-    "official_name": "PacketShare",
-    "publisher": "PacketShare",
-    "official_url": "https://packetshare.io",
-    "tos_url": "undocumented",
-    "status": "active",
-    "device_limits": {
-      "max_devices_per_account": "undocumented",
-      "max_devices_per_ip": "undocumented",
-      "max_ips_per_account": "undocumented",
-      "notes": "Very sparse official documentation. No official limits found."
-    },
-    "ip_policy": {
-      "residential": true,
-      "datacenter": "undocumented",
-      "vps": "undocumented",
-      "vpn": false,
-      "proxy": "undocumented",
-      "mobile": "undocumented",
-      "adjacent_ips_accepted": "undocumented",
-      "adjacent_ips_max": "undocumented",
-      "ipv6": "undocumented",
-      "geo_restrictions": "none known",
-      "quality_notes": "Insufficient official documentation to confirm IP type policy. Community evidence suggests residential focus."
-    },
-    "docker": {
-      "image_official": true,
-      "image_maintained": "unknown",
-      "last_update": "unknown"
-    },
-    "earnings": {
-      "model": "per-GB",
-      "min_payout": "undocumented",
-      "payout_methods": [
-        "undocumented"
-      ],
-      "avg_monthly_residential_usd": "unknown",
-      "avg_monthly_datacenter_usd": "unknown"
-    },
-    "warnings": [
-      "Very sparse official documentation",
-      "IP policy and earnings unverified"
-    ],
-    "confidence": "low",
-    "sources": [
-      "https://essay.utwente.nl/fileshare/file/108490/thesis-1.pdf"
-    ],
-    "last_verified": "2026-03-21",
-    "compose_layer_reasoning": "Insufficient official documentation to confirm IP type policy. Community evidence suggests residential focus. Conservative residential classification applied.",
-    "install_limit_reasoning": "Very sparse official documentation. No official limits found.",
-    "recommendation": "keep",
-    "recommendation_reasoning": "Residential layer and unlimited limit kept. Low confidence — needs re-verification when more docs become available.",
-    "confidence_notes": "Only academic thesis reference found. Official documentation is extremely sparse."
-  },
-  "referrals": [
-    {
-      "url": "https://www.packetshare.io/?code=A260871CFD822E35",
-      "contributor": "MRColorR"
-    }
-  ],
-  "user_config_template": {
-    "enabled": false,
-    "email": "yourPACKETSHAREMail",
-    "password": "yourPACKETSHAREPw",
-    "service_enabled": false
-  }
+    "profile": "residential"
 }

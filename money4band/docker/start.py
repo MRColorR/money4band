@@ -548,7 +548,7 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
 
         from money4band.docker.helper import get_active_profiles
 
-        profiles = tuple(get_active_profiles(user_config))
+        profiles = tuple(get_active_profiles(user_config, app_config_path))
         start_all_stacks(
             main_compose_file=compose_files,
             profiles=profiles,

@@ -89,7 +89,7 @@ async def list_apps(
                 "image": _extract_image(app),
                 "resource_tier": _extract_resource_tier(app),
                 "earnings_range": _extract_earnings_range(app),
-                "compose_layer": app.get("compose_layer", ""),
+                "profile": app.get("profile", ""),
                 "status": details.get("status", ""),
                 "dashboard_url": app.get("dashboard", ""),
                 "source": source,

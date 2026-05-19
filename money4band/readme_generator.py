@@ -19,7 +19,7 @@ _END_MARKER = "<!-- END:APPS_TABLE -->"
 # Category → display order (lower = first)
 _CATEGORY_ORDER = {"supported": 0, "newcomers": 1, "deprecated": 2}
 
-# Status → emoji mapping
+# Status → emoji mapping (lifecycle state inside its source)
 _STATUS_EMOJI: dict[str, str] = {
     "active": "\U0001f7e2",  # 🟢
     "unstable": "\U0001f7e1",  # 🟡
@@ -27,6 +27,23 @@ _STATUS_EMOJI: dict[str, str] = {
     "deprecated": "\U0001f534",  # 🔴
     "discontinued": "\U0001f534",  # 🔴
 }
+
+# Per-source row indicator used in the unified README table.
+# Category overrides source for the "needs attention" buckets.
+_SOURCE_EMOJI: dict[str, str] = {
+    "core": "\U0001f7e2",  # 🟢 — ships in core, works out-of-box
+    "community": "\U0001f4dc",  # 📜 — needs `m4b catalog sources enable community`
+    "openpassivehub": "\U0001f331",  # 🌱 — newcomer, no Docker yet
+}
+
+
+def _row_indicator(source: str, category: str) -> str:
+    """Single emoji shown in the README ``Type`` column for an entry."""
+    if category == "deprecated":
+        return "\U0001f534"  # 🔴
+    if category == "newcomers":
+        return "\U0001f331"  # 🌱
+    return _SOURCE_EMOJI.get(source, "—")
 
 
 # ---------------------------------------------------------------------------
@@ -101,7 +118,13 @@ def _format_earnings(val: str | None) -> str:
 
 
 def _collect_apps(app_config: dict[str, Any]) -> list[dict[str, Any]]:
-    """Collect all apps with metadata, sorted by category order then config order."""
+    """Collect all apps with metadata, sorted by category order then config order.
+
+    Each catalog entry may carry an optional ``_source`` field (set by
+    the multi-source merger in ``scripts/update_tables.py``) identifying
+    which repo it came from (``"core"``, ``"community"``,
+    ``"openpassivehub"``). Entries without it default to ``"core"``.
+    """
     apps: list[dict[str, Any]] = []
     for cat in get_all_app_categories(app_config):
         order = _CATEGORY_ORDER.get(cat, 99)
@@ -113,6 +136,7 @@ def _collect_apps(app_config: dict[str, Any]) -> list[dict[str, Any]]:
                 if referrals and isinstance(referrals[0], dict)
                 else ""
             )
+            source = entry.get("_source", "core")
             apps.append(
                 {
                     "entry": entry,
@@ -122,9 +146,11 @@ def _collect_apps(app_config: dict[str, Any]) -> list[dict[str, Any]]:
                     "name": details.get("official_name", entry.get("name", "?")),
                     "link": primary_link,
                     "status": _effective_status(cat, details),
+                    "source": source,
+                    "indicator": _row_indicator(source, cat),
                 }
             )
-    apps.sort(key=lambda a: a["order"])
+    apps.sort(key=lambda a: (a["order"], a["name"].lower()))
     return apps
 
 
@@ -134,12 +160,18 @@ def _collect_apps(app_config: dict[str, Any]) -> list[dict[str, Any]]:
 
 
 def generate_readme_table(app_config: dict[str, Any]) -> str:
-    """Generate the compact supported markdown table for README.md."""
+    """Generate the compact markdown table for README.md.
+
+    Includes a ``Type`` column whose emoji is driven by
+    :func:`_row_indicator` (🟢 core · 📜 community · 🌱 newcomer · 🔴
+    deprecated). When the config only contains core entries the column
+    still renders, all rows just show 🟢.
+    """
     apps = _collect_apps(app_config)
 
     lines = [
-        "| App | Residential | VPS/DC | Payout |",
-        "|-----|:-----------:|:------:|--------|",
+        "| Type | App | Residential | VPS/DC | Payout |",
+        "|:----:|-----|:-----------:|:------:|--------|",
     ]
 
     for app in apps:
@@ -153,7 +185,7 @@ def generate_readme_table(app_config: dict[str, Any]) -> str:
         dc = _bool_md(ip.get("datacenter"))
         payout = _format_payout(earnings.get("payout_methods"))
 
-        lines.append(f"| {app_cell} | {resi} | {dc} | {payout} |")
+        lines.append(f"| {app['indicator']} | {app_cell} | {resi} | {dc} | {payout} |")
 
     return "\n".join(lines)
 
@@ -168,8 +200,8 @@ def generate_apps_md_table(app_config: dict[str, Any]) -> str:
     apps = _collect_apps(app_config)
 
     lines = [
-        "| App | Link | M4B Status | Residential | VPS/DC | Devices/Account | Devices/IP | Payout Methods | Est. Monthly (USD) |",
-        "|-----|------|:----------:|:-----------:|:------:|:---------------:|:----------:|----------------|:------------------:|",
+        "| Type | App | Link | M4B Status | Residential | VPS/DC | Devices/Account | Devices/IP | Payout Methods | Est. Monthly (USD) |",
+        "|:----:|-----|------|:----------:|:-----------:|:------:|:---------------:|:----------:|----------------|:------------------:|",
     ]
 
     for app in apps:
@@ -180,7 +212,6 @@ def generate_apps_md_table(app_config: dict[str, Any]) -> str:
         name = app["name"]
         link = app["link"]
 
-        # Link cell with optional referral code
         if link:
             link_cell = f"[Visit]({link})"
             code = _extract_referral_code(link)
@@ -198,7 +229,7 @@ def generate_apps_md_table(app_config: dict[str, Any]) -> str:
         est = _format_earnings(earnings.get("avg_monthly_residential_usd"))
 
         lines.append(
-            f"| **{name}** | {link_cell} | {status_emoji} | {resi} | {dc} "
+            f"| {app['indicator']} | **{name}** | {link_cell} | {status_emoji} | {resi} | {dc} "
             f"| {dev_acct} | {dev_ip} | {payout} | {est} |"
         )
 

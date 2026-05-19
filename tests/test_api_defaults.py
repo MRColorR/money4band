@@ -58,7 +58,7 @@ def _flat_config(tmp_path):
                         "image": "earnapp:latest",
                         "cpus": "${APP_CPU_LIMIT_LITTLE}",
                     },
-                    "compose_layer": "residential",
+                    "profile": "residential",
                     "app_details": {
                         "status": "active",
                         "earnings": {"avg_monthly_residential_usd": "0.5-3"},
@@ -72,7 +72,7 @@ def _flat_config(tmp_path):
                         "image": "honeygain:latest",
                         "cpus": "${APP_CPU_LIMIT_MEDIUM}",
                     },
-                    "compose_layer": "residential",
+                    "profile": "residential",
                     "app_details": {
                         "status": "active",
                         "earnings": {"avg_monthly_residential_usd": "1-5"},
@@ -90,7 +90,7 @@ def _flat_config(tmp_path):
                         "image": "old:latest",
                         "cpus": "${APP_CPU_LIMIT_LITTLE}",
                     },
-                    "compose_layer": "datacenter",
+                    "profile": "datacenter",
                     "app_details": {"status": "deprecated"},
                 },
             ],

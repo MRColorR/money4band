@@ -12,13 +12,17 @@ Design contract
         "verified": true, "verified_by": ["bob", "carol"]}, ...]
 
 - Each of the three M4B catalog repos ships a ``weights.json`` file
-  that maps ``contributor -> weight`` (float >= 0.1). The file is
-  regenerated weekly in CI by :mod:`scripts.compute_weights`.
+  that maps ``contributor -> weight``. The file is regenerated weekly
+  in CI by :mod:`scripts.compute_weights` (sliding 365-day window,
+  ``MIN_WEIGHT`` cutoff).
 
 - The picker selects one referral by **weighted random** where every
-  referral's weight equals the contributor's weight, falling back to
-  ``DEFAULT_WEIGHT`` when the contributor is absent from
-  ``weights.json``.
+  referral's weight equals the contributor's weight from
+  ``weights.json``. Referrals whose ``contributor`` is not in
+  ``weights.json`` get weight ``0`` — non-contributors do not win the
+  lottery when contributors are present in the pool. If a pool contains
+  *only* non-contributors (all weights ``0``), the picker falls back
+  to a uniform random pick so the user still gets a referral URL.
 
 - A **sticky** override lives in
   ``user-config.settings.picked_referrals[<app_name.lower()>]``: once
@@ -43,13 +47,8 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
-#: Fallback weight for a contributor missing from ``weights.json``.
-#: Matches the floor used by :mod:`scripts.compute_weights` so a new
-#: contributor always has *some* chance to be picked.
-DEFAULT_WEIGHT: float = 0.1
-
-#: Canonical file name of the weights artifact shipped in every repo.
-WEIGHTS_FILENAME: str = "weights.json"
+#: Relative path (from repo root) of the weights artifact.
+WEIGHTS_RELATIVE_PATH: str = "config/weights.json"
 
 
 def load_weights(path: str | Path) -> dict[str, float]:
@@ -100,16 +99,18 @@ def _canonical(contributor: str) -> str:
 
 
 def weight_for(contributor: str, weights: dict[str, float]) -> float:
-    """Return the weight for *contributor*, falling back to the default.
+    """Return the weight for *contributor* from ``weights``, or ``0.0``.
 
     Lookup is case- and whitespace-insensitive: ``"MRColorr"``,
     ``"mrcolorr"`` and ``"  MR Colorr  "`` all resolve to the same
-    bucket in ``weights.json``.
+    bucket in ``weights.json``. Contributors not present in
+    ``weights.json`` (and blank / non-string values) return ``0.0`` —
+    the picker handles all-zero pools by falling back to a uniform
+    random pick.
     """
     if not isinstance(contributor, str) or not contributor.strip():
-        return DEFAULT_WEIGHT
-    key = _canonical(contributor)
-    return max(DEFAULT_WEIGHT, float(weights.get(key, DEFAULT_WEIGHT)))
+        return 0.0
+    return float(weights.get(_canonical(contributor), 0.0))
 
 
 def pick_weighted(
@@ -126,7 +127,8 @@ def pick_weighted(
         entries (missing/empty ``url``) are skipped silently.
     weights:
         Contributor -> weight mapping. ``None`` or empty means every
-        referral gets :data:`DEFAULT_WEIGHT` (equal chance).
+        referral gets weight ``0`` → falls through to the uniform
+        random fallback.
     rng:
         Optional :class:`random.Random` instance for deterministic
         testing. Defaults to ``random`` module-level RNG.

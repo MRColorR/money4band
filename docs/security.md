@@ -10,7 +10,7 @@ All sensitive data in `user-config.json` is encrypted at rest using **Fernet** (
 
 ### How It Works
 
-1. **Master key** is stored at `~/.m4b/master.key` with restricted file permissions (`0o600`).
+1. **Master key** is stored at `<data-dir>/master.key` with restricted file permissions (`0o600`). The data dir is resolved with this precedence: `$M4B_DATA_DIR` → `<install>/.m4b/` → `~/.m4b/` (legacy). See [Configuration → Runtime Data Directory](configuration.md#runtime-data-directory).
 2. On first run, if no key exists, one is generated automatically.
 3. When M4B exits (via `atexit` or `SIGTERM`), credentials are encrypted before writing to disk.
 4. On startup, credentials are decrypted in memory for use.
@@ -61,15 +61,54 @@ This checks:
 
 ## Backup Security
 
-- Backups at `~/.m4b/backups/` preserve encryption state.
+- Backups at `<data-dir>/backups/` preserve encryption state.
 - If your config is encrypted when backed up, the backup file is also encrypted.
 - Restoration requires the same master key that was used to encrypt.
 
+## REST API Hardening (v5.0)
+
+The bundled FastAPI dashboard ships with the following baseline applied
+to every response:
+
+| Header | Value | Scope |
+|--------|-------|-------|
+| `X-Content-Type-Options` | `nosniff` | every response |
+| `X-Frame-Options` | `DENY` | every response (anti-clickjacking) |
+| `Referrer-Policy` | `no-referrer` | every response |
+| `Cache-Control` | `no-store` | `/api/*` only — keeps sensitive bodies out of browser/proxy caches |
+
+Auth middleware enforces:
+- Timing-safe Bearer-token comparison (`hmac.compare_digest`).
+- Per-installation random session salt (32 bytes, hex-encoded on disk).
+- Epoch-day token rotation with previous-day grace window.
+- Per-IP sliding-window rate limit (60 req/min) with GC of empty deques.
+- Loopback exemption only when the server is bound to `127.0.0.1` — when
+  exposed to non-loopback addresses, even localhost callers must
+  authenticate.
+
+`PUT /api/config/user` rejects any payload that tries to replace a
+dict-valued top-level key (e.g. `m4b_dashboard`) with a scalar / list /
+null — closes the parent-object-replacement bypass against
+`_IMMUTABLE_KEYS` (api_key, master_key).
+
+Container-action endpoints log raw Docker stderr internally but return
+generic failure messages to clients (no info disclosure).
+
+## Self-Update Integrity (v5.0)
+
+- Binary downloads verified by SHA-256 from the GitHub release manifest.
+- `_backup_preserved_files` captures the original POSIX mode per file
+  alongside its bytes; `_restore_preserved_files` writes back via
+  `os.open(path, O_WRONLY|O_CREAT|O_TRUNC, mode)`. Encrypted
+  `user-config.json` keeps its `0o600` after `m4b update` — no widening
+  to 0o644 on shared Unix hosts.
+
 ## Best Practices
 
-1. **Don't share** `~/.m4b/master.key` or `config/user-config.json`.
+1. **Don't share** the master key or `config/user-config.json`.
 2. **Use `m4b backup`** regularly to protect against data loss.
 3. **Keep M4B updated** (`m4b update`) for security patches.
 4. **Review IP quality** (`m4b ip`) — some proxy providers may flag your IP.
 5. **Use the dashboard locally** — avoid exposing it to the internet without HTTPS.
 6. **Dashboard cookie auth** — when using web-exposed mode, the API key is stored as an `httpOnly`, `samesite=strict` cookie.
+7. **Run portable installs from a writable dir** — the data dir lands in `<install>/.m4b/` by default for fresh installs; PyInstaller binary on a USB stick is fully self-contained.

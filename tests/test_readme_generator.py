@@ -266,12 +266,35 @@ class TestGenerateReadmeTable:
     def test_header(self) -> None:
         table = generate_readme_table(_SAMPLE_CONFIG)
         lines = table.split("\n")
-        assert "| App | Residential | VPS/DC | Payout |" in lines[0]
+        assert "| Type | App | Residential | VPS/DC | Payout |" in lines[0]
 
     def test_row_count(self) -> None:
         table = generate_readme_table(_SAMPLE_CONFIG)
-        data_rows = [l for l in table.split("\n") if l.startswith(("| [", "| **"))]
+        # Data rows now start with "| <emoji> | ..." — header lines start "| Type"/"|:".
+        data_rows = [
+            l
+            for l in table.split("\n")
+            if l.startswith("|") and not l.startswith(("| Type", "|:"))
+        ]
         assert len(data_rows) == 4
+
+    def test_type_indicator_present(self) -> None:
+        table = generate_readme_table(_SAMPLE_CONFIG)
+        # Sample config has no _source on any entry -> default "core" -> 🟢.
+        # Plus a deprecated entry -> 🔴; plus a newcomers entry -> 🌱.
+        assert "\U0001f7e2" in table  # 🟢 core
+        assert "\U0001f534" in table  # 🔴 deprecated
+        assert "\U0001f331" in table  # 🌱 newcomer
+
+    def test_community_source_emoji(self) -> None:
+        from copy import deepcopy
+
+        from money4band.readme_generator import generate_readme_table
+
+        cfg = deepcopy(_SAMPLE_CONFIG)
+        cfg["supported"]["entries"][0]["_source"] = "community"
+        table = generate_readme_table(cfg)
+        assert "\U0001f4dc" in table  # 📜 community
 
     def test_active_app_row(self) -> None:
         table = generate_readme_table(_SAMPLE_CONFIG)
@@ -299,7 +322,7 @@ class TestGenerateReadmeTable:
 class TestGenerateAppsMdTable:
     def test_header(self) -> None:
         table = generate_apps_md_table(_SAMPLE_CONFIG)
-        assert "| App | Link | M4B Status |" in table
+        assert "| Type | App | Link | M4B Status |" in table
 
     def test_status_emojis(self) -> None:
         table = generate_apps_md_table(_SAMPLE_CONFIG)

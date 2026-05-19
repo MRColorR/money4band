@@ -68,7 +68,7 @@ _APP_CONFIG = {
                 "compose_config_proxy": {},
                 "flags": {},
                 "install_limit": -1,
-                "compose_layer": "residential",
+                "profile": "residential",
             }
         ],
     }
@@ -513,7 +513,8 @@ class TestSystemInfo:
         assert "Docker installed" in captured.out
         assert "Docker running" in captured.out
         assert "Multiarch" in captured.out
-        assert "layered" in captured.out
+        # v5.0 prints the resolved compose file name(s); no more layered/monolithic label.
+        assert "Compose" in captured.out
 
     def test_show_system_info_dashboard_enabled(self, capsys):
         from money4band.system.info import show_system_info

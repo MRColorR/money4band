@@ -1,6 +1,6 @@
 # CLI Reference
 
-> All 22 subcommands available via `m4b <command>` (or `python main.py <command>`).
+> All 24 subcommands available via `m4b <command>` (or `python main.py <command>`).
 
 ---
 
@@ -44,6 +44,21 @@ Open the configuration in your default editor.
 ```bash
 m4b config edit
 ```
+
+### `config migrate-data-dir`
+Copy the legacy `~/.m4b/{master.key, session.salt, backups/}` runtime state
+into `<install>/.m4b/` so the install dir is fully self-contained (portable
+between machines, immune to multi-install collisions). Idempotent —
+re-running after a successful copy reports every entry as identical.
+
+```bash
+m4b config migrate-data-dir                 # copy only; legacy kept
+m4b config migrate-data-dir --remove-source # wipes legacy after byte-verify
+m4b config migrate-data-dir --force         # overwrites a divergent target
+```
+
+See [Configuration → Runtime Data Directory](configuration.md#runtime-data-directory)
+for the 3-tier resolver (`$M4B_DATA_DIR` → `<install>/.m4b/` → `~/.m4b/`).
 
 ### `reset`
 Reset `user-config.json` to the factory template.
@@ -111,6 +126,21 @@ Regenerate `docker-compose.yaml` and `.env` from current configuration.
 ```bash
 m4b generate
 ```
+
+### `clean`
+Prune orphan resources scoped to this M4B project — stopped containers and
+unused networks tagged with `com.docker.compose.project=<this project>`.
+Other Docker Compose projects on the same host are never touched.
+
+```bash
+m4b clean                  # containers + networks (with confirm)
+m4b clean --dry-run        # preview without removing anything
+m4b clean --volumes        # ALSO remove project volumes (DESTRUCTIVE)
+m4b clean --yes            # skip confirmation prompt
+```
+
+`--volumes` wipes per-app persistent state (e.g. mystnode keystore). Use
+only after backing up anything you need.
 
 ---
 

@@ -10,22 +10,39 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
-# Minimal required fields for a valid app entry
-_REQUIRED_FIELDS = {"name", "compose_config", "flags", "install_limit", "compose_layer"}
+# Minimal required fields for a valid app entry.
+# ``profile`` is required for app entries; addons (with ``parent_id``)
+# inherit the parent's profile at generation time, so the field is
+# optional on addon bundles.
+_REQUIRED_FIELDS_APP = {"name", "compose_config", "flags", "install_limit", "profile"}
+_REQUIRED_FIELDS_ADDON = {"name", "compose_config", "parent_id"}
 _NAME_RE = re.compile(r"^[A-Z][A-Z0-9_]+$")
-_VALID_LAYERS = {"residential", "datacenter", "universal", "service"}
+
+# Canonical Docker Compose profile names assigned to app bundles by their
+# IP-policy tier. Each value maps 1:1 onto the ``profiles:`` array of the
+# generated compose service. The optional ``monitoring`` and ``proxy``
+# profiles used by Watchtower and the tun2socks tunnel are reserved by the
+# generator and are not valid bundle values.
+_VALID_PROFILES = {"residential", "datacenter", "universal", "service"}
 _VALID_RESTART = {"always", "unless-stopped", "on-failure", "no"}
 
 
 def validate_app_entry(entry: dict[str, Any]) -> list[str]:
     """Validate a single app entry against the M4B app schema.
 
-    Returns a list of error strings.  Empty list means the entry is valid.
+    Returns a list of error strings. Empty list means the entry is valid.
+
+    Addons (entries with ``parent_id``) follow a relaxed schema: ``flags``
+    and ``install_limit`` are not required, and ``profile`` is inherited
+    from the parent at generation time so it may be absent.
     """
     errors: list[str] = []
 
+    is_addon = bool(entry.get("parent_id"))
+    required = _REQUIRED_FIELDS_ADDON if is_addon else _REQUIRED_FIELDS_APP
+
     # Required top-level fields
-    for field in _REQUIRED_FIELDS:
+    for field in required:
         if field not in entry:
             errors.append(f"Missing required field: '{field}'")
 
@@ -45,17 +62,20 @@ def validate_app_entry(entry: dict[str, Any]) -> list[str]:
     elif cc is not None:
         errors.append("compose_config: must be an object")
 
-    # compose_layer
-    layer = entry.get("compose_layer")
-    if layer and layer not in _VALID_LAYERS:
-        errors.append(f"compose_layer: invalid value '{layer}'")
+    # profile — when present, must be in the canonical set.
+    # Addons may omit it (inherited from parent at generation).
+    profile = entry.get("profile")
+    if profile is not None and profile not in _VALID_PROFILES:
+        errors.append(
+            f"profile: invalid value '{profile}' (allowed: {sorted(_VALID_PROFILES)})"
+        )
 
     # install_limit
     limit = entry.get("install_limit")
     if limit is not None and not isinstance(limit, int):
         errors.append(f"install_limit: must be an integer, got {type(limit).__name__}")
 
-    # flags must be a dict
+    # flags must be a dict (when present — addons may omit it)
     flags = entry.get("flags")
     if flags is not None and not isinstance(flags, dict):
         errors.append("flags: must be an object")
@@ -149,19 +169,14 @@ def merge_community_apps(app_config: dict[str, Any], apps_d_dir: str) -> dict[st
 # Typed catalog model
 # ---------------------------------------------------------------------------
 #
-# These dataclasses are the canonical in-memory representation of a catalog
-# entry.  They map 1:1 onto the v2.0 catalog shape; no legacy v1.2 tolerance
-# is attempted — a dedicated migration ran once at the schema bump and no
-# long-lived dual-stack code is carried.
+# Canonical in-memory representation of a catalog entry.
 #
-# Shape contract (v2.0):
-#   * Top-level categories are ``supported`` / ``newcomers`` / ``deprecated``.
-#   * Per-entry ``referrals`` is a list of ``{url, contributor, ...}`` dicts
-#     (may be empty).  No single ``link`` string is accepted.
-#   * Per-entry ``additional_details`` is an optional Markdown note usable
-#     in any category (replaces the old ``removal_reason``).
-#   * ``app_details`` remains the bag of descriptive metadata and is kept
-#     intact inside :class:`AppMetadata.raw`.
+# Shape contract:
+#   * Top-level categories: ``supported`` / ``newcomers`` / ``deprecated``.
+#   * Per-entry ``referrals`` is a list of ``{url, contributor, ...}`` dicts.
+#   * Per-entry ``additional_details`` is an optional Markdown note.
+#   * ``app_details`` holds descriptive metadata, kept intact inside
+#     :class:`AppMetadata.raw`.
 
 # Canonical catalog source types (see ``catalog_sources[].type``).
 SOURCE_LOCAL = "local"
@@ -247,7 +262,11 @@ class DeploymentSpec:
     compose_config_proxy: dict[str, Any] | None = None
     flags: dict[str, Any] = dc_field(default_factory=dict)
     install_limit: int = -1
-    compose_layer: str = "residential"
+    # Docker Compose profile name. Becomes the single entry of the
+    # service's ``profiles:`` array in the generated compose file.
+    # Addons override this at generation by inheriting their parent's
+    # profile; ``None`` here means "inherit from parent".
+    profile: str | None = "residential"
     raw: dict[str, Any] = dc_field(default_factory=dict)
 
 
@@ -326,7 +345,7 @@ class CatalogEntry:
             install_limit = int(install_limit_raw)
         except (TypeError, ValueError):
             install_limit = -1
-        compose_layer = str(raw.get("compose_layer") or "residential")
+        profile = str(raw.get("profile") or "residential")
 
         deployment = DeploymentSpec(
             compose_config=compose_config if isinstance(compose_config, dict) else {},
@@ -335,7 +354,7 @@ class CatalogEntry:
             else None,
             flags=flags if isinstance(flags, dict) else {},
             install_limit=install_limit,
-            compose_layer=compose_layer,
+            profile=profile,
             raw=raw,
         )
 
@@ -396,12 +415,20 @@ class Addon:
         raw_proxy = raw.get("compose_config_proxy")
         proxy_dict = raw_proxy if isinstance(raw_proxy, dict) else None
 
+        # Addons inherit their parent's profile at generation time.
+        # An explicit ``profile`` value on the addon bundle, when present,
+        # is preserved as a hint but the generator may override it.
+        addon_profile_raw = raw.get("profile")
+        addon_profile = (
+            str(addon_profile_raw) if isinstance(addon_profile_raw, str) else None
+        )
+
         deployment = DeploymentSpec(
             compose_config=compose_config if isinstance(compose_config, dict) else {},
             compose_config_proxy=proxy_dict,
             flags=flags_dict,
             install_limit=install_limit,
-            compose_layer=str(raw.get("compose_layer") or "service"),
+            profile=addon_profile,
             raw=raw,
         )
 

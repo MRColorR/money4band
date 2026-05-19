@@ -137,3 +137,68 @@ class TestEditConfig:
 
         captured = capsys.readouterr()
         assert "Invalid JSON" in captured.out
+
+    def test_multiword_editor_is_shlex_split(self, tmp_path):
+        """P1-4: multi-word ``$EDITOR`` (e.g. ``code --wait``) must split into argv.
+
+        Before the fix, ``subprocess.run([editor, tmp_path])`` treated the
+        whole string ``"code --wait"`` as argv[0], causing FileNotFoundError.
+        """
+        cfg = {"k": "v"}
+        config_file = tmp_path / "user-config.json"
+        config_file.write_text(json.dumps(cfg))
+
+        captured_argv: list[list[str]] = []
+
+        def capture_argv(cmd, *args, **kwargs):
+            captured_argv.append(list(cmd))
+            # Touch the temp file with valid JSON so downstream parsing succeeds.
+            tmp_file = cmd[-1]
+            with open(tmp_file, "w") as f:
+                json.dump(cfg, f)
+            return subprocess.CompletedProcess(args=cmd, returncode=0)
+
+        with (
+            patch("money4band.core.viewer.load_json_config", return_value=cfg),
+            patch("money4band.core.viewer._get_editor", return_value="code --wait"),
+            patch("money4band.core.viewer.subprocess.run", side_effect=capture_argv),
+            patch("money4band.core.dumper.write_json"),
+            patch("money4band.core.viewer.ensure_config_encrypted"),
+        ):
+            edit_config(str(config_file))
+
+        assert len(captured_argv) == 1
+        argv = captured_argv[0]
+        assert argv[0] == "code"
+        assert argv[1] == "--wait"
+        assert argv[2].endswith(".json")  # tmp_path appended as last arg
+
+    def test_quoted_editor_path_with_spaces_preserved(self, tmp_path):
+        """Editor path with quoted spaces survives shlex.split as a single token."""
+        cfg = {"k": "v"}
+        config_file = tmp_path / "user-config.json"
+        config_file.write_text(json.dumps(cfg))
+
+        captured_argv: list[list[str]] = []
+
+        def capture_argv(cmd, *args, **kwargs):
+            captured_argv.append(list(cmd))
+            with open(cmd[-1], "w") as f:
+                json.dump(cfg, f)
+            return subprocess.CompletedProcess(args=cmd, returncode=0)
+
+        with (
+            patch("money4band.core.viewer.load_json_config", return_value=cfg),
+            patch(
+                "money4band.core.viewer._get_editor",
+                return_value='"C:/Program Files/My Editor/ed.exe" --flag',
+            ),
+            patch("money4band.core.viewer.subprocess.run", side_effect=capture_argv),
+            patch("money4band.core.dumper.write_json"),
+            patch("money4band.core.viewer.ensure_config_encrypted"),
+        ):
+            edit_config(str(config_file))
+
+        argv = captured_argv[0]
+        assert argv[0] == "C:/Program Files/My Editor/ed.exe"
+        assert argv[1] == "--flag"

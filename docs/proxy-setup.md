@@ -16,7 +16,9 @@ Configure a single proxy in the interactive setup or directly in your config:
 2. Enter your proxy URL (e.g., `socks5://user:pass@proxy-host:1080`).
 3. M4B wraps your containers with a VPN tunnel container that routes traffic through the proxy.
 
-The proxy tunnel is added as a `compose.proxy.yml` layer.
+The proxy tunnel is injected into the generated `docker-compose.yaml`
+alongside the app containers, tagged with the `proxy` Docker Compose
+profile so it activates only when proxying is enabled.
 
 ## Multi-Proxy Setup
 
@@ -39,7 +41,7 @@ Multi-proxy lets you create **N independent instances**, each routed through a d
    ```
 
 4. M4B creates a separate directory for each proxy instance, each with its own:
-   - `docker-compose.yaml` + layer files
+   - `docker-compose.yaml`
    - `.env` file
    - Unique device name & UUID
    - Isolated Docker network subnet

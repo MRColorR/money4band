@@ -51,7 +51,7 @@ class TestLoadAllOffers:
                         "compose_config": {"image": "x"},
                         "flags": {},
                         "install_limit": -1,
-                        "compose_layer": "residential",
+                        "profile": "residential",
                         "app_details": {
                             "official_name": "TestApp",
                             "earnings": {
@@ -111,7 +111,7 @@ class TestLoadAllOffers:
                         "compose_config": {"image": "x"},
                         "flags": {},
                         "install_limit": -1,
-                        "compose_layer": "residential",
+                        "profile": "residential",
                     }
                 ],
             },
@@ -144,7 +144,7 @@ class TestDisplayOffers:
                         "compose_config": {"image": "x"},
                         "flags": {},
                         "install_limit": -1,
-                        "compose_layer": "universal",
+                        "profile": "universal",
                         "app_details": {"official_name": "MyApp"},
                     }
                 ],

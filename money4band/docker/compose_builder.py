@@ -1,6 +1,21 @@
 from __future__ import annotations
 
-"""Docker Compose file assembly — builds docker-compose.yaml from configuration."""
+"""Docker Compose file assembly — builds docker-compose.yaml from configuration.
+
+Emits a single ``docker-compose.yaml``. Each service carries a
+``profiles:`` array driven by its bundle's ``profile`` field, giving
+selective startup via standard Docker Compose profile semantics
+(``docker compose --profile residential up``).
+
+Reserved profile names assigned by the generator (not valid as bundle
+``profile`` values):
+
+- ``monitoring`` — Watchtower service.
+- ``proxy`` — tun2socks tunnel service (active when ``proxies.enabled``).
+
+Sidecars (entries with ``parent_id``) inherit their parent app's profile
+at generation time.
+"""
 
 import copy
 import logging
@@ -23,44 +38,20 @@ from money4band.docker.helper import show_spinner
 from money4band.network import http_client
 
 logger = logging.getLogger(__name__)
-# Layered compose file ordering and names.
-# App layers reflect IP-policy TOS tiers (incremental broadening):
-#   residential  — TOS requires residential/local IPs only
-#   datacenter   — TOS allows residential + datacenter/hosting IPs
-#   universal    — TOS accepts any IP type (proxies, VPN, etc.)
-COMPOSE_LAYER_ORDER = (
-    "base",
-    "residential",
-    "datacenter",
-    "universal",
-    "service",
-    "proxy",
-)
-COMPOSE_LAYER_FILES: dict[str, str] = {
-    "base": "compose.yml",
-    "residential": "compose.residential.yml",
-    "datacenter": "compose.datacenter.yml",
-    "universal": "compose.universal.yml",
-    "service": "compose.service.yml",
-    "proxy": "compose.proxy.yml",
-}
+
+# Reserved profile names the generator assigns to optional services.
+RESERVED_MONITORING_PROFILE = "monitoring"
+RESERVED_PROXY_PROFILE = "proxy"
 
 
 def get_compose_files(base_dir: str = ".") -> list[str]:
-    """Return existing layered compose files in the correct stacking order.
+    """Return ``[docker-compose.yaml]`` if present, else ``[]``.
 
-    Falls back to ``docker-compose.yaml`` for backward compatibility.
+    List-return shape kept so callers can iterate and append ``-f`` flags
+    without special-casing single vs multi-file output.
     """
-    files: list[str] = []
-    for layer in COMPOSE_LAYER_ORDER:
-        path = os.path.join(base_dir, COMPOSE_LAYER_FILES[layer])
-        if os.path.isfile(path):
-            files.append(path)
-    if not files:
-        legacy = os.path.join(base_dir, "docker-compose.yaml")
-        if os.path.isfile(legacy):
-            files.append(legacy)
-    return files
+    path = os.path.join(base_dir, "docker-compose.yaml")
+    return [path] if os.path.isfile(path) else []
 
 
 def substitute_port_placeholders(
@@ -108,10 +99,14 @@ def assemble_docker_compose(
     user_config_path_or_dict: Any,
     compose_output_path: str = str(os.path.join(os.getcwd(), "docker-compose.yaml")),
     is_main_instance: bool = False,
-    layered: bool = False,
 ) -> list[str]:
     """
-    Assemble a Docker Compose file based on the app and user configuration.
+    Assemble a single Docker Compose file from the catalog + user config.
+
+    Every service gets a ``profiles:`` array of one entry derived from its
+    bundle's ``profile`` field (apps), inherited from the parent (addons),
+    or assigned by the generator (Watchtower → ``monitoring``,
+    tun2socks → ``proxy``).
 
     Args:
         m4b_config_path_or_dict (Any): The path to the m4b configuration file or the config dictionary.
@@ -119,12 +114,9 @@ def assemble_docker_compose(
         user_config_path_or_dict (Any): The path to the user configuration file or the config dictionary.
         compose_output_path (str, optional): The path to save the assembled docker-compose.yaml file. Defaults to './docker-compose.yaml'.
         is_main_instance (bool, optional): Whether this is the main instance. Defaults to False.
-        layered (bool, optional): When True, generate separate compose files per layer
-            instead of a single monolithic file. Files are written to the directory
-            of *compose_output_path*. Defaults to False.
 
     Returns:
-        list[str]: Paths to the generated compose file(s).
+        list[str]: Single-element list with the path to the generated compose file.
     """
     event = threading.Event()
     spinner_thread = threading.Thread(
@@ -145,14 +137,11 @@ def assemble_docker_compose(
         proxy_enabled = user_config["proxies"].get("enabled", False)
 
         services = {}
-        # Track which compose layer each service belongs to.
-        service_layers: dict[str, str] = {}
+        service_profiles: dict[str, str] = {}
         disabled_apps_due_to_incompatibility = []
         apps_categories = get_active_app_categories(app_config)
 
-        # Collect ports for proxy service if proxy is enabled
         proxy_ports = []
-        # Dictionary to keep track of which app ports have been added to proxy
         app_ports_transferred = {}
 
         for category in apps_categories:
@@ -310,10 +299,11 @@ def assemble_docker_compose(
                             }
 
                     services[app_name] = app_compose_config
-                    service_layers[app_name] = app.get("compose_layer", "datacenter")
+                    app_profile = app.get("profile", "datacenter")
+                    service_profiles[app_name] = app_profile
 
-                    # Auto-claim sidecar: look up addons attached to this
-                    # parent and inject each if the user opted in.
+                    # Sidecars inherit the parent's profile so they activate
+                    # together under ``--profile <tier>``.
                     from money4band.apps.addons import get_addons_for
 
                     addons_for_app = get_addons_for(app_name, app_config)
@@ -331,11 +321,11 @@ def assemble_docker_compose(
                                     "platform"
                                 ]
                             services[sidecar_name] = sidecar_config
-                            service_layers[sidecar_name] = addon.get(
-                                "compose_layer", "service"
-                            )
+                            service_profiles[sidecar_name] = app_profile
                             logger.info(
-                                f"Added auto-claim sidecar '{sidecar_name}' for {app_name}"
+                                "Added auto-claim sidecar '%s' for %s "
+                                "(inherited profile=%s)",
+                                sidecar_name, app_name, app_profile,
                             )
 
         # Add common services only if this is the main instance
@@ -388,9 +378,9 @@ def assemble_docker_compose(
                     ]
                 # Watchtower only reads config, never writes — safe to lock filesystem
                 watchtower_service.setdefault("read_only", True)
-                watchtower_service["profiles"] = ["monitoring"]
+                watchtower_service["profiles"] = [RESERVED_MONITORING_PROFILE]
                 services["watchtower"] = watchtower_service
-                service_layers["watchtower"] = "base"
+                service_profiles["watchtower"] = RESERVED_MONITORING_PROFILE
 
         if proxy_enabled:
             # Get the base proxy service configuration
@@ -424,9 +414,9 @@ def assemble_docker_compose(
                 "retries": 3,
                 "start_period": "30s",
             }
-            proxy_service["profiles"] = ["proxy"]
+            proxy_service["profiles"] = [RESERVED_PROXY_PROFILE]
             services["proxy"] = proxy_service
-            service_layers["proxy"] = "proxy"
+            service_profiles["proxy"] = RESERVED_PROXY_PROFILE
 
         # Define network configuration using config json and environment variables
         # This is a hybrid solution to remember that it could be possible to ditch the env file and generate all compose file parts from config json
@@ -445,16 +435,13 @@ def assemble_docker_compose(
             }
         }
 
-        # Create the compose dictionary
-        # Harden all non-privileged services: prevent setuid/setgid escalation
+        # Harden non-privileged services: prevent setuid/setgid escalation.
         for svc_config in services.values():
             if not svc_config.get("privileged", False):
                 svc_config.setdefault("security_opt", ["no-new-privileges:true"])
 
-        # Centralised DNS: apply custom DNS servers to all services when
-        # configured (mode="custom"), otherwise leave Docker's host-inherited
-        # defaults alone (mode="default").  This replaces any per-app
-        # hardcoded DNS entries with a single source of truth.
+        # Centralised DNS: custom servers replace per-service DNS; default
+        # mode strips leftover per-service entries so Docker uses the host.
         dns_cfg = user_config.get("settings", {})
         if dns_cfg.get("dns_mode") == "custom":
             dns_servers = dns_cfg.get("dns_servers", [])
@@ -462,53 +449,38 @@ def assemble_docker_compose(
                 for svc_config in services.values():
                     svc_config["dns"] = list(dns_servers)
         else:
-            # Default mode: strip any leftover per-service DNS entries so
-            # Docker uses the host resolver.
             for svc_config in services.values():
                 svc_config.pop("dns", None)
 
+        # Apply ``profiles:`` to every service. Watchtower and tun2socks
+        # already carry their reserved profile from the blocks
+        # above (we don't overwrite if profiles is already set).
+        for svc_name, svc_config in services.items():
+            if "profiles" not in svc_config:
+                assigned = service_profiles.get(svc_name)
+                if assigned:
+                    svc_config["profiles"] = [assigned]
+
         generated_files: list[str] = []
-
-        if layered:
-            # Split services into layer buckets and write separate files.
-            output_dir = os.path.dirname(compose_output_path) or "."
-            layer_buckets: dict[str, dict] = {
-                layer: {} for layer in COMPOSE_LAYER_ORDER
-            }
-            for svc_name, svc_config in services.items():
-                bucket = service_layers.get(svc_name, "datacenter")
-                layer_buckets[bucket][svc_name] = svc_config
-
-            for layer_name in COMPOSE_LAYER_ORDER:
-                bucket = layer_buckets[layer_name]
-                if not bucket:
-                    # Remove stale layer file if it exists from a previous run.
-                    stale = os.path.join(output_dir, COMPOSE_LAYER_FILES[layer_name])
-                    if os.path.isfile(stale):
-                        os.remove(stale)
-                    continue
-                layer_dict: dict[str, Any] = {"services": bucket}
-                if layer_name == "base":
-                    layer_dict.update(network_config)
-                layer_path = os.path.join(output_dir, COMPOSE_LAYER_FILES[layer_name])
-                with open(layer_path, "w") as f:
-                    yaml.dump(layer_dict, f, sort_keys=False, default_flow_style=False)
-                generated_files.append(layer_path)
-                logger.info(f"Wrote layered compose file: {layer_path}")
-
-            # Remove legacy monolithic file if layered files were written.
-            legacy = os.path.join(output_dir, "docker-compose.yaml")
-            if generated_files and os.path.isfile(legacy):
-                os.remove(legacy)
-                logger.info(
-                    "Removed legacy docker-compose.yaml (replaced by layered files)"
-                )
-        else:
-            compose_dict = {"services": services}
-            compose_dict.update(network_config)
-            with open(compose_output_path, "w") as f:
-                yaml.dump(compose_dict, f, sort_keys=False, default_flow_style=False)
-            generated_files.append(compose_output_path)
+        compose_dict = {"services": services}
+        compose_dict.update(network_config)
+        output_dir = os.path.dirname(compose_output_path) or "."
+        # Strip any leftover layered compose files from prior runs.
+        for stale_layer in (
+            "compose.yml",
+            "compose.residential.yml",
+            "compose.datacenter.yml",
+            "compose.universal.yml",
+            "compose.service.yml",
+            "compose.proxy.yml",
+        ):
+            stale = os.path.join(output_dir, stale_layer)
+            if os.path.isfile(stale):
+                os.remove(stale)
+                logger.info("Removed legacy layered compose file: %s", stale_layer)
+        with open(compose_output_path, "w") as f:
+            yaml.dump(compose_dict, f, sort_keys=False, default_flow_style=False)
+        generated_files.append(compose_output_path)
 
         logger.info(f"Docker Compose file(s) assembled: {generated_files}")
         if disabled_apps_due_to_incompatibility:

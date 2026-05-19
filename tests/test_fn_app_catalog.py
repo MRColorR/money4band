@@ -35,7 +35,7 @@ class TestFnAppCatalog(unittest.TestCase):
                             "contributor": "MRColorR",
                         }
                     ],
-                    "compose_layer": "residential",
+                    "profile": "residential",
                 },
                 {
                     "name": "HONEYGAIN",
@@ -46,7 +46,7 @@ class TestFnAppCatalog(unittest.TestCase):
                             "contributor": "MRColorR",
                         }
                     ],
-                    "compose_layer": "residential",
+                    "profile": "residential",
                 },
                 {
                     "name": "MYSTNODE",
@@ -58,7 +58,7 @@ class TestFnAppCatalog(unittest.TestCase):
                             "contributor": "MRColorR",
                         }
                     ],
-                    "compose_layer": "universal",
+                    "profile": "universal",
                 },
             ],
         },
@@ -75,7 +75,7 @@ class TestFnAppCatalog(unittest.TestCase):
                             "contributor": "MRColorR",
                         }
                     ],
-                    "compose_layer": "residential",
+                    "profile": "residential",
                 },
             ],
         },
@@ -221,13 +221,13 @@ class TestManageCategories(unittest.TestCase):
         "supported": {
             "active": True,
             "entries": [
-                {"name": "APP1", "link": "", "compose_layer": "residential"},
+                {"name": "APP1", "link": "", "profile": "residential"},
             ],
         },
         "deprecated": {
             "active": False,
             "entries": [
-                {"name": "APP2", "link": "", "compose_layer": "universal"},
+                {"name": "APP2", "link": "", "profile": "universal"},
             ],
         },
     }
@@ -293,7 +293,7 @@ class TestDisplayCatalog(unittest.TestCase):
                     "referrals": [
                         {"url": "https://example.com", "contributor": "MRColorR"}
                     ],
-                    "compose_layer": "residential",
+                    "profile": "residential",
                     "app_details": {"earnings": {"min_payout": "$5"}},
                 },
             ],
@@ -320,13 +320,13 @@ class TestManageCategoriesEdgeCases(unittest.TestCase):
         "supported": {
             "active": True,
             "entries": [
-                {"name": "A1", "link": "", "compose_layer": "residential"},
+                {"name": "A1", "link": "", "profile": "residential"},
             ],
         },
         "deprecated": {
             "active": False,
             "entries": [
-                {"name": "A2", "link": "", "compose_layer": "universal"},
+                {"name": "A2", "link": "", "profile": "universal"},
             ],
         },
     }

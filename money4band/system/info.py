@@ -271,15 +271,10 @@ def show_system_info(
         if docker_running:
             multiarch = is_multiarch_emulation_available()
 
-    # ---- Compose files ----
+    # ---- Compose file ----
     from money4band.docker.compose_builder import get_compose_files
 
     compose_files = get_compose_files(".")
-    compose_mode = (
-        "layered"
-        if len(compose_files) > 1
-        else ("monolithic" if compose_files else "none")
-    )
 
     # ---- Print ----
     w = 22  # label column width
@@ -338,10 +333,11 @@ def show_system_info(
     print(f"  {'Dashboard:':<{w}} {'enabled' if dash_enabled else 'disabled'}")
 
     print(f"\n{Fore.CYAN}Compose{Style.RESET_ALL}")
-    print(f"  {'Mode:':<{w}} {compose_mode}")
     if compose_files:
         for cf in compose_files:
-            print(f"  {'  '}{os.path.basename(cf)}")
+            print(f"  {'File:':<{w}} {os.path.basename(cf)}")
+    else:
+        print(f"  {'File:':<{w}} (not generated yet — run `m4b generate`)")
 
     print()
 

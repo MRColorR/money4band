@@ -18,7 +18,7 @@ _SAMPLE_CONFIG = {
                     {"url": "https://earnapp.com/i/ref123", "contributor": "MRColorR"}
                 ],
                 "install_limit": 1,
-                "compose_layer": "residential",
+                "profile": "residential",
                 "compose_config": {"image": "fazalfarhan01/earnapp:lite"},
                 "app_details": {
                     "official_name": "EarnApp",
@@ -63,7 +63,7 @@ _SAMPLE_CONFIG = {
                     {"url": "https://honeygain.com/ref", "contributor": "MRColorR"}
                 ],
                 "install_limit": -1,
-                "compose_layer": "residential",
+                "profile": "residential",
                 "compose_config": {"image": "honeygain/honeygain"},
                 "app_details": {
                     "official_name": "Honeygain",
@@ -83,7 +83,7 @@ _SAMPLE_CONFIG = {
                 "name": "WIPTER",
                 "referrals": [{"url": "https://wipter.com", "contributor": "MRColorR"}],
                 "install_limit": -1,
-                "compose_layer": "residential",
+                "profile": "residential",
                 "compose_config": {"image": "wipter/wipter"},
                 "app_details": {
                     "official_name": "Wipter",

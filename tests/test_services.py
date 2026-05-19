@@ -230,7 +230,8 @@ class TestGetGeneratorSummary:
             },
             "m4b_dashboard": {"enabled": True, "port": 8088},
         }
-        m4b = {"system": {"compose_mode": "layered"}}
+        # v5.0 dropped compose_mode toggle; m4b config no longer carries it.
+        m4b = {"system": {}}
 
         user_path = tmp_path / "user.json"
         m4b_path = tmp_path / "m4b.json"
@@ -244,7 +245,8 @@ class TestGetGeneratorSummary:
         assert result["proxy_enabled"] is False
         assert "earnapp" in result["enabled_apps"]
         assert "honeygain" not in result["enabled_apps"]
-        assert result["compose_mode"] == "layered"
+        # compose_mode field removed in v5.0
+        assert "compose_mode" not in result
 
 
 class TestResetUserConfig:
@@ -330,11 +332,13 @@ class TestGetSystemInfoStructured:
         assert result["version"] == "5.0.0"
         assert result["docker_installed"] is False
         assert result["enabled_apps"] == ["a"]
-        assert result["compose_mode"] == "none"
+        # v5.0: single-file compose; compose_mode field removed entirely.
+        assert "compose_mode" not in result
+        assert result["compose_files"] == []
 
     @patch(
         "money4band.docker.compose_builder.get_compose_files",
-        return_value=["c1.yml", "c2.yml"],
+        return_value=["docker-compose.yaml"],
     )
     @patch(
         "money4band.system.detector.get_system_memory_and_cores",
@@ -343,10 +347,14 @@ class TestGetSystemInfoStructured:
     @patch("money4band.updater.check_for_update", return_value="6.0.0")
     @patch("shutil.which", return_value="/usr/bin/docker")
     @patch("money4band.docker.helper.is_docker_daemon_running", return_value=False)
-    def test_layered_mode_with_update(self, _daemon, _which, _upd, _mem, _comp):
+    def test_compose_files_listed_when_generated(
+        self, _daemon, _which, _upd, _mem, _comp
+    ):
         result = get_system_info_structured(self._M4B, self._APP, self._USR)
         assert result["new_version"] == "6.0.0"
-        assert result["compose_mode"] == "layered"
+        # v5.0: single-file compose; compose_mode removed; compose_files lists the entry.
+        assert "compose_mode" not in result
+        assert result["compose_files"] == ["docker-compose.yaml"]
 
 
 class TestGetSystemInfoText:

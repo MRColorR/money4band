@@ -103,47 +103,50 @@ uv sync && uv run python main.py
 
 ## 📋 Supported Apps
 
-**34 apps** tracked. [Full details, earnings estimates, and registration links here.](docs/APPS.md)
+**35 apps** tracked across the ecosystem. [Full details, earnings estimates, and registration links here.](docs/APPS.md)
 
+> **Type legend:** 🟢 core (out-of-box) · 📜 community (opt-in via `m4b catalog sources enable community`) · 🌱 newcomer (no Docker image yet — opt-in via `m4b catalog add openpassivehub`) · 🔴 deprecated.
+>
 > App links below include referral codes that support the project at no cost to you.
 
 <!-- BEGIN:APPS_TABLE -->
-| App | Residential | VPS/DC | Payout |
-|-----|:-----------:|:------:|--------|
-| [**AntGain**](https://antgain.app) | ✅ | — | — |
-| [**BearShare**](https://bearshare.io) | ✅ | — | — |
-| [**Bitping**](https://app.bitping.com?r=qm7mIuX3) | ✅ | ✅ | BITPING token (crypto), USDC |
-| [**Earn.FM**](https://earn.fm/ref/MATTTAV6) | ✅ | ✅ | PayPal, USDT, gift cards |
-| [**GaGaNode**](https://www.gaganode.com) | ✅ | — | GaGa token (crypto) |
-| [**Gradient**](https://app.gradient.network/signup?code=9WOBKP) | ✅ | — | — |
-| [**Honeygain**](https://r.honeygain.me/MINDL15721) | ✅ | ❌ | JumpToken (crypto), PayPal (via JumpTask) |
-| [**Pawns (IPRoyal)**](https://pawns.app?r=MiNe) | ✅ | ❌ | PayPal, crypto, gift cards |
-| [**Mysterium**](https://mystnodes.co/?referral_code=Tc7RaS7Fm12K3Xun6mlU9q9hbnjojjl9aRBW8ZA9) | ✅ | ✅ | MYST token, ETH, BNB |
-| [**PacketShare**](https://www.packetshare.io/?code=A260871CFD822E35) | ✅ | — | — |
-| [**PacketStream**](https://packetstream.io/?psr=3zSD) | ✅ | ❌ | PayPal |
-| [**ProxyBase**](http://peer.proxybase.org/signup?ref=XfOz3zeURm) | — | — | — |
-| [**ProxyLite**](https://proxylite.ru/?r=PJTKXWN3) | ✅ | ✅ | crypto |
-| [**Proxyrack Peer Program**](https://peer.proxyrack.com/ref/myoas6qttvhuvkzh8ffx90ns1ouhwgilfgamo5ex) | ✅ | ✅ | PayPal, crypto |
-| [**Repocket**](https://link.repocket.co/hr8i) | ✅ | ✅ | PayPal, crypto |
-| [**Spide Network**](https://spide.network) | ✅ | ✅ | PayPal, crypto |
-| [**Titan Network**](https://titannet.io) | ✅ | — | — |
-| [**TraffMonetizer**](https://traffmonetizer.com/?aff=366499) | ✅ | ✅ | PayPal, crypto, wire transfer |
-| [**URnetwork**](https://urnetwork.com) | ✅ | — | — |
-| [**WizardGain**](https://wizardgain.com) | ✅ | ✅ | — |
-| [**Adnade**](https://adnade.com) | ✅ | — | — |
-| [**ByteBenefit**](https://bytebenefit.com) | ✅ | — | — |
-| [**Bytelixir**](https://bytelixir.com) | ✅ | — | crypto |
-| [**Earn.cc**](https://earn.cc) | ✅ | — | — |
-| [**Ebesucher**](https://www.ebesucher.com) | ✅ | — | — |
-| [**PassiveApp**](https://passiveapp.io) | ✅ | — | — |
-| [**Salad**](https://salad.com) | ✅ | ❌ | — |
-| [**UpRock**](https://uprock.com) | ✅ | — | — |
-| [**Dawn Internet**](https://dawninternet.com?code=xo23vynw) | ✅ | — | — |
-| [**Grass (Wynd Network)**](https://app.getgrass.io/register/?referralCode=qyvJmxgNUhcLo2f) | ✅ | ❌ | GRASS token (crypto) |
-| [**Peer2Profit**](https://t.me/peer2profit_app_bot?start=165849012262da8d0aa13c8) | — | — | — |
-| [**SpeedShare**](https://speedshare.app/?ref=mindlessnerd) | — | — | — |
-| [**Teneo Protocol**](https://dashboard.teneo.pro/?code=qPgLn) | ✅ | — | — |
-| [**Wipter**](https://wipter.com/signup?ref=money4band) | — | — | — |
+| Type | App | Residential | VPS/DC | Payout |
+|:----:|-----|:-----------:|:------:|--------|
+| 🟢 | [**AntGain**](https://antgain.app) | ✅ | — | — |
+| 🟢 | [**BearShare**](https://bearshare.io) | ✅ | — | — |
+| 🟢 | [**Bitping**](https://app.bitping.com?r=qm7mIuX3) | ✅ | ✅ | BITPING token (crypto), USDC |
+| 🟢 | [**Earn.FM**](https://earn.fm/ref/MATTTAV6) | ✅ | ✅ | PayPal, USDT, gift cards |
+| 📜 | [**EarnApp**](https://earnapp.com/i/3zulx7k) | ✅ | ❌ | PayPal, gift cards, crypto |
+| 📜 | [**GaGaNode**](https://www.gaganode.com) | ✅ | — | GaGa token (crypto) |
+| 🟢 | [**Honeygain**](https://r.honeygain.me/MINDL15721) | ✅ | ❌ | JumpToken (crypto), PayPal (via JumpTask) |
+| 🟢 | [**Mysterium**](https://mystnodes.co/?referral_code=Tc7RaS7Fm12K3Xun6mlU9q9hbnjojjl9aRBW8ZA9) | ✅ | ✅ | MYST token, ETH, BNB |
+| 🟢 | [**PacketShare**](https://www.packetshare.io/?code=A260871CFD822E35) | ✅ | — | — |
+| 🟢 | [**PacketStream**](https://packetstream.io/?psr=3zSD) | ✅ | ❌ | PayPal |
+| 🟢 | [**Pawns (IPRoyal)**](https://pawns.app?r=MiNe) | ✅ | ❌ | PayPal, crypto, gift cards |
+| 🟢 | [**ProxyLite**](https://proxylite.ru/?r=PJTKXWN3) | ✅ | ✅ | crypto |
+| 🟢 | [**Proxyrack Peer Program**](https://peer.proxyrack.com/ref/myoas6qttvhuvkzh8ffx90ns1ouhwgilfgamo5ex) | ✅ | ✅ | PayPal, crypto |
+| 🟢 | [**Repocket**](https://link.repocket.co/hr8i) | ✅ | ✅ | PayPal, crypto |
+| 📜 | [**Spide Network**](https://spide.network) | ✅ | ✅ | PayPal, crypto |
+| 🟢 | [**Titan Network**](https://titannet.io) | ✅ | — | — |
+| 🟢 | [**TraffMonetizer**](https://traffmonetizer.com/?aff=366499) | ✅ | ✅ | PayPal, crypto, wire transfer |
+| 🟢 | [**URnetwork**](https://urnetwork.com) | ✅ | — | — |
+| 🌱 | [**Adnade**](https://adnade.com) | ✅ | — | — |
+| 🌱 | [**ByteBenefit**](https://bytebenefit.com) | ✅ | — | — |
+| 🌱 | [**Bytelixir**](https://bytelixir.com) | ✅ | — | crypto |
+| 🌱 | [**Earn.cc**](https://earn.cc) | ✅ | — | — |
+| 🌱 | [**Ebesucher**](https://www.ebesucher.com) | ✅ | — | — |
+| 🌱 | [**PassiveApp**](https://passiveapp.io) | ✅ | — | — |
+| 🌱 | [**Salad**](https://salad.com) | ✅ | ❌ | — |
+| 🌱 | [**UpRock**](https://uprock.com) | ✅ | — | — |
+| 🔴 | [**Dawn Internet**](https://dawninternet.com?code=xo23vynw) | ✅ | — | — |
+| 🔴 | [**Gradient**](https://app.gradient.network/signup?code=9WOBKP) | ✅ | — | — |
+| 🔴 | [**Grass (Wynd Network)**](https://app.getgrass.io/register/?referralCode=qyvJmxgNUhcLo2f) | ✅ | ❌ | GRASS token (crypto) |
+| 🔴 | [**Peer2Profit**](https://t.me/peer2profit_app_bot?start=165849012262da8d0aa13c8) | — | — | — |
+| 🔴 | [**ProxyBase**](http://peer.proxybase.org/signup?ref=XfOz3zeURm) | — | — | — |
+| 🔴 | [**SpeedShare**](https://speedshare.app/?ref=mindlessnerd) | — | — | — |
+| 🔴 | [**Teneo Protocol**](https://dashboard.teneo.pro/?code=qPgLn) | ✅ | — | — |
+| 🔴 | [**Wipter**](https://wipter.com/signup?ref=money4band) | — | — | — |
+| 🔴 | [**WizardGain**](https://wizardgain.com) | ✅ | ✅ | — |
 <!-- END:APPS_TABLE -->
 
 > 📋 **[Registration links, earnings estimates, and full details](docs/APPS.md)**

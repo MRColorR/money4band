@@ -63,7 +63,7 @@ BEARSHARE_ADDON = {
     "parent_id": "BEARSHARE",
     "description": "Auto-claims daily BearShare reward",
     "credentials_shared": True,
-    "compose_layer": "service",
+    "profile": "service",
     "compose_config": {
         "container_name": "${DEVICE_NAME}_bearshare-pot",
         "hostname": "${DEVICE_NAME}_bearshare-pot",

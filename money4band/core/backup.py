@@ -2,10 +2,11 @@ from __future__ import annotations
 
 """Config backup and restore utilities.
 
-Backups are stored as copies of the (possibly encrypted) user-config file
-under ``~/.m4b/backups/`` with ISO-8601 timestamps in the filename.  The
-module intentionally copies the *raw file bytes* so encrypted configs stay
-encrypted and plaintext configs stay plaintext — no re-encryption needed.
+Backups live as copies of the (possibly encrypted) user-config file under
+``<m4b_data_dir>/backups/`` (resolved by ``money4band.core.paths``) with
+ISO-8601 timestamps in the filename. The module intentionally copies the
+*raw file bytes* so encrypted configs stay encrypted and plaintext configs
+stay plaintext — no re-encryption needed.
 """
 
 import logging
@@ -14,9 +15,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import NamedTuple
 
+from money4band.core.paths import get_m4b_data_dir
+
 logger = logging.getLogger(__name__)
 
-BACKUP_DIR = Path.home() / ".m4b" / "backups"
 DEFAULT_KEEP = 5
 
 
@@ -25,10 +27,25 @@ class BackupInfo(NamedTuple):
     timestamp: datetime
 
 
+def get_backup_dir() -> Path:
+    """Return the backup directory, lazily resolving the M4B data dir."""
+    return get_m4b_data_dir() / "backups"
+
+
+def __getattr__(name: str) -> Path:
+    # Backward-compat for ``from money4band.core.backup import BACKUP_DIR``.
+    # Tests that monkeypatch ``money4band.core.backup.BACKUP_DIR`` set a real
+    # module attribute that shadows this hook.
+    if name == "BACKUP_DIR":
+        return get_backup_dir()
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
 def _backup_dir() -> Path:
     """Return (and lazily create) the backup directory."""
-    BACKUP_DIR.mkdir(parents=True, exist_ok=True)
-    return BACKUP_DIR
+    bdir = get_backup_dir()
+    bdir.mkdir(parents=True, exist_ok=True)
+    return bdir
 
 
 def create_backup(config_path: str) -> Path:

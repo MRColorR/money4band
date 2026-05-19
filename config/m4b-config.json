@@ -37,7 +37,6 @@
         "default_docker_platform": "linux/amd64",
         "registry_request_timeout": 15,
         "registry_max_retries": 3,
-        "compose_mode": "monolithic",
         "dns": {
             "available_modes": [
                 "default",

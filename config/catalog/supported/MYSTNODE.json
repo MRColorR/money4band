@@ -1,130 +1,130 @@
 {
-  "name": "MYSTNODE",
-  "manual_onboard": true,
-  "dashboard": "https://mystnodes.com/nodes",
-  "compose_config": {
-    "container_name": "${DEVICE_NAME}_mystnode",
-    "hostname": "${DEVICE_NAME}_mystnode",
-    "image": "mysteriumnetwork/myst:latest",
-    "environment": [
-      "MYSTNODE_DUMMY=''"
-    ],
-    "labels": [
-      "com.centurylinklabs.watchtower.enable=true",
-      "com.centurylinklabs.watchtower.scope=${M4B_WATCHTOWER_SCOPE}"
-    ],
-    "command": "service --agreed-terms-and-conditions",
-    "cap_add": [
-      "NET_ADMIN"
-    ],
-    "ports": [
-      "${MYSTNODE_PORT}:4449"
-    ],
-    "volumes": [
-      ".data/mysterium-node:/var/lib/mysterium-node"
-    ],
-    "restart": "always",
-    "cpus": "${APP_CPU_LIMIT_HUGE}",
-    "mem_reservation": "${APP_MEM_RESERV_HUGE}",
-    "mem_limit": "${APP_MEM_LIMIT_HUGE}",
-    "logging": {
-      "driver": "json-file",
-      "options": {
-        "max-size": "10m",
-        "max-file": "3"
-      }
+    "name": "MYSTNODE",
+    "manual_onboard": true,
+    "dashboard": "https://mystnodes.com/nodes",
+    "compose_config": {
+        "container_name": "${DEVICE_NAME}_mystnode",
+        "hostname": "${DEVICE_NAME}_mystnode",
+        "image": "mysteriumnetwork/myst:latest",
+        "environment": [
+            "MYSTNODE_DUMMY=''"
+        ],
+        "labels": [
+            "com.centurylinklabs.watchtower.enable=true",
+            "com.centurylinklabs.watchtower.scope=${M4B_WATCHTOWER_SCOPE}"
+        ],
+        "command": "service --agreed-terms-and-conditions",
+        "cap_add": [
+            "NET_ADMIN"
+        ],
+        "ports": [
+            "${MYSTNODE_PORT}:4449"
+        ],
+        "volumes": [
+            ".data/mysterium-node:/var/lib/mysterium-node"
+        ],
+        "restart": "always",
+        "cpus": "${APP_CPU_LIMIT_HUGE}",
+        "mem_reservation": "${APP_MEM_RESERV_HUGE}",
+        "mem_limit": "${APP_MEM_LIMIT_HUGE}",
+        "logging": {
+            "driver": "json-file",
+            "options": {
+                "max-size": "10m",
+                "max-file": "3"
+            }
+        },
+        "healthcheck": {
+            "test": [
+                "CMD-SHELL",
+                "wget -q --spider http://127.0.0.1:4449/healthcheck 2>/dev/null || wget -q --spider http://127.0.0.1:4449/ 2>/dev/null || pgrep -f myst || exit 1"
+            ],
+            "interval": "120s",
+            "timeout": "15s",
+            "retries": 3,
+            "start_period": "90s"
+        }
     },
-    "healthcheck": {
-      "test": [
-        "CMD-SHELL",
-        "wget -q --spider http://127.0.0.1:4449/healthcheck 2>/dev/null || wget -q --spider http://127.0.0.1:4449/ 2>/dev/null || pgrep -f myst || exit 1"
-      ],
-      "interval": "120s",
-      "timeout": "15s",
-      "retries": 3,
-      "start_period": "90s"
-    }
-  },
-  "compose_config_proxy": {
-    "network_mode": "service:proxy",
-    "hostname": null,
-    "ports": null
-  },
-  "flags": {
-    "manual": {
-      "instructions": "Log into your device's mystnode local webdashboard, navigate to the Myst Node page and follow the onscreen instruction to complete the setup.\n\nDisclaimer: If you want to further optimize UPnP and port forwarding, consider setting manually 'network: host' for mystnode in your Docker compose. This may improve mystnode performance, but do this only if you know what you are doing and you are aware of potential security implications."
-    }
-  },
-  "install_limit": -1,
-  "compose_layer": "universal",
-  "app_details": {
-    "official_name": "Mysterium",
-    "publisher": "Mysterium Network Foundation",
-    "official_url": "https://mystnodes.com",
-    "tos_url": "https://mysterium.network/terms",
-    "status": "active",
-    "device_limits": {
-      "max_devices_per_account": "unlimited",
-      "max_devices_per_ip": 1,
-      "max_ips_per_account": "unlimited",
-      "notes": "Decentralized network. Unique IP required per node for discoverability. No documented cap. Residential nodes earn more per task due to higher buyer demand."
+    "compose_config_proxy": {
+        "network_mode": "service:proxy",
+        "hostname": null,
+        "ports": null
     },
-    "ip_policy": {
-      "residential": true,
-      "datacenter": true,
-      "vps": true,
-      "vpn": "partial",
-      "proxy": false,
-      "mobile": "undocumented",
-      "adjacent_ips_accepted": true,
-      "adjacent_ips_max": "unlimited",
-      "ipv6": true,
-      "geo_restrictions": "none known",
-      "quality_notes": "Algorithm assesses IP location and quality. Residential nodes command premium prices. Staking MYST tokens can boost earnings. Whitelisting (KYC) may be required in some regions."
+    "flags": {
+        "manual": {
+            "instructions": "Log into your device's mystnode local webdashboard, navigate to the Myst Node page and follow the onscreen instruction to complete the setup.\n\nDisclaimer: If you want to further optimize UPnP and port forwarding, consider setting manually 'network: host' for mystnode in your Docker compose. This may improve mystnode performance, but do this only if you know what you are doing and you are aware of potential security implications."
+        }
     },
-    "docker": {
-      "image_official": true,
-      "image_maintained": true,
-      "last_update": "2025-03"
+    "install_limit": -1,
+    "app_details": {
+        "official_name": "Mysterium",
+        "publisher": "Mysterium Network Foundation",
+        "official_url": "https://mystnodes.com",
+        "tos_url": "https://mysterium.network/terms",
+        "status": "active",
+        "device_limits": {
+            "max_devices_per_account": "unlimited",
+            "max_devices_per_ip": 1,
+            "max_ips_per_account": "unlimited",
+            "notes": "Decentralized network. Unique IP required per node for discoverability. No documented cap. Residential nodes earn more per task due to higher buyer demand."
+        },
+        "ip_policy": {
+            "residential": true,
+            "datacenter": true,
+            "vps": true,
+            "vpn": "partial",
+            "proxy": false,
+            "mobile": "undocumented",
+            "adjacent_ips_accepted": true,
+            "adjacent_ips_max": "unlimited",
+            "ipv6": true,
+            "geo_restrictions": "none known",
+            "quality_notes": "Algorithm assesses IP location and quality. Residential nodes command premium prices. Staking MYST tokens can boost earnings. Whitelisting (KYC) may be required in some regions."
+        },
+        "docker": {
+            "image_official": true,
+            "image_maintained": true,
+            "last_update": "2025-03"
+        },
+        "earnings": {
+            "model": "per-GB + per-session (MYST token)",
+            "min_payout": "None (continuous streaming to wallet)",
+            "payout_methods": [
+                "MYST token",
+                "ETH",
+                "BNB"
+            ],
+            "avg_monthly_residential_usd": "1-15",
+            "avg_monthly_datacenter_usd": "0.5-3"
+        },
+        "warnings": [
+            "Requires NET_ADMIN capability for VPN tunnel creation (TUN/TAP) \u2014 legitimate technical requirement for VPN exit node functionality"
+        ],
+        "confidence": "high",
+        "sources": [
+            "https://mystnodes.com",
+            "https://hub.docker.com/r/mysteriumnetwork/myst",
+            "https://github.com/mysteriumnetwork/node",
+            "https://docs.mysterium.network/content-page"
+        ],
+        "last_verified": "2026-03-21",
+        "compose_layer_reasoning": "Decentralized VPN exit node network. Algorithm assesses IP location and quality. Both residential and datacenter nodes supported \u2014 residential earn premium prices.",
+        "install_limit_reasoning": "Decentralized architecture supports massive scaling. Unique IP required per node for network discoverability.",
+        "recommendation": "update-config",
+        "recommendation_reasoning": "Changed compose_layer from datacenter to universal. Verified residential+DC support in official docs and Docker Hub.",
+        "confidence_notes": "Official GitHub, Docker Hub, and Mysterium docs verified. Well-documented open-source project. Verified 2026-05-15 via container test: vendor default binds dashboard to 0.0.0.0:4449 inside the container; the published port mapping reaches the dashboard from the host without any extra startup flag. Command 'service --agreed-terms-and-conditions' is sufficient."
     },
-    "earnings": {
-      "model": "per-GB + per-session (MYST token)",
-      "min_payout": "None (continuous streaming to wallet)",
-      "payout_methods": [
-        "MYST token",
-        "ETH",
-        "BNB"
-      ],
-      "avg_monthly_residential_usd": "1-15",
-      "avg_monthly_datacenter_usd": "0.5-3"
-    },
-    "warnings": [
-      "Requires NET_ADMIN capability for VPN tunnel creation (TUN/TAP) — legitimate technical requirement for VPN exit node functionality"
+    "referrals": [
+        {
+            "url": "https://mystnodes.co/?referral_code=Tc7RaS7Fm12K3Xun6mlU9q9hbnjojjl9aRBW8ZA9",
+            "contributor": "MRColorR"
+        }
     ],
-    "confidence": "high",
-    "sources": [
-      "https://mystnodes.com",
-      "https://hub.docker.com/r/mysteriumnetwork/myst",
-      "https://github.com/mysteriumnetwork/node",
-      "https://docs.mysterium.network/content-page"
-    ],
-    "last_verified": "2026-03-21",
-    "compose_layer_reasoning": "Decentralized VPN exit node network. Algorithm assesses IP location and quality. Both residential and datacenter nodes supported — residential earn premium prices.",
-    "install_limit_reasoning": "Decentralized architecture supports massive scaling. Unique IP required per node for network discoverability.",
-    "recommendation": "update-config",
-    "recommendation_reasoning": "Changed compose_layer from datacenter to universal. Verified residential+DC support in official docs and Docker Hub.",
-    "confidence_notes": "Official GitHub, Docker Hub, and Mysterium docs verified. Well-documented open-source project. Verified 2026-05-15 via container test: vendor default binds dashboard to 0.0.0.0:4449 inside the container; the published port mapping reaches the dashboard from the host without any extra startup flag. Command 'service --agreed-terms-and-conditions' is sufficient."
-  },
-  "referrals": [
-    {
-      "url": "https://mystnodes.co/?referral_code=Tc7RaS7Fm12K3Xun6mlU9q9hbnjojjl9aRBW8ZA9",
-      "contributor": "MRColorR"
-    }
-  ],
-  "user_config_template": {
-    "enabled": false,
-    "ports": [
-      4449
-    ]
-  }
+    "user_config_template": {
+        "enabled": false,
+        "ports": [
+            4449
+        ]
+    },
+    "profile": "universal"
 }

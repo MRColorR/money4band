@@ -82,11 +82,10 @@ def configure_paths(
 
     The catalog envelope lives in ``m4b-config.json`` under a
     ``catalog`` key, so ``app_config`` aliases ``m4b_config``.
-    The ``app_file`` kwarg is accepted for backward compatibility but
-    ignored — catalog reads always go through
-    :func:`money4band.core.loader.load_app_config_with_overlays`.
+    The ``app_file`` kwarg is accepted but ignored — catalog reads go
+    through :func:`money4band.core.loader.load_app_config_with_overlays`.
     """
-    del app_file  # retained for API compatibility, no longer used
+    del app_file
     _paths.config_dir = config_dir
     _paths.base_dir = base_dir
     _paths.m4b_config = os.path.join(config_dir, m4b_file)
@@ -187,9 +186,9 @@ def iter_all_apps(
 #   * ``remote``    — fetched from a remote catalog source.
 #   * ``local``     — user-local override.
 #
-# Entries loaded through the legacy ``iter_all_apps`` path are ``builtin``
-# by default; the resolver below is the single seam where other sources
-# override the provenance.
+# Entries loaded through ``iter_all_apps`` default to ``builtin``;
+# the resolver below is the single seam where other sources override
+# the provenance.
 
 
 def resolve_source(entry: dict) -> str:
@@ -226,11 +225,11 @@ def get_picked_referrals() -> dict[str, str]:
 
 
 def _weights_path() -> str:
-    """Resolve the path to the repo's ``weights.json`` artifact."""
-    from money4band.apps.contributor_pool import WEIGHTS_FILENAME
+    """Resolve the path to the repo's ``config/weights.json`` artifact."""
+    from money4band.apps.contributor_pool import WEIGHTS_RELATIVE_PATH
 
     base = _paths.base_dir or os.getcwd()
-    return os.path.join(base, WEIGHTS_FILENAME)
+    return os.path.join(base, WEIGHTS_RELATIVE_PATH)
 
 
 def load_contributor_weights() -> dict[str, float]:
@@ -242,7 +241,7 @@ def load_contributor_weights() -> dict[str, float]:
     try:
         current_mtime = os.path.getmtime(path)
     except OSError:
-        # No weights.json shipped — everyone is equal (DEFAULT_WEIGHT).
+        # No weights.json shipped — picker falls back to uniform random.
         return {}
     entry = _cache._entries.get(cache_key)  # noqa: SLF001
     if entry is not None and entry.mtime == current_mtime:
@@ -264,7 +263,8 @@ def pick_referral_url(
       1. ``settings.picked_referrals[<app_name lowercase>]`` when set.
       2. Weighted-random pick across the referrals pool, where every
          referral's weight is the contributor's entry in
-         ``weights.json`` (fallback :data:`DEFAULT_WEIGHT`).
+         ``weights.json`` (``0`` when the contributor is absent;
+         all-zero pools fall back to uniform random).
       3. Empty string when the pool has no usable entries.
 
     The picker is pure: the whole pool is considered on every call.

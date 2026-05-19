@@ -52,7 +52,7 @@ _HONEYGAIN_POT_ADDON = {
     "parent_id": "HONEYGAIN",
     "description": "Auto-claims daily Lucky Pot reward (~2x revenue)",
     "credentials_shared": True,
-    "compose_layer": "service",
+    "profile": "service",
     "compose_config": {
         "container_name": "${DEVICE_NAME}_honeygain-pot",
         "hostname": "${DEVICE_NAME}_honeygain-pot",

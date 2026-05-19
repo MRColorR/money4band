@@ -51,7 +51,7 @@ class AppSummary(BaseModel):
     image: str = ""
     resource_tier: str = ""
     earnings_range: str = ""
-    compose_layer: str = ""
+    profile: str = ""
     status: str = ""
     dashboard_url: str = ""
     # Provenance fields

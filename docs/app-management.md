@@ -6,17 +6,24 @@
 
 ## App Catalog
 
-M4B ships with **35 passive-income apps** split across three categories:
+M4B core ships with **15 passive-income apps**, all in the supported
+category. A default install (no remote sources enabled) shows exactly
+these 15:
 
 | Category | Count | Description |
 |----------|-------|-------------|
-| **Supported** | 21 | Active, tested apps included in setup (ToS-compliant, Docker images tracked) |
-| **Newcomers** *(candidate)* | 8 | Apps under 6-month community evaluation — visible with `--category candidate` |
-| **Deprecated** | 6 | Previously supported apps removed for cause (shutdown, ToS issues, unreliable earnings) |
+| **Supported** | 15 | Active, tested apps with official Docker images — included in setup |
+| **Newcomers** *(candidate)* | 0 | Empty by default — populated by opt-in remote sources |
+| **Deprecated** | 0 | Empty by default — populated by opt-in remote sources |
 
 > The internal category key for *Candidate* apps is `newcomers`; the CLI
 > surface accepts `candidate` (user-facing) while the on-disk layout and
 > API use `newcomers`.
+
+### Opt-in additions via remote catalog sources
+
+20 entries previously bundled in v4 were moved to dedicated catalog
+repositories in v5 so M4B core stays small and audit-clean.
 
 View the catalog:
 
@@ -195,7 +202,7 @@ schema. The required fields are validated by
 | `compose_config` | object | Full Docker-Compose service definition (must include `image`) |
 | `flags` | object | Credential keys prompted during setup (`email`, `password`, `apikey`, `uuid`, `userid`, `token`, `cid`, …) |
 | `install_limit` | integer | Max instances per-machine / per-proxy (`-1` = unlimited) |
-| `compose_layer` | string | One of `residential`, `datacenter`, `universal`, `service` |
+| `profile` | string | One of `residential`, `datacenter`, `universal`, `service`. Becomes the entry of the generated compose service's `profiles:` array. Sidecars (entries with `parent_id`) inherit their parent's profile and may omit this field. |
 
 ### Optional fields
 
@@ -226,7 +233,7 @@ schema. The required fields are validated by
   },
   "flags": { "token": {} },
   "install_limit": 1,
-  "compose_layer": "universal",
+  "profile": "universal",
   "referrals": [
     { "url": "https://myapp.example/ref/XYZ", "contributor": "MRColorR" }
   ],
@@ -270,7 +277,6 @@ is enabled AND the user opted in.
   "parent_id": "MYAPP",
   "description": "Auto-claims daily reward",
   "credentials_shared": true,
-  "compose_layer": "service",
   "compose_config": {
     "container_name": "${DEVICE_NAME}_myapp-pot",
     "image": "ghcr.io/contrib/myapp-pot:latest",
@@ -293,9 +299,10 @@ Your choice is stored as `apps.<name_lower>.service_enabled` in
 `user-config.json`. Toggle it later by re-running `m4b setup`, editing
 the JSON directly (then `m4b generate`), or via the web dashboard.
 
-> **Layered compose:** addons are written into `compose.service.yml`
-> (layered mode) or merged into `docker-compose.yaml` (monolithic mode —
-> the default).
+> **Profile inheritance.** Sidecars do NOT declare their own `profile`
+> field. At generation time the sidecar service inherits its parent's
+> profile, so `docker compose --profile residential up` brings up
+> Honeygain AND its `honeygain-pot` together — no orphan-pot edge cases.
 
 ## Community App Plugins
 
@@ -311,7 +318,7 @@ The wizard prompts for:
 1. **Name** — uppercase identifier (`^[A-Z][A-Z0-9_]+$`)
 2. **Docker image** — e.g. `publisher/app:latest`
 3. **Authentication type** — email, token, UUID, user ID, API key, or manual
-4. **Compose layer** — `residential` / `datacenter` / `universal` / `service`
+4. **Profile** — `residential` / `datacenter` / `universal` / `service` (becomes the service's Docker Compose `profiles:` entry, drives selective startup)
 5. **Install limit** — max instances per machine (`-1` = unlimited)
 6. **Sidecar?** — optional auto-claim container
 7. **Health check?** — optional `healthcheck` block
@@ -350,23 +357,31 @@ per-user pick** (stored under
 `user-config.json → settings.picked_referrals`) so the same URL is
 offered across runs.
 
-## Compose Layers
+## Docker Compose Profiles
 
-Apps are assigned to compose layers based on their IP policy:
+Apps are tagged with a Docker Compose profile derived from their IP-policy
+tier. Each app's bundle `profile` field becomes the single entry of the
+generated service's `profiles:` array.
 
-| Layer | File (layered mode) | Contents |
-|-------|---------------------|----------|
-| base | `compose.yml` | Network + Watchtower |
-| residential | `compose.residential.yml` | Apps requiring residential IPs |
-| datacenter | `compose.datacenter.yml` | Apps that work on datacenter IPs |
-| universal | `compose.universal.yml` | Apps that work on any IP type |
-| service | `compose.service.yml` | Auto-claim sidecars |
-| proxy | `compose.proxy.yml` | VPN / SOCKS tunnel containers |
+| Profile | Contents |
+|---------|----------|
+| `residential` | Apps requiring residential IPs |
+| `datacenter` | Apps tolerating datacenter IPs |
+| `universal` | Apps accepting any IP type |
+| `service` | Sidecar services (helper containers) |
+| `monitoring` *(reserved)* | Watchtower auto-update agent |
+| `proxy` *(reserved)* | tun2socks VPN tunnel container |
 
-In **monolithic mode** (default, `m4b-config.json → system.compose_mode: "monolithic"`)
-all layers are merged into a single `docker-compose.yaml`. In **layered
-mode** each layer is a separate file composed via
-`docker compose -f ... -f ...`.
+`m4b stack start` auto-discovers the active profiles from enabled apps
+and assembles the right `--profile` flags. For surgical control, raw
+Docker Compose accepts the same flags directly:
+
+```bash
+docker compose --profile residential --profile monitoring --env-file .env up -d
+```
+
+See [Configuration → Docker Compose Profiles](configuration.md#docker-compose-profiles)
+for the full profile reference and sidecar inheritance rules.
 
 ## Promoting Candidates to Supported
 

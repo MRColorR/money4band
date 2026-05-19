@@ -79,7 +79,7 @@
       "proxy_disabled": {
         "container_name": "${DEVICE_NAME}_watchtower",
         "hostname": "${DEVICE_NAME}_watchtower",
-        "image": "nickfedor/watchtower:1.14",
+        "image": "nickfedor/watchtower:1",
         "environment": [
           "WATCHTOWER_LABEL_ENABLE=${M4B_WATCHTOWER_LABELS}",
           "WATCHTOWER_SCOPE=${M4B_WATCHTOWER_SCOPE}",
@@ -104,7 +104,7 @@
       "proxy_enabled": {
         "container_name": "${DEVICE_NAME}_watchtower",
         "hostname": "${DEVICE_NAME}_watchtower",
-        "image": "nickfedor/watchtower:1.14",
+        "image": "nickfedor/watchtower:1",
         "environment": [
           "WATCHTOWER_LABEL_ENABLE=${M4B_WATCHTOWER_LABELS}",
           "WATCHTOWER_SCOPE=${M4B_WATCHTOWER_SCOPE}",

@@ -28,6 +28,17 @@ from money4band.updater import check_update_available, show_update_banner
 
 logger = logging.getLogger(__name__)
 
+# Force stdout/stderr to UTF-8 on Windows so the Unicode glyphs M4B prints
+# (e.g. ●, ○, │, ✓, ✗) don't blow up on legacy code pages like cp1252.
+# Guarded because non-TextIOWrapper streams (piped output capture, some test
+# harnesses, embedded interpreters) don't expose ``reconfigure``.
+if sys.platform == "win32":
+    for _stream in (sys.stdout, sys.stderr):
+        try:
+            _stream.reconfigure(encoding="utf-8", errors="replace")
+        except (AttributeError, ValueError):
+            pass
+
 # Handle PyInstaller frozen executable path resolution
 if getattr(sys, "frozen", False):
     # Running as compiled executable (PyInstaller)
@@ -592,6 +603,68 @@ def _cmd_reset(args: argparse.Namespace) -> None:
     print(f"{Fore.GREEN}User config reset to template defaults.{Style.RESET_ALL}")
 
 
+def _cmd_clean(args: argparse.Namespace) -> None:
+    """Prune orphan containers + networks (+ volumes opt-in) for this M4B project."""
+    from money4band.docker.clean import clean_orphans
+    from money4band.docker.helper import get_compose_project_name
+
+    just_fix_windows_console()
+    env_file = os.path.join(BASE_DIR, ".env")
+    project = get_compose_project_name(env_file)
+    if not project:
+        print(
+            f"{Fore.RED}Could not resolve COMPOSE_PROJECT_NAME from {env_file} or "
+            f".env.meta. Run `m4b generate` first.{Style.RESET_ALL}"
+        )
+        sys.exit(1)
+
+    include_volumes = bool(getattr(args, "volumes", False))
+    dry_run = bool(getattr(args, "dry_run", False))
+    skip_confirm = bool(getattr(args, "yes", False))
+
+    label = "dry-run preview" if dry_run else "remove"
+    scope = ["stopped containers", "unused networks"]
+    if include_volumes:
+        scope.append(f"{Fore.RED}volumes (DESTRUCTIVE){Style.RESET_ALL}")
+    print(
+        f"{Fore.CYAN}m4b clean — project '{project}' — will {label}: "
+        f"{', '.join(scope)}{Style.RESET_ALL}"
+    )
+
+    if not dry_run and not skip_confirm:
+        if include_volumes:
+            print(
+                f"{Fore.YELLOW}--volumes wipes per-app persistent state "
+                f"(e.g. mystnode keystore). This cannot be undone.{Style.RESET_ALL}"
+            )
+        from money4band.ui.prompt import ask_question_yn
+
+        if not ask_question_yn("Proceed?", default=False):
+            print("Aborted.")
+            return
+
+    result = clean_orphans(project, include_volumes=include_volumes, dry_run=dry_run)
+
+    print(
+        f"{Fore.GREEN}{'Would remove' if dry_run else 'Removed'}:{Style.RESET_ALL}"
+    )
+    print(f"  containers: {len(result.containers_removed)}")
+    for name in result.containers_removed:
+        print(f"    - {name}")
+    print(f"  networks  : {len(result.networks_removed)}")
+    for name in result.networks_removed:
+        print(f"    - {name}")
+    if include_volumes:
+        print(f"  volumes   : {len(result.volumes_removed)}")
+        for name in result.volumes_removed:
+            print(f"    - {name}")
+    if result.errors:
+        print(f"{Fore.RED}Errors ({len(result.errors)}):{Style.RESET_ALL}")
+        for err in result.errors:
+            print(f"  - {err}")
+        sys.exit(2)
+
+
 def _cmd_proxy(args: argparse.Namespace) -> None:
     """Launch multiproxy tools."""
     m4b_config_path, apps_config_path, user_config_path = _resolve_paths(args)
@@ -1014,9 +1087,45 @@ def _cmd_config(args: argparse.Namespace) -> None:
 
         register_encryption_hooks(user_config_path)
         edit_config(user_config_path)
+    elif action == "migrate-data-dir":
+        _cmd_config_migrate_data_dir(args)
     else:
         just_fix_windows_console()
-        print(f"{Fore.YELLOW}Usage: m4b config {{view,edit}}{Style.RESET_ALL}")
+        print(
+            f"{Fore.YELLOW}Usage: m4b config {{view,edit,migrate-data-dir}}{Style.RESET_ALL}"
+        )
+
+
+def _cmd_config_migrate_data_dir(args: argparse.Namespace) -> None:
+    """Handle `m4b config migrate-data-dir`."""
+    from money4band.core.paths import migrate_data_dir
+
+    just_fix_windows_console()
+    try:
+        result = migrate_data_dir(
+            remove_source=bool(getattr(args, "remove_source", False)),
+            force=bool(getattr(args, "force", False)),
+        )
+    except FileNotFoundError as exc:
+        print(f"{Fore.YELLOW}{exc}{Style.RESET_ALL}")
+        return
+    except (FileExistsError, RuntimeError, ValueError) as exc:
+        print(f"{Fore.RED}Migration aborted: {exc}{Style.RESET_ALL}")
+        sys.exit(1)
+
+    print(f"{Fore.GREEN}Migrated data dir:{Style.RESET_ALL}")
+    print(f"  source : {result.source}")
+    print(f"  target : {result.target}")
+    if result.copied:
+        print(f"  copied : {', '.join(result.copied)}")
+    if result.skipped:
+        print(f"  skipped: {', '.join(result.skipped)} (already identical)")
+    if result.removed_source:
+        print(f"{Fore.YELLOW}  source wiped per --remove-source.{Style.RESET_ALL}")
+    else:
+        print(
+            f"{Fore.CYAN}  source kept. Re-run with --remove-source after verifying.{Style.RESET_ALL}"
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -1108,6 +1217,28 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     sub.add_parser("links", help="Show app dashboard and referral links")
     sub.add_parser("reset", help="Reset user-config to template defaults")
+    clean_parser = sub.add_parser(
+        "clean",
+        help="Prune orphan M4B containers + unused networks (opt-in volumes)",
+    )
+    clean_parser.add_argument(
+        "--volumes",
+        action="store_true",
+        default=False,
+        help="Also remove project volumes (DESTRUCTIVE — wipes per-app persistent state)",
+    )
+    clean_parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        default=False,
+        help="List what would be removed without actually removing anything",
+    )
+    clean_parser.add_argument(
+        "--yes",
+        action="store_true",
+        default=False,
+        help="Skip confirmation prompt",
+    )
     sub.add_parser("proxy", help="Multi-proxy management tools")
     sub.add_parser("backup", help="Create a config backup")
     sub.add_parser("restore", help="Restore config from a backup")
@@ -1124,6 +1255,22 @@ def _build_parser() -> argparse.ArgumentParser:
     config_sub = config_parser.add_subparsers(dest="config_action")
     config_sub.add_parser("view", help="Display config with masked credentials")
     config_sub.add_parser("edit", help="Edit config in $EDITOR, re-encrypts on save")
+    migrate_parser = config_sub.add_parser(
+        "migrate-data-dir",
+        help="Move ~/.m4b/{master.key,session.salt,backups} into <install>/.m4b/",
+    )
+    migrate_parser.add_argument(
+        "--remove-source",
+        action="store_true",
+        default=False,
+        help="After verified copy, wipe migrated entries from ~/.m4b/",
+    )
+    migrate_parser.add_argument(
+        "--force",
+        action="store_true",
+        default=False,
+        help="Overwrite target files that exist with different content",
+    )
 
     limit_parser = sub.add_parser(
         "limit", help="Show or change the active resource limit profile"
@@ -1372,6 +1519,7 @@ _SUBCOMMAND_DISPATCH = {
     "generate": _cmd_generate,
     "links": _cmd_links,
     "reset": _cmd_reset,
+    "clean": _cmd_clean,
     "proxy": _cmd_proxy,
     "backup": _cmd_backup,
     "restore": _cmd_restore,

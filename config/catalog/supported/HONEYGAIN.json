@@ -1,120 +1,120 @@
 {
-  "name": "HONEYGAIN",
-  "dashboard": "https://dashboard.honeygain.com/",
-  "compose_config": {
-    "container_name": "${DEVICE_NAME}_honeygain",
-    "hostname": "${DEVICE_NAME}_honeygain",
-    "image": "honeygain/honeygain:latest",
-    "environment": [
-      "HONEYGAIN_DUMMY=''"
+    "name": "HONEYGAIN",
+    "dashboard": "https://dashboard.honeygain.com/",
+    "compose_config": {
+        "container_name": "${DEVICE_NAME}_honeygain",
+        "hostname": "${DEVICE_NAME}_honeygain",
+        "image": "honeygain/honeygain:latest",
+        "environment": [
+            "HONEYGAIN_DUMMY=''"
+        ],
+        "labels": [
+            "com.centurylinklabs.watchtower.enable=true",
+            "com.centurylinklabs.watchtower.scope=${M4B_WATCHTOWER_SCOPE}"
+        ],
+        "command": [
+            "-tou-accept",
+            "-email",
+            "${HONEYGAIN_EMAIL}",
+            "-pass",
+            "${HONEYGAIN_PASSWORD}",
+            "-device",
+            "${DEVICE_NAME}"
+        ],
+        "restart": "always",
+        "cpus": "${APP_CPU_LIMIT_MEDIUM}",
+        "mem_reservation": "${APP_MEM_RESERV_MEDIUM}",
+        "mem_limit": "${APP_MEM_LIMIT_MEDIUM}",
+        "logging": {
+            "driver": "json-file",
+            "options": {
+                "max-size": "10m",
+                "max-file": "3"
+            }
+        },
+        "healthcheck": {
+            "test": [
+                "CMD-SHELL",
+                "pgrep -f honeygain || exit 1"
+            ],
+            "interval": "120s",
+            "timeout": "10s",
+            "retries": 3,
+            "start_period": "60s"
+        }
+    },
+    "compose_config_proxy": {
+        "network_mode": "service:proxy",
+        "hostname": null
+    },
+    "flags": {
+        "email": {},
+        "password": {}
+    },
+    "install_limit": 1,
+    "app_details": {
+        "official_name": "Honeygain",
+        "publisher": "Honeygain UAB",
+        "official_url": "https://honeygain.com",
+        "tos_url": "https://www.honeygain.com/terms-of-service/",
+        "status": "active",
+        "device_limits": {
+            "max_devices_per_account": 10,
+            "max_devices_per_ip": 1,
+            "max_ips_per_account": 10,
+            "notes": "10 concurrent active devices per account. Exactly 1 device per IP \u2014 additional devices show 'Network overused' error. Devices inactive 14+ days don't count. Swarmbytes wholesale tier available for 100+ IPs."
+        },
+        "ip_policy": {
+            "residential": true,
+            "datacenter": false,
+            "vps": false,
+            "vpn": false,
+            "proxy": false,
+            "mobile": true,
+            "adjacent_ips_accepted": false,
+            "adjacent_ips_max": 1,
+            "ipv6": "partial",
+            "geo_restrictions": "none known",
+            "quality_notes": "Strictly residential/mobile. VPN/Datacenter IPs result in account suspension. VM/emulator support restricted."
+        },
+        "docker": {
+            "image_official": true,
+            "image_maintained": true,
+            "last_update": "2024-11"
+        },
+        "earnings": {
+            "model": "per-GB + JumpTask bonus",
+            "min_payout": "$20 PayPal",
+            "payout_methods": [
+                "JumpToken (crypto)",
+                "PayPal (via JumpTask)"
+            ],
+            "avg_monthly_residential_usd": "1-9",
+            "avg_monthly_datacenter_usd": null
+        },
+        "confidence": "high",
+        "sources": [
+            "https://support.honeygain.com/hc/en-us/articles/360011188779",
+            "https://support.honeygain.com/hc/en-us/articles/360013096900"
+        ],
+        "last_verified": "2026-03-21",
+        "compose_layer_reasoning": "Officially forbids non-residential IP types; VPN/Datacenter IPs result in account suspension.",
+        "install_limit_reasoning": "Hard technical limit of 1 device per IP. Extra devices show 'Network overused' error. Account cap is 10, but per-IP limit must be 1.",
+        "recommendation": "update-config",
+        "recommendation_reasoning": "Updated install_limit from 10 to 1 per IP. Account allows 10 devices but each requires unique IP.",
+        "confidence_notes": "Official support docs verified for 2026. Device limits confirmed in multiple help articles."
+    },
+    "referrals": [
+        {
+            "url": "https://r.honeygain.me/MINDL15721",
+            "contributor": "MRColorR"
+        }
     ],
-    "labels": [
-      "com.centurylinklabs.watchtower.enable=true",
-      "com.centurylinklabs.watchtower.scope=${M4B_WATCHTOWER_SCOPE}"
-    ],
-    "command": [
-      "-tou-accept",
-      "-email",
-      "${HONEYGAIN_EMAIL}",
-      "-pass",
-      "${HONEYGAIN_PASSWORD}",
-      "-device",
-      "${DEVICE_NAME}"
-    ],
-    "restart": "always",
-    "cpus": "${APP_CPU_LIMIT_MEDIUM}",
-    "mem_reservation": "${APP_MEM_RESERV_MEDIUM}",
-    "mem_limit": "${APP_MEM_LIMIT_MEDIUM}",
-    "logging": {
-      "driver": "json-file",
-      "options": {
-        "max-size": "10m",
-        "max-file": "3"
-      }
+    "user_config_template": {
+        "enabled": false,
+        "email": "yourHONEYGAINMail",
+        "password": "yourHONEYGAINPw",
+        "service_enabled": false
     },
-    "healthcheck": {
-      "test": [
-        "CMD-SHELL",
-        "pgrep -f honeygain || exit 1"
-      ],
-      "interval": "120s",
-      "timeout": "10s",
-      "retries": 3,
-      "start_period": "60s"
-    }
-  },
-  "compose_config_proxy": {
-    "network_mode": "service:proxy",
-    "hostname": null
-  },
-  "flags": {
-    "email": {},
-    "password": {}
-  },
-  "install_limit": 1,
-  "compose_layer": "residential",
-  "app_details": {
-    "official_name": "Honeygain",
-    "publisher": "Honeygain UAB",
-    "official_url": "https://honeygain.com",
-    "tos_url": "https://www.honeygain.com/terms-of-service/",
-    "status": "active",
-    "device_limits": {
-      "max_devices_per_account": 10,
-      "max_devices_per_ip": 1,
-      "max_ips_per_account": 10,
-      "notes": "10 concurrent active devices per account. Exactly 1 device per IP — additional devices show 'Network overused' error. Devices inactive 14+ days don't count. Swarmbytes wholesale tier available for 100+ IPs."
-    },
-    "ip_policy": {
-      "residential": true,
-      "datacenter": false,
-      "vps": false,
-      "vpn": false,
-      "proxy": false,
-      "mobile": true,
-      "adjacent_ips_accepted": false,
-      "adjacent_ips_max": 1,
-      "ipv6": "partial",
-      "geo_restrictions": "none known",
-      "quality_notes": "Strictly residential/mobile. VPN/Datacenter IPs result in account suspension. VM/emulator support restricted."
-    },
-    "docker": {
-      "image_official": true,
-      "image_maintained": true,
-      "last_update": "2024-11"
-    },
-    "earnings": {
-      "model": "per-GB + JumpTask bonus",
-      "min_payout": "$20 PayPal",
-      "payout_methods": [
-        "JumpToken (crypto)",
-        "PayPal (via JumpTask)"
-      ],
-      "avg_monthly_residential_usd": "1-9",
-      "avg_monthly_datacenter_usd": null
-    },
-    "confidence": "high",
-    "sources": [
-      "https://support.honeygain.com/hc/en-us/articles/360011188779",
-      "https://support.honeygain.com/hc/en-us/articles/360013096900"
-    ],
-    "last_verified": "2026-03-21",
-    "compose_layer_reasoning": "Officially forbids non-residential IP types; VPN/Datacenter IPs result in account suspension.",
-    "install_limit_reasoning": "Hard technical limit of 1 device per IP. Extra devices show 'Network overused' error. Account cap is 10, but per-IP limit must be 1.",
-    "recommendation": "update-config",
-    "recommendation_reasoning": "Updated install_limit from 10 to 1 per IP. Account allows 10 devices but each requires unique IP.",
-    "confidence_notes": "Official support docs verified for 2026. Device limits confirmed in multiple help articles."
-  },
-  "referrals": [
-    {
-      "url": "https://r.honeygain.me/MINDL15721",
-      "contributor": "MRColorR"
-    }
-  ],
-  "user_config_template": {
-    "enabled": false,
-    "email": "yourHONEYGAINMail",
-    "password": "yourHONEYGAINPw",
-    "service_enabled": false
-  }
+    "profile": "residential"
 }

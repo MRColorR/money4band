@@ -443,19 +443,56 @@ def show_spinner(message: str, event: threading.Event) -> None:
     sys.stdout.flush()
 
 
-def get_active_profiles(user_config_path_or_dict: str | dict[str, Any]) -> list[str]:
-    """Return the list of Docker Compose profile names to activate.
+def get_active_profiles(
+    user_config_path_or_dict: str | dict[str, Any],
+    app_config_path_or_dict: str | dict[str, Any] | None = None,
+) -> list[str]:
+    """Return Docker Compose profile names to activate for the current config.
 
-    Reads the user config to decide which infrastructure profiles are needed:
-      - ``monitoring`` when watchtower is enabled
-      - ``proxy``      when proxies are enabled
+    Every generated service carries a ``profiles:`` array, so default
+    ``docker compose up`` starts nothing unless the activated set covers
+    them. Resolves:
+
+    - Tier profiles (``residential`` / ``datacenter`` / ``universal``
+      / ``service``) from each enabled app's bundle ``profile`` field.
+      When ``app_config_path_or_dict`` is None this step is skipped.
+    - ``monitoring`` when watchtower is enabled in user-config.
+    - ``proxy`` when ``proxies.enabled`` is true.
+
+    Returns a sorted, de-duplicated list for stable CLI invocations.
     """
-    from money4band.core.loader import load_json_config
+    from money4band.core.loader import (
+        get_active_app_categories,
+        get_category_entries,
+        load_json_config,
+    )
 
     cfg = load_json_config(user_config_path_or_dict)
-    profiles: list[str] = []
+    profiles: set[str] = set()
+
+    if app_config_path_or_dict is not None:
+        try:
+            app_cfg = load_json_config(app_config_path_or_dict)
+            enabled_app_names = {
+                name.lower()
+                for name, slice_ in cfg.get("apps", {}).items()
+                if isinstance(slice_, dict) and slice_.get("enabled")
+            }
+            for category in get_active_app_categories(app_cfg):
+                for entry in get_category_entries(app_cfg, category):
+                    if entry.get("name", "").lower() in enabled_app_names:
+                        tier = entry.get("profile")
+                        if isinstance(tier, str) and tier:
+                            profiles.add(tier)
+        except Exception as exc:  # noqa: BLE001
+            logger.warning(
+                "Failed to discover app tier profiles: %s; "
+                "infra profiles will still be added.",
+                exc,
+            )
+
     if cfg.get("watchtower", {}).get("enabled", True):
-        profiles.append("monitoring")
+        profiles.add("monitoring")
     if cfg.get("proxies", {}).get("enabled", False):
-        profiles.append("proxy")
-    return profiles
+        profiles.add("proxy")
+    return sorted(profiles)

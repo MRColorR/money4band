@@ -228,6 +228,103 @@ class TestPreservedFiles:
         result_user = json.loads(user.read_text())
         assert result_user == old_user
 
+    def test_backup_captures_file_mode(self, tmp_path):
+        """``_backup_preserved_files`` records the (bytes, mode) tuple per file.
+
+        Regression check for P0-3: the audit found that earlier versions
+        returned only bytes and re-wrote files with default ``0o644``,
+        widening permissions on sensitive ``user-config.json`` blobs.
+        """
+        import stat
+
+        user_cfg = tmp_path / "user-config.json"
+        user_cfg.write_text('{"key": "val"}')
+
+        saved = _backup_preserved_files(str(tmp_path))
+
+        assert isinstance(saved["user-config.json"], tuple)
+        content, mode = saved["user-config.json"]
+        assert content == b'{"key": "val"}'
+        # Mode must be a POSIX-style int (the masked S_IMODE bits).
+        assert isinstance(mode, int)
+        assert mode == stat.S_IMODE(os.stat(user_cfg).st_mode)
+
+    @pytest.mark.skipif(
+        os.name == "nt",
+        reason="POSIX mode bits 0o600 are not enforceable on Windows ACLs",
+    )
+    def test_restore_preserves_strict_0o600_mode_posix(self, tmp_path):
+        """Sensitive 0o600 files keep 0o600 after restore (Unix only).
+
+        Without the fix, ``open(path, 'wb')`` would create the restored file
+        with the process umask default (typically 0o644 -> world-readable),
+        leaking encrypted blobs on shared Linux hosts to local users.
+        """
+        import stat
+
+        user_cfg = tmp_path / "user-config.json"
+        user_cfg.write_text('{"secret": "encrypted-blob"}')
+        os.chmod(user_cfg, 0o600)
+        assert stat.S_IMODE(os.stat(user_cfg).st_mode) == 0o600
+
+        saved = _backup_preserved_files(str(tmp_path))
+
+        # Simulate destructive update: file replaced with a permissive new copy.
+        user_cfg.unlink()
+        # Write a new file with broad 0o644 perms to mimic the install step
+        # overwriting the preserved file with default-permission content.
+        fd = os.open(str(user_cfg), os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o644)
+        try:
+            os.write(fd, b'{"placeholder": true}')
+        finally:
+            os.close(fd)
+        assert stat.S_IMODE(os.stat(user_cfg).st_mode) == 0o644
+
+        _restore_preserved_files(str(tmp_path), saved)
+
+        assert stat.S_IMODE(os.stat(user_cfg).st_mode) == 0o600
+        assert user_cfg.read_bytes() == b'{"secret": "encrypted-blob"}'
+
+    def test_restore_roundtrips_mode_for_config_dir_files(self, tmp_path):
+        """Files inside ``config/`` (other than m4b-config.json) also keep mode."""
+        import stat
+
+        config_dir = tmp_path / "config"
+        config_dir.mkdir()
+        secret = config_dir / "user-secrets.json"
+        secret.write_text('{"k":"v"}')
+        if os.name != "nt":
+            os.chmod(secret, 0o600)
+
+        original_mode = stat.S_IMODE(os.stat(secret).st_mode)
+        saved = _backup_preserved_files(str(tmp_path))
+
+        secret.unlink()
+        # Overwrite with broader perms to ensure restore actually re-applies mode.
+        fd = os.open(str(secret), os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o644)
+        try:
+            os.write(fd, b"placeholder")
+        finally:
+            os.close(fd)
+
+        _restore_preserved_files(str(tmp_path), saved)
+
+        restored_mode = stat.S_IMODE(os.stat(secret).st_mode)
+        assert restored_mode == original_mode
+
+    def test_restore_signature_matches_backup_tuple_shape(self):
+        """Static-shape check: restore must accept ``dict[str, tuple[bytes, int]]``.
+
+        Sentinel against a regression to the old ``dict[str, bytes]`` shape
+        that triggered the P0-3 audit finding.
+        """
+        import inspect
+
+        sig = inspect.signature(_restore_preserved_files)
+        saved_param = sig.parameters["saved"]
+        ann = str(saved_param.annotation)
+        assert "tuple" in ann and "bytes" in ann and "int" in ann
+
 
 class TestGetBinaryAssetName:
     @patch("money4band.updater.platform.system", return_value="Windows")

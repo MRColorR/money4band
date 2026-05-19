@@ -12,7 +12,7 @@ def _entry(name: str, **over):
         "compose_config": {"image": f"{name.lower()}/img:latest"},
         "flags": {},
         "install_limit": -1,
-        "compose_layer": "residential",
+        "profile": "residential",
     }
     e.update(over)
     return e

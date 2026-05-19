@@ -61,7 +61,7 @@ _USER_CFG_BASE = {
         "watchtower_service": {
             "proxy_disabled": {
                 "container_name": "${DEVICE_NAME}_watchtower",
-                "image": "nickfedor/watchtower:1.14",
+                "image": "nickfedor/watchtower:1",
                 "environment": ["WATCHTOWER_SCOPE=${M4B_WATCHTOWER_SCOPE}"],
                 "labels": ["com.centurylinklabs.watchtower.enable=true"],
                 "volumes": ["/var/run/docker.sock:/var/run/docker.sock"],
@@ -69,7 +69,7 @@ _USER_CFG_BASE = {
             },
             "proxy_enabled": {
                 "container_name": "${DEVICE_NAME}_watchtower",
-                "image": "nickfedor/watchtower:1.14",
+                "image": "nickfedor/watchtower:1",
                 "environment": ["WATCHTOWER_SCOPE=${M4B_WATCHTOWER_SCOPE}"],
                 "labels": ["com.centurylinklabs.watchtower.enable=true"],
                 "volumes": ["/var/run/docker.sock:/var/run/docker.sock"],
@@ -162,7 +162,7 @@ class TestAssembleDockerComposeWatchtower(unittest.TestCase):
         user_cfg = copy.deepcopy(_USER_CFG_BASE)
         user_cfg["compose_config_common"]["watchtower_service"]["proxy_disabled"] = {
             "container_name": "${DEVICE_NAME}_watchtower",
-            "image": "nickfedor/watchtower:1.14",
+            "image": "nickfedor/watchtower:1",
             # intentionally missing WATCHTOWER_SCOPE env and scope label
             "environment": ["WATCHTOWER_CLEANUP=true"],
             "labels": ["com.centurylinklabs.watchtower.enable=true"],

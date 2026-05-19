@@ -173,7 +173,7 @@ def show_app_detail(app_config: dict[str, Any], app_name: str) -> bool:
     limit_str = "unlimited" if install_limit == -1 else str(install_limit)
     print(f"\n{Fore.CYAN}Configuration{Style.RESET_ALL}")
     print(f"  {'Install limit:':<{w}} {limit_str}")
-    layer = entry.get("compose_layer", "—")
+    layer = entry.get("profile", "—")
     print(f"  {'Compose layer:':<{w}} {layer}")
 
     # Warnings

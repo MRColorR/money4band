@@ -34,7 +34,7 @@ class TestAppWizard:
         assert result["compose_config"]["image"] == "test/image:latest"
         assert "email" in result["flags"]
         assert "password" in result["flags"]
-        assert result["compose_layer"] == "residential"
+        assert result["profile"] == "residential"
         assert result["install_limit"] == -1
 
         # File should exist
@@ -58,7 +58,7 @@ class TestAppWizard:
             result = run_app_wizard(str(tmp_path))
 
         assert result["flags"]["uuid"]["length"] == 64
-        assert result["compose_layer"] == "universal"
+        assert result["profile"] == "universal"
         assert result["install_limit"] == 5
         assert result["dashboard"] == "https://dash.example.com"
 

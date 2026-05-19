@@ -80,7 +80,7 @@ def _app_offers_from_config(app_config_path: str) -> list[dict[str, Any]]:
                 continue
             details = entry.get("app_details", {})
             earnings = details.get("earnings", {})
-            layer = entry.get("compose_layer", "")
+            layer = entry.get("profile", "")
 
             # Determine category from layer
             if layer in ("residential", "universal"):

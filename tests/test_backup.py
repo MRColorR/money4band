@@ -16,10 +16,13 @@ from money4band.core.backup import (
 
 @pytest.fixture(autouse=True)
 def _isolated_backup_dir(monkeypatch, tmp_path):
-    """Redirect BACKUP_DIR to a temp location for every test."""
-    fake_dir = tmp_path / "backups"
+    """Redirect the backup dir to a temp location for every test."""
+    fake_root = tmp_path
+    fake_dir = fake_root / "backups"
     fake_dir.mkdir()
-    monkeypatch.setattr("money4band.core.backup.BACKUP_DIR", fake_dir)
+    monkeypatch.setattr(
+        "money4band.core.backup.get_m4b_data_dir", lambda: fake_root
+    )
     return fake_dir
 
 

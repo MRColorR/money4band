@@ -30,7 +30,7 @@ class TestValidateAppEntry:
             "compose_config": {"image": "test/img:latest", "restart": "always"},
             "flags": {},
             "install_limit": -1,
-            "compose_layer": "residential",
+            "profile": "residential",
         }
         entry.update(overrides)
         return entry
@@ -61,8 +61,8 @@ class TestValidateAppEntry:
         assert any("restart" in err for err in errors)
 
     def test_invalid_layer(self):
-        errors = validate_app_entry(self._minimal(compose_layer="wrong"))
-        assert any("compose_layer" in err for err in errors)
+        errors = validate_app_entry(self._minimal(profile="wrong"))
+        assert any("profile" in err for err in errors)
 
     def test_invalid_install_limit_type(self):
         errors = validate_app_entry(self._minimal(install_limit="five"))
@@ -89,7 +89,7 @@ class TestLoadCommunityApps:
             "compose_config": {"image": "test/img:latest", "restart": "always"},
             "flags": {},
             "install_limit": -1,
-            "compose_layer": "residential",
+            "profile": "residential",
         }
         entry.update(overrides)
         with open(os.path.join(d, f"{name}.json"), "w") as f:
@@ -146,7 +146,7 @@ class TestMergeCommunityApps:
                         "compose_config": {"image": "x"},
                         "flags": {},
                         "install_limit": 1,
-                        "compose_layer": "residential",
+                        "profile": "residential",
                     }
                 ],
             },
@@ -159,7 +159,7 @@ class TestMergeCommunityApps:
             "compose_config": {"image": "new/app:latest", "restart": "always"},
             "flags": {},
             "install_limit": -1,
-            "compose_layer": "universal",
+            "profile": "universal",
         }
         with open(tmp_path / "NEWAPP.json", "w") as f:
             json.dump(entry, f)
@@ -177,7 +177,7 @@ class TestMergeCommunityApps:
             "compose_config": {"image": "dup/app:latest", "restart": "always"},
             "flags": {},
             "install_limit": -1,
-            "compose_layer": "residential",
+            "profile": "residential",
         }
         with open(tmp_path / "EXISTING.json", "w") as f:
             json.dump(entry, f)
@@ -195,7 +195,7 @@ class TestMergeCommunityApps:
             "compose_config": {"image": "n/img:latest", "restart": "always"},
             "flags": {},
             "install_limit": -1,
-            "compose_layer": "datacenter",
+            "profile": "datacenter",
         }
         with open(tmp_path / "NEWBIE.json", "w") as f:
             json.dump(entry, f)
@@ -264,7 +264,7 @@ class TestCatalogEntryFromRaw:
             "compose_config_proxy": {"network_mode": "service:proxy"},
             "flags": {"uuid": {"length": 32}},
             "install_limit": 3,
-            "compose_layer": "residential",
+            "profile": "residential",
             "app_details": {
                 "official_name": "Test App",
                 "publisher": "TestCo",
@@ -319,7 +319,7 @@ class TestCatalogEntryFromRaw:
         }
         assert entry.deployment.flags == {"uuid": {"length": 32}}
         assert entry.deployment.install_limit == 3
-        assert entry.deployment.compose_layer == "residential"
+        assert entry.deployment.profile == "residential"
         # full raw dict preserved
         assert entry.deployment.raw["name"] == "TESTAPP"
 
@@ -372,13 +372,13 @@ class TestAddonFromRaw:
             "parent_id": "HONEYGAIN",
             "compose_config": {"image": "pot/img:latest"},
             "install_limit": 1,
-            "compose_layer": "service",
+            "profile": "service",
         }
         addon = Addon.from_raw(raw, source=SOURCE_COMMUNITY)
         assert addon.id == "HONEYGAIN_POT"
         assert addon.parent_id == "HONEYGAIN"
         assert addon.source == SOURCE_COMMUNITY
-        assert addon.deployment.compose_layer == "service"
+        assert addon.deployment.profile == "service"
         assert addon.deployment.install_limit == 1
 
     def test_missing_parent_raises(self):
@@ -403,4 +403,4 @@ class TestDataclassDefaults:
         assert d.compose_config_proxy is None
         assert d.flags == {}
         assert d.install_limit == -1
-        assert d.compose_layer == "residential"
+        assert d.profile == "residential"

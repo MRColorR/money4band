@@ -1,4 +1,4 @@
-"""Tests for money4band.docker.compose_builder — Docker Compose assembly."""
+"""Tests for money4band.docker.compose_builder — single-file generation + profiles."""
 
 from __future__ import annotations
 
@@ -10,7 +10,8 @@ import pytest
 import yaml
 
 from money4band.docker.compose_builder import (
-    COMPOSE_LAYER_FILES,
+    RESERVED_MONITORING_PROFILE,
+    RESERVED_PROXY_PROFILE,
     assemble_docker_compose,
     get_compose_files,
     substitute_port_placeholders,
@@ -22,31 +23,25 @@ from money4band.docker.compose_builder import (
 
 
 class TestGetComposeFiles:
-    def test_returns_layered_files_in_order(self, tmp_path: Path) -> None:
-        for layer in ("base", "residential", "service"):
-            (tmp_path / COMPOSE_LAYER_FILES[layer]).write_text("services: {}")
-        result = get_compose_files(str(tmp_path))
-        assert len(result) == 3
-        # base must come before service
-        assert result.index(str(tmp_path / "compose.yml")) < result.index(
-            str(tmp_path / "compose.service.yml")
-        )
-
-    def test_falls_back_to_legacy(self, tmp_path: Path) -> None:
+    def test_returns_single_compose_when_present(self, tmp_path: Path) -> None:
         (tmp_path / "docker-compose.yaml").write_text("services: {}")
         result = get_compose_files(str(tmp_path))
-        assert len(result) == 1
-        assert "docker-compose.yaml" in result[0]
+        assert result == [str(tmp_path / "docker-compose.yaml")]
 
     def test_empty_dir_returns_empty(self, tmp_path: Path) -> None:
         assert get_compose_files(str(tmp_path)) == []
 
-    def test_layered_takes_priority_over_legacy(self, tmp_path: Path) -> None:
-        (tmp_path / COMPOSE_LAYER_FILES["base"]).write_text("services: {}")
-        (tmp_path / "docker-compose.yaml").write_text("services: {}")
+    def test_legacy_layer_files_ignored(self, tmp_path: Path) -> None:
+        """v5 ignores leftover layered files — generator cleans them up."""
+        for legacy in (
+            "compose.yml",
+            "compose.residential.yml",
+            "compose.datacenter.yml",
+        ):
+            (tmp_path / legacy).write_text("services: {}")
+        # No docker-compose.yaml present yet.
         result = get_compose_files(str(tmp_path))
-        assert len(result) == 1
-        assert "compose.yml" in result[0]
+        assert result == []
 
 
 # ---------------------------------------------------------------------------
@@ -75,7 +70,7 @@ class TestSubstitutePortPlaceholders:
 
 
 # ---------------------------------------------------------------------------
-# assemble_docker_compose — minimal configs, mocked arch checks
+# assemble_docker_compose — single-file output with profiles: arrays
 # ---------------------------------------------------------------------------
 
 
@@ -98,7 +93,7 @@ def _make_configs(tmp_path: Path) -> tuple[dict, dict, dict]:
                         "image": "fazalfarhan01/earnapp:lite",
                         "restart": "unless-stopped",
                     },
-                    "compose_layer": "residential",
+                    "profile": "residential",
                 },
             ],
         },
@@ -148,11 +143,11 @@ class TestAssembleDockerCompose:
         "money4band.docker.compose_builder.check_img_arch_support", return_value=True
     )
     @patch("money4band.docker.compose_builder.http_client")
-    def test_monolithic_output(self, _http, _arch, tmp_path: Path) -> None:
+    def test_single_file_output(self, _http, _arch, tmp_path: Path) -> None:
         m4b, app, user = _make_configs(tmp_path)
         out = str(tmp_path / "docker-compose.yaml")
         result = assemble_docker_compose(m4b, app, user, out, is_main_instance=True)
-        assert len(result) == 1
+        assert result == [out]
         assert os.path.isfile(out)
         data = yaml.safe_load(Path(out).read_text())
         assert "earnapp" in data["services"]
@@ -161,26 +156,56 @@ class TestAssembleDockerCompose:
         "money4band.docker.compose_builder.check_img_arch_support", return_value=True
     )
     @patch("money4band.docker.compose_builder.http_client")
-    def test_layered_output(self, _http, _arch, tmp_path: Path) -> None:
+    def test_app_gets_profile_from_bundle(self, _http, _arch, tmp_path: Path) -> None:
         m4b, app, user = _make_configs(tmp_path)
         out = str(tmp_path / "docker-compose.yaml")
-        result = assemble_docker_compose(
-            m4b, app, user, out, is_main_instance=True, layered=True
-        )
-        assert len(result) >= 1
-        for f in result:
-            assert os.path.isfile(f)
+        assemble_docker_compose(m4b, app, user, out, is_main_instance=False)
+        data = yaml.safe_load(Path(out).read_text())
+        assert data["services"]["earnapp"]["profiles"] == ["residential"]
 
     @patch(
         "money4band.docker.compose_builder.check_img_arch_support", return_value=True
     )
     @patch("money4band.docker.compose_builder.http_client")
-    def test_watchtower_added_for_main(self, _http, _arch, tmp_path: Path) -> None:
+    def test_app_default_profile_when_field_missing(
+        self, _http, _arch, tmp_path: Path
+    ) -> None:
+        m4b, app, user = _make_configs(tmp_path)
+        # Drop the explicit field — generator should fall back to datacenter.
+        del app["supported"]["entries"][0]["profile"]
+        out = str(tmp_path / "docker-compose.yaml")
+        assemble_docker_compose(m4b, app, user, out, is_main_instance=False)
+        data = yaml.safe_load(Path(out).read_text())
+        assert data["services"]["earnapp"]["profiles"] == ["datacenter"]
+
+    @patch(
+        "money4band.docker.compose_builder.check_img_arch_support", return_value=True
+    )
+    @patch("money4band.docker.compose_builder.http_client")
+    def test_watchtower_uses_monitoring_profile(
+        self, _http, _arch, tmp_path: Path
+    ) -> None:
         m4b, app, user = _make_configs(tmp_path)
         out = str(tmp_path / "docker-compose.yaml")
         assemble_docker_compose(m4b, app, user, out, is_main_instance=True)
         data = yaml.safe_load(Path(out).read_text())
         assert "watchtower" in data["services"]
+        assert data["services"]["watchtower"]["profiles"] == [
+            RESERVED_MONITORING_PROFILE
+        ]
+
+    @patch(
+        "money4band.docker.compose_builder.check_img_arch_support", return_value=True
+    )
+    @patch("money4band.docker.compose_builder.http_client")
+    def test_proxy_uses_proxy_profile(self, _http, _arch, tmp_path: Path) -> None:
+        m4b, app, user = _make_configs(tmp_path)
+        user["proxies"]["enabled"] = True
+        out = str(tmp_path / "docker-compose.yaml")
+        assemble_docker_compose(m4b, app, user, out, is_main_instance=True)
+        data = yaml.safe_load(Path(out).read_text())
+        assert "proxy" in data["services"]
+        assert data["services"]["proxy"]["profiles"] == [RESERVED_PROXY_PROFILE]
 
     @patch(
         "money4band.docker.compose_builder.check_img_arch_support", return_value=True
@@ -276,3 +301,31 @@ class TestAssembleDockerCompose:
         assert "networks" in data
         assert "default" in data["networks"]
         assert data["networks"]["default"]["driver"] == "bridge"
+
+    @patch(
+        "money4band.docker.compose_builder.check_img_arch_support", return_value=True
+    )
+    @patch("money4band.docker.compose_builder.http_client")
+    def test_legacy_layer_files_cleaned_up(
+        self, _http, _arch, tmp_path: Path
+    ) -> None:
+        """v4-era layered files are removed by the v5 generator."""
+        m4b, app, user = _make_configs(tmp_path)
+        # Seed legacy layered files from a v4 install.
+        for legacy in (
+            "compose.yml",
+            "compose.residential.yml",
+            "compose.datacenter.yml",
+        ):
+            (tmp_path / legacy).write_text("# stale v4-era layer file\n")
+        out = str(tmp_path / "docker-compose.yaml")
+        assemble_docker_compose(m4b, app, user, out, is_main_instance=False)
+        # All legacy layer files gone.
+        for legacy in (
+            "compose.yml",
+            "compose.residential.yml",
+            "compose.datacenter.yml",
+        ):
+            assert not (tmp_path / legacy).exists()
+        # Single new compose file written.
+        assert os.path.isfile(out)

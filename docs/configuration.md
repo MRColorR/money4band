@@ -42,7 +42,6 @@ Project-level settings you can tune:
 
 | Key | Default | Description |
 |-----|---------|-------------|
-| `system.compose_mode` | `monolithic` | `monolithic` or `layered` compose output |
 | `ports.default_port_base` | `50000` | Starting port for app port allocation |
 | `ports.port_offset_per_app` | `1000` | Port stride between apps |
 | `ports.port_offset_per_instance` | `3` | Port stride between multi-proxy instances |
@@ -138,41 +137,90 @@ Available presets: `default`, `cloudflare`, `cloudflare-security`, `google`, `qu
 
 The same presets are available through the **interactive menu** and the **REST API** (`PUT /api/system/dns`).
 
-## Compose Modes
+## Docker Compose Profiles
 
-### Monolithic (Default)
+M4B generates a single `docker-compose.yaml` per project. Each service
+carries a `profiles:` array of one entry, driven by the app bundle's
+`profile` field. This gives selective startup via standard Docker Compose
+semantics — bring up only the apps you want with `--profile <name>`.
 
-All services are written to a single `docker-compose.yaml`. Simple and compatible with all Docker Compose versions.
+### Reserved profiles
 
-### Layered
+| Profile | Used by | Notes |
+|---------|---------|-------|
+| `residential` | Apps that need a residential IP (Honeygain, Bitping, …) | Tagged via bundle `profile: "residential"` |
+| `datacenter` | Apps tolerating datacenter IPs (Repocket, Mystnode, …) | Tagged via bundle `profile: "datacenter"` |
+| `universal` | Apps accepting any IP (TraffMonetizer, …) | Tagged via bundle `profile: "universal"` |
+| `service` | Sidecars and helper services | Apps that ship as helper containers; addons inherit their parent's profile |
+| `monitoring` | Watchtower | Auto-update service for app images |
+| `proxy` | tun2socks tunnel | Activated only when `proxies.enabled` is true in user-config |
 
-Services are split into 6 separate compose files by IP-policy tier:
+### Starting selectively
 
+`m4b stack start` auto-discovers profiles in use from your enabled apps
+and activates the right set — you never need to pass `--profile` by hand.
+
+Power users can drop to raw Docker Compose for surgical control:
+
+```bash
+# Only residential-IP apps
+docker compose --profile residential --env-file .env up -d
+
+# Residential apps + Watchtower
+docker compose --profile residential --profile monitoring --env-file .env up -d
+
+# Single named service
+docker compose --env-file .env up -d honeygain bitping
 ```
-compose.yml                  # base (network + watchtower)
-compose.residential.yml      # residential-IP apps
-compose.datacenter.yml       # datacenter-OK apps
-compose.universal.yml        # any-IP apps
-compose.service.yml          # auto-claim sidecars
-compose.proxy.yml            # VPN tunnel
-```
 
-Enable layered mode by editing `config/m4b-config.json`:
-```jsonc
-{
-  "system": {
-    "compose_mode": "layered"
-  }
-}
-```
+Compose v2.20+ is recommended (`include:` directive support, modern
+profile semantics). v1.28+ is the minimum (profile selection support).
 
-Layered mode is useful for advanced users who want to selectively start/stop app groups.
+### Sidecar profile inheritance
+
+Auto-claim sidecar containers (the "pots") **inherit their parent app's
+profile** at generation time. Starting `--profile residential` brings up
+Honeygain AND its `honeygain-pot` together — no separate flag needed,
+no orphan-pot edge cases.
 
 ## Backup & Restore
 
 ```bash
-m4b backup    # create encrypted backup → ~/.m4b/backups/
+m4b backup    # create encrypted backup → <data-dir>/backups/
 m4b restore   # pick from recent backups to restore
 ```
 
-Backups are raw file copies — if the config is encrypted, the backup stays encrypted. Up to 5 backups are retained automatically.
+Backups are raw file copies — if the config is encrypted, the backup stays encrypted. Up to 5 backups are retained automatically. The `<data-dir>` location is resolved by the rules in the next section.
+
+## Runtime Data Directory
+
+The master encryption key, session salt, and config backups live in a runtime
+data directory. M4B resolves the location with a 3-tier precedence:
+
+1. **`$M4B_DATA_DIR`** — environment variable, highest priority. Use this for
+   custom layouts (e.g. shared volumes, container deployments).
+2. **`<install>/.m4b/`** — portable default. The install dir is the directory
+   containing the executable (frozen binary) or the repo root (source checkout).
+   Used automatically when the install dir is writable and no legacy `~/.m4b`
+   exists, or whenever the portable dir is already populated.
+3. **`~/.m4b/`** — legacy fallback for users upgrading from older M4B builds,
+   and for system-installed binaries on read-only paths.
+
+Why portable: a PyInstaller binary on a USB stick, or a git clone moved between
+machines, carries its key + salt + backups with it. Multiple installs on one
+machine stay isolated.
+
+### Migrating from `~/.m4b/` to the portable dir
+
+If your install already wrote to `~/.m4b/`, copy the runtime state into the
+install dir:
+
+```bash
+m4b config migrate-data-dir                 # copy only; keeps the source
+m4b config migrate-data-dir --remove-source # copy then wipe the legacy dir
+m4b config migrate-data-dir --force         # overwrite differing target files
+```
+
+The command is idempotent — re-running it with the same source and target after
+a successful copy reports every entry as "already identical" and does nothing.
+It refuses to overwrite a divergent target without `--force`.

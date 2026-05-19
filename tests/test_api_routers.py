@@ -95,7 +95,7 @@ def tmp_config(tmp_path):
                             "image": "honeygain/honeygain:latest",
                             "cpus": "${APP_CPU_LIMIT_MEDIUM}",
                         },
-                        "compose_layer": "residential",
+                        "profile": "residential",
                         "app_details": {
                             "status": "active",
                             "earnings": {
@@ -117,7 +117,7 @@ def tmp_config(tmp_path):
                             "image": "fazalfarhan01/earnapp:latest",
                             "cpus": "${APP_CPU_LIMIT_LITTLE}",
                         },
-                        "compose_layer": "residential",
+                        "profile": "residential",
                         "app_details": {
                             "status": "active",
                             "earnings": {
@@ -137,7 +137,7 @@ def tmp_config(tmp_path):
                             "image": "test/test:latest",
                             "cpus": "${APP_CPU_LIMIT_LITTLE}",
                         },
-                        "compose_layer": "datacenter",
+                        "profile": "datacenter",
                         "app_details": {
                             "status": "candidate",
                             "earnings": {
@@ -413,6 +413,62 @@ class TestConfigRouter:
         assert updated["m4b_dashboard"]["port"] == 9090
         # api_key still untouched
         assert updated["m4b_dashboard"]["api_key"] == "original-secret-key"
+
+    def test_update_rejects_scalar_overwriting_dict_parent(self, client, tmp_config):
+        """P0-2 guard: scalar value can't replace a dict-valued top-level key.
+
+        Without the type guard, a payload like ``{"m4b_dashboard": "x"}``
+        would nuke the entire dashboard sub-config — including the
+        ``_IMMUTABLE_KEYS``-protected ``api_key`` — by hitting the
+        ``base[key] = value`` else-branch in ``_deep_merge``.
+        """
+        resp = client.put(
+            "/api/config/user",
+            json={"data": {"m4b_dashboard": "corrupted"}},
+        )
+        assert resp.status_code == 400
+        assert "must be an object" in resp.json()["detail"]
+        assert "m4b_dashboard" in resp.json()["detail"]
+
+        cfg_path = tmp_config / "config" / "user-config.json"
+        updated = json.loads(cfg_path.read_text())
+        # Dashboard sub-config and its api_key untouched.
+        assert isinstance(updated["m4b_dashboard"], dict)
+        assert updated["m4b_dashboard"]["api_key"] == "original-secret-key"
+
+    def test_update_rejects_list_overwriting_dict_parent(self, client, tmp_config):
+        """Type guard also rejects lists where a dict is expected."""
+        resp = client.put(
+            "/api/config/user",
+            json={"data": {"device_info": ["not", "a", "dict"]}},
+        )
+        assert resp.status_code == 400
+        assert "must be an object" in resp.json()["detail"]
+        assert "list" in resp.json()["detail"]
+
+    def test_update_rejects_null_overwriting_dict_parent(self, client, tmp_config):
+        """null can't be used to wipe a dict-valued key either."""
+        resp = client.put(
+            "/api/config/user",
+            json={"data": {"device_info": None}},
+        )
+        assert resp.status_code == 400
+        assert "must be an object" in resp.json()["detail"]
+
+    def test_update_scalar_field_still_accepts_scalar(self, client, tmp_config):
+        """Type guard only fires on dict-valued keys; scalar fields still mutable.
+
+        Regression check: the guard must not break legitimate scalar updates.
+        """
+        # Pick a scalar key from the test config — settings.resource_profile.
+        resp = client.put(
+            "/api/config/user",
+            json={"data": {"settings": {"resource_profile": "performance"}}},
+        )
+        assert resp.status_code == 200
+        cfg_path = tmp_config / "config" / "user-config.json"
+        updated = json.loads(cfg_path.read_text())
+        assert updated["settings"]["resource_profile"] == "performance"
 
     def test_reset_config(self, client, tmp_config):
         resp = client.post("/api/config/reset")
@@ -1027,3 +1083,102 @@ class TestSecurityRouter:
     def test_scan_image_bad_name(self, client):
         resp = client.post("/api/security/scan/; rm -rf /")
         assert resp.status_code in (400, 404, 422)
+
+
+# ===========================================================================
+# Security headers + docker stderr leakage (P1-1, P1-2)
+# ===========================================================================
+
+
+class TestSecurityHeaders:
+    """Verify the security-headers middleware sets the baseline hardening set."""
+
+    def test_api_response_has_baseline_headers(self, client):
+        resp = client.get("/api/status")
+        assert resp.headers.get("X-Content-Type-Options") == "nosniff"
+        assert resp.headers.get("X-Frame-Options") == "DENY"
+        assert resp.headers.get("Referrer-Policy") == "no-referrer"
+
+    def test_api_response_sets_no_store_cache_control(self, client):
+        resp = client.get("/api/status")
+        assert resp.headers.get("Cache-Control") == "no-store"
+
+    def test_baseline_headers_present_on_error_responses(self, client):
+        """Even 4xx replies must carry the hardening headers."""
+        resp = client.get("/api/apps/nonexistent")
+        assert resp.status_code == 404
+        assert resp.headers.get("X-Content-Type-Options") == "nosniff"
+        assert resp.headers.get("X-Frame-Options") == "DENY"
+        assert resp.headers.get("Referrer-Policy") == "no-referrer"
+        assert resp.headers.get("Cache-Control") == "no-store"
+
+    def test_non_api_path_does_not_set_no_store(self, client):
+        """Non-/api paths get baseline headers but not the API-only no-store.
+
+        Probes any path outside ``/api/*``. The exact status code is
+        irrelevant — we only assert middleware behavior, which runs on
+        every response (200, 404, etc.).
+        """
+        resp = client.get("/some-non-api-path-that-does-not-exist")
+        # Middleware still applies the baseline regardless of status.
+        assert resp.headers.get("X-Content-Type-Options") == "nosniff"
+        assert resp.headers.get("X-Frame-Options") == "DENY"
+        # Cache-Control: no-store is reserved for /api/* responses only.
+        assert resp.headers.get("Cache-Control") != "no-store"
+
+
+class TestDockerErrorLeakage:
+    """Docker stderr must stay in logs, never reach API clients."""
+
+    _LEAKY_STDERR = (
+        "Error response from daemon: error while creating mount source path "
+        "'/home/mattia/secret-volume/internal/config.json': mkdir failed"
+    )
+
+    def test_container_action_failure_returns_generic_detail(self, client, caplog):
+        import subprocess
+
+        failed = subprocess.CompletedProcess(
+            args=["docker", "restart", "honeygain"],
+            returncode=1,
+            stdout="",
+            stderr=self._LEAKY_STDERR,
+        )
+        with caplog.at_level("ERROR"), patch(
+            "money4band.api.server._run_docker", return_value=failed
+        ):
+            resp = client.post("/api/action/honeygain/restart")
+
+        assert resp.status_code == 500
+        detail = resp.json()["detail"]
+        assert "Failed to restart container 'honeygain'" in detail
+        # Sensitive stderr must NOT appear in the response.
+        assert "secret-volume" not in detail
+        assert "mkdir failed" not in detail
+        # But it MUST be in the server logs for operator triage.
+        assert any("secret-volume" in r.getMessage() for r in caplog.records)
+
+    def test_get_status_failure_returns_generic_error(self, client, caplog):
+        import subprocess
+
+        failed = subprocess.CompletedProcess(
+            args=["docker", "ps"],
+            returncode=1,
+            stdout="",
+            stderr=self._LEAKY_STDERR,
+        )
+        with caplog.at_level("ERROR"), patch(
+            "money4band.api.server._run_docker", return_value=failed
+        ):
+            resp = client.get("/api/status")
+
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["docker_available"] is True
+        assert body["error"] == "Failed to list containers"
+        # Sensitive stderr stays out of the JSON.
+        body_str = json.dumps(body)
+        assert "secret-volume" not in body_str
+        assert "mkdir failed" not in body_str
+        # Logged for operator visibility.
+        assert any("secret-volume" in r.getMessage() for r in caplog.records)
