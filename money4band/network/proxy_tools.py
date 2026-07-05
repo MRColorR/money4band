@@ -115,9 +115,7 @@ def update_multiproxy_instances(
     if invalid:
         print(f"\n{Fore.RED}Invalid proxy URLs:{Style.RESET_ALL}")
         for r in invalid:
-            print(
-                f"  {Fore.RED}X{Style.RESET_ALL} {r['url']} - {r['reason']}"
-            )
+            print(f"  {Fore.RED}X{Style.RESET_ALL} {r['url']} - {r['reason']}")
         print(
             f"\n{Fore.RED}Fix the invalid proxies before proceeding.{Style.RESET_ALL}"
         )
@@ -330,7 +328,7 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
             break
 
         try:
-            choice = int(choice)
+            choice_index = int(choice)
         except ValueError:
             print(
                 f"{Fore.YELLOW}Invalid selection. Choose 1-{len(menu_options)} or a shortcut.{Style.RESET_ALL}"
@@ -338,8 +336,8 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
             time.sleep(sleep_time)
             continue
 
-        if 1 <= choice <= len(menu_options):
-            selected_option = menu_options[choice - 1]
+        if 1 <= choice_index <= len(menu_options):
+            selected_option = menu_options[choice_index - 1]
             logger.info(f"User selected menu option: {selected_option['label']}")
 
             globals()[selected_option["function"]](

@@ -91,8 +91,8 @@ def _seed_app_slices_from_catalog(user_config_path: str) -> None:
 
 
 def main(
-    app_config_path: str,
-    m4b_config_path: str,
+    app_config_path: str | None,
+    m4b_config_path: str | None,
     user_config_path: str,
     src_path: str = "./template/user-config.json",
     dest_path: str = "./config/user-config.json",
@@ -101,8 +101,8 @@ def main(
     Main function to call the reset_config function.
 
     Arguments:
-    app_config_path -- the path to the app configuration file
-    m4b_config_path -- the path to the m4b configuration file
+    app_config_path -- unused; kept for menu dispatch call-site compatibility
+    m4b_config_path -- unused; kept for menu dispatch call-site compatibility
     user_config_path -- the path to the user configuration file
     src_path -- the source file path
     dest_path -- the destination file path

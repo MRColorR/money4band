@@ -186,7 +186,9 @@ def _manage_categories(app_config: dict[str, Any], app_config_path: str | None) 
         from money4band.core.catalog_store import set_category_active
 
         set_category_active(app_config_path, cat_key, new_status)
-        logger.info("Saved category status change: %s -> active=%s", cat_key, new_status)
+        logger.info(
+            "Saved category status change: %s -> active=%s", cat_key, new_status
+        )
         print(f"{Fore.GREEN}Saved to {app_config_path}{Style.RESET_ALL}")
     else:
         logger.warning("No app_config_path provided - change not persisted")
@@ -227,7 +229,7 @@ def fn_app_catalog(
         if choice == "m":
             _manage_categories(app_config, app_config_path)
             return True
-        if choice == "c" and has_sources:
+        if choice == "c" and m4b_config_path is not None:
             _manage_sources(m4b_config_path)
             return True
         return False  # b or anything else -> back

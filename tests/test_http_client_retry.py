@@ -39,9 +39,7 @@ class _RecordingInner(httpx.BaseTransport):
 def no_sleep(monkeypatch):
     """Drop real sleeps so retry tests stay sub-second."""
     sleeps: list[float] = []
-    monkeypatch.setattr(
-        http_client.time, "sleep", lambda s: sleeps.append(s)
-    )
+    monkeypatch.setattr(http_client.time, "sleep", sleeps.append)
     return sleeps
 
 

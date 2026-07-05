@@ -63,8 +63,8 @@ def generate_uuid(length: int) -> str:
 
 
 def generate_container_url_list(
-    compose_project_name: str,
-    device_name: str,
+    compose_project_name: str | None,
+    device_name: str | None,
     env_file: str | None = None,
 ) -> None:
     """
@@ -73,8 +73,8 @@ def generate_container_url_list(
     The generated URLs are written to a file named "dashboards_URLs_<compose_project_name>-<device_name>.txt".
 
     Args:
-        compose_project_name (str): The name of the compose project.
-        device_name (str): The name of the device.
+        compose_project_name (str | None): The name of the compose project.
+        device_name (str | None): The name of the device.
         env_file (str | None, optional): The path to the environment file. Defaults to ".env" in cwd.
 
     Raises:

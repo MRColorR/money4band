@@ -9,6 +9,7 @@ import signal
 import subprocess
 import sys
 import time
+from collections.abc import Callable
 from logging.handlers import RotatingFileHandler
 
 from colorama import Fore, Style, just_fix_windows_console
@@ -218,7 +219,7 @@ def mainmenu(
         _fn_stop_stack(app_config_path, m4b_config_path, user_config_path)
         _fn_start_stack(app_config_path, m4b_config_path, user_config_path)
 
-    menu_dispatch: dict[str, object] = {
+    menu_dispatch: dict[str, Callable[[str, str, str], None]] = {
         "system_info": _system_info,
         "fn_app_catalog": _fn_app_catalog,
         "fn_install_docker": _fn_install_docker,
@@ -634,9 +635,7 @@ def _cmd_clean(args: argparse.Namespace) -> None:
 
     result = clean_orphans(project, include_volumes=include_volumes, dry_run=dry_run)
 
-    print(
-        f"{Fore.GREEN}{'Would remove' if dry_run else 'Removed'}:{Style.RESET_ALL}"
-    )
+    print(f"{Fore.GREEN}{'Would remove' if dry_run else 'Removed'}:{Style.RESET_ALL}")
     print(f"  containers: {len(result.containers_removed)}")
     for name in result.containers_removed:
         print(f"    - {name}")

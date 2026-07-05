@@ -20,7 +20,8 @@ def configure_email(
     app: dict[str, Any], flag_config: dict[str, Any], config: dict[str, Any]
 ) -> None:
     email = ask_email(
-        f"Enter your {app['name'].lower().title()} email:", default=config.get("email")
+        f"Enter your {app['name'].lower().title()} email:",
+        default=config.get("email", ""),
     )
     config["email"] = email
 
@@ -33,7 +34,7 @@ def configure_password(
     )
     password = ask_string(
         f"Enter your {app['name'].lower().title()} password:",
-        default=config.get("password"),
+        default=config.get("password", ""),
     )
     config["password"] = password
 
@@ -46,7 +47,7 @@ def configure_apikey(
     )
     apikey = ask_string(
         f"Enter your {app['name'].lower().title()} APIKey:",
-        default=config.get("apikey"),
+        default=config.get("apikey", ""),
     )
     config["apikey"] = apikey
 
@@ -59,7 +60,7 @@ def configure_userid(
     )
     userid = ask_string(
         f"Enter your {app['name'].lower().title()} UserID:",
-        default=config.get("userid"),
+        default=config.get("userid", ""),
     )
     config["userid"] = userid
 
@@ -92,7 +93,7 @@ def configure_uuid(
         print(
             "E.g. if existing registered node is sdk-node-b86301656baefekba8917349bdf0f3g4 then enter just b86301656baefekba8917349bdf0f3g4"
         )
-        uuid = ask_uuid("Insert uuid:", length, default=config.get("uuid"))
+        uuid = ask_uuid("Insert uuid:", length, default=config.get("uuid", ""))
     else:
         uuid = generate_uuid(length)
         print(f"{Fore.GREEN}Generated UUID: {uuid}{Style.RESET_ALL}")
@@ -127,7 +128,7 @@ def configure_cid(
         "Example: For packetstream you can fetch it from your dashboard https://packetstream.io/dashboard/download?linux# then click on -> Looking for linux app -> now search for CID= in the code shown in the page, you need to enter the code after -e CID= (e.g. if in the code CID=6aTk, just enter 6aTk)"
     )
     cid = ask_string(
-        f"Enter your {app['name'].lower().title()} CID:", default=config.get("cid")
+        f"Enter your {app['name'].lower().title()} CID:", default=config.get("cid", "")
     )
     config["cid"] = cid
 
@@ -139,7 +140,8 @@ def configure_code(
         f"Find your code inside your {app['name'].lower().title()} dashboard/profile."
     )
     code = ask_string(
-        f"Enter your {app['name'].lower().title()} code:", default=config.get("code")
+        f"Enter your {app['name'].lower().title()} code:",
+        default=config.get("code", ""),
     )
     config["code"] = code
 
@@ -151,7 +153,8 @@ def configure_token(
         f"Find your token inside your {app['name'].lower().title()} dashboard/profile."
     )
     token = ask_string(
-        f"Enter your {app['name'].lower().title()} token:", default=config.get("token")
+        f"Enter your {app['name'].lower().title()} token:",
+        default=config.get("token", ""),
     )
     config["token"] = token
 
@@ -275,9 +278,7 @@ def _configure_apps(
         # Auto-claim sidecar prompt (addon lookup via parent_id)
         from money4band.apps.addons import get_addons_for
 
-        addons_for_app = (
-            get_addons_for(app_name, app_config) if app_config else []
-        )
+        addons_for_app = get_addons_for(app_name, app_config) if app_config else []
         if addons_for_app:
             names = ", ".join(a.get("name", "?") for a in addons_for_app)
             descriptions = " / ".join(

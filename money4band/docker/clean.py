@@ -64,15 +64,17 @@ def _list_containers(project: str) -> list[tuple[str, str, str]]:
     if result.returncode != 0:
         raise RuntimeError(f"docker ps failed: {result.stderr.strip()}")
     containers: list[tuple[str, str, str]] = []
-    for line in result.stdout.splitlines():
-        line = line.strip()
+    for raw_line in result.stdout.splitlines():
+        line = raw_line.strip()
         if not line:
             continue
         try:
             obj = json.loads(line)
         except json.JSONDecodeError:
             continue
-        containers.append((obj.get("ID", ""), obj.get("Names", ""), obj.get("State", "")))
+        containers.append(
+            (obj.get("ID", ""), obj.get("Names", ""), obj.get("State", ""))
+        )
     return containers
 
 

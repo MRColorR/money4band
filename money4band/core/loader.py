@@ -46,7 +46,8 @@ def load_json_config(config_path_or_dict: Any) -> dict[str, Any]:
                 logger.debug("Decrypting encrypted config: %s", config_path_or_dict)
                 return decrypt_to_dict(content)
 
-            return json.loads(content)
+            parsed: dict[str, Any] = json.loads(content)
+            return parsed
         except FileNotFoundError:
             logger.error("Config file %s not found.", config_path_or_dict)
             raise
@@ -132,9 +133,7 @@ def load_app_config_with_overlays(
         # Apply user-owned overrides before aggregation so the shaped
         # output reflects the effective state.
         if user_config_path is None:
-            sibling = os.path.join(
-                os.path.dirname(config_path), "user-config.json"
-            )
+            sibling = os.path.join(os.path.dirname(config_path), "user-config.json")
             if os.path.isfile(sibling):
                 user_config_path = sibling
         overrides = load_user_overrides(user_config_path)
@@ -159,7 +158,7 @@ def is_category_active(app_config: dict[str, Any], category: str) -> bool:
     """Return whether *category* is marked active."""
     cat = app_config.get(category)
     if isinstance(cat, dict):
-        return cat.get("active", False)
+        return bool(cat.get("active", False))
     return False
 
 
@@ -182,13 +181,14 @@ def get_category_entries(
     """Return the entries list for *category*, or ``[]`` if missing."""
     cat = app_config.get(category)
     if isinstance(cat, dict):
-        return cat.get("entries", [])
+        entries: list[dict[str, Any]] = cat.get("entries", [])
+        return entries
     return []
 
 
 def get_install_limit(app_entry: dict[str, Any]) -> int:
     """Return the install_limit for an app entry (-1 = unlimited)."""
-    return app_entry.get("install_limit", -1)
+    return int(app_entry.get("install_limit", -1))
 
 
 def load_catalog_entries(
@@ -244,6 +244,8 @@ def load_module_from_file(module_name: str, file_path: str) -> types.ModuleType:
     """
     try:
         spec = importlib.util.spec_from_file_location(module_name, file_path)
+        if spec is None or spec.loader is None:
+            raise ImportError(f"Could not create module spec for {file_path}")
         module = importlib.util.module_from_spec(spec)
         # Register in sys.modules before exec so @dataclass and other
         # metaclass introspection can find the module at import time.
