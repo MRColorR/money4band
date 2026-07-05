@@ -48,7 +48,7 @@ def _extract_image(app: dict[str, Any]) -> str:
     # Legacy/test format: image.name
     img_obj = app.get("image", {})
     if isinstance(img_obj, dict):
-        return img_obj.get("name", "")
+        return str(img_obj.get("name", ""))
     return ""
 
 

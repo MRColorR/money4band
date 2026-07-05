@@ -63,10 +63,10 @@ def _bool_md(val: Any) -> str:
 def _effective_status(category: str, details: dict[str, Any]) -> str:
     """Derive display status from category + app_details.status."""
     if category == "deprecated":
-        return details.get("status", "deprecated")
+        return str(details.get("status", "deprecated"))
     if category == "newcomers":
         return "candidate"
-    return details.get("status", "active")
+    return str(details.get("status", "active"))
 
 
 def _extract_referral_code(url: str) -> str | None:

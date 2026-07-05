@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 import time
+from typing import Any
 
 import httpx
 
@@ -42,7 +43,8 @@ def fetch_docker_tags(image: str) -> dict | None:
             url = f"{DOCKERHUB_BASE_URL}repositories/{image}/tags"
             response = client.get(url, timeout=timeout)
             response.raise_for_status()
-            return response.json()
+            result: dict[Any, Any] = response.json()
+            return result
     except httpx.ConnectError:
         logger.error(
             "Cannot reach registry for %s - network may be down. "

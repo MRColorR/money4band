@@ -22,7 +22,8 @@ from money4band.updater import check_for_update
 
 def _dns_section(m4b_config: dict[str, Any]) -> dict[str, Any]:
     """Return the ``system.dns`` section from *m4b_config*."""
-    return m4b_config.get("system", {}).get("dns", {})
+    section: dict[str, Any] = m4b_config.get("system", {}).get("dns", {})
+    return section
 
 
 def get_dns_modes(m4b_config: dict[str, Any]) -> tuple[str, ...]:

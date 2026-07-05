@@ -14,7 +14,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-import money4band.network.port_manager as port_manager
+from money4band.network import port_manager
 
 _REPO_ROOT = Path(__file__).resolve().parents[1]
 _CONFIG = _REPO_ROOT / "config" / "m4b-config.json"

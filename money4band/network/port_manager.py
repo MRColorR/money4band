@@ -111,7 +111,7 @@ def assign_app_ports(
         list[int]: List of assigned available ports
     """
     port_count = len(app["compose_config"]["ports"])
-    assigned_ports = []
+    assigned_ports: list[int] = []
     reserved_ports = reserved_ports or set()
     _load_port_constants()
 

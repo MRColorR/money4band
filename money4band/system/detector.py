@@ -99,7 +99,8 @@ def get_system_memory_and_cores() -> tuple[float, int | None]:
 
 def _get_tiers(m4b_config: dict[str, Any]) -> dict[str, dict[str, float]]:
     """Return tier multipliers from ``resource_profiles.tiers`` in *m4b_config*."""
-    return m4b_config["resource_profiles"]["tiers"]
+    tiers: dict[str, dict[str, float]] = m4b_config["resource_profiles"]["tiers"]
+    return tiers
 
 
 def _get_minimums(
@@ -133,7 +134,7 @@ def get_valid_profiles(m4b_config: dict[str, Any]) -> tuple[str, ...]:
 
 def get_active_profile(user_config: dict[str, Any]) -> str:
     """Return the currently active resource profile name."""
-    return user_config.get("settings", {}).get("resource_profile", "standard")
+    return str(user_config.get("settings", {}).get("resource_profile", "standard"))
 
 
 def get_profile_definition(
@@ -146,7 +147,10 @@ def get_profile_definition(
     rp = m4b_config.get("resource_profiles", {})
     if name is None:
         name = get_active_profile(user_config) if user_config else "standard"
-    return rp.get("profiles", {}).get(name, {"cpu_pct": 0.60, "ram_pct": 0.40})
+    profile: dict[str, Any] = rp.get("profiles", {}).get(
+        name, {"cpu_pct": 0.60, "ram_pct": 0.40}
+    )
+    return profile
 
 
 def calculate_resource_limits(

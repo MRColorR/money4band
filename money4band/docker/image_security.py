@@ -55,7 +55,8 @@ def _docker_inspect_image(image: str) -> dict[str, Any] | None:
         )
         if result.returncode != 0:
             return None
-        return json.loads(result.stdout)
+        parsed: dict[str, Any] = json.loads(result.stdout)
+        return parsed
     except Exception:
         return None
 

@@ -32,7 +32,8 @@ ALL_EVENTS = frozenset(
 
 def _get_notification_config(user_config: dict[str, Any]) -> dict[str, Any]:
     """Extract and return the ``notifications`` block from user config."""
-    return user_config.get("notifications", {})
+    config: dict[str, Any] = user_config.get("notifications", {})
+    return config
 
 
 def is_enabled(user_config: dict[str, Any]) -> bool:

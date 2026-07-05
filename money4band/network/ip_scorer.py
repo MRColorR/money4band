@@ -65,7 +65,7 @@ def get_public_ip(timeout: int = 5) -> str | None:
     for url in _IP_PROVIDERS:
         try:
             resp = client.get(url, timeout=timeout)
-            ip = resp.text.strip()
+            ip: str = resp.text.strip()
             if _IPV4_RE.match(ip):
                 return ip
         except Exception:
@@ -99,7 +99,7 @@ def test_proxy_connectivity(proxy_url: str, timeout: int = 10) -> str | None:
     try:
         with httpx.Client(proxy=proxy_url, timeout=timeout) as client:
             resp = client.get("https://api.ipify.org")
-        ip = resp.text.strip()
+        ip: str = resp.text.strip()
         if _IPV4_RE.match(ip):
             return ip
     except Exception as exc:
@@ -121,7 +121,8 @@ def score_ips(ips: list[str]) -> list[dict[str, Any]]:
             timeout=15,
         )
         resp.raise_for_status()
-        return resp.json()
+        results: list[dict[str, Any]] = resp.json()
+        return results
     except Exception as exc:
         logger.error("ip-api.com batch request failed: %s", exc)
         return []

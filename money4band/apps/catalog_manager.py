@@ -110,9 +110,7 @@ def _normalize_remote_manifest_url(url: str) -> str:
         # github.com/<owner>/<repo>/blob/<branch>/manifest.json
         if len(parts) >= 5 and parts[2] == "blob" and parts[-1] == "manifest.json":
             branch = parts[3]
-            return (
-                f"https://raw.githubusercontent.com/{owner}/{repo}/{branch}/manifest.json"
-            )
+            return f"https://raw.githubusercontent.com/{owner}/{repo}/{branch}/manifest.json"
         # github.com/<owner>/<repo> -> default to main/manifest.json
         return f"https://raw.githubusercontent.com/{owner}/{repo}/main/manifest.json"
 
@@ -120,7 +118,9 @@ def _normalize_remote_manifest_url(url: str) -> str:
         # raw.githubusercontent.com/<owner>/<repo>
         if len(parts) == 2:
             owner, repo = parts[0], parts[1]
-            return f"https://raw.githubusercontent.com/{owner}/{repo}/main/manifest.json"
+            return (
+                f"https://raw.githubusercontent.com/{owner}/{repo}/main/manifest.json"
+            )
         # Ensure manifest file suffix when pointing to branch root.
         if len(parts) == 3:
             owner, repo, branch = parts
@@ -137,7 +137,8 @@ def _normalize_remote_manifest_url(url: str) -> str:
 def _load_payload(m4b_config_path: str | Path) -> dict[str, Any]:
     path = Path(m4b_config_path)
     with open(path, encoding="utf-8") as f:
-        return json.load(f)
+        data: dict[str, Any] = json.load(f)
+        return data
 
 
 def _envelope(payload: dict[str, Any]) -> dict[str, Any]:
@@ -298,9 +299,7 @@ def _shipped_source_names(m4b_config_path: str | Path) -> set[str]:
     envelope = _envelope(payload)
     shipped = envelope.get("catalog_sources") or []
     return {
-        s.get("name")
-        for s in shipped
-        if isinstance(s, dict) and s.get("name")
+        str(s.get("name")) for s in shipped if isinstance(s, dict) and s.get("name")
     }
 
 

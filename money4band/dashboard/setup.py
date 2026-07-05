@@ -65,7 +65,7 @@ def ensure_api_key_in_config(user_config: dict[str, Any]) -> str:
     Returns the (possibly freshly-created) key.
     """
     dash = user_config.setdefault("m4b_dashboard", {})
-    key = dash.get("api_key", "")
+    key: str = dash.get("api_key", "")
     if not key:
         key = secrets.token_urlsafe(32)
         dash["api_key"] = key

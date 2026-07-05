@@ -62,15 +62,14 @@ def _read_user_config(user_config_path: str | Path) -> dict[str, Any]:
     try:
         if is_encrypted(content):
             return decrypt_to_dict(content)
-        return json.loads(content)
+        parsed: dict[str, Any] = json.loads(content)
+        return parsed
     except (json.JSONDecodeError, ValueError) as exc:
         logger.warning("catalog_overrides: cannot parse %s: %s", path, exc)
         return {}
 
 
-def _write_user_config(
-    user_config_path: str | Path, payload: dict[str, Any]
-) -> None:
+def _write_user_config(user_config_path: str | Path, payload: dict[str, Any]) -> None:
     path = Path(user_config_path)
     path.parent.mkdir(parents=True, exist_ok=True)
     # Preserve encryption-at-rest: if the current file is encrypted, re-encrypt
@@ -131,7 +130,7 @@ def apply_overrides(
     - For each category in ``overrides["categories"]``, the ``active``
       flag is overlaid.
     """
-    merged = json.loads(json.dumps(envelope))  # deep copy
+    merged: dict[str, Any] = json.loads(json.dumps(envelope))  # deep copy
     if not overrides or not isinstance(overrides, dict):
         return merged
 
@@ -151,6 +150,9 @@ def apply_overrides(
             result_sources.append(src)
             continue
         name = src.get("name")
+        if not isinstance(name, str):
+            result_sources.append(src)
+            continue
         if name in removed:
             continue
         shipped_names.add(name)

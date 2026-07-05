@@ -32,7 +32,7 @@ def ensure_nickname(user_config: dict[str, Any]) -> str:
     replace it with the OS account username.  Returns the resolved nickname.
     """
     user = user_config.setdefault("user", {})
-    nick = user.get("Nickname", "")
+    nick: str = user.get("Nickname", "")
     if not nick or nick.lower().startswith("your"):
         nick = get_system_username()
         user["Nickname"] = nick

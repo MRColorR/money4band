@@ -72,15 +72,16 @@ def load_m4b_config(m4b_path: str) -> dict[str, Any]:
 
 def get_menu_items(m4b_config: dict[str, Any]) -> list[dict[str, str]]:
     """Return the menu list from m4b-config.json."""
-    return m4b_config.get("menu", [])
+    menu: list[dict[str, str]] = m4b_config.get("menu", [])
+    return menu
 
 
 def get_project_version(m4b_config: dict[str, Any]) -> str:
-    return m4b_config.get("project", {}).get("project_version", "?")
+    return str(m4b_config.get("project", {}).get("project_version", "?"))
 
 
 def get_discord_url(m4b_config: dict[str, Any]) -> str:
-    return m4b_config.get("project", {}).get("ds_project_server_url", "")
+    return str(m4b_config.get("project", {}).get("ds_project_server_url", ""))
 
 
 # ---------------------------------------------------------------------------
@@ -488,5 +489,5 @@ def get_farewell_message(m4b_config: dict[str, Any]) -> str:
     """Return a random farewell message without calling sys.exit()."""
     import random
 
-    words = m4b_config.get("project", {}).get("farewell_words", ["Goodbye!"])
+    words: list[str] = m4b_config.get("project", {}).get("farewell_words", ["Goodbye!"])
     return random.choice(words)  # noqa: S311

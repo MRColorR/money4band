@@ -32,7 +32,7 @@ def get_or_create_key() -> bytes:
 
     logger.info("Generating new encryption key at %s", key_path)
     key_path.parent.mkdir(parents=True, exist_ok=True)
-    key = Fernet.generate_key()
+    key: bytes = Fernet.generate_key()
     # Write key with restricted permissions (owner-only read/write)
     fd = os.open(str(key_path), os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
     try:
@@ -68,7 +68,7 @@ def encrypt_dict(data: dict[str, Any]) -> str:
     key = get_or_create_key()
     fernet = Fernet(key)
     json_bytes = json.dumps(data, indent=4).encode("utf-8")
-    token = fernet.encrypt(json_bytes)
+    token: bytes = fernet.encrypt(json_bytes)
     return MAGIC_PREFIX + token.decode("ascii")
 
 
@@ -87,7 +87,8 @@ def decrypt_to_dict(content: str) -> dict[str, Any]:
             "Decryption failed - wrong key or corrupted data. "
             f"Check that {key_path} matches the key used to encrypt."
         ) from err
-    return json.loads(json_bytes)
+    result: dict[str, Any] = json.loads(json_bytes)
+    return result
 
 
 def encrypt_file(filepath: str) -> None:
