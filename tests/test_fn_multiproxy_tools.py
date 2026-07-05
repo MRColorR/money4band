@@ -1,4 +1,4 @@
-"""Tests for money4band.network.proxy_tools — multiproxy utilities."""
+"""Tests for money4band.network.proxy_tools - multiproxy utilities."""
 
 from __future__ import annotations
 

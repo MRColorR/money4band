@@ -3,9 +3,9 @@
 This script is the shared wire-format builder for all three M4B catalog
 repositories:
 
-- ``money4band``                  — core, ToS-compliant apps
-- ``money4band-community-catalog`` — community apps + addons
-- ``openpassivehub-catalog``      — broad public ecosystem listing
+- ``money4band``                  - core, ToS-compliant apps
+- ``money4band-community-catalog`` - community apps + addons
+- ``openpassivehub-catalog``      - broad public ecosystem listing
 
 Each repo keeps its catalog as one JSON file per entry under
 ``catalog/<category>/<NAME>.json`` (and optionally ``addons/<NAME>.json``).
@@ -139,7 +139,7 @@ def main(argv: list[str] | None = None) -> int:
             return 1
         existing = json.loads(output.read_text(encoding="utf-8"))
         if _stable(existing) != _stable(payload):
-            print(f"error: {output} is stale — run build_manifest.py", file=sys.stderr)
+            print(f"error: {output} is stale - run build_manifest.py", file=sys.stderr)
             return 1
         print(f"{output}: up to date")
         return 0

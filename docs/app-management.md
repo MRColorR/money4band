@@ -12,9 +12,9 @@ these 15:
 
 | Category | Count | Description |
 |----------|-------|-------------|
-| **Supported** | 15 | Active, tested apps with official Docker images — included in setup |
-| **Newcomers** *(candidate)* | 0 | Empty by default — populated by opt-in remote sources |
-| **Deprecated** | 0 | Empty by default — populated by opt-in remote sources |
+| **Supported** | 15 | Active, tested apps with official Docker images - included in setup |
+| **Newcomers** *(candidate)* | 0 | Empty by default - populated by opt-in remote sources |
+| **Deprecated** | 0 | Empty by default - populated by opt-in remote sources |
 
 > The internal category key for *Candidate* apps is `newcomers`; the CLI
 > surface accepts `candidate` (user-facing) while the on-disk layout and
@@ -36,34 +36,34 @@ m4b apps honeygain               # detailed info card for one app
 ```
 
 Interactively, the **App Catalog** screen also exposes a `m` shortcut to
-**manage category status** — toggle `newcomers` / `deprecated` on or off
+**manage category status** - toggle `newcomers` / `deprecated` on or off
 so they appear during `m4b setup`.
 
 ## On-Disk Layout (v2.0)
 
 The catalog is **per-file**: one JSON bundle per app. The envelope is
-**folded into `m4b-config.json`** under the `catalog` key — no standalone
+**folded into `m4b-config.json`** under the `catalog` key - no standalone
 catalog-envelope file ships.
 
 ```
 config/
-├── m4b-config.json              ← project config + catalog envelope (under "catalog")
-├── catalog/
-│   ├── supported/
-│   │   ├── HONEYGAIN.json       ← one CatalogEntry per file
-│   │   ├── TRAFFMONETIZER.json
-│   │   └── …
-│   ├── newcomers/
-│   ├── deprecated/
-│   └── addons/                  ← sidecars with parent_id
-├── apps.d/
-│   └── <MYAPP>.json             ← hand-written community overlay (merged into newcomers)
-├── offers.d/
-│   └── <SLUG>.json              ← one external referral offer per file
-└── user-config.json             ← your settings (encrypted at rest)
+|-- m4b-config.json              <- project config + catalog envelope (under "catalog")
+|-- catalog/
+|   |-- supported/
+|   |   |-- HONEYGAIN.json       <- one CatalogEntry per file
+|   |   |-- TRAFFMONETIZER.json
+|   |   +-- ...
+|   |-- newcomers/
+|   |-- deprecated/
+|   +-- addons/                  <- sidecars with parent_id
+|-- apps.d/
+|   +-- <MYAPP>.json             <- hand-written community overlay (merged into newcomers)
+|-- offers.d/
+|   +-- <SLUG>.json              <- one external referral offer per file
++-- user-config.json             <- your settings (encrypted at rest)
 ```
 
-The envelope is tiny (lives under `m4b-config.json → catalog`):
+The envelope is tiny (lives under `m4b-config.json -> catalog`):
 
 ```jsonc
 // m4b-config.json (excerpt)
@@ -88,7 +88,7 @@ The envelope is tiny (lives under `m4b-config.json → catalog`):
 At load time the loader walks every declared `catalog_sources[]` entry,
 reads the per-file bundles, and aggregates them back into the in-memory
 shape used by the rest of the codebase. Adding, moving or removing an
-app is a single-file change — no more merge conflicts on a 3600-line
+app is a single-file change - no more merge conflicts on a 3600-line
 monolith.
 
 ### Migration
@@ -97,7 +97,7 @@ If you open an older checkout, the loader auto-migrates on first run:
 
 * The legacy monolithic catalog file is split into
   `config/catalog/<category>/<NAME>.json` per-file bundles.
-* The resulting envelope is folded under `m4b-config.json → catalog`.
+* The resulting envelope is folded under `m4b-config.json -> catalog`.
 * The legacy catalog file is renamed with a `.v1.bak` suffix.
 * Monolithic `referral-offers.json` is split into
   `config/offers.d/<SLUG>.json` and the original renamed to
@@ -121,11 +121,11 @@ source types ship today:
 
 | Type | Implementation | Status |
 |------|----------------|--------|
-| `local` | `LocalSource` — reads per-file bundles under `path` (relative to the envelope file's parent). | Active |
-| `remote` | `RemoteSource` — HTTPS fetch of an aggregated manifest, cached per-file on disk. | Active |
+| `local` | `LocalSource` - reads per-file bundles under `path` (relative to the envelope file's parent). | Active |
+| `remote` | `RemoteSource` - HTTPS fetch of an aggregated manifest, cached per-file on disk. | Active |
 
 Sources are processed **in order**. The first source to claim a given
-entry name (case-insensitive) wins — local/builtin bundles remain
+entry name (case-insensitive) wins - local/builtin bundles remain
 authoritative over any remote fetch. Source failures are isolated: a
 broken source is logged and skipped, never crashes the loader.
 
@@ -137,22 +137,22 @@ the on-disk layout mirrors a built-in catalog exactly:
 
 ```
 <cache_path>/
-├── .etag           # last server ETag (used for If-None-Match)
-├── .fetched_at     # ISO-8601 UTC timestamp of last successful call
-├── supported/<NAME>.json
-├── newcomers/<NAME>.json
-└── deprecated/<NAME>.json
+|-- .etag           # last server ETag (used for If-None-Match)
+|-- .fetched_at     # ISO-8601 UTC timestamp of last successful call
+|-- supported/<NAME>.json
+|-- newcomers/<NAME>.json
++-- deprecated/<NAME>.json
 ```
 
-- **Opt-in** — no remote source ships enabled by default. Users add an
-  entry to `m4b-config.json → catalog.catalog_sources`.
-- **Timeout** — defaults to `5.0` seconds; override via `timeout`.
-- **ETag / 304** — the cached ETag is sent as `If-None-Match`; on 304
+- **Opt-in** - no remote source ships enabled by default. Users add an
+  entry to `m4b-config.json -> catalog.catalog_sources`.
+- **Timeout** - defaults to `5.0` seconds; override via `timeout`.
+- **ETag / 304** - the cached ETag is sent as `If-None-Match`; on 304
   the existing cache is reused untouched.
-- **Offline fallback** — on network error, timeout, non-200 status, or
+- **Offline fallback** - on network error, timeout, non-200 status, or
   invalid JSON, the cache is read as-is; no exception reaches the
   loader.
-- **Atomic replace** — a successful 200 wipes the `supported/`,
+- **Atomic replace** - a successful 200 wipes the `supported/`,
   `newcomers/`, and `deprecated/` subdirs and writes fresh bundles
   (`.etag` and `.fetched_at` are preserved across refreshes).
 
@@ -189,8 +189,8 @@ Example envelope with a second (disabled by default) remote source:
 
 ## App Bundle Schema
 
-Every bundle — whether shipped under `config/catalog/`, dropped into
-`config/apps.d/`, or fetched from a remote catalog — follows the same
+Every bundle - whether shipped under `config/catalog/`, dropped into
+`config/apps.d/`, or fetched from a remote catalog - follows the same
 schema. The required fields are validated by
 [`money4band/apps/schema.py::validate_app_entry()`](../money4band/apps/schema.py).
 
@@ -198,9 +198,9 @@ schema. The required fields are validated by
 
 | Field | Type | Notes |
 |-------|------|-------|
-| `name` | string | `^[A-Z][A-Z0-9_]+$` — uppercase, matches the filename stem |
+| `name` | string | `^[A-Z][A-Z0-9_]+$` - uppercase, matches the filename stem |
 | `compose_config` | object | Full Docker-Compose service definition (must include `image`) |
-| `flags` | object | Credential keys prompted during setup (`email`, `password`, `apikey`, `uuid`, `userid`, `token`, `cid`, …) |
+| `flags` | object | Credential keys prompted during setup (`email`, `password`, `apikey`, `uuid`, `userid`, `token`, `cid`, ...) |
 | `install_limit` | integer | Max instances per-machine / per-proxy (`-1` = unlimited) |
 | `profile` | string | One of `residential`, `datacenter`, `universal`, `service`. Becomes the entry of the generated compose service's `profiles:` array. Sidecars (entries with `parent_id`) inherit their parent's profile and may omit this field. |
 
@@ -209,14 +209,14 @@ schema. The required fields are validated by
 | Field | Type | Notes |
 |-------|------|-------|
 | `dashboard` | string | URL of the app's web dashboard (rendered by `m4b links`) |
-| `referrals` | array | `[{url, contributor, added?, verified?, verified_by?[]}]` — referral pool (never a bare `link` string) |
-| `additional_details` | string | Optional Markdown note — explains removal reason, ToS caveats, etc. |
+| `referrals` | array | `[{url, contributor, added?, verified?, verified_by?[]}]` - referral pool (never a bare `link` string) |
+| `additional_details` | string | Optional Markdown note - explains removal reason, ToS caveats, etc. |
 | `app_details` | object | Rich metadata (publisher, IP policy, device limits, earnings, Docker status, `last_verified`). Used by `m4b apps <name>` and the dashboard |
-| `user_config_template` | object | Default user-config slice (`{enabled: false, <cred_key>: "", service_enabled?: false}`) merged into `user-config.json → apps.<name_lower>` on reset / first enable |
+| `user_config_template` | object | Default user-config slice (`{enabled: false, <cred_key>: "", service_enabled?: false}`) merged into `user-config.json -> apps.<name_lower>` on reset / first enable |
 
 > **Bundle completeness:** every bundle that declares credential `flags`
 > MUST carry a matching `user_config_template`. The template is a
-> non-destructive merge — existing user values are never overwritten.
+> non-destructive merge - existing user values are never overwritten.
 
 ### Minimal example
 
@@ -248,7 +248,7 @@ schema. The required fields are validated by
 
 During `m4b setup`, you choose which apps to enable. To modify later:
 
-1. Run `m4b setup` again — existing credentials are preserved (the wizard
+1. Run `m4b setup` again - existing credentials are preserved (the wizard
    only prompts for newly enabled apps).
 2. Or edit `config/user-config.json` directly (flip `apps.<name>.enabled`)
    and run `m4b generate` to regenerate the compose files.
@@ -302,7 +302,7 @@ the JSON directly (then `m4b generate`), or via the web dashboard.
 > **Profile inheritance.** Sidecars do NOT declare their own `profile`
 > field. At generation time the sidecar service inherits its parent's
 > profile, so `docker compose --profile residential up` brings up
-> Honeygain AND its `honeygain-pot` together — no orphan-pot edge cases.
+> Honeygain AND its `honeygain-pot` together - no orphan-pot edge cases.
 
 ## Community App Plugins
 
@@ -315,13 +315,13 @@ m4b app add
 
 The wizard prompts for:
 
-1. **Name** — uppercase identifier (`^[A-Z][A-Z0-9_]+$`)
-2. **Docker image** — e.g. `publisher/app:latest`
-3. **Authentication type** — email, token, UUID, user ID, API key, or manual
-4. **Profile** — `residential` / `datacenter` / `universal` / `service` (becomes the service's Docker Compose `profiles:` entry, drives selective startup)
-5. **Install limit** — max instances per machine (`-1` = unlimited)
-6. **Sidecar?** — optional auto-claim container
-7. **Health check?** — optional `healthcheck` block
+1. **Name** - uppercase identifier (`^[A-Z][A-Z0-9_]+$`)
+2. **Docker image** - e.g. `publisher/app:latest`
+3. **Authentication type** - email, token, UUID, user ID, API key, or manual
+4. **Profile** - `residential` / `datacenter` / `universal` / `service` (becomes the service's Docker Compose `profiles:` entry, drives selective startup)
+5. **Install limit** - max instances per machine (`-1` = unlimited)
+6. **Sidecar?** - optional auto-claim container
+7. **Health check?** - optional `healthcheck` block
 
 The generated bundle is written to `config/apps.d/<NAME>.json`, validated
 against the schema, and merged into the `newcomers` category on next
@@ -336,7 +336,7 @@ m4b app validate
 ```
 
 Invalid files are logged with the exact schema error and skipped at load
-time — they never crash the loader.
+time - they never crash the loader.
 
 ## Referral Offers
 
@@ -354,7 +354,7 @@ Offers come from two sources:
 
 When multiple referral URLs exist for an app, M4B applies a **sticky
 per-user pick** (stored under
-`user-config.json → settings.picked_referrals`) so the same URL is
+`user-config.json -> settings.picked_referrals`) so the same URL is
 offered across runs.
 
 ## Docker Compose Profiles
@@ -380,7 +380,7 @@ Docker Compose accepts the same flags directly:
 docker compose --profile residential --profile monitoring --env-file .env up -d
 ```
 
-See [Configuration → Docker Compose Profiles](configuration.md#docker-compose-profiles)
+See [Configuration -> Docker Compose Profiles](configuration.md#docker-compose-profiles)
 for the full profile reference and sidecar inheritance rules.
 
 ## Promoting Candidates to Supported
@@ -396,4 +396,4 @@ The script reads `config/catalog/newcomers/<NAME>.json`, stamps
 `*_SIDECAR` services if applicable, and calls
 `catalog_store.move_entry()` to relocate the bundle to
 `config/catalog/supported/<NAME>.json`. The move is atomic and a single
-file change — no envelope edits required.
+file change - no envelope edits required.

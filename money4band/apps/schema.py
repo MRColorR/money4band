@@ -62,7 +62,7 @@ def validate_app_entry(entry: dict[str, Any]) -> list[str]:
     elif cc is not None:
         errors.append("compose_config: must be an object")
 
-    # profile — when present, must be in the canonical set.
+    # profile - when present, must be in the canonical set.
     # Addons may omit it (inherited from parent at generation).
     profile = entry.get("profile")
     if profile is not None and profile not in _VALID_PROFILES:
@@ -75,7 +75,7 @@ def validate_app_entry(entry: dict[str, Any]) -> list[str]:
     if limit is not None and not isinstance(limit, int):
         errors.append(f"install_limit: must be an integer, got {type(limit).__name__}")
 
-    # flags must be a dict (when present — addons may omit it)
+    # flags must be a dict (when present - addons may omit it)
     flags = entry.get("flags")
     if flags is not None and not isinstance(flags, dict):
         errors.append("flags: must be an object")
@@ -288,7 +288,7 @@ class CatalogEntry:
 
     @property
     def name(self) -> str:
-        """Alias for ``id`` — compatibility with ``entry["name"]`` readers."""
+        """Alias for ``id`` - compatibility with ``entry["name"]`` readers."""
         return self.id
 
     @classmethod
@@ -402,7 +402,7 @@ class Addon:
         if not parent_id:
             raise ValueError(f"Addon.from_raw: entry {name} is missing 'parent_id'")
 
-        # Reuse DeploymentSpec extraction — addons have identical compose shape.
+        # Reuse DeploymentSpec extraction - addons have identical compose shape.
         compose_config = raw.get("compose_config") or {}
         install_limit_raw = raw.get("install_limit", -1)
         try:

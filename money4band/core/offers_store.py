@@ -1,4 +1,4 @@
-"""Offers store — read/write the per-file offers layout.
+"""Offers store - read/write the per-file offers layout.
 
 Layout::
 
@@ -11,7 +11,7 @@ Each bundle is a single offer object::
         "url": null,
         "bonus": "Up to 73% off + 3 months free",
         "category": "vpn",
-        "notes": "STUB — add your NordVPN referral link"
+        "notes": "Placeholder; referral link not configured"
     }
 
 ``SLUG`` is the upper-cased kebab-case form of ``name`` (e.g. ``NORDVPN``,

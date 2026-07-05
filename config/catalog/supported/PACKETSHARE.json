@@ -95,7 +95,7 @@
         "compose_layer_reasoning": "Insufficient official documentation to confirm IP type policy. Community evidence suggests residential focus. Conservative residential classification applied.",
         "install_limit_reasoning": "Very sparse official documentation. No official limits found.",
         "recommendation": "keep",
-        "recommendation_reasoning": "Residential layer and unlimited limit kept. Low confidence \u2014 needs re-verification when more docs become available.",
+        "recommendation_reasoning": "Residential layer and unlimited limit kept. Low confidence - needs re-verification when more docs become available.",
         "confidence_notes": "Only academic thesis reference found. Official documentation is extremely sparse."
     },
     "referrals": [

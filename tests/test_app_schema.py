@@ -1,4 +1,4 @@
-"""Tests for utils.app_schema — validation and community app loading."""
+"""Tests for utils.app_schema - validation and community app loading."""
 
 from __future__ import annotations
 

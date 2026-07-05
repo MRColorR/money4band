@@ -1,4 +1,4 @@
-"""Weighted referral picker — the unified pool used everywhere in M4B.
+"""Weighted referral picker - the unified pool used everywhere in M4B.
 
 One module, one algorithm, used by the CLI, TUI setup wizard, and
 REST API.
@@ -19,7 +19,7 @@ Design contract
 - The picker selects one referral by **weighted random** where every
   referral's weight equals the contributor's weight from
   ``weights.json``. Referrals whose ``contributor`` is not in
-  ``weights.json`` get weight ``0`` — non-contributors do not win the
+  ``weights.json`` get weight ``0`` - non-contributors do not win the
   lottery when contributors are present in the pool. If a pool contains
   *only* non-contributors (all weights ``0``), the picker falls back
   to a uniform random pick so the user still gets a referral URL.
@@ -85,7 +85,7 @@ def load_weights(path: str | Path) -> dict[str, float]:
     normalized: dict[str, float] = {}
     for key, weight in out.items():
         canonical = " ".join(key.split()).lower()
-        # If both a canonical and a cased key exist, keep the max —
+        # If both a canonical and a cased key exist, keep the max -
         # defensive in case a human hand-edits the file.
         if canonical in normalized:
             normalized[canonical] = max(normalized[canonical], weight)
@@ -104,7 +104,7 @@ def weight_for(contributor: str, weights: dict[str, float]) -> float:
     Lookup is case- and whitespace-insensitive: ``"MRColorr"``,
     ``"mrcolorr"`` and ``"  MR Colorr  "`` all resolve to the same
     bucket in ``weights.json``. Contributors not present in
-    ``weights.json`` (and blank / non-string values) return ``0.0`` —
+    ``weights.json`` (and blank / non-string values) return ``0.0`` -
     the picker handles all-zero pools by falling back to a uniform
     random pick.
     """
@@ -127,7 +127,7 @@ def pick_weighted(
         entries (missing/empty ``url``) are skipped silently.
     weights:
         Contributor -> weight mapping. ``None`` or empty means every
-        referral gets weight ``0`` → falls through to the uniform
+        referral gets weight ``0`` -> falls through to the uniform
         random fallback.
     rng:
         Optional :class:`random.Random` instance for deterministic
@@ -160,7 +160,7 @@ def pick_weighted(
         running += weight
         if running >= threshold:
             return ref
-    return valid[-1]  # pragma: no cover — numerical safety net
+    return valid[-1]  # pragma: no cover - numerical safety net
 
 
 def resolve_referral_url(

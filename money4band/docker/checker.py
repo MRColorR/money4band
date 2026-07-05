@@ -45,7 +45,7 @@ def fetch_docker_tags(image: str) -> dict | None:
             return response.json()
     except httpx.ConnectError:
         logger.error(
-            "Cannot reach registry for %s — network may be down. "
+            "Cannot reach registry for %s - network may be down. "
             "Retries exhausted after %s attempts.",
             image,
             http_client.MAX_RETRIES,
@@ -90,7 +90,7 @@ def check_img_arch_support(image: str, tag: str, docker_platform: str) -> bool |
     tags_info = fetch_docker_tags(image)
     if tags_info is None:
         logger.warning(
-            "Cannot reach registry for %s — skipping arch check. "
+            "Cannot reach registry for %s - skipping arch check. "
             "Docker will attempt to pull at stack start.",
             image,
         )

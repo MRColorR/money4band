@@ -11,11 +11,19 @@ from money4band.network.networker import find_next_available_port
 
 logger = logging.getLogger(__name__)
 
+# __file__ is money4band/network/port_manager.py; the config dir lives at the
+# project root, two levels up (package root, then repo root), not inside the
+# package. A single ".." pointed at a nonexistent money4band/config and made
+# port constants silently fall back to defaults.
 _m4b_config_path = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), "..", "config", "m4b-config.json"
+    os.path.dirname(os.path.abspath(__file__)),
+    "..",
+    "..",
+    "config",
+    "m4b-config.json",
 )
 
-# Lazy-loaded port constants — populated on first access via _load_port_constants()
+# Lazy-loaded port constants - populated on first access via _load_port_constants()
 DEFAULT_PORT_BASE: int = 0
 PORT_OFFSET_PER_APP: int = 0
 PORT_OFFSET_PER_INSTANCE: int = 0

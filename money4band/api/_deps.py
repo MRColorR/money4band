@@ -26,7 +26,7 @@ class ConfigPaths:
 
 
 # ---------------------------------------------------------------------------
-# File-mtime config cache — avoids re-reading JSON on every request.
+# File-mtime config cache - avoids re-reading JSON on every request.
 # ---------------------------------------------------------------------------
 
 
@@ -66,7 +66,7 @@ class _ConfigCache:
 _cache = _ConfigCache()
 
 
-# Module-level singleton — populated once by ``configure_paths``.
+# Module-level singleton - populated once by ``configure_paths``.
 _paths = ConfigPaths()
 
 
@@ -82,7 +82,7 @@ def configure_paths(
 
     The catalog envelope lives in ``m4b-config.json`` under a
     ``catalog`` key, so ``app_config`` aliases ``m4b_config``.
-    The ``app_file`` kwarg is accepted but ignored — catalog reads go
+    The ``app_file`` kwarg is accepted but ignored - catalog reads go
     through :func:`money4band.core.loader.load_app_config_with_overlays`.
     """
     del app_file
@@ -106,7 +106,7 @@ def load_m4b_config() -> dict:
 def load_app_config() -> dict:
     """Return the aggregated catalog dict (cached by m4b-config mtime).
 
-    The envelope lives under ``m4b-config.json → catalog``; this helper
+    The envelope lives under ``m4b-config.json -> catalog``; this helper
     returns the aggregated shape
     (``{supported: {active, entries: [...]}, ...}``) via
     :func:`load_app_config_with_overlays`.
@@ -153,7 +153,7 @@ def get_app_categories(app_config: dict | None = None) -> dict:
     if isinstance(cats, dict) and cats:
         return cats
 
-    # Fall back to flat layout — every top-level dict with an "entries" key.
+    # Fall back to flat layout - every top-level dict with an "entries" key.
     return {
         k: v
         for k, v in app_config.items()
@@ -166,7 +166,7 @@ def iter_all_apps(
 ) -> list[tuple[str, dict, dict]]:
     """Yield ``(category_name, category_data, app_entry)`` for every app.
 
-    Avoids duplicating the nested category→entries loop in every consumer.
+    Avoids duplicating the nested category->entries loop in every consumer.
     """
     categories = get_app_categories(app_config)
     return [
@@ -181,10 +181,10 @@ def iter_all_apps(
 # ---------------------------------------------------------------------------
 #
 # ``source`` describes *where* a catalog entry came from:
-#   * ``builtin``   — shipped inside the core catalog envelope.
-#   * ``community`` — user overlay from ``config/apps.d/*.json``.
-#   * ``remote``    — fetched from a remote catalog source.
-#   * ``local``     — user-local override.
+#   * ``builtin``   - shipped inside the core catalog envelope.
+#   * ``community`` - user overlay from ``config/apps.d/*.json``.
+#   * ``remote``    - fetched from a remote catalog source.
+#   * ``local``     - user-local override.
 #
 # Entries loaded through ``iter_all_apps`` default to ``builtin``;
 # the resolver below is the single seam where other sources override
@@ -241,7 +241,7 @@ def load_contributor_weights() -> dict[str, float]:
     try:
         current_mtime = os.path.getmtime(path)
     except OSError:
-        # No weights.json shipped — picker falls back to uniform random.
+        # No weights.json shipped - picker falls back to uniform random.
         return {}
     entry = _cache._entries.get(cache_key)  # noqa: SLF001
     if entry is not None and entry.mtime == current_mtime:
@@ -283,7 +283,7 @@ def pick_referral_url(
 def normalize_referrals(raw: Any) -> list[dict]:
     """Return the referrals pool as a list of plain dicts.
 
-    Unknown/malformed entries are dropped silently — the API contract
+    Unknown/malformed entries are dropped silently - the API contract
     only promises well-formed referrals.
     """
     if not isinstance(raw, list):

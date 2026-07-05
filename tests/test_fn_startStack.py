@@ -1,4 +1,4 @@
-"""Tests for money4band.docker.start — stack start logic."""
+"""Tests for money4band.docker.start - stack start logic."""
 
 from __future__ import annotations
 

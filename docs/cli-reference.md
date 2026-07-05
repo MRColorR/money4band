@@ -25,7 +25,7 @@ When invoked **without** a subcommand, M4B opens the **interactive menu**.
 ## Setup & Configuration
 
 ### `setup`
-Run the interactive setup wizard: Docker check → app selection → credentials → file generation.
+Run the interactive setup wizard: Docker check -> app selection -> credentials -> file generation.
 
 ```bash
 m4b setup
@@ -48,7 +48,7 @@ m4b config edit
 ### `config migrate-data-dir`
 Copy the legacy `~/.m4b/{master.key, session.salt, backups/}` runtime state
 into `<install>/.m4b/` so the install dir is fully self-contained (portable
-between machines, immune to multi-install collisions). Idempotent —
+between machines, immune to multi-install collisions). Idempotent -
 re-running after a successful copy reports every entry as identical.
 
 ```bash
@@ -57,8 +57,8 @@ m4b config migrate-data-dir --remove-source # wipes legacy after byte-verify
 m4b config migrate-data-dir --force         # overwrites a divergent target
 ```
 
-See [Configuration → Runtime Data Directory](configuration.md#runtime-data-directory)
-for the 3-tier resolver (`$M4B_DATA_DIR` → `<install>/.m4b/` → `~/.m4b/`).
+See [Configuration -> Runtime Data Directory](configuration.md#runtime-data-directory)
+for the 3-tier resolver (`$M4B_DATA_DIR` -> `<install>/.m4b/` -> `~/.m4b/`).
 
 ### `reset`
 Reset `user-config.json` to the factory template.
@@ -128,7 +128,7 @@ m4b generate
 ```
 
 ### `clean`
-Prune orphan resources scoped to this M4B project — stopped containers and
+Prune orphan resources scoped to this M4B project - stopped containers and
 unused networks tagged with `com.docker.compose.project=<this project>`.
 Other Docker Compose projects on the same host are never touched.
 
@@ -221,10 +221,10 @@ Register a new source. Required flags per type:
 
 Optional:
 
-- `--default-source NAME` – tag entries with this provenance (defaults to
+- `--default-source NAME` - tag entries with this provenance (defaults to
   `community` for remote, `builtin` for local)
-- `--cache-path PATH`, `--timeout SECONDS` – remote-only
-- `--disabled` – register the source disabled
+- `--cache-path PATH`, `--timeout SECONDS` - remote-only
+- `--disabled` - register the source disabled
 
 Duplicate names are rejected.
 
@@ -242,7 +242,7 @@ stored ETag and re-downloading. Local sources are skipped.
 Show `active` status for `supported`, `newcomers`, and `deprecated`.
 
 ### `catalog category enable <name>` / `catalog category disable <name>`
-Toggle one category on or off — inactive categories are hidden from the app
+Toggle one category on or off - inactive categories are hidden from the app
 catalog, stack generation, and all surfaces.
 
 **Examples:**

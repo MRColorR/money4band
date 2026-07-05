@@ -64,7 +64,7 @@ class TestIsRunningInWSL(unittest.TestCase):
     @patch.dict(os.environ, {}, clear=True)
     @patch("builtins.open", side_effect=PermissionError)
     def test_permission_error_not_detected(self, _mock_open):
-        """PermissionError inherits from OSError — should be safe."""
+        """PermissionError inherits from OSError - should be safe."""
         self.assertFalse(is_running_in_wsl())
 
 
@@ -94,7 +94,7 @@ class TestGetWSLVersion(unittest.TestCase):
         mock_run.return_value = self._mock_run_result(
             "W\x00S\x00L\x00 \x00v\x00e\x00r\x00s\x00i\x00o\x00n\x00:\x00 2.0.0\n"
         )
-        # After replace("\x00", "") → "WSL version: 2.0.0"
+        # After replace("\x00", "") -> "WSL version: 2.0.0"
         self.assertEqual(get_wsl_version(), "2.0.0")
 
     @patch("subprocess.run")
@@ -114,7 +114,7 @@ class TestGetWSLVersion(unittest.TestCase):
 
     @patch("subprocess.run", side_effect=FileNotFoundError)
     def test_wsl_not_installed(self, _mock):
-        """wsl.exe not on PATH — e.g. native Linux."""
+        """wsl.exe not on PATH - e.g. native Linux."""
         self.assertIsNone(get_wsl_version())
 
     @patch("subprocess.run", side_effect=TimeoutError)

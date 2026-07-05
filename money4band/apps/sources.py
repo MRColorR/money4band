@@ -1,7 +1,7 @@
 """Pluggable catalog sources.
 
 A :class:`CatalogSource` yields catalog entries grouped by category.
-The envelope (under ``m4b-config.json → catalog``) lists the sources
+The envelope (under ``m4b-config.json -> catalog``) lists the sources
 under ``catalog_sources[]`` and the per-category ``active`` flags under
 ``categories.<name>.active``. This module turns those declarations into
 concrete :class:`CatalogSource` objects and merges their output into the
@@ -16,14 +16,14 @@ in-memory shape consumed by the rest of the codebase::
     }
 
 Source ordering matters: the first enabled source that yields a given
-entry name wins. Later sources cannot override earlier ones — this keeps
+entry name wins. Later sources cannot override earlier ones - this keeps
 local/builtin entries authoritative over remote fetches.
 
 Two concrete sources are shipped:
 
-* :class:`LocalSource` — reads per-file bundles from a catalog directory
+* :class:`LocalSource` - reads per-file bundles from a catalog directory
   on disk (the default ``config/catalog`` layout).
-* :class:`RemoteSource` — HTTP fetch with on-disk caching; see
+* :class:`RemoteSource` - HTTP fetch with on-disk caching; see
   :mod:`money4band.apps.remote_cache`.
 """
 
@@ -43,7 +43,7 @@ class CatalogSource(ABC):
     """Abstract catalog source.
 
     Subclasses provide entries grouped by category. They do *not* own the
-    category ``active`` flag — that lives in the envelope and is applied
+    category ``active`` flag - that lives in the envelope and is applied
     by :func:`aggregate_from_sources`.
     """
 
@@ -89,7 +89,7 @@ class LocalSource(CatalogSource):
     ``path`` is resolved relative to the envelope file's parent directory
     when not absolute, so ``"catalog"`` from
     ``.../config/m4b-config.json`` points to ``.../config/catalog``.
-    Missing category directories yield empty lists — they are not errors.
+    Missing category directories yield empty lists - they are not errors.
     """
 
     type = "local"
@@ -158,7 +158,7 @@ class RemoteSource(CatalogSource):
     yields no entries but never raises.
 
     **Path resolution.** ``cache_path`` is relative to the envelope file
-    when not absolute (default: ``"catalog/community"`` → sibling of
+    when not absolute (default: ``"catalog/community"`` -> sibling of
     ``config/m4b-config.json``).
     """
 
@@ -207,7 +207,7 @@ class RemoteSource(CatalogSource):
         * ``status=0``: network/parse failure (see log); caller falls
           back to cache.
         """
-        import httpx  # local import — httpx is optional at import time in tests
+        import httpx  # local import - httpx is optional at import time in tests
 
         headers = {"Accept": "application/json", "User-Agent": "money4band/5.0"}
         if etag:
@@ -228,7 +228,7 @@ class RemoteSource(CatalogSource):
             return (0, None, None)
 
         if response.status_code == 304:
-            logger.info("RemoteSource %r: 304 Not Modified — cache fresh", self.name)
+            logger.info("RemoteSource %r: 304 Not Modified - cache fresh", self.name)
             return (304, None, None)
 
         if response.status_code != 200:
@@ -291,7 +291,7 @@ class RemoteSource(CatalogSource):
         elif status == 304:
             touch_fetched_at(cache_dir)
 
-        # Offline path (status=0) or cache hit — read from disk.
+        # Offline path (status=0) or cache hit - read from disk.
         if not cache_dir.is_dir():
             return {cat: [] for cat in CATEGORIES}
         return {cat: read_entries_dir(cache_dir, cat) for cat in CATEGORIES}
@@ -379,7 +379,7 @@ def aggregate_from_sources(
 
     # Inline entries (``categories.<name>.entries``) count as the first,
     # highest-priority source. Shipped envelopes keep the list empty, so
-    # this is a no-op in production — but test fixtures and in-memory
+    # this is a no-op in production - but test fixtures and in-memory
     # envelopes can provide entries without touching the filesystem.
     for cat in CATEGORIES:
         meta = cats.get(cat) if isinstance(cats, dict) else None

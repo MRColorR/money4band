@@ -30,7 +30,8 @@ class TestPortLogic(unittest.TestCase):
 
             self.assertIsInstance(result, list)
             self.assertEqual(len(result), 1)
-            # With app_index=0, instance_number=0, the base port is 50000 + 0*100 + 0*10 = 50000
+            # app_index=0 and instance_number=0 zero out both offsets, so the
+            # port is just DEFAULT_PORT_BASE (50000) regardless of their values.
             self.assertEqual(result, [50000])
 
     def test_assign_app_ports_multiple_ports(self):
@@ -52,7 +53,8 @@ class TestPortLogic(unittest.TestCase):
 
             self.assertIsInstance(result, list)
             self.assertEqual(len(result), 2)
-            # With app_index=0, instance_number=0, the base port is 50000 + 0*100 + 0*10 = 50000
+            # app_index=0 and instance_number=0 zero out both offsets, so the
+            # port is just DEFAULT_PORT_BASE (50000) regardless of their values.
             # First port: 50000 + 0 = 50000, Second port: 50000 + 1 = 50001
             self.assertEqual(result, [50000, 50001])
 
@@ -234,7 +236,7 @@ class TestPortLogic(unittest.TestCase):
             self.assertIn("WIPTER_PORT_2=6081", env_content)
             # Should NOT have non-indexed WIPTER_PORT for multiple ports
 
-            # Watchtower scope vars are always emitted — defaults when watchtower key absent
+            # Watchtower scope vars are always emitted - defaults when watchtower key absent
             self.assertIn("M4B_WATCHTOWER_LABELS=true", env_content)
             self.assertIn("M4B_WATCHTOWER_SCOPE=money4band", env_content)
 

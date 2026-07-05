@@ -120,7 +120,7 @@ def main() -> None:
                 encoding="utf-8",
             )
 
-        # Move per-file bundle: newcomers/ → supported/
+        # Move per-file bundle: newcomers/ -> supported/
         move_entry(CONFIG, name, "newcomers", "supported", updates=entry)
         promoted.append(name)
 

@@ -549,7 +549,7 @@ class TestVersionComparisons:
 
 
 # ---------------------------------------------------------------------------
-# _apply_binary_update — covers lines 376-419
+# _apply_binary_update - covers lines 376-419
 # ---------------------------------------------------------------------------
 
 
@@ -614,14 +614,14 @@ class TestApplyBinaryUpdate:
         mock_client.get.return_value = mock_resp
         monkeypatch.setattr("money4band.updater.get_client", lambda: mock_client)
 
-        # Make the second rename fail (new → current)
+        # Make the second rename fail (new -> current)
         original_rename = os.rename
         call_count = 0
 
         def patched_rename(src, dst):
             nonlocal call_count
             call_count += 1
-            if call_count == 2:  # second rename: tmp → current
+            if call_count == 2:  # second rename: tmp -> current
                 raise OSError("permission denied")
             return original_rename(src, dst)
 
@@ -634,7 +634,7 @@ class TestApplyBinaryUpdate:
 
 
 # ---------------------------------------------------------------------------
-# show_update_banner — covers lines 275-282
+# show_update_banner - covers lines 275-282
 # ---------------------------------------------------------------------------
 
 
@@ -670,7 +670,7 @@ class TestShowUpdateBanner:
 
 
 # ---------------------------------------------------------------------------
-# _notify_update_available — covers lines 286-294
+# _notify_update_available - covers lines 286-294
 # ---------------------------------------------------------------------------
 
 

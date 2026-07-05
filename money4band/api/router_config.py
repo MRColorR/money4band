@@ -1,4 +1,4 @@
-"""Configuration API — view, update, and reset configs + resource limits."""
+"""Configuration API - view, update, and reset configs + resource limits."""
 
 from __future__ import annotations
 
@@ -51,7 +51,7 @@ async def update_user_config(
     """Merge *payload.data* into user-config.json and persist.
 
     Only top-level keys that already exist in the current config are
-    accepted — this prevents injection of arbitrary new keys while
+    accepted - this prevents injection of arbitrary new keys while
     allowing the API full parity with the CLI menu.
     """
     from money4band.core.dumper import write_json
@@ -64,7 +64,7 @@ async def update_user_config(
             detail=f"Unknown config keys: {', '.join(sorted(unknown))}",
         )
 
-    # Reject type changes on dict-valued keys — prevents nuking nested
+    # Reject type changes on dict-valued keys - prevents nuking nested
     # objects (e.g. m4b_dashboard) with a scalar and bypassing _IMMUTABLE_KEYS.
     for key, value in payload.data.items():
         if isinstance(cfg.get(key), dict) and not isinstance(value, dict):

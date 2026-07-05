@@ -122,11 +122,11 @@ class TestIsEventEnabled:
         assert is_event_enabled(partial_config, EVENT_STACK_STOP) is False
 
     def test_event_missing_from_dict(self, enabled_config):
-        # EVENT_TEST is not in the events dict → should be False
+        # EVENT_TEST is not in the events dict -> should be False
         assert is_event_enabled(enabled_config, EVENT_TEST) is False
 
     def test_legacy_no_events_key(self, legacy_config):
-        # Legacy: no events dict → all events considered enabled
+        # Legacy: no events dict -> all events considered enabled
         assert is_event_enabled(legacy_config, EVENT_STACK_START) is True
         assert is_event_enabled(legacy_config, EVENT_UPDATE_AVAILABLE) is True
 

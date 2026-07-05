@@ -5,12 +5,12 @@ Writes ``config/weights.json`` consumed by
 
 Algorithm: sliding window ``[reference_ts - WINDOW_DAYS, reference_ts
 - AGE_FLOOR_DAYS]`` anchored to the latest commit timestamp (never to
-wall clock — the pool stays non-empty even after long quiet periods).
+wall clock - the pool stays non-empty even after long quiet periods).
 The ``AGE_FLOOR_DAYS`` cooldown drops the most recent commits so a
 last-minute push-burst can't inflate weights. Inside the window, each
 commit is worth ``min(10, insertions + 0.5*deletions)``, capped at
 ``8`` per author per UTC day, then half-life-decayed (180d) toward
-``reference_ts``. Authors under ``MIN_WEIGHT`` are dropped (no floor —
+``reference_ts``. Authors under ``MIN_WEIGHT`` are dropped (no floor -
 stale contributors fall out instead of pinning at a fixed minimum).
 
 Identity: the script aggregates by lowercased + whitespace-collapsed

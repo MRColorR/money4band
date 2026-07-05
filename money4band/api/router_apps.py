@@ -1,4 +1,4 @@
-"""Apps API — list apps, get details, manage categories."""
+"""Apps API - list apps, get details, manage categories."""
 
 from __future__ import annotations
 
@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/apps", tags=["apps"])
 
 # Regex to extract the tier name from compose template variables like
-# ${APP_CPU_LIMIT_MEDIUM} → "medium"
+# ${APP_CPU_LIMIT_MEDIUM} -> "medium"
 _TIER_RE = re.compile(r"\$\{APP_CPU_LIMIT_(\w+)\}", re.IGNORECASE)
 
 

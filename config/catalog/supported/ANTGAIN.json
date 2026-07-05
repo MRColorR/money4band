@@ -79,8 +79,8 @@
             "avg_monthly_datacenter_usd": "unknown"
         },
         "warnings": [
-            "Negative community sentiment \u2014 service reportedly declining",
-            "linux/amd64 platform only \u2014 no ARM support",
+            "Negative community sentiment - service reportedly declining",
+            "linux/amd64 platform only - no ARM support",
             "Service viability unverified"
         ],
         "confidence": "low",

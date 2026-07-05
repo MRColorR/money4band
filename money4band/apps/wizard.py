@@ -54,19 +54,19 @@ def run_app_wizard(apps_d_dir: str) -> dict[str, Any] | None:
     Returns the app entry dict, or ``None`` if the user cancels.
     """
     print(f"\n{Fore.CYAN}{'=' * 50}")
-    print("  M4B — Add New App Wizard")
+    print("  M4B - Add New App Wizard")
     print(f"{'=' * 50}{Style.RESET_ALL}\n")
 
     # --- Name ---
     name = _prompt("App name (UPPERCASE, e.g. MYAPP)").upper().replace(" ", "_")
     if not name:
-        print(f"{Fore.RED}Cancelled — no name provided.{Style.RESET_ALL}")
+        print(f"{Fore.RED}Cancelled - no name provided.{Style.RESET_ALL}")
         return None
 
     # --- Docker image ---
     image = _prompt("Docker image (e.g. publisher/app:latest)")
     if not image:
-        print(f"{Fore.RED}Cancelled — no image provided.{Style.RESET_ALL}")
+        print(f"{Fore.RED}Cancelled - no image provided.{Style.RESET_ALL}")
         return None
 
     # --- Auth type ---

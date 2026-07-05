@@ -1,4 +1,4 @@
-"""Self-update API — check for and apply updates."""
+"""Self-update API - check for and apply updates."""
 
 from __future__ import annotations
 
@@ -50,7 +50,7 @@ async def apply_update(
 ) -> dict[str, str]:
     """Apply an update to the specified (or latest) version.
 
-    Restricted to localhost for safety — remote callers receive 403.
+    Restricted to localhost for safety - remote callers receive 403.
     """
     client = request.client.host if request.client else ""
     if client not in _LOOPBACK:

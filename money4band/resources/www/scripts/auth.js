@@ -2,7 +2,7 @@
  * M4B Dashboard authentication helper.
  *
  * - Reads ?token=<key> from the URL, logs in via cookie, and strips the param.
- * - Exposes window.m4bFetch() — a fetch() wrapper that auto-handles 401s by
+ * - Exposes window.m4bFetch() - a fetch() wrapper that auto-handles 401s by
  *   showing a login prompt and retrying once after successful authentication.
  * - On first load, probes /api/status to check if auth is needed. If 401,
  *   prompts immediately so the page data loads on the first visit.
@@ -20,7 +20,7 @@
     return match ? decodeURIComponent(match[1]) : null;
   }
 
-  /** POST the token to /api/auth/login — sets an httpOnly cookie. */
+  /** POST the token to /api/auth/login - sets an httpOnly cookie. */
   function serverLogin(token) {
     return fetch("/api/auth/login", {
       method: "POST",
@@ -34,7 +34,7 @@
     });
   }
 
-  /** POST /api/auth/logout — clears the httpOnly cookie. */
+  /** POST /api/auth/logout - clears the httpOnly cookie. */
   function serverLogout() {
     return fetch("/api/auth/logout", { method: "POST" }).then(function () {
       document.cookie = "m4b_logged_in=;path=/;max-age=0";
@@ -88,7 +88,7 @@
   window.m4bFetch = function m4bFetch(url, opts) {
     return fetch(url, opts).then(function (response) {
       if (response.status !== 401) return response;
-      // Got 401 — ask for the key and retry once.
+      // Got 401 - ask for the key and retry once.
       return promptLogin().then(function (ok) {
         if (!ok) return response; // user cancelled
         return fetch(url, opts);
@@ -110,7 +110,7 @@
     window.history.replaceState(null, "", clean);
 
     serverLogin(urlToken).catch(function () {
-      /* ignore — will prompt later if needed */
+      /* ignore - will prompt later if needed */
     });
   }
 
@@ -123,11 +123,11 @@
           if (ok) window.location.reload();
         });
       } else {
-        // Auth not required (localhost) — no logout button needed.
+        // Auth not required (localhost) - no logout button needed.
       }
     });
   } else {
-    // We have a cookie — show the logout button.
+    // We have a cookie - show the logout button.
     if (document.readyState === "loading") {
       document.addEventListener("DOMContentLoaded", showLogoutButton);
     } else {

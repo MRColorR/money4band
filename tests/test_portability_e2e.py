@@ -104,7 +104,7 @@ def test_env_var_redirects_to_external_dir(tmp_path, monkeypatch):
 
 
 def test_legacy_dir_picked_up_if_already_populated(tmp_path, monkeypatch):
-    """Existing legacy users keep working — install dir is not auto-promoted."""
+    """Existing legacy users keep working - install dir is not auto-promoted."""
     install = tmp_path / "install"
     install.mkdir()
     legacy = tmp_path / "home" / ".m4b"

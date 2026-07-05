@@ -1,4 +1,4 @@
-"""Configuration profiles API — create, list, switch, delete."""
+"""Configuration profiles API - create, list, switch, delete."""
 
 from __future__ import annotations
 

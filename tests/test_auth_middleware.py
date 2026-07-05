@@ -49,7 +49,7 @@ def noauth_client():
     return TestClient(app)
 
 
-# ── Auth middleware ─────────────────────────────────────────────────────
+# -- Auth middleware -----------------------------------------------------
 
 
 class TestAuthMiddleware:
@@ -85,7 +85,7 @@ class TestAuthMiddleware:
         assert resp.status_code == 200
 
     def test_expired_session_cookie_returns_401(self, auth_client: TestClient):
-        # Manually craft a token from 3 days ago — well past the grace window.
+        # Manually craft a token from 3 days ago - well past the grace window.
         with mock.patch.object(api, "_get_session_salt", return_value=b"salt"):
             old_epoch = str(int(time.time()) // 86400 - 3)
             import hashlib
@@ -119,7 +119,7 @@ class TestAuthMiddleware:
         """When *not* exposed, loopback clients skip auth entirely."""
         api._api_key = _TEST_KEY
         api._exposed = False
-        # TestClient default host is "testclient" — *not* in _LOOPBACK,
+        # TestClient default host is "testclient" - *not* in _LOOPBACK,
         # so we can't truly test the loopback path via TestClient.
         # Instead, verify the logic directly:
         assert not api._exposed
@@ -135,7 +135,7 @@ class TestAuthMiddleware:
         assert "API key required" in resp.json()["detail"]
 
 
-# ── Rate limiter ───────────────────────────────────────────────────────
+# -- Rate limiter -------------------------------------------------------
 
 
 class TestRateLimiter:
@@ -213,7 +213,7 @@ class TestRateLimiter:
                 assert resp.status_code == 200
 
 
-# ── Security headers ──────────────────────────────────────────────────
+# -- Security headers --------------------------------------------------
 
 
 class TestSecurityHeaders:
@@ -237,7 +237,7 @@ class TestSecurityHeaders:
         assert resp.headers.get("Cache-Control", "") != "no-store"
 
 
-# ── Deep-merge type guard (P0-2 regression test) ─────────────────────
+# -- Deep-merge type guard (P0-2 regression test) ---------------------
 
 
 class TestDeepMergeTypeGuard:

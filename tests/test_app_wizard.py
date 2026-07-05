@@ -1,4 +1,4 @@
-"""Tests for utils.app_wizard — interactive app-add wizard."""
+"""Tests for utils.app_wizard - interactive app-add wizard."""
 
 from __future__ import annotations
 
@@ -78,13 +78,13 @@ class TestAppWizard:
         assert result["flags"].get("manual_onboard") is True
 
     def test_wizard_cancel_no_name(self, tmp_path):
-        inputs = self._mock_inputs("")  # empty name → cancel
+        inputs = self._mock_inputs("")  # empty name -> cancel
         with mock.patch("builtins.input", side_effect=inputs):
             result = run_app_wizard(str(tmp_path))
         assert result is None
 
     def test_wizard_cancel_no_image(self, tmp_path):
-        inputs = self._mock_inputs("APP", "")  # empty image → cancel
+        inputs = self._mock_inputs("APP", "")  # empty image -> cancel
         with mock.patch("builtins.input", side_effect=inputs):
             result = run_app_wizard(str(tmp_path))
         assert result is None

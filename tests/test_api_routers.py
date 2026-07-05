@@ -149,7 +149,7 @@ def tmp_config(tmp_path):
             },
         },
     }
-    # Fold envelope under m4b-config.json → catalog
+    # Fold envelope under m4b-config.json -> catalog
     m4b["catalog"] = app_cfg
     (config_dir / "m4b-config.json").write_text(json.dumps(m4b))
 
@@ -259,7 +259,7 @@ class TestAppsRouter:
 
 
 # ===========================================================================
-# Apps router — provenance fields
+# Apps router - provenance fields
 # ===========================================================================
 
 
@@ -418,8 +418,8 @@ class TestConfigRouter:
         """P0-2 guard: scalar value can't replace a dict-valued top-level key.
 
         Without the type guard, a payload like ``{"m4b_dashboard": "x"}``
-        would nuke the entire dashboard sub-config — including the
-        ``_IMMUTABLE_KEYS``-protected ``api_key`` — by hitting the
+        would nuke the entire dashboard sub-config - including the
+        ``_IMMUTABLE_KEYS``-protected ``api_key`` - by hitting the
         ``base[key] = value`` else-branch in ``_deep_merge``.
         """
         resp = client.put(
@@ -460,7 +460,7 @@ class TestConfigRouter:
 
         Regression check: the guard must not break legitimate scalar updates.
         """
-        # Pick a scalar key from the test config — settings.resource_profile.
+        # Pick a scalar key from the test config - settings.resource_profile.
         resp = client.put(
             "/api/config/user",
             json={"data": {"settings": {"resource_profile": "performance"}}},
@@ -1116,7 +1116,7 @@ class TestSecurityHeaders:
         """Non-/api paths get baseline headers but not the API-only no-store.
 
         Probes any path outside ``/api/*``. The exact status code is
-        irrelevant — we only assert middleware behavior, which runs on
+        irrelevant - we only assert middleware behavior, which runs on
         every response (200, 404, etc.).
         """
         resp = client.get("/some-non-api-path-that-does-not-exist")

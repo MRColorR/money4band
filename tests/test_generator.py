@@ -33,7 +33,7 @@ class TestGeneratorFunctions(unittest.TestCase):
         self.assertIn(device_name.split("_")[1], animals)
 
 
-# ── Minimal configs shared by env-file and compose tests ─────────────────────
+# -- Minimal configs shared by env-file and compose tests ---------------------
 
 _M4B_CFG = {
     "project": {"project_version": "test"},

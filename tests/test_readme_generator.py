@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-"""Tests for utils.readme_generator — auto-generation of README/APPS.md app tables."""
+"""Tests for utils.readme_generator - auto-generation of README/APPS.md app tables."""
 
 from pathlib import Path
 from typing import Any
@@ -133,16 +133,16 @@ _SAMPLE_CONFIG: dict[str, Any] = {
 
 class TestBoolMd:
     def test_true(self) -> None:
-        assert _bool_md(True) == "\u2705"
+        assert _bool_md(True) == "[ok]"
 
     def test_false(self) -> None:
-        assert _bool_md(False) == "\u274c"
+        assert _bool_md(False) == "[x]"
 
     def test_none(self) -> None:
-        assert _bool_md(None) == "\u2014"
+        assert _bool_md(None) == "-"
 
     def test_string(self) -> None:
-        assert _bool_md("partial") == "\u2014"
+        assert _bool_md("partial") == "-"
 
 
 # ---------------------------------------------------------------------------
@@ -197,43 +197,43 @@ class TestFormatHelpers:
         assert _format_devices(10) == "10"
 
     def test_devices_unlimited_int(self) -> None:
-        assert _format_devices(-1) == "\u221e"
+        assert _format_devices(-1) == "unlimited"
 
     def test_devices_unlimited_str(self) -> None:
         assert _format_devices("unlimited") == "Unlimited"
 
     def test_devices_undocumented(self) -> None:
-        assert _format_devices("undocumented") == "\u2014"
+        assert _format_devices("undocumented") == "-"
 
     def test_devices_none(self) -> None:
-        assert _format_devices(None) == "\u2014"
+        assert _format_devices(None) == "-"
 
     def test_payout_normal(self) -> None:
         assert _format_payout(["PayPal", "crypto"]) == "PayPal, crypto"
 
     def test_payout_undocumented(self) -> None:
-        assert _format_payout(["undocumented"]) == "\u2014"
+        assert _format_payout(["undocumented"]) == "-"
 
     def test_payout_none(self) -> None:
-        assert _format_payout(None) == "\u2014"
+        assert _format_payout(None) == "-"
 
     def test_payout_empty(self) -> None:
-        assert _format_payout([]) == "\u2014"
+        assert _format_payout([]) == "-"
 
     def test_earnings_normal(self) -> None:
         assert _format_earnings("1-5") == "$1-5"
 
     def test_earnings_unknown(self) -> None:
-        assert _format_earnings("unknown") == "\u2014"
+        assert _format_earnings("unknown") == "-"
 
     def test_earnings_na(self) -> None:
-        assert _format_earnings("N/A") == "\u2014"
+        assert _format_earnings("N/A") == "-"
 
     def test_earnings_none(self) -> None:
-        assert _format_earnings(None) == "\u2014"
+        assert _format_earnings(None) == "-"
 
     def test_earnings_unknown_prefix(self) -> None:
-        assert _format_earnings("unknown (early stage)") == "\u2014"
+        assert _format_earnings("unknown (early stage)") == "-"
 
 
 # ---------------------------------------------------------------------------
@@ -270,7 +270,7 @@ class TestGenerateReadmeTable:
 
     def test_row_count(self) -> None:
         table = generate_readme_table(_SAMPLE_CONFIG)
-        # Data rows now start with "| <emoji> | ..." — header lines start "| Type"/"|:".
+        # Data rows now start with "| <emoji> | ..." - header lines start "| Type"/"|:".
         data_rows = [
             l
             for l in table.split("\n")
@@ -280,11 +280,11 @@ class TestGenerateReadmeTable:
 
     def test_type_indicator_present(self) -> None:
         table = generate_readme_table(_SAMPLE_CONFIG)
-        # Sample config has no _source on any entry -> default "core" -> 🟢.
-        # Plus a deprecated entry -> 🔴; plus a newcomers entry -> 🌱.
-        assert "\U0001f7e2" in table  # 🟢 core
-        assert "\U0001f534" in table  # 🔴 deprecated
-        assert "\U0001f331" in table  # 🌱 newcomer
+        # Sample config has no _source on any entry -> default "core" -> [ok].
+        # Plus a deprecated entry -> [x]; plus a newcomers entry -> [new].
+        assert "[ok]" in table  # [ok] core
+        assert "[x]" in table  # [x] deprecated
+        assert "[new]" in table  # [new] newcomer
 
     def test_community_source_emoji(self) -> None:
         from copy import deepcopy
@@ -294,13 +294,13 @@ class TestGenerateReadmeTable:
         cfg = deepcopy(_SAMPLE_CONFIG)
         cfg["supported"]["entries"][0]["_source"] = "community"
         table = generate_readme_table(cfg)
-        assert "\U0001f4dc" in table  # 📜 community
+        assert "[com]" in table  # [com] community
 
     def test_active_app_row(self) -> None:
         table = generate_readme_table(_SAMPLE_CONFIG)
         assert "[**TestApp**](https://example.com/ref/123)" in table
-        assert "\u2705" in table  # residential = True
-        assert "\u274c" in table  # datacenter = False
+        assert "[ok]" in table  # residential = True
+        assert "[x]" in table  # datacenter = False
 
     def test_payout_in_row(self) -> None:
         table = generate_readme_table(_SAMPLE_CONFIG)
@@ -308,10 +308,10 @@ class TestGenerateReadmeTable:
 
     def test_undocumented_payout_dash(self) -> None:
         table = generate_readme_table(_SAMPLE_CONFIG)
-        # UnstableApp has payout_methods=["undocumented"] -> should show —
+        # UnstableApp has payout_methods=["undocumented"] -> should show -
         lines = [l for l in table.split("\n") if "UnstableApp" in l]
         assert len(lines) == 1
-        assert "\u2014" in lines[0]
+        assert "-" in lines[0]
 
 
 # ---------------------------------------------------------------------------
@@ -326,10 +326,10 @@ class TestGenerateAppsMdTable:
 
     def test_status_emojis(self) -> None:
         table = generate_apps_md_table(_SAMPLE_CONFIG)
-        assert "\U0001f7e2" in table  # active
-        assert "\U0001f7e1" in table  # unstable
-        assert "\U0001f51c" in table  # candidate
-        assert "\U0001f534" in table  # deprecated
+        assert "[ok]" in table  # active
+        assert "[!]" in table  # unstable
+        assert "[soon]" in table  # candidate
+        assert "[x]" in table  # deprecated
 
     def test_referral_code(self) -> None:
         table = generate_apps_md_table(_SAMPLE_CONFIG)
@@ -345,7 +345,7 @@ class TestGenerateAppsMdTable:
 
     def test_unlimited_devices(self) -> None:
         table = generate_apps_md_table(_SAMPLE_CONFIG)
-        assert "\u221e" in table  # NewApp max_devices_per_ip = -1
+        assert "unlimited" in table  # NewApp max_devices_per_ip = -1
 
 
 # ---------------------------------------------------------------------------

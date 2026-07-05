@@ -1,4 +1,4 @@
-"""Tests for money4band.apps.contributor_pool — weighted picker."""
+"""Tests for money4band.apps.contributor_pool - weighted picker."""
 
 from __future__ import annotations
 
@@ -50,7 +50,7 @@ class TestWeightFor:
         assert weight_for("", {"alice": 9.0}) == 0.0
 
     def test_explicit_zero_stays_zero(self) -> None:
-        # Hand-edited 0.0 in weights.json means "never pick" — honored.
+        # Hand-edited 0.0 in weights.json means "never pick" - honored.
         assert weight_for("alice", {"alice": 0.0}) == 0.0
 
     def test_case_insensitive_lookup(self) -> None:

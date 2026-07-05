@@ -1,4 +1,4 @@
-"""Tests for utils.offers — referral & passive income directory."""
+"""Tests for utils.offers - referral & passive income directory."""
 
 from __future__ import annotations
 

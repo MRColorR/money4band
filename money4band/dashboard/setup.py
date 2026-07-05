@@ -39,14 +39,14 @@ def print_dashboard_status(config_dir: str) -> None:
 
     if pid:
         print(
-            f"  {Fore.GREEN}\u25cf Dashboard + API running{Style.RESET_ALL} "
+            f"  {Fore.GREEN}* Dashboard + API running{Style.RESET_ALL} "
             f"(PID {pid}) on port {port}  "
             f"[auto-start: {autostart_tag}]"
         )
-        print(f"    http://localhost:{port}/  \u2502  http://localhost:{port}/api/docs")
+        print(f"    http://localhost:{port}/  |  http://localhost:{port}/api/docs")
     else:
         print(
-            f"  {Fore.YELLOW}\u25cb Dashboard + API stopped{Style.RESET_ALL}  "
+            f"  {Fore.YELLOW}o Dashboard + API stopped{Style.RESET_ALL}  "
             f"[auto-start: {autostart_tag}]"
         )
 
@@ -60,7 +60,7 @@ def ensure_api_key_in_config(user_config: dict[str, Any]) -> str:
     """Ensure user_config has an API key.
 
     Generates a new key if missing or empty.  Operates on the **in-memory**
-    dict — the caller is responsible for persisting.
+    dict - the caller is responsible for persisting.
 
     Returns the (possibly freshly-created) key.
     """
@@ -128,7 +128,7 @@ def setup_m4b_dashboard(user_config: dict[str, Any]) -> None:
     Set up the M4B dashboard configuration.
 
     The web dashboard is now served directly by the FastAPI dashboard
-    server (``m4b dashboard``), so there is no separate container — only
+    server (``m4b dashboard``), so there is no separate container - only
     an enabled/disabled toggle and an optional preferred port.
 
     Args:
@@ -152,7 +152,7 @@ def setup_m4b_dashboard(user_config: dict[str, Any]) -> None:
         logger.info("User decided to enable the M4B web dashboard.")
         dashboard_config["enabled"] = True
 
-        # Preferred port — validated at startup via find_dashboard_port().
+        # Preferred port - validated at startup via find_dashboard_port().
         port = _ask_port(dashboard_config.get("port", DEFAULT_DASHBOARD_PORT))
         dashboard_config["port"] = port
 
@@ -283,7 +283,7 @@ def read_dashboard_pid(config_dir: str) -> int | None:
         return None
     if _is_pid_alive(pid):
         return pid
-    # Stale PID file — process is gone, clean up.
+    # Stale PID file - process is gone, clean up.
     try:
         os.remove(pid_path)
     except OSError:
@@ -451,7 +451,7 @@ def auto_start_dashboard(config_dir: str, base_dir: str) -> None:
         return
 
     if read_dashboard_pid(config_dir) is not None:
-        logger.debug("Dashboard already running — skipping auto-start.")
+        logger.debug("Dashboard already running - skipping auto-start.")
         return
 
     preferred_port = dash_cfg.get("port", DEFAULT_DASHBOARD_PORT)
@@ -492,7 +492,7 @@ def auto_start_dashboard(config_dir: str, base_dir: str) -> None:
             print(f"  API key:   {api_key}")
     else:
         print(
-            f"{Fore.YELLOW}Dashboard + API spawned (PID {pid}) — "
+            f"{Fore.YELLOW}Dashboard + API spawned (PID {pid}) - "
             f"may still be starting.{Style.RESET_ALL}"
         )
     logger.info("Dashboard + API auto-started (PID %d, port %d).", pid, port)

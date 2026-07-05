@@ -1,4 +1,4 @@
-"""Tests for money4band.services — UI-agnostic facade layer."""
+"""Tests for money4band.services - UI-agnostic facade layer."""
 
 from __future__ import annotations
 
@@ -105,7 +105,7 @@ class TestGetAppCatalog:
 
 
 # ---------------------------------------------------------------------------
-# Mocked wrappers — services.py uses in-function imports, so mock the
+# Mocked wrappers - services.py uses in-function imports, so mock the
 # actual module path rather than an attribute on services.
 # ---------------------------------------------------------------------------
 

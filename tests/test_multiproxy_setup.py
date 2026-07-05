@@ -1,4 +1,4 @@
-"""Tests for money4band.network.multiproxy — subnet math, directory management."""
+"""Tests for money4band.network.multiproxy - subnet math, directory management."""
 
 from __future__ import annotations
 

@@ -42,7 +42,7 @@ def _make_args(tmp_path, command=None, extra_argv=None):
 def _capture_module_call(monkeypatch, module_path):
     """Replace a module with a fake that records call arguments.
 
-    Returns the ``captured`` dict — after the handler runs,
+    Returns the ``captured`` dict - after the handler runs,
     ``captured["args"]`` holds the positional args tuple.
     """
     captured: dict = {}
@@ -137,7 +137,7 @@ class TestDispatchTable:
 
 
 # ---------------------------------------------------------------------------
-# _resolve_paths — verify custom config dir + filenames propagate
+# _resolve_paths - verify custom config dir + filenames propagate
 # ---------------------------------------------------------------------------
 
 
@@ -164,7 +164,7 @@ class TestResolvePaths:
 
 
 # ---------------------------------------------------------------------------
-# Handler argument correctness — the core regression tests
+# Handler argument correctness - the core regression tests
 # Each handler must pass the right config paths in the right order.
 # ---------------------------------------------------------------------------
 
@@ -407,7 +407,7 @@ class TestMainDispatch:
 
 
 # ---------------------------------------------------------------------------
-# get_active_profiles — real logic, varied inputs
+# get_active_profiles - real logic, varied inputs
 # ---------------------------------------------------------------------------
 
 
@@ -457,7 +457,7 @@ class TestGetActiveProfiles:
         assert get_active_profiles(cfg) == ["monitoring"]
 
     def test_profile_order_is_stable(self):
-        """Profiles always come out in monitoring → proxy order."""
+        """Profiles always come out in monitoring -> proxy order."""
         from money4band.docker.helper import get_active_profiles
 
         cfg = {

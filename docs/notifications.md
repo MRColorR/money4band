@@ -58,4 +58,4 @@ See the [Shoutrrr docs](https://containrrr.dev/shoutrrr/services/overview/) for 
 
 ## How It Works
 
-Notifications are sent via a temporary `containrrr/shoutrrr` Docker container — no additional dependencies to install. The container runs, sends the message, and is automatically removed.
+Notifications are sent via a temporary `containrrr/shoutrrr` Docker container - no additional dependencies to install. The container runs, sends the message, and is automatically removed.

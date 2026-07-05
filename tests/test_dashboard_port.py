@@ -36,7 +36,7 @@ class TestFindDashboardPort:
 
 
 # ===========================================================================
-# start_server — always checks port availability
+# start_server - always checks port availability
 # ===========================================================================
 
 

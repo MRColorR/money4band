@@ -157,7 +157,10 @@ def main(
         resume (bool): If True, skip steps that were completed in a previous run.
     """
     try:
-        app_config = loader.load_json_config(app_config_path)
+        # app_config_path aliases m4b-config.json where the catalog is folded
+        # under the ``catalog`` key. Use the overlay loader so categories and
+        # entries are aggregated to top level; a plain load yields no apps.
+        app_config = loader.load_app_config_with_overlays(app_config_path)
         user_config = loader.load_json_config(user_config_path)
         m4b_config = loader.load_json_config(m4b_config_path)
         logger.info("Setup apps started")
@@ -186,7 +189,7 @@ def main(
 
         if resume and completed:
             print(
-                f"{Fore.YELLOW}Resuming setup — skipping already-completed "
+                f"{Fore.YELLOW}Resuming setup - skipping already-completed "
                 f"steps: {completed}{Style.RESET_ALL}"
             )
 
@@ -201,7 +204,7 @@ def main(
             if is_step_done(progress, step):
                 print(
                     f"{Fore.YELLOW}[Step {step}/{TOTAL_SETUP_STEPS}] "
-                    f"{description} — skipped (already done){Style.RESET_ALL}"
+                    f"{description} - skipped (already done){Style.RESET_ALL}"
                 )
                 return
             _print_step(step, description)
@@ -234,7 +237,7 @@ def main(
         else:
             print(
                 f"{Fore.YELLOW}[Step 4/{TOTAL_SETUP_STEPS}] "
-                f"Setting up notifications — skipped (already done){Style.RESET_ALL}"
+                f"Setting up notifications - skipped (already done){Style.RESET_ALL}"
             )
         # Step 5: Save the user configuration
         _print_step(5, "Saving user configuration")
@@ -281,7 +284,7 @@ def main(
                     print(f"\n{Fore.RED}Invalid proxy URLs:{Style.RESET_ALL}")
                     for r in invalid:
                         print(
-                            f"  {Fore.RED}\u2717{Style.RESET_ALL} {r['url']} \u2014 {r['reason']}"
+                            f"  {Fore.RED}X{Style.RESET_ALL} {r['url']} - {r['reason']}"
                         )
                     print(
                         f"\n{Fore.RED}Fix proxies.txt and re-run setup.{Style.RESET_ALL}"
@@ -292,7 +295,7 @@ def main(
                     print(f"\n{Fore.YELLOW}Unreachable proxies:{Style.RESET_ALL}")
                     for r in unreachable:
                         print(
-                            f"  {Fore.YELLOW}!{Style.RESET_ALL} {r['url']} \u2014 {r['reason']}"
+                            f"  {Fore.YELLOW}!{Style.RESET_ALL} {r['url']} - {r['reason']}"
                         )
                     if not ask_question_yn(
                         "Some proxies are unreachable. Continue anyway?", default=False
@@ -326,17 +329,20 @@ def main(
                     user_config["proxies"]["enabled"] = False
                     write_json(user_config, user_config_path)
                 cleanup_multiproxy_instances_dir()
+                # Pass loaded dicts (not paths): app_config holds the
+                # overlay-aggregated catalog; reloading the m4b-config path raw
+                # would drop all app categories and emit an empty stack.
                 assemble_docker_compose(
-                    m4b_config_path,
-                    app_config_path,
-                    user_config_path,
+                    m4b_config,
+                    app_config,
+                    user_config,
                     compose_output_path="./docker-compose.yaml",
                     is_main_instance=True,
                 )
                 generate_env_file(
-                    m4b_config_path,
-                    app_config_path,
-                    user_config_path,
+                    m4b_config,
+                    app_config,
+                    user_config,
                     env_output_path="./.env",
                     is_main_instance=True,
                 )
@@ -345,10 +351,10 @@ def main(
         else:
             print(
                 f"{Fore.YELLOW}[Step 6/{TOTAL_SETUP_STEPS}] "
-                f"Proxy configuration — skipped (already done){Style.RESET_ALL}"
+                f"Proxy configuration - skipped (already done){Style.RESET_ALL}"
             )
 
-        # All steps complete — clean up progress file
+        # All steps complete - clean up progress file
         clear_progress()
 
         # Mark setup as completed so the first-run wizard doesn't re-trigger

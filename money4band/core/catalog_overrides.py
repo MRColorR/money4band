@@ -1,12 +1,12 @@
 """User-config catalog overrides.
 
 ``m4b-config.json`` ships the *default* catalog envelope (sources and
-category flags). Anything the user toggles or adds at runtime — source
+category flags). Anything the user toggles or adds at runtime - source
 ``enabled`` flags, custom remote sources, category activation, removals
-— lives under ``user-config.json → catalog_overrides``. That split lets
+- lives under ``user-config.json -> catalog_overrides``. That split lets
 updates overwrite ``m4b-config.json`` without touching user state.
 
-Override schema (``user-config.json → catalog_overrides``)::
+Override schema (``user-config.json -> catalog_overrides``)::
 
     {
         "sources": {
@@ -27,7 +27,7 @@ Override schema (``user-config.json → catalog_overrides``)::
         }
     }
 
-Any key may be absent — ``apply_overrides`` tolerates missing sections.
+Any key may be absent - ``apply_overrides`` tolerates missing sections.
 """
 
 from __future__ import annotations

@@ -37,7 +37,7 @@ m4b --dashboard true stack start
 
 ### From Interactive Menu
 
-Choose **Dashboard** → **Start foreground**, **Start background**, **Start (web-exposed)**, or **Restart**.
+Choose **Dashboard** -> **Start foreground**, **Start background**, **Start (web-exposed)**, or **Restart**.
 
 ### Auto-Start
 
@@ -57,7 +57,7 @@ Once started, the dashboard is available at:
 http://localhost:8088
 ```
 
-The port is configurable via `config/user-config.json` → `dashboard.port`.
+The port is configurable via `config/user-config.json` -> `dashboard.port`.
 
 ## API Authentication
 
@@ -115,7 +115,7 @@ m4b dashboard regenerate-key
 | `GET` | `/api/health` | Health check results for all containers |
 | `GET` | `/api/stats` | CPU & memory usage per container |
 | `POST` | `/api/action/{container}/{action}` | Start / stop / restart a container |
-| `GET` | `/api/events` | SSE stream — live container status (5s poll) |
+| `GET` | `/api/events` | SSE stream - live container status (5s poll) |
 
 ### Stack Operations
 
@@ -163,7 +163,7 @@ http://localhost:8088/api/docs
 flowchart LR
     Browser --> FastAPI["FastAPI Server\n(uvicorn)"]
     FastAPI --> CoreRoutes["5 Core Endpoints\n(status, health, stats,\naction, events)"]
-    FastAPI --> Routers["13 API Routers\n(stack, config, apps,\nsystem, monitor, …)"]
+    FastAPI --> Routers["13 API Routers\n(stack, config, apps,\nsystem, monitor, ...)"]
     CoreRoutes -->|"_run_docker()"| Docker["Docker Engine"]
     Routers -->|"_deps + domain modules"| Domain["Subpackages\n(docker, apps, core,\nnetwork, system)"]
     Domain --> Docker

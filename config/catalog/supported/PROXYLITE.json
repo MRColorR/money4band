@@ -64,7 +64,7 @@
             "adjacent_ips_accepted": true,
             "adjacent_ips_max": "unlimited",
             "ipv6": true,
-            "geo_restrictions": "Does not support mainland China. Russian-origin service \u2014 international availability may vary.",
+            "geo_restrictions": "Does not support mainland China. Russian-origin service - international availability may vary.",
             "quality_notes": "Supports residential, static datacenter, and ISP proxy types. Community VPS deployments widely practiced with no ban reports."
         },
         "docker": {

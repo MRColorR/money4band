@@ -13,13 +13,13 @@ repos:
         pass_filenames: false
         stages: [pre-commit]
 
-  # Gitleaks — comprehensive secret scanning
+  # Gitleaks - comprehensive secret scanning
   - repo: https://github.com/gitleaks/gitleaks
     rev: v8.24.0
     hooks:
       - id: gitleaks
 
-  # App tables — regenerate from m4b-config.json catalog envelope
+  # App tables - regenerate from m4b-config.json catalog envelope
   - repo: local
     hooks:
       - id: update-tables
@@ -30,7 +30,21 @@ repos:
         files: (config/m4b-config\.json|config/catalog/.*\.json|README\.md|docs/APPS\.md|money4band/readme_generator\.py)
         stages: [pre-commit]
 
-  # Requirements — keep in sync with uv.lock
+  # uv.lock - must stay derived from pyproject.toml (the source of truth).
+  # Without this, pyproject can change without relocking, leaving the exported
+  # requirements files stale even though they still match an outdated lock.
+  - repo: local
+    hooks:
+      - id: uv-lock-check
+        name: uv.lock in sync with pyproject.toml
+        entry: uv lock --check
+        language: system
+        pass_filenames: false
+        files: (pyproject\.toml|uv\.lock)
+        stages: [pre-commit]
+
+  # Requirements - generated from pyproject.toml via uv.lock (source of truth).
+  # requirements.txt = runtime only; requirements-dev.txt = runtime + dev.
   - repo: local
     hooks:
       - id: sync-requirements
@@ -41,7 +55,7 @@ repos:
         files: (pyproject\.toml|uv\.lock)
         stages: [pre-commit]
 
-  # Ruff — linting and formatting
+  # Ruff - linting and formatting
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.15.7
     hooks:

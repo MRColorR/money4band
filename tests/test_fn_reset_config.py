@@ -1,4 +1,4 @@
-"""Tests for money4band.core.reset — config reset logic."""
+"""Tests for money4band.core.reset - config reset logic."""
 
 from __future__ import annotations
 
@@ -58,7 +58,7 @@ class TestResetSeedsFromCatalog:
         config_dir = tmp_path / "config"
         config_dir.mkdir()
 
-        # Template without per-app block — per-app defaults come from catalog.
+        # Template without per-app block - per-app defaults come from catalog.
         template = {
             "user": {"Nickname": ""},
             "apps": {},
@@ -68,7 +68,7 @@ class TestResetSeedsFromCatalog:
         src.parent.mkdir()
         src.write_text(json.dumps(template))
 
-        # Folded envelope — m4b-config.json carries the catalog key;
+        # Folded envelope - m4b-config.json carries the catalog key;
         # per-file bundles live under config/catalog/.
         m4b_config = {
             "project": {"project_version": "5.0.0"},
@@ -125,5 +125,5 @@ class TestResetSeedsFromCatalog:
         src.write_text(json.dumps({"apps": {}, "settings": {}}))
         dest = tmp_path / "out" / "user-config.json"
         reset_config(str(src), str(dest))
-        # No m4b-config.json next to dest → apps stays empty, no crash.
+        # No m4b-config.json next to dest -> apps stays empty, no crash.
         assert json.loads(dest.read_text())["apps"] == {}

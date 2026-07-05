@@ -1,4 +1,4 @@
-"""Tests for loader.py — real file I/O, no mock_open."""
+"""Tests for loader.py - real file I/O, no mock_open."""
 
 import json
 import os

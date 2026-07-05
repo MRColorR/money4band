@@ -2,7 +2,7 @@
 
 Covers the single source of truth used by the CLI (`catalog_cli`),
 the REST API (`router_catalog`), and the TUI submenu
-(`fn_app_catalog → _manage_sources`) — so parity across surfaces is
+(`fn_app_catalog -> _manage_sources`) - so parity across surfaces is
 verified at the one module they all share.
 """
 
@@ -188,7 +188,7 @@ def test_set_category_rejects_unknown(tmp_path: Path) -> None:
 def test_refresh_source_skips_local(tmp_path: Path) -> None:
     cfg = _seed(tmp_path)
     results = cm.refresh_source(cfg, None)
-    # Only local source present → must be skipped, not errored.
+    # Only local source present -> must be skipped, not errored.
     assert results == [{"name": "builtin", "status": "skipped"}]
 
 

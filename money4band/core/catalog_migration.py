@@ -1,4 +1,4 @@
-"""Generic catalog migrations (monolithic → per-file → folded).
+"""Generic catalog migrations (monolithic -> per-file -> folded).
 
 All migrations are idempotent and safe to call on every load.
 
@@ -12,7 +12,7 @@ All migrations are idempotent and safe to call on every load.
 
 Both migrations are offline-only: no network, no user prompts, no
 re-encryption. User credentials live in ``user-config.json`` and are
-untouched. See also :mod:`scripts.migrate_catalog_v1_to_v2` — a thin
+untouched. See also :mod:`scripts.migrate_catalog_v1_to_v2` - a thin
 CLI wrapper around :func:`migrate_catalog_file`.
 """
 
@@ -57,12 +57,12 @@ def migrate_catalog_file(config_path: str | Path) -> bool:
     if not isinstance(payload, dict):
         return False
 
-    # Already migrated — nothing to do.
+    # Already migrated - nothing to do.
     if is_envelope(payload) and not is_legacy_monolithic(payload):
         return False
 
     if not is_legacy_monolithic(payload):
-        # Neither envelope nor monolithic — unknown/empty file; skip.
+        # Neither envelope nor monolithic - unknown/empty file; skip.
         return False
 
     # Keep a one-time backup of the pre-migration monolithic file.
@@ -96,16 +96,16 @@ def fold_legacy_envelope_into_m4b(config_path: str | Path) -> bool:
     legacy envelope file ``config/app-config.json`` still exists, this:
 
     1. Migrates the legacy file to per-file layout if still monolithic.
-    2. Splices the resulting envelope under ``m4b-config.json → catalog``
+    2. Splices the resulting envelope under ``m4b-config.json -> catalog``
        (leaves any existing folded envelope untouched). Creates
        ``m4b-config.json`` with an otherwise-empty payload when it
-       doesn't exist yet — this handles fresh test fixtures and users
+       doesn't exist yet - this handles fresh test fixtures and users
        who only have the legacy file.
     3. Renames the legacy file to ``app-config.json.v1.bak`` (or
        removes it silently if the backup already exists).
 
     Returns ``True`` when a fold happened, ``False`` otherwise. Safe to
-    call on every startup — no-ops when there is nothing to do.
+    call on every startup - no-ops when there is nothing to do.
     """
     m4b_path = Path(config_path)
     # Only fold when we were invoked against m4b-config.json itself; any
@@ -117,7 +117,7 @@ def fold_legacy_envelope_into_m4b(config_path: str | Path) -> bool:
     if not legacy.is_file():
         return False
 
-    # Normalise the legacy file first (monolithic → envelope).
+    # Normalise the legacy file first (monolithic -> envelope).
     migrate_catalog_file(legacy)
 
     try:
@@ -128,7 +128,7 @@ def fold_legacy_envelope_into_m4b(config_path: str | Path) -> bool:
         return False
 
     if not is_envelope(legacy_payload) or is_folded(legacy_payload):
-        # Unrecognised content — leave the file alone.
+        # Unrecognised content - leave the file alone.
         return False
 
     m4b_payload: dict = {}
@@ -143,7 +143,7 @@ def fold_legacy_envelope_into_m4b(config_path: str | Path) -> bool:
             return False
 
     if is_folded(m4b_payload):
-        # Already folded — just retire the legacy file.
+        # Already folded - just retire the legacy file.
         _retire_legacy_file(legacy)
         return False
 

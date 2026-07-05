@@ -215,7 +215,7 @@ class TestCheckImgArchSupport(unittest.TestCase):
         return_value=DOCKERHUB_TAGS_RESPONSE,
     )
     def test_multi_arch_tag(self, _mock):
-        """'latest' has both amd64 and arm64 — both should be detected."""
+        """'latest' has both amd64 and arm64 - both should be detected."""
         self.assertTrue(check_img_arch_support("img", "latest", "linux/amd64"))
         self.assertTrue(check_img_arch_support("img", "latest", "linux/arm64"))
 

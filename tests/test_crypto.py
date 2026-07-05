@@ -360,7 +360,7 @@ class TestDumperIntegration(unittest.TestCase):
             self.assertEqual(json.load(f), data)
 
     def test_full_lifecycle(self):
-        """Full lifecycle: create → encrypt → load → modify → save → load."""
+        """Full lifecycle: create -> encrypt -> load -> modify -> save -> load."""
         # 1. Create plaintext config
         data = {"email": "user@test.com", "apps": []}
         with open(self.config_path, "w") as f:

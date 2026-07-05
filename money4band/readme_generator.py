@@ -16,34 +16,34 @@ logger = logging.getLogger(__name__)
 _BEGIN_MARKER = "<!-- BEGIN:APPS_TABLE -->"
 _END_MARKER = "<!-- END:APPS_TABLE -->"
 
-# Category → display order (lower = first)
+# Category -> display order (lower = first)
 _CATEGORY_ORDER = {"supported": 0, "newcomers": 1, "deprecated": 2}
 
-# Status → emoji mapping (lifecycle state inside its source)
+# Status -> ASCII tag (lifecycle state inside its source)
 _STATUS_EMOJI: dict[str, str] = {
-    "active": "\U0001f7e2",  # 🟢
-    "unstable": "\U0001f7e1",  # 🟡
-    "candidate": "\U0001f51c",  # 🔜
-    "deprecated": "\U0001f534",  # 🔴
-    "discontinued": "\U0001f534",  # 🔴
+    "active": "[ok]",
+    "unstable": "[!]",
+    "candidate": "[soon]",
+    "deprecated": "[x]",
+    "discontinued": "[x]",
 }
 
 # Per-source row indicator used in the unified README table.
 # Category overrides source for the "needs attention" buckets.
 _SOURCE_EMOJI: dict[str, str] = {
-    "core": "\U0001f7e2",  # 🟢 — ships in core, works out-of-box
-    "community": "\U0001f4dc",  # 📜 — needs `m4b catalog sources enable community`
-    "openpassivehub": "\U0001f331",  # 🌱 — newcomer, no Docker yet
+    "core": "[ok]",  # ships in core, works out-of-box
+    "community": "[com]",  # needs `m4b catalog sources enable community`
+    "openpassivehub": "[new]",  # newcomer, no Docker yet
 }
 
 
 def _row_indicator(source: str, category: str) -> str:
-    """Single emoji shown in the README ``Type`` column for an entry."""
+    """ASCII tag shown in the README ``Type`` column for an entry."""
     if category == "deprecated":
-        return "\U0001f534"  # 🔴
+        return "[x]"
     if category == "newcomers":
-        return "\U0001f331"  # 🌱
-    return _SOURCE_EMOJI.get(source, "—")
+        return "[new]"
+    return _SOURCE_EMOJI.get(source, "-")
 
 
 # ---------------------------------------------------------------------------
@@ -54,10 +54,10 @@ def _row_indicator(source: str, category: str) -> str:
 def _bool_md(val: Any) -> str:
     """Convert a boolean-ish value to a markdown icon."""
     if val is True:
-        return "\u2705"  # ✅
+        return "[ok]"
     if val is False:
-        return "\u274c"  # ❌
-    return "\u2014"  # —
+        return "[x]"
+    return "-"
 
 
 def _effective_status(category: str, details: dict[str, Any]) -> str:
@@ -84,10 +84,10 @@ def _extract_referral_code(url: str) -> str | None:
 def _format_devices(val: Any) -> str:
     """Format a device limit value for markdown."""
     if val is None or str(val).lower() in ("undocumented", "unknown", "n/a"):
-        return "\u2014"
+        return "-"
     if isinstance(val, int):
         if val == -1:
-            return "\u221e"  # \u221e
+            return "unlimited"  # unlimited
         return str(val)
     s = str(val).lower()
     if s == "unlimited":
@@ -97,23 +97,23 @@ def _format_devices(val: Any) -> str:
 
 def _format_payout(methods: list[str] | None) -> str:
     if not methods:
-        return "\u2014"
+        return "-"
     cleaned = [
         m
         for m in methods
         if m.lower() not in ("undocumented", "unknown", "n/a", "none")
     ]
     if not cleaned:
-        return "\u2014"
+        return "-"
     return ", ".join(cleaned)
 
 
 def _format_earnings(val: str | None) -> str:
     if not val:
-        return "\u2014"
+        return "-"
     low = val.lower().strip()
     if low in ("n/a", "unknown", "undocumented") or low.startswith("unknown"):
-        return "\u2014"
+        return "-"
     return f"${val}"
 
 
@@ -163,9 +163,9 @@ def generate_readme_table(app_config: dict[str, Any]) -> str:
     """Generate the compact markdown table for README.md.
 
     Includes a ``Type`` column whose emoji is driven by
-    :func:`_row_indicator` (🟢 core · 📜 community · 🌱 newcomer · 🔴
+    :func:`_row_indicator` ([ok] core | [com] community | [new] newcomer | [x]
     deprecated). When the config only contains core entries the column
-    still renders, all rows just show 🟢.
+    still renders, all rows just show [ok].
     """
     apps = _collect_apps(app_config)
 
@@ -216,11 +216,11 @@ def generate_apps_md_table(app_config: dict[str, Any]) -> str:
             link_cell = f"[Visit]({link})"
             code = _extract_referral_code(link)
             if code:
-                link_cell += f" \u00b7 code: `{code}`"
+                link_cell += f" | code: `{code}`"
         else:
-            link_cell = "\u2014"
+            link_cell = "-"
 
-        status_emoji = _STATUS_EMOJI.get(app["status"], "\u2014")
+        status_emoji = _STATUS_EMOJI.get(app["status"], "-")
         resi = _bool_md(ip.get("residential"))
         dc = _bool_md(ip.get("datacenter"))
         dev_acct = _format_devices(limits.get("max_devices_per_account"))

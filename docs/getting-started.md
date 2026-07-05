@@ -12,7 +12,7 @@
 | Docker | Docker Engine 20.10+ or Docker Desktop | `m4b setup` can install it for you |
 | Python | 3.10+ | Only needed when running from source |
 
-## Option A — Download the Binary (Recommended)
+## Option A - Download the Binary (Recommended)
 
 1. Go to **[Releases](https://github.com/MRColorR/money4band/releases)** and download the binary for your platform.
 2. Run it:
@@ -27,7 +27,7 @@ m4b.exe
 
 3. The interactive menu guides you through setup.
 
-## Option B — Run from Source
+## Option B - Run from Source
 
 ```bash
 git clone https://github.com/MRColorR/money4band.git
@@ -46,11 +46,11 @@ python main.py
 
 When you launch M4B for the first time, choose **Setup Apps** from the menu (or run `m4b setup`):
 
-1. **Docker check** — M4B verifies Docker is installed. If not, it offers to install it.
-2. **App selection** — Pick the apps you want to run. Each app shows its IP policy (residential / datacenter / universal) and payout info.
-3. **Credentials** — Enter the credentials required by each selected app (email, token, etc.). Credentials are encrypted with Fernet (AES-128-CBC) and stored in `config/user-config.json`.
-4. **Generation** — M4B generates your `docker-compose.yaml` and `.env` file.
-5. **Start** — Launch the stack with `m4b stack start` or choose **Start Stack** from the menu.
+1. **Docker check** - M4B verifies Docker is installed. If not, it offers to install it.
+2. **App selection** - Pick the apps you want to run. Each app shows its IP policy (residential / datacenter / universal) and payout info.
+3. **Credentials** - Enter the credentials required by each selected app (email, token, etc.). Credentials are encrypted with Fernet (AES-128-CBC) and stored in `config/user-config.json`.
+4. **Generation** - M4B generates your `docker-compose.yaml` and `.env` file.
+5. **Start** - Launch the stack with `m4b stack start` or choose **Start Stack** from the menu.
 
 ## Verifying Everything Works
 
@@ -67,8 +67,8 @@ m4b dashboard start
 
 ## Next Steps
 
-- [CLI Reference](cli-reference.md) — all 24 subcommands
-- [App Management](app-management.md) — enable / disable apps, community plugins
-- [Proxy Setup](proxy-setup.md) — scale across multiple proxies
-- [Dashboard & API](dashboard-api.md) — web UI for monitoring
-- [Security](security.md) — how your credentials are protected
+- [CLI Reference](cli-reference.md) - all 24 subcommands
+- [App Management](app-management.md) - enable / disable apps, community plugins
+- [Proxy Setup](proxy-setup.md) - scale across multiple proxies
+- [Dashboard & API](dashboard-api.md) - web UI for monitoring
+- [Security](security.md) - how your credentials are protected

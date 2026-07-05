@@ -57,7 +57,7 @@ def _seed_app_slices_from_catalog(user_config_path: str) -> None:
     :func:`money4band.core.loader.load_app_config_with_overlays` (which
     reads the folded envelope from ``m4b-config.json`` plus the per-file
     bundles under ``config/catalog/``). Silently no-ops when the
-    companion ``m4b-config.json`` cannot be located or parsed — the
+    companion ``m4b-config.json`` cannot be located or parsed - the
     caller (reset) must remain resilient in unusual filesystem layouts
     (tests, custom installs).
     """

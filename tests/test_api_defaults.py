@@ -1,7 +1,7 @@
 """Tests for API endpoint response patterns & defaults.
 
 Covers every router endpoint to verify they return sensible data shapes
-and handle empty/missing data gracefully — the "defaults" contract.
+and handle empty/missing data gracefully - the "defaults" contract.
 """
 
 from __future__ import annotations
@@ -118,7 +118,7 @@ def _flat_config(tmp_path):
 
 @pytest.fixture
 def _empty_config(tmp_path):
-    """Config with no apps at all — verifies empty defaults."""
+    """Config with no apps at all - verifies empty defaults."""
     config_dir = tmp_path / "config"
     config_dir.mkdir()
 
@@ -166,7 +166,7 @@ def empty_client(_empty_config):
 
 
 # ===========================================================================
-# Apps router — flat config format
+# Apps router - flat config format
 # ===========================================================================
 
 
@@ -243,7 +243,7 @@ class TestAppsFlat:
 
 
 # ===========================================================================
-# Apps router — empty config
+# Apps router - empty config
 # ===========================================================================
 
 
@@ -266,7 +266,7 @@ class TestAppsEmpty:
 
 
 # ===========================================================================
-# Config router — response shapes
+# Config router - response shapes
 # ===========================================================================
 
 
@@ -298,7 +298,7 @@ class TestConfigDefaults:
 
 
 # ===========================================================================
-# Earnings router — defaults
+# Earnings router - defaults
 # ===========================================================================
 
 
@@ -331,7 +331,7 @@ class TestEarningsDefaults:
 
 
 # ===========================================================================
-# Offers router — defaults
+# Offers router - defaults
 # ===========================================================================
 
 
@@ -353,7 +353,7 @@ class TestOffersDefaults:
 
 
 # ===========================================================================
-# Monitor router — defaults
+# Monitor router - defaults
 # ===========================================================================
 
 
@@ -398,7 +398,7 @@ class TestMonitorDefaults:
 
 
 # ===========================================================================
-# Backups router — defaults
+# Backups router - defaults
 # ===========================================================================
 
 
@@ -420,7 +420,7 @@ class TestBackupsDefaults:
 
 
 # ===========================================================================
-# Profiles router — defaults
+# Profiles router - defaults
 # ===========================================================================
 
 
@@ -433,7 +433,7 @@ class TestProfilesDefaults:
 
 
 # ===========================================================================
-# Notifications router — defaults
+# Notifications router - defaults
 # ===========================================================================
 
 
@@ -453,7 +453,7 @@ class TestNotificationsDefaults:
 
 
 # ===========================================================================
-# Security router — defaults
+# Security router - defaults
 # ===========================================================================
 
 
@@ -476,7 +476,7 @@ class TestSecurityDefaults:
 
 
 # ===========================================================================
-# Update router — defaults
+# Update router - defaults
 # ===========================================================================
 
 
@@ -499,7 +499,7 @@ class TestUpdateDefaults:
 
 
 # ===========================================================================
-# System router — defaults
+# System router - defaults
 # ===========================================================================
 
 
@@ -535,7 +535,7 @@ class TestSystemDefaults:
 
 
 # ===========================================================================
-# Stack router — defaults
+# Stack router - defaults
 # ===========================================================================
 
 

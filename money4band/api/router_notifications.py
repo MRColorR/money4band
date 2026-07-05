@@ -1,4 +1,4 @@
-"""Notifications API — status and test."""
+"""Notifications API - status and test."""
 
 from __future__ import annotations
 

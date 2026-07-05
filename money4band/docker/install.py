@@ -34,7 +34,7 @@ _INSTALL_GUIDES: dict[str, str] = {
     "windows": (
         f"{Fore.CYAN}Docker install options for Windows:{Style.RESET_ALL}\n"
         "  1. Install winget (App Installer from the Microsoft Store),\n"
-        "     then re-run this guide — it will auto-install Docker Desktop.\n"
+        "     then re-run this guide - it will auto-install Docker Desktop.\n"
         "  2. Download Docker Desktop manually:\n"
         "       https://docs.docker.com/desktop/setup/install/windows-install/\n"
         "\n"
@@ -44,7 +44,7 @@ _INSTALL_GUIDES: dict[str, str] = {
     "darwin": (
         f"{Fore.CYAN}Docker install options for macOS:{Style.RESET_ALL}\n"
         "  1. Install Homebrew (https://brew.sh), then re-run this guide\n"
-        "     — it will auto-install Docker Desktop.\n"
+        "     - it will auto-install Docker Desktop.\n"
         "  2. Download Docker Desktop manually:\n"
         "       https://docs.docker.com/desktop/setup/install/mac-install/\n"
         "\n"
@@ -164,7 +164,7 @@ def _install_macos() -> bool:
         return False
 
 
-# Map: os_key → (required_tool, installer_callable, human description)
+# Map: os_key -> (required_tool, installer_callable, human description)
 _AUTO_INSTALLERS: dict[str, tuple[str, Callable[[], bool], str]] = {
     "linux": ("curl", _install_linux, "curl -fsSL https://get.docker.com | sudo sh"),
     "windows": ("winget", _install_windows, "winget install Docker.DockerDesktop"),
@@ -196,12 +196,12 @@ def show_docker_guide() -> None:
 
 
 def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> None:
-    """Docker Setup — called from the TUI menu.
+    """Docker Setup - called from the TUI menu.
 
-    1. If Docker is already installed → report version and return.
-    2. If a quick install tool is available (curl / winget / brew) → offer
+    1. If Docker is already installed -> report version and return.
+    2. If a quick install tool is available (curl / winget / brew) -> offer
        to auto-install with a y/n prompt.
-    3. Otherwise → show a manual-install guide.
+    3. Otherwise -> show a manual-install guide.
     """
     cls()
 
@@ -233,7 +233,7 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
                 if installer():
                     input(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
                     return
-                # installer failed — fall through to guide
+                # installer failed - fall through to guide
                 print(
                     f"\n{Fore.YELLOW}Falling back to manual instructions.{Style.RESET_ALL}"
                 )

@@ -1,7 +1,7 @@
-"""Catalog-source management — the single API behind the CLI/TUI/REST surfaces.
+"""Catalog-source management - the single API behind the CLI/TUI/REST surfaces.
 
 Mutations of the ``catalog_sources[]`` list or ``categories.<name>.active``
-flag are persisted to ``user-config.json → catalog_overrides``, leaving
+flag are persisted to ``user-config.json -> catalog_overrides``, leaving
 ``m4b-config.json`` untouched. That separation means updates can safely
 overwrite the shipped envelope without clobbering user toggles.
 
@@ -415,7 +415,7 @@ def set_source_enabled(
     removed = set(overrides["removed_sources"])
 
     if name in removed:
-        # The source was tombstoned — nothing to flip.
+        # The source was tombstoned - nothing to flip.
         return False
 
     existing = sources.get(name)
@@ -475,7 +475,7 @@ def refresh_source(
                 entry["cached_entries"] = sum(len(v) for v in loaded.values()) + len(
                     addons
                 )
-            except Exception as exc:  # pragma: no cover — network errors
+            except Exception as exc:  # pragma: no cover - network errors
                 entry["status"] = "error"
                 entry["error"] = str(exc)
         results.append(entry)

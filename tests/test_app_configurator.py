@@ -1,4 +1,4 @@
-"""Tests for money4band.apps.configurator — credential collection and app setup."""
+"""Tests for money4band.apps.configurator - credential collection and app setup."""
 
 from __future__ import annotations
 

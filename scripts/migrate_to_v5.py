@@ -45,7 +45,7 @@ DEVICE_INFO_MAP: dict[str, str] = {
 
 
 def parse_env_file(env_path: Path) -> dict[str, str]:
-    """Parse a .env file into a key→value dict, skipping comments and blanks."""
+    """Parse a .env file into a key->value dict, skipping comments and blanks."""
     env_vars: dict[str, str] = {}
     with open(env_path, encoding="utf-8") as fh:
         for raw_line in fh:
@@ -63,7 +63,7 @@ def parse_env_file(env_path: Path) -> dict[str, str]:
 
 
 def build_app_flag_map(app_config: dict) -> dict[str, list[str]]:
-    """Build a map of app_name_lower → list of flag keys from app-config.json.
+    """Build a map of app_name_lower -> list of flag keys from app-config.json.
 
     This lets us know which .env vars to look for per app.
     """
@@ -91,7 +91,7 @@ def map_env_to_apps(
 ) -> dict[str, dict[str, object]]:
     """Map .env credential variables to v5 user-config app entries.
 
-    Convention: {APP_NAME_UPPER}_{FLAG_UPPER} → apps.{app_lower}.{flag_lower}
+    Convention: {APP_NAME_UPPER}_{FLAG_UPPER} -> apps.{app_lower}.{flag_lower}
     """
     apps: dict[str, dict[str, object]] = {}
     for app_name, flags in flag_map.items():
@@ -198,7 +198,7 @@ def backup_file(path: Path) -> Path | None:
         bak = path.with_suffix(f"{path.suffix}.bak{counter}")
         counter += 1
     shutil.copy2(path, bak)
-    logger.info("Backed up %s → %s", path, bak)
+    logger.info("Backed up %s -> %s", path, bak)
     return bak
 
 
@@ -209,7 +209,7 @@ def validate_config(config: dict) -> list[str]:
     enabled_count = sum(1 for a in apps.values() if a.get("enabled"))
     if enabled_count == 0:
         warnings.append(
-            "No apps are enabled — was the .env populated with credentials?"
+            "No apps are enabled - was the .env populated with credentials?"
         )
 
     device = config.get("device_info", {})
@@ -225,7 +225,7 @@ def validate_config(config: dict) -> list[str]:
 
 
 def migrate(project_dir: str, *, dry_run: bool = False) -> bool:
-    """Run the v4 → v5 migration.
+    """Run the v4 -> v5 migration.
 
     Returns True on success, False on failure.
     """
@@ -256,7 +256,7 @@ def migrate(project_dir: str, *, dry_run: bool = False) -> bool:
         logger.info("Parsed %d variables from %s", len(env_vars), env_path)
     else:
         logger.warning(
-            "No .env found at %s — migrating from user-config.json only", env_path
+            "No .env found at %s - migrating from user-config.json only", env_path
         )
 
     # Load existing v4 user-config (if it exists and is plaintext JSON)
@@ -270,11 +270,11 @@ def migrate(project_dir: str, *, dry_run: bool = False) -> bool:
                 logger.info("Loaded v4 user-config.json (plaintext)")
             except json.JSONDecodeError:
                 logger.warning(
-                    "user-config.json exists but is not valid JSON — skipping"
+                    "user-config.json exists but is not valid JSON - skipping"
                 )
         else:
             logger.info(
-                "user-config.json is already encrypted (v5 format) — skipping migration"
+                "user-config.json is already encrypted (v5 format) - skipping migration"
             )
             return True
 
@@ -325,17 +325,17 @@ def migrate(project_dir: str, *, dry_run: bool = False) -> bool:
         logger.info("Encrypted config at %s", user_config_path)
     except ImportError:
         logger.warning(
-            "Could not import money4band.core.crypto — config saved as plaintext"
+            "Could not import money4band.core.crypto - config saved as plaintext"
         )
     except Exception:
-        logger.exception("Encryption failed — config saved as plaintext")
+        logger.exception("Encryption failed - config saved as plaintext")
 
     enabled = sum(1 for a in v5_config["apps"].values() if a.get("enabled"))
-    print("\n✅  Migration complete!")
+    print("\n[ok]  Migration complete!")
     print(f"   Enabled apps: {enabled}")
     print(f"   Config: {user_config_path}")
     if warnings:
-        print(f"   ⚠  {len(warnings)} warning(s) — check logs")
+        print(f"   [!]  {len(warnings)} warning(s) - check logs")
     print("   Originals preserved as .bak files")
     print("\n   Next: run 'm4b setup' to regenerate docker-compose.yaml and .env")
 

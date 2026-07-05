@@ -27,7 +27,7 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(script_dir)
 
 # ---------------------------------------------------------------------------
-# Update cache — avoids hitting GitHub API more than once per 15 minutes
+# Update cache - avoids hitting GitHub API more than once per 15 minutes
 # ---------------------------------------------------------------------------
 
 _CACHE_TTL = 900  # seconds (15 minutes)
@@ -300,7 +300,7 @@ def _notify_update_available(version: str) -> None:
 # ---------------------------------------------------------------------------
 # Update preservation policy:
 #
-# config/m4b-config.json is *not* preserved across updates — it is a
+# config/m4b-config.json is *not* preserved across updates - it is a
 # shipped-defaults file owned by the release. User-mutable catalog state
 # (source enable/disable, custom remote sources, category toggles) lives
 # in user-config.json under catalog_overrides (see
@@ -442,7 +442,7 @@ def _apply_binary_update(target_version: str) -> bool:
                     expected_hash = parts[0].lower()
                     break
     except httpx.HTTPError:
-        logger.warning("Could not fetch checksums.sha256 — skipping verification.")
+        logger.warning("Could not fetch checksums.sha256 - skipping verification.")
 
     current_exe = sys.executable
     backup_exe = current_exe + ".bak"
@@ -474,7 +474,7 @@ def _apply_binary_update(target_version: str) -> bool:
             logger.info("Checksum verified: %s", actual_hash)
         else:
             logger.warning(
-                "No checksum available for %s — accepting download on HTTPS trust only.",
+                "No checksum available for %s - accepting download on HTTPS trust only.",
                 asset_name,
             )
 
@@ -482,7 +482,7 @@ def _apply_binary_update(target_version: str) -> bool:
         if platform.system() != "Windows":
             os.chmod(tmp_path, 0o755)
 
-        # Rename current → backup, new → current
+        # Rename current -> backup, new -> current
         if os.path.exists(backup_exe):
             os.unlink(backup_exe)
         os.rename(current_exe, backup_exe)
@@ -501,13 +501,13 @@ def _apply_binary_update(target_version: str) -> bool:
 
 
 def apply_update(target_version: str) -> bool:
-    """Apply an update — dispatches to git or binary strategy."""
+    """Apply an update - dispatches to git or binary strategy."""
     if is_git_install():
         return _apply_git_update(target_version)
     elif getattr(sys, "frozen", False):
         return _apply_binary_update(target_version)
     else:
-        # Script install without git — can't auto-update
+        # Script install without git - can't auto-update
         just_fix_windows_console()
         print(
             f"{Fore.YELLOW}Auto-update not supported for this install type. "

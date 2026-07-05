@@ -1,4 +1,4 @@
-"""Tests for money4band.apps.remote_cache — offline cache."""
+"""Tests for money4band.apps.remote_cache - offline cache."""
 
 from __future__ import annotations
 
@@ -100,7 +100,7 @@ class TestSplitManifest:
                     {"name": "a", "category": "supported"},
                     {"name": "b", "category": "newcomers"},
                     {"name": "c", "category": "invalid"},  # dropped
-                    {"category": "supported"},  # no name — dropped
+                    {"category": "supported"},  # no name - dropped
                 ]
             }
         )

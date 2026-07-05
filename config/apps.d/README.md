@@ -5,7 +5,7 @@ that will be merged into `newcomers` at startup.
 
 **Usage:**
 ```bash
-m4b app add          # Interactive wizard — creates a file here
+m4b app add          # Interactive wizard - creates a file here
 ```
 
 Or create files manually following the schema in `docs/app-schema.json`.

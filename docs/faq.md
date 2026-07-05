@@ -6,11 +6,11 @@
 
 ### How much can I earn?
 
-Earnings depend on your **IP quality**, **location**, and **number of apps**. Residential IPs in tier-1 countries (US, UK, DE) earn the most. Typical range: **$5–$50/month** per IP with all compatible apps running.
+Earnings depend on your **IP quality**, **location**, and **number of apps**. Residential IPs in tier-1 countries (US, UK, DE) earn the most. Typical range: **$5-$50/month** per IP with all compatible apps running.
 
 ### Is this safe?
 
-M4B only runs official Docker images published by each app's developer. Your bandwidth is shared — not your personal data. M4B encrypts your credentials at rest and hardens containers with `no-new-privileges`.
+M4B only runs official Docker images published by each app's developer. Your bandwidth is shared - not your personal data. M4B encrypts your credentials at rest and hardens containers with `no-new-privileges`.
 
 ### Which apps should I run?
 
@@ -26,7 +26,7 @@ No. M4B runs lightweight Docker containers. A Raspberry Pi 4 or old laptop is su
 
 ### Docker is not installed
 
-Run `m4b setup` — it offers to install Docker automatically. On Windows, you need WSL2 + Docker Desktop.
+Run `m4b setup` - it offers to install Docker automatically. On Windows, you need WSL2 + Docker Desktop.
 
 ### "Permission denied" on Linux
 
@@ -62,15 +62,15 @@ Common causes:
 ### Some apps show "unhealthy"
 
 Health checks may fail if:
-- The app's server is down (temporary — wait and retry)
+- The app's server is down (temporary - wait and retry)
 - Your IP is blocked by that app
 - The container needs time to initialize (give it 2-3 minutes)
 
 ### Low earnings
 
-1. **Check IP quality**: `m4b ip` — datacenter or flagged IPs earn much less.
-2. **Check app status**: `m4b status` — ensure containers are healthy.
-3. **Add more apps**: `m4b apps` — not all apps may be enabled.
+1. **Check IP quality**: `m4b ip` - datacenter or flagged IPs earn much less.
+2. **Check app status**: `m4b status` - ensure containers are healthy.
+3. **Add more apps**: `m4b apps` - not all apps may be enabled.
 4. **Consider residential proxies**: See [Proxy Setup](proxy-setup.md).
 
 ---
@@ -80,8 +80,8 @@ Health checks may fail if:
 ### I lost my master encryption key
 
 If the master key is lost, you cannot decrypt your saved credentials. The
-key lives in the M4B runtime data directory — resolved with this
-precedence (see [Configuration → Runtime Data Directory](configuration.md#runtime-data-directory)):
+key lives in the M4B runtime data directory - resolved with this
+precedence (see [Configuration -> Runtime Data Directory](configuration.md#runtime-data-directory)):
 
 1. `$M4B_DATA_DIR` env var
 2. `<install>/.m4b/master.key` (portable, default for fresh installs)
@@ -118,7 +118,7 @@ docker compose --env-file .env up -d honeygain bitping
 
 Sidecars (the "pots") **inherit their parent app's profile** automatically.
 `--profile residential` brings up Honeygain AND `honeygain-pot` together
-— no extra flag needed.
+- no extra flag needed.
 
 ---
 
@@ -127,7 +127,7 @@ Sidecars (the "pots") **inherit their parent app's profile** automatically.
 ### Dashboard won't start
 
 - Check if port 8088 is already in use: `m4b dashboard status`
-- Try a different port in `config/user-config.json` → `dashboard.port`
+- Try a different port in `config/user-config.json` -> `dashboard.port`
 - Ensure `fastapi` and `uvicorn` are installed (included in requirements)
 
 ### Can I access the dashboard remotely?
@@ -156,7 +156,7 @@ m4b config migrate-data-dir --remove-source   # wipe legacy ~/.m4b/ after verify
 ```
 
 After this, the install dir carries its own master key, session salt, and
-backups. Move the folder freely between Windows boxes — encrypted config
+backups. Move the folder freely between Windows boxes - encrypted config
 still decrypts because the key rides along.
 
 ---

@@ -1,7 +1,7 @@
 name: Compute contributor weights
 
 on:
-  # Weekly on Sunday at 03:00 UTC — keeps weights.json fresh enough for
+  # Weekly on Sunday at 03:00 UTC - keeps weights.json fresh enough for
   # the half-life algorithm without creating churn on every push.
   schedule:
     - cron: "0 3 * * 0"
@@ -34,7 +34,7 @@ jobs:
       - name: Commit weights.json if changed
         run: |
           if git diff --quiet config/weights.json; then
-            echo "config/weights.json unchanged — nothing to commit"
+            echo "config/weights.json unchanged - nothing to commit"
             exit 0
           fi
           git config user.name "github-actions[bot]"

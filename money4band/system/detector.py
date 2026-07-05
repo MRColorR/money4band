@@ -212,7 +212,7 @@ def show_resource_profile_info(
         f"\n{Fore.CYAN}System:{Style.RESET_ALL} {total_mem:.0f} MB RAM, {cores} cores"
     )
     print(
-        f"{Fore.CYAN}Active profile:{Style.RESET_ALL} {Fore.GREEN}{active}{Style.RESET_ALL} — {profile.get('description', '')}"
+        f"{Fore.CYAN}Active profile:{Style.RESET_ALL} {Fore.GREEN}{active}{Style.RESET_ALL} - {profile.get('description', '')}"
     )
 
     rl = user_config.get("resource_limits", {})
@@ -232,7 +232,7 @@ def show_resource_profile_info(
     for pname, pdef in profiles.items():
         cpu_pct = pdef.get("cpu_pct", 0)
         ram_pct = pdef.get("ram_pct", 0)
-        marker = f" {Fore.GREEN}←{Style.RESET_ALL}" if pname == active else ""
+        marker = f" {Fore.GREEN}<-{Style.RESET_ALL}" if pname == active else ""
         print(
             f"  {pname:<14} {cpu_pct:<6.0%} {ram_pct:<6.0%} "
             f"{cores * cpu_pct:<11.1f} {total_mem * ram_pct:.0f} MB{marker}"

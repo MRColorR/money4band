@@ -19,7 +19,7 @@ class TestGetInstallLimit:
         assert get_install_limit({"name": "FOO"}) == -1
 
     def test_zero_means_zero(self):
-        # 0 means "not allowed in any instance" — distinct from -1 (unlimited)
+        # 0 means "not allowed in any instance" - distinct from -1 (unlimited)
         assert get_install_limit({"name": "BAR", "install_limit": 0}) == 0
 
 
@@ -75,12 +75,12 @@ class TestPerInstanceDisableLogic:
     @pytest.mark.parametrize(
         "instance_number,limit,should_disable",
         [
-            (1, -1, False),  # unlimited — never disable
+            (1, -1, False),  # unlimited - never disable
             (5, 10, False),  # under limit
             (9, 10, False),  # still under (main=0, proxies 1-9 = 10 total)
-            (10, 10, True),  # at limit — disable (0-indexed, 10th instance)
+            (10, 10, True),  # at limit - disable (0-indexed, 10th instance)
             (15, 10, True),  # over limit
-            (0, 0, True),  # zero limit — disable even main
+            (0, 0, True),  # zero limit - disable even main
         ],
     )
     def test_should_disable(self, instance_number, limit, should_disable):
@@ -171,7 +171,7 @@ class TestEnforcementToggleInSetup:
         """When app_limits is empty, the per-instance lookup defaults to -1."""
         app_limits: dict[str, int] = {}
         limit = app_limits.get("honeygain", -1)
-        # -1 >= 0 is False → no disable
+        # -1 >= 0 is False -> no disable
         assert not (limit >= 0 and 999 >= limit)
 
 

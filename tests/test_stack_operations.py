@@ -112,7 +112,7 @@ class TestGetContainerNamesFromEnv:
 
 
 # ---------------------------------------------------------------------------
-# fn_startStack.start_stack — fully mocked
+# fn_startStack.start_stack - fully mocked
 # ---------------------------------------------------------------------------
 
 

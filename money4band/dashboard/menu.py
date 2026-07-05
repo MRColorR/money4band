@@ -175,7 +175,7 @@ def _action_start_background_web(config_dir: str, port: int) -> None:
     api_key = ensure_api_key_on_disk(config_dir)
     if not api_key:
         print(
-            f"{Fore.YELLOW}No API key found — generating one automatically."
+            f"{Fore.YELLOW}No API key found - generating one automatically."
             f"{Style.RESET_ALL}"
         )
         api_key = regenerate_api_key_on_disk(config_dir)

@@ -10,7 +10,7 @@ import uuid
 from typing import Any
 
 # ---------------------------------------------------------------------------
-# Correlation ID — one per logical operation (setup, start, generate, …)
+# Correlation ID - one per logical operation (setup, start, generate, ...)
 # ---------------------------------------------------------------------------
 
 _correlation_id: contextvars.ContextVar[str] = contextvars.ContextVar(
@@ -75,7 +75,7 @@ class JSONFormatter(logging.Formatter):
         if cid:
             payload["correlation_id"] = cid
 
-        # Append any extra keys the caller attached via `logger.info("…", extra={…})`
+        # Append any extra keys the caller attached via `logger.info("...", extra={...})`
         for key, val in record.__dict__.items():
             if key not in self._BUILTIN_ATTRS:
                 payload[f"extra.{key}"] = val

@@ -10,7 +10,7 @@ from typing import Any
 from colorama import Fore, Style
 
 logger = logging.getLogger(__name__)
-# Project root is two levels above this file: money4band/ui/summary.py → money4band/ → project root
+# Project root is two levels above this file: money4band/ui/summary.py -> money4band/ -> project root
 _PROJECT_ROOT = os.path.dirname(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 )

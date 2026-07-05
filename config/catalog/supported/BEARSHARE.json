@@ -4,7 +4,7 @@
     "compose_config": {
         "container_name": "${DEVICE_NAME}_bearshare",
         "hostname": "${DEVICE_NAME}_bearshare",
-        "image": "bearshare/bearshare",
+        "image": "bearshare/bearshare:latest",
         "command": "-email=${BEARSHARE_EMAIL} -password=${BEARSHARE_PASSWORD}",
         "labels": [
             "com.centurylinklabs.watchtower.enable=true",

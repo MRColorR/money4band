@@ -6,7 +6,7 @@ Backups live as copies of the (possibly encrypted) user-config file under
 ``<m4b_data_dir>/backups/`` (resolved by ``money4band.core.paths``) with
 ISO-8601 timestamps in the filename. The module intentionally copies the
 *raw file bytes* so encrypted configs stay encrypted and plaintext configs
-stay plaintext — no re-encryption needed.
+stay plaintext - no re-encryption needed.
 """
 
 import logging
@@ -90,7 +90,7 @@ def restore_backup(backup_path: str | Path, config_path: str) -> None:
     if not src.is_file():
         raise FileNotFoundError(f"Backup file not found: {backup_path}")
     shutil.copy2(str(src), config_path)
-    logger.info("Restored backup %s → %s", src.name, config_path)
+    logger.info("Restored backup %s -> %s", src.name, config_path)
 
 
 def cleanup_backups(keep: int = DEFAULT_KEEP) -> int:

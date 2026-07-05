@@ -3,9 +3,9 @@
 A minimal ETag-aware cache sitting next to the local catalog tree::
 
     config/catalog/community/
-        .etag                      ← ETag of last successful 200 response
-        .fetched_at                ← ISO-8601 timestamp (diagnostic only)
-        <category>/<NAME>.json     ← one bundle per remote entry
+        .etag                      <- ETag of last successful 200 response
+        .fetched_at                <- ISO-8601 timestamp (diagnostic only)
+        <category>/<NAME>.json     <- one bundle per remote entry
 
 The cache is a plain directory with the same per-file shape as
 ``config/catalog/<category>/<NAME>.json`` so :class:`LocalSource`-style
@@ -14,7 +14,7 @@ readers (``read_entries_dir``) work on it unchanged.
 ``.etag`` / ``.fetched_at`` live at the cache root (hidden) and are
 never mistaken for entries by the category readers.
 
-This module has no httpx dependency — it only deals with on-disk state.
+This module has no httpx dependency - it only deals with on-disk state.
 Fetch logic lives in :class:`money4band.apps.sources.RemoteSource`.
 """
 
@@ -72,7 +72,7 @@ def replace_entries(
     """Wipe category subdirs + addons dir and rewrite per-file bundles.
 
     Only the canonical ``CATEGORIES`` subdirectories and the ``addons/``
-    subdirectory are wiped — any stray file under the cache root (e.g.
+    subdirectory are wiped - any stray file under the cache root (e.g.
     ``.etag``, user notes) stays. Returns the total number of bundles
     written (entries + addons).
     """
@@ -125,10 +125,10 @@ def split_manifest(payload: dict[str, Any]) -> dict[str, list[dict[str, Any]]]:
 
     Accepts two shapes so upstream catalogs have flexibility:
 
-    1. **Aggregated** (preferred) — the same envelope shape the loader
+    1. **Aggregated** (preferred) - the same envelope shape the loader
        returns in-memory: ``{supported: {entries: [...]}, ...}`` or the
        legacy flat ``{supported: [...], ...}``.
-    2. **Flat list** — ``{entries: [{...category: "...", ...}, ...]}``.
+    2. **Flat list** - ``{entries: [{...category: "...", ...}, ...]}``.
 
     Unknown / missing categories are silently ignored; entries without a
     ``name`` are dropped.
@@ -168,8 +168,8 @@ def split_addons_from_manifest(payload: dict[str, Any]) -> list[dict[str, Any]]:
 
     Accepts the same two shapes as :func:`split_manifest`:
 
-    1. **Aggregated** — ``{addons: [...]}`` at the top level.
-    2. **Flat list** — ``{entries: [{..., category: "addons", ...}]}``.
+    1. **Aggregated** - ``{addons: [...]}`` at the top level.
+    2. **Flat list** - ``{entries: [{..., category: "addons", ...}]}``.
 
     Entries without a ``name`` or ``parent_id`` are dropped.
     """

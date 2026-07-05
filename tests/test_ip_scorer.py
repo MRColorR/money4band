@@ -98,7 +98,7 @@ class TestCalculateFraudScore:
 
     def test_caps_at_100(self):
         entry = {"proxy": True, "hosting": True, "mobile": True, "isp": "OVH"}
-        # 40+30+10+15 = 95, + blacklisted 30 = 125 → capped 100
+        # 40+30+10+15 = 95, + blacklisted 30 = 125 -> capped 100
         assert calculate_fraud_score(entry, blacklisted=True) == 100
 
 

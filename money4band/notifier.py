@@ -12,7 +12,7 @@ import threading
 from typing import Any
 
 logger = logging.getLogger(__name__)
-# ── Event types ─────────────────────────────────────────────────────────
+# -- Event types ---------------------------------------------------------
 EVENT_STACK_START = "stack_start"
 EVENT_STACK_STOP = "stack_stop"
 EVENT_STACK_ERROR = "stack_error"
@@ -52,7 +52,7 @@ def is_event_enabled(user_config: dict[str, Any], event: str) -> bool:
     cfg = _get_notification_config(user_config)
     events = cfg.get("events")
     if events is None:
-        return True  # legacy config → all events enabled
+        return True  # legacy config -> all events enabled
     return bool(events.get(event, False))
 
 
@@ -95,7 +95,7 @@ def _send_shoutrrr(url: str, message: str) -> bool:
         )
         return False
     except FileNotFoundError:
-        logger.warning("Docker not found — cannot send notification via Shoutrrr.")
+        logger.warning("Docker not found - cannot send notification via Shoutrrr.")
         return False
     except subprocess.TimeoutExpired:
         logger.warning("Shoutrrr notification timed out after 30s.")
@@ -154,7 +154,7 @@ def send_test(user_config: dict[str, Any]) -> bool:
     if not url:
         logger.warning("Cannot send test notification: no URL configured.")
         return False
-    return _send_shoutrrr(url, "[M4B] Test notification — your webhook is working!")
+    return _send_shoutrrr(url, "[M4B] Test notification - your webhook is working!")
 
 
 def fire_event(event: str, message: str, config_dir: str | None = None) -> None:

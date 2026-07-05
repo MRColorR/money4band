@@ -62,7 +62,7 @@
             "max_devices_per_account": 10,
             "max_devices_per_ip": 1,
             "max_ips_per_account": 10,
-            "notes": "10 concurrent active devices per account. Exactly 1 device per IP \u2014 additional devices show 'Network overused' error. Devices inactive 14+ days don't count. Swarmbytes wholesale tier available for 100+ IPs."
+            "notes": "10 concurrent active devices per account. Exactly 1 device per IP - additional devices show 'Network overused' error. Devices inactive 14+ days don't count. Swarmbytes wholesale tier available for 100+ IPs."
         },
         "ip_policy": {
             "residential": true,

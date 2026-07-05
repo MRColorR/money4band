@@ -1,4 +1,4 @@
-"""Tests for money4band.dashboard.setup — dashboard & watchtower setup."""
+"""Tests for money4band.dashboard.setup - dashboard & watchtower setup."""
 
 from __future__ import annotations
 
@@ -53,7 +53,7 @@ class TestSetupM4bDashboard:
     def test_keep_existing_when_already_enabled(self, capsys):
         cfg = copy.deepcopy(_USER_CONFIG)
         cfg["m4b_dashboard"]["enabled"] = True
-        # First ask_question_yn: "change settings?" → No
+        # First ask_question_yn: "change settings?" -> No
         with patch("money4band.dashboard.setup.ask_question_yn", return_value=False):
             setup_m4b_dashboard(cfg)
         assert cfg["m4b_dashboard"]["enabled"] is True
@@ -65,7 +65,7 @@ class TestSetupWatchtower:
     def test_enable_watchtower(self, capsys):
         cfg = copy.deepcopy(_USER_CONFIG)
         cfg["watchtower"]["enabled"] = False
-        # First ask: "change settings?" → Yes, Second ask: "enable?" → Yes
+        # First ask: "change settings?" -> Yes, Second ask: "enable?" -> Yes
         with patch(
             "money4band.docker.watchtower.ask_question_yn", side_effect=[True, True]
         ):
@@ -76,7 +76,7 @@ class TestSetupWatchtower:
 
     def test_disable_watchtower(self, capsys):
         cfg = copy.deepcopy(_USER_CONFIG)
-        # Currently enabled → ask "change?" → Yes, then "enable?" → No
+        # Currently enabled -> ask "change?" -> Yes, then "enable?" -> No
         with patch(
             "money4band.docker.watchtower.ask_question_yn", side_effect=[True, False]
         ):
@@ -87,7 +87,7 @@ class TestSetupWatchtower:
 
     def test_keep_existing_when_enabled(self, capsys):
         cfg = copy.deepcopy(_USER_CONFIG)
-        # Currently enabled → ask "change?" → No
+        # Currently enabled -> ask "change?" -> No
         with patch("money4band.docker.watchtower.ask_question_yn", return_value=False):
             setup_watchtower(cfg)
         assert cfg["watchtower"]["enabled"] is True
@@ -97,7 +97,7 @@ class TestSetupWatchtower:
     def test_keep_existing_when_disabled(self, capsys):
         cfg = copy.deepcopy(_USER_CONFIG)
         cfg["watchtower"]["enabled"] = False
-        # Currently disabled → ask "change?" → No
+        # Currently disabled -> ask "change?" -> No
         with patch("money4band.docker.watchtower.ask_question_yn", return_value=False):
             setup_watchtower(cfg)
         assert cfg["watchtower"]["enabled"] is False

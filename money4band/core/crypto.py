@@ -84,7 +84,7 @@ def decrypt_to_dict(content: str) -> dict[str, Any]:
     except InvalidToken as err:
         key_path = get_key_path()
         raise ValueError(
-            "Decryption failed — wrong key or corrupted data. "
+            "Decryption failed - wrong key or corrupted data. "
             f"Check that {key_path} matches the key used to encrypt."
         ) from err
     return json.loads(json_bytes)

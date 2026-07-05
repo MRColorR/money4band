@@ -8,13 +8,13 @@
 
 | File | Location | Purpose |
 |------|----------|---------|
-| `m4b-config.json` | `config/` | Project settings — ports, DNS presets, menu, word lists, compose mode **and** catalog envelope under `catalog` key (`app_config_version`, `catalog_sources[]`, per-category `active` flags — see [App Management](app-management.md#on-disk-layout-v20)) |
+| `m4b-config.json` | `config/` | Project settings - ports, DNS presets, menu, word lists, compose mode **and** catalog envelope under `catalog` key (`app_config_version`, `catalog_sources[]`, per-category `active` flags - see [App Management](app-management.md#on-disk-layout-v20)) |
 | `catalog/` | `config/` | Per-file app bundles under `supported/` / `newcomers/` / `deprecated/` (one JSON file per app) |
 | `apps.d/` | `config/` | Hand-written community overlays merged into `newcomers` at load time |
 | `offers.d/` | `config/` | Per-file external referral offers (one JSON file per offer) |
-| `user-config.json` | `config/` | **Your settings** — credentials, proxy config, preferences (encrypted at rest) |
+| `user-config.json` | `config/` | **Your settings** - credentials, proxy config, preferences (encrypted at rest) |
 
-> The catalog envelope (folded under `m4b-config.json → catalog`) + `catalog/` + `apps.d/` are aggregated
+> The catalog envelope (folded under `m4b-config.json -> catalog`) + `catalog/` + `apps.d/` are aggregated
 > in-memory at load time via the pluggable catalog-source interface in
 > [`money4band/apps/sources.py`](../money4band/apps/sources.py). See the
 > [Catalog Sources](app-management.md#catalog-sources) section for the
@@ -78,8 +78,8 @@ The envelope itself is intentionally small:
 }
 ```
 
-Per-app bundles live under `config/catalog/<category>/<NAME>.json` — one
-file per app. See [App Management → On-Disk Layout](app-management.md#on-disk-layout-v20)
+Per-app bundles live under `config/catalog/<category>/<NAME>.json` - one
+file per app. See [App Management -> On-Disk Layout](app-management.md#on-disk-layout-v20)
 for the full schema and the source-plugin model.
 
 If you upgrade from a checkout that still has a standalone legacy
@@ -111,7 +111,7 @@ Control how much CPU and memory containers are allowed to use:
 |---------|-----------|--------------|----------|
 | `minimal` | 20% | 10% | Background, shared machine |
 | `conservative` | 40% | 25% | Light usage alongside other work |
-| `standard` | 60% | 40% | **Default** — balanced |
+| `standard` | 60% | 40% | **Default** - balanced |
 | `performance` | 85% | 65% | Dedicated earning machine |
 
 ```bash
@@ -142,15 +142,15 @@ The same presets are available through the **interactive menu** and the **REST A
 M4B generates a single `docker-compose.yaml` per project. Each service
 carries a `profiles:` array of one entry, driven by the app bundle's
 `profile` field. This gives selective startup via standard Docker Compose
-semantics — bring up only the apps you want with `--profile <name>`.
+semantics - bring up only the apps you want with `--profile <name>`.
 
 ### Reserved profiles
 
 | Profile | Used by | Notes |
 |---------|---------|-------|
-| `residential` | Apps that need a residential IP (Honeygain, Bitping, …) | Tagged via bundle `profile: "residential"` |
-| `datacenter` | Apps tolerating datacenter IPs (Repocket, Mystnode, …) | Tagged via bundle `profile: "datacenter"` |
-| `universal` | Apps accepting any IP (TraffMonetizer, …) | Tagged via bundle `profile: "universal"` |
+| `residential` | Apps that need a residential IP (Honeygain, Bitping, ...) | Tagged via bundle `profile: "residential"` |
+| `datacenter` | Apps tolerating datacenter IPs (Repocket, Mystnode, ...) | Tagged via bundle `profile: "datacenter"` |
+| `universal` | Apps accepting any IP (TraffMonetizer, ...) | Tagged via bundle `profile: "universal"` |
 | `service` | Sidecars and helper services | Apps that ship as helper containers; addons inherit their parent's profile |
 | `monitoring` | Watchtower | Auto-update service for app images |
 | `proxy` | tun2socks tunnel | Activated only when `proxies.enabled` is true in user-config |
@@ -158,7 +158,7 @@ semantics — bring up only the apps you want with `--profile <name>`.
 ### Starting selectively
 
 `m4b stack start` auto-discovers profiles in use from your enabled apps
-and activates the right set — you never need to pass `--profile` by hand.
+and activates the right set - you never need to pass `--profile` by hand.
 
 Power users can drop to raw Docker Compose for surgical control:
 
@@ -180,30 +180,30 @@ profile semantics). v1.28+ is the minimum (profile selection support).
 
 Auto-claim sidecar containers (the "pots") **inherit their parent app's
 profile** at generation time. Starting `--profile residential` brings up
-Honeygain AND its `honeygain-pot` together — no separate flag needed,
+Honeygain AND its `honeygain-pot` together - no separate flag needed,
 no orphan-pot edge cases.
 
 ## Backup & Restore
 
 ```bash
-m4b backup    # create encrypted backup → <data-dir>/backups/
+m4b backup    # create encrypted backup -> <data-dir>/backups/
 m4b restore   # pick from recent backups to restore
 ```
 
-Backups are raw file copies — if the config is encrypted, the backup stays encrypted. Up to 5 backups are retained automatically. The `<data-dir>` location is resolved by the rules in the next section.
+Backups are raw file copies - if the config is encrypted, the backup stays encrypted. Up to 5 backups are retained automatically. The `<data-dir>` location is resolved by the rules in the next section.
 
 ## Runtime Data Directory
 
 The master encryption key, session salt, and config backups live in a runtime
 data directory. M4B resolves the location with a 3-tier precedence:
 
-1. **`$M4B_DATA_DIR`** — environment variable, highest priority. Use this for
+1. **`$M4B_DATA_DIR`** - environment variable, highest priority. Use this for
    custom layouts (e.g. shared volumes, container deployments).
-2. **`<install>/.m4b/`** — portable default. The install dir is the directory
+2. **`<install>/.m4b/`** - portable default. The install dir is the directory
    containing the executable (frozen binary) or the repo root (source checkout).
    Used automatically when the install dir is writable and no legacy `~/.m4b`
    exists, or whenever the portable dir is already populated.
-3. **`~/.m4b/`** — legacy fallback for users upgrading from older M4B builds,
+3. **`~/.m4b/`** - legacy fallback for users upgrading from older M4B builds,
    and for system-installed binaries on read-only paths.
 
 Why portable: a PyInstaller binary on a USB stick, or a git clone moved between
@@ -221,6 +221,6 @@ m4b config migrate-data-dir --remove-source # copy then wipe the legacy dir
 m4b config migrate-data-dir --force         # overwrite differing target files
 ```
 
-The command is idempotent — re-running it with the same source and target after
+The command is idempotent - re-running it with the same source and target after
 a successful copy reports every entry as "already identical" and does nothing.
 It refuses to overwrite a divergent target without `--force`.

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-"""Environment file generation — builds .env from configuration.
+"""Environment file generation - builds .env from configuration.
 
 Security design (v5):
     Credentials live encrypted in ``user-config.json`` (Fernet AES-128-CBC).
@@ -43,7 +43,7 @@ _META_KEYS = frozenset(
 
 
 # ---------------------------------------------------------------------------
-# Pure functions — no I/O, no side-effects
+# Pure functions - no I/O, no side-effects
 # ---------------------------------------------------------------------------
 
 
@@ -181,7 +181,7 @@ def secure_delete_env(path: str) -> None:
         os.unlink(path)
         logger.debug("Securely deleted %s", path)
     except OSError:
-        # File may already be gone — not an error.
+        # File may already be gone - not an error.
         pass
 
 
@@ -195,7 +195,7 @@ def write_env_metadata(env_lines: list[str], env_dir: str) -> None:
     meta_lines = [line for line in env_lines if line.split("=", 1)[0] in _META_KEYS]
     meta_path = os.path.join(env_dir, ".env.meta")
     with open(meta_path, "w") as f:
-        f.write("# Auto-generated — non-sensitive metadata only.\n")
+        f.write("# Auto-generated - non-sensitive metadata only.\n")
         f.write("\n".join(meta_lines) + "\n")
     logger.debug("Wrote env metadata to %s", meta_path)
 
@@ -208,8 +208,8 @@ def ephemeral_env_file(
     """Context manager: write a short-lived ``.env`` and wipe it on exit.
 
     Creates the file with ``0o600`` permissions in the system temp
-    directory (or *env_dir* if provided) and removes it — overwritten
-    with zeros — once the caller's block finishes.
+    directory (or *env_dir* if provided) and removes it - overwritten
+    with zeros - once the caller's block finishes.
 
     Usage::
 

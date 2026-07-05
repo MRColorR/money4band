@@ -143,13 +143,13 @@ def is_multiarch_emulation_available() -> bool:
 
     Uses three detection strategies in order so it works on every OS:
 
-    1. **buildx inspect** (all platforms) — when buildx reports ≥2 distinct
+    1. **buildx inspect** (all platforms) - when buildx reports >=2 distinct
        CPU architectures the underlying binfmt_misc/QEMU handlers must be
        registered.  Works on Docker Desktop (Windows/macOS) and Linux.
-    2. **binfmt_misc procfs** (Linux only) — directly scans
+    2. **binfmt_misc procfs** (Linux only) - directly scans
        ``/proc/sys/fs/binfmt_misc/`` for ``qemu-*`` entries.  Useful on
        Linux hosts where buildx is not installed.
-    3. **docker info** (all platforms) — Docker Desktop always injects a
+    3. **docker info** (all platforms) - Docker Desktop always injects a
        ``binfmt_misc`` line into ``docker info`` when QEMU is available.
        Serves as a last-resort check on Windows/macOS if buildx is absent.
     """

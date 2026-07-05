@@ -94,7 +94,7 @@ def check_proxy_connectivity(
 ) -> tuple[bool, str]:
     """Attempt a TCP connection to the proxy host:port.
 
-    This only checks basic reachability — it does **not** authenticate or
+    This only checks basic reachability - it does **not** authenticate or
     send traffic through the proxy.
 
     Returns:
@@ -113,7 +113,7 @@ def check_proxy_connectivity(
         with socket.create_connection((host, port), timeout=timeout):
             return True, ""
     except OSError as exc:
-        return False, f"Connection to {host}:{port} failed — {exc}"
+        return False, f"Connection to {host}:{port} failed - {exc}"
 
 
 def validate_proxy_list(

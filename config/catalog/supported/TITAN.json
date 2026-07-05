@@ -4,7 +4,7 @@
     "compose_config": {
         "container_name": "${DEVICE_NAME}_titan",
         "hostname": "${DEVICE_NAME}_titan",
-        "image": "nezha123/titan-edge",
+        "image": "nezha123/titan-edge:latest",
         "labels": [
             "com.centurylinklabs.watchtower.enable=true",
             "com.centurylinklabs.watchtower.scope=${M4B_WATCHTOWER_SCOPE}"

@@ -1,6 +1,6 @@
 """Pydantic response models for the M4B REST API.
 
-Every router should reference these models via ``response_model=…`` so
+Every router should reference these models via ``response_model=...`` so
 that FastAPI auto-generates accurate OpenAPI docs, validates outgoing
 payloads, and produces typed JSON examples.
 """

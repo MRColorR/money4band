@@ -1,4 +1,4 @@
-"""Tests for scripts/migrate_to_v5.py — v4→v5 config migration."""
+"""Tests for scripts/migrate_to_v5.py - v4->v5 config migration."""
 
 from __future__ import annotations
 
@@ -186,7 +186,7 @@ class TestMapEnvToApps:
         env = {"EARNAPP_UUID": "yourEARNAPPDeviceUUID"}
         result = map_env_to_apps(env, sample_flag_map)
         assert "uuid" not in result["earnapp"]
-        # No real creds → not enabled
+        # No real creds -> not enabled
         assert "enabled" not in result["earnapp"]
 
     def test_missing_app_gets_empty_entry(self, sample_flag_map: dict) -> None:
@@ -263,7 +263,7 @@ class TestMergeV4UserConfig:
         v4 = {"apps": {"earnapp": {"enabled": True, "uuid": "v4-uuid"}}}
         merge_v4_user_config(v5, v4)
         assert v5["apps"]["earnapp"]["uuid"] == "v4-uuid"
-        # enabled already existed in v5 — should NOT be overwritten
+        # enabled already existed in v5 - should NOT be overwritten
         assert v5["apps"]["earnapp"]["enabled"] is False
 
     def test_adds_new_apps(self) -> None:
@@ -407,7 +407,7 @@ class TestMigrate:
         uc_path = root / "config" / "user-config.json"
         assert uc_path.exists()
         content = uc_path.read_text(encoding="utf-8")
-        # In test env, crypto may encrypt or leave plaintext — both are valid
+        # In test env, crypto may encrypt or leave plaintext - both are valid
         if not content.startswith("M4B_ENCRYPTED:"):
             config = json.loads(content)
             assert config["apps"]["earnapp"]["uuid"] == "sdk-node-real123"

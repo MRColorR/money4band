@@ -1,4 +1,4 @@
-"""Tests for utils.dashboard_api — FastAPI dashboard backend."""
+"""Tests for utils.dashboard_api - FastAPI dashboard backend."""
 
 from __future__ import annotations
 
@@ -94,7 +94,7 @@ class TestDashboardAPI:
 
 
 # ---------------------------------------------------------------------------
-# Rate limiter GC — empty deques must be removed after eviction
+# Rate limiter GC - empty deques must be removed after eviction
 # ---------------------------------------------------------------------------
 
 
@@ -126,7 +126,7 @@ class TestRateLimiterGC:
                 else _noop()
             ):
                 pass
-            # Instead, call the endpoint directly — the middleware evicts
+            # Instead, call the endpoint directly - the middleware evicts
             # old entries and should delete the empty deque.
             # We need to simulate a request from that IP.
             # TestClient always comes from "testclient" host.
@@ -146,7 +146,7 @@ class TestRateLimiterGC:
             api._rate_log.pop("192.0.2.1", None)
 
     def test_rate_log_does_not_grow_after_eviction(self):
-        """Simulate many unique IPs that go quiet — verify they're cleaned up."""
+        """Simulate many unique IPs that go quiet - verify they're cleaned up."""
         import money4band.api.server as api
 
         old_time = time.monotonic() - api._RATE_WINDOW - 1
@@ -170,7 +170,7 @@ class TestRateLimiterGC:
 
 
 # ---------------------------------------------------------------------------
-# Session token — per-installation salt + epoch-day rotation
+# Session token - per-installation salt + epoch-day rotation
 # ---------------------------------------------------------------------------
 
 

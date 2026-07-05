@@ -85,16 +85,14 @@ class TestFnAppCatalog(unittest.TestCase):
         "money4band.apps.catalog.shutil.get_terminal_size",
         return_value=os.terminal_size((200, 24)),
     )
-    @patch("money4band.apps.catalog.sys")
     @patch("money4band.apps.catalog.print")
     @patch("money4band.apps.catalog.cls")
     @patch("money4band.apps.catalog.input", create=True)
     def test_wide_terminal_single_line_with_links(
-        self, mock_input, mock_cls, mock_print, mock_sys, _mock_term
+        self, mock_input, mock_cls, mock_print, _mock_term
     ):
         """Wide terminal shows Name, Link, Layer, Payout on a single line."""
         mock_input.return_value = ""
-        mock_sys.stdout.reconfigure = lambda **kw: None
 
         fn_app_catalog(self._APP_CONFIG)
         out = _collect_output(mock_print)
@@ -125,16 +123,14 @@ class TestFnAppCatalog(unittest.TestCase):
         "money4band.apps.catalog.shutil.get_terminal_size",
         return_value=os.terminal_size((80, 24)),
     )
-    @patch("money4band.apps.catalog.sys")
     @patch("money4band.apps.catalog.print")
     @patch("money4band.apps.catalog.cls")
     @patch("money4band.apps.catalog.input", create=True)
     def test_compact_mode_link_on_own_line(
-        self, mock_input, mock_cls, mock_print, mock_sys, _mock_term
+        self, mock_input, mock_cls, mock_print, _mock_term
     ):
         """Narrow terminal uses compact mode: link on its own indented line."""
         mock_input.return_value = ""
-        mock_sys.stdout.reconfigure = lambda **kw: None
 
         fn_app_catalog(self._APP_CONFIG)
         out = _collect_output(mock_print)
@@ -156,16 +152,14 @@ class TestFnAppCatalog(unittest.TestCase):
         "money4band.apps.catalog.shutil.get_terminal_size",
         return_value=os.terminal_size((80, 24)),
     )
-    @patch("money4band.apps.catalog.sys")
     @patch("money4band.apps.catalog.print")
     @patch("money4band.apps.catalog.cls")
     @patch("money4band.apps.catalog.input", create=True)
     def test_deprecated_apps_show_links_and_reason(
-        self, mock_input, mock_cls, mock_print, mock_sys, _mock_term
+        self, mock_input, mock_cls, mock_print, _mock_term
     ):
         """Deprecated apps show referral link + removal reason (same format as supported)."""
         mock_input.return_value = ""
-        mock_sys.stdout.reconfigure = lambda **kw: None
 
         fn_app_catalog(self._APP_CONFIG)
         out = _collect_output(mock_print)
@@ -188,14 +182,12 @@ class TestFnAppCatalog(unittest.TestCase):
         "money4band.apps.catalog.shutil.get_terminal_size",
         return_value=os.terminal_size((200, 24)),
     )
-    @patch("money4band.apps.catalog.sys")
     @patch("money4band.apps.catalog.cls")
     @patch("money4band.apps.catalog.input", create=True)
     def test_fn_app_catalog_returns_false_on_back(
-        self, mock_input, mock_cls, mock_sys, _mock_term
+        self, mock_input, mock_cls, _mock_term
     ):
         mock_input.return_value = "b"
-        mock_sys.stdout.reconfigure = lambda **kw: None
         result = fn_app_catalog(self._APP_CONFIG)
         self.assertFalse(result)
 
@@ -203,15 +195,13 @@ class TestFnAppCatalog(unittest.TestCase):
         "money4band.apps.catalog.shutil.get_terminal_size",
         return_value=os.terminal_size((200, 24)),
     )
-    @patch("money4band.apps.catalog.sys")
     @patch("money4band.apps.catalog.cls")
     @patch("money4band.apps.catalog.input", create=True)
     def test_fn_app_catalog_returns_true_on_manage(
-        self, mock_input, mock_cls, mock_sys, _mock_term
+        self, mock_input, mock_cls, _mock_term
     ):
         # First call returns 'm' for manage, second call returns '' (back from manage)
         mock_input.side_effect = ["m", "b"]
-        mock_sys.stdout.reconfigure = lambda **kw: None
         result = fn_app_catalog(self._APP_CONFIG)
         self.assertTrue(result)
 
@@ -351,7 +341,7 @@ class TestManageCategoriesEdgeCases(unittest.TestCase):
         self.assertTrue(cfg["supported"]["active"])
 
     def test_empty_config_shows_no_categories(self):
-        """No categories found → prints message and returns."""
+        """No categories found -> prints message and returns."""
         _manage_categories({}, None)  # should not crash
 
 

@@ -109,7 +109,7 @@ def _get_editor() -> str:
 
 
 def edit_config(user_config_path: str) -> None:
-    """Decrypt config → open in $EDITOR → re-encrypt on save."""
+    """Decrypt config -> open in $EDITOR -> re-encrypt on save."""
     just_fix_windows_console()
 
     if not os.path.isfile(user_config_path):

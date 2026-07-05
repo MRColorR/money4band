@@ -309,7 +309,7 @@ def setup_multiproxy_instances(
         for app_name, limit in sorted(limited_apps.items()):
             print(
                 f"  {Fore.YELLOW}{app_name.upper()}: max {limit} instances "
-                f"— will be disabled in instances beyond #{limit}{Style.RESET_ALL}"
+                f"- will be disabled in instances beyond #{limit}{Style.RESET_ALL}"
             )
         logger.info(
             "Install-limit enforcement: %s",
@@ -431,7 +431,7 @@ def setup_multiproxy_instances(
                         port_app_index += 1
 
         # Disable dashboard for multiproxy instances (dashboard is a
-        # standalone FastAPI process, not a Docker container — disabling
+        # standalone FastAPI process, not a Docker container - disabling
         # just prevents the instance from trying to start its own server).
         if "m4b_dashboard" in instance_user_config:
             instance_user_config["m4b_dashboard"]["enabled"] = False

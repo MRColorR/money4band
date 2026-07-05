@@ -1,6 +1,6 @@
 """Package-data resources (static website, images, service files).
 
-Use :func:`get_path` to resolve resource paths reliably — works both in
+Use :func:`get_path` to resolve resource paths reliably - works both in
 development (source tree) and in PyInstaller frozen binaries.
 """
 

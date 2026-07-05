@@ -1,4 +1,4 @@
-"""Tests for money4band.ui.banner — shared banner & nickname helpers."""
+"""Tests for money4band.ui.banner - shared banner & nickname helpers."""
 
 from __future__ import annotations
 
@@ -112,7 +112,7 @@ class TestPrintBanner:
         print_banner(self._M4B_CFG, greeting="Welcome aboard!")
         out = capsys.readouterr().out
         assert "Welcome aboard!" in out
-        assert "Hello" not in out  # no nickname → no hello line
+        assert "Hello" not in out  # no nickname -> no hello line
 
     def test_banner_with_nickname_and_greeting(self, capsys) -> None:
         print_banner(self._M4B_CFG, nickname="alice", greeting="Setup Wizard")

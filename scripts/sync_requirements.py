@@ -26,6 +26,9 @@ TARGETS: list[tuple[Path, list[str]]] = [
             "--no-hashes",
             "--no-emit-project",
             "--frozen",
+            # Runtime-only: exclude the dev group so this file stays minimal
+            # for end users / supporters. Dev deps live in requirements-dev.txt.
+            "--no-dev",
         ],
     ),
     (
@@ -66,18 +69,18 @@ def main() -> int:
             continue
 
         if args.check:
-            print(f"\u274c {path.name} is out-of-date")
+            print(f"[x] {path.name} is out-of-date")
             stale = True
         else:
             path.write_text(expected, encoding="utf-8")
-            print(f"\u2705 Updated {path.name}")
+            print(f"[ok] Updated {path.name}")
 
     if args.check and stale:
         print("\nRun: python scripts/sync_requirements.py")
         return 1
 
     if not stale and args.check:
-        print("\u2705 All requirements files are up-to-date")
+        print("[ok] All requirements files are up-to-date")
     return 0
 
 

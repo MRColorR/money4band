@@ -28,17 +28,6 @@ from money4band.updater import check_update_available, show_update_banner
 
 logger = logging.getLogger(__name__)
 
-# Force stdout/stderr to UTF-8 on Windows so the Unicode glyphs M4B prints
-# (e.g. ●, ○, │, ✓, ✗) don't blow up on legacy code pages like cp1252.
-# Guarded because non-TextIOWrapper streams (piped output capture, some test
-# harnesses, embedded interpreters) don't expose ``reconfigure``.
-if sys.platform == "win32":
-    for _stream in (sys.stdout, sys.stderr):
-        try:
-            _stream.reconfigure(encoding="utf-8", errors="replace")
-        except (AttributeError, ValueError):
-            pass
-
 # Handle PyInstaller frozen executable path resolution
 if getattr(sys, "frozen", False):
     # Running as compiled executable (PyInstaller)
@@ -96,7 +85,7 @@ def _ensure_user_config(args: argparse.Namespace, user_config_path: str) -> None
             ensure_nickname(cfg)
             dumper.write_json(cfg, user_config_path)
         except Exception:  # noqa: BLE001
-            pass  # best-effort — setup wizard will fix it
+            pass  # best-effort - setup wizard will fix it
     ensure_config_encrypted(user_config_path)
     register_encryption_hooks(user_config_path)
 
@@ -209,7 +198,7 @@ def mainmenu(
     apps_config_path -- the path to the apps config file
     user_config_path -- the path to the user config file
     """
-    # Static dispatch table — replaces dynamic load_modules_from_directory()
+    # Static dispatch table - replaces dynamic load_modules_from_directory()
     from money4band.apps.catalog import main as _fn_app_catalog
     from money4band.apps.setup import main as _fn_setup_apps
     from money4band.core.reset import main as _fn_reset_config
@@ -341,7 +330,7 @@ def mainmenu(
                 choice_num = int(choice)
             except ValueError:
                 print(
-                    f"{Fore.YELLOW}Invalid selection. Choose 1\u2013{len(menu_options)} or a shortcut.{Style.RESET_ALL}"
+                    f"{Fore.YELLOW}Invalid selection. Choose 1-{len(menu_options)} or a shortcut.{Style.RESET_ALL}"
                 )
                 time.sleep(sleep_time)
                 continue
@@ -362,12 +351,12 @@ def mainmenu(
                     time.sleep(sleep_time)
             else:
                 print(
-                    f"{Fore.YELLOW}Invalid selection. Choose 1\u2013{len(menu_options)} or a shortcut.{Style.RESET_ALL}"
+                    f"{Fore.YELLOW}Invalid selection. Choose 1-{len(menu_options)} or a shortcut.{Style.RESET_ALL}"
                 )
                 time.sleep(sleep_time)
         except KeyboardInterrupt:
             print(f"\n{Fore.YELLOW}Interrupted.{Style.RESET_ALL}")
-            # Graceful shutdown — stop dashboard & exit cleanly.
+            # Graceful shutdown - stop dashboard & exit cleanly.
             try:
                 menu_dispatch["fn_bye"](
                     apps_config_path, m4b_config_path, user_config_path
@@ -393,7 +382,7 @@ def _cmd_menu(args: argparse.Namespace) -> None:
     if _has_template_defaults(user_config_path):
         just_fix_windows_console()
         print(
-            f"\n{Fore.YELLOW}It looks like this is your first run — "
+            f"\n{Fore.YELLOW}It looks like this is your first run - "
             f"the config still has placeholder values.{Style.RESET_ALL}"
         )
         print("Running the setup wizard to configure your apps...\n")
@@ -530,7 +519,7 @@ def _cmd_status(args: argparse.Namespace) -> None:
     if statuses:
         print(f"{Fore.GREEN}--- Health Summary ---{Style.RESET_ALL}")
         for s in statuses:
-            icon = f"{Fore.GREEN}\u2713" if s.ok else f"{Fore.RED}\u2717"
+            icon = f"{Fore.GREEN}OK" if s.ok else f"{Fore.RED}X"
             health_tag = s.health if s.health != "none" else "no-healthcheck"
             line = f"  {icon} {s.name:<35}{Style.RESET_ALL} {health_tag:<16} restarts={s.restart_count}"
             if s.last_error:
@@ -627,7 +616,7 @@ def _cmd_clean(args: argparse.Namespace) -> None:
     if include_volumes:
         scope.append(f"{Fore.RED}volumes (DESTRUCTIVE){Style.RESET_ALL}")
     print(
-        f"{Fore.CYAN}m4b clean — project '{project}' — will {label}: "
+        f"{Fore.CYAN}m4b clean - project '{project}' - will {label}: "
         f"{', '.join(scope)}{Style.RESET_ALL}"
     )
 
@@ -730,7 +719,7 @@ def _cmd_update(args: argparse.Namespace) -> None:
 
     current = m4b_config.get("project", {}).get("project_version", "?")
     print(
-        f"{Fore.YELLOW}Update available: v{current} → v{new_version}{Style.RESET_ALL}"
+        f"{Fore.YELLOW}Update available: v{current} -> v{new_version}{Style.RESET_ALL}"
     )
 
     force = getattr(args, "force", False)
@@ -902,7 +891,7 @@ def _cmd_validate(args: argparse.Namespace) -> None:
 
 
 def _cmd_app(args: argparse.Namespace) -> None:
-    """App plugin management — add or validate community apps."""
+    """App plugin management - add or validate community apps."""
     action = getattr(args, "app_action", None)
     config_dir = getattr(args, "config_dir", os.path.join(BASE_DIR, "config"))
     apps_d_dir = os.path.join(config_dir, "apps.d")
@@ -927,11 +916,11 @@ def _cmd_app(args: argparse.Namespace) -> None:
             name = entry.get("name", "?")
             if errors:
                 all_ok = False
-                print(f"{Fore.RED}\u2717 {name}:{Style.RESET_ALL}")
+                print(f"{Fore.RED}X {name}:{Style.RESET_ALL}")
                 for e in errors:
                     print(f"    {e}")
             else:
-                print(f"{Fore.GREEN}\u2713 {name}{Style.RESET_ALL}")
+                print(f"{Fore.GREEN}OK {name}{Style.RESET_ALL}")
         if all_ok:
             print(
                 f"\n{Fore.GREEN}All {len(entries)} community app(s) valid.{Style.RESET_ALL}"
@@ -1139,7 +1128,7 @@ def _build_parser() -> argparse.ArgumentParser:
 
     parser = argparse.ArgumentParser(
         prog="m4b",
-        description="Money4Band — Docker orchestrator for passive income apps",
+        description="Money4Band - Docker orchestrator for passive income apps",
     )
 
     # ---- global flags (shared by all subcommands) ----
@@ -1225,7 +1214,7 @@ def _build_parser() -> argparse.ArgumentParser:
         "--volumes",
         action="store_true",
         default=False,
-        help="Also remove project volumes (DESTRUCTIVE — wipes per-app persistent state)",
+        help="Also remove project volumes (DESTRUCTIVE - wipes per-app persistent state)",
     )
     clean_parser.add_argument(
         "--dry-run",
@@ -1577,7 +1566,7 @@ def _setup_logging(args: argparse.Namespace) -> None:
     os.makedirs(args.log_dir, exist_ok=True)
     log_file_path = os.path.join(args.log_dir, args.log_file)
 
-    # Rotating file handler — captures everything at the configured level
+    # Rotating file handler - captures everything at the configured level
     rotating_handler = RotatingFileHandler(
         log_file_path, maxBytes=1 * 1024 * 1024, backupCount=3
     )
@@ -1588,7 +1577,7 @@ def _setup_logging(args: argparse.Namespace) -> None:
 
     rotating_handler.setFormatter(JSONFormatter())
 
-    # Console (stderr) handler — only WARNING+ to avoid polluting CLI output
+    # Console (stderr) handler - only WARNING+ to avoid polluting CLI output
     console_handler = logging.StreamHandler()
     console_handler.setFormatter(
         logging.Formatter("[%(levelname)s] %(name)s: %(message)s")
@@ -1610,9 +1599,9 @@ def _handle_dashboard_auto_start(args: argparse.Namespace) -> None:
     """Auto-start (or skip) the background dashboard on M4B launch.
 
     Behaviour:
-    * ``--dashboard true``  → persist ``enabled=True``, start in background.
-    * ``--dashboard false`` → persist ``enabled=False``, do NOT start.
-    * No flag               → honour the saved ``m4b_dashboard.enabled`` value.
+    * ``--dashboard true``  -> persist ``enabled=True``, start in background.
+    * ``--dashboard false`` -> persist ``enabled=False``, do NOT start.
+    * No flag               -> honour the saved ``m4b_dashboard.enabled`` value.
 
     The ``m4b_dashboard.enabled`` config value is the single source of truth.
     It can also be toggled via ``m4b dashboard enable|disable`` or the
@@ -1675,7 +1664,7 @@ def _handle_dashboard_auto_start(args: argparse.Namespace) -> None:
         )
         return
 
-    # Dashboard is enabled — start it in background.
+    # Dashboard is enabled - start it in background.
     from money4band.dashboard.setup import auto_start_dashboard
 
     auto_start_dashboard(config_dir, BASE_DIR)
@@ -1715,14 +1704,14 @@ def main() -> None:
     if handler:
         handler(args)
     else:
-        # No subcommand → show update banner, then launch interactive menu
+        # No subcommand -> show update banner, then launch interactive menu
         try:
             m4b_config_path = os.path.join(args.config_dir, args.config_m4b_file)
             if os.path.isfile(m4b_config_path):
                 m4b_config = loader.load_json_config(m4b_config_path)
                 show_update_banner(m4b_config)
         except Exception:
-            pass  # Best-effort — don't block startup
+            pass  # Best-effort - don't block startup
         _cmd_menu(args)
 
 

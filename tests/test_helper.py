@@ -1,4 +1,4 @@
-"""Tests for money4band.docker.helper — utility functions."""
+"""Tests for money4band.docker.helper - utility functions."""
 
 from __future__ import annotations
 
@@ -273,7 +273,7 @@ class TestCreateDockerGroup:
         from money4band.docker.helper import create_docker_group_if_needed
 
         mock_sp.run.side_effect = [
-            MagicMock(returncode=1),  # getent group docker → doesn't exist
+            MagicMock(returncode=1),  # getent group docker -> doesn't exist
             MagicMock(returncode=0),  # groupadd
             MagicMock(returncode=0),  # usermod
         ]
@@ -288,7 +288,7 @@ class TestCreateDockerGroup:
         from money4band.docker.helper import create_docker_group_if_needed
 
         mock_sp.run.side_effect = [
-            MagicMock(returncode=0),  # getent → group exists
+            MagicMock(returncode=0),  # getent -> group exists
             MagicMock(returncode=0),  # usermod
         ]
         mock_gp.getuser.return_value = "testuser"

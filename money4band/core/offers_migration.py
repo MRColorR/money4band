@@ -23,7 +23,7 @@ def migrate_offers_file(config_path: str | Path) -> bool:
     """Split legacy ``referral-offers.json`` sibling to *config_path*.
 
     *config_path* is the anchor used to locate the ``config/`` directory
-    — typically ``config/m4b-config.json``. Returns ``True`` if a
+    - typically ``config/m4b-config.json``. Returns ``True`` if a
     migration happened, ``False`` otherwise.
     """
     anchor = Path(config_path)

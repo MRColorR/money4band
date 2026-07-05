@@ -11,10 +11,10 @@ Retry policy
 
 Two layers, both method-agnostic (apply to GET, POST, PUT, DELETE alike):
 
-1. **Connection retries** — handled by the underlying ``httpx.HTTPTransport``
+1. **Connection retries** - handled by the underlying ``httpx.HTTPTransport``
    (`retries=MAX_RETRIES`). Cover socket errors, DNS failures, TLS handshake
    resets, etc.
-2. **Status-code retries** — handled by an ``httpx`` event hook installed in
+2. **Status-code retries** - handled by an ``httpx`` event hook installed in
    ``get_client``. When a response status is in ``_STATUS_FORCELIST``
    (429 / 5xx), the request is re-issued up to ``MAX_RETRIES`` times with
    exponential back-off (``BACKOFF_FACTOR * 2**attempt`` seconds).
@@ -32,10 +32,10 @@ from typing import Any
 import httpx
 
 logger = logging.getLogger(__name__)
-# ── Defaults (overridable via configure()) ──────────────────────────────
+# -- Defaults (overridable via configure()) ------------------------------
 REQUEST_TIMEOUT: int = 15  # seconds
 MAX_RETRIES: int = 3
-BACKOFF_FACTOR: float = 1.0  # → 1 s, 2 s, 4 s between retries
+BACKOFF_FACTOR: float = 1.0  # -> 1 s, 2 s, 4 s between retries
 _STATUS_FORCELIST: tuple[int, ...] = (429, 500, 502, 503, 504)
 
 
@@ -57,7 +57,7 @@ class _StatusRetryTransport(httpx.BaseTransport):
 
     httpx's built-in ``retries=`` on ``HTTPTransport`` only retries on
     connection-level errors. This wrapper adds response-status retries so
-    that 429 / 5xx replies trigger an exponential-back-off retry — for
+    that 429 / 5xx replies trigger an exponential-back-off retry - for
     every method, not just GET.
     """
 

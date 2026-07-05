@@ -273,7 +273,7 @@ class TestRemoteSource:
         _patch_httpx(monkeypatch, [_FakeResponse(503)])
         src = RemoteSource(url="https://example/catalog", enabled=True)
         out = src.load(tmp_path / "m4b-config.json")
-        # No cache seeded — empty result but no raise.
+        # No cache seeded - empty result but no raise.
         assert out == {"supported": [], "newcomers": [], "deprecated": []}
 
     def test_invalid_json_uses_cache(self, tmp_path, monkeypatch) -> None:
@@ -437,7 +437,7 @@ class TestAggregateFromSources:
 
         monkeypatch.setattr(LocalSource, "load", boom)
         envelope = json.loads(config_with_bundles.read_text())
-        # Should not raise — just log and return empty categories.
+        # Should not raise - just log and return empty categories.
         result = aggregate_from_sources(envelope, config_with_bundles)
         assert result["supported"]["entries"] == []
 
@@ -452,7 +452,7 @@ class TestAggregateFromSources:
             }
         )
         result = aggregate_from_sources(envelope, config_with_bundles)
-        # Remote stub is never available → identical to local-only.
+        # Remote stub is never available -> identical to local-only.
         assert {e["name"] for e in result["supported"]["entries"]} == {
             "ALPHA",
             "BETA",

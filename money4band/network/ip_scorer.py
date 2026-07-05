@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-"""IP quality scoring — batch analysis of the real IP and proxy IPs.
+"""IP quality scoring - batch analysis of the real IP and proxy IPs.
 
 Uses the ip-api.com free batch endpoint (max 100 IPs, 15 req/min)
 and optional Spamhaus ZEN blacklist checking via Cloudflare DoH.
@@ -155,7 +155,7 @@ def calculate_fraud_score(
     entry: dict[str, Any],
     blacklisted: bool = False,
 ) -> int:
-    """Compute a composite fraud score (0–100) from ip-api fields + blacklist."""
+    """Compute a composite fraud score (0-100) from ip-api fields + blacklist."""
     score = 0
     if entry.get("proxy"):
         score += 40
@@ -264,7 +264,7 @@ def analyse_ips(proxy_file: str | None = None) -> list[dict[str, Any]]:
         return results
 
     all_ips = [real_ip]
-    proxy_ip_map: dict[str, str] = {}  # exit_ip → proxy_url
+    proxy_ip_map: dict[str, str] = {}  # exit_ip -> proxy_url
 
     # 2. Test proxy connectivity (only when a proxy file was provided)
     proxies = parse_proxy_file(proxy_file) if proxy_file else []

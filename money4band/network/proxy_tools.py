@@ -69,7 +69,7 @@ def update_multiproxy_instances(
         user_config_path (str): Path to the main user-config file.
         m4b_config_path (str): Path to the main m4b-config file.
         app_config_path (str): Path to the config file holding the folded
-            catalog envelope — this aliases the m4b-config file; the
+            catalog envelope - this aliases the m4b-config file; the
             argument is kept for call-site clarity.
         sleep_time (int): Time to wait between operations.
     """
@@ -116,7 +116,7 @@ def update_multiproxy_instances(
         print(f"\n{Fore.RED}Invalid proxy URLs:{Style.RESET_ALL}")
         for r in invalid:
             print(
-                f"  {Fore.RED}\u2717{Style.RESET_ALL} {r['url']} \u2014 {r['reason']}"
+                f"  {Fore.RED}X{Style.RESET_ALL} {r['url']} - {r['reason']}"
             )
         print(
             f"\n{Fore.RED}Fix the invalid proxies before proceeding.{Style.RESET_ALL}"
@@ -125,7 +125,7 @@ def update_multiproxy_instances(
     if unreachable:
         print(f"\n{Fore.YELLOW}Unreachable proxies:{Style.RESET_ALL}")
         for r in unreachable:
-            print(f"  {Fore.YELLOW}!{Style.RESET_ALL} {r['url']} \u2014 {r['reason']}")
+            print(f"  {Fore.YELLOW}!{Style.RESET_ALL} {r['url']} - {r['reason']}")
         if not ask_question_yn(
             "Some proxies are unreachable. Continue anyway?", default=False
         ):
@@ -333,7 +333,7 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
             choice = int(choice)
         except ValueError:
             print(
-                f"{Fore.YELLOW}Invalid selection. Choose 1\u2013{len(menu_options)} or a shortcut.{Style.RESET_ALL}"
+                f"{Fore.YELLOW}Invalid selection. Choose 1-{len(menu_options)} or a shortcut.{Style.RESET_ALL}"
             )
             time.sleep(sleep_time)
             continue
@@ -349,7 +349,7 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
             )
         else:
             print(
-                f"{Fore.YELLOW}Invalid selection. Choose 1\u2013{len(menu_options)} or a shortcut.{Style.RESET_ALL}"
+                f"{Fore.YELLOW}Invalid selection. Choose 1-{len(menu_options)} or a shortcut.{Style.RESET_ALL}"
             )
             time.sleep(sleep_time)
 

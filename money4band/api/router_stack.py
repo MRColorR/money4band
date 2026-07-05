@@ -1,4 +1,4 @@
-"""Stack management API — start / stop the Docker Compose stack."""
+"""Stack management API - start / stop the Docker Compose stack."""
 
 from __future__ import annotations
 

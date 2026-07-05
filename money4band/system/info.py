@@ -5,7 +5,6 @@ from __future__ import annotations
 import ipaddress
 import os
 import shutil
-import sys
 from typing import Any
 
 from colorama import Fore, Style, just_fix_windows_console
@@ -111,7 +110,7 @@ def show_dns_status(user_config: dict[str, Any]) -> None:
     if mode == "custom":
         print(f"  Servers: {', '.join(servers)}")
     else:
-        print("  Servers: (host default — Docker inherits from the host resolver)")
+        print("  Servers: (host default - Docker inherits from the host resolver)")
 
 
 def show_dns_presets(m4b_config: dict[str, Any], user_config: dict[str, Any]) -> None:
@@ -123,7 +122,7 @@ def show_dns_presets(m4b_config: dict[str, Any], user_config: dict[str, Any]) ->
     print(f"\n{Fore.CYAN}Available DNS presets:{Style.RESET_ALL}")
     print(f"  {'Preset':<22} {'Servers'}")
     print(f"  {'-' * 22} {'-' * 30}")
-    marker = f" {Fore.GREEN}\u2190 active{Style.RESET_ALL}"
+    marker = f" {Fore.GREEN}<- active{Style.RESET_ALL}"
     print(f"  {'default':<22} (host DNS){marker if current_mode == 'default' else ''}")
     for name, servers in presets.items():
         active = marker if name == current_mode else ""
@@ -196,11 +195,6 @@ def show_system_info(
 ) -> None:
     """Print a comprehensive system information dashboard."""
     just_fix_windows_console()
-    if hasattr(sys.stdout, "reconfigure"):
-        try:
-            sys.stdout.reconfigure(encoding="utf-8")
-        except Exception:  # noqa: BLE001
-            pass
 
     # ---- Version & update ----
     version = m4b_config.get("project", {}).get("project_version", "?")
@@ -301,11 +295,11 @@ def show_system_info(
         print(f"  {'Multiarch (QEMU):':<{w}} {'yes' if multiarch else 'no'}")
         if multiarch:
             print(
-                f"    {Fore.GREEN}\u21b3 Cross-arch apps run via QEMU emulation{Style.RESET_ALL}"
+                f"    {Fore.GREEN}-> Cross-arch apps run via QEMU emulation{Style.RESET_ALL}"
             )
         else:
             print(
-                f"    {Fore.YELLOW}\u21b3 Native {dk_arch} only \u2014 "
+                f"    {Fore.YELLOW}-> Native {dk_arch} only - "
                 f"install QEMU/binfmt or launch Docker Desktop{Style.RESET_ALL}"
             )
     print(f"  {'Image preference:':<{w}} {dk_arch} (when app image supports it)")
@@ -337,7 +331,7 @@ def show_system_info(
         for cf in compose_files:
             print(f"  {'File:':<{w}} {os.path.basename(cf)}")
     else:
-        print(f"  {'File:':<{w}} (not generated yet — run `m4b generate`)")
+        print(f"  {'File:':<{w}} (not generated yet - run `m4b generate`)")
 
     print()
 
@@ -348,7 +342,7 @@ def show_system_info(
 
 
 def _interactive_update(m4b_config: dict[str, Any]) -> None:
-    """Check for updates and optionally apply — mirrors ``m4b update``."""
+    """Check for updates and optionally apply - mirrors ``m4b update``."""
     from money4band.updater import apply_update, check_for_update
 
     new_version = check_for_update(m4b_config)
@@ -359,7 +353,7 @@ def _interactive_update(m4b_config: dict[str, Any]) -> None:
 
     current = m4b_config.get("project", {}).get("project_version", "?")
     print(
-        f"\n{Fore.YELLOW}Update available: v{current} → v{new_version}{Style.RESET_ALL}"
+        f"\n{Fore.YELLOW}Update available: v{current} -> v{new_version}{Style.RESET_ALL}"
     )
 
     from money4band.ui.prompt import ask_question_yn

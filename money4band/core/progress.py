@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-"""Setup progress tracker — serializes step completion to allow resuming."""
+"""Setup progress tracker - serializes step completion to allow resuming."""
 
 import json
 import logging

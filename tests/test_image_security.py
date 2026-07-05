@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from unittest.mock import MagicMock, patch
 
 from money4band.docker.image_security import (
@@ -14,6 +15,23 @@ from money4band.docker.image_security import (
     validate_images,
 )
 
+
+def _months_ago(n: int) -> str:
+    """Return a ``YYYY-MM`` string *n* whole months before today (UTC).
+
+    Sample image dates are relative so the 90-day freshness threshold is
+    always evaluated against the current date. Hardcoded calendar dates
+    silently age past the threshold and turn "fresh" fixtures stale over
+    time (the original bug this guards against).
+    """
+    now = datetime.now(timezone.utc)
+    year, month = now.year, now.month - n
+    while month <= 0:
+        month += 12
+        year -= 1
+    return f"{year:04d}-{month:02d}"
+
+
 _SAMPLE_CONFIG = {
     "supported": {
         "active": True,
@@ -22,14 +40,14 @@ _SAMPLE_CONFIG = {
                 "name": "EARNAPP",
                 "compose_config": {"image": "fazalfarhan01/earnapp:lite"},
                 "app_details": {
-                    "docker": {"last_update": "2023-06"},
+                    "docker": {"last_update": _months_ago(36)},
                 },
             },
             {
                 "name": "HONEYGAIN",
                 "compose_config": {"image": "honeygain/honeygain:latest"},
                 "app_details": {
-                    "docker": {"last_update": "2026-03"},
+                    "docker": {"last_update": _months_ago(0)},
                 },
             },
         ],
@@ -41,7 +59,7 @@ _SAMPLE_CONFIG = {
                 "name": "GRASS",
                 "compose_config": {"image": "ghcr.io/xterna/grass-node"},
                 "app_details": {
-                    "docker": {"last_update": "2024-01"},
+                    "docker": {"last_update": _months_ago(6)},
                 },
             },
         ],
@@ -77,13 +95,13 @@ class TestCheckStaleImages:
     def test_finds_stale_images(self):
         stale = check_stale_images(_SAMPLE_CONFIG)
         stale_names = [s["app"] for s in stale]
-        assert "EARNAPP" in stale_names  # 2023-06 is very old
-        assert "GRASS" in stale_names  # 2024-01 is old
+        assert "EARNAPP" in stale_names  # ~36 months old
+        assert "GRASS" in stale_names  # ~6 months old (> 90 days)
 
     def test_fresh_images_not_flagged(self):
         stale = check_stale_images(_SAMPLE_CONFIG)
         stale_names = [s["app"] for s in stale]
-        assert "HONEYGAIN" not in stale_names  # 2026-03 is recent
+        assert "HONEYGAIN" not in stale_names  # current month -> fresh
 
     def test_returns_days_old(self):
         stale = check_stale_images(_SAMPLE_CONFIG)
@@ -232,7 +250,7 @@ class TestDockerInspectImage:
 
 
 class TestValidateImagesWithScout:
-    """Cover validate_images with scout available — lines 164-193."""
+    """Cover validate_images with scout available - lines 164-193."""
 
     @patch("money4band.docker.image_security._scout_available", return_value=True)
     @patch("money4band.docker.image_security.run_scout_cves")

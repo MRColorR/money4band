@@ -5,7 +5,6 @@ import json
 import logging
 import os
 import shutil
-import sys
 from typing import Any
 
 from colorama import Back, Fore, Style, just_fix_windows_console
@@ -182,15 +181,15 @@ def _manage_categories(app_config: dict[str, Any], app_config_path: str | None) 
     print(f"\n{cat_key} is now [{new_badge}]")
 
     if app_config_path:
-        # Write only the envelope's active flag — per-file bundles are
+        # Write only the envelope's active flag - per-file bundles are
         # not rewritten here.
         from money4band.core.catalog_store import set_category_active
 
         set_category_active(app_config_path, cat_key, new_status)
-        logger.info("Saved category status change: %s → active=%s", cat_key, new_status)
+        logger.info("Saved category status change: %s -> active=%s", cat_key, new_status)
         print(f"{Fore.GREEN}Saved to {app_config_path}{Style.RESET_ALL}")
     else:
-        logger.warning("No app_config_path provided — change not persisted")
+        logger.warning("No app_config_path provided - change not persisted")
 
 
 def fn_app_catalog(
@@ -207,7 +206,6 @@ def fn_app_catalog(
         logger.info("Displaying app catalog")
         cls()
         just_fix_windows_console()
-        sys.stdout.reconfigure(encoding="utf-8")
 
         _display_catalog(app_config)
 
@@ -232,7 +230,7 @@ def fn_app_catalog(
         if choice == "c" and has_sources:
             _manage_sources(m4b_config_path)
             return True
-        return False  # b or anything else → back
+        return False  # b or anything else -> back
     except Exception as e:
         logger.error(f"An error occurred in fn_app_catalog: {str(e)}")
         raise

@@ -1,4 +1,4 @@
-"""Configuration profiles — save/switch between deployment contexts.
+"""Configuration profiles - save/switch between deployment contexts.
 
 Profiles are stored under ``config/profiles/{name}/`` with copies of
 ``user-config.json`` and ``.env``.

@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
-# Top-level dispatch — called from main._cmd_dashboard
+# Top-level dispatch - called from main._cmd_dashboard
 # ---------------------------------------------------------------------------
 
 
@@ -80,7 +80,7 @@ def handle_dashboard_action(
 
 
 # ---------------------------------------------------------------------------
-# Public entry point — called from handle_dashboard_action
+# Public entry point - called from handle_dashboard_action
 # ---------------------------------------------------------------------------
 
 
@@ -160,7 +160,7 @@ def run_dashboard_command(
     port = find_dashboard_port(preferred_port)
     if port != preferred_port:
         print(
-            f"{Fore.YELLOW}Port {preferred_port} is in use — "
+            f"{Fore.YELLOW}Port {preferred_port} is in use - "
             f"using port {port} instead.{Style.RESET_ALL}"
         )
 
@@ -174,7 +174,7 @@ def run_dashboard_command(
     # When exposed and no key exists, auto-generate one.
     if exposed and not api_key:
         print(
-            f"{Fore.YELLOW}No API key found — generating one automatically."
+            f"{Fore.YELLOW}No API key found - generating one automatically."
             f"{Style.RESET_ALL}"
         )
         api_key = regenerate_api_key_on_disk(config_dir)
@@ -303,7 +303,7 @@ def _start_background(
     else:
         print(
             f"\n{Fore.YELLOW}Dashboard + API spawned (PID {pid}) but port "
-            f"{port} not yet responding — it may still be starting up."
+            f"{port} not yet responding - it may still be starting up."
             f"{Style.RESET_ALL}"
         )
         print(f"  Check with: {Fore.CYAN}m4b dashboard status{Style.RESET_ALL}")

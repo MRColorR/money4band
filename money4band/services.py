@@ -1,4 +1,4 @@
-"""Service layer — UI-agnostic wrappers around M4B business logic.
+"""Service layer - UI-agnostic wrappers around M4B business logic.
 
 Each function here encapsulates one logical operation that both the legacy
 CLI menu and the new Textual TUI can call.  All heavy I/O (subprocess,
@@ -27,7 +27,7 @@ def resolve_config_paths(
 ) -> tuple[str, str, str]:
     """Return ``(m4b_config_path, app_config_path, user_config_path)``.
 
-    The catalog envelope lives under ``m4b-config.json → catalog``; the
+    The catalog envelope lives under ``m4b-config.json -> catalog``; the
     ``app_config_path`` slot aliases the m4b-config path so every caller
     that still asks for an ``app_config_path`` transparently reads the
     same file. Consumers that want the aggregated catalog dict should
@@ -43,7 +43,7 @@ def resolve_config_paths(
 
 
 # ---------------------------------------------------------------------------
-# Config loading (cached per call — keeps reactive data fresh)
+# Config loading (cached per call - keeps reactive data fresh)
 # ---------------------------------------------------------------------------
 
 
@@ -66,7 +66,7 @@ def load_m4b_config(m4b_path: str) -> dict[str, Any]:
 
 
 # ---------------------------------------------------------------------------
-# Menu items — service wrappers
+# Menu items - service wrappers
 # ---------------------------------------------------------------------------
 
 
@@ -103,7 +103,7 @@ def get_system_info_text(
 
 
 # ---------------------------------------------------------------------------
-# Docker operations (blocking — run in a worker thread)
+# Docker operations (blocking - run in a worker thread)
 # ---------------------------------------------------------------------------
 
 
@@ -419,7 +419,6 @@ def get_generator_summary(
     from money4band.core.loader import load_json_config
 
     user = load_json_config(user_config_path)
-    m4b = load_json_config(m4b_config_path)
 
     device_name = user.get("device_info", {}).get("device_name", "?")
     proxy_enabled = user.get("proxies", {}).get("enabled", False)

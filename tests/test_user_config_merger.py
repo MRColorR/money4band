@@ -1,4 +1,4 @@
-"""Tests for money4band.apps.user_config_merger — bundle-completeness rule."""
+"""Tests for money4band.apps.user_config_merger - bundle-completeness rule."""
 
 from __future__ import annotations
 
@@ -81,7 +81,7 @@ class TestApplyUserConfigTemplates:
                 "honeygain": {
                     "enabled": True,
                     "email": "real@user.com",
-                    # password and service_enabled missing — must be filled
+                    # password and service_enabled missing - must be filled
                 }
             }
         }
@@ -97,7 +97,7 @@ class TestApplyUserConfigTemplates:
         assert "honeygain" in user_config["apps"]
 
     def test_apps_removed_from_catalog_keep_creds(self, catalog):
-        """Orphan slices are preserved — credentials do not auto-disappear."""
+        """Orphan slices are preserved - credentials do not auto-disappear."""
         user_config = {
             "apps": {
                 "honeygain": {"enabled": True, "email": "real@user.com"},

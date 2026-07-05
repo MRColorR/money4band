@@ -29,7 +29,7 @@ def load_external_offers(offers_path: str) -> list[dict[str, Any]]:
     (auto-migrated on first access when its sibling m4b-config triggers
     the migration path). When a monolithic JSON file is passed and no
     ``offers.d/`` sibling exists yet, its ``offers[]`` array is read
-    directly — this keeps ad-hoc/test callers working.
+    directly - this keeps ad-hoc/test callers working.
     """
     if os.path.isdir(offers_path):
         return read_offers_dir(offers_path)
@@ -38,7 +38,7 @@ def load_external_offers(offers_path: str) -> list[dict[str, Any]]:
     if os.path.isdir(sibling_dir):
         return read_offers_dir(sibling_dir)
     if os.path.isfile(offers_path):
-        # Legacy monolithic JSON — read directly as a last resort.
+        # Legacy monolithic JSON - read directly as a last resort.
         try:
             data = load_json_config(offers_path)
         except Exception:  # noqa: BLE001
@@ -51,7 +51,7 @@ def load_external_offers(offers_path: str) -> list[dict[str, Any]]:
 
 
 def _app_offers_from_config(app_config_path: str) -> list[dict[str, Any]]:
-    """Derive referral offers from the catalog — single source of truth.
+    """Derive referral offers from the catalog - single source of truth.
 
     Each supported app with a non-empty ``referrals`` pool becomes an
     offer entry with ``m4b_app=True``.  Earnings metadata is pulled from
@@ -101,7 +101,7 @@ def _app_offers_from_config(app_config_path: str) -> list[dict[str, Any]]:
                 ]
                 if cleaned:
                     bonus_parts.append(", ".join(cleaned))
-            bonus = " — ".join(bonus_parts) if bonus_parts else "Earn per GB shared"
+            bonus = " - ".join(bonus_parts) if bonus_parts else "Earn per GB shared"
 
             ip = details.get("ip_policy", {})
             notes_parts: list[str] = []

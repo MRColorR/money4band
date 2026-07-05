@@ -7,7 +7,7 @@ fix added (a) an explicit ``os.path.isfile`` check that prints a friendly
 message and aborts the step, and (b) an ``except OSError`` around the
 read for non-existence failures (permissions, locked file).
 
-These are sentinel tests — they don't drive the interactive setup
+These are sentinel tests - they don't drive the interactive setup
 wizard, they pin the structural guards in source so a regression to
 the bare ``open()`` form is caught in CI.
 """
@@ -32,7 +32,7 @@ def test_setup_has_isfile_guard_for_proxies_txt():
     assert re.search(
         r'os\.path\.isfile\(\s*[\'"]proxies\.txt[\'"]\s*\)',
         src,
-    ), "proxies.txt isfile() guard is missing — re-introduces P1-3 crash"
+    ), "proxies.txt isfile() guard is missing - re-introduces P1-3 crash"
 
 
 def test_setup_wraps_proxies_open_in_oserror_handler():
@@ -107,6 +107,6 @@ def test_setup_does_not_have_bare_proxies_open():
 
     Visitor().visit(tree)
     assert not bare_open_lines, (
-        f"Found unguarded open('proxies.txt') at line(s) {bare_open_lines} — "
+        f"Found unguarded open('proxies.txt') at line(s) {bare_open_lines} - "
         "wrap in try/except OSError to prevent first-run crashes."
     )

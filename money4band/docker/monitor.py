@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-"""Container health monitoring — query Docker for health status and restart-loop detection."""
+"""Container health monitoring - query Docker for health status and restart-loop detection."""
 
 import json
 import logging
@@ -120,7 +120,7 @@ def check_container_health(name: str) -> HealthStatus:
 
 
 def detect_restart_loops(name: str, threshold: int = 5) -> bool:
-    """Return True if container *name* has restarted ≥ *threshold* times."""
+    """Return True if container *name* has restarted >= *threshold* times."""
     status = check_container_health(name)
     return status.restart_count >= threshold
 

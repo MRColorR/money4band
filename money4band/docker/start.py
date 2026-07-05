@@ -163,7 +163,7 @@ def start_stack(
 
         result = run_docker_command(command, use_sudo=use_sudo)
         if result == 0:
-            # Securely wipe the .env — credentials should not persist on disk
+            # Securely wipe the .env - credentials should not persist on disk
             # after compose-up bakes them into running containers.
             secure_delete_env(env_file)
             print(

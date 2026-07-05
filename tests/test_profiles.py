@@ -1,4 +1,4 @@
-"""Tests for utils.profiles — configuration profiles."""
+"""Tests for utils.profiles - configuration profiles."""
 
 from __future__ import annotations
 

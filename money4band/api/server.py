@@ -44,7 +44,7 @@ from money4band.api.router_update import router as update_router
 
 logger = logging.getLogger(__name__)
 
-# OpenAPI security scheme — shows the "Authorize" padlock in Swagger UI.
+# OpenAPI security scheme - shows the "Authorize" padlock in Swagger UI.
 _bearer_scheme = {
     "BearerAuth": {
         "type": "http",
@@ -77,7 +77,7 @@ def _custom_openapi():  # type: ignore[no-untyped-def]
     schema.setdefault("components", {}).setdefault("securitySchemes", {}).update(
         _bearer_scheme
     )
-    # Apply globally — every endpoint requires it (middleware handles actual auth).
+    # Apply globally - every endpoint requires it (middleware handles actual auth).
     schema["security"] = [{"BearerAuth": []}]
     app.openapi_schema = schema
     return schema
@@ -125,7 +125,7 @@ async def _security_headers(request: Request, call_next):  # type: ignore[no-unt
 
 
 # ---------------------------------------------------------------------------
-# Rate limiting — per-IP sliding window, 60 requests / minute.
+# Rate limiting - per-IP sliding window, 60 requests / minute.
 # ---------------------------------------------------------------------------
 
 _RATE_LIMIT = 60  # max requests per window
@@ -137,7 +137,7 @@ _rate_log: dict[str, collections.deque[float]] = {}
 async def _rate_limit_middleware(request: Request, call_next):  # type: ignore[no-untyped-def]
     """Enforce a per-IP rate limit on API endpoints.
 
-    Loopback clients are exempt — the threat model targets remote access.
+    Loopback clients are exempt - the threat model targets remote access.
     """
     path = request.url.path
     if not path.startswith("/api/"):
@@ -171,7 +171,7 @@ async def _rate_limit_middleware(request: Request, call_next):  # type: ignore[n
 
 
 # ---------------------------------------------------------------------------
-# API-key auth — auto-generated, stored in user-config, localhost exempt.
+# API-key auth - auto-generated, stored in user-config, localhost exempt.
 # ---------------------------------------------------------------------------
 
 _LOOPBACK = frozenset({"127.0.0.1", "::1", "localhost"})
@@ -186,7 +186,7 @@ _PUBLIC_PREFIXES = (
 # Populated by configure() from user-config or freshly generated.
 _api_key: str = ""
 
-# True when the server is bound to a non-loopback address (0.0.0.0, LAN IP, …).
+# True when the server is bound to a non-loopback address (0.0.0.0, LAN IP, ...).
 # When exposed, the auth middleware NEVER skips auth even if no key is set
 # it will reject all non-localhost requests with 401.
 _exposed: bool = False
@@ -336,7 +336,7 @@ app.include_router(update_router)
 app.include_router(security_router)
 app.include_router(catalog_router)
 
-# Config directory — set at startup via configure()
+# Config directory - set at startup via configure()
 _config_dir: str = ""
 _ALLOWED_ACTIONS = {"start", "stop", "restart"}
 
@@ -519,7 +519,7 @@ async def container_action(container: str, action: str) -> dict[str, str]:
     if action not in _ALLOWED_ACTIONS:
         raise HTTPException(status_code=400, detail=f"Invalid action '{action}'")
 
-    # Sanitize container name — only allow alphanumeric, dash, underscore, dot
+    # Sanitize container name - only allow alphanumeric, dash, underscore, dot
     import re
 
     if not re.match(r"^[a-zA-Z0-9._-]+$", container):
@@ -619,17 +619,17 @@ def start_server(
     # Always verify port availability.
     resolved = find_dashboard_port(port)
     if resolved != port:
-        logger.warning("Port %d in use — falling back to %d", port, resolved)
+        logger.warning("Port %d in use - falling back to %d", port, resolved)
     port = resolved
 
     # Generate / load API key for remote access.
     key = ensure_api_key(_config_dir)
     if key:
-        logger.info("Dashboard API key: %s…", key[:8])
+        logger.info("Dashboard API key: %s...", key[:8])
 
     if _exposed and not key:
         logger.warning(
-            "Server is exposed on %s but no API key is configured — "
+            "Server is exposed on %s but no API key is configured - "
             "generating one automatically.",
             host,
         )

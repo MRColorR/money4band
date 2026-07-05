@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-"""Docker Compose file assembly — builds docker-compose.yaml from configuration.
+"""Docker Compose file assembly - builds docker-compose.yaml from configuration.
 
 Emits a single ``docker-compose.yaml``. Each service carries a
 ``profiles:`` array driven by its bundle's ``profile`` field, giving
@@ -10,8 +10,8 @@ selective startup via standard Docker Compose profile semantics
 Reserved profile names assigned by the generator (not valid as bundle
 ``profile`` values):
 
-- ``monitoring`` — Watchtower service.
-- ``proxy`` — tun2socks tunnel service (active when ``proxies.enabled``).
+- ``monitoring`` - Watchtower service.
+- ``proxy`` - tun2socks tunnel service (active when ``proxies.enabled``).
 
 Sidecars (entries with ``parent_id``) inherit their parent app's profile
 at generation time.
@@ -93,6 +93,21 @@ def substitute_port_placeholders(
     return new_ports
 
 
+def split_image_ref(image: str) -> tuple[str, str]:
+    """Split a Docker image reference into ``(name, tag)``.
+
+    Handles images with no tag (defaults to ``latest``) and registry hosts
+    that include a port, e.g. ``host:5000/repo/img``. A tag is only present
+    when a ``:`` appears in the final path segment (after the last ``/``);
+    otherwise any ``:`` belongs to a registry ``host:port``.
+    """
+    last_segment = image.rsplit("/", 1)[-1]
+    if ":" in last_segment:
+        name, tag = image.rsplit(":", 1)
+        return name, tag
+    return image, "latest"
+
+
 def assemble_docker_compose(
     m4b_config_path_or_dict: Any,
     app_config_path_or_dict: Any,
@@ -105,8 +120,8 @@ def assemble_docker_compose(
 
     Every service gets a ``profiles:`` array of one entry derived from its
     bundle's ``profile`` field (apps), inherited from the parent (addons),
-    or assigned by the generator (Watchtower → ``monitoring``,
-    tun2socks → ``proxy``).
+    or assigned by the generator (Watchtower -> ``monitoring``,
+    tun2socks -> ``proxy``).
 
     Args:
         m4b_config_path_or_dict (Any): The path to the m4b configuration file or the config dictionary.
@@ -157,7 +172,7 @@ def assemble_docker_compose(
                             app_compose_config["ports"], user_app_config["ports"]
                         )
                     image = app_compose_config["image"]
-                    image_name, image_tag = image.split(":")
+                    image_name, image_tag = split_image_ref(image)
                     docker_platform = user_app_config.get(
                         "docker_platform", default_docker_platform
                     )
@@ -312,7 +327,7 @@ def assemble_docker_compose(
                     ):
                         for addon in addons_for_app:
                             # Addon IDs are UPPER_SNAKE; compose service
-                            # names are kebab-case (HONEYGAIN_POT → honeygain-pot).
+                            # names are kebab-case (HONEYGAIN_POT -> honeygain-pot).
                             sidecar_name = addon["name"].lower().replace("_", "-")
                             sidecar_config = copy.deepcopy(addon["compose_config"])
                             # Apply same platform as the parent app
@@ -376,7 +391,7 @@ def assemble_docker_compose(
                         for e in wt_env
                         if not e.startswith("WATCHTOWER_NOTIFICATION_")
                     ]
-                # Watchtower only reads config, never writes — safe to lock filesystem
+                # Watchtower only reads config, never writes - safe to lock filesystem
                 watchtower_service.setdefault("read_only", True)
                 watchtower_service["profiles"] = [RESERVED_MONITORING_PROFILE]
                 services["watchtower"] = watchtower_service

@@ -64,4 +64,4 @@ RUN uv run pyinstaller --onedir \
     -y
 
 # Default command just copies artifacts (build already done in RUN step)
-CMD ["echo", "Build complete — copy artifacts from /app/dist"]
+CMD ["echo", "Build complete - copy artifacts from /app/dist"]

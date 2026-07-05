@@ -102,7 +102,7 @@ def main() -> int:
             all_findings.append((filepath, line_num, line_content, desc))
 
     if all_findings:
-        print("\n❌ Potential credentials detected in staged files:\n")
+        print("\n[x] Potential credentials detected in staged files:\n")
         for filepath, line_num, line_content, desc in all_findings:
             print(f"  {filepath}:{line_num}")
             print(f"    {desc}")

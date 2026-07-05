@@ -4,7 +4,7 @@
 
 <h1 align="center">Money4Band</h1>
 
-<h3 align="center">Earn passive income from your unused bandwidth — one command, all apps.</h3>
+<h3 align="center">Earn passive income from your unused bandwidth - one command, all apps.</h3>
 
 <p align="center">
   <a href="https://github.com/MRColorR/money4band/releases/latest"><img src="https://img.shields.io/github/v/release/MRColorR/money4band?style=flat&label=Version" alt="Version"></a>
@@ -20,7 +20,7 @@
   <img src="https://img.shields.io/badge/macOS-444444?style=flat-square&logo=apple&logoColor=white" alt="macOS">
 </p>
 
-<p align="center"><b>If you like this project, leave a ⭐. It helps more than you think.</b></p>
+<p align="center"><b>If you like this project, leave a . It helps more than you think.</b></p>
 
 ---
 
@@ -54,7 +54,7 @@ Our maintainers and community **research** every app, **verify** its background,
 | **RAM** | 1 GB minimum (2 GB+ recommended) |
 | **Python** | 3.10+ (only for "from source" installs) |
 
-## ⚡ Quick Start
+## Quick Start
 
 ### Option A: Download & Run (recommended)
 
@@ -83,77 +83,77 @@ uv sync && uv run python main.py
 
 ---
 
-## 🚀 Key Features
+## Key Features
 
-- 🧭 **CLI + Guided Setup.** Interactive wizard for beginners, `m4b` subcommands for power users — no Docker Compose files or manual configs needed.
-- 🔒 **Safer than running apps natively.** Every app runs in its own isolated Docker container — no host installs, no conflicts, no leftover junk.
-- 🔐 **Encrypted credentials.** All tokens, passwords, and API keys are encrypted at rest. Nothing is stored in plain text.
-- 🌍 **Multi-proxy scaling.** Multiple IPs, multiple instances, one unified configuration.
-- 🔄 **Auto-updates.** Watchtower keeps every app image fresh without you doing anything.
-- 📊 **Web dashboard.** All your apps, one clean interface.
-- 🧠 **Auto-claim sidecars.** Daily rewards like Lucky Pot are claimed automatically for you.
-- 🧩 **Resource limit profiles.** Fine-tune CPU and RAM per app with simple presets.
-- 🛰️ **IP quality scoring.** Know your IP reputation before deploying.
-- 💾 **Backup & restore.** One command to back up or restore your encrypted config.
-- 🔔 **Webhook notifications.** Stack events pushed to Discord, Telegram, or anywhere Shoutrrr reaches.
-- 🖥️ **Cross-platform.** Windows, Linux, macOS. amd64 and arm64.
-- 🔧 **Self-update.** `m4b update` keeps the CLI itself up to date.
+- **CLI + Guided Setup.** Interactive wizard for beginners, `m4b` subcommands for power users - no Docker Compose files or manual configs needed.
+- **Safer than running apps natively.** Every app runs in its own isolated Docker container - no host installs, no conflicts, no leftover junk.
+- **Encrypted credentials.** All tokens, passwords, and API keys are encrypted at rest. Nothing is stored in plain text.
+- **Multi-proxy scaling.** Multiple IPs, multiple instances, one unified configuration.
+- **Auto-updates.** Watchtower keeps every app image fresh without you doing anything.
+- **Web dashboard.** All your apps, one clean interface.
+- **Auto-claim sidecars.** Daily rewards like Lucky Pot are claimed automatically for you.
+- **Resource limit profiles.** Fine-tune CPU and RAM per app with simple presets.
+- **IP quality scoring.** Know your IP reputation before deploying.
+- **Backup & restore.** One command to back up or restore your encrypted config.
+- **Webhook notifications.** Stack events pushed to Discord, Telegram, or anywhere Shoutrrr reaches.
+- **Cross-platform.** Windows, Linux, macOS. amd64 and arm64.
+- **Self-update.** `m4b update` keeps the CLI itself up to date.
 
 ---
 
-## 📋 Supported Apps
+## Supported Apps
 
 **35 apps** tracked across the ecosystem. [Full details, earnings estimates, and registration links here.](docs/APPS.md)
 
-> **Type legend:** 🟢 core (out-of-box) · 📜 community (opt-in via `m4b catalog sources enable community`) · 🌱 newcomer (no Docker image yet — opt-in via `m4b catalog add openpassivehub`) · 🔴 deprecated.
+> **Type legend:** [ok] core (out-of-box) - [com] community (opt-in via `m4b catalog sources enable community`) - [new] newcomer (no Docker image yet - opt-in via `m4b catalog add openpassivehub`) - [x] deprecated.
 >
 > App links below include referral codes that support the project at no cost to you.
 
 <!-- BEGIN:APPS_TABLE -->
 | Type | App | Residential | VPS/DC | Payout |
 |:----:|-----|:-----------:|:------:|--------|
-| 🟢 | [**AntGain**](https://antgain.app) | ✅ | — | — |
-| 🟢 | [**BearShare**](https://bearshare.io) | ✅ | — | — |
-| 🟢 | [**Bitping**](https://app.bitping.com?r=qm7mIuX3) | ✅ | ✅ | BITPING token (crypto), USDC |
-| 🟢 | [**Earn.FM**](https://earn.fm/ref/MATTTAV6) | ✅ | ✅ | PayPal, USDT, gift cards |
-| 📜 | [**EarnApp**](https://earnapp.com/i/3zulx7k) | ✅ | ❌ | PayPal, gift cards, crypto |
-| 📜 | [**GaGaNode**](https://www.gaganode.com) | ✅ | — | GaGa token (crypto) |
-| 🟢 | [**Honeygain**](https://r.honeygain.me/MINDL15721) | ✅ | ❌ | JumpToken (crypto), PayPal (via JumpTask) |
-| 🟢 | [**Mysterium**](https://mystnodes.co/?referral_code=Tc7RaS7Fm12K3Xun6mlU9q9hbnjojjl9aRBW8ZA9) | ✅ | ✅ | MYST token, ETH, BNB |
-| 🟢 | [**PacketShare**](https://www.packetshare.io/?code=A260871CFD822E35) | ✅ | — | — |
-| 🟢 | [**PacketStream**](https://packetstream.io/?psr=3zSD) | ✅ | ❌ | PayPal |
-| 🟢 | [**Pawns (IPRoyal)**](https://pawns.app?r=MiNe) | ✅ | ❌ | PayPal, crypto, gift cards |
-| 🟢 | [**ProxyLite**](https://proxylite.ru/?r=PJTKXWN3) | ✅ | ✅ | crypto |
-| 🟢 | [**Proxyrack Peer Program**](https://peer.proxyrack.com/ref/myoas6qttvhuvkzh8ffx90ns1ouhwgilfgamo5ex) | ✅ | ✅ | PayPal, crypto |
-| 🟢 | [**Repocket**](https://link.repocket.co/hr8i) | ✅ | ✅ | PayPal, crypto |
-| 📜 | [**Spide Network**](https://spide.network) | ✅ | ✅ | PayPal, crypto |
-| 🟢 | [**Titan Network**](https://titannet.io) | ✅ | — | — |
-| 🟢 | [**TraffMonetizer**](https://traffmonetizer.com/?aff=366499) | ✅ | ✅ | PayPal, crypto, wire transfer |
-| 🟢 | [**URnetwork**](https://urnetwork.com) | ✅ | — | — |
-| 🌱 | [**Adnade**](https://adnade.com) | ✅ | — | — |
-| 🌱 | [**ByteBenefit**](https://bytebenefit.com) | ✅ | — | — |
-| 🌱 | [**Bytelixir**](https://bytelixir.com) | ✅ | — | crypto |
-| 🌱 | [**Earn.cc**](https://earn.cc) | ✅ | — | — |
-| 🌱 | [**Ebesucher**](https://www.ebesucher.com) | ✅ | — | — |
-| 🌱 | [**PassiveApp**](https://passiveapp.io) | ✅ | — | — |
-| 🌱 | [**Salad**](https://salad.com) | ✅ | ❌ | — |
-| 🌱 | [**UpRock**](https://uprock.com) | ✅ | — | — |
-| 🔴 | [**Dawn Internet**](https://dawninternet.com?code=xo23vynw) | ✅ | — | — |
-| 🔴 | [**Gradient**](https://app.gradient.network/signup?code=9WOBKP) | ✅ | — | — |
-| 🔴 | [**Grass (Wynd Network)**](https://app.getgrass.io/register/?referralCode=qyvJmxgNUhcLo2f) | ✅ | ❌ | GRASS token (crypto) |
-| 🔴 | [**Peer2Profit**](https://t.me/peer2profit_app_bot?start=165849012262da8d0aa13c8) | — | — | — |
-| 🔴 | [**ProxyBase**](http://peer.proxybase.org/signup?ref=XfOz3zeURm) | — | — | — |
-| 🔴 | [**SpeedShare**](https://speedshare.app/?ref=mindlessnerd) | — | — | — |
-| 🔴 | [**Teneo Protocol**](https://dashboard.teneo.pro/?code=qPgLn) | ✅ | — | — |
-| 🔴 | [**Wipter**](https://wipter.com/signup?ref=money4band) | — | — | — |
-| 🔴 | [**WizardGain**](https://wizardgain.com) | ✅ | ✅ | — |
+| [ok] | [**AntGain**](https://antgain.app) | [ok] | - | - |
+| [ok] | [**BearShare**](https://bearshare.io) | [ok] | - | - |
+| [ok] | [**Bitping**](https://app.bitping.com?r=qm7mIuX3) | [ok] | [ok] | BITPING token (crypto), USDC |
+| [ok] | [**Earn.FM**](https://earn.fm/ref/MATTTAV6) | [ok] | [ok] | PayPal, USDT, gift cards |
+| [com] | [**EarnApp**](https://earnapp.com/i/3zulx7k) | [ok] | [x] | PayPal, gift cards, crypto |
+| [com] | [**GaGaNode**](https://www.gaganode.com) | [ok] | - | GaGa token (crypto) |
+| [ok] | [**Honeygain**](https://r.honeygain.me/MINDL15721) | [ok] | [x] | JumpToken (crypto), PayPal (via JumpTask) |
+| [ok] | [**Mysterium**](https://mystnodes.co/?referral_code=Tc7RaS7Fm12K3Xun6mlU9q9hbnjojjl9aRBW8ZA9) | [ok] | [ok] | MYST token, ETH, BNB |
+| [ok] | [**PacketShare**](https://www.packetshare.io/?code=A260871CFD822E35) | [ok] | - | - |
+| [ok] | [**PacketStream**](https://packetstream.io/?psr=3zSD) | [ok] | [x] | PayPal |
+| [ok] | [**Pawns (IPRoyal)**](https://pawns.app?r=MiNe) | [ok] | [x] | PayPal, crypto, gift cards |
+| [ok] | [**ProxyLite**](https://proxylite.ru/?r=PJTKXWN3) | [ok] | [ok] | crypto |
+| [ok] | [**Proxyrack Peer Program**](https://peer.proxyrack.com/ref/myoas6qttvhuvkzh8ffx90ns1ouhwgilfgamo5ex) | [ok] | [ok] | PayPal, crypto |
+| [ok] | [**Repocket**](https://link.repocket.co/hr8i) | [ok] | [ok] | PayPal, crypto |
+| [com] | [**Spide Network**](https://spide.network) | [ok] | [ok] | PayPal, crypto |
+| [ok] | [**Titan Network**](https://titannet.io) | [ok] | - | - |
+| [ok] | [**TraffMonetizer**](https://traffmonetizer.com/?aff=366499) | [ok] | [ok] | PayPal, crypto, wire transfer |
+| [ok] | [**URnetwork**](https://urnetwork.com) | [ok] | - | - |
+| [new] | [**Adnade**](https://adnade.com) | [ok] | - | - |
+| [new] | [**ByteBenefit**](https://bytebenefit.com) | [ok] | - | - |
+| [new] | [**Bytelixir**](https://bytelixir.com) | [ok] | - | crypto |
+| [new] | [**Earn.cc**](https://earn.cc) | [ok] | - | - |
+| [new] | [**Ebesucher**](https://www.ebesucher.com) | [ok] | - | - |
+| [new] | [**PassiveApp**](https://passiveapp.io) | [ok] | - | - |
+| [new] | [**Salad**](https://salad.com) | [ok] | [x] | - |
+| [new] | [**UpRock**](https://uprock.com) | [ok] | - | - |
+| [x] | [**Dawn Internet**](https://dawninternet.com?code=xo23vynw) | [ok] | - | - |
+| [x] | [**Gradient**](https://app.gradient.network/signup?code=9WOBKP) | [ok] | - | - |
+| [x] | [**Grass (Wynd Network)**](https://app.getgrass.io/register/?referralCode=qyvJmxgNUhcLo2f) | [ok] | [x] | GRASS token (crypto) |
+| [x] | [**Peer2Profit**](https://t.me/peer2profit_app_bot?start=165849012262da8d0aa13c8) | - | - | - |
+| [x] | [**ProxyBase**](http://peer.proxybase.org/signup?ref=XfOz3zeURm) | - | - | - |
+| [x] | [**SpeedShare**](https://speedshare.app/?ref=mindlessnerd) | - | - | - |
+| [x] | [**Teneo Protocol**](https://dashboard.teneo.pro/?code=qPgLn) | [ok] | - | - |
+| [x] | [**Wipter**](https://wipter.com/signup?ref=money4band) | - | - | - |
+| [x] | [**WizardGain**](https://wizardgain.com) | [ok] | [ok] | - |
 <!-- END:APPS_TABLE -->
 
-> 📋 **[Registration links, earnings estimates, and full details](docs/APPS.md)**
+> **[Registration links, earnings estimates, and full details](docs/APPS.md)**
 
 ---
 
-## 🧪 Tested On
+## Tested On
 
 | Platform | Architecture | Devices |
 |----------|:------------|:--------|
@@ -163,33 +163,33 @@ uv sync && uv run python main.py
 
 ---
 
-## 📖 Documentation
+## Documentation
 
 | | |
 |---|---|
-| 📖 [Getting Started](docs/getting-started.md) | 🏗️ [Architecture](docs/ARCHITECTURE.md) |
-| 📋 [CLI Reference](docs/cli-reference.md) | 📦 [Package Structure](docs/package-structure.md) |
-| 📊 [Dashboard & API](docs/dashboard-api.md) | 🌍 [Proxy & Multi-Proxy](docs/proxy-setup.md) |
-| 🧩 [App Management](docs/app-management.md) | ⚙️ [Configuration](docs/configuration.md) |
-| 🔒 [Security](docs/security.md) | 🔔 [Notifications](docs/notifications.md) |
-| ❓ [FAQ & Troubleshooting](docs/faq.md) | 📋 [App Directory](docs/APPS.md) |
+| [Getting Started](docs/getting-started.md) | [Architecture](docs/ARCHITECTURE.md) |
+| [CLI Reference](docs/cli-reference.md) | [Package Structure](docs/package-structure.md) |
+| [Dashboard & API](docs/dashboard-api.md) | [Proxy & Multi-Proxy](docs/proxy-setup.md) |
+| [App Management](docs/app-management.md) | [Configuration](docs/configuration.md) |
+| [Security](docs/security.md) | [Notifications](docs/notifications.md) |
+| [FAQ & Troubleshooting](docs/faq.md) | [App Directory](docs/APPS.md) |
 
 ---
 
-## 💬 Community & Support
+## Community & Support
 
-- 🚀 [**Discord**](https://discord.com/invite/Fq8eeazBAD) for chat, help, and shared experiences
-- 💡 [**Discussions**](https://github.com/MRColorR/money4band/discussions) for feature requests and ideas
-- 🐛 [**Issues**](https://github.com/MRColorR/money4band/issues) for bug reports
+- [**Discord**](https://discord.com/invite/Fq8eeazBAD) for chat, help, and shared experiences
+- [**Discussions**](https://github.com/MRColorR/money4band/discussions) for feature requests and ideas
+- [**Issues**](https://github.com/MRColorR/money4band/issues) for bug reports
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please read the [Contributing Guide](.github/CONTRIBUTING.md) and [Code of Conduct](.github/CODE_OF_CONDUCT.md) before opening a pull request.
 
 ---
 
 <details>
-<summary>💝 <b>Support the Project</b></summary>
+<summary><b>Support the Project</b></summary>
 
 If M4B saves you time or earns you money, consider giving back. Every bit helps keep this project alive.
 
@@ -200,7 +200,7 @@ If M4B saves you time or earns you money, consider giving back. Every bit helps 
 - **BNB:** `0xE65c32004b968cd1b4084bC3484C0dA051eeD3ee`
 
 **Platforms:**
-[Patreon](https://patreon.com/mrcolorrain) · [Buy Me a Coffee](https://buymeacoffee.com/mrcolorrain) · [Ko-fi](https://ko-fi.com/mrcolorrain)
+[Patreon](https://patreon.com/mrcolorrain) - [Buy Me a Coffee](https://buymeacoffee.com/mrcolorrain) - [Ko-fi](https://ko-fi.com/mrcolorrain)
 
 </details>
 
@@ -212,6 +212,6 @@ If M4B saves you time or earns you money, consider giving back. Every bit helps 
 
 ---
 
-## ⚠️ Disclaimer
+## [!] Disclaimer
 
 This project and its artifacts are provided "as is" and without warranty of any kind. The author makes no warranties, express or implied, that this script is free of errors, defects, or suitable for any particular purpose. The author shall not be retained liable for any damages suffered by any user of this script, whether direct, indirect, incidental, consequential, or special, arising from the use of or inability to use this script or its documentation, even if the author has been advised of the possibility of such damages. Always verify that the laws of your country and your ISP's terms allow these applications.

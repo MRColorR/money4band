@@ -1,4 +1,4 @@
-"""Tests for money4band.ui.notification_setup — URL validation."""
+"""Tests for money4band.ui.notification_setup - URL validation."""
 
 from __future__ import annotations
 

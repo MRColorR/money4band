@@ -3,7 +3,7 @@
 Covers:
 * catalog_store.read_addons_dir (filesystem reader).
 * LocalSource.load_addons / RemoteSource.load_addons.
-* aggregate_from_sources → top-level ``addons`` list (first-wins).
+* aggregate_from_sources -> top-level ``addons`` list (first-wins).
 * money4band.apps.addons.get_addons_for lookup.
 * remote_cache.split_addons_from_manifest + replace_entries(addons=...).
 """

@@ -1,4 +1,4 @@
-"""Container monitoring API — health, stats, restart-loop detection."""
+"""Container monitoring API - health, stats, restart-loop detection."""
 
 from __future__ import annotations
 

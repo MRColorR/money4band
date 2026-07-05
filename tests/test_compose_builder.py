@@ -1,4 +1,4 @@
-"""Tests for money4band.docker.compose_builder — single-file generation + profiles."""
+"""Tests for money4band.docker.compose_builder - single-file generation + profiles."""
 
 from __future__ import annotations
 
@@ -14,8 +14,42 @@ from money4band.docker.compose_builder import (
     RESERVED_PROXY_PROFILE,
     assemble_docker_compose,
     get_compose_files,
+    split_image_ref,
     substitute_port_placeholders,
 )
+
+
+class TestSplitImageRef:
+    """Regression: a tagless image used to crash assembly with
+    'not enough values to unpack (expected 2, got 1)' via image.split(':')."""
+
+    def test_tagless_image_defaults_to_latest(self):
+        assert split_image_ref("bearshare/bearshare") == (
+            "bearshare/bearshare",
+            "latest",
+        )
+        assert split_image_ref("nezha123/titan-edge") == (
+            "nezha123/titan-edge",
+            "latest",
+        )
+
+    def test_tagged_image(self):
+        assert split_image_ref("honeygain/honeygain:latest") == (
+            "honeygain/honeygain",
+            "latest",
+        )
+        assert split_image_ref("repo/img:v2.1") == ("repo/img", "v2.1")
+
+    def test_registry_with_port(self):
+        # The ':' in host:port must not be mistaken for a tag separator.
+        assert split_image_ref("host:5000/repo/img") == (
+            "host:5000/repo/img",
+            "latest",
+        )
+        assert split_image_ref("host:5000/repo/img:v2") == (
+            "host:5000/repo/img",
+            "v2",
+        )
 
 # ---------------------------------------------------------------------------
 # get_compose_files
@@ -32,7 +66,7 @@ class TestGetComposeFiles:
         assert get_compose_files(str(tmp_path)) == []
 
     def test_legacy_layer_files_ignored(self, tmp_path: Path) -> None:
-        """v5 ignores leftover layered files — generator cleans them up."""
+        """v5 ignores leftover layered files - generator cleans them up."""
         for legacy in (
             "compose.yml",
             "compose.residential.yml",
@@ -70,7 +104,7 @@ class TestSubstitutePortPlaceholders:
 
 
 # ---------------------------------------------------------------------------
-# assemble_docker_compose — single-file output with profiles: arrays
+# assemble_docker_compose - single-file output with profiles: arrays
 # ---------------------------------------------------------------------------
 
 
@@ -171,7 +205,7 @@ class TestAssembleDockerCompose:
         self, _http, _arch, tmp_path: Path
     ) -> None:
         m4b, app, user = _make_configs(tmp_path)
-        # Drop the explicit field — generator should fall back to datacenter.
+        # Drop the explicit field - generator should fall back to datacenter.
         del app["supported"]["entries"][0]["profile"]
         out = str(tmp_path / "docker-compose.yaml")
         assemble_docker_compose(m4b, app, user, out, is_main_instance=False)

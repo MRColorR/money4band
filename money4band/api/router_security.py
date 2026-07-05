@@ -1,4 +1,4 @@
-"""Docker image security API — stale images, digests, CVE scanning."""
+"""Docker image security API - stale images, digests, CVE scanning."""
 
 from __future__ import annotations
 

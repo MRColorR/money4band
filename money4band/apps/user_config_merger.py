@@ -1,6 +1,6 @@
 """Merge per-app ``user_config_template`` slices from the catalog into user-config.
 
-Each catalog entry carries a ``user_config_template`` field — the default
+Each catalog entry carries a ``user_config_template`` field - the default
 user-config slice for that app.  This module provides the single seam that
 materialises those defaults into the live ``user-config.json``.
 
@@ -9,7 +9,7 @@ The merge is **non-destructive**:
 * Existing user values are never overwritten.
 * Only missing keys are filled in from the template.
 * Apps already present in user-config keep all their keys (including
-  credentials, ports, sidecar flags) — so removing or moving an app out
+  credentials, ports, sidecar flags) - so removing or moving an app out
   of the catalog does not orphan its stored credentials.
 
 Usage:
@@ -82,7 +82,7 @@ def apply_user_config_templates(
 
         current = apps.get(app_name)
         if not isinstance(current, dict):
-            # Brand-new app — deep-copy the template so later mutations do
+            # Brand-new app - deep-copy the template so later mutations do
             # not alias back into the catalog.
             apps[app_name] = copy.deepcopy(template)
             new_app_count += 1

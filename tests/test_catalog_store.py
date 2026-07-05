@@ -224,7 +224,7 @@ class TestMigration:
         migrate_catalog_file(config)
         backup = config.with_suffix(config.suffix + LEGACY_BACKUP_SUFFIX)
         original_mtime = backup.stat().st_mtime
-        # Re-migrate a fresh monolithic file — backup should stay untouched
+        # Re-migrate a fresh monolithic file - backup should stay untouched
         config.write_text(json.dumps(monolithic_payload))
         migrate_catalog_file(config)
         # Backup's mtime unchanged (not overwritten)
@@ -244,7 +244,7 @@ class TestLoaderIntegration:
         config = tmp_path / "m4b-config.json"
         config.write_text(json.dumps(monolithic_payload))
         result = load_app_config_with_overlays(str(config))
-        # Migrated → per-file bundles exist
+        # Migrated -> per-file bundles exist
         assert (catalog_root(config) / "supported" / "HONEYGAIN.json").exists()
         # In-memory shape is the historical one
         assert {e["name"] for e in result["supported"]["entries"]} == {

@@ -73,7 +73,7 @@ def test_show_docker_guide_unknown_os(mock_system, capsys):
 
 
 # ---------------------------------------------------------------------------
-# main — already installed
+# main - already installed
 # ---------------------------------------------------------------------------
 
 
@@ -93,7 +93,7 @@ def test_main_docker_already_installed(
 
 
 # ---------------------------------------------------------------------------
-# main — auto-install offered and accepted
+# main - auto-install offered and accepted
 # ---------------------------------------------------------------------------
 
 
@@ -148,12 +148,12 @@ def test_main_auto_install_accepted_fails_shows_guide(
         {"linux": ("curl", mock_installer, "test cmd")},
     ):
         main("a", "b", "c")
-    # Installer failed → guide shown as fallback
+    # Installer failed -> guide shown as fallback
     mock_guide.assert_called_once()
 
 
 # ---------------------------------------------------------------------------
-# main — auto-install offered but declined
+# main - auto-install offered but declined
 # ---------------------------------------------------------------------------
 
 
@@ -179,7 +179,7 @@ def test_main_auto_install_declined_shows_guide(
 
 
 # ---------------------------------------------------------------------------
-# main — tool not available, straight to guide
+# main - tool not available, straight to guide
 # ---------------------------------------------------------------------------
 
 

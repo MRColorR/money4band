@@ -1,16 +1,16 @@
-"""Catalog store — read/write the per-file catalog layout.
+"""Catalog store - read/write the per-file catalog layout.
 
 Layout (v2.1):
 
-    config/m4b-config.json      ← project config + catalog envelope
+    config/m4b-config.json      <- project config + catalog envelope
                                   (``"catalog": {app_config_version,
                                    catalog_sources, categories}``)
     config/catalog/
-        supported/<NAME>.json   ← one CatalogEntry per file
+        supported/<NAME>.json   <- one CatalogEntry per file
         newcomers/<NAME>.json
         deprecated/<NAME>.json
 
-Envelope shape (lives under ``m4b-config.json → catalog``)::
+Envelope shape (lives under ``m4b-config.json -> catalog``)::
 
     {
         "app_config_version": 2.0,
@@ -74,7 +74,7 @@ def is_envelope(payload: dict[str, Any]) -> bool:
     if "categories" not in payload:
         return False
     # If any legacy top-level category dict carries "entries", it's still
-    # monolithic — not an envelope yet.
+    # monolithic - not an envelope yet.
     for cat in CATEGORIES:
         cat_val = payload.get(cat)
         if isinstance(cat_val, dict) and "entries" in cat_val:
@@ -83,7 +83,7 @@ def is_envelope(payload: dict[str, Any]) -> bool:
 
 
 def extract_envelope(payload: dict[str, Any]) -> dict[str, Any]:
-    """Return the envelope subtree — unwraps ``payload["catalog"]`` if present.
+    """Return the envelope subtree - unwraps ``payload["catalog"]`` if present.
 
     When the envelope is folded into ``m4b-config.json`` it lives under
     the ``catalog`` key. For legacy standalone envelope files the payload
@@ -249,7 +249,7 @@ def move_entry(
     the source does not exist.
     """
     if from_category not in CATEGORIES or to_category not in CATEGORIES:
-        raise ValueError(f"Unknown category ({from_category} → {to_category})")
+        raise ValueError(f"Unknown category ({from_category} -> {to_category})")
     src = catalog_root(config_path) / from_category / _entry_filename(name)
     if not src.is_file():
         raise FileNotFoundError(f"Catalog entry not found: {src}")
@@ -266,7 +266,7 @@ def move_entry(
 def set_category_active(config_path: str | Path, category: str, active: bool) -> None:
     """Flip the ``active`` flag for *category* inside the envelope.
 
-    Supports both the folded layout (``m4b-config.json → catalog``) and a
+    Supports both the folded layout (``m4b-config.json -> catalog``) and a
     standalone envelope file; writes back in whatever shape was read.
     """
     if category not in CATEGORIES:

@@ -4,18 +4,18 @@
 Merges three sources so the README reflects the **full ecosystem**, not
 just the core repo:
 
-1. ``money4band`` core — `config/m4b-config.json` (15 supported apps).
-2. ``money4band-community-catalog`` — sibling repo's `manifest.json`
+1. ``money4band`` core - `config/m4b-config.json` (15 supported apps).
+2. ``money4band-community-catalog`` - sibling repo's `manifest.json`
    (community-supported + community-deprecated + addons).
-3. ``openpassivehub-catalog`` — sibling repo's `manifest.json`
+3. ``openpassivehub-catalog`` - sibling repo's `manifest.json`
    (newcomers with no Docker image yet).
 
 Each merged entry is tagged with a ``_source`` field so the table
 generator can render the per-row indicator emoji
-(🟢 core · 📜 community · 🌱 newcomer · 🔴 deprecated).
+([ok] core | [com] community | [new] newcomer | [x] deprecated).
 
 Sibling repos are looked up at ``<money4band-parent>/<sibling>/manifest.json``.
-Missing siblings are skipped silently with a one-line warning — the
+Missing siblings are skipped silently with a one-line warning - the
 script still produces a core-only table in that case.
 
 Usage (from project root):
@@ -35,11 +35,6 @@ import sys
 from pathlib import Path
 from typing import Any
 
-for _stream in (sys.stdout, sys.stderr):
-    reconfigure = getattr(_stream, "reconfigure", None)
-    if callable(reconfigure):
-        reconfigure(encoding="utf-8", errors="replace")
-
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
@@ -54,7 +49,7 @@ _SIBLING_SOURCES: dict[str, str] = {
 }
 
 # Categories whose entries we want in the README/APPS table. ``addons``
-# (sidecars) are excluded — they're infrastructure helpers, not apps.
+# (sidecars) are excluded - they're infrastructure helpers, not apps.
 _TABLE_CATEGORIES: tuple[str, ...] = ("supported", "newcomers", "deprecated")
 
 
@@ -100,12 +95,12 @@ def load_combined_config(*, core_only: bool = False) -> dict[str, Any]:
     for source_label, sibling_dir in _SIBLING_SOURCES.items():
         manifest_path = parent / sibling_dir / "manifest.json"
         if not manifest_path.is_file():
-            print(f"⚠  Sibling missing: {manifest_path} — skipping {source_label}")
+            print(f"[!]  Sibling missing: {manifest_path} - skipping {source_label}")
             continue
         try:
             sibling_raw = json.loads(manifest_path.read_text(encoding="utf-8"))
         except (OSError, ValueError) as exc:
-            print(f"⚠  Could not read {manifest_path}: {exc}")
+            print(f"[!]  Could not read {manifest_path}: {exc}")
             continue
         _merge_sibling(combined, _tag_entries(sibling_raw, source_label))
 
@@ -152,31 +147,31 @@ def main() -> int:
 
         stale = False
         if readme_before != readme_after:
-            print("❌ README.md app table is stale")
+            print("[x] README.md app table is stale")
             stale = True
         if apps_md_before != apps_md_after:
-            print("❌ docs/APPS.md app table is stale")
+            print("[x] docs/APPS.md app table is stale")
             stale = True
 
         if stale:
             print("\nRun: python scripts/update_tables.py")
             return 1
 
-        print("✅ All app tables are up-to-date")
+        print("[ok] All app tables are up-to-date")
         return 0
 
     ok = True
     if update_readme(app_config, readme_path):
-        print(f"✅ Updated {readme_path}")
+        print(f"[ok] Updated {readme_path}")
     else:
-        print(f"⚠  Could not update {readme_path}")
+        print(f"[!]  Could not update {readme_path}")
         ok = False
 
     if apps_md_path.exists():
         if update_apps_md(app_config, apps_md_path):
-            print(f"✅ Updated {apps_md_path}")
+            print(f"[ok] Updated {apps_md_path}")
         else:
-            print(f"⚠  Could not update {apps_md_path}")
+            print(f"[!]  Could not update {apps_md_path}")
             ok = False
 
     return 0 if ok else 1

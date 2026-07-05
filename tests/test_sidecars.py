@@ -7,7 +7,7 @@ from unittest import mock
 import pytest
 
 # ---------------------------------------------------------------------------
-# Fixtures — minimal configs that satisfy compose_builder / app_configurator
+# Fixtures - minimal configs that satisfy compose_builder / app_configurator
 # ---------------------------------------------------------------------------
 
 _HONEYGAIN_APP = {
@@ -147,7 +147,7 @@ def _user_config(apps_override=None):
 
 
 # ---------------------------------------------------------------------------
-# compose_builder — sidecar service generation
+# compose_builder - sidecar service generation
 # ---------------------------------------------------------------------------
 
 
@@ -328,7 +328,7 @@ class TestSidecarComposeGeneration:
 
 
 # ---------------------------------------------------------------------------
-# app_configurator — sidecar prompt during setup
+# app_configurator - sidecar prompt during setup
 # ---------------------------------------------------------------------------
 
 
@@ -341,7 +341,7 @@ class TestSidecarSetupPrompt:
         user_config = _user_config()
         user_config["apps"]["honeygain"] = {"enabled": False}
 
-        # Simulate: enable app → enter email → enter password → enable sidecar
+        # Simulate: enable app -> enter email -> enter password -> enable sidecar
         with mock.patch(
             "money4band.apps.configurator.ask_question_yn", side_effect=[True, True]
         ):
@@ -520,6 +520,6 @@ class TestUserConfigTemplate:
         with open(tpl_path) as f:
             template = json.load(f)
         assert template["apps"] == {}, (
-            "template/user-config.json must have apps: {} — "
+            "template/user-config.json must have apps: {} - "
             "per-app slices are declared in each catalog bundle."
         )

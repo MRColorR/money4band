@@ -147,7 +147,7 @@ class TestBackupBoundaryConditions:
     """Binary content, empty files, zero-keep cleanup, and missing parent dirs."""
 
     def test_restore_preserves_binary_content(self, tmp_path, _isolated_backup_dir):
-        """Encrypted (binary) configs must survive backup→restore round-trip."""
+        """Encrypted (binary) configs must survive backup->restore round-trip."""
         cfg = tmp_path / "user-config.json"
         binary_data = bytes(range(256))  # all byte values
         cfg.write_bytes(binary_data)

@@ -125,7 +125,7 @@ class TestStatusRetryTransport:
 
         resp = client.post("http://x/", json={})
         assert resp.status_code == 200
-        # 3 retries → 1, 2, 4 second waits.
+        # 3 retries -> 1, 2, 4 second waits.
         assert sleeps == [1.0, 2.0, 4.0]
 
 

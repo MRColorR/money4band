@@ -1,4 +1,4 @@
-"""Tests for money4band.docker.stop — stack stop logic."""
+"""Tests for money4band.docker.stop - stack stop logic."""
 
 from __future__ import annotations
 
@@ -88,7 +88,7 @@ class TestStopStack:
         stop_stack(compose_file="compose.yml", skip_questions=True)
         cmd = mock_run.call_args[0][0]
         # Should include monitoring and proxy profiles (dashboard is no
-        # longer a Docker service — it runs as a standalone FastAPI process).
+        # longer a Docker service - it runs as a standalone FastAPI process).
         profile_indices = [i for i, c in enumerate(cmd) if c == "--profile"]
         profiles = [cmd[i + 1] for i in profile_indices]
         assert "monitoring" in profiles

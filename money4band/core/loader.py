@@ -90,12 +90,12 @@ def load_app_config_with_overlays(
 
     1. If *config_path* still points at a legacy standalone envelope
        file, one-shot auto-migrate it: first to the per-file layout,
-       then fold the envelope into ``m4b-config.json → catalog``. The
+       then fold the envelope into ``m4b-config.json -> catalog``. The
        legacy file is renamed with a ``.v1.bak`` suffix.
     2. Read the payload and extract its envelope (unwrap the
        ``catalog`` key if it's an m4b-config payload).
     3. Overlay user-owned catalog overrides from
-       ``user-config.json → catalog_overrides`` (source enable/disable,
+       ``user-config.json -> catalog_overrides`` (source enable/disable,
        custom user-added sources, category activation, removals).
     4. Expand the envelope into the in-memory shape
        ``{<category>: {"active": bool, "entries": [...]}}`` by reading
@@ -105,7 +105,7 @@ def load_app_config_with_overlays(
        (falls back to ``os.path.dirname(config_path) + "/apps.d"``).
 
     Consumers that access ``app_config["supported"]["entries"]`` keep
-    working unchanged — the shape is identical.
+    working unchanged - the shape is identical.
     """
     from money4band.apps.sources import aggregate_from_sources
     from money4band.core.catalog_migration import (
@@ -118,14 +118,14 @@ def load_app_config_with_overlays(
     )
     from money4band.core.catalog_store import extract_envelope, is_envelope
 
-    # One-shot migrations — both no-op after first run.
+    # One-shot migrations - both no-op after first run.
     migrate_catalog_file(config_path)
     fold_legacy_envelope_into_m4b(config_path)
 
     payload = load_json_config(config_path)
 
     # Either already an envelope / folded m4b-config (normal path) or
-    # still monolithic (migration skipped — e.g. tests that pass an
+    # still monolithic (migration skipped - e.g. tests that pass an
     # in-memory dict directly).
     if is_envelope(payload):
         envelope = extract_envelope(payload)
@@ -199,13 +199,13 @@ def load_catalog_entries(
     """Return typed :class:`CatalogEntry` objects for *app_config*.
 
     Existing consumers that use :func:`get_category_entries` keep working
-    unchanged — this function simply wraps the same dicts in dataclasses.
+    unchanged - this function simply wraps the same dicts in dataclasses.
 
     Arguments:
     app_config -- previously loaded catalog config (post-overlay merge).
     categories -- explicit list of category keys to include.  When
         ``None`` (default), every category that carries an ``entries``
-        list is included regardless of its ``active`` flag — callers that
+        list is included regardless of its ``active`` flag - callers that
         want only active ones should filter the result on ``.category``
         after calling :func:`get_active_app_categories`.
     """

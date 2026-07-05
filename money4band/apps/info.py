@@ -3,7 +3,6 @@ from __future__ import annotations
 """Per-app detail card and app listing from app_details metadata."""
 
 import logging
-import sys
 from typing import Any
 
 from colorama import Fore, Style, just_fix_windows_console
@@ -15,15 +14,6 @@ from money4band.core.loader import (
 )
 
 logger = logging.getLogger(__name__)
-
-
-def _ensure_utf8_stdout() -> None:
-    """Reconfigure stdout to UTF-8 so Unicode symbols render on Windows."""
-    if hasattr(sys.stdout, "reconfigure"):
-        try:
-            sys.stdout.reconfigure(encoding="utf-8")
-        except Exception:  # noqa: BLE001
-            pass
 
 
 # ---------------------------------------------------------------------------
@@ -45,9 +35,9 @@ def _find_app(
 
 def _bool_icon(val: Any) -> str:
     if val is True:
-        return f"{Fore.GREEN}\u2713{Style.RESET_ALL}"
+        return f"{Fore.GREEN}OK{Style.RESET_ALL}"
     if val is False:
-        return f"{Fore.RED}\u2717{Style.RESET_ALL}"
+        return f"{Fore.RED}X{Style.RESET_ALL}"
     return f"{Fore.YELLOW}?{Style.RESET_ALL}"
 
 
@@ -69,7 +59,6 @@ def _category_badge(app_config: dict[str, Any], category: str) -> str:
 def show_app_detail(app_config: dict[str, Any], app_name: str) -> bool:
     """Print a rich detail card for a single app. Returns True if found."""
     just_fix_windows_console()
-    _ensure_utf8_stdout()
 
     entry, category = _find_app(app_config, app_name)
     if entry is None:
@@ -87,14 +76,14 @@ def show_app_detail(app_config: dict[str, Any], app_name: str) -> bool:
     print(f"{'=' * 54}{Style.RESET_ALL}")
 
     # Identity
-    publisher = details.get("publisher", "—")
+    publisher = details.get("publisher", "-")
     referrals = entry.get("referrals") or []
     primary_referral = (
         referrals[0].get("url", "")
         if referrals and isinstance(referrals[0], dict)
         else ""
     )
-    url = details.get("official_url", primary_referral or "—")
+    url = details.get("official_url", primary_referral or "-")
     print(f"\n{Fore.CYAN}Identity{Style.RESET_ALL}")
     print(f"  {'Publisher:':<{w}} {publisher}")
     print(f"  {'Website:':<{w}} {url}")
@@ -141,7 +130,7 @@ def show_app_detail(app_config: dict[str, Any], app_name: str) -> bool:
     earnings = details.get("earnings", {})
     if earnings:
         print(f"\n{Fore.CYAN}Earnings{Style.RESET_ALL}")
-        model = earnings.get("model", "—")
+        model = earnings.get("model", "-")
         print(f"  {'Model:':<{w}} {model}")
         payout = earnings.get("payout_methods", [])
         if payout:
@@ -160,7 +149,7 @@ def show_app_detail(app_config: dict[str, Any], app_name: str) -> bool:
     docker = details.get("docker", {})
     if docker:
         print(f"\n{Fore.CYAN}Docker Image{Style.RESET_ALL}")
-        img = entry.get("compose_config", {}).get("image", "—")
+        img = entry.get("compose_config", {}).get("image", "-")
         print(f"  {'Image:':<{w}} {img}")
         print(f"  {'Official:':<{w}} {_bool_icon(docker.get('image_official'))}")
         print(f"  {'Maintained:':<{w}} {_bool_icon(docker.get('image_maintained'))}")
@@ -173,7 +162,7 @@ def show_app_detail(app_config: dict[str, Any], app_name: str) -> bool:
     limit_str = "unlimited" if install_limit == -1 else str(install_limit)
     print(f"\n{Fore.CYAN}Configuration{Style.RESET_ALL}")
     print(f"  {'Install limit:':<{w}} {limit_str}")
-    layer = entry.get("profile", "—")
+    layer = entry.get("profile", "-")
     print(f"  {'Compose layer:':<{w}} {layer}")
 
     # Warnings
@@ -218,7 +207,6 @@ def _suggest_similar(app_config: dict[str, Any], name: str) -> None:
 def list_apps(app_config: dict[str, Any], category_filter: str | None = None) -> None:
     """Print a compact app listing with key details from app_details."""
     just_fix_windows_console()
-    _ensure_utf8_stdout()
 
     print(
         f"\n{Fore.CYAN}{'Name':<20} {'Status':<14} {'Resi':>4} {'DC':>4} {'Payout':<22} {'Limit':>7}{Style.RESET_ALL}"
@@ -233,12 +221,12 @@ def list_apps(app_config: dict[str, Any], category_filter: str | None = None) ->
             name = details.get("official_name", entry.get("name", "?"))
             ip = details.get("ip_policy", {})
             earnings = details.get("earnings", {})
-            payout = ", ".join(earnings.get("payout_methods", [])) or "—"
+            payout = ", ".join(earnings.get("payout_methods", [])) or "-"
             resi = _bool_icon(ip.get("residential"))
             dc = _bool_icon(ip.get("datacenter"))
 
             install_limit = entry.get("install_limit", -1)
-            limit_str = "\u221e" if install_limit == -1 else str(install_limit)
+            limit_str = "unlimited" if install_limit == -1 else str(install_limit)
 
             # Status color
             if cat == "deprecated":
@@ -255,6 +243,6 @@ def list_apps(app_config: dict[str, Any], category_filter: str | None = None) ->
             # Show removal reason for deprecated apps
             additional = entry.get("additional_details", "")
             if additional and cat == "deprecated":
-                print(f"    {Fore.YELLOW}↳ {additional}{Style.RESET_ALL}")
+                print(f"    {Fore.YELLOW}-> {additional}{Style.RESET_ALL}")
 
     print()

@@ -98,7 +98,7 @@
             "avg_monthly_datacenter_usd": "0.5-3"
         },
         "warnings": [
-            "Requires NET_ADMIN capability for VPN tunnel creation (TUN/TAP) \u2014 legitimate technical requirement for VPN exit node functionality"
+            "Requires NET_ADMIN capability for VPN tunnel creation (TUN/TAP) - legitimate technical requirement for VPN exit node functionality"
         ],
         "confidence": "high",
         "sources": [
@@ -108,7 +108,7 @@
             "https://docs.mysterium.network/content-page"
         ],
         "last_verified": "2026-03-21",
-        "compose_layer_reasoning": "Decentralized VPN exit node network. Algorithm assesses IP location and quality. Both residential and datacenter nodes supported \u2014 residential earn premium prices.",
+        "compose_layer_reasoning": "Decentralized VPN exit node network. Algorithm assesses IP location and quality. Both residential and datacenter nodes supported - residential earn premium prices.",
         "install_limit_reasoning": "Decentralized architecture supports massive scaling. Unique IP required per node for network discoverability.",
         "recommendation": "update-config",
         "recommendation_reasoning": "Changed compose_layer from datacenter to universal. Verified residential+DC support in official docs and Docker Hub.",
