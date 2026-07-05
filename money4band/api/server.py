@@ -112,18 +112,6 @@ async def _security_headers(request: Request, call_next):
     return response
 
 
-@app.middleware("http")
-async def _security_headers(request: Request, call_next):  # type: ignore[no-untyped-def]
-    """Add standard security headers to every response."""
-    response = await call_next(request)
-    response.headers["X-Content-Type-Options"] = "nosniff"
-    response.headers["X-Frame-Options"] = "DENY"
-    response.headers["Referrer-Policy"] = "no-referrer"
-    if request.url.path.startswith("/api/"):
-        response.headers["Cache-Control"] = "no-store"
-    return response
-
-
 # ---------------------------------------------------------------------------
 # Rate limiting - per-IP sliding window, 60 requests / minute.
 # ---------------------------------------------------------------------------

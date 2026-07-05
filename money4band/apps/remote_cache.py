@@ -23,7 +23,7 @@ from __future__ import annotations
 import json
 import logging
 import shutil
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -59,7 +59,7 @@ def touch_fetched_at(cache_dir: Path) -> None:
     """Record the current UTC time as the last-fetch timestamp."""
     cache_dir.mkdir(parents=True, exist_ok=True)
     (cache_dir / FETCHED_AT_FILENAME).write_text(
-        datetime.now(UTC).isoformat(timespec="seconds"),
+        datetime.now(timezone.utc).isoformat(timespec="seconds"),
         encoding="utf-8",
     )
 
