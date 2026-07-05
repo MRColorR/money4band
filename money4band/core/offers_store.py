@@ -15,7 +15,7 @@ Each bundle is a single offer object::
     }
 
 ``SLUG`` is the upper-cased kebab-case form of ``name`` (e.g. ``NORDVPN``,
-``MULLVAD-VPN``). Per-file storage mirrors the catalog/apps.d layout and
+``SURFSHARK``). Per-file storage mirrors the catalog/apps.d layout and
 lets community contributors drop one offer per PR.
 """
 

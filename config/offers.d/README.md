@@ -7,7 +7,7 @@ M4B does not run as a Docker app.
 ## File naming
 
 `<SLUG>.json` where `SLUG` is the uppercase kebab-case form of the
-offer name (e.g. `NORDVPN.json`, `MULLVAD-VPN.json`).
+offer name (e.g. `NORDVPN.json`, `SURFSHARK.json`).
 
 ## Schema
 
