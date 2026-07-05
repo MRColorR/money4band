@@ -53,15 +53,9 @@ def test_setup_main_uses_overlay_loader_for_app_config():
     tree = ast.parse(src)
 
     main_fn = next(
-        n
-        for n in ast.walk(tree)
-        if isinstance(n, ast.FunctionDef) and n.name == "main"
+        n for n in ast.walk(tree) if isinstance(n, ast.FunctionDef) and n.name == "main"
     )
-    called = {
-        ast.unparse(n.func)
-        for n in ast.walk(main_fn)
-        if isinstance(n, ast.Call)
-    }
+    called = {ast.unparse(n.func) for n in ast.walk(main_fn) if isinstance(n, ast.Call)}
     assert any("load_app_config_with_overlays" in c for c in called), (
         "setup.main must load app config via load_app_config_with_overlays; "
         "plain load_json_config drops the folded catalog and lists no apps."

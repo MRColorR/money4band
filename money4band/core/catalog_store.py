@@ -152,9 +152,7 @@ def read_addons_dir(root: Path) -> list[dict[str, Any]]:
             logger.warning("Skipping non-object addon bundle: %s", path)
             continue
         if not data.get("parent_id"):
-            logger.warning(
-                "Skipping addon bundle missing 'parent_id': %s", path
-            )
+            logger.warning("Skipping addon bundle missing 'parent_id': %s", path)
             continue
         addons.append(data)
     return addons
@@ -301,7 +299,7 @@ def default_envelope() -> dict[str, Any]:
                 "enabled": False,
                 "cache_path": "catalog/community",
                 "timeout": 5.0,
-            }
+            },
         ],
         "categories": {
             "supported": {"active": True},

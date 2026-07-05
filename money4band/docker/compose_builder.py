@@ -322,9 +322,7 @@ def assemble_docker_compose(
                     from money4band.apps.addons import get_addons_for
 
                     addons_for_app = get_addons_for(app_name, app_config)
-                    if addons_for_app and user_app_config.get(
-                        "service_enabled", False
-                    ):
+                    if addons_for_app and user_app_config.get("service_enabled", False):
                         for addon in addons_for_app:
                             # Addon IDs are UPPER_SNAKE; compose service
                             # names are kebab-case (HONEYGAIN_POT -> honeygain-pot).
@@ -340,7 +338,9 @@ def assemble_docker_compose(
                             logger.info(
                                 "Added auto-claim sidecar '%s' for %s "
                                 "(inherited profile=%s)",
-                                sidecar_name, app_name, app_profile,
+                                sidecar_name,
+                                app_name,
+                                app_profile,
                             )
 
         # Add common services only if this is the main instance

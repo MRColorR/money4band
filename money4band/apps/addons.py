@@ -18,9 +18,7 @@ from __future__ import annotations
 from typing import Any
 
 
-def get_addons_for(
-    app_name: str, app_config: dict[str, Any]
-) -> list[dict[str, Any]]:
+def get_addons_for(app_name: str, app_config: dict[str, Any]) -> list[dict[str, Any]]:
     """Return every addon attached to *app_name* (case-insensitive).
 
     *app_name* is matched against ``addon["parent_id"]`` after upper-casing
@@ -35,8 +33,7 @@ def get_addons_for(
     return [
         addon
         for addon in addons
-        if isinstance(addon, dict)
-        and str(addon.get("parent_id", "")).upper() == target
+        if isinstance(addon, dict) and str(addon.get("parent_id", "")).upper() == target
     ]
 
 

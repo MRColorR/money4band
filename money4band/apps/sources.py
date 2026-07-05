@@ -440,9 +440,7 @@ def aggregate_from_sources(
         try:
             addons = src.load_addons(config_path)
         except Exception as exc:  # noqa: BLE001 - source failures must not crash
-            logger.warning(
-                "Catalog source %r failed to load addons: %s", src.name, exc
-            )
+            logger.warning("Catalog source %r failed to load addons: %s", src.name, exc)
             continue
         for addon in addons:
             if not isinstance(addon, dict):

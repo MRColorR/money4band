@@ -40,8 +40,7 @@ def _run(cmd: list[str]) -> int:
 def main() -> int:
     if sys.version_info < MIN_PY:
         _die(
-            f"Python {MIN_PY[0]}.{MIN_PY[1]}+ required, "
-            f"found {sys.version.split()[0]}"
+            f"Python {MIN_PY[0]}.{MIN_PY[1]}+ required, found {sys.version.split()[0]}"
         )
     os.chdir(ROOT)
     args = sys.argv[1:]

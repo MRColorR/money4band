@@ -111,9 +111,7 @@ def main() -> None:
         entry["app_details"]["last_verified"] = "2026-03-23"
 
         if name == "BEARSHARE":
-            addon_path = (
-                catalog_root(CONFIG) / "addons" / "BEARSHARE_POT.json"
-            )
+            addon_path = catalog_root(CONFIG) / "addons" / "BEARSHARE_POT.json"
             addon_path.parent.mkdir(parents=True, exist_ok=True)
             addon_path.write_text(
                 json.dumps(BEARSHARE_ADDON, indent=2, ensure_ascii=False) + "\n",

@@ -51,6 +51,7 @@ class TestSplitImageRef:
             "v2",
         )
 
+
 # ---------------------------------------------------------------------------
 # get_compose_files
 # ---------------------------------------------------------------------------
@@ -340,9 +341,7 @@ class TestAssembleDockerCompose:
         "money4band.docker.compose_builder.check_img_arch_support", return_value=True
     )
     @patch("money4band.docker.compose_builder.http_client")
-    def test_legacy_layer_files_cleaned_up(
-        self, _http, _arch, tmp_path: Path
-    ) -> None:
+    def test_legacy_layer_files_cleaned_up(self, _http, _arch, tmp_path: Path) -> None:
         """v4-era layered files are removed by the v5 generator."""
         m4b, app, user = _make_configs(tmp_path)
         # Seed legacy layered files from a v4 install.

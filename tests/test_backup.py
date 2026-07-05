@@ -20,9 +20,7 @@ def _isolated_backup_dir(monkeypatch, tmp_path):
     fake_root = tmp_path
     fake_dir = fake_root / "backups"
     fake_dir.mkdir()
-    monkeypatch.setattr(
-        "money4band.core.backup.get_m4b_data_dir", lambda: fake_root
-    )
+    monkeypatch.setattr("money4band.core.backup.get_m4b_data_dir", lambda: fake_root)
     return fake_dir
 
 

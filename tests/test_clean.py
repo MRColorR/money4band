@@ -21,11 +21,13 @@ def _ps_line(name: str, state: str, cid: str | None = None) -> str:
 
 class TestCleanOrphans:
     def test_removes_stopped_containers_skips_running(self):
-        ps_output = "\n".join([
-            _ps_line("alpha", "exited"),
-            _ps_line("bravo", "running"),
-            _ps_line("charlie", "created"),
-        ])
+        ps_output = "\n".join(
+            [
+                _ps_line("alpha", "exited"),
+                _ps_line("bravo", "running"),
+                _ps_line("charlie", "created"),
+            ]
+        )
 
         def fake_run(cmd, *args, **kwargs):
             if cmd[:3] == ["docker", "ps", "-a"]:
@@ -83,7 +85,9 @@ class TestCleanOrphans:
         with patch("money4band.docker.clean.subprocess.run", side_effect=fake_run):
             result = clean_orphans("m4b-test", include_volumes=False)
 
-        assert vol_calls == [], "volume listing must be skipped when include_volumes=False"
+        assert vol_calls == [], (
+            "volume listing must be skipped when include_volumes=False"
+        )
         assert result.volumes_removed == []
 
     def test_volumes_removed_when_opt_in(self):

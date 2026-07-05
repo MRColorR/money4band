@@ -1144,8 +1144,9 @@ class TestDockerErrorLeakage:
             stdout="",
             stderr=self._LEAKY_STDERR,
         )
-        with caplog.at_level("ERROR"), patch(
-            "money4band.api.server._run_docker", return_value=failed
+        with (
+            caplog.at_level("ERROR"),
+            patch("money4band.api.server._run_docker", return_value=failed),
         ):
             resp = client.post("/api/action/honeygain/restart")
 
@@ -1167,8 +1168,9 @@ class TestDockerErrorLeakage:
             stdout="",
             stderr=self._LEAKY_STDERR,
         )
-        with caplog.at_level("ERROR"), patch(
-            "money4band.api.server._run_docker", return_value=failed
+        with (
+            caplog.at_level("ERROR"),
+            patch("money4band.api.server._run_docker", return_value=failed),
         ):
             resp = client.get("/api/status")
 

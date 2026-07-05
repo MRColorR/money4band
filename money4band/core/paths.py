@@ -81,7 +81,8 @@ def get_m4b_data_dir() -> Path:
             logger.debug(
                 "Both portable (%s) and legacy (%s) data dirs exist; "
                 "using legacy because it has the master key.",
-                install_data, _LEGACY_DATA_DIR,
+                install_data,
+                _LEGACY_DATA_DIR,
             )
         return _LEGACY_DATA_DIR
 
@@ -162,7 +163,11 @@ def migrate_data_dir(
 
     logger.info(
         "Data-dir migration %s -> %s: copied=%d skipped=%d removed_source=%s",
-        src, tgt, len(copied), len(skipped), removed,
+        src,
+        tgt,
+        len(copied),
+        len(skipped),
+        removed,
     )
     return MigrationResult(src, tgt, copied, skipped, removed)
 
@@ -209,8 +214,13 @@ def _verify_copies(src: Path, tgt: Path) -> None:
         if not src_entry.exists():
             continue
         if src_entry.is_file():
-            if not tgt_entry.is_file() or src_entry.read_bytes() != tgt_entry.read_bytes():
-                raise RuntimeError(f"Verification failed for {name}; refusing to remove source.")
+            if (
+                not tgt_entry.is_file()
+                or src_entry.read_bytes() != tgt_entry.read_bytes()
+            ):
+                raise RuntimeError(
+                    f"Verification failed for {name}; refusing to remove source."
+                )
         elif src_entry.is_dir():
             for s in src_entry.rglob("*"):
                 if s.is_file():

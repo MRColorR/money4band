@@ -143,7 +143,9 @@ class TestEnvelope:
         names = [s.get("name") for s in env["catalog_sources"]]
         assert "builtin" in names
         assert "community" in names
-        community = next(s for s in env["catalog_sources"] if s.get("name") == "community")
+        community = next(
+            s for s in env["catalog_sources"] if s.get("name") == "community"
+        )
         assert community["type"] == "remote"
         assert community["enabled"] is False
         assert community["url"].startswith("https://raw.githubusercontent.com/")

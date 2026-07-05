@@ -117,8 +117,12 @@ def test_migrate_copies_all_entries(tmp_path):
 
     assert (tgt / "master.key").read_bytes() == b"legacy-key"
     assert (tgt / "session.salt").read_bytes() == b"legacy-salt"
-    assert (tgt / "backups" / "user-config.20260101T000000Z.bak").read_bytes() == b"backup-A"
-    assert (tgt / "backups" / "user-config.20260201T000000Z.bak").read_bytes() == b"backup-B"
+    assert (
+        tgt / "backups" / "user-config.20260101T000000Z.bak"
+    ).read_bytes() == b"backup-A"
+    assert (
+        tgt / "backups" / "user-config.20260201T000000Z.bak"
+    ).read_bytes() == b"backup-B"
     assert set(result.copied) >= {"master.key", "session.salt"}
     assert result.removed_source is False
     # Source still present (default remove_source=False).

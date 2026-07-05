@@ -174,7 +174,12 @@ class TestSidecarComposeGeneration:
             }
         )
         out = str(tmp_path / "docker-compose.yaml")
-        assemble_docker_compose(_m4b_config(), _app_config(_HONEYGAIN_APP, addons=[_HONEYGAIN_POT_ADDON]), user, out)
+        assemble_docker_compose(
+            _m4b_config(),
+            _app_config(_HONEYGAIN_APP, addons=[_HONEYGAIN_POT_ADDON]),
+            user,
+            out,
+        )
 
         import yaml
 
@@ -207,7 +212,12 @@ class TestSidecarComposeGeneration:
             }
         )
         out = str(tmp_path / "docker-compose.yaml")
-        assemble_docker_compose(_m4b_config(), _app_config(_HONEYGAIN_APP, addons=[_HONEYGAIN_POT_ADDON]), user, out)
+        assemble_docker_compose(
+            _m4b_config(),
+            _app_config(_HONEYGAIN_APP, addons=[_HONEYGAIN_POT_ADDON]),
+            user,
+            out,
+        )
 
         import yaml
 
@@ -264,7 +274,9 @@ class TestSidecarComposeGeneration:
         m4b = _m4b_config()
         m4b["system"]["default_docker_platform"] = "linux/arm64"
         out = str(tmp_path / "docker-compose.yaml")
-        assemble_docker_compose(m4b, _app_config(_HONEYGAIN_APP, addons=[_HONEYGAIN_POT_ADDON]), user, out)
+        assemble_docker_compose(
+            m4b, _app_config(_HONEYGAIN_APP, addons=[_HONEYGAIN_POT_ADDON]), user, out
+        )
 
         import yaml
 
@@ -293,7 +305,12 @@ class TestSidecarComposeGeneration:
             }
         )
         out = str(tmp_path / "docker-compose.yaml")
-        assemble_docker_compose(_m4b_config(), _app_config(_HONEYGAIN_APP, addons=[_HONEYGAIN_POT_ADDON]), user, out)
+        assemble_docker_compose(
+            _m4b_config(),
+            _app_config(_HONEYGAIN_APP, addons=[_HONEYGAIN_POT_ADDON]),
+            user,
+            out,
+        )
 
         import yaml
 
@@ -318,7 +335,12 @@ class TestSidecarComposeGeneration:
             }
         )
         out = str(tmp_path / "docker-compose.yaml")
-        assemble_docker_compose(_m4b_config(), _app_config(_HONEYGAIN_APP, addons=[_HONEYGAIN_POT_ADDON]), user, out)
+        assemble_docker_compose(
+            _m4b_config(),
+            _app_config(_HONEYGAIN_APP, addons=[_HONEYGAIN_POT_ADDON]),
+            user,
+            out,
+        )
 
         import yaml
 
@@ -452,9 +474,7 @@ class TestAppConfigServiceDefinitions:
     def test_apps_without_addon_have_no_match(self, app_config):
         from money4band.apps.addons import get_addons_for
 
-        parents_with_addons = {
-            a["parent_id"] for a in app_config.get("addons", [])
-        }
+        parents_with_addons = {a["parent_id"] for a in app_config.get("addons", [])}
         for app in app_config["supported"]["entries"]:
             if app["name"] not in parents_with_addons:
                 assert not get_addons_for(app["name"], app_config)

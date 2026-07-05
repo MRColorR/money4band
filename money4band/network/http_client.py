@@ -85,11 +85,15 @@ class _StatusRetryTransport(httpx.BaseTransport):
             ):
                 return response
             response.close()
-            delay = self._backoff_factor * (2 ** attempts)
+            delay = self._backoff_factor * (2**attempts)
             logger.debug(
                 "HTTP %s %s -> %s; retry %d/%d in %.1fs",
-                request.method, request.url, response.status_code,
-                attempts + 1, self._max_retries, delay,
+                request.method,
+                request.url,
+                response.status_code,
+                attempts + 1,
+                self._max_retries,
+                delay,
             )
             self._sleep(delay)
             attempts += 1

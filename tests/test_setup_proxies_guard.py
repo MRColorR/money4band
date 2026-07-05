@@ -73,7 +73,10 @@ def test_setup_does_not_have_bare_proxies_open():
         def visit_Try(self, node: ast.Try) -> None:
             has_oserror = any(
                 h.type is not None
-                and ("OSError" in ast.unparse(h.type) or "FileNotFoundError" in ast.unparse(h.type))
+                and (
+                    "OSError" in ast.unparse(h.type)
+                    or "FileNotFoundError" in ast.unparse(h.type)
+                )
                 for h in node.handlers
             )
             if has_oserror:
