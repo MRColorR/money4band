@@ -26,7 +26,7 @@ def _config_dir_from_user_cfg(user_config_path: str) -> str:
 def _get_port(user_config_path: str) -> int:
     try:
         cfg = load_json_config(user_config_path)
-        return cfg.get("m4b_dashboard", {}).get("port", _DEFAULT_PORT)
+        return int(cfg.get("m4b_dashboard", {}).get("port", _DEFAULT_PORT))
     except Exception:  # noqa: BLE001
         return _DEFAULT_PORT
 
@@ -181,7 +181,8 @@ def _action_start_background_web(config_dir: str, port: int) -> None:
         api_key = regenerate_api_key_on_disk(config_dir)
     set_dashboard_state(config_dir, enabled=True, port=port)
 
-    host = "0.0.0.0"  # noqa: S104
+    # Intentional LAN exposure; every request requires the Bearer API key.
+    host = "0.0.0.0"  # noqa: S104 # nosec B104
     print(
         f"{Fore.YELLOW}WARNING: Dashboard will be reachable from the "
         f"network ({host}).{Style.RESET_ALL}"

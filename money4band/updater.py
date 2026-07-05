@@ -44,7 +44,7 @@ def _read_cache() -> dict[str, Any] | None:
     if not path.is_file():
         return None
     try:
-        data = json.loads(path.read_text())
+        data: dict[str, Any] = json.loads(path.read_text())
         if time.time() - data.get("ts", 0) < _CACHE_TTL:
             return data
     except (json.JSONDecodeError, OSError):
@@ -239,7 +239,7 @@ def check_for_update(m4b_config: dict[str, Any]) -> str | None:
 
     cached = _read_cache()
     if cached is not None:
-        latest_str = cached.get("latest")
+        latest_str: str | None = cached.get("latest")
         if latest_str is None:
             return None
         try:
@@ -478,9 +478,9 @@ def _apply_binary_update(target_version: str) -> bool:
                 asset_name,
             )
 
-        # Make executable on Unix
+        # Make executable on Unix (owner-only - this replaces our own binary)
         if platform.system() != "Windows":
-            os.chmod(tmp_path, 0o755)
+            os.chmod(tmp_path, 0o700)
 
         # Rename current -> backup, new -> current
         if os.path.exists(backup_exe):
