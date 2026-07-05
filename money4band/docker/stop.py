@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import argparse
 import json
 import logging
 import os
@@ -200,7 +199,6 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
             "compose_project_name", "money4band"
         )
 
-        # Check if required files exist before proceeding
         from money4band.docker.compose_builder import get_compose_files
 
         compose_files = get_compose_files(".")
@@ -227,64 +225,3 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
     except Exception as e:
         logger.error(f"An unexpected error occurred in main function: {str(e)}")
         print(f"{Fore.RED}An unexpected error occurred: {str(e)}{Style.RESET_ALL}")
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Stop the Docker Compose stack.")
-    parser.add_argument(
-        "--app-config",
-        type=str,
-        required=True,
-        help="Path to catalog JSON file (m4b-config.json envelope)",
-    )
-    parser.add_argument(
-        "--m4b-config", type=str, required=True, help="Path to m4b_config JSON file"
-    )
-    parser.add_argument(
-        "--user-config", type=str, required=True, help="Path to user_config JSON file"
-    )
-    parser.add_argument("--log-dir", default="./logs", help="Set the logging directory")
-    parser.add_argument(
-        "--log-file", default="fn_stopStack.log", help="Set the logging file name"
-    )
-    parser.add_argument(
-        "--log-level",
-        choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
-        default="INFO",
-        help="Set the logging level",
-    )
-    parser.add_argument(
-        "--skip-questions", action="store_true", help="Skip confirmation questions"
-    )
-    args = parser.parse_args()
-
-    log_level = getattr(logging, args.log_level.upper(), None)
-    if not isinstance(log_level, int):
-        raise ValueError(f"Invalid log level: {args.log_level}")
-
-    os.makedirs(args.log_dir, exist_ok=True)
-    logging.basicConfig(
-        filename=os.path.join(args.log_dir, args.log_file),
-        format="%(asctime)s - [%(levelname)s] - %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-        level=log_level,
-    )
-
-    logger.info("Starting fn_stopStack script...")
-
-    try:
-        main(
-            app_config_path=args.app_config,
-            m4b_config_path=args.m4b_config,
-            user_config_path=args.user_config,
-        )
-        logger.info("fn_stopStack script completed successfully")
-    except FileNotFoundError as e:
-        logger.error(f"File not found: {str(e)}")
-        raise
-    except json.JSONDecodeError as e:
-        logger.error(f"Error decoding JSON: {str(e)}")
-        raise
-    except Exception as e:
-        logger.error(f"An unexpected error occurred: {str(e)}")
-        raise

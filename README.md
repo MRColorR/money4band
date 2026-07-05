@@ -73,6 +73,10 @@ uv sync && uv run python main.py
 
 > **No uv?** `pip install -r requirements.txt && python3 main.py` also works.
 
+> **Even simpler:** `python run.py` auto-detects `uv` (or falls back to a
+> local venv + pip) and starts the app in one step. `run.bat` /
+> `./run.sh` are one-click wrappers for Windows / macOS-Linux.
+
 > See the [**Full Setup Guide**](https://github.com/MRColorR/money4band/wiki) for details.
 
 ### What Happens Next?

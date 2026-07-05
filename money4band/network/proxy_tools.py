@@ -130,33 +130,26 @@ def update_multiproxy_instances(
             print("Operation canceled.")
             return
 
-    # Stop all stacks
     stop_all_stacks(skip_questions=True)
 
-    # Update main instance proxy
     try:
         logger.info(f"Updating main instance proxy with {proxies[0]}")
         print(
             f"{Fore.GREEN}Updating main instance proxy with {proxies[0]}{Style.RESET_ALL}"
         )
-        # Load user-config for the main instance
         user_config = load_json_config(user_config_path)
         old_proxy = user_config.get("proxies", {}).get("url", "None")
         new_proxy = proxies.pop(0)
         user_config["proxies"]["url"] = new_proxy
         user_config["proxies"]["enabled"] = True
-        # TODO:  make this above a function and also the setup of main insatnce witha  proxy should be a function
 
-        # Write updated user-config
         write_json(user_config, user_config_path)
 
-        # Log the update
         logger.info(f"Updated main instance proxy URL: {old_proxy} -> {new_proxy}")
         print(
             f"{Fore.GREEN}Updated main instance proxy URL: {old_proxy} -> {new_proxy}{Style.RESET_ALL}"
         )
 
-        # Regenerate docker-compose.yaml file for the main instance
         assemble_docker_compose(
             m4b_config_path,
             app_config_path,
@@ -164,7 +157,6 @@ def update_multiproxy_instances(
             compose_output_path="./docker-compose.yaml",
             is_main_instance=True,
         )
-        # Reenerate .env file for the main instance
         generate_env_file(
             m4b_config_path, app_config_path, user_config_path, env_output_path="./.env"
         )

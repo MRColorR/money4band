@@ -186,13 +186,3 @@ def ask_question_num(
             print(f"{Fore.RED}Value must be <= {max_val}.{Style.RESET_ALL}")
             continue
         return value
-
-
-def main() -> None:
-    """
-    Main function to run the prompt helper standalone.
-    """
-
-
-if __name__ == "__main__":
-    main()

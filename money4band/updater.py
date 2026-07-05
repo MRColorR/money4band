@@ -515,13 +515,3 @@ def apply_update(target_version: str) -> bool:
             f"https://github.com/{_OWNER}/{_REPO}/releases{Style.RESET_ALL}"
         )
         return False
-
-
-def main() -> None:
-    releases = get_latest_releases()
-    for release in releases:
-        print(release)
-
-
-if __name__ == "__main__":
-    main()
