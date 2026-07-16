@@ -98,9 +98,13 @@ def stop_stack(
         for cf in compose_files:
             command.extend(["-f", cf])
 
-        # Activate all infrastructure profiles so profiled services are included
-        # in the shutdown.  Docker Compose ignores unknown profile flags.
-        for profile in ("monitoring", "proxy"):
+        # Activate every known profile (infra + app tiers) so ALL profiled
+        # services are part of the model for `down` - otherwise tier-gated
+        # app containers survive the shutdown as orphans.  Docker Compose
+        # ignores profile flags that match no service.
+        from money4band.apps.schema import _VALID_PROFILES
+
+        for profile in ("monitoring", "proxy", *sorted(_VALID_PROFILES)):
             command.extend(["--profile", profile])
 
         command.extend(["down"])

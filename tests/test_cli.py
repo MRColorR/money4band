@@ -466,3 +466,38 @@ class TestGetActiveProfiles:
             "watchtower": {"enabled": True},
         }
         assert get_active_profiles(cfg) == ["monitoring", "proxy"]
+
+    def test_m4b_config_path_resolves_tier_profiles(self):
+        """A raw m4b-config PATH must aggregate the folded catalog.
+
+        Regression: a plain load of m4b-config.json yields zero app
+        categories, so no tier profile resolves and `compose up` starts
+        no earning app at all.
+        """
+        from money4band.docker.helper import get_active_profiles
+
+        cfg = {
+            "apps": {"HONEYGAIN": {"enabled": True}},
+            "watchtower": {"enabled": True},
+            "proxies": {"enabled": False},
+        }
+        profiles = get_active_profiles(cfg, "config/m4b-config.json")
+        assert "monitoring" in profiles
+        # HONEYGAIN is a residential-tier app in the shipped catalog.
+        assert "residential" in profiles
+
+    def test_aggregated_dict_resolves_tier_profiles(self):
+        from money4band.docker.helper import get_active_profiles
+
+        cfg = {
+            "apps": {"myapp": {"enabled": True}},
+            "watchtower": {"enabled": False},
+            "proxies": {"enabled": False},
+        }
+        app_cfg = {
+            "supported": {
+                "active": True,
+                "entries": [{"name": "MYAPP", "profile": "datacenter"}],
+            }
+        }
+        assert get_active_profiles(cfg, app_cfg) == ["datacenter"]

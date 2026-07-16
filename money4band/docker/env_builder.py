@@ -24,6 +24,7 @@ from money4band.core.loader import (
     get_active_app_categories,
     get_category_entries,
     load_json_config,
+    resolve_catalog_config,
 )
 from money4band.docker.helper import show_spinner
 
@@ -272,7 +273,7 @@ def generate_env_file(
 
     try:
         m4b_config = load_json_config(m4b_config_path_or_dict)
-        app_config = load_json_config(app_config_path_or_dict)
+        app_config = resolve_catalog_config(app_config_path_or_dict)
         user_config = load_json_config(user_config_path_or_dict)
 
         env_lines = build_env_lines(

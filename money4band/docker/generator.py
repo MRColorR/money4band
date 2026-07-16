@@ -198,8 +198,16 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
         return
 
     try:
+        from money4band.core.loader import load_app_config_with_overlays
+
         m4b_config = load_json_config(m4b_config_path)
-        app_config = load_json_config(app_config_path)
+        # app_config_path aliases m4b-config.json: the catalog is folded
+        # under its "catalog" key, so it must go through the overlay
+        # aggregator - a plain load yields zero app categories and the
+        # regenerated compose/.env would silently drop every app.
+        app_config = load_app_config_with_overlays(
+            app_config_path, user_config_path=user_config_path
+        )
         user_config = load_json_config(user_config_path)
     except Exception as e:
         logger.error("Error loading config files: %s", e)
@@ -364,11 +372,14 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
                                 pass
 
                     try:
-                        # Use main configs if instance-specific ones don't exist
-                        i_app_cfg = (
+                        # Use main configs if instance-specific ones don't
+                        # exist. The fallback must be the already-aggregated
+                        # catalog dict, NOT the raw m4b-config path (which
+                        # would yield zero app categories).
+                        i_app_cfg: str | dict = (
                             instance_app_config
                             if os.path.exists(instance_app_config)
-                            else app_config_path
+                            else app_config
                         )
                         i_m4b_cfg = (
                             instance_m4b_config
@@ -419,22 +430,36 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
             if ask_question_yn("Restart stack now to apply changes?"):
                 print(f"{Fore.CYAN}Restarting stack...{Style.RESET_ALL}")
                 try:
+                    # Go through the canonical stop/start helpers: they
+                    # resolve the project name, env file, and the profile
+                    # set - a hand-built profile-less `down`/`up -d` acts
+                    # on zero profiled services.
                     from money4band.docker.compose_builder import (
                         get_compose_files as _gcf,
                     )
+                    from money4band.docker.helper import get_active_profiles
+                    from money4band.docker.start import start_stack as _start
+                    from money4band.docker.stop import stop_stack as _stop
 
                     current_files = _gcf(".")
-                    down_cmd = ["docker", "compose"]
-                    up_cmd = ["docker", "compose"]
-                    for cf in current_files:
-                        down_cmd.extend(["-f", cf])
-                        up_cmd.extend(["-f", cf])
-                    down_cmd.append("down")
-                    up_cmd.extend(["up", "-d"])
-                    subprocess.run(down_cmd, check=True)
-                    subprocess.run(up_cmd, check=True)
-                    print(f"{Fore.GREEN}Stack restarted successfully{Style.RESET_ALL}")
-                except subprocess.CalledProcessError as e:
+                    profiles = tuple(get_active_profiles(user_config, app_config))
+                    stopped = _stop(
+                        compose_file=current_files, skip_questions=True
+                    )
+                    started = _start(
+                        compose_file=current_files,
+                        skip_questions=True,
+                        profiles=profiles,
+                    )
+                    if stopped and started:
+                        print(
+                            f"{Fore.GREEN}Stack restarted successfully{Style.RESET_ALL}"
+                        )
+                    else:
+                        print(
+                            f"{Fore.RED}Stack restart reported errors - check the logs.{Style.RESET_ALL}"
+                        )
+                except Exception as e:  # noqa: BLE001
                     logger.error("Error restarting stack: %s", e)
                     print(f"{Fore.RED}Error restarting stack: {e}{Style.RESET_ALL}")
             else:

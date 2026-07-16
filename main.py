@@ -769,12 +769,18 @@ def _cmd_limit(args: argparse.Namespace) -> None:
     # Recalculate limits with the new profile.
     detector.calculate_resource_limits(user_config_path, m4b_config=m4b_config)
 
-    # Regenerate .env so Docker picks up the new limits.
+    # Regenerate .env so Docker picks up the new limits. The app-config
+    # argument must be the overlay-aggregated catalog - passing the raw
+    # m4b-config path yields zero app categories and strips every APP_*
+    # var from the regenerated .env.
     from money4band.docker.generator import generate_env_file
 
+    app_config = loader.load_app_config_with_overlays(
+        m4b_config_path, user_config_path=user_config_path
+    )
     generate_env_file(
         m4b_config_path,
-        m4b_config_path,
+        app_config,
         user_config_path,
         env_output_path=os.path.join(BASE_DIR, ".env"),
     )

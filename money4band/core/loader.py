@@ -153,6 +153,46 @@ def load_app_config_with_overlays(
     return config
 
 
+def resolve_catalog_config(
+    app_config_path_or_dict: Any,
+    user_config_path: str | None = None,
+) -> dict[str, Any]:
+    """Return the aggregated catalog shape from a path or a loaded dict.
+
+    Accepts either the already-aggregated shape (top-level categories with
+    ``entries`` - e.g. a per-instance ``app-config.json``) or the
+    m4b-config file whose catalog is folded under its ``catalog`` key. The
+    folded shape MUST go through :func:`load_app_config_with_overlays` - a
+    plain ``load_json_config`` on it yields zero app categories and
+    consumers (compose/.env builders, profile resolution) would silently
+    produce an app-less stack.
+    """
+    if isinstance(app_config_path_or_dict, str):
+        payload = load_json_config(app_config_path_or_dict)
+        if get_all_app_categories(payload):
+            # Already aggregated on disk (per-instance app-config.json).
+            # Do NOT route through the overlay loader: its one-shot
+            # migration would treat this shape as legacy-monolithic and
+            # destructively split/rename the file.
+            return payload
+        return load_app_config_with_overlays(
+            app_config_path_or_dict, user_config_path=user_config_path
+        )
+    if isinstance(app_config_path_or_dict, dict):
+        if "catalog" in app_config_path_or_dict and not get_all_app_categories(
+            app_config_path_or_dict
+        ):
+            raise ValueError(
+                "Raw folded m4b-config passed as app catalog - aggregate it "
+                "with load_app_config_with_overlays() first, otherwise no "
+                "app would be generated."
+            )
+        return app_config_path_or_dict
+    raise ValueError(
+        "Invalid app catalog: expected a config file path or a dictionary."
+    )
+
+
 def is_category_active(app_config: dict[str, Any], category: str) -> bool:
     """Return whether *category* is marked active."""
     cat = app_config.get(category)

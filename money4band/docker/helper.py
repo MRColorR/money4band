@@ -464,20 +464,29 @@ def get_active_profiles(
     from money4band.core.loader import (
         get_active_app_categories,
         get_category_entries,
+        load_app_config_with_overlays,
         load_json_config,
     )
 
     cfg = load_json_config(user_config_path_or_dict)
     profiles: set[str] = set()
 
+    enabled_app_names = {
+        name.lower()
+        for name, slice_ in cfg.get("apps", {}).items()
+        if isinstance(slice_, dict) and slice_.get("enabled")
+    }
+
     if app_config_path_or_dict is not None:
         try:
-            app_cfg = load_json_config(app_config_path_or_dict)
-            enabled_app_names = {
-                name.lower()
-                for name, slice_ in cfg.get("apps", {}).items()
-                if isinstance(slice_, dict) and slice_.get("enabled")
-            }
+            # A path is the m4b-config file: the catalog lives folded under
+            # its "catalog" key, so it MUST go through the overlay aggregator.
+            # A plain load_json_config would yield zero categories and every
+            # tier profile would silently drop (no app would ever start).
+            if isinstance(app_config_path_or_dict, str):
+                app_cfg = load_app_config_with_overlays(app_config_path_or_dict)
+            else:
+                app_cfg = load_json_config(app_config_path_or_dict)
             for category in get_active_app_categories(app_cfg):
                 for entry in get_category_entries(app_cfg, category):
                     if entry.get("name", "").lower() in enabled_app_names:
@@ -489,6 +498,12 @@ def get_active_profiles(
                 "Failed to discover app tier profiles: %s; "
                 "infra profiles will still be added.",
                 exc,
+            )
+        if enabled_app_names and not profiles:
+            logger.error(
+                "No tier profile resolved for enabled apps %s - the stack "
+                "would start no earning app. Check the catalog aggregation.",
+                sorted(enabled_app_names),
             )
 
     if cfg.get("watchtower", {}).get("enabled", True):

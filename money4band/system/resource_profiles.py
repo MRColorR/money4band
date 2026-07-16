@@ -29,11 +29,17 @@ def _switch_profile(
 
     detector.calculate_resource_limits(user_config_path, m4b_config=m4b_config)
 
+    from money4band.core.loader import load_app_config_with_overlays
     from money4band.docker.generator import generate_env_file
 
+    # app_config_path aliases m4b-config.json - it must be aggregated via
+    # the overlay loader or the regenerated .env drops every APP_* var.
+    app_config = load_app_config_with_overlays(
+        app_config_path, user_config_path=user_config_path
+    )
     generate_env_file(
         m4b_config_path,
-        app_config_path,
+        app_config,
         user_config_path,
         env_output_path=os.path.join(
             os.path.dirname(m4b_config_path), os.pardir, ".env"

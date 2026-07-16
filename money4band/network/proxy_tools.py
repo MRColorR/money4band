@@ -150,15 +150,22 @@ def update_multiproxy_instances(
             f"{Fore.GREEN}Updated main instance proxy URL: {old_proxy} -> {new_proxy}{Style.RESET_ALL}"
         )
 
+        # app_config_path aliases m4b-config.json: aggregate it via the
+        # overlay loader, or the regenerated compose/.env drop every app.
+        from money4band.core.loader import load_app_config_with_overlays
+
+        app_config = load_app_config_with_overlays(
+            app_config_path, user_config_path=user_config_path
+        )
         assemble_docker_compose(
             m4b_config_path,
-            app_config_path,
+            app_config,
             user_config_path,
             compose_output_path="./docker-compose.yaml",
             is_main_instance=True,
         )
         generate_env_file(
-            m4b_config_path, app_config_path, user_config_path, env_output_path="./.env"
+            m4b_config_path, app_config, user_config_path, env_output_path="./.env"
         )
     except Exception as e:
         logger.error(f"Failed to update main instance proxy: {str(e)}")

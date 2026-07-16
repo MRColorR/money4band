@@ -214,6 +214,14 @@ def _configure_apps(
     # Track port_app_index separately - only incremented for apps WITH ports
     port_app_index = app_index_offset
 
+    # Ports already recorded for OTHER apps in user-config must be excluded
+    # up front: with the stack stopped nothing is bound, so the live-port
+    # check alone cannot prevent handing out an already-assigned port when
+    # catalog order shifts between setups.
+    from money4band.network.port_manager import collect_assigned_ports
+
+    reserved_ports = collect_assigned_ports(user_config)
+
     for app in apps:
         app_name = app["name"].lower()
         config = user_config["apps"].get(app_name, {})
@@ -256,8 +264,22 @@ def _configure_apps(
 
         # Port configuration with unified offset logic (instance 0 = main)
         if "ports" in app["compose_config"]:
+            # This app's own previous ports must not block its re-assignment.
+            own_previous = config.get("ports", [])
+            if not isinstance(own_previous, list):
+                own_previous = [own_previous]
+            for old_port in own_previous:
+                try:
+                    reserved_ports.discard(int(old_port))
+                except (TypeError, ValueError):
+                    pass
             assigned_ports = assign_app_ports(
-                app_name, app, config, app_index=port_app_index, instance_number=0
+                app_name,
+                app,
+                config,
+                app_index=port_app_index,
+                instance_number=0,
+                reserved_ports=reserved_ports,
             )
             # Always store as list for consistency
             config["ports"] = assigned_ports
