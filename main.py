@@ -33,14 +33,33 @@ logger = logging.getLogger(__name__)
 if getattr(sys, "frozen", False):
     # Running as compiled executable (PyInstaller)
     BASE_DIR = os.path.dirname(sys.executable)
+
+    # Onefile build: mutable data (config/, template/) is bundled inside
+    # the binary but must live next to the executable to persist across
+    # runs and self-updates. Seed each directory on first run only -
+    # never overwrite user-modified config.
+    _bundle_dir = getattr(sys, "_MEIPASS", None)
+    if _bundle_dir:
+        import shutil as _shutil
+
+        for _data_dir in ("config", "template"):
+            _src = os.path.join(_bundle_dir, _data_dir)
+            _dst = os.path.join(BASE_DIR, _data_dir)
+            if os.path.isdir(_src) and not os.path.isdir(_dst):
+                try:
+                    _shutil.copytree(_src, _dst)
+                except OSError as _seed_err:  # pragma: no cover - disk issues
+                    print(
+                        f"WARNING: could not seed {_data_dir}/ next to the "
+                        f"executable: {_seed_err}",
+                        file=sys.stderr,
+                    )
 else:
     # Running as script
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Change working directory to script location to ensure relative paths work
 os.chdir(BASE_DIR)
-
-parent_dir = os.path.dirname(BASE_DIR)
 
 
 # ---------------------------------------------------------------------------
@@ -1151,11 +1170,6 @@ def _build_parser() -> argparse.ArgumentParser:
         "--config-usr-file",
         default="user-config.json",
         help="Set the user config file name",
-    )
-    parser.add_argument(
-        "--requirements-path",
-        default=os.path.join(script_dir, "requirements.toml"),
-        help="Set the requirements path",
     )
     parser.add_argument(
         "--log-level",

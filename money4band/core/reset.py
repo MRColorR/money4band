@@ -65,12 +65,17 @@ def _seed_app_slices_from_catalog(user_config_path: str) -> None:
         )
         return
     try:
-        with open(user_config_path, encoding="utf-8") as f:
-            user_config = json.load(f)
-        from money4band.core.loader import load_app_config_with_overlays
+        # Canonical decrypt-aware read + atomic encryption-preserving write:
+        # raw json.load/json.dump choke on (or downgrade) an encrypted
+        # user-config and are not crash-safe on the credentials file.
+        from money4band.core.loader import (
+            load_app_config_with_overlays,
+            load_json_config,
+        )
 
+        user_config = load_json_config(user_config_path)
         app_config = load_app_config_with_overlays(m4b_config_path)
-    except (OSError, json.JSONDecodeError) as exc:
+    except (OSError, json.JSONDecodeError, ValueError) as exc:
         logger.warning("Skipping user_config_template seed: %s", exc)
         return
 
@@ -80,9 +85,9 @@ def _seed_app_slices_from_catalog(user_config_path: str) -> None:
     if added:
         logger.info("Seeded %d app slice(s) from catalog templates.", added)
 
-    with open(user_config_path, "w", encoding="utf-8") as f:
-        json.dump(user_config, f, indent=2, ensure_ascii=False)
-        f.write("\n")
+    from money4band.core.dumper import write_json
+
+    write_json(user_config, user_config_path)
 
 
 def main(

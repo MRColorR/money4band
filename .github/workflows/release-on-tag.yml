@@ -10,6 +10,35 @@ permissions:
   contents: write      # needed to create GitHub releases
   actions: read        # needed to download artifacts
 
+env:
+  # Single source of truth for the PyInstaller invocation. Asset names
+  # (Money4Band-<os>-<arch>[.exe]) MUST stay in sync with
+  # money4band/updater.py::_get_binary_asset_name or self-update 404s.
+  PYINSTALLER_ARGS: >-
+    --onefile
+    --name Money4Band
+    main.py
+    --hidden-import colorama
+    --hidden-import docker
+    --hidden-import httpx
+    --hidden-import psutil
+    --hidden-import yaml
+    --hidden-import secrets
+    --hidden-import cryptography
+    --hidden-import fastapi
+    --hidden-import uvicorn
+    --hidden-import money4band
+    --hidden-import money4band.apps
+    --hidden-import money4band.core
+    --hidden-import money4band.docker
+    --hidden-import money4band.network
+    --hidden-import money4band.system
+    --hidden-import money4band.ui
+    --hidden-import money4band.api
+    --hidden-import money4band.dashboard
+    --hidden-import money4band.resources
+    -y
+
 jobs:
   # Gate: run tests before building release artifacts
   test:
@@ -27,110 +56,88 @@ jobs:
     needs: test
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]  # Build for Linux, macOS, and Windows
-        architecture: [x64, arm64, arm/v7]  # Target architectures
-        exclude:
-          - os: macos-latest
-            architecture: arm/v7  # macOS doesn't support arm/v7
+        include:
+          - os: ubuntu-latest
+            asset: Money4Band-linux-amd64
+            docker_platform: ""
+          - os: ubuntu-latest
+            asset: Money4Band-linux-arm64
+            docker_platform: linux/arm64
+          - os: ubuntu-latest
+            asset: Money4Band-linux-armv7
+            docker_platform: linux/arm/v7
           - os: windows-latest
-            architecture: arm/v7  # Windows doesn't support arm/v7
+            asset: Money4Band-windows-amd64.exe
+            docker_platform: ""
+          - os: macos-latest
+            asset: Money4Band-macos-arm64
+            docker_platform: ""
+          - os: macos-13
+            asset: Money4Band-macos-amd64
+            docker_platform: ""
 
     steps:
       - name: Checkout the code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Fetch all history for generating changelogs
-          fetch-tags: true  # Ensure all tags are fetched
+          fetch-depth: 0
+          fetch-tags: true
 
       - name: Set up Python 3.13
+        if: matrix.docker_platform == ''
         uses: actions/setup-python@v5
         with:
-          python-version: '3.13'
+          python-version: "3.13"
 
       - name: Install uv
+        if: matrix.docker_platform == ''
         uses: astral-sh/setup-uv@v5
 
-      # Step to print platform details for diagnostic purposes
-      - name: Check Python platform info
-        shell: bash  # Use bash shell for consistency
-        run: |
-          echo "Runner OS detected arch: $(uname -a)"
-          echo "Python detected arch: $(python3 -m platform)"
-          echo "Expected runner architecture: ${{ matrix.architecture }}"
-
-    # Runners supported architectures use normal build process
-      # Step: Install dependencies
+      # ---- Native builds (runner arch matches target arch) ----
       - name: Install dependencies
-        if: matrix.os != 'ubuntu-latest' || (matrix.architecture != 'arm64' && matrix.architecture != 'arm/v7')
+        if: matrix.docker_platform == ''
         shell: bash
         run: |
           uv sync --frozen
           uv pip install pyinstaller
 
-      # Step: Regenerate app tables in README.md and docs/APPS.md
       - name: Update app tables
-        if: matrix.os != 'ubuntu-latest' || (matrix.architecture != 'arm64' && matrix.architecture != 'arm/v7')
+        if: matrix.docker_platform == ''
         shell: bash
         run: uv run python scripts/update_tables.py
 
-      # Step: Build with PyInstaller
-      # Note: PyInstaller --add-data uses ';' on Windows and ':' on Unix regardless of shell
-      - name: Build with PyInstaller
-        if: matrix.os != 'ubuntu-latest' || (matrix.architecture != 'arm64' && matrix.architecture != 'arm/v7')
+      # Note: --add-data uses ';' on Windows and ':' on Unix regardless of
+      # shell. Bundled config/template are seeded next to the executable on
+      # first run by main.py (mutable data cannot live inside the onefile).
+      - name: Build with PyInstaller (onefile)
+        if: matrix.docker_platform == ''
         shell: bash
         run: |
           if [[ "$RUNNER_OS" == "Windows" ]]; then SEP=";"; else SEP=":"; fi
-          uv run pyinstaller --onedir \
-            --name Money4Band \
-            main.py \
-            --hidden-import colorama \
-            --hidden-import docker \
-            --hidden-import httpx \
-            --hidden-import pyyaml \
-            --hidden-import psutil \
-            --hidden-import yaml \
-            --hidden-import secrets \
-            --hidden-import cryptography \
-            --hidden-import fastapi \
-            --hidden-import uvicorn \
-            --hidden-import money4band \
-            --hidden-import money4band.apps \
-            --hidden-import money4band.core \
-            --hidden-import money4band.docker \
-            --hidden-import money4band.network \
-            --hidden-import money4band.system \
-            --hidden-import money4band.ui \
-            --hidden-import money4band.api \
-            --hidden-import money4band.dashboard \
-            --hidden-import money4band.resources \
+          uv run pyinstaller $PYINSTALLER_ARGS \
             --add-data "config${SEP}config" \
             --add-data "money4band${SEP}money4band" \
-            --add-data "template${SEP}template" \
-            --add-data "LICENSE${SEP}." \
-            --add-data "README.md${SEP}." \
-            --contents-directory "." \
-            -y
+            --add-data "template${SEP}template"
 
-    # Runners unsupported architectures use docker build process
-      # Setup QEMU and Docker Buildx only for Ubuntu runners for arch not supported by runners
+      # ---- Cross-arch Linux builds via QEMU + Docker ----
       - name: Set up QEMU for cross-compilation
-        if: matrix.os == 'ubuntu-latest' && (matrix.architecture == 'arm64' || matrix.architecture == 'arm/v7')
+        if: matrix.docker_platform != ''
         uses: docker/setup-qemu-action@v3
         with:
           platforms: all
 
       - name: Set up Docker Buildx
-        if: matrix.os == 'ubuntu-latest' && (matrix.architecture == 'arm64' || matrix.architecture == 'arm/v7')
+        if: matrix.docker_platform != ''
         uses: docker/setup-buildx-action@v3
 
-      # Use Docker for cross-architecture builds for arch not supported by runners
       - name: Build with Docker for ARM architectures
-        if: matrix.os == 'ubuntu-latest' && (matrix.architecture == 'arm64' || matrix.architecture == 'arm/v7')
+        if: matrix.docker_platform != ''
         run: |
           docker buildx build \
             --file workflow-linux-arm64.dockerfile \
-            --platform linux/${{ matrix.architecture }} \
+            --platform ${{ matrix.docker_platform }} \
             --load \
             -t money4band-builder \
             .
@@ -138,45 +145,23 @@ jobs:
           docker cp m4b-extract:/app/dist ./dist
           docker rm m4b-extract
 
-      # Archive build artifacts for Windows
-      - name: Archive build artifacts for release (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          Compress-Archive -Path "dist\Money4Band\*" -DestinationPath "Money4Band-${{ matrix.os }}-${{ matrix.architecture }}-${{ github.ref_name }}.zip"
-
-      # Archive build artifacts for Unix (Linux/macOS)
-      - name: Archive build artifacts for release (Unix)
+      # ---- Normalize the artifact name ----
+      - name: Rename binary to release asset name (Unix)
         if: runner.os != 'Windows'
         shell: bash
-        run: |
-          if [ "${{ matrix.architecture }}" == "arm/v7" ]; then
-            tar -czvf "Money4Band-${{ matrix.os }}-armv7-${{ github.ref_name }}.tar.gz" dist/Money4Band
-          else
-            tar -czvf "Money4Band-${{ matrix.os }}-${{ matrix.architecture }}-${{ github.ref_name }}.tar.gz" dist/Money4Band
-          fi
+        run: mv dist/Money4Band "dist/${{ matrix.asset }}"
 
-      # Upload build artifacts (excluded arm/v7)
+      - name: Rename binary to release asset name (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: Move-Item "dist\Money4Band.exe" "dist\${{ matrix.asset }}"
+
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
-        if: matrix.architecture != 'arm/v7'
         with:
-          name: "Money4Band-${{ matrix.os }}-${{ matrix.architecture }}-${{ github.ref_name }}"
-          path: |
-            Money4Band-${{ matrix.os }}-${{ matrix.architecture }}-${{ github.ref_name }}.zip
-            Money4Band-${{ matrix.os }}-${{ matrix.architecture }}-${{ github.ref_name }}.tar.gz
-          if-no-files-found: error  # Fail if no files are found
-
-      # Upload build artifacts for arm/v7
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        if: matrix.architecture == 'arm/v7'
-        with:
-          name: "Money4Band-${{ matrix.os }}-armv7-${{ github.ref_name }}"
-          path: |
-            Money4Band-${{ matrix.os }}-armv7-${{ github.ref_name }}.zip
-            Money4Band-${{ matrix.os }}-armv7-${{ github.ref_name }}.tar.gz
-          if-no-files-found: error  # Fail if no files are found
+          name: "${{ matrix.asset }}"
+          path: "dist/${{ matrix.asset }}"
+          if-no-files-found: error
 
   release:
     runs-on: ubuntu-latest
@@ -185,13 +170,23 @@ jobs:
       - name: Checkout the code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Fetch all history for generating changelogs
-          fetch-tags: true  # Ensure all tags are fetched
+          fetch-depth: 0
+          fetch-tags: true
 
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
           path: ./artifacts
+          merge-multiple: true
+
+      # checksums.sha256 is consumed by the self-updater
+      # (money4band/updater.py::_apply_binary_update) for integrity checks.
+      - name: Generate checksums
+        shell: bash
+        run: |
+          cd artifacts
+          sha256sum Money4Band-* > checksums.sha256
+          cat checksums.sha256
 
       - name: Create a GitHub release
         uses: softprops/action-gh-release@v2
@@ -200,5 +195,8 @@ jobs:
           name: "Money4Band ${{ github.ref_name }}"
           tag_name: "${{ github.ref_name }}"
           generate_release_notes: true  # GitHub-native changelog from PR titles
-          files: "./artifacts/**/*"
-          prerelease: true # Set to true so that the release is marked as a pre-release
+          files: "./artifacts/*"
+          # Releases start as prerelease BY DESIGN: the maintainer validates
+          # the build, then manually promotes it to "latest" on GitHub -
+          # only then does the in-app updater start offering it to users.
+          prerelease: true

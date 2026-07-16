@@ -15,6 +15,12 @@ logger = logging.getLogger(__name__)
 DOCKERHUB_BASE_URL = "https://registry.hub.docker.com/v2/"
 GHCR_BASE_URL = "https://ghcr.io/v2/"
 
+# Short-lived per-process memo: one compose assembly asks for the same
+# image's tags up to 3 times (arch check + compatible-tag x2), each behind
+# a retry/backoff transport.
+_TAGS_CACHE_TTL = 600.0  # seconds
+_tags_cache: dict[str, tuple[float, dict | None]] = {}
+
 
 def fetch_docker_tags(image: str) -> dict | None:
     """
@@ -29,6 +35,10 @@ def fetch_docker_tags(image: str) -> dict | None:
     Returns:
         dict | None: Tag information if successful, None otherwise.
     """
+    cached = _tags_cache.get(image)
+    if cached is not None and time.monotonic() - cached[0] < _TAGS_CACHE_TTL:
+        return cached[1]
+
     client = get_client()
     timeout = http_client.REQUEST_TIMEOUT
     try:
@@ -38,13 +48,16 @@ def fetch_docker_tags(image: str) -> dict | None:
             response = client.get(url, timeout=timeout)
             response.raise_for_status()
             tags = response.json().get("tags", [])
-            return {"results": [{"name": tag, "images": []} for tag in tags]}
+            result = {"results": [{"name": tag, "images": []} for tag in tags]}
+            _tags_cache[image] = (time.monotonic(), result)
+            return result
         else:
             url = f"{DOCKERHUB_BASE_URL}repositories/{image}/tags"
             response = client.get(url, timeout=timeout)
             response.raise_for_status()
-            result: dict[Any, Any] = response.json()
-            return result
+            payload: dict[Any, Any] = response.json()
+            _tags_cache[image] = (time.monotonic(), payload)
+            return payload
     except httpx.ConnectError:
         logger.error(
             "Cannot reach registry for %s - network may be down. "
@@ -59,6 +72,29 @@ def fetch_docker_tags(image: str) -> dict | None:
     except httpx.HTTPError as e:
         logger.error("Error fetching Docker tags for %s: %s", image, e)
         return None
+
+
+def _parse_platform(docker_platform: str) -> tuple[str, str | None]:
+    """Split ``linux/arm/v7`` into ``('arm', 'v7')``; no variant -> None."""
+    parts = docker_platform.split("/")
+    arch = parts[1] if len(parts) > 1 else parts[0]
+    variant = parts[2] if len(parts) > 2 else None
+    return arch, variant
+
+
+def _image_matches(image_info: dict, arch: str, variant: str | None) -> bool:
+    """Match a registry manifest entry against (arch, variant).
+
+    ``arm/v6`` and ``arm/v7`` are NOT interchangeable: matching on
+    architecture alone approved v7-only images on armv6 hosts, and the
+    pinned ``platform:`` then failed at pull time.
+    """
+    if image_info.get("architecture") != arch:
+        return False
+    if variant is None:
+        return True
+    manifest_variant = image_info.get("variant") or None
+    return manifest_variant == variant
 
 
 def check_img_arch_support(image: str, tag: str, docker_platform: str) -> bool | None:
@@ -77,18 +113,16 @@ def check_img_arch_support(image: str, tag: str, docker_platform: str) -> bool |
                      without PAT, or registry unreachable).
     """
     if image.startswith("ghcr.io/"):
+        # Log-only: this runs inside the compose-assembly loop behind a
+        # spinner - a print + 4s sleep per GHCR image added ~20s dead time
+        # to every stack generation without changing the outcome.
         logger.warning(
             "Skipping arch check for GHCR image %s (requires GH PAT). "
             "Falling back to default platform for emulation.",
             image,
         )
-        print(
-            f"\n[WARNING] Cannot check arch for GHCR image {image} "
-            f"(requires GH PAT). Falling back to linux/amd64 for emulation."
-        )
-        time.sleep(4)
         return None
-    arch = docker_platform.split("/")[1]
+    arch, variant = _parse_platform(docker_platform)
     tags_info = fetch_docker_tags(image)
     if tags_info is None:
         logger.warning(
@@ -103,7 +137,9 @@ def check_img_arch_support(image: str, tag: str, docker_platform: str) -> bool |
         logger.error("Tag %s not found for image %s", tag, image)
         return False
 
-    return any(image_info["architecture"] == arch for image_info in tag_info["images"])
+    return any(
+        _image_matches(image_info, arch, variant) for image_info in tag_info["images"]
+    )
 
 
 def get_compatible_tag(image: str, docker_platform: str) -> str | None:
@@ -118,7 +154,7 @@ def get_compatible_tag(image: str, docker_platform: str) -> str | None:
     Returns:
         Optional[str]: The compatible tag name if found, None otherwise.
     """
-    arch = docker_platform.split("/")[1]
+    arch, variant = _parse_platform(docker_platform)
     tags_info = fetch_docker_tags(image)
     if tags_info is None:
         return None
@@ -127,7 +163,9 @@ def get_compatible_tag(image: str, docker_platform: str) -> str | None:
         (
             t["name"]
             for t in tags_info.get("results", [])
-            if any(image_info["architecture"] == arch for image_info in t["images"])
+            if any(
+                _image_matches(image_info, arch, variant) for image_info in t["images"]
+            )
         ),
         None,
     )

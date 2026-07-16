@@ -32,13 +32,14 @@ RUN uv run python scripts/update_tables.py
 
 # Build the project using PyInstaller at image build time (not CMD)
 # so that failures are caught during `docker build` instead of silently at runtime.
-RUN uv run pyinstaller --onedir \
+# Single-file build: asset naming and self-update logic
+# (money4band/updater.py) rely on one binary per platform.
+RUN uv run pyinstaller --onefile \
     --name Money4Band \
     main.py \
     --hidden-import colorama \
     --hidden-import docker \
     --hidden-import httpx \
-    --hidden-import pyyaml \
     --hidden-import psutil \
     --hidden-import yaml \
     --hidden-import secrets \
@@ -58,9 +59,6 @@ RUN uv run pyinstaller --onedir \
     --add-data "config:config" \
     --add-data "money4band:money4band" \
     --add-data "template:template" \
-    --add-data "LICENSE:." \
-    --add-data "README.md:." \
-    --contents-directory "." \
     -y
 
 # Default command just copies artifacts (build already done in RUN step)

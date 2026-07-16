@@ -34,18 +34,35 @@ _CACHE_TTL = 900  # seconds (15 minutes)
 
 
 def _cache_path() -> Path:
-    """Return path to the update-check cache file."""
-    return Path(tempfile.gettempdir()) / "m4b_update_cache.json"
+    """Return path to the update-check cache file.
+
+    Lives in the per-user M4B data dir (0700, same place as master.key) -
+    a fixed world-shared /tmp path let any local user pre-create the file
+    and poison the trusted "latest" field indefinitely.
+    """
+    from money4band.core.paths import get_m4b_data_dir
+
+    return get_m4b_data_dir() / "update_cache.json"
 
 
 def _read_cache() -> dict[str, Any] | None:
-    """Read the cached update check result if still valid."""
+    """Read the cached update check result if still valid and well-formed."""
     path = _cache_path()
     if not path.is_file():
         return None
     try:
         data: dict[str, Any] = json.loads(path.read_text())
-        if time.time() - data.get("ts", 0) < _CACHE_TTL:
+        # Validate the shape before trusting it - fall back to a live
+        # check on anything unexpected.
+        if not isinstance(data, dict):
+            return None
+        ts = data.get("ts")
+        latest = data.get("latest")
+        if not isinstance(ts, (int, float)):
+            return None
+        if latest is not None and not isinstance(latest, str):
+            return None
+        if time.time() - ts < _CACHE_TTL:
             return data
     except (json.JSONDecodeError, OSError):
         pass
@@ -387,26 +404,31 @@ def _apply_git_update(target_version: str) -> bool:
 
 
 def _get_binary_asset_name() -> str:
-    """Determine the correct binary asset name for this platform."""
+    """Determine the correct binary asset name for this platform.
+
+    MUST match the asset names produced by the release workflow
+    (.github/workflows/release-on-tag.yml): single-file PyInstaller
+    binaries named ``Money4Band-<os>-<arch>[.exe]``.
+    """
     system = platform.system().lower()
     machine = platform.machine().lower()
 
+    arch_map = {
+        "x86_64": "amd64",
+        "amd64": "amd64",
+        "aarch64": "arm64",
+        "arm64": "arm64",
+        "armv7l": "armv7",
+        "armv6l": "armv7",  # closest published build; no separate v6 asset
+    }
+    arch = arch_map.get(machine, "amd64")
+
     if system == "windows":
-        return "money4band-windows-amd64.exe"
+        return f"Money4Band-windows-{arch}.exe"
     elif system == "darwin":
-        arch = "arm64" if machine in ("arm64", "aarch64") else "amd64"
-        return f"money4band-darwin-{arch}"
-    else:  # linux
-        arch_map = {
-            "x86_64": "amd64",
-            "amd64": "amd64",
-            "aarch64": "arm64",
-            "arm64": "arm64",
-            "armv7l": "armv7",
-            "armv6l": "armv6",
-        }
-        arch = arch_map.get(machine, "amd64")
-        return f"money4band-linux-{arch}"
+        return f"Money4Band-macos-{arch}"
+    else:
+        return f"Money4Band-linux-{arch}"
 
 
 def _apply_binary_update(target_version: str) -> bool:

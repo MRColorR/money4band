@@ -84,6 +84,12 @@ class TestGetClient(unittest.TestCase):
 
 
 class TestFetchDockerTags(unittest.TestCase):
+    def setUp(self):
+        # fetch_docker_tags memoizes per image; tests reuse image names.
+        from money4band.docker.checker import _tags_cache
+
+        _tags_cache.clear()
+
     @patch("money4band.docker.checker.get_client")
     def test_dockerhub_success(self, mock_get_client):
         mock_resp = MagicMock()
@@ -218,6 +224,20 @@ class TestCheckImgArchSupport(unittest.TestCase):
         """'latest' has both amd64 and arm64 - both should be detected."""
         self.assertTrue(check_img_arch_support("img", "latest", "linux/amd64"))
         self.assertTrue(check_img_arch_support("img", "latest", "linux/arm64"))
+
+    def test_arm_variant_not_interchangeable(self):
+        """arm/v7-only images must NOT be approved for an arm/v6 host."""
+        tags = {
+            "results": [
+                {
+                    "name": "latest",
+                    "images": [{"architecture": "arm", "variant": "v7"}],
+                }
+            ]
+        }
+        with patch("money4band.docker.checker.fetch_docker_tags", return_value=tags):
+            self.assertTrue(check_img_arch_support("img", "latest", "linux/arm/v7"))
+            self.assertFalse(check_img_arch_support("img", "latest", "linux/arm/v6"))
 
 
 class TestGetCompatibleTag(unittest.TestCase):

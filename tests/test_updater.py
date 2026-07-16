@@ -327,24 +327,61 @@ class TestPreservedFiles:
 
 
 class TestGetBinaryAssetName:
+    """Asset names MUST match the release workflow's published binaries."""
+
+    @patch("money4band.updater.platform.machine", return_value="AMD64")
     @patch("money4band.updater.platform.system", return_value="Windows")
-    def test_windows(self, _):
-        assert _get_binary_asset_name() == "money4band-windows-amd64.exe"
+    def test_windows(self, *_):
+        assert _get_binary_asset_name() == "Money4Band-windows-amd64.exe"
 
     @patch("money4band.updater.platform.machine", return_value="x86_64")
     @patch("money4band.updater.platform.system", return_value="Linux")
     def test_linux_amd64(self, *_):
-        assert _get_binary_asset_name() == "money4band-linux-amd64"
+        assert _get_binary_asset_name() == "Money4Band-linux-amd64"
 
     @patch("money4band.updater.platform.machine", return_value="aarch64")
     @patch("money4band.updater.platform.system", return_value="Linux")
     def test_linux_arm64(self, *_):
-        assert _get_binary_asset_name() == "money4band-linux-arm64"
+        assert _get_binary_asset_name() == "Money4Band-linux-arm64"
+
+    @patch("money4band.updater.platform.machine", return_value="armv7l")
+    @patch("money4band.updater.platform.system", return_value="Linux")
+    def test_linux_armv7(self, *_):
+        assert _get_binary_asset_name() == "Money4Band-linux-armv7"
 
     @patch("money4band.updater.platform.machine", return_value="arm64")
     @patch("money4band.updater.platform.system", return_value="Darwin")
     def test_macos_arm64(self, *_):
-        assert _get_binary_asset_name() == "money4band-darwin-arm64"
+        assert _get_binary_asset_name() == "Money4Band-macos-arm64"
+
+    def test_asset_names_match_release_workflow(self):
+        """String-level contract: every asset the updater can request must
+        be produced by the release workflow matrix."""
+        workflow = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            ".github",
+            "workflows",
+            "release-on-tag.yml",
+        )
+        with open(workflow, encoding="utf-8") as f:
+            workflow_text = f.read()
+        for system, machine in [
+            ("Windows", "AMD64"),
+            ("Linux", "x86_64"),
+            ("Linux", "aarch64"),
+            ("Linux", "armv7l"),
+            ("Darwin", "arm64"),
+            ("Darwin", "x86_64"),
+        ]:
+            with (
+                patch("money4band.updater.platform.system", return_value=system),
+                patch("money4band.updater.platform.machine", return_value=machine),
+            ):
+                asset = _get_binary_asset_name()
+            assert asset in workflow_text, (
+                f"updater requests asset '{asset}' but the release workflow "
+                f"does not publish it"
+            )
 
 
 class TestApplyUpdate:

@@ -37,8 +37,6 @@ import logging
 from pathlib import Path
 from typing import Any
 
-from money4band.core.crypto import decrypt_to_dict, encrypt_dict, is_encrypted
-
 logger = logging.getLogger(__name__)
 
 OVERRIDE_KEY = "catalog_overrides"
@@ -51,41 +49,32 @@ _SOURCE_OVERRIDE_FIELDS = ("enabled", "url", "cache_path", "timeout")
 
 
 def _read_user_config(user_config_path: str | Path) -> dict[str, Any]:
+    """Read user-config via the canonical decrypt-aware loader, best-effort."""
     path = Path(user_config_path)
     if not path.is_file():
         return {}
     try:
-        content = path.read_text(encoding="utf-8")
-    except OSError as exc:
+        from money4band.core.loader import load_json_config
+
+        return load_json_config(str(path))
+    except (OSError, json.JSONDecodeError, ValueError) as exc:
         logger.warning("catalog_overrides: cannot read %s: %s", path, exc)
-        return {}
-    try:
-        if is_encrypted(content):
-            return decrypt_to_dict(content)
-        parsed: dict[str, Any] = json.loads(content)
-        return parsed
-    except (json.JSONDecodeError, ValueError) as exc:
-        logger.warning("catalog_overrides: cannot parse %s: %s", path, exc)
         return {}
 
 
 def _write_user_config(user_config_path: str | Path, payload: dict[str, Any]) -> None:
+    """Persist via the canonical atomic, encryption-preserving writer.
+
+    user-config.json holds every app credential: a plain write_text left
+    a truncated file on crash/power loss mid-write. ``dumper.write_json``
+    keeps the tempfile+os.replace atomicity and re-encrypts when the file
+    on disk is encrypted.
+    """
     path = Path(user_config_path)
     path.parent.mkdir(parents=True, exist_ok=True)
-    # Preserve encryption-at-rest: if the current file is encrypted, re-encrypt
-    # after mutation; otherwise stay plaintext and let the usual lifecycle
-    # hooks (``ensure_config_encrypted``) handle encryption on exit.
-    try:
-        existing = path.read_text(encoding="utf-8") if path.is_file() else ""
-    except OSError:
-        existing = ""
+    from money4band.core.dumper import write_json
 
-    if existing and is_encrypted(existing):
-        path.write_text(encrypt_dict(payload), encoding="utf-8")
-        return
-    path.write_text(
-        json.dumps(payload, indent=4, ensure_ascii=False) + "\n", encoding="utf-8"
-    )
+    write_json(payload, str(path))
 
 
 def load_user_overrides(user_config_path: str | Path | None) -> dict[str, Any]:
