@@ -51,6 +51,15 @@ def handle_dashboard_action(
         print("\nRun 'm4b dashboard <command> --help' for details.")
         return
 
+    if action == "serve":
+        # Internal foreground run - the child process side of
+        # spawn_dashboard_background on frozen builds.
+        from money4band.api.server import configure, start_server
+
+        configure(config_dir, base_dir=base_dir)
+        start_server(host=host, port=port)
+        return
+
     if action in ("enable", "disable"):
         from money4band.dashboard.setup import set_dashboard_state
 

@@ -283,7 +283,7 @@ class _LoginPayload(BaseModel):
 
 
 @app.post("/api/auth/login", tags=["auth"])
-async def login(payload: _LoginPayload) -> JSONResponse:
+async def login(payload: _LoginPayload, request: Request) -> JSONResponse:
     """Validate the API key and set an ``m4b_token`` session cookie."""
     if not _api_key or not hmac.compare_digest(payload.token, _api_key):
         return JSONResponse(status_code=401, content={"detail": "Invalid API key"})
@@ -293,7 +293,11 @@ async def login(payload: _LoginPayload) -> JSONResponse:
         value=_derive_session_token(_api_key),
         httponly=True,
         samesite="strict",
-        secure=_exposed,
+        # Secure must follow the actual connection scheme: this server is
+        # plain HTTP, and browsers drop Secure cookies over HTTP - tying
+        # it to the bind address caused an infinite login loop exactly
+        # when the dashboard was LAN-exposed.
+        secure=request.url.scheme == "https",
         max_age=86400,
         path="/",
     )

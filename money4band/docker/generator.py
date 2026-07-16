@@ -91,19 +91,18 @@ def generate_container_url_list(
 
     try:
         if not compose_project_name or not device_name:
-            if os.path.isfile(env_file):
-                logger.info(
-                    "Reading COMPOSE_PROJECT_NAME and DEVICE_NAME from .env file..."
-                )
-                with open(env_file) as f:
-                    for line in f:
-                        if "COMPOSE_PROJECT_NAME" in line:
-                            compose_project_name = line.split("=")[1].strip()
-                        if "DEVICE_NAME" in line:
-                            device_name = line.split("=")[1].strip()
-            else:
-                logger.error("Error: Parameters not provided and .env file not found.")
-                return
+            # Shared reader with .env.meta fallback: the start flow
+            # securely deletes .env right after compose-up, so parsing
+            # only .env here broke URL generation on every normal start.
+            from money4band.docker.helper import read_env_var
+
+            logger.info(
+                "Reading COMPOSE_PROJECT_NAME and DEVICE_NAME from env files..."
+            )
+            compose_project_name = compose_project_name or read_env_var(
+                env_file, "COMPOSE_PROJECT_NAME"
+            )
+            device_name = device_name or read_env_var(env_file, "DEVICE_NAME")
 
         if not compose_project_name or not device_name:
             logger.error(
@@ -443,9 +442,7 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
 
                     current_files = _gcf(".")
                     profiles = tuple(get_active_profiles(user_config, app_config))
-                    stopped = _stop(
-                        compose_file=current_files, skip_questions=True
-                    )
+                    stopped = _stop(compose_file=current_files, skip_questions=True)
                     started = _start(
                         compose_file=current_files,
                         skip_questions=True,

@@ -48,6 +48,41 @@ _META_KEYS = frozenset(
 # ---------------------------------------------------------------------------
 
 
+def format_env_value(value: Any) -> str | None:
+    """Return *value* encoded for a Docker-Compose ``.env`` line.
+
+    Compose interpolates ``$`` inside ``.env`` values and treats
+    `` #`` as an inline comment, so raw credentials like ``Abc$123``
+    or ``p@ss #1`` get silently mangled. Rules:
+
+    - dict/list/None are not representable -> ``None`` (caller skips).
+    - ``$`` -> ``$$`` (compose interpolation escape).
+    - Values containing ``#``, quotes, whitespace, or backslashes are
+      wrapped in double quotes with ``\\`` and ``"`` escaped.
+    - Embedded newlines are rejected (``None``) - a multi-line value
+      cannot survive a line-oriented file.
+    """
+    if value is None or isinstance(value, (dict, list, tuple, set)):
+        return None
+    text = str(value)
+    if "\n" in text or "\r" in text:
+        return None
+    text = text.replace("$", "$$")
+    if any(ch in text for ch in ("#", '"', "'", " ", "\t", "\\")):
+        escaped = text.replace("\\", "\\\\").replace('"', '\\"')
+        return f'"{escaped}"'
+    return text
+
+
+def _append_env(env_lines: list[str], key: str, value: Any) -> None:
+    """Append ``KEY=VALUE`` with safe encoding, skipping non-representable values."""
+    encoded = format_env_value(value)
+    if encoded is None:
+        logger.debug("Skipping non-scalar/unsafe env value for %s", key)
+        return
+    env_lines.append(f"{key}={encoded}")
+
+
 def build_env_lines(
     m4b_config: dict[str, Any],
     app_config: dict[str, Any],
@@ -65,33 +100,34 @@ def build_env_lines(
     # Add project and system configurations
     project_config = m4b_config.get("project", {})
     for key, value in project_config.items():
-        env_lines.append(f"{key.upper()}={value}")
+        _append_env(env_lines, key.upper(), value)
 
     # Add resource limits configurations
     resource_limits_config = user_config.get("resource_limits", {})
     for key, value in resource_limits_config.items():
-        env_lines.append(f"{key.upper()}={value}")
+        _append_env(env_lines, key.upper(), value)
 
     # Add network configurations
     network_config = m4b_config.get("network", {})
     for key, value in network_config.items():
-        env_lines.append(f"NETWORK_{key.upper()}={value}")
+        _append_env(env_lines, f"NETWORK_{key.upper()}", value)
 
     # Add user and device configurations
     device_info = user_config.get("device_info", {})
     for key, value in device_info.items():
-        env_lines.append(f"{key.upper()}={value}")
+        _append_env(env_lines, key.upper(), value)
 
     # Add proxy configurations
     proxy_config = user_config.get("proxies", {})
     for key, value in proxy_config.items():
-        env_lines.append(f"STACK_PROXY_{key.upper()}={value}")
+        _append_env(env_lines, f"STACK_PROXY_{key.upper()}", value)
 
-    # Add notification configurations if enabled
+    # Add notification configurations if enabled (scalars only - the
+    # nested ``events`` dict is internal config, not watchtower env).
     notifications_config = user_config.get("notifications", {})
     if notifications_config.get("enabled"):
         for key, value in notifications_config.items():
-            env_lines.append(f"WATCHTOWER_NOTIFICATION_{key.upper()}={value}")
+            _append_env(env_lines, f"WATCHTOWER_NOTIFICATION_{key.upper()}", value)
 
     # Add Watchtower label scoping configuration
     watchtower_labels_enabled = user_config.get("watchtower", {}).get(
@@ -116,7 +152,7 @@ def build_env_lines(
                     if flag_name in app_user_config:
                         env_var_name = f"{app_name}_{flag_name.upper()}"
                         env_var_value = app_user_config[flag_name]
-                        env_lines.append(f"{env_var_name}={env_var_value}")
+                        _append_env(env_lines, env_var_name, env_var_value)
 
                 # Add ports configurations for apps that have them
                 if "ports" in app_user_config:

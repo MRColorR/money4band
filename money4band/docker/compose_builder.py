@@ -231,7 +231,12 @@ def assemble_docker_compose(
                                 )
                                 user_app_config["enabled"] = False
                                 user_config["apps"][app_name] = user_app_config
-                                write_json(user_config, user_config_path_or_dict)
+                                # Persist only when we were handed a real
+                                # path - write_json requires a filename and
+                                # raises TypeError on a dict, aborting the
+                                # whole assembly instead of skipping one app.
+                                if isinstance(user_config_path_or_dict, str):
+                                    write_json(user_config, user_config_path_or_dict)
                                 logger.info(
                                     f"{app_name} has been disabled in user-config.json due to lack of compatible image tag."
                                 )
@@ -399,8 +404,10 @@ def assemble_docker_compose(
                 service_profiles["watchtower"] = RESERVED_MONITORING_PROFILE
 
         if proxy_enabled:
-            # Get the base proxy service configuration
-            proxy_service = compose_config_common["proxy_service"].copy()
+            # Deep-copy the base proxy service: a shallow copy shares the
+            # nested "ports" list with user_config, so appended app port
+            # mappings would leak back into the template and get persisted.
+            proxy_service = copy.deepcopy(compose_config_common["proxy_service"])
 
             # Add collected ports from apps to the proxy service
             if proxy_ports:

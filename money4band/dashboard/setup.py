@@ -375,15 +375,31 @@ def spawn_dashboard_background(
     import subprocess
     import sys
 
-    cmd = [
-        sys.executable,
-        "-c",
-        (
-            "from money4band.api.server import configure, start_server; "
-            f"configure({config_dir!r}, base_dir={base_dir!r}); "
-            f"start_server(host={host!r}, port={port})"
-        ),
-    ]
+    if getattr(sys, "frozen", False):
+        # Frozen build: sys.executable IS the m4b binary and does not
+        # interpret `-c` as Python code - relaunch it with the internal
+        # `dashboard serve` subcommand instead.
+        cmd = [
+            sys.executable,
+            "--config-dir",
+            config_dir,
+            "dashboard",
+            "serve",
+            "--host",
+            host,
+            "--port",
+            str(port),
+        ]
+    else:
+        cmd = [
+            sys.executable,
+            "-c",
+            (
+                "from money4band.api.server import configure, start_server; "
+                f"configure({config_dir!r}, base_dir={base_dir!r}); "
+                f"start_server(host={host!r}, port={port})"
+            ),
+        ]
     popen_kwargs: dict = {
         "stdout": subprocess.DEVNULL,
         "stderr": subprocess.DEVNULL,

@@ -16,19 +16,21 @@ from colorama import Fore, Style
 logger = logging.getLogger(__name__)
 
 
-def get_compose_project_name(env_file: str) -> str | None:
-    """
-    Extract the COMPOSE_PROJECT_NAME from an environment file.
+def read_env_var(env_file: str, key: str) -> str | None:
+    """Read *key* from an env file, falling back to ``.env.meta``.
 
-    Falls back to ``.env.meta`` (non-sensitive metadata) when the full
-    ``.env`` has been securely deleted after compose-up.
+    The ``.env.meta`` sidecar (non-sensitive metadata) persists after the
+    full ``.env`` has been securely deleted post compose-up, so every
+    consumer of COMPOSE_PROJECT_NAME / DEVICE_NAME must use this reader
+    rather than parsing ``.env`` directly.
 
     Args:
-        env_file (str): Path to the .env file (or a compose file path,
-                        which is automatically converted to the .env path).
+        env_file: Path to the .env file (or a compose file path, which is
+                  automatically converted to the sibling .env path).
+        key: The env var name to look up (exact match).
 
     Returns:
-        str | None: The COMPOSE_PROJECT_NAME value, or None if not found.
+        The value, or None if not found in either file.
     """
     # Handle if compose file was passed instead of .env
     env_file = (
@@ -38,28 +40,34 @@ def get_compose_project_name(env_file: str) -> str | None:
     )
 
     # Try .env first, then fall back to .env.meta (persists after secure delete).
-    candidates = [env_file]
     meta_file = os.path.join(os.path.dirname(os.path.abspath(env_file)), ".env.meta")
-    candidates.append(meta_file)
+    prefix = f"{key}="
 
-    project_name = None
-    for candidate in candidates:
+    for candidate in (env_file, meta_file):
         try:
             if os.path.isfile(candidate):
                 with open(candidate) as f:
                     for line in f:
-                        if line.startswith("COMPOSE_PROJECT_NAME="):
-                            project_name = line.strip().split("=", 1)[1]
-                            logger.info(
-                                "Found COMPOSE_PROJECT_NAME in %s: %s",
-                                candidate,
-                                project_name,
-                            )
-                            return project_name
+                        if line.startswith(prefix):
+                            value = line.strip().split("=", 1)[1]
+                            # Unwrap values quoted by format_env_value.
+                            if len(value) >= 2 and value[0] == value[-1] == '"':
+                                value = (
+                                    value[1:-1]
+                                    .replace('\\"', '"')
+                                    .replace("\\\\", "\\")
+                                )
+                            logger.info("Found %s in %s: %s", key, candidate, value)
+                            return value
         except Exception as e:
-            logger.error("Error reading COMPOSE_PROJECT_NAME from %s: %s", candidate, e)
+            logger.error("Error reading %s from %s: %s", key, candidate, e)
 
-    return project_name
+    return None
+
+
+def get_compose_project_name(env_file: str) -> str | None:
+    """Extract COMPOSE_PROJECT_NAME from an env file (with .env.meta fallback)."""
+    return read_env_var(env_file, "COMPOSE_PROJECT_NAME")
 
 
 def is_user_root() -> bool:

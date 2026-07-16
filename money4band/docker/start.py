@@ -36,37 +36,39 @@ m4b_config_path = os.path.join(parent_dir, "config", "m4b-config.json")
 
 
 def get_device_name_from_env(env_file: str) -> str | None:
+    """Extract DEVICE_NAME from an env file (with .env.meta fallback)."""
+    from money4band.docker.helper import read_env_var
+
+    return read_env_var(env_file, "DEVICE_NAME")
+
+
+def _regenerate_instance_env(instance_dir: str, env_file: str) -> bool:
+    """Rebuild an instance ``.env`` that was securely deleted post-start.
+
+    Uses the per-instance config trio written at multiproxy setup time.
+    Returns True when the file exists afterwards.
     """
-    Extract the DEVICE_NAME from an environment file.
+    user_cfg = os.path.join(instance_dir, "user-config.json")
+    m4b_cfg = os.path.join(instance_dir, "m4b-config.json")
+    app_cfg = os.path.join(instance_dir, "app-config.json")
+    if not (
+        os.path.isfile(user_cfg) and os.path.isfile(m4b_cfg) and os.path.isfile(app_cfg)
+    ):
+        return False
+    try:
+        from money4band.docker.env_builder import generate_env_file
 
-    Falls back to ``.env.meta`` when the full ``.env`` has been
-    securely deleted after compose-up.
-
-    Args:
-        env_file (str): Path to the .env file
-
-    Returns:
-        str: The DEVICE_NAME value, or None if not found
-    """
-    candidates = [env_file]
-    meta_file = os.path.join(os.path.dirname(os.path.abspath(env_file)), ".env.meta")
-    candidates.append(meta_file)
-
-    for candidate in candidates:
-        try:
-            if os.path.isfile(candidate):
-                with open(candidate) as f:
-                    for line in f:
-                        if line.startswith("DEVICE_NAME="):
-                            device_name = line.strip().split("=", 1)[1]
-                            logger.info(
-                                "Found DEVICE_NAME in %s: %s", candidate, device_name
-                            )
-                            return device_name
-        except Exception as e:
-            logger.error("Error reading DEVICE_NAME from %s: %s", candidate, e)
-
-    return None
+        generate_env_file(
+            m4b_cfg,
+            app_cfg,
+            user_cfg,
+            env_output_path=env_file,
+            is_main_instance=False,
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.error("Failed to regenerate %s: %s", env_file, exc)
+        return False
+    return os.path.isfile(env_file)
 
 
 def start_stack(
@@ -375,6 +377,23 @@ def start_all_stacks(
                     if os.path.isfile(legacy):
                         instance_files = [legacy]
                 env_file = os.path.join(instance_dir, ".env")
+                if instance_files and not os.path.isfile(env_file):
+                    # .env was securely deleted after the last compose-up:
+                    # regenerate it from the instance configs instead of
+                    # silently skipping the instance (which used to report
+                    # "All stacks started." with the instance down).
+                    regenerated = _regenerate_instance_env(instance_dir, env_file)
+                    if not regenerated:
+                        all_started = False
+                        print(
+                            f"{Fore.RED}Cannot start instance '{instance}': "
+                            f".env missing and could not be regenerated.{Style.RESET_ALL}"
+                        )
+                        logger.error(
+                            "Instance '%s' skipped: .env missing and not regenerable",
+                            instance,
+                        )
+                        continue
                 if instance_files and os.path.isfile(env_file):
                     try:
                         print(
@@ -537,6 +556,27 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
         from money4band.docker.compose_builder import get_compose_files
 
         compose_files = get_compose_files(".")
+        if compose_files and not os.path.isfile("./.env"):
+            # The successful previous start securely deleted .env - rebuild
+            # it from the configs so a second start doesn't dead-end the
+            # user into "run the setup wizard".
+            try:
+                from money4band.core.loader import load_app_config_with_overlays
+                from money4band.docker.env_builder import generate_env_file
+
+                app_cfg = load_app_config_with_overlays(
+                    m4b_config_path, user_config_path=user_config_path
+                )
+                generate_env_file(
+                    m4b_config_path,
+                    app_cfg,
+                    user_config_path,
+                    env_output_path="./.env",
+                    is_main_instance=True,
+                )
+                logger.info("Regenerated ./.env deleted by the previous start")
+            except Exception as exc:  # noqa: BLE001
+                logger.error("Could not regenerate ./.env: %s", exc)
         if not compose_files or not os.path.isfile("./.env"):
             print("Cannot start the stack. Required compose/env files are missing.")
             print(

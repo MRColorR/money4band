@@ -1355,6 +1355,13 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Run the dashboard in the background and return immediately",
     )
 
+    # m4b dashboard serve (internal): foreground server run, used by
+    # spawn_dashboard_background on frozen builds where `python -c` is
+    # unavailable (sys.executable is the frozen binary itself).
+    dash_serve = dash_sub.add_parser("serve")
+    dash_serve.add_argument("--port", type=int, default=8088)
+    dash_serve.add_argument("--host", default="127.0.0.1")
+
     # m4b dashboard stop
     dash_sub.add_parser("stop", help="Stop a background dashboard process")
 
