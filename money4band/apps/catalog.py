@@ -166,7 +166,7 @@ def _manage_categories(app_config: dict[str, Any], app_config_path: str | None) 
         return
 
     cat_key = all_cats[choice_num - 1]
-    old_status = app_config[cat_key]["active"]
+    old_status = app_config[cat_key].get("active", False)
     new_status = not old_status
     app_config[cat_key]["active"] = new_status
 

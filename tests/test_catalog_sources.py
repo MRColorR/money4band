@@ -234,6 +234,26 @@ class TestRemoteSource:
         assert len(out["supported"]) == 1
         assert out["supported"][0]["name"] == "CACHED"
 
+    def test_fresh_cache_skips_fetch_entirely(self, tmp_path, monkeypatch) -> None:
+        """Within MIN_REFRESH_INTERVAL the cache is served with no HTTP."""
+        from money4band.apps.remote_cache import touch_fetched_at
+
+        cache_dir = tmp_path / "catalog" / "community"
+        (cache_dir / "supported").mkdir(parents=True)
+        (cache_dir / "supported" / "CACHED.json").write_text(
+            '{"name": "CACHED", "compose_config": {"image": "y"}}',
+            encoding="utf-8",
+        )
+        touch_fetched_at(cache_dir)
+
+        def _explode(*_a, **_k):
+            raise AssertionError("network fetch must not happen on fresh cache")
+
+        monkeypatch.setattr("money4band.network.http_client.get_client", _explode)
+        src = RemoteSource(url="https://example/catalog", enabled=True)
+        out = src.load(tmp_path / "m4b-config.json")
+        assert out["supported"][0]["name"] == "CACHED"
+
     def test_empty_cache_ignores_stale_etag_and_fetches_full_manifest(
         self, tmp_path, monkeypatch
     ) -> None:

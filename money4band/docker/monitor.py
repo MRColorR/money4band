@@ -56,6 +56,38 @@ def _docker_inspect(name: str) -> dict[str, Any] | None:
         return None
 
 
+def _docker_inspect_many(names: list[str]) -> dict[str, dict[str, Any]]:
+    """Inspect all *names* in ONE ``docker inspect`` invocation.
+
+    One process spawn regardless of container count - the per-container
+    loop cost 50-150ms of spawn overhead each on every dashboard poll.
+    Containers that disappeared between ps and inspect are simply absent
+    from the result.
+    """
+    if not names:
+        return {}
+    try:
+        result = subprocess.run(  # noqa: S603, S607
+            ["docker", "inspect", *names],
+            capture_output=True,
+            text=True,
+            timeout=15,
+        )
+        # docker inspect exits non-zero if ANY name is missing but still
+        # prints the JSON array for the ones it found - parse regardless.
+        parsed = json.loads(result.stdout) if result.stdout.strip() else []
+    except Exception:
+        logger.debug("bulk docker inspect failed", exc_info=True)
+        return {}
+    out: dict[str, dict[str, Any]] = {}
+    for info in parsed:
+        if isinstance(info, dict):
+            raw_name = str(info.get("Name", "")).lstrip("/")
+            if raw_name:
+                out[raw_name] = info
+    return out
+
+
 def _docker_ps_names(project_filter: str | None = None) -> list[str]:
     """Return names of running containers, optionally filtered by compose project label."""
     cmd = ["docker", "ps", "--format", "{{.Names}}"]
@@ -75,9 +107,16 @@ def _docker_ps_names(project_filter: str | None = None) -> list[str]:
 # ---------------------------------------------------------------------------
 
 
-def check_container_health(name: str) -> HealthStatus:
-    """Query Docker for the current health of container *name*."""
-    info = _docker_inspect(name)
+def check_container_health(
+    name: str, info: dict[str, Any] | None = None
+) -> HealthStatus:
+    """Query Docker for the current health of container *name*.
+
+    Pass *info* (a pre-fetched ``docker inspect`` payload) to skip the
+    per-container subprocess - get_stack_health uses one bulk inspect.
+    """
+    if info is None:
+        info = _docker_inspect(name)
     if info is None:
         return HealthStatus(name=name)
 
@@ -129,4 +168,5 @@ def detect_restart_loops(name: str, threshold: int = 5) -> bool:
 def get_stack_health(project_filter: str | None = None) -> list[HealthStatus]:
     """Return health status for all containers in the stack."""
     names = _docker_ps_names(project_filter)
-    return [check_container_health(n) for n in names]
+    infos = _docker_inspect_many(names)
+    return [check_container_health(n, info=infos.get(n)) for n in names]

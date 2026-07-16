@@ -102,12 +102,31 @@ class _StatusRetryTransport(httpx.BaseTransport):
         self._inner.close()
 
 
+_cached_client: httpx.Client | None = None
+_cached_key: tuple[int, int] | None = None
+
+
 def get_client() -> httpx.Client:
-    """Return an :class:`httpx.Client` wired with retry + back-off.
+    """Return the shared :class:`httpx.Client` wired with retry + back-off.
 
     Combines transport-level connection retries with response-status retries
     on the ``_STATUS_FORCELIST`` for every HTTP method.
+
+    The client is cached module-wide: callers never closed the previous
+    per-call instances, throwing away the connection pool (a fresh TCP+TLS
+    handshake per logical operation) and leaking sockets. The cache is
+    rebuilt when ``configure()`` changes timeout/retries or when a caller
+    closed the shared instance.
     """
+    global _cached_client, _cached_key  # noqa: PLW0603
+    key = (REQUEST_TIMEOUT, MAX_RETRIES)
+    if (
+        _cached_client is not None
+        and not _cached_client.is_closed
+        and _cached_key == key
+    ):
+        return _cached_client
+
     inner = httpx.HTTPTransport(retries=MAX_RETRIES)
     transport = _StatusRetryTransport(
         inner=inner,
@@ -115,8 +134,10 @@ def get_client() -> httpx.Client:
         backoff_factor=BACKOFF_FACTOR,
         status_forcelist=_STATUS_FORCELIST,
     )
-    return httpx.Client(
+    _cached_client = httpx.Client(
         transport=transport,
         timeout=httpx.Timeout(REQUEST_TIMEOUT),
         follow_redirects=True,
     )
+    _cached_key = key
+    return _cached_client

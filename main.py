@@ -261,51 +261,69 @@ def mainmenu(
         logger.error(f"Error initializing colorama: {str(e)}")
         raise
 
+    # Configs are (re)loaded lazily: a full load means a Fernet decrypt of
+    # the credentials file, so it happens once up front and again only
+    # after a menu action ran (actions mutate config on disk) - not on
+    # every keystroke iteration.
+    config_stale = True
+    m4b_config: dict = {}
+    user_config: dict = {}
+    hardware_synced = False
+
     while True:
-        try:
-            logger.info("Loading configurations")
-            m4b_config = loader.load_json_config(m4b_config_path)
-            user_config = loader.load_json_config(user_config_path)
-            logger.info("Configurations loaded successfully")
-        except FileNotFoundError as e:
-            logger.error(f"File not found: {str(e)}")
-            raise
-        except Exception as e:
-            logger.error(f"An error occurred while loading configurations: {str(e)}")
-            raise
+        if config_stale:
+            try:
+                logger.info("Loading configurations")
+                m4b_config = loader.load_json_config(m4b_config_path)
+                user_config = loader.load_json_config(user_config_path)
+                config_stale = False
+                logger.info("Configurations loaded successfully")
+            except FileNotFoundError as e:
+                logger.error(f"File not found: {str(e)}")
+                raise
+            except Exception as e:
+                logger.error(
+                    f"An error occurred while loading configurations: {str(e)}"
+                )
+                raise
 
         try:
             logger.debug("Loading main menu")
             sleep_time = m4b_config.get("system", {}).get("sleep_time", 2)
 
-            logger.debug("Detecting OS and architecture")
-            system_info = {
-                **detector.detect_os(m4b_config_path),
-                **detector.detect_architecture(m4b_config_path),
-            }
+            # Hardware never changes mid-session: detect OS/arch and
+            # recalculate resource limits once per run, not per keypress.
+            if not hardware_synced:
+                logger.debug("Detecting OS and architecture")
+                system_info = {
+                    **detector.detect_os(m4b_config_path),
+                    **detector.detect_architecture(m4b_config_path),
+                }
 
-            # Update user_config with detected OS, architecture, and docker architecture
-            device_info = user_config.setdefault("device_info", {})
-            device_info["os_type"] = system_info.get("os_type")
-            device_info["detected_architecture"] = system_info.get("arch")
-            device_info["detected_docker_arch"] = system_info.get("dkarch")
+                device_info = user_config.setdefault("device_info", {})
+                device_info["os_type"] = system_info.get("os_type")
+                device_info["detected_architecture"] = system_info.get("arch")
+                device_info["detected_docker_arch"] = system_info.get("dkarch")
 
-            # Add default platform for apps if not already present
-            for app_name in user_config.get("apps", {}):
-                app_config = user_config["apps"].setdefault(app_name, {})
-                if "docker_platform" not in app_config:
-                    app_config["docker_platform"] = (
-                        f"linux/{device_info['detected_docker_arch']}"
-                    )
+                # Add default platform for apps if not already present
+                for app_name in user_config.get("apps", {}):
+                    app_config = user_config["apps"].setdefault(app_name, {})
+                    if "docker_platform" not in app_config:
+                        app_config["docker_platform"] = (
+                            f"linux/{device_info['detected_docker_arch']}"
+                        )
 
-            dumper.write_json(user_config, user_config_path)
-            logger.info(f"System info and default platform stored: {device_info}")
+                dumper.write_json(user_config, user_config_path)
+                logger.info(f"System info and default platform stored: {device_info}")
 
-            logger.debug("Calculating resources limits based on system")
-            detector.calculate_resource_limits(
-                user_config_path_or_dict=user_config_path,
-                m4b_config=m4b_config,
-            )
+                logger.debug("Calculating resources limits based on system")
+                detector.calculate_resource_limits(
+                    user_config_path_or_dict=user_config_path,
+                    m4b_config=m4b_config,
+                )
+                # calculate_resource_limits writes user-config on disk.
+                user_config = loader.load_json_config(user_config_path)
+                hardware_synced = True
 
             cls()
             from money4band.ui.banner import ensure_nickname, print_banner
@@ -364,6 +382,9 @@ def mainmenu(
                 handler = menu_dispatch.get(function_name)
                 if handler:
                     handler(apps_config_path, m4b_config_path, user_config_path)
+                    # Menu actions mutate the configs on disk - reload on
+                    # the next iteration.
+                    config_stale = True
                 else:
                     print(
                         f"{Fore.RED}Unknown menu function: {function_name}{Style.RESET_ALL}"

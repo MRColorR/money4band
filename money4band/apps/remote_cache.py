@@ -64,6 +64,21 @@ def touch_fetched_at(cache_dir: Path) -> None:
     )
 
 
+def seconds_since_fetch(cache_dir: Path) -> float | None:
+    """Return seconds elapsed since the last successful fetch, or None."""
+    path = cache_dir / FETCHED_AT_FILENAME
+    if not path.is_file():
+        return None
+    try:
+        stamp = datetime.fromisoformat(path.read_text(encoding="utf-8").strip())
+    except (OSError, ValueError) as exc:
+        logger.debug("Cannot read fetch timestamp %s: %s", path, exc)
+        return None
+    if stamp.tzinfo is None:
+        stamp = stamp.replace(tzinfo=timezone.utc)
+    return (datetime.now(timezone.utc) - stamp).total_seconds()
+
+
 def replace_entries(
     cache_dir: Path,
     entries_by_category: dict[str, list[dict[str, Any]]],

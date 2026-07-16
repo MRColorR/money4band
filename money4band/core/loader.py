@@ -116,13 +116,22 @@ def load_app_config_with_overlays(
         apply_overrides,
         load_user_overrides,
     )
-    from money4band.core.catalog_store import extract_envelope, is_envelope
+    from money4band.core.catalog_store import (
+        extract_envelope,
+        is_envelope,
+        is_legacy_monolithic,
+    )
 
-    # One-shot migrations - both no-op after first run.
-    migrate_catalog_file(config_path)
-    fold_legacy_envelope_into_m4b(config_path)
-
+    # One-shot migrations. Load the payload once and only re-read after a
+    # migration actually rewrote the file - migrate_catalog_file used to
+    # fully parse m4b-config.json a second time on EVERY load just to
+    # conclude "already migrated".
     payload = load_json_config(config_path)
+    if is_legacy_monolithic(payload) and not is_envelope(payload):
+        migrate_catalog_file(config_path)
+        payload = load_json_config(config_path)
+    if fold_legacy_envelope_into_m4b(config_path):
+        payload = load_json_config(config_path)
 
     # Either already an envelope / folded m4b-config (normal path) or
     # still monolithic (migration skipped - e.g. tests that pass an

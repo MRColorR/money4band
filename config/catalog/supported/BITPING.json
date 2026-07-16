@@ -44,8 +44,7 @@
     },
     "flags": {
         "email": {},
-        "password": {},
-        "mfa": {}
+        "password": {}
     },
     "install_limit": -1,
     "app_details": {

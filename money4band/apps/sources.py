@@ -38,6 +38,10 @@ from money4band.core.catalog_store import CATEGORIES, read_addons_dir, read_entr
 
 logger = logging.getLogger(__name__)
 
+# Remote catalogs change rarely; within this window the on-disk cache is
+# served without any network round-trip.
+MIN_REFRESH_INTERVAL = 3600.0  # seconds
+
 
 class CatalogSource(ABC):
     """Abstract catalog source.
@@ -263,6 +267,7 @@ class RemoteSource(CatalogSource):
         from money4band.apps.remote_cache import (
             read_etag,
             replace_entries,
+            seconds_since_fetch,
             split_addons_from_manifest,
             split_manifest,
             touch_fetched_at,
@@ -274,6 +279,21 @@ class RemoteSource(CatalogSource):
             return {cat: [] for cat in CATEGORIES}
 
         cache_dir = self._resolve_cache_dir(config_path)
+
+        # Serve straight from cache within the min-refresh window: without
+        # this every catalog-touching menu action paid a network round-trip
+        # (or blocked the full timeout when offline).
+        if self._cache_has_bundles(cache_dir):
+            age = seconds_since_fetch(cache_dir)
+            if age is not None and age < MIN_REFRESH_INTERVAL:
+                logger.debug(
+                    "RemoteSource %r: cache is %.0fs old (< %ss) - skipping fetch",
+                    self.name,
+                    age,
+                    MIN_REFRESH_INTERVAL,
+                )
+                return {cat: read_entries_dir(cache_dir, cat) for cat in CATEGORIES}
+
         # If cache has no bundles, ignore stale ETag so we force a full 200 fetch.
         etag = read_etag(cache_dir) if self._cache_has_bundles(cache_dir) else None
         status, payload, new_etag = self._fetch_manifest(etag)

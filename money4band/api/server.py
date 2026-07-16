@@ -118,6 +118,7 @@ async def _security_headers(request: Request, call_next):
 
 _RATE_LIMIT = 60  # max requests per window
 _RATE_WINDOW = 60.0  # window size in seconds
+_RATE_LOG_MAX_CLIENTS = 1024  # sweep threshold for stale per-IP entries
 _rate_log: dict[str, collections.deque[float]] = {}
 
 
@@ -137,16 +138,23 @@ async def _rate_limit_middleware(request: Request, call_next):  # type: ignore[n
     if not _exposed or client_ip in _LOOPBACK:
         return await call_next(request)
     now = time.monotonic()
+
+    # Global sweep: without it, one-shot clients (a new IP per request)
+    # leave their deque behind forever - only returning IPs self-cleaned.
+    if len(_rate_log) > _RATE_LOG_MAX_CLIENTS:
+        stale = [
+            ip
+            for ip, stamps in _rate_log.items()
+            if not stamps or stamps[-1] < now - _RATE_WINDOW
+        ]
+        for ip in stale:
+            del _rate_log[ip]
+
     timestamps = _rate_log.setdefault(client_ip, collections.deque())
 
     # Evict entries outside the sliding window.
     while timestamps and timestamps[0] < now - _RATE_WINDOW:
         timestamps.popleft()
-
-    # GC: remove empty deques so the dict doesn't grow unboundedly.
-    if not timestamps:
-        del _rate_log[client_ip]
-        timestamps = _rate_log.setdefault(client_ip, collections.deque())
 
     if len(timestamps) >= _RATE_LIMIT:
         return JSONResponse(
