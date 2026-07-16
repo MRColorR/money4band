@@ -976,27 +976,6 @@ def _cmd_app(args: argparse.Namespace) -> None:
         print("  validate  Check all apps.d/ files against the schema")
 
 
-def _cmd_offers(args: argparse.Namespace) -> None:
-    """Show referral and passive income offers."""
-    just_fix_windows_console()
-    config_dir = getattr(args, "config_dir", os.path.join(BASE_DIR, "config"))
-    m4b_config_path = os.path.join(config_dir, "m4b-config.json")
-
-    # One-shot split of the legacy monolithic referral-offers.json.
-    from money4band.core.offers_migration import migrate_offers_file
-
-    migrate_offers_file(m4b_config_path)
-
-    offers_dir = os.path.join(config_dir, "offers.d")
-    category = getattr(args, "offer_category", None)
-
-    from money4band.apps.offers import display_offers
-
-    display_offers(
-        offers_dir, category_filter=category, app_config_path=m4b_config_path
-    )
-
-
 def _cmd_dashboard(args: argparse.Namespace) -> None:
     """Manage the web dashboard & API server."""
     from money4band.dashboard.cli import handle_dashboard_action
@@ -1349,18 +1328,6 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Action: 'add' to create a new community app, 'validate' to check apps.d/ files",
     )
 
-    offers_parser = sub.add_parser(
-        "offers", help="Show referral & passive income offers"
-    )
-    offers_parser.add_argument(
-        "--category",
-        "-c",
-        dest="offer_category",
-        default=None,
-        choices=["bandwidth", "compute", "survey", "other"],
-        help="Filter by offer category",
-    )
-
     dashboard_parser = sub.add_parser(
         "dashboard", help="Manage the web dashboard & API server"
     )
@@ -1569,7 +1536,6 @@ _SUBCOMMAND_DISPATCH = {
     "apps": _cmd_apps,
     "validate": _cmd_validate,
     "app": _cmd_app,
-    "offers": _cmd_offers,
     "dashboard": _cmd_dashboard,
     "profile": _cmd_profile,
     "catalog": _cmd_catalog,

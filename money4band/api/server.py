@@ -35,7 +35,6 @@ from money4band.api.router_earnings import router as earnings_router
 from money4band.api.router_ip import router as ip_router
 from money4band.api.router_monitor import router as monitor_router
 from money4band.api.router_notifications import router as notifications_router
-from money4band.api.router_offers import router as offers_router
 from money4band.api.router_profiles import router as profiles_router
 from money4band.api.router_security import router as security_router
 from money4band.api.router_stack import router as stack_router
@@ -330,7 +329,6 @@ app.include_router(backups_router)
 app.include_router(profiles_router)
 app.include_router(earnings_router)
 app.include_router(ip_router)
-app.include_router(offers_router)
 app.include_router(notifications_router)
 app.include_router(update_router)
 app.include_router(security_router)

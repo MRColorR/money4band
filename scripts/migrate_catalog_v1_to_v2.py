@@ -28,7 +28,6 @@ from money4band.core.catalog_migration import (
     fold_legacy_envelope_into_m4b,
     migrate_catalog_file,
 )
-from money4band.core.offers_migration import migrate_offers_file
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -73,10 +72,6 @@ def main(argv: list[str] | None = None) -> int:
         m4b = path.parent / "m4b-config.json"
         if m4b.is_file() and fold_legacy_envelope_into_m4b(m4b):
             actions.append(f"folded envelope into {m4b}")
-
-    anchor = path if path.name == "m4b-config.json" else path.parent / "m4b-config.json"
-    if anchor.is_file() and migrate_offers_file(anchor):
-        actions.append(f"split referral-offers.json -> {anchor.parent / 'offers.d'}")
 
     if actions:
         for a in actions:

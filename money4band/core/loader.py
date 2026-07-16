@@ -1,11 +1,8 @@
 from __future__ import annotations
 
-import importlib.util
 import json
 import logging
 import os
-import sys
-import types
 from typing import TYPE_CHECKING, Any
 
 from money4band.core.crypto import decrypt_to_dict, is_encrypted
@@ -274,74 +271,3 @@ def load_catalog_entries(
             except (TypeError, ValueError) as exc:
                 logger.warning("Skipping invalid catalog entry in %s: %s", cat_key, exc)
     return out
-
-
-def load_module_from_file(module_name: str, file_path: str) -> types.ModuleType:
-    """
-    Dynamically load a module from a Python file.
-
-    Arguments:
-    module_name -- the name to give to the loaded module
-    file_path -- the path to the Python file
-
-    Returns:
-    Module -- The loaded module.
-
-    Raises:
-    Exception -- If there is an error loading the module.
-    """
-    try:
-        spec = importlib.util.spec_from_file_location(module_name, file_path)
-        if spec is None or spec.loader is None:
-            raise ImportError(f"Could not create module spec for {file_path}")
-        module = importlib.util.module_from_spec(spec)
-        # Register in sys.modules before exec so @dataclass and other
-        # metaclass introspection can find the module at import time.
-        sys.modules[module_name] = module
-        spec.loader.exec_module(module)
-        return module
-    except Exception as e:
-        logger.error(
-            f"Failed to load module: {module_name} from {file_path}. Error: {str(e)}"
-        )
-        raise
-
-
-def load_modules_from_directory(directory_path: str) -> dict[str, types.ModuleType]:
-    """
-    Dynamically load all modules in a directory.
-
-    Arguments:
-    directory_path -- the path to the directory
-
-    Returns:
-    Dict[str, Module] -- A dictionary of loaded modules.
-    """
-    modules = {}
-    for filename in os.listdir(directory_path):
-        if filename.endswith(".py") and filename != "__init__.py":
-            path = os.path.join(directory_path, filename)
-            module_name = filename[:-3]  # remove .py extension
-            try:
-                modules[module_name] = load_module_from_file(module_name, path)
-                logger.info(f"Successfully loaded module: {module_name}")
-            except Exception as e:
-                logger.error(f"Failed to load module: {module_name}. Error: {str(e)}")
-                raise
-    return modules
-
-
-def main(config_path_or_dict: Any, module_dir_path: str) -> None:
-    """
-    Main function to run the load module standalone.
-
-    Arguments:
-    config_path_or_dict -- the config file path or dictionary
-    module_dir_path -- the directory containing the modules
-    """
-    try:
-        load_json_config(config_path_or_dict)
-        load_modules_from_directory(module_dir_path)
-    except Exception as e:
-        logger.error(f"An unexpected error occurred: {str(e)}")
-        raise

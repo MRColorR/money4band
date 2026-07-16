@@ -1,6 +1,6 @@
 # CLI Reference
 
-> All 24 subcommands available via `m4b <command>` (or `python main.py <command>`).
+> All 23 subcommands available via `m4b <command>` (or `python main.py <command>`).
 
 ---
 
@@ -187,16 +187,6 @@ Display app dashboard URLs and referral links.
 ```bash
 m4b links
 ```
-
-### `offers`
-Browse referral and passive-income offers.
-
-```bash
-m4b offers
-m4b offers --category bandwidth
-```
-
----
 
 ## Catalog
 

@@ -3,7 +3,6 @@
 import json
 import os
 import tempfile
-import types
 import unittest
 
 from money4band.core.loader import (
@@ -13,8 +12,6 @@ from money4band.core.loader import (
     get_install_limit,
     is_category_active,
     load_json_config,
-    load_module_from_file,
-    load_modules_from_directory,
 )
 
 
@@ -68,61 +65,17 @@ class TestLoadJsonConfig(unittest.TestCase):
         with tempfile.NamedTemporaryFile(
             mode="w", suffix=".json", delete=False, encoding="utf-8"
         ) as f:
-            json.dump({"emoji": "\U0001f680", "lang": "日本語"}, f, ensure_ascii=False)
+            json.dump(
+                {"emoji": "\U0001f680", "lang": "\u65e5\u672c\u8a9e"},
+                f,
+                ensure_ascii=False,
+            )
             path = f.name
         try:
             cfg = load_json_config(path)
             self.assertEqual(cfg["emoji"], "\U0001f680")
         finally:
             os.unlink(path)
-
-
-class TestLoadModuleFromFile(unittest.TestCase):
-    """Test dynamic module loading with real .py files."""
-
-    def test_loads_module_with_function(self):
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
-            f.write("def greet(name):\n    return f'hello {name}'\n")
-            path = f.name
-        try:
-            mod = load_module_from_file("_test_greet", path)
-            self.assertIsInstance(mod, types.ModuleType)
-            self.assertEqual(mod.greet("world"), "hello world")
-        finally:
-            os.unlink(path)
-
-    def test_missing_file_raises(self):
-        with self.assertRaises((FileNotFoundError, OSError)):
-            load_module_from_file("_gone", "/no/such/module.py")
-
-
-class TestLoadModulesFromDirectory(unittest.TestCase):
-    """Test directory-based multi-module loading with real files."""
-
-    def test_loads_all_py_except_init(self):
-        with tempfile.TemporaryDirectory() as d:
-            # Create two normal modules + __init__.py + non-py file
-            for name, body in [
-                ("alpha.py", "VALUE = 1\ndef main(*a): pass\n"),
-                ("beta.py", "VALUE = 2\ndef main(*a): pass\n"),
-                ("__init__.py", ""),
-                ("readme.txt", "not python"),
-            ]:
-                with open(os.path.join(d, name), "w") as f:
-                    f.write(body)
-
-            modules = load_modules_from_directory(d)
-            self.assertIn("alpha", modules)
-            self.assertIn("beta", modules)
-            self.assertNotIn("__init__", modules)
-            self.assertNotIn("readme", modules)
-            self.assertEqual(modules["alpha"].VALUE, 1)
-            self.assertEqual(modules["beta"].VALUE, 2)
-
-    def test_empty_directory(self):
-        with tempfile.TemporaryDirectory() as d:
-            modules = load_modules_from_directory(d)
-            self.assertEqual(modules, {})
 
 
 class TestCategoryHelpers(unittest.TestCase):
@@ -235,51 +188,6 @@ class TestLoadAppConfigWithOverlays(unittest.TestCase):
             os.makedirs(apps_d)
             cfg = load_app_config_with_overlays(config_path, apps_d)
             self.assertIn("supported", cfg)
-
-
-class TestLoaderMain(unittest.TestCase):
-    """Test the loader.main() entry point."""
-
-    def test_main_loads_config_and_modules(self):
-        from money4band.core.loader import main
-
-        with tempfile.TemporaryDirectory() as d:
-            config_path = os.path.join(d, "config.json")
-            with open(config_path, "w") as f:
-                json.dump({"test": True}, f)
-
-            mod_dir = os.path.join(d, "modules")
-            os.makedirs(mod_dir)
-            with open(os.path.join(mod_dir, "sample.py"), "w") as f:
-                f.write("VALUE = 42\ndef main(*a): pass\n")
-
-            main(config_path, mod_dir)
-            # Module should be registered in sys.modules
-            import sys
-
-            self.assertIn("sample", sys.modules)
-            self.assertEqual(sys.modules["sample"].VALUE, 42)
-
-    def test_main_with_dict_config(self):
-        from money4band.core.loader import main
-
-        with tempfile.TemporaryDirectory() as d:
-            mod_dir = os.path.join(d, "modules")
-            os.makedirs(mod_dir)
-            with open(os.path.join(mod_dir, "dictmod.py"), "w") as f:
-                f.write("LOADED = True\ndef main(*a): pass\n")
-            main({"already": "loaded"}, mod_dir)
-            import sys
-
-            self.assertIn("dictmod", sys.modules)
-            self.assertTrue(sys.modules["dictmod"].LOADED)
-
-    def test_main_missing_config_raises(self):
-        from money4band.core.loader import main
-
-        with tempfile.TemporaryDirectory() as d:
-            with self.assertRaises(FileNotFoundError):
-                main("/no/such/config.json", d)
 
 
 if __name__ == "__main__":

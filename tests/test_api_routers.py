@@ -832,47 +832,6 @@ class TestIPRouter:
 
 
 # ===========================================================================
-# Offers router
-# ===========================================================================
-
-
-class TestOffersRouter:
-    def test_get_offers(self, client):
-        mock_offers = [
-            {
-                "name": "Honeygain",
-                "category": "bandwidth",
-                "url": "https://example.com",
-            },
-            {"name": "TestOffer", "category": "survey", "url": "https://test.com"},
-        ]
-        with patch(
-            "money4band.apps.offers.load_all_offers",
-            return_value=mock_offers,
-        ):
-            resp = client.get("/api/offers")
-        assert resp.status_code == 200
-        assert len(resp.json()) == 2
-
-    def test_get_offers_filtered(self, client):
-        mock_offers = [
-            {
-                "name": "Honeygain",
-                "category": "bandwidth",
-                "url": "https://example.com",
-            },
-            {"name": "TestOffer", "category": "survey", "url": "https://test.com"},
-        ]
-        with patch(
-            "money4band.apps.offers.load_all_offers",
-            return_value=mock_offers,
-        ):
-            resp = client.get("/api/offers?category=bandwidth")
-        assert resp.status_code == 200
-        assert len(resp.json()) == 1
-
-
-# ===========================================================================
 # Catalog router
 # ===========================================================================
 

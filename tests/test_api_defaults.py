@@ -331,28 +331,6 @@ class TestEarningsDefaults:
 
 
 # ===========================================================================
-# Offers router - defaults
-# ===========================================================================
-
-
-class TestOffersDefaults:
-    def test_empty_offers(self, flat_client):
-        with patch("money4band.apps.offers.load_all_offers", return_value=[]):
-            resp = flat_client.get("/api/offers")
-        assert resp.status_code == 200
-        assert resp.json() == []
-
-    def test_offers_filter_empty(self, flat_client):
-        offers = [
-            {"name": "A", "category": "bandwidth", "url": "https://a.com"},
-        ]
-        with patch("money4band.apps.offers.load_all_offers", return_value=offers):
-            resp = flat_client.get("/api/offers?category=nonexistent")
-        assert resp.status_code == 200
-        assert resp.json() == []
-
-
-# ===========================================================================
 # Monitor router - defaults
 # ===========================================================================
 

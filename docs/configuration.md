@@ -11,7 +11,6 @@
 | `m4b-config.json` | `config/` | Project settings - ports, DNS presets, menu, word lists, compose mode **and** catalog envelope under `catalog` key (`app_config_version`, `catalog_sources[]`, per-category `active` flags - see [App Management](app-management.md#on-disk-layout-v20)) |
 | `catalog/` | `config/` | Per-file app bundles under `supported/` / `newcomers/` / `deprecated/` (one JSON file per app) |
 | `apps.d/` | `config/` | Hand-written community overlays merged into `newcomers` at load time |
-| `offers.d/` | `config/` | Per-file external referral offers (one JSON file per offer) |
 | `user-config.json` | `config/` | **Your settings** - credentials, proxy config, preferences (encrypted at rest) |
 
 > The catalog envelope (folded under `m4b-config.json -> catalog`) + `catalog/` + `apps.d/` are aggregated
@@ -84,9 +83,7 @@ for the full schema and the source-plugin model.
 
 If you upgrade from a checkout that still has a standalone legacy
 catalog file, the loader auto-folds it into `m4b-config.json` on
-first run (one-time `.v1.bak` backup). The legacy
-monolithic `referral-offers.json` is likewise auto-split into
-`config/offers.d/<SLUG>.json` per-file bundles. You can also run the
+first run (one-time `.v1.bak` backup). You can also run the
 migration by hand: `python scripts/migrate_catalog_v1_to_v2.py`.
 
 ## Configuration Profiles

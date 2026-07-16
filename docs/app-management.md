@@ -58,8 +58,6 @@ config/
 |   +-- addons/                  <- sidecars with parent_id
 |-- apps.d/
 |   +-- <MYAPP>.json             <- hand-written community overlay (merged into newcomers)
-|-- offers.d/
-|   +-- <SLUG>.json              <- one external referral offer per file
 +-- user-config.json             <- your settings (encrypted at rest)
 ```
 
@@ -99,9 +97,6 @@ If you open an older checkout, the loader auto-migrates on first run:
   `config/catalog/<category>/<NAME>.json` per-file bundles.
 * The resulting envelope is folded under `m4b-config.json -> catalog`.
 * The legacy catalog file is renamed with a `.v1.bak` suffix.
-* Monolithic `referral-offers.json` is split into
-  `config/offers.d/<SLUG>.json` and the original renamed to
-  `referral-offers.json.v1.bak`.
 
 You can also trigger migration explicitly:
 
@@ -338,24 +333,13 @@ m4b app validate
 Invalid files are logged with the exact schema error and skipped at load
 time - they never crash the loader.
 
-## Referral Offers
+## Referral Links
 
-Browse referral bonuses and passive-income offers:
-
-```bash
-m4b offers
-m4b offers --category bandwidth   # bandwidth | compute | survey | other
-```
-
-Offers come from two sources:
-
-* Every bundle's `referrals[]` pool (single source of truth).
-* An optional `config/referral-offers.json` for hand-curated promos.
-
-When multiple referral URLs exist for an app, M4B applies a **sticky
-per-user pick** (stored under
+App referral links live in each bundle's `referrals[]` pool (single
+source of truth). When multiple referral URLs exist for an app, M4B
+applies a **sticky per-user pick** (stored under
 `user-config.json -> settings.picked_referrals`) so the same URL is
-offered across runs.
+offered across runs. Use `m4b links` to display them.
 
 ## Docker Compose Profiles
 

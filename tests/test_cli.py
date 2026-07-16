@@ -88,7 +88,6 @@ class TestBuildParser:
             "apps",
             "validate",
             "app",
-            "offers",
             "dashboard",
             "profile",
             "catalog",

@@ -144,7 +144,6 @@ m4b dashboard regenerate-key
 | `GET` | `/api/profiles/...` | Config profiles |
 | `GET` | `/api/earnings/...` | Earnings estimates |
 | `GET` | `/api/ip/...` | IP quality data |
-| `GET` | `/api/offers/...` | Referral offers |
 | `GET` | `/api/notifications/...` | Notification status |
 | `GET` | `/api/update/...` | Update info |
 | `GET` | `/api/security/...` | Security checks |
