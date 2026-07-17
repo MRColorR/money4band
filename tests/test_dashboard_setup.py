@@ -127,3 +127,42 @@ class TestSetDashboardState:
     def test_missing_config_no_error(self, tmp_path):
         # Should not raise even if user-config.json doesn't exist
         set_dashboard_state(str(tmp_path), enabled=True)
+
+
+class TestSpawnDashboardBackground:
+    """The frozen-build spawn path is the only one released binaries use."""
+
+    def _spawn(self, tmp_path, frozen: bool):
+        import sys
+
+        import money4band.dashboard.setup as setup_mod
+
+        with (
+            patch.object(sys, "frozen", frozen, create=True),
+            patch.object(sys, "executable", "/opt/m4b/Money4Band"),
+            patch("subprocess.Popen") as popen,
+            patch.object(setup_mod, "write_dashboard_pid"),
+            patch.object(setup_mod, "write_dashboard_owner"),
+        ):
+            popen.return_value.pid = 4321
+            pid = setup_mod.spawn_dashboard_background(
+                str(tmp_path), str(tmp_path), host="127.0.0.1", port=9001
+            )
+        assert pid == 4321
+        return popen.call_args[0][0]
+
+    def test_frozen_uses_serve_subcommand(self, tmp_path):
+        """A frozen exe cannot interpret `python -c` - it must re-invoke itself."""
+        cmd = self._spawn(tmp_path, frozen=True)
+        assert "-c" not in cmd
+        assert cmd[0] == "/opt/m4b/Money4Band"
+        assert "dashboard" in cmd and "serve" in cmd
+        # Global flags must precede the subcommand for argparse.
+        assert cmd.index("--config-dir") < cmd.index("dashboard")
+        assert cmd[cmd.index("--host") + 1] == "127.0.0.1"
+        assert cmd[cmd.index("--port") + 1] == "9001"
+
+    def test_source_install_uses_python_c(self, tmp_path):
+        cmd = self._spawn(tmp_path, frozen=False)
+        assert cmd[1] == "-c"
+        assert "start_server" in cmd[2]

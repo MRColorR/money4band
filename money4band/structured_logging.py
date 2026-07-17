@@ -23,7 +23,8 @@ RUN_ID: str = uuid.uuid4().hex[:12]
 class JSONFormatter(logging.Formatter):
     """Emit each log record as a single JSON line.
 
-    Fields: timestamp, level, logger, message, correlation_id, module, funcName, lineno.
+    Fields: timestamp, level, logger, message, module, funcName, lineno,
+    run_id (constant per process - see :data:`RUN_ID`).
     Extra dict keys from ``record.__dict__`` prefixed with ``extra.`` are included.
     """
 

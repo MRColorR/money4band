@@ -74,6 +74,21 @@ def format_env_value(value: Any) -> str | None:
     return text
 
 
+def decode_env_value(encoded: str) -> str:
+    """Inverse of :func:`format_env_value` for a raw ``.env`` value.
+
+    Unwraps the optional double quotes, then undoes the backslash and
+    ``$$`` escapes so callers get back exactly what compose injects into
+    the container. Must stay symmetric with ``format_env_value`` - an
+    asymmetric decode makes M4B disagree with the running containers
+    about values like a device name containing ``$``.
+    """
+    text = encoded
+    if len(text) >= 2 and text[0] == text[-1] == '"':
+        text = text[1:-1].replace('\\"', '"').replace("\\\\", "\\")
+    return text.replace("$$", "$")
+
+
 def _append_env(env_lines: list[str], key: str, value: Any) -> None:
     """Append ``KEY=VALUE`` with safe encoding, skipping non-representable values."""
     encoded = format_env_value(value)
@@ -168,15 +183,6 @@ def build_env_lines(
                             env_lines.append(f"{app_lower.upper()}_PORT={port}")
 
     return env_lines
-
-
-def extract_env_value(env_lines: list[str], key: str) -> str | None:
-    """Extract a single value from env lines by key name (in-memory)."""
-    prefix = f"{key}="
-    for line in env_lines:
-        if line.startswith(prefix):
-            return line[len(prefix) :]
-    return None
 
 
 # ---------------------------------------------------------------------------

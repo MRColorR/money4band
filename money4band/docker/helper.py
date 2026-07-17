@@ -49,14 +49,11 @@ def read_env_var(env_file: str, key: str) -> str | None:
                 with open(candidate) as f:
                     for line in f:
                         if line.startswith(prefix):
-                            value = line.strip().split("=", 1)[1]
-                            # Unwrap values quoted by format_env_value.
-                            if len(value) >= 2 and value[0] == value[-1] == '"':
-                                value = (
-                                    value[1:-1]
-                                    .replace('\\"', '"')
-                                    .replace("\\\\", "\\")
-                                )
+                            from money4band.docker.env_builder import (
+                                decode_env_value,
+                            )
+
+                            value = decode_env_value(line.strip().split("=", 1)[1])
                             logger.info("Found %s in %s: %s", key, candidate, value)
                             return value
         except Exception as e:

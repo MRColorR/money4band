@@ -74,7 +74,7 @@ jobs:
           - os: macos-latest
             asset: Money4Band-macos-arm64
             docker_platform: ""
-          - os: macos-13
+          - os: macos-15-intel
             asset: Money4Band-macos-amd64
             docker_platform: ""
 

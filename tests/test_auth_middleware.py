@@ -115,6 +115,20 @@ class TestAuthMiddleware:
         # Swagger UI returns 200 (HTML)
         assert resp.status_code == 200
 
+    def test_login_cookie_not_secure_over_http(self, auth_client: TestClient):
+        """The session cookie must NOT carry Secure on a plain-HTTP request.
+
+        Regression: secure=True was tied to the bind address, so browsers
+        dropped the cookie on http://LAN-IP and login looped forever.
+        """
+        with mock.patch.object(api, "_get_session_salt", return_value=b"salt"):
+            resp = auth_client.post("/api/auth/login", json={"token": _TEST_KEY})
+        assert resp.status_code == 200
+        set_cookie = resp.headers.get("set-cookie", "")
+        assert "m4b_token=" in set_cookie
+        assert "secure" not in set_cookie.lower()
+        assert "httponly" in set_cookie.lower()
+
     def test_localhost_bypasses_auth_when_not_exposed(self):
         """When *not* exposed, loopback clients skip auth entirely."""
         api._api_key = _TEST_KEY

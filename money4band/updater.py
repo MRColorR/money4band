@@ -403,12 +403,14 @@ def _apply_git_update(target_version: str) -> bool:
     return True
 
 
-def _get_binary_asset_name() -> str:
-    """Determine the correct binary asset name for this platform.
+def _get_binary_asset_name() -> str | None:
+    """Determine the release asset name for this platform, or None.
 
-    MUST match the asset names produced by the release workflow
+    MUST match the assets published by the release workflow
     (.github/workflows/release-on-tag.yml): single-file PyInstaller
-    binaries named ``Money4Band-<os>-<arch>[.exe]``.
+    binaries named ``Money4Band-<os>-<arch>[.exe]``. Platform/arch combos
+    the workflow does not build (e.g. Windows on ARM) return ``None`` so
+    callers can say "unsupported" instead of 404ing on a guessed URL.
     """
     system = platform.system().lower()
     machine = platform.machine().lower()
@@ -421,14 +423,25 @@ def _get_binary_asset_name() -> str:
         "armv7l": "armv7",
         "armv6l": "armv7",  # closest published build; no separate v6 asset
     }
-    arch = arch_map.get(machine, "amd64")
+    arch = arch_map.get(machine)
+    if arch is None:
+        return None
 
-    if system == "windows":
+    # Keep in sync with the workflow's build matrix.
+    published = {
+        "windows": {"amd64"},
+        "darwin": {"amd64", "arm64"},
+        "linux": {"amd64", "arm64", "armv7"},
+    }
+    os_key = system if system in published else "linux"
+    if arch not in published[os_key]:
+        return None
+
+    if os_key == "windows":
         return f"Money4Band-windows-{arch}.exe"
-    elif system == "darwin":
+    if os_key == "darwin":
         return f"Money4Band-macos-{arch}"
-    else:
-        return f"Money4Band-linux-{arch}"
+    return f"Money4Band-linux-{arch}"
 
 
 def _apply_binary_update(target_version: str) -> bool:
@@ -440,6 +453,16 @@ def _apply_binary_update(target_version: str) -> bool:
     """
     tag = f"v{target_version}" if not target_version.startswith("v") else target_version
     asset_name = _get_binary_asset_name()
+    if asset_name is None:
+        logger.error(
+            "No release binary is published for %s/%s - update manually from "
+            "https://github.com/%s/%s/releases",
+            platform.system(),
+            platform.machine(),
+            _OWNER,
+            _REPO,
+        )
+        return False
     url = f"https://github.com/{_OWNER}/{_REPO}/releases/download/{tag}/{asset_name}"
     checksum_url = (
         f"https://github.com/{_OWNER}/{_REPO}/releases/download/{tag}/checksums.sha256"

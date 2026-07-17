@@ -50,3 +50,5 @@ dist
 config/catalog/community/
 **/.etag
 **/.fetched_at
+# Internal planning doc
+*PLAN.md

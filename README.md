@@ -59,10 +59,14 @@ Our maintainers and community **research** every app, **verify** its background,
 ### Option A: Download & Run (recommended)
 
 1. Go to the [**Releases Page**](https://github.com/MRColorR/money4band/releases/latest)
-2. Download the latest release for your OS and extract it
+2. Download the single-file binary for your OS and architecture
+   (e.g. `Money4Band-windows-amd64.exe`, `Money4Band-linux-arm64`)
 3. Run it:
-   - **Windows:** `money4band.exe`
-   - **Linux / macOS:** `./money4band`
+   - **Windows:** double-click `Money4Band-windows-amd64.exe` (or run it from a terminal)
+   - **Linux / macOS:** `chmod +x Money4Band-<os>-<arch> && ./Money4Band-<os>-<arch>`
+
+On first run the binary creates its `config/` and `template/` folders next
+to itself, so place it in a dedicated directory.
 
 ### Option B: From source
 

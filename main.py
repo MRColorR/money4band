@@ -29,31 +29,35 @@ from money4band.updater import check_update_available, show_update_banner
 
 logger = logging.getLogger(__name__)
 
+
+def _seed_bundled_dir(dest: str, name: str) -> None:
+    """Copy a data dir bundled in the frozen binary to *dest* if missing.
+
+    Onefile builds carry ``config/`` and ``template/`` inside the
+    executable, but mutable data must live on disk to survive restarts
+    and self-updates. Only seeds when *dest* does not exist - never
+    overwrites user-modified config.
+    """
+    bundle_dir = getattr(sys, "_MEIPASS", None)
+    if not bundle_dir:
+        return
+    src = os.path.join(bundle_dir, name)
+    if not os.path.isdir(src) or os.path.isdir(dest):
+        return
+    import shutil as _shutil
+
+    try:
+        _shutil.copytree(src, dest)
+    except OSError as exc:  # pragma: no cover - disk issues
+        print(f"WARNING: could not seed {name} into {dest}: {exc}", file=sys.stderr)
+
+
 # Handle PyInstaller frozen executable path resolution
 if getattr(sys, "frozen", False):
     # Running as compiled executable (PyInstaller)
     BASE_DIR = os.path.dirname(sys.executable)
-
-    # Onefile build: mutable data (config/, template/) is bundled inside
-    # the binary but must live next to the executable to persist across
-    # runs and self-updates. Seed each directory on first run only -
-    # never overwrite user-modified config.
-    _bundle_dir = getattr(sys, "_MEIPASS", None)
-    if _bundle_dir:
-        import shutil as _shutil
-
-        for _data_dir in ("config", "template"):
-            _src = os.path.join(_bundle_dir, _data_dir)
-            _dst = os.path.join(BASE_DIR, _data_dir)
-            if os.path.isdir(_src) and not os.path.isdir(_dst):
-                try:
-                    _shutil.copytree(_src, _dst)
-                except OSError as _seed_err:  # pragma: no cover - disk issues
-                    print(
-                        f"WARNING: could not seed {_data_dir}/ next to the "
-                        f"executable: {_seed_err}",
-                        file=sys.stderr,
-                    )
+    for _data_dir in ("config", "template"):
+        _seed_bundled_dir(os.path.join(BASE_DIR, _data_dir), _data_dir)
 else:
     # Running as script
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -82,12 +86,26 @@ def _resolve_paths(args: argparse.Namespace) -> tuple[str, str, str]:
     return m4b_config_path, apps_config_path, user_config_path
 
 
+def _ensure_config_dir(args: argparse.Namespace) -> None:
+    """Seed a frozen build's bundled config into a custom --config-dir.
+
+    Startup seeding only populates ``<exe_dir>/config``; a user pointing
+    ``--config-dir`` elsewhere would otherwise hit an unhandled
+    FileNotFoundError on m4b-config.json.
+    """
+    config_dir = getattr(args, "config_dir", "")
+    if not config_dir or os.path.isdir(config_dir):
+        return
+    _seed_bundled_dir(config_dir, "config")
+
+
 def _ensure_user_config(args: argparse.Namespace, user_config_path: str) -> None:
     """Create user config from template if missing, then encrypt if needed.
 
     Also detects template-default configs (all placeholder values) and
     prompts the user to run setup.
     """
+    _ensure_config_dir(args)
     if not os.path.exists(user_config_path):
         logger.info("User config not found. Resetting from template...")
         reset_main(
@@ -247,11 +265,13 @@ def mainmenu(
     # Configs are (re)loaded lazily: a full load means a Fernet decrypt of
     # the credentials file, so it happens once up front and again only
     # after a menu action ran (actions mutate config on disk) - not on
-    # every keystroke iteration.
+    # every keystroke iteration. The hardware stamp is refreshed with the
+    # same cadence: an action like "Reset config" restores the template's
+    # placeholder device_info, which must be re-detected before the next
+    # menu render (detection is local and cheap; the decrypt is not).
     config_stale = True
     m4b_config: dict = {}
     user_config: dict = {}
-    hardware_synced = False
 
     while True:
         if config_stale:
@@ -259,28 +279,12 @@ def mainmenu(
                 logger.info("Loading configurations")
                 m4b_config = loader.load_json_config(m4b_config_path)
                 user_config = loader.load_json_config(user_config_path)
-                config_stale = False
                 logger.info("Configurations loaded successfully")
-            except FileNotFoundError as e:
-                logger.error(f"File not found: {str(e)}")
-                raise
-            except Exception as e:
-                logger.error(
-                    f"An error occurred while loading configurations: {str(e)}"
-                )
-                raise
 
-        try:
-            logger.debug("Loading main menu")
-            sleep_time = m4b_config.get("system", {}).get("sleep_time", 2)
-
-            # Hardware never changes mid-session: detect OS/arch and
-            # recalculate resource limits once per run, not per keypress.
-            if not hardware_synced:
                 logger.debug("Detecting OS and architecture")
                 system_info = {
-                    **detector.detect_os(m4b_config_path),
-                    **detector.detect_architecture(m4b_config_path),
+                    **detector.detect_os(m4b_config),
+                    **detector.detect_architecture(m4b_config),
                 }
 
                 device_info = user_config.setdefault("device_info", {})
@@ -306,7 +310,19 @@ def mainmenu(
                 )
                 # calculate_resource_limits writes user-config on disk.
                 user_config = loader.load_json_config(user_config_path)
-                hardware_synced = True
+                config_stale = False
+            except FileNotFoundError as e:
+                logger.error(f"File not found: {str(e)}")
+                raise
+            except Exception as e:
+                logger.error(
+                    f"An error occurred while loading configurations: {str(e)}"
+                )
+                raise
+
+        try:
+            logger.debug("Loading main menu")
+            sleep_time = m4b_config.get("system", {}).get("sleep_time", 2)
 
             cls()
             from money4band.ui.banner import ensure_nickname, print_banner
