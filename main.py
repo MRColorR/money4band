@@ -836,6 +836,21 @@ def _cmd_info(args: argparse.Namespace) -> None:
     app_config = loader.load_app_config_with_overlays(apps_config_path)
     user_config = loader.load_json_config(user_config_path)
 
+    # Refresh detected OS/arch before displaying: the template ships
+    # placeholder device_info (Linux/amd64), so a fresh install would show
+    # the wrong platform until the interactive menu ran once.
+    try:
+        system_info = {
+            **detector.detect_os(m4b_config),
+            **detector.detect_architecture(m4b_config),
+        }
+        device_info = user_config.setdefault("device_info", {})
+        device_info["os_type"] = system_info.get("os_type")
+        device_info["detected_architecture"] = system_info.get("arch")
+        device_info["detected_docker_arch"] = system_info.get("dkarch")
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("Could not refresh detected system info: %s", exc)
+
     from money4band.system.info import show_system_info
 
     show_system_info(m4b_config, app_config, user_config)
