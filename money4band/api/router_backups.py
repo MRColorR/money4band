@@ -11,7 +11,7 @@ from pydantic import BaseModel
 
 from money4band.api._deps import ConfigPaths, get_paths
 from money4band.api.schemas import BackupCleanup, BackupEntry, BackupRestore, StatusPath
-from money4band.core.backup import BACKUP_DIR
+from money4band.core.backup import get_backup_dir
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/backups", tags=["backups"])
@@ -60,9 +60,10 @@ async def restore_from_backup(
     """Restore a previously created backup."""
     from money4band.core.backup import restore_backup
 
-    # Resolve to an absolute path and ensure it lives within BACKUP_DIR.
+    # Resolve at request time: freezing the backup dir at import broke
+    # restores after a data-dir migration (validated against a stale dir).
     resolved = Path(payload.path).resolve()
-    if not resolved.is_relative_to(BACKUP_DIR.resolve()):
+    if not resolved.is_relative_to(get_backup_dir().resolve()):
         raise HTTPException(
             status_code=400, detail="Path must be inside the backup directory"
         )

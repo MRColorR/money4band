@@ -1,4 +1,4 @@
-"""Tests for structured_logging module: JSON formatter and correlation IDs."""
+"""Tests for structured_logging module: JSON formatter and run id."""
 
 from __future__ import annotations
 
@@ -7,32 +7,13 @@ import logging
 
 import pytest
 
-from money4band.structured_logging import (
-    JSONFormatter,
-    get_correlation_id,
-    new_correlation_id,
-    set_correlation_id,
-)
+from money4band.structured_logging import RUN_ID, JSONFormatter
 
 
-class TestCorrelationId:
-    def test_new_returns_string(self):
-        cid = new_correlation_id()
-        assert isinstance(cid, str)
-        assert len(cid) == 12
-
-    def test_get_returns_current(self):
-        cid = new_correlation_id()
-        assert get_correlation_id() == cid
-
-    def test_set_explicit(self):
-        set_correlation_id("abc123")
-        assert get_correlation_id() == "abc123"
-
-    def test_successive_calls_differ(self):
-        a = new_correlation_id()
-        b = new_correlation_id()
-        assert a != b
+class TestRunId:
+    def test_run_id_shape(self):
+        assert isinstance(RUN_ID, str)
+        assert len(RUN_ID) == 12
 
 
 class TestJSONFormatter:
@@ -67,6 +48,7 @@ class TestJSONFormatter:
             "module",
             "funcName",
             "lineno",
+            "run_id",
         ):
             assert key in parsed
 
@@ -78,15 +60,9 @@ class TestJSONFormatter:
         parsed = json.loads(formatter.format(record))
         assert parsed["level"] == "INFO"
 
-    def test_correlation_id_included_when_set(self, formatter, record):
-        set_correlation_id("test-cid-123")
+    def test_run_id_stamped(self, formatter, record):
         parsed = json.loads(formatter.format(record))
-        assert parsed["correlation_id"] == "test-cid-123"
-
-    def test_correlation_id_absent_when_empty(self, formatter, record):
-        set_correlation_id("")
-        parsed = json.loads(formatter.format(record))
-        assert "correlation_id" not in parsed
+        assert parsed["run_id"] == RUN_ID
 
     def test_exception_included(self, formatter):
         try:

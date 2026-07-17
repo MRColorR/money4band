@@ -19,12 +19,6 @@ _AUTH_TYPES = {
     "5": ("manual", "Manual (browser-based)"),
 }
 
-_LAYER_CHOICES = {
-    "1": "residential",
-    "2": "universal",
-    "3": "datacenter",
-}
-
 
 def _prompt(msg: str, default: str = "") -> str:
     """Prompt user for input with optional default."""
@@ -88,15 +82,13 @@ def run_app_wizard(apps_d_dir: str) -> dict[str, Any] | None:
         flags["manual_onboard"] = True
 
     # --- Compose layer ---
-    layer_choice = _prompt_choice(
-        "Network tier:",
-        {
-            "1": ("residential", "Residential (home IP required)"),
-            "2": ("universal", "Universal (any IP type)"),
-            "3": ("datacenter", "Datacenter / VPS"),
-        },
-    )
-    profile = _LAYER_CHOICES[layer_choice]
+    layer_choices = {
+        "1": ("residential", "Residential (home IP required)"),
+        "2": ("universal", "Universal (any IP type)"),
+        "3": ("datacenter", "Datacenter / VPS"),
+    }
+    layer_choice = _prompt_choice("Network tier:", layer_choices)
+    profile = layer_choices[layer_choice][0]
 
     # --- Install limit ---
     limit_str = _prompt("Install limit (-1 = unlimited)", "-1")

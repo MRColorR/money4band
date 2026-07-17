@@ -666,7 +666,10 @@ class TestBackupsRouter:
         backup_file = fake_backup_dir / "fake_backup.tar.gz"
         backup_file.write_text("fake")
         with (
-            patch("money4band.api.router_backups.BACKUP_DIR", fake_backup_dir),
+            patch(
+                "money4band.api.router_backups.get_backup_dir",
+                return_value=fake_backup_dir,
+            ),
             patch("money4band.core.backup.restore_backup"),
         ):
             resp = client.post(
@@ -678,7 +681,10 @@ class TestBackupsRouter:
     def test_restore_nonexistent(self, client, tmp_config):
         fake_backup_dir = tmp_config / "backups"
         fake_backup_dir.mkdir(exist_ok=True)
-        with patch("money4band.api.router_backups.BACKUP_DIR", fake_backup_dir):
+        with patch(
+            "money4band.api.router_backups.get_backup_dir",
+            return_value=fake_backup_dir,
+        ):
             resp = client.post(
                 "/api/backups/restore",
                 json={"path": str(fake_backup_dir / "nonexistent")},
@@ -691,7 +697,10 @@ class TestBackupsRouter:
         outside.write_text("evil")
         fake_backup_dir = tmp_config / "backups"
         fake_backup_dir.mkdir(exist_ok=True)
-        with patch("money4band.api.router_backups.BACKUP_DIR", fake_backup_dir):
+        with patch(
+            "money4band.api.router_backups.get_backup_dir",
+            return_value=fake_backup_dir,
+        ):
             resp = client.post(
                 "/api/backups/restore",
                 json={"path": str(outside)},

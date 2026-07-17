@@ -1,38 +1,18 @@
 from __future__ import annotations
 
-"""Structured JSON logging formatter and correlation-ID context for M4B operations."""
+"""Structured JSON logging formatter for M4B log files."""
 
-import contextvars
 import json
 import logging
 import time
 import uuid
 from typing import Any
 
-# ---------------------------------------------------------------------------
-# Correlation ID - one per logical operation (setup, start, generate, ...)
-# ---------------------------------------------------------------------------
-
-_correlation_id: contextvars.ContextVar[str] = contextvars.ContextVar(
-    "m4b_correlation_id", default=""
-)
-
-
-def new_correlation_id() -> str:
-    """Generate and set a new correlation ID for the current context."""
-    cid = uuid.uuid4().hex[:12]
-    _correlation_id.set(cid)
-    return cid
-
-
-def get_correlation_id() -> str:
-    """Return the current correlation ID (empty string if none set)."""
-    return _correlation_id.get()
-
-
-def set_correlation_id(cid: str) -> None:
-    """Explicitly set the correlation ID for the current context."""
-    _correlation_id.set(cid)
+# One id per process run, stamped on every JSON log line so multiple runs
+# writing to the same rotated file remain distinguishable. (A contextvar
+# API used to live here, but nothing ever propagated per-operation ids -
+# the value was set once at startup and never changed.)
+RUN_ID: str = uuid.uuid4().hex[:12]
 
 
 # ---------------------------------------------------------------------------
@@ -71,9 +51,7 @@ class JSONFormatter(logging.Formatter):
             "lineno": record.lineno,
         }
 
-        cid = get_correlation_id()
-        if cid:
-            payload["correlation_id"] = cid
+        payload["run_id"] = RUN_ID
 
         # Append any extra keys the caller attached via `logger.info("...", extra={...})`
         for key, val in record.__dict__.items():
@@ -86,13 +64,3 @@ class JSONFormatter(logging.Formatter):
             payload["exception"] = record.exc_text
 
         return json.dumps(payload, default=str, ensure_ascii=False)
-
-
-# ---------------------------------------------------------------------------
-# Helper: attach JSON formatter to file handler
-# ---------------------------------------------------------------------------
-
-
-def enable_json_file_logging(file_handler: logging.Handler) -> None:
-    """Replace the formatter on *file_handler* with :class:`JSONFormatter`."""
-    file_handler.setFormatter(JSONFormatter())

@@ -113,41 +113,24 @@ def _ensure_user_config(args: argparse.Namespace, user_config_path: str) -> None
 def _has_template_defaults(user_config_path: str) -> bool:
     """Return True if the user config still needs initial setup.
 
-    Primary check: the ``settings.setup_completed`` flag.  If set to
-    ``True`` by the setup wizard, subsequent launches skip the wizard
-    regardless of whether any apps are enabled.
-
-    Fallback: if the flag is missing (pre-migration configs), apply the
-    legacy heuristic checking for placeholder credentials in enabled apps.
+    ``settings.setup_completed`` is the single source of truth (the
+    template ships it ``false``; the setup wizard flips it). A config
+    with at least one enabled app is also treated as configured - the
+    old placeholder-scan heuristic misfired on legitimate credentials
+    that happened to start with "your", re-triggering the wizard on
+    every launch.
     """
     try:
         cfg = loader.load_json_config(user_config_path)
     except Exception:
         return False
-    # Primary gate: explicit setup_completed flag
-    settings = cfg.get("settings", {})
-    if settings.get("setup_completed", False):
+    if cfg.get("settings", {}).get("setup_completed", False):
         return False
-    # Legacy fallback for configs created before the settings section existed
     apps = cfg.get("apps", {})
-    if not apps:
-        return True
-    # If no app is enabled at all, treat as first-run
-    enabled = {
-        name: app_cfg
-        for name, app_cfg in apps.items()
-        if isinstance(app_cfg, dict) and app_cfg.get("enabled", False)
-    }
-    if not enabled:
-        return True
-    # Check only enabled apps for leftover placeholders
-    for app_cfg in enabled.values():
-        for key, val in app_cfg.items():
-            if key == "enabled":
-                continue
-            if isinstance(val, str) and val.lower().startswith("your"):
-                return True
-    return False
+    return not any(
+        isinstance(app_cfg, dict) and app_cfg.get("enabled", False)
+        for app_cfg in apps.values()
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -1698,16 +1681,16 @@ def main() -> None:
 
     _setup_logging(args)
 
-    from money4band.structured_logging import new_correlation_id
-
-    cid = new_correlation_id()
+    from money4band.structured_logging import RUN_ID
 
     script_name = (
         os.path.basename(__file__)
         if not getattr(sys, "frozen", False)
         else "Money4Band"
     )
-    logger.info("Starting %s [%s] command=%s", script_name, cid, args.command or "menu")
+    logger.info(
+        "Starting %s [%s] command=%s", script_name, RUN_ID, args.command or "menu"
+    )
 
     # Handle dashboard auto-start based on --dashboard true|false flag
     # or the persisted enabled state in user-config.json.

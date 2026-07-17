@@ -44,9 +44,14 @@ class TestEnsureNickname:
         assert cfg["user"]["Nickname"] == "bob"
 
     @patch("money4band.ui.banner.get_system_username", return_value="bob")
-    def test_replaces_your_prefix_case_insensitive(self, _mock) -> None:
-        cfg = {"user": {"Nickname": "YourName123"}}
+    def test_replaces_exact_placeholder_only(self, _mock) -> None:
+        cfg = {"user": {"Nickname": "yourNickname"}}
         assert ensure_nickname(cfg) == "bob"
+
+    def test_keeps_nickname_starting_with_your(self) -> None:
+        """A legit user-chosen name like 'Yourik' must NOT be overwritten."""
+        cfg = {"user": {"Nickname": "Yourik"}}
+        assert ensure_nickname(cfg) == "Yourik"
 
     def test_keeps_existing_real_nickname(self) -> None:
         cfg = {"user": {"Nickname": "mattia"}}

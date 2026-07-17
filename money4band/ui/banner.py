@@ -33,7 +33,9 @@ def ensure_nickname(user_config: dict[str, Any]) -> str:
     """
     user = user_config.setdefault("user", {})
     nick: str = user.get("Nickname", "")
-    if not nick or nick.lower().startswith("your"):
+    # Exact template placeholder only - a prefix match overwrote any
+    # user-chosen nickname that happened to start with "your".
+    if not nick or nick == "yourNickname":
         nick = get_system_username()
         user["Nickname"] = nick
     return nick

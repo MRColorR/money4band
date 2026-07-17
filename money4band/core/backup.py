@@ -32,15 +32,6 @@ def get_backup_dir() -> Path:
     return get_m4b_data_dir() / "backups"
 
 
-def __getattr__(name: str) -> Path:
-    # Backward-compat for ``from money4band.core.backup import BACKUP_DIR``.
-    # Tests that monkeypatch ``money4band.core.backup.BACKUP_DIR`` set a real
-    # module attribute that shadows this hook.
-    if name == "BACKUP_DIR":
-        return get_backup_dir()
-    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
-
-
 def _backup_dir() -> Path:
     """Return (and lazily create) the backup directory."""
     bdir = get_backup_dir()
