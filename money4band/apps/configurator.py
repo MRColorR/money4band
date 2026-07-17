@@ -217,10 +217,11 @@ def _configure_apps(
     # Ports already recorded for OTHER apps in user-config must be excluded
     # up front: with the stack stopped nothing is bound, so the live-port
     # check alone cannot prevent handing out an already-assigned port when
-    # catalog order shifts between setups.
+    # catalog order shifts between setups. Disabled apps count too - they
+    # keep their stored ports and collide the moment they are re-enabled.
     from money4band.network.port_manager import collect_assigned_ports
 
-    reserved_ports = collect_assigned_ports(user_config)
+    reserved_ports = collect_assigned_ports(user_config, include_disabled=True)
 
     for app in apps:
         app_name = app["name"].lower()

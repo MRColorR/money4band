@@ -30,6 +30,12 @@ RUN uv sync --frozen && uv pip install pyinstaller
 # Update app tables in README before bundling
 RUN uv run python scripts/update_tables.py
 
+# Defence in depth: the PyInstaller --add-data below bundles config/
+# wholesale, so any local user state copied in by `COPY . .` would ship
+# inside the binary (credentials encrypted with the builder's key -
+# unusable elsewhere and a privacy leak).
+RUN rm -f config/user-config.json config/.dashboard.pid config/.dashboard.owner
+
 # Build the project using PyInstaller at image build time (not CMD)
 # so that failures are caught during `docker build` instead of silently at runtime.
 # Single-file build: asset naming and self-update logic

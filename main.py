@@ -30,24 +30,57 @@ from money4band.updater import check_update_available, show_update_banner
 logger = logging.getLogger(__name__)
 
 
-def _seed_bundled_dir(dest: str, name: str) -> None:
-    """Copy a data dir bundled in the frozen binary to *dest* if missing.
+# User state that must never be seeded out of the bundle into config/.
+# user-config.json there holds credentials encrypted with the *building*
+# machine's master.key: a copy baked into the binary is unreadable on any
+# other machine (Fernet InvalidToken on first run) and leaks the
+# builder's data. The real config/user-config.json is always created from
+# template/user-config.json by _ensure_user_config - so this filter must
+# NOT be applied when seeding template/, where that file is the
+# legitimate placeholder skeleton.
+_NEVER_SEED_INTO_CONFIG = ("user-config.json", ".dashboard.pid", ".dashboard.owner")
+
+
+def _seed_bundled_dir(
+    dest: str,
+    name: str,
+    *,
+    refresh: bool = False,
+    ignore: tuple[str, ...] = (),
+) -> None:
+    """Copy a data dir bundled in the frozen binary to *dest*.
 
     Onefile builds carry ``config/`` and ``template/`` inside the
-    executable, but mutable data must live on disk to survive restarts
-    and self-updates. Only seeds when *dest* does not exist - never
-    overwrites user-modified config.
+    executable, but that data must live on disk to survive restarts and
+    self-updates.
+
+    With *refresh* the bundled copy always wins - use it for read-only
+    reference data (``template/``): a self-update replaces only the
+    executable, so a first-run-only copy would pin the templates of the
+    version first installed and "Reset config" would restore a stale
+    skeleton forever. Without it (``config/``) the directory is seeded
+    once and user edits are never clobbered.
+
+    *ignore* holds glob patterns to skip (see
+    :data:`_NEVER_SEED_INTO_CONFIG`).
     """
     bundle_dir = getattr(sys, "_MEIPASS", None)
     if not bundle_dir:
         return
     src = os.path.join(bundle_dir, name)
-    if not os.path.isdir(src) or os.path.isdir(dest):
+    if not os.path.isdir(src):
+        return
+    if os.path.isdir(dest) and not refresh:
         return
     import shutil as _shutil
 
     try:
-        _shutil.copytree(src, dest)
+        _shutil.copytree(
+            src,
+            dest,
+            ignore=_shutil.ignore_patterns(*ignore) if ignore else None,
+            dirs_exist_ok=refresh,
+        )
     except OSError as exc:  # pragma: no cover - disk issues
         print(f"WARNING: could not seed {name} into {dest}: {exc}", file=sys.stderr)
 
@@ -56,8 +89,13 @@ def _seed_bundled_dir(dest: str, name: str) -> None:
 if getattr(sys, "frozen", False):
     # Running as compiled executable (PyInstaller)
     BASE_DIR = os.path.dirname(sys.executable)
-    for _data_dir in ("config", "template"):
-        _seed_bundled_dir(os.path.join(BASE_DIR, _data_dir), _data_dir)
+    # config/: seed once, never clobber user edits, never carry user state.
+    _seed_bundled_dir(
+        os.path.join(BASE_DIR, "config"), "config", ignore=_NEVER_SEED_INTO_CONFIG
+    )
+    # template/: read-only reference data - always refresh so a
+    # self-updated binary resets from ITS templates, not v5.0.0's.
+    _seed_bundled_dir(os.path.join(BASE_DIR, "template"), "template", refresh=True)
 else:
     # Running as script
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -96,7 +134,7 @@ def _ensure_config_dir(args: argparse.Namespace) -> None:
     config_dir = getattr(args, "config_dir", "")
     if not config_dir or os.path.isdir(config_dir):
         return
-    _seed_bundled_dir(config_dir, "config")
+    _seed_bundled_dir(config_dir, "config", ignore=_NEVER_SEED_INTO_CONFIG)
 
 
 def _ensure_user_config(args: argparse.Namespace, user_config_path: str) -> None:
@@ -131,24 +169,19 @@ def _ensure_user_config(args: argparse.Namespace, user_config_path: str) -> None
 def _has_template_defaults(user_config_path: str) -> bool:
     """Return True if the user config still needs initial setup.
 
-    ``settings.setup_completed`` is the single source of truth (the
-    template ships it ``false``; the setup wizard flips it). A config
-    with at least one enabled app is also treated as configured - the
-    old placeholder-scan heuristic misfired on legitimate credentials
-    that happened to start with "your", re-triggering the wizard on
-    every launch.
+    ``settings.setup_completed`` is the single source of truth: the
+    template ships it ``false`` and the wizard only flips it after every
+    step succeeds (money4band/apps/setup.py). Deliberately NOT inferred
+    from "some app is enabled" - the wizard enables apps before it
+    finishes, so an interrupted run would look complete and the stack
+    would start with placeholder credentials. The old placeholder scan
+    is gone too: it misfired on legitimate secrets starting with "your".
     """
     try:
         cfg = loader.load_json_config(user_config_path)
     except Exception:
         return False
-    if cfg.get("settings", {}).get("setup_completed", False):
-        return False
-    apps = cfg.get("apps", {})
-    return not any(
-        isinstance(app_cfg, dict) and app_cfg.get("enabled", False)
-        for app_cfg in apps.values()
-    )
+    return not cfg.get("settings", {}).get("setup_completed", False)
 
 
 # ---------------------------------------------------------------------------

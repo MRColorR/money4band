@@ -108,6 +108,17 @@ jobs:
         shell: bash
         run: uv run python scripts/update_tables.py
 
+      # Defence in depth: --add-data bundles config/ wholesale, so any
+      # local user state present at build time would ship inside the
+      # binary (credentials encrypted with the builder's key - unusable
+      # elsewhere and a privacy leak). A CI checkout is clean because
+      # these are gitignored; this makes it explicit and guards manual
+      # builds run from a working tree.
+      - name: Strip user state before bundling
+        if: matrix.docker_platform == ''
+        shell: bash
+        run: rm -f config/user-config.json config/.dashboard.pid config/.dashboard.owner
+
       # Note: --add-data uses ';' on Windows and ':' on Unix regardless of
       # shell. Bundled config/template are seeded next to the executable on
       # first run by main.py (mutable data cannot live inside the onefile).

@@ -51,14 +51,20 @@ def _load_port_constants() -> None:
     _port_constants_loaded = True
 
 
-def collect_assigned_ports(user_config: dict[str, Any]) -> set[int]:
+def collect_assigned_ports(
+    user_config: dict[str, Any], include_disabled: bool = False
+) -> set[int]:
     """
     Collect already assigned app ports from a user configuration.
 
-    Only ports from enabled apps are considered.
-
     Args:
         user_config (dict[str, Any]): The user configuration dictionary.
+        include_disabled (bool): Also collect ports of disabled apps.
+            Disabling an app keeps its ``ports`` in user-config, so a
+            port handed to another app now collides the moment the first
+            app is re-enabled. Callers that assign new ports should pass
+            ``True``; callers that only care about what is running can
+            keep the default.
 
     Returns:
         set[int]: Set of already assigned host ports.
@@ -69,7 +75,9 @@ def collect_assigned_ports(user_config: dict[str, Any]) -> set[int]:
         return used_ports
 
     for app_cfg in apps_config.values():
-        if not isinstance(app_cfg, dict) or not app_cfg.get("enabled", False):
+        if not isinstance(app_cfg, dict):
+            continue
+        if not include_disabled and not app_cfg.get("enabled", False):
             continue
 
         ports_value = app_cfg.get("ports", [])

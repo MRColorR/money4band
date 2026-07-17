@@ -129,6 +129,27 @@ class TestAuthMiddleware:
         assert "secure" not in set_cookie.lower()
         assert "httponly" in set_cookie.lower()
 
+    def test_login_cookie_secure_behind_tls_proxy(self, auth_client: TestClient):
+        """Behind a TLS-terminating proxy uvicorn sees http - trust XFP."""
+        with mock.patch.object(api, "_get_session_salt", return_value=b"salt"):
+            resp = auth_client.post(
+                "/api/auth/login",
+                json={"token": _TEST_KEY},
+                headers={"X-Forwarded-Proto": "https"},
+            )
+        assert resp.status_code == 200
+        assert "secure" in resp.headers.get("set-cookie", "").lower()
+
+    def test_login_cookie_secure_with_proxy_chain(self, auth_client: TestClient):
+        """X-Forwarded-Proto may be a chain; the client-facing proto is first."""
+        with mock.patch.object(api, "_get_session_salt", return_value=b"salt"):
+            resp = auth_client.post(
+                "/api/auth/login",
+                json={"token": _TEST_KEY},
+                headers={"X-Forwarded-Proto": "https, http"},
+            )
+        assert "secure" in resp.headers.get("set-cookie", "").lower()
+
     def test_localhost_bypasses_auth_when_not_exposed(self):
         """When *not* exposed, loopback clients skip auth entirely."""
         api._api_key = _TEST_KEY

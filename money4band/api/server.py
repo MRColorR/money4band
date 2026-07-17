@@ -289,6 +289,28 @@ class _LoginPayload(BaseModel):
     token: str
 
 
+def _request_is_https(request: Request) -> bool:
+    """Return whether the *browser* reached us over HTTPS.
+
+    The Secure cookie flag must follow the real connection scheme, not
+    the bind address: this server speaks plain HTTP, and browsers drop
+    Secure cookies over HTTP - keying the flag off "am I exposed?" caused
+    an infinite login loop exactly in the LAN-exposed case.
+
+    ``X-Forwarded-Proto`` is honoured because the documented way to
+    expose the dashboard is behind a TLS-terminating reverse proxy, where
+    uvicorn itself only ever sees http. Spoofing the header can only set
+    Secure on a plain-HTTP session (self-inflicted login failure), never
+    clear it, so trusting it does not weaken the cookie.
+    """
+    forwarded: str = request.headers.get("x-forwarded-proto", "")
+    if forwarded:
+        # May be a comma-separated chain: the client-facing proto is first.
+        return bool(forwarded.split(",", maxsplit=1)[0].strip().lower() == "https")
+    scheme: str = request.url.scheme
+    return scheme == "https"
+
+
 @app.post("/api/auth/login", tags=["auth"])
 async def login(payload: _LoginPayload, request: Request) -> JSONResponse:
     """Validate the API key and set an ``m4b_token`` session cookie."""
@@ -300,11 +322,7 @@ async def login(payload: _LoginPayload, request: Request) -> JSONResponse:
         value=_derive_session_token(_api_key),
         httponly=True,
         samesite="strict",
-        # Secure must follow the actual connection scheme: this server is
-        # plain HTTP, and browsers drop Secure cookies over HTTP - tying
-        # it to the bind address caused an infinite login loop exactly
-        # when the dashboard was LAN-exposed.
-        secure=request.url.scheme == "https",
+        secure=_request_is_https(request),
         max_age=86400,
         path="/",
     )

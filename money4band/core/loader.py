@@ -185,13 +185,17 @@ def resolve_catalog_config(
             app_config_path_or_dict, user_config_path=user_config_path
         )
     if isinstance(app_config_path_or_dict, dict):
-        if "catalog" in app_config_path_or_dict and not get_all_app_categories(
-            app_config_path_or_dict
-        ):
+        if not get_all_app_categories(app_config_path_or_dict):
+            # An aggregated catalog always carries its category keys, even
+            # with empty entries. No categories means either a raw folded
+            # m4b-config or a degraded aggregation - both would silently
+            # yield an app-less compose/.env, which is exactly what this
+            # function exists to prevent. Fail loudly instead.
             raise ValueError(
-                "Raw folded m4b-config passed as app catalog - aggregate it "
-                "with load_app_config_with_overlays() first, otherwise no "
-                "app would be generated."
+                "App catalog has no categories - it looks like a raw folded "
+                "m4b-config or a failed aggregation. Build it with "
+                "load_app_config_with_overlays() first, otherwise no app "
+                "would be generated."
             )
         return app_config_path_or_dict
     raise ValueError(

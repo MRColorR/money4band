@@ -4,7 +4,6 @@ import json
 import logging
 import os
 import platform
-import re
 import subprocess
 import threading
 import time
@@ -444,14 +443,11 @@ def get_container_names_from_env(env_file: str) -> list[str]:
     """
     container_names = []
     try:
-        with open(env_file) as f:
-            env_content = f.read()
-
-        # Find the DEVICE_NAME value
-        match = re.search(r"DEVICE_NAME=([^\s#]+)", env_content)
-        if match:
-            device_name = match.group(1)
-
+        # Shared reader: .env.meta fallback (the start flow wipes .env
+        # after compose-up) plus decoding of the compose escapes, so a
+        # device name with a space or '$' yields the real container name.
+        device_name = get_device_name_from_env(env_file)
+        if device_name:
             # Derive app names from the generated compose file(s) (always up-to-date)
             compose_dir = os.path.dirname(env_file) or "."
             from money4band.docker.compose_builder import get_compose_files
@@ -469,7 +465,7 @@ def get_container_names_from_env(env_file: str) -> list[str]:
                 f"Extracted potential container names for {env_file}: {len(container_names)} names"
             )
         else:
-            logger.warning(f"Could not find DEVICE_NAME in {env_file}")
+            logger.warning(f"Could not find DEVICE_NAME for {env_file}")
     except Exception as e:
         logger.error(f"Error extracting container names from {env_file}: {str(e)}")
 
