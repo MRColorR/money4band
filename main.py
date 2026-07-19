@@ -1777,4 +1777,16 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print(f"\n{Fore.YELLOW}Interrupted.{Style.RESET_ALL}", file=sys.stderr)
+        sys.exit(130)
+    except EOFError:
+        print(
+            f"{Fore.YELLOW}Input closed while waiting for a prompt - exiting. "
+            f"Interactive commands need a terminal; scriptable subcommands "
+            f"do not prompt.{Style.RESET_ALL}",
+            file=sys.stderr,
+        )
+        sys.exit(1)
