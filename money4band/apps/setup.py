@@ -98,6 +98,24 @@ def collect_user_info(user_config: dict[str, Any], m4b_config: dict[str, Any]) -
     # Resolve nickname from OS account (replaces placeholder if needed).
     ensure_nickname(user_config)
 
+    # Refresh detected OS/arch: the template ships placeholder
+    # device_info (Linux/amd64) and only the interactive menu refreshed
+    # it, so a wizard run from the CLI persisted the wrong platform in
+    # user-config (and the setup summary).
+    try:
+        from money4band.system import detector
+
+        system_info = {
+            **detector.detect_os(m4b_config),
+            **detector.detect_architecture(m4b_config),
+        }
+        device_info = user_config.setdefault("device_info", {})
+        device_info["os_type"] = system_info.get("os_type")
+        device_info["detected_architecture"] = system_info.get("arch")
+        device_info["detected_docker_arch"] = system_info.get("dkarch")
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("Could not refresh detected system info: %s", exc)
+
     # Fetch the existing device name from the configuration, use 'yourDeviceName' as placeholder
     device_name = user_config["device_info"].get("device_name", "yourDeviceName")
 
