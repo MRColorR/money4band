@@ -2,12 +2,28 @@ from __future__ import annotations
 
 import logging
 import re
+import sys
 
 from colorama import Fore, Style
 
 from money4band.docker.generator import validate_uuid
 
 logger = logging.getLogger(__name__)
+
+
+def pause(message: str) -> None:
+    """Wait for the user to press a key before continuing.
+
+    Skipped when stdin is not a terminal (piped/scripted runs) so
+    commands that finished their work do not die with a spurious
+    EOF-driven non-zero exit at a purely cosmetic prompt.
+    """
+    if not sys.stdin.isatty():
+        return
+    try:
+        input(message)
+    except EOFError:
+        pass
 
 
 def ask_question_yn(question: str, default: bool = False) -> bool:

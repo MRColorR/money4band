@@ -272,7 +272,9 @@ def mainmenu(
         _fn_stop_stack(app_config_path, m4b_config_path, user_config_path)
         _fn_start_stack(app_config_path, m4b_config_path, user_config_path)
 
-    menu_dispatch: dict[str, Callable[[str, str, str], None]] = {
+    # Handlers may return a status (e.g. generator returns bool for the
+    # CLI); the menu loop ignores it.
+    menu_dispatch: dict[str, Callable[[str, str, str], object]] = {
         "system_info": _system_info,
         "fn_app_catalog": _fn_app_catalog,
         "fn_install_docker": _fn_install_docker,
@@ -640,7 +642,8 @@ def _cmd_generate(args: argparse.Namespace) -> None:
     _auto_backup(user_config_path)
     from money4band.docker.generator import main as gen_main
 
-    gen_main(apps_config_path, m4b_config_path, user_config_path)
+    if not gen_main(apps_config_path, m4b_config_path, user_config_path):
+        sys.exit(1)
 
 
 def _cmd_links(args: argparse.Namespace) -> None:

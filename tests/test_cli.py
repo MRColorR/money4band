@@ -47,7 +47,9 @@ def _capture_module_call(monkeypatch, module_path):
     """
     captured: dict = {}
     fake = types.ModuleType(module_path)
-    fake.main = lambda *a, **kw: captured.update(args=a, kwargs=kw)
+    # Return True: handlers (e.g. generate) treat a falsy result as
+    # failure and sys.exit(1).
+    fake.main = lambda *a, **kw: (captured.update(args=a, kwargs=kw), True)[1]
     monkeypatch.setitem(sys.modules, module_path, fake)
     return captured
 
@@ -320,6 +322,37 @@ class TestAppsExitCode:
 
         _cmd_apps(_make_args(tmp_path, extra_argv=["apps", "earnapp"]))
         assert "earnapp" in capsys.readouterr().out.lower()
+
+
+# ---------------------------------------------------------------------------
+# generate: a failed regeneration must exit non-zero for scripted runs.
+# ---------------------------------------------------------------------------
+
+
+class TestGenerateExitCode:
+    @pytest.fixture(autouse=True)
+    def _noop_user_config(self, monkeypatch):
+        monkeypatch.setattr("main._ensure_user_config", lambda *a, **kw: None)
+        monkeypatch.setattr("main._auto_backup", lambda *a, **kw: None)
+
+    def _fake_generator(self, monkeypatch, result):
+        fake = types.ModuleType("money4band.docker.generator")
+        fake.main = lambda *a, **kw: result
+        monkeypatch.setitem(sys.modules, "money4band.docker.generator", fake)
+
+    def test_generator_failure_exits_1(self, monkeypatch, tmp_path):
+        self._fake_generator(monkeypatch, False)
+        from main import _cmd_generate
+
+        with pytest.raises(SystemExit) as exc:
+            _cmd_generate(_make_args(tmp_path, "generate"))
+        assert exc.value.code == 1
+
+    def test_generator_success_does_not_exit(self, monkeypatch, tmp_path):
+        self._fake_generator(monkeypatch, True)
+        from main import _cmd_generate
+
+        _cmd_generate(_make_args(tmp_path, "generate"))
 
 
 # ---------------------------------------------------------------------------

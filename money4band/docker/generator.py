@@ -166,7 +166,7 @@ def generate_device_name(
     return device_name
 
 
-def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> None:
+def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> bool:
     """
     Regenerate docker-compose.yaml and .env files from existing configuration.
 
@@ -177,12 +177,17 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
         app_config_path: Path to the app configuration file.
         m4b_config_path: Path to the m4b configuration file.
         user_config_path: Path to the user configuration file.
+
+    Returns:
+        True when the files were regenerated (or the user declined),
+        False on error - the CLI maps False to a non-zero exit so
+        scripted runs can detect failure.
     """
     import shutil
 
     from colorama import Fore, Style
 
-    from money4band.ui.prompt import ask_question_yn
+    from money4band.ui.prompt import ask_question_yn, pause
 
     cls()
     print(f"\n{Fore.CYAN}=== Regenerate Files from Configuration ==={Style.RESET_ALL}")
@@ -193,8 +198,8 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
         logger.error("User config not found at %s", user_config_path)
         print(f"{Fore.RED}Error: User config not found.{Style.RESET_ALL}")
         print("Please run 'Setup Apps' first to create the initial configuration.")
-        input(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
-        return
+        pause(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
+        return False
 
     try:
         from money4band.core.loader import load_app_config_with_overlays
@@ -211,8 +216,8 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
     except Exception as e:
         logger.error("Error loading config files: %s", e)
         print(f"{Fore.RED}Error loading config files: {e}{Style.RESET_ALL}")
-        input(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
-        return
+        pause(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
+        return False
 
     # Show summary
     print(f"\n{Fore.BLUE}Current Configuration:{Style.RESET_ALL}")
@@ -272,8 +277,8 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
     print()
     if not ask_question_yn("Regenerate files with this configuration?"):
         print("Cancelled.")
-        input(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
-        return
+        pause(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
+        return True
 
     # Create backup of existing files
     backup_dir = ".backup"
@@ -471,5 +476,8 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
             print(
                 f"{Fore.YELLOW}Your previous files are backed up in {backup_dir}/{Style.RESET_ALL}"
             )
+        pause(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
+        return False
 
-    input(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
+    pause(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
+    return True
