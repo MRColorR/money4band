@@ -288,6 +288,41 @@ class TestHandlerArguments:
 
 
 # ---------------------------------------------------------------------------
+# apps detail: unknown app must exit non-zero so scripts can detect failure.
+# ---------------------------------------------------------------------------
+
+
+class TestAppsExitCode:
+    _CATALOG = {
+        "supported": {
+            "active": True,
+            "entries": [{"name": "earnapp", "dashboard_link": "https://x"}],
+        }
+    }
+
+    @pytest.fixture(autouse=True)
+    def _fake_catalog(self, monkeypatch):
+        monkeypatch.setattr(
+            "main.loader.load_app_config_with_overlays",
+            lambda *a, **kw: self._CATALOG,
+        )
+
+    def test_unknown_app_exits_1(self, tmp_path, capsys):
+        from main import _cmd_apps
+
+        with pytest.raises(SystemExit) as exc:
+            _cmd_apps(_make_args(tmp_path, extra_argv=["apps", "nosuchapp"]))
+        assert exc.value.code == 1
+        assert "not found" in capsys.readouterr().out
+
+    def test_known_app_does_not_exit(self, tmp_path, capsys):
+        from main import _cmd_apps
+
+        _cmd_apps(_make_args(tmp_path, extra_argv=["apps", "earnapp"]))
+        assert "earnapp" in capsys.readouterr().out.lower()
+
+
+# ---------------------------------------------------------------------------
 # Auto-backup: destructive commands (setup, generate, reset) must trigger it;
 # non-destructive commands (start, stop, links) must NOT.
 # ---------------------------------------------------------------------------

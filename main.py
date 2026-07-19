@@ -962,7 +962,8 @@ def _cmd_apps(args: argparse.Namespace) -> None:
     if app_name:
         from money4band.apps.info import show_app_detail
 
-        show_app_detail(app_config, app_name)
+        if not show_app_detail(app_config, app_name):
+            sys.exit(1)
     else:
         from money4band.apps.info import list_apps
 
