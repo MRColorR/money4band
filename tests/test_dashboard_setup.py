@@ -166,3 +166,34 @@ class TestSpawnDashboardBackground:
         cmd = self._spawn(tmp_path, frozen=False)
         assert cmd[1] == "-c"
         assert "start_server" in cmd[2]
+
+    def test_spawn_strips_pyinstaller_env(self, tmp_path, monkeypatch):
+        """Child must not inherit the parent's _MEI extraction dir.
+
+        A onefile parent exports _MEIPASS2/_PYI_APPLICATION_HOME_DIR; if
+        inherited, the child reuses the parent's extraction dir, which the
+        parent's bootloader deletes on exit - the detached server then
+        500s on every static-frontend request.
+        """
+        import sys
+
+        import money4band.dashboard.setup as setup_mod
+
+        monkeypatch.setenv("_MEIPASS2", "/tmp/_MEI123")
+        monkeypatch.setenv("_PYI_APPLICATION_HOME_DIR", "/tmp/_MEI123")
+        monkeypatch.setenv("_PYI_PARENT_PROCESS_LEVEL", "1")
+        with (
+            patch.object(sys, "frozen", True, create=True),
+            patch.object(sys, "executable", "/opt/m4b/Money4Band"),
+            patch("subprocess.Popen") as popen,
+            patch.object(setup_mod, "write_dashboard_pid"),
+            patch.object(setup_mod, "write_dashboard_owner"),
+        ):
+            popen.return_value.pid = 4321
+            setup_mod.spawn_dashboard_background(
+                str(tmp_path), str(tmp_path), host="127.0.0.1", port=9001
+            )
+        env = popen.call_args[1]["env"]
+        assert "_MEIPASS2" not in env
+        assert "_PYI_APPLICATION_HOME_DIR" not in env
+        assert "_PYI_PARENT_PROCESS_LEVEL" not in env

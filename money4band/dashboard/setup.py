@@ -372,6 +372,7 @@ def spawn_dashboard_background(
     whether to terminate the dashboard on m4b exit (``auto``) or leave
     it running as a persistent service (``manual``).
     """
+    import os
     import subprocess
     import sys
 
@@ -400,9 +401,25 @@ def spawn_dashboard_background(
                 f"start_server(host={host!r}, port={port})"
             ),
         ]
+    # A frozen onefile parent exports its extraction dir via PyInstaller
+    # env vars (_MEIPASS2 / _PYI_APPLICATION_HOME_DIR). If the child
+    # inherits them it reuses the PARENT's _MEI directory instead of
+    # extracting its own - and when the short-lived parent exits, its
+    # bootloader deletes that directory out from under the still-running
+    # server (static frontend then 500s on every request). Strip them so
+    # the child performs a fresh, self-owned extraction.
+    env = os.environ.copy()
+    for pyi_var in (
+        "_MEIPASS2",
+        "_PYI_APPLICATION_HOME_DIR",
+        "_PYI_PARENT_PROCESS_LEVEL",
+    ):
+        env.pop(pyi_var, None)
+
     popen_kwargs: dict = {
         "stdout": subprocess.DEVNULL,
         "stderr": subprocess.DEVNULL,
+        "env": env,
     }
     if sys.platform == "win32":
         popen_kwargs["creationflags"] = (
