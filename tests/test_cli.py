@@ -220,11 +220,11 @@ class TestHandlerArguments:
     def test_stack_restart_calls_stop_then_start(self, monkeypatch, tmp_path):
         call_order = []
         stop_mod = types.ModuleType("money4band.docker.stop")
-        stop_mod.main = lambda *a, **kw: call_order.append("stop")
+        stop_mod.main = lambda *a, **kw: (call_order.append("stop"), True)[1]
         monkeypatch.setitem(sys.modules, "money4band.docker.stop", stop_mod)
 
         start_mod = types.ModuleType("money4band.docker.start")
-        start_mod.main = lambda *a, **kw: call_order.append("start")
+        start_mod.main = lambda *a, **kw: (call_order.append("start"), True)[1]
         monkeypatch.setitem(sys.modules, "money4band.docker.start", start_mod)
 
         from main import _cmd_stack

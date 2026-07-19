@@ -141,7 +141,7 @@ def stop_all_stacks(
     main_instance_name: str = "money4band",
     instances_dir: str = "m4b_proxy_instances",
     skip_questions: bool = False,
-) -> None:
+) -> bool:
     """
     Stop the main stack and all multi-proxy instances.
 
@@ -150,19 +150,25 @@ def stop_all_stacks(
         main_instance_name (str): The name of the main instance.
         instances_dir (str): The directory containing the proxy instances.
         skip_questions (bool): Whether to skip the confirmation question.
+
+    Returns:
+        True when the stacks were stopped (or the user declined), False
+        when the main stack failed to stop.
     """
+    from money4band.ui.prompt import pause
+
     if not skip_questions and not ask_question_yn(
         f"This will stop all the apps for '{main_instance_name}' and any multi-proxy instances and delete the docker stacks previously created. Do you wish to proceed?"
     ):
         print(f"{Fore.BLUE}Docker stack removal canceled.{Style.RESET_ALL}")
-        input(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
-        return
+        pause(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
+        return True
 
     if platform.system().lower() == "linux" and not is_user_in_docker_group():
         create_docker_group_if_needed()
 
     try:
-        stop_stack(main_compose_file, main_instance_name, skip_questions=True)
+        stopped = stop_stack(main_compose_file, main_instance_name, skip_questions=True)
         if os.path.isdir(instances_dir):
             print(f"{Fore.YELLOW}Stopping multi-proxy instances...{Style.RESET_ALL}")
             for instance in os.listdir(instances_dir):
@@ -184,11 +190,15 @@ def stop_all_stacks(
             logger.warning(
                 f"Multi-proxy instances directory '{instances_dir}' does not exist."
             )
+        return stopped
     finally:
-        input(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
+        pause(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
 
 
-def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> None:
+def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> bool:
+    """Menu/CLI entry - returns False on failure so the CLI can exit 1."""
+    from money4band.ui.prompt import pause
+
     cls()
     try:
         m4b_config = loader.load_json_config(m4b_config_path)
@@ -207,10 +217,10 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
                 hint_message="It looks like there is nothing to stop.",
             )
             if missing:
-                input(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
-                return
+                pause(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
+                return True
 
-        stop_all_stacks(
+        return stop_all_stacks(
             main_compose_file=compose_files or "./docker-compose.yaml",
             main_instance_name=base_instance_name,
         )
@@ -223,3 +233,4 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
     except Exception as e:
         logger.error(f"An unexpected error occurred in main function: {str(e)}")
         print(f"{Fore.RED}An unexpected error occurred: {str(e)}{Style.RESET_ALL}")
+    return False

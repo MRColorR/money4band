@@ -162,6 +162,21 @@ def _ensure_user_config(args: argparse.Namespace, user_config_path: str) -> None
             dumper.write_json(cfg, user_config_path)
         except Exception:  # noqa: BLE001
             pass  # best-effort - setup wizard will fix it
+    # The template ships an EMPTY resource_limits map, and the compose
+    # file references ${APP_CPU_LIMIT_*}/${APP_MEM_*} unconditionally.
+    # Without this backfill a CLI-only user (wizard -> stack start, never
+    # opening the interactive menu that used to compute them) generated a
+    # .env with no limit vars and docker compose failed to interpolate
+    # ("strconv.ParseFloat: parsing \"\"") on every start.
+    try:
+        cfg = loader.load_json_config(user_config_path)
+        if not cfg.get("resource_limits"):
+            m4b_cfg = loader.load_json_config(
+                os.path.join(args.config_dir, args.config_m4b_file)
+            )
+            detector.calculate_resource_limits(user_config_path, m4b_config=m4b_cfg)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("Could not backfill resource limits: %s", exc)
     ensure_config_encrypted(user_config_path)
     register_encryption_hooks(user_config_path)
 
@@ -525,17 +540,21 @@ def _cmd_stack(args: argparse.Namespace) -> None:
     if action == "start":
         from money4band.docker.start import main as start_main
 
-        start_main(apps_config_path, m4b_config_path, user_config_path)
+        if not start_main(apps_config_path, m4b_config_path, user_config_path):
+            sys.exit(1)
     elif action == "stop":
         from money4band.docker.stop import main as stop_main
 
-        stop_main(apps_config_path, m4b_config_path, user_config_path)
+        if not stop_main(apps_config_path, m4b_config_path, user_config_path):
+            sys.exit(1)
     elif action == "restart":
         from money4band.docker.start import main as start_main
         from money4band.docker.stop import main as stop_main
 
-        stop_main(apps_config_path, m4b_config_path, user_config_path)
-        start_main(apps_config_path, m4b_config_path, user_config_path)
+        stopped = stop_main(apps_config_path, m4b_config_path, user_config_path)
+        started = start_main(apps_config_path, m4b_config_path, user_config_path)
+        if not (stopped and started):
+            sys.exit(1)
     else:
         just_fix_windows_console()
         print(

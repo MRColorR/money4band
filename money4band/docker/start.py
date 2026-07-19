@@ -201,7 +201,7 @@ def start_all_stacks(
     skip_questions: bool = False,
     force_clean: bool = False,
     profiles: tuple[str, ...] = (),
-) -> None:
+) -> bool:
     """
     Start the main stack and all multi-proxy instances.
 
@@ -213,13 +213,19 @@ def start_all_stacks(
         skip_questions (bool): Whether to skip the confirmation question.
         force_clean (bool): Whether to stop all containers before starting.
         profiles: Docker Compose profiles to activate for the main stack.
+
+    Returns:
+        True when every stack started (or the user declined), False when
+        any stack failed - the CLI maps False to a non-zero exit.
     """
+    from money4band.ui.prompt import pause
+
     if not skip_questions and not ask_question_yn(
         f"This will launch all the apps for '{main_instance_name}' and any multi-proxy instances using the configured .env files and docker-compose.yaml files. Docker must be already installed and running. Do you wish to proceed?"
     ):
         print(f"{Fore.BLUE}Docker stack startup canceled.{Style.RESET_ALL}")
-        input(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
-        return
+        pause(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
+        return True
 
     if platform.system().lower() == "linux" and not is_user_in_docker_group():
         create_docker_group_if_needed()
@@ -230,7 +236,7 @@ def start_all_stacks(
             "This will stop ALL running Docker containers. Continue?"
         ):
             print(f"{Fore.BLUE}Docker stack startup canceled.{Style.RESET_ALL}")
-            return
+            return True
 
         print(f"{Fore.YELLOW}Stopping all Docker containers...{Style.RESET_ALL}")
         # Two-step: get container IDs first, then stop them (avoids shell=True)
@@ -266,7 +272,7 @@ def start_all_stacks(
             "Continue despite existing containers?"
         ):
             print(f"{Fore.BLUE}Docker stack startup canceled.{Style.RESET_ALL}")
-            return
+            return True
 
     try:
         # First verify each instance has unique container names
@@ -341,7 +347,7 @@ def start_all_stacks(
             if not skip_questions and not ask_question_yn(
                 "Continue anyway? (Conflicts will cause failures)"
             ):
-                return
+                return True
             print(
                 f"{Fore.YELLOW}Continuing despite container name conflicts. This may lead to unpredictable behavior.{Style.RESET_ALL}"
             )
@@ -417,8 +423,9 @@ def start_all_stacks(
                 f"{Fore.YELLOW}Use the previously generated apps nodes URLs to add your device in any apps dashboard that require node claiming/registration (e.g., Earnapp, ProxyRack, etc.){Style.RESET_ALL}"
             )
             logger.info("All stacks started.")
+        return all_started
     finally:
-        input(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
+        pause(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
 
 
 def get_container_names_from_env(env_file: str) -> list[str]:
@@ -533,7 +540,10 @@ def validate_env_files(main_env_file: str, instances_dir: str) -> bool:
     return True
 
 
-def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> None:
+def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> bool:
+    """Menu/CLI entry - returns False on failure so the CLI can exit 1."""
+    from money4band.ui.prompt import pause
+
     cls()
     try:
         m4b_config = loader.load_json_config(m4b_config_path)
@@ -572,13 +582,13 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
             print(
                 "Please run the setup wizard first to generate the configuration files."
             )
-            input(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
-            return
+            pause(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
+            return False
 
         from money4band.docker.helper import get_active_profiles
 
         profiles = tuple(get_active_profiles(user_config, app_config_path))
-        start_all_stacks(
+        return start_all_stacks(
             main_compose_file=compose_files,
             profiles=profiles,
             main_instance_name=base_instance_name,
@@ -592,3 +602,4 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
     except Exception as e:
         logger.error(f"An unexpected error occurred in main function: {str(e)}")
         print(f"{Fore.RED}An unexpected error occurred: {str(e)}{Style.RESET_ALL}")
+    return False
