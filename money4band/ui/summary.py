@@ -4,15 +4,22 @@ from __future__ import annotations
 
 import logging
 import os
+import sys
 from datetime import datetime, timezone
 from typing import Any
 
 from colorama import Fore, Style
 
 logger = logging.getLogger(__name__)
-# Project root is two levels above this file: money4band/ui/summary.py -> money4band/ -> project root
-_PROJECT_ROOT = os.path.dirname(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# Frozen builds must anchor at the executable's directory (matching the
+# --log-dir default): a __file__-relative root would resolve inside the
+# PyInstaller extraction dir, which the bootloader deletes on exit - the
+# summary would silently evaporate. In dev the project root is two
+# levels above this file: money4band/ui/summary.py -> money4band/ -> root.
+_PROJECT_ROOT = (
+    os.path.dirname(sys.executable)
+    if getattr(sys, "frozen", False)
+    else os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 )
 SUMMARY_PATH = os.path.join(_PROJECT_ROOT, "logs", "setup-summary.txt")
 
@@ -79,11 +86,12 @@ def generate_setup_summary(
     lines.append("")
     lines.append(f"Proxy: {'enabled' if proxy_enabled else 'disabled'}")
     if proxy_enabled:
-        # Count multi-proxy instances
-        instances_dir = os.path.join(
-            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-            "m4b-instances",
-        )
+        # Count multi-proxy instances. Same location the generator uses:
+        # ``m4b_proxy_instances`` relative to the working directory (the
+        # install root - main() chdirs there on startup). The old path
+        # looked for a never-existing ``m4b-instances`` dir inside the
+        # package, so the count was always 0.
+        instances_dir = os.path.join(os.getcwd(), "m4b_proxy_instances")
         instance_count = 0
         if os.path.isdir(instances_dir):
             instance_count = sum(

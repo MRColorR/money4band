@@ -7,12 +7,14 @@ import logging
 import os
 from typing import Any
 
+from money4band.core.paths import install_dir
+
 logger = logging.getLogger(__name__)
-PROGRESS_FILE = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-    "config",
-    ".setup_progress.json",
-)
+# Anchored at the install root: the old __file__-relative path pointed
+# inside the money4band package (and, frozen, inside the throwaway
+# PyInstaller extraction dir) - resume-after-interrupt silently never
+# worked on release binaries.
+PROGRESS_FILE = os.path.join(str(install_dir()), "config", ".setup_progress.json")
 
 
 def load_progress() -> dict[str, Any]:

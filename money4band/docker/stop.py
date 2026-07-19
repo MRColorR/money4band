@@ -25,12 +25,6 @@ logger = logging.getLogger(__name__)
 
 from money4band.notifier import fire_event as _notify_event
 
-script_dir = os.path.dirname(os.path.abspath(__file__))
-
-parent_dir = os.path.dirname(script_dir)
-
-m4b_config_path = os.path.join(parent_dir, "config", "m4b-config.json")
-
 
 def stop_stack(
     compose_file: str | list[str] = "./docker-compose.yaml",

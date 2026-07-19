@@ -27,12 +27,6 @@ from money4band.ui.prompt import ask_question_yn
 
 logger = logging.getLogger(__name__)
 
-script_dir = os.path.dirname(os.path.abspath(__file__))
-
-parent_dir = os.path.dirname(script_dir)
-
-m4b_config_path = os.path.join(parent_dir, "config", "m4b-config.json")
-
 
 def get_device_name_from_env(env_file: str) -> str | None:
     """Extract DEVICE_NAME from an env file (with .env.meta fallback)."""

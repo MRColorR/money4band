@@ -10,12 +10,12 @@ import time
 from colorama import Fore, Style
 
 from money4band.core.loader import load_json_config
+from money4band.core.paths import install_dir as _install_root
 from money4band.ui.cls import cls
 
 logger = logging.getLogger(__name__)
 
-_script_dir = os.path.dirname(os.path.abspath(__file__))
-_BASE_DIR = os.path.dirname(os.path.dirname(_script_dir))
+_BASE_DIR = str(_install_root())
 _DEFAULT_PORT = 8088
 
 

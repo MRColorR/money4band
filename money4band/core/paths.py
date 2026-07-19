@@ -34,16 +34,25 @@ _DATA_SUBDIR = ".m4b"
 _MIGRATABLE_ENTRIES: tuple[str, ...] = ("master.key", "session.salt", "backups")
 
 
-def _install_dir() -> Path:
+def install_dir() -> Path:
     """Return the M4B install root.
 
     Frozen (PyInstaller) -> the directory containing the executable.
     Source -> the repo root (parent of the ``money4band`` package).
+
+    Any module needing a runtime file location (logs, config, progress
+    markers) must anchor here - a ``__file__``-relative root resolves
+    inside the PyInstaller extraction dir on frozen builds, which the
+    bootloader deletes on exit.
     """
     if getattr(sys, "frozen", False):
         return Path(sys.executable).resolve().parent
     # money4band/core/paths.py -> money4band/core/ -> money4band/ -> repo root
     return Path(__file__).resolve().parent.parent.parent
+
+
+# Backwards-compatible private alias (pre-existing internal callers/tests).
+_install_dir = install_dir
 
 
 def _is_writable(path: Path) -> bool:
