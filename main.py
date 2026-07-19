@@ -1739,7 +1739,7 @@ def _handle_dashboard_auto_start(args: argparse.Namespace) -> None:
 # ---------------------------------------------------------------------------
 
 
-def main() -> None:
+def _run_cli() -> None:
     try:
         locale.setlocale(locale.LC_ALL, "C")
     except locale.Error:
@@ -1779,9 +1779,17 @@ def main() -> None:
         _cmd_menu(args)
 
 
-if __name__ == "__main__":
+def main() -> None:
+    """CLI entry point - shared by ``python main.py``, the frozen binary,
+    and the ``m4b`` console script (pyproject ``[project.scripts]``).
+
+    The interrupt/EOF handling must live here rather than under the
+    ``__main__`` guard: the console script imports and calls ``main()``
+    directly, so a guard-only handler would leave ``m4b`` crashing with
+    a raw traceback on Ctrl+C or closed stdin.
+    """
     try:
-        main()
+        _run_cli()
     except KeyboardInterrupt:
         print(f"\n{Fore.YELLOW}Interrupted.{Style.RESET_ALL}", file=sys.stderr)
         sys.exit(130)
@@ -1793,3 +1801,7 @@ if __name__ == "__main__":
             file=sys.stderr,
         )
         sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()

@@ -568,3 +568,36 @@ class TestGetActiveProfiles:
             }
         }
         assert get_active_profiles(cfg, app_cfg) == ["datacenter"]
+
+
+# ---------------------------------------------------------------------------
+# Entry-point EOF/interrupt handling: main() is what the m4b console
+# script calls directly - the guard must live inside it, not only under
+# the __main__ block.
+# ---------------------------------------------------------------------------
+
+
+class TestEntryPointGuards:
+    def _patch_run(self, monkeypatch, exc):
+        def _raise():
+            raise exc
+
+        monkeypatch.setattr("main._run_cli", _raise)
+
+    def test_eoferror_exits_1_without_traceback(self, monkeypatch, capsys):
+        from main import main
+
+        self._patch_run(monkeypatch, EOFError())
+        with pytest.raises(SystemExit) as excinfo:
+            main()
+        assert excinfo.value.code == 1
+        assert "Input closed" in capsys.readouterr().err
+
+    def test_keyboardinterrupt_exits_130(self, monkeypatch, capsys):
+        from main import main
+
+        self._patch_run(monkeypatch, KeyboardInterrupt())
+        with pytest.raises(SystemExit) as excinfo:
+            main()
+        assert excinfo.value.code == 130
+        assert "Interrupted" in capsys.readouterr().err

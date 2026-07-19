@@ -18,7 +18,7 @@ def pause(message: str) -> None:
     commands that finished their work do not die with a spurious
     EOF-driven non-zero exit at a purely cosmetic prompt.
     """
-    if not sys.stdin.isatty():
+    if sys.stdin is None or not sys.stdin.isatty():
         return
     try:
         input(message)

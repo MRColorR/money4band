@@ -243,7 +243,9 @@ async def _auth_middleware(request: Request, call_next):  # type: ignore[no-unty
     """Require ``Authorization: Bearer <key>`` for non-localhost API calls."""
     path = request.url.path
 
-    # Always allow non-API routes (static frontend), docs, and health.
+    # Always allow non-API routes (static frontend), docs, and login.
+    # NOTE: /api/health is intentionally NOT public - it reports container
+    # names/states via docker inspect, which must not leak when exposed.
     if not path.startswith("/api/") or path.startswith(_PUBLIC_PREFIXES):
         return await call_next(request)
 
