@@ -519,7 +519,10 @@ class TestSystemDefaults:
 
 class TestStackDefaults:
     def test_start_returns_ok(self, flat_client):
-        with patch("money4band.docker.start.start_all_stacks"):
+        with (
+            patch("money4band.api.router_stack._regenerate_stack_files"),
+            patch("money4band.docker.start.start_all_stacks"),
+        ):
             resp = flat_client.post("/api/stack/start")
         assert resp.status_code == 200
         assert resp.json()["status"] == "ok"
@@ -532,6 +535,7 @@ class TestStackDefaults:
 
     def test_restart_returns_ok(self, flat_client):
         with (
+            patch("money4band.api.router_stack._regenerate_stack_files"),
             patch("money4band.docker.stop.stop_all_stacks"),
             patch("money4band.docker.start.start_all_stacks"),
         ):

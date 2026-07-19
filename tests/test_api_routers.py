@@ -517,15 +517,21 @@ class TestConfigRouter:
 
 class TestStackRouter:
     def test_start_stack(self, client):
-        with patch("money4band.docker.start.start_all_stacks"):
+        with (
+            patch("money4band.api.router_stack._regenerate_stack_files"),
+            patch("money4band.docker.start.start_all_stacks"),
+        ):
             resp = client.post("/api/stack/start")
         assert resp.status_code == 200
         assert resp.json()["status"] == "ok"
 
     def test_start_stack_failure(self, client):
-        with patch(
-            "money4band.docker.start.start_all_stacks",
-            side_effect=RuntimeError("Docker not found"),
+        with (
+            patch("money4band.api.router_stack._regenerate_stack_files"),
+            patch(
+                "money4band.docker.start.start_all_stacks",
+                side_effect=RuntimeError("Docker not found"),
+            ),
         ):
             resp = client.post("/api/stack/start")
         assert resp.status_code == 500
@@ -537,6 +543,7 @@ class TestStackRouter:
 
     def test_restart_stack(self, client):
         with (
+            patch("money4band.api.router_stack._regenerate_stack_files"),
             patch("money4band.docker.stop.stop_all_stacks"),
             patch("money4band.docker.start.start_all_stacks"),
         ):
