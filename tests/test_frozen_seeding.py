@@ -120,3 +120,40 @@ class TestTemplateSeeding:
         with patch.object(sys, "_MEIPASS", str(bundle), create=True):
             m4b_main._seed_bundled_dir(str(dest), "template", refresh=True)
         assert '"v2"' in (dest / "user-config.json").read_text(encoding="utf-8")
+
+
+class TestFrozenResourceRoot:
+    """get_path must point inside <_MEIPASS>/money4band/resources when frozen.
+
+    The build bundles the package via --add-data "money4band;money4band",
+    so resources are NOT at the bundle root. A wrong root silently skips
+    the web-frontend mount (dashboard served 404 on /) and breaks the
+    QEMU binfmt service-file lookup in release binaries.
+    """
+
+    def _reload_resources(self):
+        import importlib
+
+        import money4band.resources as res
+
+        return importlib.reload(res)
+
+    def test_frozen_root_includes_package_prefix(self, tmp_path):
+        www = tmp_path / "money4band" / "resources" / "www"
+        www.mkdir(parents=True)
+        (www / "index.html").write_text("<html></html>", encoding="utf-8")
+
+        with (
+            patch.object(sys, "frozen", True, create=True),
+            patch.object(sys, "_MEIPASS", str(tmp_path), create=True),
+        ):
+            res = self._reload_resources()
+            assert res.get_path("www").is_dir()
+            assert (res.get_path("www") / "index.html").is_file()
+        # Restore the dev-mode root for the rest of the suite.
+        self._reload_resources()
+
+    def test_dev_root_resolves_real_www(self):
+        res = self._reload_resources()
+        assert res.get_path("www", "index.html").is_file()
+        assert res.get_path("files", "docker.binfmt.service").is_file()

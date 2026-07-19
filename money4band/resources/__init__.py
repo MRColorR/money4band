@@ -9,9 +9,12 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-# PyInstaller extracts data into sys._MEIPASS when frozen.
+# PyInstaller extracts data into sys._MEIPASS when frozen. The build
+# bundles the package via --add-data "money4band;money4band", so the
+# resources land under <_MEIPASS>/money4band/resources - NOT at the
+# bundle root.
 _ROOT: Path = (
-    Path(getattr(sys, "_MEIPASS", ""))
+    Path(getattr(sys, "_MEIPASS", "")) / "money4band" / "resources"
     if getattr(sys, "frozen", False)
     else Path(__file__).resolve().parent
 )
