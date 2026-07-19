@@ -89,17 +89,27 @@ def stop_stack(
                 f"COMPOSE_PROJECT_NAME not found in {env_file}, relying on Docker Compose defaults"
             )
 
-        for cf in compose_files:
-            command.extend(["-f", cf])
+        if project_name and not os.path.isfile(env_file):
+            # The successful start securely wiped .env (credentials must
+            # not persist on disk). Loading the compose file now would
+            # fail interpolation on ${APP_*} vars, so run `down` by
+            # project name alone - it removes every container labeled
+            # with the project, profiles included, without a model.
+            logger.info(
+                "No .env for '%s' - stopping by project name only", instance_name
+            )
+        else:
+            for cf in compose_files:
+                command.extend(["-f", cf])
 
-        # Activate every known profile (infra + app tiers) so ALL profiled
-        # services are part of the model for `down` - otherwise tier-gated
-        # app containers survive the shutdown as orphans.  Docker Compose
-        # ignores profile flags that match no service.
-        from money4band.apps.schema import _VALID_PROFILES
+            # Activate every known profile (infra + app tiers) so ALL profiled
+            # services are part of the model for `down` - otherwise tier-gated
+            # app containers survive the shutdown as orphans.  Docker Compose
+            # ignores profile flags that match no service.
+            from money4band.apps.schema import _VALID_PROFILES
 
-        for profile in ("monitoring", "proxy", *sorted(_VALID_PROFILES)):
-            command.extend(["--profile", profile])
+            for profile in ("monitoring", "proxy", *sorted(_VALID_PROFILES)):
+                command.extend(["--profile", profile])
 
         command.extend(["down"])
 

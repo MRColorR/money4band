@@ -68,9 +68,16 @@ class TestStopStack:
     @patch("money4band.docker.stop.get_compose_project_name", return_value="m4b")
     @patch("money4band.docker.stop.show_spinner")
     @patch("money4band.docker.stop.is_user_root", return_value=True)
-    def test_multi_compose_files(self, _root, _spin, _proj, mock_run, _notify) -> None:
+    def test_multi_compose_files(
+        self, _root, _spin, _proj, mock_run, _notify, tmp_path
+    ) -> None:
+        # .env present next to the compose files -> full model with -f flags.
+        (tmp_path / ".env").write_text("COMPOSE_PROJECT_NAME=m4b\n")
         result = stop_stack(
-            compose_file=["compose.yml", "compose.service.yml"],
+            compose_file=[
+                str(tmp_path / "compose.yml"),
+                str(tmp_path / "compose.service.yml"),
+            ],
             skip_questions=True,
         )
         assert result is True
@@ -83,9 +90,10 @@ class TestStopStack:
     @patch("money4band.docker.stop.show_spinner")
     @patch("money4band.docker.stop.is_user_root", return_value=True)
     def test_includes_all_profiles(
-        self, _root, _spin, _proj, mock_run, _notify
+        self, _root, _spin, _proj, mock_run, _notify, tmp_path
     ) -> None:
-        stop_stack(compose_file="compose.yml", skip_questions=True)
+        (tmp_path / ".env").write_text("COMPOSE_PROJECT_NAME=m4b\n")
+        stop_stack(compose_file=str(tmp_path / "compose.yml"), skip_questions=True)
         cmd = mock_run.call_args[0][0]
         # Should include monitoring and proxy profiles (dashboard is no
         # longer a Docker service - it runs as a standalone FastAPI process).
@@ -94,6 +102,23 @@ class TestStopStack:
         assert "monitoring" in profiles
         assert "dashboard" not in profiles
         assert "proxy" in profiles
+
+    @patch("money4band.docker.stop._notify_event")
+    @patch("money4band.docker.stop.run_docker_command", return_value=0)
+    @patch("money4band.docker.stop.get_compose_project_name", return_value="m4b")
+    @patch("money4band.docker.stop.show_spinner")
+    @patch("money4band.docker.stop.is_user_root", return_value=True)
+    def test_missing_env_stops_by_project_name_only(
+        self, _root, _spin, _proj, mock_run, _notify, tmp_path
+    ) -> None:
+        """Post-start the .env is securely wiped; loading the compose file
+        would fail ${APP_*} interpolation, so down must go by -p alone."""
+        stop_stack(compose_file=str(tmp_path / "compose.yml"), skip_questions=True)
+        cmd = mock_run.call_args[0][0]
+        assert "-p" in cmd and "m4b" in cmd
+        assert "-f" not in cmd
+        assert "--profile" not in cmd
+        assert cmd[-1] == "down"
 
 
 class TestStopAllStacks:

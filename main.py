@@ -583,16 +583,23 @@ def _cmd_status(args: argparse.Namespace) -> None:
         )
         return
 
+    # get_compose_project_name falls back to .env.meta, which survives
+    # the post-start secure wipe of .env.
+    project_name = get_compose_project_name(env_file)
     cmd = ["docker", "compose"]
-    if os.path.isfile(env_file):
-        project_name = get_compose_project_name(env_file)
-        if project_name:
-            cmd.extend(["-p", project_name])
-    for cf in compose_files:
-        cmd.extend(["-f", cf])
-    # Show ALL services (including profiled infrastructure) for visibility.
-    for profile in ("monitoring", "proxy"):
-        cmd.extend(["--profile", profile])
+    if project_name:
+        cmd.extend(["-p", project_name])
+    if project_name and not os.path.isfile(env_file):
+        # .env was securely wiped after a successful start; loading the
+        # compose file without it fails ${APP_*} interpolation. `ps` by
+        # project name alone lists every container of the project.
+        pass
+    else:
+        for cf in compose_files:
+            cmd.extend(["-f", cf])
+        # Show ALL services (including profiled infrastructure) for visibility.
+        for profile in ("monitoring", "proxy"):
+            cmd.extend(["--profile", profile])
     cmd.extend(["ps", "--format", "table"])
 
     just_fix_windows_console()
@@ -606,9 +613,6 @@ def _cmd_status(args: argparse.Namespace) -> None:
     # Health summary from Docker inspect
     from money4band.docker.monitor import get_stack_health
 
-    project_name = None
-    if os.path.isfile(env_file):
-        project_name = get_compose_project_name(env_file)
     statuses = get_stack_health(project_filter=project_name)
     if statuses:
         print(f"{Fore.GREEN}--- Health Summary ---{Style.RESET_ALL}")
