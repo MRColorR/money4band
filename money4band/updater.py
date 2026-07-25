@@ -368,6 +368,11 @@ def _restore_preserved_files(
             os.write(fd, content)
         finally:
             os.close(fd)
+        # os.open()'s mode arg only applies on creation and is masked by
+        # umask; when the install step already wrote a permissive file the
+        # bits above are ignored. Re-apply the saved mode explicitly so a
+        # 0o600 secret cannot be restored world-readable.
+        os.chmod(full_path, mode)
 
 
 def _apply_git_update(target_version: str) -> bool:
