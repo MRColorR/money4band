@@ -152,6 +152,20 @@ class TestStopAllStacks:
         # Main + 1 instance = at least 2 calls
         assert mock_stop.call_count >= 2
 
+    @patch("money4band.docker.stop.pause")
+    @patch("money4band.docker.stop.stop_stack", return_value=True)
+    @patch("money4band.docker.stop.is_user_in_docker_group", return_value=True)
+    def test_skip_questions_never_pauses(self, _group, _stop, mock_pause):
+        """Regression: skip_questions=True (the API path) must not hit the
+        'press b to go back' pause in the finally block. pause() only skips on
+        a non-tty stdin, so a server launched from a terminal blocked forever
+        and hung the /api/stack/stop request."""
+        stop_all_stacks(
+            main_compose_file="compose.yml",
+            skip_questions=True,
+        )
+        mock_pause.assert_not_called()
+
     @patch("money4band.docker.stop.ask_question_yn", return_value=False)
     @patch("builtins.input", return_value="")
     def test_user_cancels(self, _inp, _ask):

@@ -120,7 +120,8 @@ def start_stack(
             f"{Fore.RED}Environment file not found: {env_file}\n"
             f"Run 'm4b generate' to regenerate it.{Style.RESET_ALL}"
         )
-        input(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
+        if not skip_questions:
+            input(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
         return False
 
     try:
@@ -178,7 +179,8 @@ def start_stack(
                 "stack_error",
                 f"Stack '{instance_name}' failed to start (exit {result}).",
             )
-            input(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
+            if not skip_questions:
+                input(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
         return result == 0
     except Exception as e:
         print(
@@ -186,7 +188,8 @@ def start_stack(
         )
         logger.error(f"Unexpected error: {str(e)}")
         _notify_event("stack_error", f"Stack '{instance_name}' error: {e}")
-        input(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
+        if not skip_questions:
+            input(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
     finally:
         event.set()
         spinner_thread.join()
@@ -423,7 +426,8 @@ def start_all_stacks(
             logger.info("All stacks started.")
         return all_started
     finally:
-        pause(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
+        if not skip_questions:
+            pause(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
 
 
 def get_container_names_from_env(env_file: str) -> list[str]:

@@ -219,7 +219,8 @@ def stop_all_stacks(
         instances_ok = stop_proxy_instances(instances_dir)
         return stopped and instances_ok
     finally:
-        pause(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
+        if not skip_questions:
+            pause(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
 
 
 def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> bool:

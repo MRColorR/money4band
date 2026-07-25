@@ -241,6 +241,30 @@ class TestStartAllStacks:
         # Main + 1 instance = at least 2 calls
         assert mock_start.call_count >= 2
 
+    @patch("money4band.ui.prompt.pause")
+    @patch("money4band.docker.start.generate_container_url_list")
+    @patch("money4band.docker.start.start_stack", return_value=True)
+    @patch("money4band.docker.start.is_user_in_docker_group", return_value=True)
+    @patch("subprocess.run")
+    @patch("time.sleep")
+    def test_skip_questions_never_pauses(
+        self, _sleep, mock_sub_run, _group, _start, _dashurls, mock_pause, tmp_path
+    ):
+        """Regression: skip_questions=True (the API path) must not hit the
+        'press b to go back' pause. pause() only skips on a non-tty stdin, so
+        when the server runs from a real terminal it blocked forever and hung
+        the /api/stack/start request."""
+        mock_sub_run.return_value = MagicMock(stdout="", returncode=0)
+        main_env = tmp_path / ".env"
+        main_env.write_text("DEVICE_NAME=main_dev\n")
+
+        start_all_stacks(
+            main_compose_file="compose.yml",
+            main_env_file=str(main_env),
+            skip_questions=True,
+        )
+        mock_pause.assert_not_called()
+
     @patch("money4band.docker.start.ask_question_yn", return_value=False)
     @patch("builtins.input", return_value="")
     def test_user_cancels(self, _inp, _ask):
