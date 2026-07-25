@@ -15,8 +15,11 @@ RUN apt-get update && \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Install uv (matches CI pipeline)
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+# Install uv via its installer, not COPY --from=ghcr.io/astral-sh/uv:
+# this Dockerfile also builds linux/arm/v7, which the uv image has no
+# manifest for. The installer resolves the right binary per target arch.
+ENV UV_INSTALL_DIR=/usr/local/bin
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # Set the working directory
 WORKDIR /app
