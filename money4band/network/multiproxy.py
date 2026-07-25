@@ -69,7 +69,7 @@ def safe_rmtree(directory: str) -> bool:
         logger.info(f"Successfully removed directory: {directory}")
         return True
     except FileNotFoundError:
-        # Already gone. On Windows the onerror callback swallows this; 
+        # Already gone. On Windows the onerror callback swallows this;
         # make POSIX behave the same so a missing directory is a silent success, not a failure.
         return True
     except PermissionError as e:
