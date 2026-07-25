@@ -40,6 +40,8 @@ dist
 
 # Local-only development instructions
 .github/copilot-instructions.md
+# AI agent guide
+CLAUDE.md
 
 # Internal docs
 *.internal.md

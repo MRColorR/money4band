@@ -10,10 +10,7 @@ from typing import Any
 from money4band.core.paths import install_dir
 
 logger = logging.getLogger(__name__)
-# Anchored at the install root: the old __file__-relative path pointed
-# inside the money4band package (and, frozen, inside the throwaway
-# PyInstaller extraction dir) - resume-after-interrupt silently never
-# worked on release binaries.
+# Resume marker, under the install root's config dir.
 PROGRESS_FILE = os.path.join(str(install_dir()), "config", ".setup_progress.json")
 
 

@@ -8,10 +8,8 @@ import time
 import uuid
 from typing import Any
 
-# One id per process run, stamped on every JSON log line so multiple runs
-# writing to the same rotated file remain distinguishable. (A contextvar
-# API used to live here, but nothing ever propagated per-operation ids -
-# the value was set once at startup and never changed.)
+# One id per process run, stamped on every JSON log line so runs sharing a
+# rotated file stay distinguishable.
 RUN_ID: str = uuid.uuid4().hex[:12]
 
 

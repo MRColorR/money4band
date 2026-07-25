@@ -98,10 +98,7 @@ def collect_user_info(user_config: dict[str, Any], m4b_config: dict[str, Any]) -
     # Resolve nickname from OS account (replaces placeholder if needed).
     ensure_nickname(user_config)
 
-    # Refresh detected OS/arch: the template ships placeholder
-    # device_info (Linux/amd64) and only the interactive menu refreshed
-    # it, so a wizard run from the CLI persisted the wrong platform in
-    # user-config (and the setup summary).
+    # Refresh detected OS/arch (the template ships a placeholder).
     try:
         from money4band.system import detector
 

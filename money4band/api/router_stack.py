@@ -30,11 +30,9 @@ def _active_profiles() -> tuple[str, ...]:
 def _regenerate_stack_files(paths: ConfigPaths) -> None:
     """Rebuild docker-compose.yaml and .env from the current config.
 
-    The API mutates config without touching the generated artifacts (a
-    PUT /api/config/user that enables an app does not edit compose), and
-    a successful start securely wipes .env. Regenerating both before
-    every start keeps the stack consistent with the config and is
-    idempotent - identical config yields byte-identical files.
+    The API mutates config without regenerating the artifacts, and a
+    successful start wipes .env, so regenerate before every start.
+    Idempotent: identical config yields identical files.
     """
     from money4band.core.loader import load_app_config_with_overlays
     from money4band.docker.generator import (

@@ -354,11 +354,9 @@ def assemble_docker_compose(
         if is_main_instance:
             watchtower_enabled = user_config.get("watchtower", {}).get("enabled", True)
             if watchtower_enabled:
-                # KI-024: proxy_disabled uses ROLLING_RESTART=true, proxy_enabled
-                # uses false.  This is intentional: in proxy mode all app containers
-                # depend on tun2socks' network stack (network_mode: service:proxy).
-                # Rolling-restarting tun2socks would silently break every app's
-                # connectivity, so we force a clean stop-all/start-all cycle instead.
+                # KI-024: in proxy mode apps share tun2socks' network stack
+                # (network_mode: service:proxy), so watchtower full-restarts
+                # (ROLLING_RESTART=false) to avoid dropping their connectivity.
                 watchtower_service_key = (
                     "proxy_enabled" if proxy_enabled else "proxy_disabled"
                 )

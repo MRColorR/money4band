@@ -4,7 +4,11 @@ from __future__ import annotations
 
 from unittest.mock import patch
 
-from money4band.docker.stop import stop_all_stacks, stop_stack
+from money4band.docker.stop import (
+    stop_all_stacks,
+    stop_proxy_instances,
+    stop_stack,
+)
 
 
 class TestStopStack:
@@ -277,3 +281,53 @@ class TestStopStackMain:
         main("app.json", "m4b.json", "user.json")
         # check_required_files should have been consulted
         mock_check.assert_called_once()
+
+
+class TestStopProxyInstances:
+    """Regression sentinels for the stop_proxy_instances extraction.
+
+    Covers two fixed bugs:
+    - stop_all_stacks previously discarded per-instance stop_stack()
+      results and reported success even when an instance failed to stop.
+    - multiproxy re-setup called stop_all_stacks positionally, which also
+      tore down the MAIN stack; instance clearing must be scoped to
+      instances only.
+    """
+
+    @patch("money4band.docker.stop.stop_stack")
+    @patch("money4band.docker.compose_builder.get_compose_files")
+    def test_aggregates_instance_failure(
+        self, mock_getfiles, mock_stop, tmp_path
+    ) -> None:
+        inst_root = tmp_path / "m4b_proxy_instances"
+        (inst_root / "inst1").mkdir(parents=True)
+        (inst_root / "inst2").mkdir(parents=True)
+        mock_getfiles.side_effect = lambda d: ["compose.yaml"]
+        # inst2 fails to stop -> aggregate result must be False.
+        mock_stop.side_effect = lambda files, name, **kw: name != "inst2"
+
+        result = stop_proxy_instances(str(inst_root))
+
+        assert result is False
+        stopped_names = {c.args[1] for c in mock_stop.call_args_list}
+        assert stopped_names == {"inst1", "inst2"}
+        # Never stops the main stack.
+        assert "money4band" not in stopped_names
+
+    @patch("money4band.docker.stop.stop_stack")
+    def test_missing_dir_is_noop_true(self, mock_stop, tmp_path) -> None:
+        result = stop_proxy_instances(str(tmp_path / "does-not-exist"))
+        assert result is True
+        mock_stop.assert_not_called()
+
+    @patch("money4band.docker.stop.pause")
+    @patch("money4band.docker.stop.stop_proxy_instances", return_value=False)
+    @patch("money4band.docker.stop.stop_stack", return_value=True)
+    def test_stop_all_reports_instance_failure(
+        self, mock_main_stop, mock_instances, _pause
+    ) -> None:
+        # Main stack stops cleanly but an instance fails -> overall False.
+        result = stop_all_stacks(skip_questions=True)
+        assert result is False
+        mock_main_stop.assert_called_once()
+        mock_instances.assert_called_once()

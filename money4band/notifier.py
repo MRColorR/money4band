@@ -170,10 +170,7 @@ def fire_event(event: str, message: str, config_dir: str | None = None) -> None:
 
     try:
         if config_dir is None:
-            # Install-root anchored: a __file__-relative fallback resolves
-            # into the PyInstaller extraction dir on frozen builds, where
-            # user-config.json never exists (it is stripped from the
-            # bundle) - stack start/stop notifications silently vanished.
+            # Config lives under the install root.
             from money4band.core.paths import install_dir
 
             config_dir = os.path.join(str(install_dir()), "config")

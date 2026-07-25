@@ -359,8 +359,7 @@ def add_source(
     else:
         decl["path"] = path
 
-    # If the user is re-adding a previously removed shipped source, drop
-    # it from the tombstone list so it shows up again.
+    # Re-adding a removed shipped source clears its tombstone.
     if name in removed:
         overrides["removed_sources"] = [n for n in removed if n != name]
 

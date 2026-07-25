@@ -205,10 +205,8 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> b
         from money4band.core.loader import load_app_config_with_overlays
 
         m4b_config = load_json_config(m4b_config_path)
-        # app_config_path aliases m4b-config.json: the catalog is folded
-        # under its "catalog" key, so it must go through the overlay
-        # aggregator - a plain load yields zero app categories and the
-        # regenerated compose/.env would silently drop every app.
+        # app_config_path is m4b-config.json with the catalog folded under
+        # its "catalog" key. Aggregate it via overlays.
         app_config = load_app_config_with_overlays(
             app_config_path, user_config_path=user_config_path
         )

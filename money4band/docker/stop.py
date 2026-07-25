@@ -19,7 +19,7 @@ from money4band.docker.helper import (
     show_spinner,
 )
 from money4band.ui.cls import cls
-from money4band.ui.prompt import ask_question_yn
+from money4band.ui.prompt import ask_question_yn, pause
 
 logger = logging.getLogger(__name__)
 
@@ -56,7 +56,7 @@ def stop_stack(
         print(
             f"{Fore.BLUE}Docker stack removal for '{instance_name}' instance canceled.{Style.RESET_ALL}"
         )
-        input(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
+        pause(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
         return False
 
     event = threading.Event()
@@ -146,6 +146,45 @@ def stop_stack(
     return False
 
 
+def stop_proxy_instances(instances_dir: str = "m4b_proxy_instances") -> bool:
+    """Stop every multi-proxy instance stack under *instances_dir*.
+
+    Does NOT touch the main stack - callers that only want to clear proxy
+    instances (e.g. multiproxy re-setup) must use this rather than
+    :func:`stop_all_stacks`, which also tears down the main stack.
+
+    Returns:
+        True when every instance stopped (or there were none), False when
+        any instance failed to stop.
+    """
+    if not os.path.isdir(instances_dir):
+        logger.warning(
+            f"Multi-proxy instances directory '{instances_dir}' does not exist."
+        )
+        return True
+
+    from money4band.docker.compose_builder import get_compose_files
+
+    all_ok = True
+    print(f"{Fore.YELLOW}Stopping multi-proxy instances...{Style.RESET_ALL}")
+    for instance in os.listdir(instances_dir):
+        instance_dir = os.path.join(instances_dir, instance)
+        instance_files = get_compose_files(instance_dir)
+        if not instance_files:
+            compose_file = os.path.join(instance_dir, "docker-compose.yaml")
+            if os.path.isfile(compose_file):
+                instance_files = [compose_file]
+        if instance_files:
+            try:
+                if not stop_stack(instance_files, instance, skip_questions=True):
+                    all_ok = False
+            except Exception as e:
+                logger.error(f"Failed to stop instance '{instance}': {str(e)}")
+                all_ok = False
+    print(f"{Fore.GREEN}All multi-proxy instances stopped.{Style.RESET_ALL}")
+    return all_ok
+
+
 def stop_all_stacks(
     main_compose_file: str | list[str] = "./docker-compose.yaml",
     main_instance_name: str = "money4band",
@@ -162,11 +201,9 @@ def stop_all_stacks(
         skip_questions (bool): Whether to skip the confirmation question.
 
     Returns:
-        True when the stacks were stopped (or the user declined), False
-        when the main stack failed to stop.
+        True when the main stack AND every proxy instance stopped (or the
+        user declined), False when any of them failed to stop.
     """
-    from money4band.ui.prompt import pause
-
     if not skip_questions and not ask_question_yn(
         f"This will stop all the apps for '{main_instance_name}' and any multi-proxy instances and delete the docker stacks previously created. Do you wish to proceed?"
     ):
@@ -179,36 +216,14 @@ def stop_all_stacks(
 
     try:
         stopped = stop_stack(main_compose_file, main_instance_name, skip_questions=True)
-        if os.path.isdir(instances_dir):
-            print(f"{Fore.YELLOW}Stopping multi-proxy instances...{Style.RESET_ALL}")
-            for instance in os.listdir(instances_dir):
-                instance_dir = os.path.join(instances_dir, instance)
-                from money4band.docker.compose_builder import get_compose_files
-
-                instance_files = get_compose_files(instance_dir)
-                if not instance_files:
-                    compose_file = os.path.join(instance_dir, "docker-compose.yaml")
-                    if os.path.isfile(compose_file):
-                        instance_files = [compose_file]
-                if instance_files:
-                    try:
-                        stop_stack(instance_files, instance, skip_questions=True)
-                    except Exception as e:
-                        logger.error(f"Failed to stop instance '{instance}': {str(e)}")
-            print(f"{Fore.GREEN}All multi-proxy instances stopped.{Style.RESET_ALL}")
-        else:
-            logger.warning(
-                f"Multi-proxy instances directory '{instances_dir}' does not exist."
-            )
-        return stopped
+        instances_ok = stop_proxy_instances(instances_dir)
+        return stopped and instances_ok
     finally:
         pause(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
 
 
 def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> bool:
     """Menu/CLI entry - returns False on failure so the CLI can exit 1."""
-    from money4band.ui.prompt import pause
-
     cls()
     try:
         m4b_config = loader.load_json_config(m4b_config_path)

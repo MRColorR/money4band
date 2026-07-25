@@ -26,7 +26,7 @@ from money4band.docker.generator import (
     generate_env_file,
     generate_uuid,
 )
-from money4band.docker.stop import stop_all_stacks
+from money4band.docker.stop import stop_proxy_instances
 
 logger = logging.getLogger(__name__)
 from money4band.network.port_manager import assign_app_ports, collect_assigned_ports
@@ -263,7 +263,7 @@ def setup_multiproxy_instances(
             f"Existing proxy instances found in '{instances_dir}'. Do you want to delete them?",
             default=True,
         ):
-            stop_all_stacks(instances_dir, skip_questions=True)
+            stop_proxy_instances(instances_dir)
             if not safe_rmtree(instances_dir):
                 print(
                     f"{Fore.RED}Failed to remove existing instances. Aborting setup.{Style.RESET_ALL}"

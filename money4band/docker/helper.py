@@ -484,10 +484,8 @@ def get_active_profiles(
 
     if app_config_path_or_dict is not None:
         try:
-            # A path is the m4b-config file: the catalog lives folded under
-            # its "catalog" key, so it MUST go through the overlay aggregator.
-            # A plain load_json_config would yield zero categories and every
-            # tier profile would silently drop (no app would ever start).
+            # A path is m4b-config.json (catalog folded under "catalog"):
+            # aggregate via overlays. A dict is already aggregated.
             if isinstance(app_config_path_or_dict, str):
                 app_cfg = load_app_config_with_overlays(app_config_path_or_dict)
             else:

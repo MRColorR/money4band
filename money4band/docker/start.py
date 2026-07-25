@@ -377,10 +377,8 @@ def start_all_stacks(
                         instance_files = [legacy]
                 env_file = os.path.join(instance_dir, ".env")
                 if instance_files and not os.path.isfile(env_file):
-                    # .env was securely deleted after the last compose-up:
-                    # regenerate it from the instance configs instead of
-                    # silently skipping the instance (which used to report
-                    # "All stacks started." with the instance down).
+                    # .env was securely deleted after the last compose-up;
+                    # regenerate it from the instance configs.
                     regenerated = _regenerate_instance_env(instance_dir, env_file)
                     if not regenerated:
                         all_started = False

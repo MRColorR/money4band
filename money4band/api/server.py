@@ -628,6 +628,12 @@ def start_server(
     """
     import uvicorn
 
+    # Stack lifecycle resolves docker-compose.yaml, .env and
+    # m4b_proxy_instances relative to cwd. Anchor cwd at the install root.
+    from money4band.core.paths import install_dir
+
+    os.chdir(str(install_dir()))
+
     global _exposed
     _exposed = host not in ("127.0.0.1", "::1", "localhost")
 

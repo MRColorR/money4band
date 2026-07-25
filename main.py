@@ -161,13 +161,9 @@ def _ensure_user_config(args: argparse.Namespace, user_config_path: str) -> None
             ensure_nickname(cfg)
             dumper.write_json(cfg, user_config_path)
         except Exception:  # noqa: BLE001
-            pass  # best-effort - setup wizard will fix it
-    # The template ships an EMPTY resource_limits map, and the compose
-    # file references ${APP_CPU_LIMIT_*}/${APP_MEM_*} unconditionally.
-    # Without this backfill a CLI-only user (wizard -> stack start, never
-    # opening the interactive menu that used to compute them) generated a
-    # .env with no limit vars and docker compose failed to interpolate
-    # ("strconv.ParseFloat: parsing \"\"") on every start.
+            pass  # best-effort. setup wizard will fix it
+    # Backfill resource limits when unset. The compose file references
+    # ${APP_CPU_LIMIT_*}/${APP_MEM_*}, which need concrete values in .env.
     try:
         cfg = loader.load_json_config(user_config_path)
         if not cfg.get("resource_limits"):
@@ -589,17 +585,21 @@ def _cmd_status(args: argparse.Namespace) -> None:
     cmd = ["docker", "compose"]
     if project_name:
         cmd.extend(["-p", project_name])
-    if project_name and not os.path.isfile(env_file):
-        # .env was securely wiped after a successful start; loading the
-        # compose file without it fails ${APP_*} interpolation. `ps` by
-        # project name alone lists every container of the project.
-        pass
-    else:
+    if os.path.isfile(env_file):
+        # .env present: load the full compose model so profiled infra
+        # services are visible too.
         for cf in compose_files:
             cmd.extend(["-f", cf])
-        # Show ALL services (including profiled infrastructure) for visibility.
         for profile in ("monitoring", "proxy"):
             cmd.extend(["--profile", profile])
+    elif not project_name:
+        # No .env and no project name: nothing to scope `ps` to, and the
+        # model would fail ${APP_*} interpolation. Best-effort plain `ps`.
+        logger.warning(
+            "No .env and no project name found; stack status may be incomplete."
+        )
+    # else: .env wiped but project name known. `ps -p <name>` lists the
+    # project's containers by label, no model needed.
     cmd.extend(["ps", "--format", "table"])
 
     just_fix_windows_console()

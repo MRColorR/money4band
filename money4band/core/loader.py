@@ -119,10 +119,7 @@ def load_app_config_with_overlays(
         is_legacy_monolithic,
     )
 
-    # One-shot migrations. Load the payload once and only re-read after a
-    # migration actually rewrote the file - migrate_catalog_file used to
-    # fully parse m4b-config.json a second time on EVERY load just to
-    # conclude "already migrated".
+    # Parse once; re-read only when a migration rewrote the file.
     payload = load_json_config(config_path)
     if is_legacy_monolithic(payload) and not is_envelope(payload):
         migrate_catalog_file(config_path)
@@ -186,11 +183,8 @@ def resolve_catalog_config(
         )
     if isinstance(app_config_path_or_dict, dict):
         if not get_all_app_categories(app_config_path_or_dict):
-            # An aggregated catalog always carries its category keys, even
-            # with empty entries. No categories means either a raw folded
-            # m4b-config or a degraded aggregation - both would silently
-            # yield an app-less compose/.env, which is exactly what this
-            # function exists to prevent. Fail loudly instead.
+            # No categories means an unaggregated config. Fail loudly
+            # rather than generate an app-less stack.
             raise ValueError(
                 "App catalog has no categories - it looks like a raw folded "
                 "m4b-config or a failed aggregation. Build it with "

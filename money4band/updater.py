@@ -23,8 +23,10 @@ from money4band.network.http_client import get_client
 
 logger = logging.getLogger(__name__)
 
-script_dir = os.path.dirname(os.path.abspath(__file__))
-parent_dir = os.path.dirname(script_dir)
+# Runtime paths anchor at the install root (executable dir when frozen).
+from money4band.core.paths import install_dir
+
+parent_dir = str(install_dir())
 
 # ---------------------------------------------------------------------------
 # Update cache - avoids hitting GitHub API more than once per 15 minutes

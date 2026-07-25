@@ -154,7 +154,7 @@ def edit_config(user_config_path: str) -> None:
 
         write_json(edited, user_config_path)
 
-        # Ensure encrypted (in case the file was previously unencrypted)
+        # Re-encrypt in case the edited file was plaintext.
         ensure_config_encrypted(user_config_path)
 
         print(f"{Fore.GREEN}Config updated and encrypted.{Style.RESET_ALL}")
@@ -164,10 +164,7 @@ def edit_config(user_config_path: str) -> None:
             f"Config unchanged.{Style.RESET_ALL}"
         )
     finally:
-        # Securely remove temp file (overwrite before delete)
-        try:
-            with open(tmp_path, "w") as f:
-                f.write("\0" * 4096)
-            os.unlink(tmp_path)
-        except OSError:
-            pass
+        # Securely remove the decrypted plaintext temp file before unlinking.
+        from money4band.docker.env_builder import secure_delete_env
+
+        secure_delete_env(tmp_path)

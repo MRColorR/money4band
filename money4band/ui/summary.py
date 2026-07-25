@@ -11,11 +11,7 @@ from typing import Any
 from colorama import Fore, Style
 
 logger = logging.getLogger(__name__)
-# Frozen builds must anchor at the executable's directory (matching the
-# --log-dir default): a __file__-relative root would resolve inside the
-# PyInstaller extraction dir, which the bootloader deletes on exit - the
-# summary would silently evaporate. In dev the project root is two
-# levels above this file: money4band/ui/summary.py -> money4band/ -> root.
+# Frozen: the executable dir. Source: the repo root.
 _PROJECT_ROOT = (
     os.path.dirname(sys.executable)
     if getattr(sys, "frozen", False)
