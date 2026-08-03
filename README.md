@@ -62,11 +62,28 @@ Our maintainers and community **research** every app, **verify** its background,
 2. Download the single-file binary for your OS and architecture
    (e.g. `Money4Band-windows-amd64.exe`, `Money4Band-linux-arm64`)
 3. Run it:
-   - **Windows:** double-click `Money4Band-windows-amd64.exe` (or run it from a terminal)
-   - **Linux / macOS:** `chmod +x Money4Band-<os>-<arch> && ./Money4Band-<os>-<arch>`
 
-On first run the binary creates its `config/` and `template/` folders next
-to itself, so place it in a dedicated directory.
+**Windows:** double-click the `.exe`, or run it from PowerShell to pass CLI
+subcommands. Unsigned build, so SmartScreen asks: **More info > Run anyway**.
+
+```powershell
+.\Money4Band-windows-amd64.exe
+```
+
+```bash
+# Linux. Downloads arrive without the executable bit
+chmod +x Money4Band-linux-arm64 && ./Money4Band-linux-arm64
+```
+
+```bash
+# macOS. Unsigned build, clear the Gatekeeper quarantine flag first
+xattr -d com.apple.quarantine Money4Band-macos-arm64
+chmod +x Money4Band-macos-arm64 && ./Money4Band-macos-arm64
+```
+
+First run creates `config/` and `template/` next to the executable, so put it in
+a dedicated directory. Docker group setup, `noexec` mounts and checksum
+verification are covered in the [Getting Started guide](docs/getting-started.md).
 
 ### Option B: From source
 
@@ -113,7 +130,7 @@ uv sync && uv run python main.py
 
 **35 apps** tracked across the ecosystem. [Full details, earnings estimates, and registration links here.](docs/APPS.md)
 
-> **Type legend:** [ok] core (out-of-box) - [com] community (opt-in via `m4b catalog sources enable community`) - [new] newcomer (no Docker image yet - opt-in via `m4b catalog add openpassivehub`) - [x] deprecated.
+> **Type legend:** [ok] core (out-of-box) - [com] community (opt-in via `m4b catalog enable community`) - [new] newcomer (no Docker image yet, listed for visibility) - [x] deprecated.
 >
 > App links below include referral codes that support the project at no cost to you.
 
@@ -175,8 +192,7 @@ uv sync && uv run python main.py
 
 | | |
 |---|---|
-| [Getting Started](docs/getting-started.md) | [Architecture](docs/ARCHITECTURE.md) |
-| [CLI Reference](docs/cli-reference.md) | [Package Structure](docs/package-structure.md) |
+| [Getting Started](docs/getting-started.md) | [CLI Reference](docs/cli-reference.md) |
 | [Dashboard & API](docs/dashboard-api.md) | [Proxy & Multi-Proxy](docs/proxy-setup.md) |
 | [App Management](docs/app-management.md) | [Configuration](docs/configuration.md) |
 | [Security](docs/security.md) | [Notifications](docs/notifications.md) |

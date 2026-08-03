@@ -209,9 +209,7 @@ def regenerate_uuids_for_apps(
 
             # Check if the app has a UUID flag and is enabled
             if app_user_config.get("enabled") and "uuid" in app.get("flags", {}):
-                uuid_length = app["flags"]["uuid"].get(
-                    "length", 32
-                )  # Default to 32 if not specified
+                uuid_length = app["flags"]["uuid"].get("length", 32)
                 prefix = app["flags"]["uuid"].get("prefix", "")
                 postfix = app["flags"]["uuid"].get("postfix", "")
 

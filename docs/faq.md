@@ -24,6 +24,44 @@ No. M4B runs lightweight Docker containers. A Raspberry Pi 4 or old laptop is su
 
 ## Setup Issues
 
+### The release asset won't extract
+
+Release assets are single-file PyInstaller executables, not archives. Archive
+tools report an unknown format. Run the file directly:
+
+```bash
+chmod +x Money4Band-linux-arm64 && ./Money4Band-linux-arm64
+```
+
+For the source, use **Code > Download ZIP** and follow
+[Getting Started](getting-started.md), Option B.
+
+### "Permission denied" when running the binary
+
+Downloads do not carry the executable bit. Set it once:
+
+```bash
+chmod +x Money4Band-<os>-<arch>
+./Money4Band-<os>-<arch>
+```
+
+Still failing? The filesystem is probably mounted `noexec`, which is common on
+`/tmp`, USB sticks and NAS mounts. Move the binary under `$HOME` and retry.
+
+### macOS: "cannot be opened because the developer cannot be verified"
+
+The binaries are unsigned. Clear the quarantine attribute:
+
+```bash
+xattr -d com.apple.quarantine Money4Band-macos-arm64
+chmod +x Money4Band-macos-arm64 && ./Money4Band-macos-arm64
+```
+
+### "cannot execute binary file: Exec format error"
+
+Wrong architecture. Check yours with `uname -m` and download the matching asset:
+`x86_64` -> `amd64`, `aarch64`/`arm64` -> `arm64`, `armv7l` -> `armv7`.
+
 ### Docker is not installed
 
 Run `m4b setup` - it offers to install Docker automatically. On Windows, you need WSL2 + Docker Desktop.

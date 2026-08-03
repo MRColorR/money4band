@@ -1,6 +1,10 @@
 # CLI Reference
 
 > All 23 subcommands available via `m4b <command>` (or `python main.py <command>`).
+>
+> Running a release binary? `m4b` is not its filename. Either call
+> `./Money4Band-<os>-<arch> <command>` or set up the shorthand as described in
+> [Getting Started](getting-started.md#getting-the-m4b-command).
 
 ---
 

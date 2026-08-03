@@ -191,7 +191,8 @@ def update_multiproxy_instances(
     print(
         f"{Fore.GREEN}Found {len(instances)} instances in '{instances_dir}'.{Style.RESET_ALL}"
     )
-    # Check if there are enough proxies for all the instances or they will be updated with new proxies ony the ones for wich there are enough proxies, the others will still use the already assigned proxies. then tell user
+    # Fewer proxies than instances is not fatal: the surplus instances keep
+    # their currently assigned proxy instead of being reassigned.
     if len(proxies) < len(instances):
         logger.warning(
             f"Not enough proxies for all instances. {len(instances)} instances found, {len(proxies)} proxies available."

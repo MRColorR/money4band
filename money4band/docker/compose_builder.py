@@ -269,8 +269,6 @@ def assemble_docker_compose(
                                         if "${" in str(port_mapping) and "}" in str(
                                             port_mapping
                                         ):
-                                            # Check if this app is enabled (we already know it is at this point)
-                                            # and if it has the port defined in user_config
                                             if user_app_config.get("ports"):
                                                 proxy_ports.append(port_mapping)
                                                 logger.info(
@@ -439,8 +437,9 @@ def assemble_docker_compose(
             services["proxy"] = proxy_service
             service_profiles["proxy"] = RESERVED_PROXY_PROFILE
 
-        # Define network configuration using config json and environment variables
+        # Values come from config json, names stay as .env variables.
         # This is a hybrid solution to remember that it could be possible to ditch the env file and generate all compose file parts from config json
+        # TODO: emit the names from config json too and drop the .env layer.
         network_config = {
             "networks": {
                 "default": {

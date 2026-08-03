@@ -4,10 +4,9 @@
 > repos (money4band core + community-catalog + openpassivehub-catalog).
 
 **Type legend:** [ok] core (ships out-of-box) - [com] community (opt-in via
-`m4b catalog sources enable community`) - [new] newcomer (no Docker
-image yet - opt-in via `m4b catalog add openpassivehub`) - [x]
-deprecated. See [App Management](app-management.md) for the full opt-in
-workflow.
+`m4b catalog enable community`) - [new] newcomer (no Docker image yet,
+listed for visibility) - [x] deprecated. See
+[App Management](app-management.md) for the full opt-in workflow.
 
 Each row links to the app's signup page (including a referral code
 that supports this project at no extra cost to you).

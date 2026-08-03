@@ -131,26 +131,13 @@ m4b dashboard regenerate-key
 |--------|----------|-------------|
 | `GET` | `/api/config/dashboard` | Dashboard auto-start status, port, and running state |
 | `PUT` | `/api/config/dashboard` | Update dashboard auto-start (`enabled`) and/or `port` |
-| `GET` | `/api/config/...` | Other configuration endpoints |
-| `GET` | `/api/apps/...` | App catalog & details |
-| `GET` | `/api/system/...` | System information |
 
-### Other
+### Everything else
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/api/monitor/...` | Monitoring data |
-| `GET` | `/api/backups/...` | Backup management |
-| `GET` | `/api/profiles/...` | Config profiles |
-| `GET` | `/api/earnings/...` | Earnings estimates |
-| `GET` | `/api/ip/...` | IP quality data |
-| `GET` | `/api/notifications/...` | Notification status |
-| `GET` | `/api/update/...` | Update info |
-| `GET` | `/api/security/...` | Security checks |
-
-### Interactive API Docs
-
-OpenAPI documentation is available at:
+The remaining routers cover apps, catalog, config, system, monitor, backups,
+profiles, earnings, IP, notifications, update and security. They are generated
+from the code, so read them at the OpenAPI page rather than from a table that
+can drift:
 
 ```
 http://localhost:8088/api/docs

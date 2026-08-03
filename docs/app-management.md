@@ -39,6 +39,33 @@ Interactively, the **App Catalog** screen also exposes a `m` shortcut to
 **manage category status** - toggle `newcomers` / `deprecated` on or off
 so they appear during `m4b setup`.
 
+### Catalog sources
+
+`community` ships preconfigured and disabled. Turn it on:
+
+```bash
+m4b catalog list                 # configured sources and their state
+m4b catalog enable community
+m4b catalog refresh community    # pull the latest manifest
+```
+
+Any catalog that follows the v2.0 per-file layout works as a source,
+including one you or a third party host. Register it by URL:
+
+```bash
+m4b catalog add mysource --type remote \
+    --url https://example.com/manifest.json
+
+m4b catalog add local-test --type local --path ../my-catalog
+```
+
+Entries from an added source are tagged with its `--default-source`
+provenance and appear in `m4b apps` once the source is enabled. Flag
+reference: [CLI -> Catalog](cli-reference.md#catalog).
+
+> Third-party sources are unreviewed. You are trusting whoever publishes
+> the manifest with the container images M4B will run.
+
 ## On-Disk Layout (v2.0)
 
 The catalog is **per-file**: one JSON bundle per app. The envelope is
@@ -261,8 +288,7 @@ is enabled AND the user opted in.
 > **not shipped in the core Money4Band catalog** because they bypass the
 > daily reward flow the host service expects. They live in the opt-in
 > [community catalog](https://github.com/MRColorR/money4band-community-catalog)
-> alongside EarnApp. Enable that source from `m4b catalog add` if you
-> want them.
+> alongside EarnApp. Run `m4b catalog enable community` if you want them.
 
 ### Addon bundle shape
 
