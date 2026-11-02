@@ -170,7 +170,7 @@ Your contributions are vital in helping to sustain the development of open-sourc
 
 Support ongoing development, testing and documentation through [Ko-fi](https://ko-fi.com/mrcolorrain). One-time contributions and monthly memberships are welcome, and you can pledge above a tier's minimum.
 
-Support is optional. Contributions do not guarantee feature delivery, priority support, provider recommendations or exclusivity. Technical decisions remain independent.
+Your contribution helps me keep building, testing and sharing useful work. Explore the membership benefits on Ko-fi and choose the way you would like to support. Technical decisions remain independent.
 
 Your support, no matter how small, is enormously appreciated and directly fuels ongoing and future developments. Thank you for your generosity! 🙏
 
@@ -189,4 +189,3 @@ The author shall not be held liable for any damages suffered by any user of this
 ## :hash: License
 
 [GPL 3.0](https://www.gnu.org/licenses/gpl-3.0.html)
-
