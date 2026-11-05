@@ -82,7 +82,7 @@ pydantic==2.12.5
     # via fastapi
 pydantic-core==2.41.5
     # via pydantic
-pygments==2.19.2
+pygments==2.21.0
     # via pytest
 pyinstaller==6.19.0
 pyinstaller-hooks-contrib==2026.4
