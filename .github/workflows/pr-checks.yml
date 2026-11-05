@@ -19,6 +19,8 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: "3.13"
+      - name: Check dependency exports
+        run: python scripts/sync_requirements.py --check
       - run: uv run --locked ruff check .
       - run: uv run --locked ruff format --check .
 
