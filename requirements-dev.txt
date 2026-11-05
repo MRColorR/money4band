@@ -85,7 +85,7 @@ pydantic-core==2.41.5
 pygments==2.19.2
     # via pytest
 pyinstaller==6.19.0
-pyinstaller-hooks-contrib==2026.4
+pyinstaller-hooks-contrib==2026.9
     # via pyinstaller
 pytest==9.0.2
     # via
