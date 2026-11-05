@@ -1,0 +1,87 @@
+name: PR Checks
+
+on:
+  pull_request:
+    branches: [main, "release/v5", "phase-*"]
+  push:
+    branches: [main, "release/v5"]
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Lint (ruff)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v9
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+      - run: uv tool run ruff check .
+      - run: uv tool run ruff format --check .
+
+  tables:
+    name: App tables up-to-date
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v9
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+      - run: uv sync --frozen
+      - run: uv run --locked python scripts/update_tables.py --core-only --check
+
+  secrets:
+    name: Credential scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+      - run: python scripts/check-secrets.py
+
+  test:
+    name: Test (pytest)
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python-version: ["3.10", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v9
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: uv sync --frozen --group dev
+      - name: Run tests
+        run: uv run python -m pytest --tb=short -q
+
+  typecheck:
+    name: Type-check (mypy)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v9
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+      - run: uv sync --frozen --group dev
+      - run: uv pip install mypy types-requests types-PyYAML
+      - run: uv run mypy --ignore-missing-imports money4band/ main.py
+
+  security:
+    name: Security scan (bandit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v9
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+      - run: uv tool run bandit -r money4band/ main.py -c pyproject.toml --severity-level medium

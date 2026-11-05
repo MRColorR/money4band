@@ -1,14 +1,18 @@
 import os
 import unittest
 
-from utils.loader import load_json_config
+from money4band.core.loader import load_app_config_with_overlays
 
 
 class TestAppConfigCommands(unittest.TestCase):
     def test_sensitive_commands_are_exec_form_lists(self):
-        app_config_path = os.path.join("config", "app-config.json")
-        app_config = load_json_config(app_config_path)
-        apps_by_name = {app["name"]: app for app in app_config.get("apps", [])}
+        app_config_path = os.path.join("config", "m4b-config.json")
+        app_config = load_app_config_with_overlays(app_config_path)
+        from money4band.core.loader import get_category_entries
+
+        apps_by_name = {
+            app["name"]: app for app in get_category_entries(app_config, "supported")
+        }
 
         honeygain_cmd = apps_by_name["HONEYGAIN"]["compose_config"].get("command")
         iproyal_cmd = apps_by_name["IPROYALPAWNS"]["compose_config"].get("command")

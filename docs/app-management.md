@@ -1,0 +1,454 @@
+# App Management
+
+> Enable, disable, and extend the apps that earn for you.
+
+---
+
+## App Catalog
+
+The built-in catalog includes 13 supported apps and two removed entries.
+
+| Category | Count | Description |
+|----------|-------|-------------|
+| **Supported** | 13 | Included in default setup |
+| **Newcomers** *(candidate)* | 0 | Empty by default - populated by opt-in remote sources |
+| **Deprecated** | 2 | BearShare and PacketShare are excluded from default setup |
+
+> The internal category key for *Candidate* apps is `newcomers`; the CLI
+> surface accepts `candidate` (user-facing) while the on-disk layout and
+> API use `newcomers`.
+
+### Opt-in additions via remote catalog sources
+
+20 entries previously bundled in v4 were moved to dedicated catalog
+repositories in v5 so M4B core stays small and audit-clean.
+
+View the catalog:
+
+```bash
+m4b apps                         # full catalog grouped by category
+m4b apps --category supported    # only supported
+m4b apps --category candidate    # only newcomers (candidates)
+m4b apps --category deprecated   # only deprecated (with removal notes)
+m4b apps honeygain               # detailed info card for one app
+```
+
+Interactively, the **App Catalog** screen also exposes a `m` shortcut to
+**manage category status** - toggle `newcomers` / `deprecated` on or off
+so they appear during `m4b setup`.
+
+### Removed apps
+
+- BearShare's old signup domain does not resolve. The domain listed by its
+  Docker publisher serves a registrar verification page. Its amd64 image
+  still opens its CLI help.
+- PacketShare's published tags lack a Linux amd64 image. Its 386 and arm64
+  images reach the client prompt, but the publisher's registration and
+  dashboard URLs failed the availability check.
+
+These checks establish why both apps are excluded from default setup.
+Their providers' shutdown status is unconfirmed.
+
+After upgrading an existing deployment, stop the previous stack, run
+`m4b generate`, and start it again. Recreate saved multi-proxy instances
+from the updated catalog to refresh their generated Compose files.
+
+### Standalone apps
+
+EarnApp belongs in the [standalone apps list](APPS.md#standalone-apps).
+EarnApp prohibits Docker and proxy use. If an older copy of the community
+catalog still shows EarnApp, disable that entry, stop any stack running it,
+and regenerate the Compose files before restarting the stack.
+[Docker policy](https://help.earnapp.com/hc/en-us/articles/10199416541969--Can-I-install-EarnApp-on-Hosting-Services-Virtual-Machines-or-Dockers)
+[Proxy policy](https://help.earnapp.com/hc/en-us/articles/10199339150609--Can-I-use-Proxies-or-VPNs-with-EarnApp)
+
+### Provider onboarding
+
+AntGain needs the API key from Account Settings. The Docker client generates
+its own device ID and persists it in its data directory. Keep
+`.data/.antgain` when recreating the service.
+[AntGain Docker instructions](https://hub.docker.com/r/pinors/antgain-cli)
+
+URnetwork requires a one-time Docker authorization for each provider state
+directory. From the stack directory, create `.data/.urnetwork` if needed and
+run the following command before starting the stack. Run it from each instance
+directory for separate multi-proxy devices.
+
+```sh
+docker run --rm -it -v "./.data/.urnetwork:/root/.urnetwork" bringyour/community-provider:g4-latest auth
+```
+
+The provider reads the authorization from that mount on later starts.
+For binary installations upgraded in place from 5.0.0, update
+`config/catalog/supported/URNETWORK.json` with the bundle from the new
+release's source ZIP before regenerating.
+[URnetwork container instructions](https://hub.docker.com/r/bringyour/community-provider)
+
+### Catalog sources
+
+`community` ships preconfigured and disabled. Turn it on:
+
+```bash
+m4b catalog list                 # configured sources and their state
+m4b catalog enable community
+m4b catalog refresh community    # pull the latest manifest
+```
+
+Any catalog that follows the v2.0 per-file layout works as a source,
+including one you or a third party host. Register it by URL:
+
+```bash
+m4b catalog add mysource --type remote \
+    --url https://example.com/manifest.json
+
+m4b catalog add local-test --type local --path ../my-catalog
+```
+
+Entries from an added source are tagged with its `--default-source`
+provenance and appear in `m4b apps` once the source is enabled. Flag
+reference: [CLI -> Catalog](cli-reference.md#catalog).
+
+> Third-party sources are unreviewed. You are trusting whoever publishes
+> the manifest with the container images M4B will run.
+
+## On-Disk Layout (v2.0)
+
+The catalog is **per-file**: one JSON bundle per app. The envelope is
+**folded into `m4b-config.json`** under the `catalog` key - no standalone
+catalog-envelope file ships.
+
+```
+config/
+|-- m4b-config.json              <- project config + catalog envelope (under "catalog")
+|-- catalog/
+|   |-- supported/
+|   |   |-- HONEYGAIN.json       <- one CatalogEntry per file
+|   |   |-- TRAFFMONETIZER.json
+|   |   +-- ...
+|   |-- newcomers/
+|   |-- deprecated/
+|   +-- addons/                  <- sidecars with parent_id
+|-- apps.d/
+|   +-- <MYAPP>.json             <- hand-written community overlay (merged into newcomers)
++-- user-config.json             <- your settings (encrypted at rest)
+```
+
+The envelope is tiny (lives under `m4b-config.json -> catalog`):
+
+```jsonc
+// m4b-config.json (excerpt)
+"catalog": {
+  "app_config_version": 2.0,
+  "catalog_sources": [
+    {
+      "type": "local",
+      "path": "catalog",
+      "default_source": "builtin",
+      "enabled": true
+    }
+  ],
+  "categories": {
+    "supported":  {"active": true},
+    "newcomers":  {"active": false},
+    "deprecated": {"active": false}
+  }
+}
+```
+
+At load time the loader walks every declared `catalog_sources[]` entry,
+reads the per-file bundles, and aggregates them back into the in-memory
+shape used by the rest of the codebase. Adding, moving or removing an
+app is a single-file change - no more merge conflicts on a 3600-line
+monolith.
+
+### Migration
+
+If you open an older checkout, the loader auto-migrates on first run:
+
+* The legacy monolithic catalog file is split into
+  `config/catalog/<category>/<NAME>.json` per-file bundles.
+* The resulting envelope is folded under `m4b-config.json -> catalog`.
+* The legacy catalog file is renamed with a `.v1.bak` suffix.
+
+You can also trigger migration explicitly:
+
+```bash
+python scripts/migrate_catalog_v1_to_v2.py        # defaults to config/m4b-config.json
+python scripts/migrate_catalog_v1_to_v2.py -v     # verbose
+```
+
+The migration is idempotent: running it again on an already-folded
+config is a no-op.
+
+## Catalog Sources
+
+Each entry in `catalog_sources[]` is handled by a concrete source class
+in [`money4band/apps/sources.py`](../money4band/apps/sources.py). Two
+source types ship today:
+
+| Type | Implementation | Status |
+|------|----------------|--------|
+| `local` | `LocalSource` - reads per-file bundles under `path` (relative to the envelope file's parent). | Active |
+| `remote` | `RemoteSource` - HTTPS fetch of an aggregated manifest, cached per-file on disk. | Active |
+
+Sources are processed **in order**. The first source to claim a given
+entry name (case-insensitive) wins - local/builtin bundles remain
+authoritative over any remote fetch. Source failures are isolated: a
+broken source is logged and skipped, never crashes the loader.
+
+### Remote source behaviour
+
+`RemoteSource` fetches a single aggregated `manifest.json` from the
+configured `url` and rehydrates it into the local filesystem cache so
+the on-disk layout mirrors a built-in catalog exactly:
+
+```
+<cache_path>/
+|-- .etag           # last server ETag (used for If-None-Match)
+|-- .fetched_at     # ISO-8601 UTC timestamp of last successful call
+|-- supported/<NAME>.json
+|-- newcomers/<NAME>.json
++-- deprecated/<NAME>.json
+```
+
+- **Opt-in** - no remote source ships enabled by default. Users add an
+  entry to `m4b-config.json -> catalog.catalog_sources`.
+- **Timeout** - defaults to `5.0` seconds; override via `timeout`.
+- **ETag / 304** - the cached ETag is sent as `If-None-Match`; on 304
+  the existing cache is reused untouched.
+- **Offline fallback** - on network error, timeout, non-200 status, or
+  invalid JSON, the cache is read as-is; no exception reaches the
+  loader.
+- **Atomic replace** - a successful 200 wipes the `supported/`,
+  `newcomers/`, and `deprecated/` subdirs and writes fresh bundles
+  (`.etag` and `.fetched_at` are preserved across refreshes).
+
+Accepted manifest shapes (the server may emit any of these):
+
+```jsonc
+// 1. Category envelope
+{ "supported": { "entries": [ {"name": "FOO", ...} ] }, "newcomers": {"entries": []} }
+
+// 2. Bare category lists
+{ "supported": [ {"name": "FOO", ...} ], "deprecated": [] }
+
+// 3. Flat list with per-entry category
+{ "entries": [ {"name": "FOO", "category": "supported", ...} ] }
+```
+
+Example envelope with a second (disabled by default) remote source:
+
+```jsonc
+{
+  "app_config_version": 2.0,
+  "catalog_sources": [
+    { "type": "local",  "path": "catalog", "default_source": "builtin", "enabled": true },
+    { "type": "remote",
+      "url":  "https://raw.githubusercontent.com/MRColorR/money4band-community-catalog/main/manifest.json",
+      "default_source": "community",
+      "cache_path": "catalog/community",
+      "enabled": false,
+      "timeout": 5.0 }
+  ],
+  "categories": { "supported": {"active": true}, "newcomers": {"active": false}, "deprecated": {"active": false} }
+}
+```
+
+## App Bundle Schema
+
+Every bundle - whether shipped under `config/catalog/`, dropped into
+`config/apps.d/`, or fetched from a remote catalog - follows the same
+schema. The required fields are validated by
+[`money4band/apps/schema.py::validate_app_entry()`](../money4band/apps/schema.py).
+
+### Required fields
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `name` | string | `^[A-Z][A-Z0-9_]+$` - uppercase, matches the filename stem |
+| `compose_config` | object | Full Docker-Compose service definition (must include `image`) |
+| `flags` | object | Credential keys prompted during setup (`email`, `password`, `apikey`, `uuid`, `userid`, `token`, `cid`, ...) |
+| `install_limit` | integer | Max instances per-machine / per-proxy (`-1` = unlimited) |
+| `profile` | string | One of `residential`, `datacenter`, `universal`, `service`. Becomes the entry of the generated compose service's `profiles:` array. Sidecars (entries with `parent_id`) inherit their parent's profile and may omit this field. |
+
+### Optional fields
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `dashboard` | string | URL of the app's web dashboard (rendered by `m4b links`) |
+| `referrals` | array | `[{url, contributor, added?, verified?, verified_by?[]}]` - referral pool (never a bare `link` string) |
+| `additional_details` | string | Optional Markdown note - explains removal reason, ToS caveats, etc. |
+| `app_details` | object | Rich metadata (publisher, IP policy, device limits, earnings, Docker status, `last_verified`). Used by `m4b apps <name>` and the dashboard |
+| `user_config_template` | object | Default user-config slice (`{enabled: false, <cred_key>: "", service_enabled?: false}`) merged into `user-config.json -> apps.<name_lower>` on reset / first enable |
+
+> **Bundle completeness:** every bundle that declares credential `flags`
+> MUST carry a matching `user_config_template`. The template is a
+> non-destructive merge - existing user values are never overwritten.
+
+### Minimal example
+
+```jsonc
+{
+  "name": "MYAPP",
+  "dashboard": "https://dashboard.myapp.example/",
+  "compose_config": {
+    "container_name": "${DEVICE_NAME}_myapp",
+    "hostname": "${DEVICE_NAME}_myapp",
+    "image": "myapp/myapp:latest",
+    "environment": ["MYAPP_TOKEN=${MYAPP_TOKEN}"],
+    "restart": "always"
+  },
+  "flags": { "token": {} },
+  "install_limit": 1,
+  "profile": "universal",
+  "referrals": [
+    { "url": "https://myapp.example/ref/XYZ", "contributor": "MRColorR" }
+  ],
+  "user_config_template": {
+    "enabled": false,
+    "token": "yourMYAPPToken"
+  }
+}
+```
+
+## Enabling / Disabling Apps
+
+During `m4b setup`, you choose which apps to enable. To modify later:
+
+1. Run `m4b setup` again - existing credentials are preserved (the wizard
+   only prompts for newly enabled apps).
+2. Or edit `config/user-config.json` directly (flip `apps.<name>.enabled`)
+   and run `m4b generate` to regenerate the compose files.
+3. Or use the REST API / web dashboard (`PUT /api/apps/<name>`).
+
+## Auto-Claim Sidecars (Addons)
+
+Some apps can be paired with an optional **sidecar container** that
+automatically claims daily rewards. Sidecars ship as standalone **addon
+bundles** under `config/catalog/addons/<NAME>.json`, each referencing a
+parent app via `parent_id`. The loader merges them in when the parent
+is enabled AND the user opted in.
+
+> **ToS note:** auto-claim sidecars for Honeygain and PacketShare are
+> **not shipped in the core Money4Band catalog** because they bypass the
+> daily reward flow the host service expects. They live in the opt-in
+> [community catalog](https://github.com/MRColorR/money4band-community-catalog)
+> and require enabling that catalog.
+
+### Addon bundle shape
+
+```jsonc
+{
+  "name": "MYAPP_POT",
+  "parent_id": "MYAPP",
+  "description": "Auto-claims daily reward",
+  "credentials_shared": true,
+  "compose_config": {
+    "container_name": "${DEVICE_NAME}_myapp-pot",
+    "image": "ghcr.io/contrib/myapp-pot:latest",
+    "environment": ["EMAIL=${MYAPP_EMAIL}", "PASSWORD=${MYAPP_PASSWORD}"],
+    "restart": "always"
+  }
+}
+```
+
+**Enablement is opt-in.** During `m4b setup`, after you enter credentials
+for a parent app that has a matching addon, the wizard asks:
+
+```
+MyApp has an auto-claim sidecar: MYAPP_POT
+  Auto-claims daily reward  (currently OFF)
+Enable MYAPP_POT for MyApp? (y/n)
+```
+
+Your choice is stored as `apps.<name_lower>.service_enabled` in
+`user-config.json`. Toggle it later by re-running `m4b setup`, editing
+the JSON directly (then `m4b generate`), or via the web dashboard.
+
+> **Profile inheritance.** Sidecars do NOT declare their own `profile`
+> field. At generation time the sidecar service inherits its parent's
+> profile, so `docker compose --profile residential up` brings up
+> Honeygain AND its `honeygain-pot` together - no orphan-pot edge cases.
+
+## Community App Plugins
+
+You can add apps that aren't in the shipped catalog via the **App
+Wizard**:
+
+```bash
+m4b app add
+```
+
+The wizard prompts for:
+
+1. **Name** - uppercase identifier (`^[A-Z][A-Z0-9_]+$`)
+2. **Docker image** - e.g. `publisher/app:latest`
+3. **Authentication type** - email, token, UUID, user ID, API key, or manual
+4. **Profile** - `residential` / `datacenter` / `universal` / `service` (becomes the service's Docker Compose `profiles:` entry, drives selective startup)
+5. **Install limit** - max instances per machine (`-1` = unlimited)
+6. **Sidecar?** - optional auto-claim container
+7. **Health check?** - optional `healthcheck` block
+
+The generated bundle is written to `config/apps.d/<NAME>.json`, validated
+against the schema, and merged into the `newcomers` category on next
+load.
+
+### Validating Plugins
+
+After hand-editing a file under `config/apps.d/`, validate it:
+
+```bash
+m4b app validate
+```
+
+Invalid files are logged with the exact schema error and skipped at load
+time - they never crash the loader.
+
+## Referral Links
+
+App referral links live in each bundle's `referrals[]` pool (single
+source of truth). When multiple referral URLs exist for an app, M4B
+applies a **sticky per-user pick** (stored under
+`user-config.json -> settings.picked_referrals`) so the same URL is
+offered across runs. Use `m4b links` to display them.
+
+## Docker Compose Profiles
+
+Apps are tagged with a Docker Compose profile derived from their IP-policy
+tier. Each app's bundle `profile` field becomes the single entry of the
+generated service's `profiles:` array.
+
+| Profile | Contents |
+|---------|----------|
+| `residential` | Apps requiring residential IPs |
+| `datacenter` | Apps tolerating datacenter IPs |
+| `universal` | Apps accepting any IP type |
+| `service` | Sidecar services (helper containers) |
+| `monitoring` *(reserved)* | Watchtower auto-update agent |
+| `proxy` *(reserved)* | tun2socks VPN tunnel container |
+
+`m4b stack start` auto-discovers the active profiles from enabled apps
+and assembles the right `--profile` flags. For surgical control, raw
+Docker Compose accepts the same flags directly:
+
+```bash
+docker compose --profile residential --profile monitoring --env-file .env up -d
+```
+
+See [Configuration -> Docker Compose Profiles](configuration.md#docker-compose-profiles)
+for the full profile reference and sidecar inheritance rules.
+
+## Promoting Candidates to Supported
+
+Maintainers move a newcomer into `supported` with:
+
+```bash
+python scripts/promote_apps.py <NAME>
+```
+
+The script reads `config/catalog/newcomers/<NAME>.json`, stamps
+`app_details.docker`, `recommendation`, `last_verified`, adds any
+`*_SIDECAR` services if applicable, and calls
+`catalog_store.move_entry()` to relocate the bundle to
+`config/catalog/supported/<NAME>.json`. The move is atomic and a single
+file change - no envelope edits required.

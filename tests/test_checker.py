@@ -1,0 +1,271 @@
+import unittest
+from unittest.mock import MagicMock, patch
+
+import httpx
+
+import money4band.network.http_client as http_client_mod
+from money4band.docker.checker import (
+    check_img_arch_support,
+    fetch_docker_tags,
+    get_compatible_tag,
+)
+from money4band.network.http_client import configure, get_client
+
+# Realistic Docker Hub API response fragments for testing
+DOCKERHUB_TAGS_RESPONSE = {
+    "results": [
+        {
+            "name": "latest",
+            "images": [
+                {"architecture": "amd64", "os": "linux"},
+                {"architecture": "arm64", "os": "linux"},
+            ],
+        },
+        {
+            "name": "lite",
+            "images": [
+                {"architecture": "amd64", "os": "linux"},
+            ],
+        },
+    ]
+}
+
+GHCR_TAGS_RESPONSE = {"tags": ["latest", "v1.0", "v2.0"]}
+
+
+class TestConfigure(unittest.TestCase):
+    def tearDown(self):
+        # Reset module globals after each test
+        configure(
+            {
+                "system": {
+                    "registry_request_timeout": 15,
+                    "registry_max_retries": 3,
+                }
+            }
+        )
+
+    def test_configure_overrides_defaults(self):
+        configure(
+            {
+                "system": {
+                    "registry_request_timeout": 30,
+                    "registry_max_retries": 5,
+                }
+            }
+        )
+        self.assertEqual(http_client_mod.REQUEST_TIMEOUT, 30)
+        self.assertEqual(http_client_mod.MAX_RETRIES, 5)
+
+    def test_configure_keeps_defaults_when_keys_missing(self):
+        configure({"system": {}})
+        self.assertEqual(http_client_mod.REQUEST_TIMEOUT, 15)
+        self.assertEqual(http_client_mod.MAX_RETRIES, 3)
+
+    def test_configure_handles_empty_config(self):
+        configure({})
+        self.assertEqual(http_client_mod.REQUEST_TIMEOUT, 15)
+        self.assertEqual(http_client_mod.MAX_RETRIES, 3)
+
+
+class TestGetClient(unittest.TestCase):
+    def test_client_is_httpx_client(self):
+        client = get_client()
+        self.assertIsInstance(client, httpx.Client)
+        client.close()
+
+    def test_client_respects_configured_timeout(self):
+        configure({"system": {"registry_request_timeout": 30}})
+        client = get_client()
+        self.assertEqual(client.timeout.read, 30)
+        client.close()
+        # Reset
+        configure({"system": {"registry_request_timeout": 15}})
+
+
+class TestFetchDockerTags(unittest.TestCase):
+    def setUp(self):
+        # fetch_docker_tags memoizes per image; tests reuse image names.
+        from money4band.docker.checker import _tags_cache
+
+        _tags_cache.clear()
+
+    @patch("money4band.docker.checker.get_client")
+    def test_dockerhub_success(self, mock_get_client):
+        mock_resp = MagicMock()
+        mock_resp.json.return_value = DOCKERHUB_TAGS_RESPONSE
+        mock_resp.raise_for_status.return_value = None
+        mock_client = MagicMock()
+        mock_client.get.return_value = mock_resp
+        mock_get_client.return_value = mock_client
+
+        result = fetch_docker_tags("honeygain/honeygain")
+
+        mock_client.get.assert_called_once()
+        call_url = mock_client.get.call_args[0][0]
+        self.assertIn("registry.hub.docker.com", call_url)
+        self.assertIn("honeygain/honeygain", call_url)
+        self.assertEqual(result, DOCKERHUB_TAGS_RESPONSE)
+
+    @patch("money4band.docker.checker.get_client")
+    def test_ghcr_success(self, mock_get_client):
+        mock_resp = MagicMock()
+        mock_resp.json.return_value = GHCR_TAGS_RESPONSE
+        mock_resp.raise_for_status.return_value = None
+        mock_client = MagicMock()
+        mock_client.get.return_value = mock_resp
+        mock_get_client.return_value = mock_client
+
+        result = fetch_docker_tags("ghcr.io/techroy23/docker-wipter")
+
+        call_url = mock_client.get.call_args[0][0]
+        self.assertIn("ghcr.io", call_url)
+        # GHCR response is normalized to Docker Hub-like structure
+        self.assertIn("results", result)
+        tag_names = [t["name"] for t in result["results"]]
+        self.assertEqual(tag_names, ["latest", "v1.0", "v2.0"])
+
+    @patch("money4band.docker.checker.get_client")
+    def test_connection_error_returns_none(self, mock_get_client):
+        """KI-003 core fix: network failure must return None, not crash."""
+        mock_client = MagicMock()
+        mock_client.get.side_effect = httpx.ConnectError("DNS resolution failed")
+        mock_get_client.return_value = mock_client
+
+        result = fetch_docker_tags("honeygain/honeygain")
+        self.assertIsNone(result)
+
+    @patch("money4band.docker.checker.get_client")
+    def test_timeout_returns_none(self, mock_get_client):
+        mock_client = MagicMock()
+        mock_client.get.side_effect = httpx.TimeoutException("Read timed out")
+        mock_get_client.return_value = mock_client
+
+        result = fetch_docker_tags("honeygain/honeygain")
+        self.assertIsNone(result)
+
+    @patch("money4band.docker.checker.get_client")
+    def test_http_error_returns_none(self, mock_get_client):
+        mock_client = MagicMock()
+        mock_resp = MagicMock()
+        mock_resp.raise_for_status.side_effect = httpx.HTTPStatusError(
+            "404 Not Found", request=MagicMock(), response=MagicMock()
+        )
+        mock_client.get.return_value = mock_resp
+        mock_get_client.return_value = mock_client
+
+        result = fetch_docker_tags("nonexistent/image")
+        self.assertIsNone(result)
+
+    @patch("money4band.docker.checker.get_client")
+    def test_timeout_kwarg_is_passed(self, mock_get_client):
+        """Verify client.get() is called with the configured timeout."""
+        mock_resp = MagicMock()
+        mock_resp.json.return_value = DOCKERHUB_TAGS_RESPONSE
+        mock_resp.raise_for_status.return_value = None
+        mock_client = MagicMock()
+        mock_client.get.return_value = mock_resp
+        mock_get_client.return_value = mock_client
+
+        fetch_docker_tags("owner/image")
+
+        _, kwargs = mock_client.get.call_args
+        self.assertIn("timeout", kwargs)
+        self.assertEqual(kwargs["timeout"], 15)
+
+
+class TestCheckImgArchSupport(unittest.TestCase):
+    @patch(
+        "money4band.docker.checker.fetch_docker_tags",
+        return_value=DOCKERHUB_TAGS_RESPONSE,
+    )
+    def test_arch_supported(self, _mock):
+        result = check_img_arch_support("honeygain/honeygain", "latest", "linux/amd64")
+        self.assertTrue(result)
+
+    @patch(
+        "money4band.docker.checker.fetch_docker_tags",
+        return_value=DOCKERHUB_TAGS_RESPONSE,
+    )
+    def test_arch_not_supported(self, _mock):
+        # "lite" tag only has amd64
+        result = check_img_arch_support("honeygain/honeygain", "lite", "linux/arm64")
+        self.assertFalse(result)
+
+    @patch(
+        "money4band.docker.checker.fetch_docker_tags",
+        return_value=DOCKERHUB_TAGS_RESPONSE,
+    )
+    def test_tag_not_found(self, _mock):
+        result = check_img_arch_support(
+            "honeygain/honeygain", "nonexistent", "linux/amd64"
+        )
+        self.assertFalse(result)
+
+    @patch("money4band.docker.checker.fetch_docker_tags", return_value=None)
+    def test_registry_unreachable_returns_none(self, _mock):
+        # KI-003: registry down must NOT return False (disables apps)
+        result = check_img_arch_support("honeygain/honeygain", "latest", "linux/amd64")
+        self.assertIsNone(result)
+
+    @patch("money4band.docker.checker.time.sleep")  # Don't actually sleep in tests
+    def test_ghcr_returns_none(self, _mock_sleep):
+        """GHCR images return None (can't check arch without PAT)."""
+        result = check_img_arch_support(
+            "ghcr.io/techroy23/docker-wipter", "latest", "linux/amd64"
+        )
+        self.assertIsNone(result)
+
+    @patch(
+        "money4band.docker.checker.fetch_docker_tags",
+        return_value=DOCKERHUB_TAGS_RESPONSE,
+    )
+    def test_multi_arch_tag(self, _mock):
+        """'latest' has both amd64 and arm64 - both should be detected."""
+        self.assertTrue(check_img_arch_support("img", "latest", "linux/amd64"))
+        self.assertTrue(check_img_arch_support("img", "latest", "linux/arm64"))
+
+    def test_arm_variant_not_interchangeable(self):
+        """arm/v7-only images must NOT be approved for an arm/v6 host."""
+        tags = {
+            "results": [
+                {
+                    "name": "latest",
+                    "images": [{"architecture": "arm", "variant": "v7"}],
+                }
+            ]
+        }
+        with patch("money4band.docker.checker.fetch_docker_tags", return_value=tags):
+            self.assertTrue(check_img_arch_support("img", "latest", "linux/arm/v7"))
+            self.assertFalse(check_img_arch_support("img", "latest", "linux/arm/v6"))
+
+
+class TestGetCompatibleTag(unittest.TestCase):
+    @patch(
+        "money4band.docker.checker.fetch_docker_tags",
+        return_value=DOCKERHUB_TAGS_RESPONSE,
+    )
+    def test_finds_compatible_tag(self, _mock):
+        # Both "latest" and "lite" support amd64
+        result = get_compatible_tag("honeygain/honeygain", "linux/amd64")
+        self.assertIn(result, ["latest", "lite"])
+
+    @patch(
+        "money4band.docker.checker.fetch_docker_tags",
+        return_value=DOCKERHUB_TAGS_RESPONSE,
+    )
+    @patch("money4band.docker.checker.ensure_service")
+    def test_no_compatible_tag_triggers_binfmt(self, mock_ensure, _mock_tags):
+        # No tag supports "riscv64"
+        result = get_compatible_tag("honeygain/honeygain", "linux/riscv64")
+        self.assertIsNone(result)
+        mock_ensure.assert_called_once()
+
+    @patch("money4band.docker.checker.fetch_docker_tags", return_value=None)
+    def test_registry_unreachable_returns_none(self, _mock):
+        result = get_compatible_tag("honeygain/honeygain", "linux/amd64")
+        self.assertIsNone(result)
+
+
+if __name__ == "__main__":
+    unittest.main()

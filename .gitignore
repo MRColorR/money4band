@@ -1,21 +1,56 @@
 m4b_proxy_instances
 config/user-config.json
-.resources/.www/.images
-.resources/.www/.config
+config/.dashboard.pid
+config/.dashboard.owner
+money4band/resources/www/images
+money4band/resources/www/config
 .data
 logs
 docker-compose.yaml
 .env
+.env.meta
 *.txt
 !requirements.txt
+!requirements-dev.txt
 *.log
 *.bak
 venv*
+.venv
 tmp/*
 tmp.py
 *.old
 __pycache__
+.coverage
+htmlcov/
+.ruff_cache/
+.pytest_cache/
+.backup/
 # pyinstaller folders
 build
 dist
 *.spec
+
+# Credential / keystore files
+*.keystore
+*.key
+.m4b_secrets/
+
+# Portable runtime data dir (master.key, session.salt, backups/)
+.m4b/
+
+# Local-only development instructions
+.github/copilot-instructions.md
+# AI agent guide
+CLAUDE.md
+
+# Internal docs
+*.internal.md
+
+# Catalog runtime cache (populated by `m4b catalog refresh`)
+# Shipped: config/catalog/{supported,newcomers,deprecated,addons}
+# Anything else under config/catalog/ is runtime state from remote sources.
+config/catalog/community/
+**/.etag
+**/.fetched_at
+# Internal planning doc
+*PLAN.md

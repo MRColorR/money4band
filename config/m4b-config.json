@@ -1,230 +1,395 @@
 {
-  "project": {
-    "project_version": "4.11.9",
-    "compose_project_name": "money4band",
-    "ds_project_server_url": "https://discord.com/invite/Fq8eeazBAD"
-  },
-  "ports": {
-    "default_port_base": 50000,
-    "port_offset_per_app": 1000,
-    "port_offset_per_instance": 3
-  },
-  "system": {
-    "sleep_time": 3,
-    "arch_map": {
-      "x86_64": "amd64",
-      "amd64": "amd64",
-      "aarch64": "arm64",
-      "arm64": "arm64"
+    "project": {
+        "project_version": "5.0.1",
+        "compose_project_name": "money4band",
+        "ds_project_server_url": "https://discord.com/invite/Fq8eeazBAD"
     },
-    "os_map": {
-      "win32nt": "Windows",
-      "windows_nt": "Windows",
-      "windows": "Windows",
-      "linux": "Linux",
-      "darwin": "MacOS",
-      "macos": "MacOS",
-      "macosx": "MacOS",
-      "mac": "MacOS",
-      "osx": "MacOS",
-      "cygwin": "Cygwin",
-      "mingw": "MinGw",
-      "msys": "Msys",
-      "freebsd": "FreeBSD"
+    "ports": {
+        "default_port_base": 50000,
+        "port_offset_per_app": 1000,
+        "port_offset_per_instance": 3
     },
-    "default_docker_platform": "linux/amd64"
-  },
-  "watchtower": {
-    "enable_labels": true,
-    "scope": "money4band"
-  },
-  "menu": [
-    {
-      "label": "Show supported apps' links",
-      "function": "fn_show_links"
+    "system": {
+        "sleep_time": 3,
+        "arch_map": {
+            "x86_64": "amd64",
+            "amd64": "amd64",
+            "aarch64": "arm64",
+            "arm64": "arm64",
+            "armv7l": "arm/v7",
+            "armv6l": "arm/v6"
+        },
+        "os_map": {
+            "win32nt": "Windows",
+            "windows_nt": "Windows",
+            "windows": "Windows",
+            "linux": "Linux",
+            "darwin": "MacOS",
+            "macos": "MacOS",
+            "macosx": "MacOS",
+            "mac": "MacOS",
+            "osx": "MacOS",
+            "cygwin": "Cygwin",
+            "mingw": "MinGw",
+            "msys": "Msys",
+            "freebsd": "FreeBSD"
+        },
+        "default_docker_platform": "linux/amd64",
+        "registry_request_timeout": 15,
+        "registry_max_retries": 3,
+        "dns": {
+            "available_modes": [
+                "default",
+                "cloudflare",
+                "cloudflare-security",
+                "google",
+                "quad9",
+                "quad9-unfiltered",
+                "opendns",
+                "dns4eu",
+                "dns4eu-unfiltered",
+                "custom"
+            ],
+            "presets": {
+                "cloudflare": [
+                    "1.1.1.1",
+                    "1.0.0.1"
+                ],
+                "cloudflare-security": [
+                    "1.1.1.2",
+                    "1.0.0.2"
+                ],
+                "google": [
+                    "8.8.8.8",
+                    "8.8.4.4"
+                ],
+                "quad9": [
+                    "9.9.9.9",
+                    "149.112.112.112"
+                ],
+                "quad9-unfiltered": [
+                    "9.9.9.10",
+                    "149.112.112.10"
+                ],
+                "opendns": [
+                    "208.67.222.222",
+                    "208.67.220.220"
+                ],
+                "dns4eu": [
+                    "86.54.11.1"
+                ],
+                "dns4eu-unfiltered": [
+                    "86.54.11.100"
+                ]
+            },
+            "default_servers": [
+                "1.1.1.1",
+                "8.8.8.8"
+            ]
+        }
     },
-    {
-      "label": "Install Docker",
-      "function": "fn_install_docker"
+    "resource_profiles": {
+        "tiers": {
+            "little": {
+                "mem_reserv": 0.04,
+                "mem_limit": 0.07,
+                "cpu": 0.05
+            },
+            "medium": {
+                "mem_reserv": 0.06,
+                "mem_limit": 0.12,
+                "cpu": 0.10
+            },
+            "big": {
+                "mem_reserv": 0.09,
+                "mem_limit": 0.17,
+                "cpu": 0.14
+            },
+            "huge": {
+                "mem_reserv": 0.14,
+                "mem_limit": 0.22,
+                "cpu": 0.20
+            }
+        },
+        "minimums": {
+            "mem_reserv_mb": {
+                "little": 64,
+                "medium": 80,
+                "big": 112,
+                "huge": 160
+            },
+            "mem_limit_mb": {
+                "little": 80,
+                "medium": 144,
+                "big": 192,
+                "huge": 288
+            },
+            "cpu": {
+                "little": 0.10,
+                "medium": 0.20,
+                "big": 0.30,
+                "huge": 0.50
+            }
+        },
+        "profiles": {
+            "minimal": {
+                "description": "Minimal",
+                "cpu_pct": 0.2,
+                "ram_pct": 0.1
+            },
+            "conservative": {
+                "description": "Conservative",
+                "cpu_pct": 0.4,
+                "ram_pct": 0.25
+            },
+            "standard": {
+                "description": "Standard (default)",
+                "cpu_pct": 0.6,
+                "ram_pct": 0.4
+            },
+            "performance": {
+                "description": "Performance",
+                "cpu_pct": 0.85,
+                "ram_pct": 0.65
+            }
+        }
     },
-    {
-      "label": "Setup Apps",
-      "function": "fn_setupApps"
+    "watchtower": {
+        "scope": "money4band"
     },
-    {
-      "label": "Start apps stack",
-      "function": "fn_startStack"
-    },
-    {
-      "label": "Stop apps stack",
-      "function": "fn_stopStack"
-    },
-    {
-      "label": "Reset user-config File",
-      "function": "fn_reset_config"
-    },
-    {
-      "label": "Regenerate files from config",
-      "function": "generator"
-    },
-    {
-      "label": "Multiproxy Tools",
-      "function": "fn_multiproxy_tools"
-    },
-    {
-      "label": "Quit",
-      "function": "fn_bye"
-    }
-  ],
-  "farewell_messages": [
-    "Have a fantastic day!",
-    "Enjoy the rest of your day!",
-    "May your journey be filled with joy and success!",
-    "Happy earning!",
-    "Goodbye!",
-    "See you soon!",
-    "Take care and have a nice day!",
-    "Bye! Bye!",
-    "Until we meet again!"
-  ],
-  "files": {
-    "env_filename": ".env",
-    "dkcom_filename": "docker-compose.yaml"
-  },
-  "word_lists": {
-    "adjectives": [
-      "Swift",
-      "Silent",
-      "Brave",
-      "Cunning",
-      "Mighty",
-      "Fierce",
-      "Bold",
-      "Nimble",
-      "Stealthy",
-      "Valiant",
-      "Gallant",
-      "Fearless",
-      "Eager",
-      "Keen",
-      "Lively",
-      "Daring",
-      "Energetic",
-      "Dynamic",
-      "Vigorous",
-      "Intrepid",
-      "Stalwart",
-      "Resolute",
-      "Tenacious",
-      "Dauntless",
-      "Radiant",
-      "Blazing",
-      "Roaring",
-      "Thunderous",
-      "Mystic",
-      "Majestic",
-      "Serene",
-      "Glorious",
-      "Splendid",
-      "Miraculous",
-      "Enchanted",
-      "Magnificent",
-      "Invincible",
-      "Formidable",
-      "Epic",
-      "Legendary",
-      "Mythic",
-      "Supreme",
-      "Ultimate",
-      "Immortal",
-      "Divine",
-      "Spectacular",
-      "Amazing",
-      "Wondrous"
+    "menu": [
+        {
+            "label": "System Info",
+            "function": "system_info"
+        },
+        {
+            "label": "App Catalog & Links",
+            "function": "fn_app_catalog"
+        },
+        {
+            "label": "Docker Setup Guide",
+            "function": "fn_install_docker"
+        },
+        {
+            "label": "Setup Apps",
+            "function": "fn_setupApps"
+        },
+        {
+            "label": "Start apps stack",
+            "function": "fn_startStack"
+        },
+        {
+            "label": "Stop apps stack",
+            "function": "fn_stopStack"
+        },
+        {
+            "label": "Restart apps stack",
+            "function": "fn_restartStack"
+        },
+        {
+            "label": "Reset user-config File",
+            "function": "fn_reset_config"
+        },
+        {
+            "label": "Regenerate files from config",
+            "function": "generator"
+        },
+        {
+            "label": "M4B Dashboard and APIs",
+            "function": "fn_dashboard"
+        },
+        {
+            "label": "Multiproxy Tools",
+            "function": "fn_multiproxy_tools"
+        },
+        {
+            "label": "Resource Profiles",
+            "function": "fn_resource_profiles"
+        },
+        {
+            "label": "Quit",
+            "function": "fn_bye"
+        }
     ],
-    "animals": [
-      "Panther",
-      "Tiger",
-      "Eagle",
-      "Falcon",
-      "Lion",
-      "Wolf",
-      "Leopard",
-      "Hawk",
-      "Dragon",
-      "Phoenix",
-      "Cheetah",
-      "Jaguar",
-      "Cougar",
-      "Raptor",
-      "Griffin",
-      "Orca",
-      "Shark",
-      "Dolphin",
-      "Whale",
-      "Bear",
-      "Cobra",
-      "Scorpion",
-      "Python",
-      "Lynx",
-      "Mustang",
-      "Viper",
-      "Bison",
-      "Raven",
-      "Owl",
-      "Falcon",
-      "Lynx",
-      "Puma",
-      "Gazelle",
-      "Mongoose",
-      "Jackal",
-      "Panther",
-      "Kangaroo",
-      "Otter",
-      "Hedgehog",
-      "Fox",
-      "Eagle",
-      "Badger",
-      "Squirrel",
-      "Porcupine",
-      "Beaver",
-      "Wombat",
-      "Koala",
-      "Panda",
-      "Tiger",
-      "Buffalo",
-      "Mammoth",
-      "Walrus",
-      "Seal",
-      "Penguin",
-      "Parrot",
-      "Flamingo",
-      "Pelican",
-      "Stork",
-      "Swan",
-      "Peacock",
-      "Crane",
-      "Heron",
-      "Ibis",
-      "Kiwi",
-      "Toucan",
-      "Macaw",
-      "Chameleon",
-      "Iguana",
-      "Gecko",
-      "Komodo",
-      "Monitor",
-      "Anaconda",
-      "Boa",
-      "Crocodile",
-      "Alligator",
-      "Turtle",
-      "Tortoise"
-    ]
-  },
-  "network": {
-    "driver": "bridge",
-    "subnet": "172.19.7.0",
-    "netmask": "27"
-  }
+    "farewell_messages": [
+        "Have a fantastic day!",
+        "Enjoy the rest of your day!",
+        "May your journey be filled with joy and success!",
+        "Happy earning!",
+        "Goodbye!",
+        "See you soon!",
+        "Take care and have a nice day!",
+        "Bye! Bye!",
+        "Until we meet again!"
+    ],
+    "files": {
+        "env_filename": ".env",
+        "dkcom_filename": "docker-compose.yaml"
+    },
+    "word_lists": {
+        "adjectives": [
+            "Swift",
+            "Silent",
+            "Brave",
+            "Cunning",
+            "Mighty",
+            "Fierce",
+            "Bold",
+            "Nimble",
+            "Stealthy",
+            "Valiant",
+            "Gallant",
+            "Fearless",
+            "Eager",
+            "Keen",
+            "Lively",
+            "Daring",
+            "Energetic",
+            "Dynamic",
+            "Vigorous",
+            "Intrepid",
+            "Stalwart",
+            "Resolute",
+            "Tenacious",
+            "Dauntless",
+            "Radiant",
+            "Blazing",
+            "Roaring",
+            "Thunderous",
+            "Mystic",
+            "Majestic",
+            "Serene",
+            "Glorious",
+            "Splendid",
+            "Miraculous",
+            "Enchanted",
+            "Magnificent",
+            "Invincible",
+            "Formidable",
+            "Epic",
+            "Legendary",
+            "Mythic",
+            "Supreme",
+            "Ultimate",
+            "Immortal",
+            "Divine",
+            "Spectacular",
+            "Amazing",
+            "Wondrous"
+        ],
+        "animals": [
+            "Panther",
+            "Tiger",
+            "Eagle",
+            "Falcon",
+            "Lion",
+            "Wolf",
+            "Leopard",
+            "Hawk",
+            "Dragon",
+            "Phoenix",
+            "Cheetah",
+            "Jaguar",
+            "Cougar",
+            "Raptor",
+            "Griffin",
+            "Orca",
+            "Shark",
+            "Dolphin",
+            "Whale",
+            "Bear",
+            "Cobra",
+            "Scorpion",
+            "Python",
+            "Lynx",
+            "Mustang",
+            "Viper",
+            "Bison",
+            "Raven",
+            "Owl",
+            "Falcon",
+            "Lynx",
+            "Puma",
+            "Gazelle",
+            "Mongoose",
+            "Jackal",
+            "Panther",
+            "Kangaroo",
+            "Otter",
+            "Hedgehog",
+            "Fox",
+            "Eagle",
+            "Badger",
+            "Squirrel",
+            "Porcupine",
+            "Beaver",
+            "Wombat",
+            "Koala",
+            "Panda",
+            "Tiger",
+            "Buffalo",
+            "Mammoth",
+            "Walrus",
+            "Seal",
+            "Penguin",
+            "Parrot",
+            "Flamingo",
+            "Pelican",
+            "Stork",
+            "Swan",
+            "Peacock",
+            "Crane",
+            "Heron",
+            "Ibis",
+            "Kiwi",
+            "Toucan",
+            "Macaw",
+            "Chameleon",
+            "Iguana",
+            "Gecko",
+            "Komodo",
+            "Monitor",
+            "Anaconda",
+            "Boa",
+            "Crocodile",
+            "Alligator",
+            "Turtle",
+            "Tortoise"
+        ]
+    },
+    "network": {
+        "driver": "bridge",
+        "subnet": "172.19.7.0",
+        "netmask": "27"
+    },
+    "catalog": {
+        "app_config_version": 2.0,
+        "catalog_sources": [
+            {
+                "type": "local",
+                "name": "builtin",
+                "path": "catalog",
+                "default_source": "builtin",
+                "enabled": true
+            },
+            {
+                "type": "remote",
+                "name": "community",
+                "enabled": false,
+                "default_source": "community",
+                "url": "https://raw.githubusercontent.com/MRColorR/money4band-community-catalog/main/manifest.json"
+            }
+        ],
+        "categories": {
+            "supported": {
+                "active": true
+            },
+            "newcomers": {
+                "active": false
+            },
+            "deprecated": {
+                "active": false
+            }
+        }
+    }
 }

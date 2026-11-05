@@ -1,0 +1,29 @@
+# Git
+.git
+.gitignore
+
+# Python
+.venv
+__pycache__
+*.pyc
+*.pyo
+.mypy_cache
+.pytest_cache
+.ruff_cache
+
+# IDE
+.vscode
+.idea
+
+# Build artifacts
+dist
+build
+*.spec
+*.egg-info
+
+# CI & docs
+.github
+docs
+tests
+CHANGELOG.md
+CONTRIBUTING.md

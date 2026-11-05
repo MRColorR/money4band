@@ -1,0 +1,20 @@
+# Enforce LF line endings everywhere, on every platform.
+# Text files are normalized to LF in the repo and checked out as LF.
+* text=auto eol=lf
+
+# Binary files: never apply EOL conversion.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.zip binary
+*.7z binary
+*.gz binary
+*.tar binary
+*.pdf binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary

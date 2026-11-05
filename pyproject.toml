@@ -1,27 +1,45 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
 
 name = "money4band"
 description = "Multi-app Docker orchestrator for passive income apps"
-version = "4.11.9"
+version = "5.0.1"
 authors = [
     { name = "MRColorR" }
 ]
 requires-python = ">=3.10"
+
 dependencies = [
     "colorama",
-    "docker",
-    "requests",
-    "pyyaml",
-    "psutil"
+    "cryptography>=46.0.6",
+    "docker>=7.1.0",
+    "httpx>=0.28.1",
+    "pyyaml>=6.0.3",
+    "psutil>=7.2.2",
+    "fastapi>=0.135.3",
+    "uvicorn[standard]>=0.43.0",
 ]
+
+[project.scripts]
+m4b = "main:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["money4band", "main.py"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"money4band/resources" = "money4band/resources"
 
 [dependency-groups]
 dev = [
-    "ruff>=0.12.0",
-    "pytest>=8.0.0",
-    "pytest-cov>=4.1.0",
-    "pytest-mock>=3.12.0",
-    "pytest-asyncio>=0.23.0",
+    "ruff>=0.15.9",
+    "pytest>=9.0.2",
+    "pytest-cov>=7.1.0",
+    "pytest-mock>=3.15.1",
+    "pytest-asyncio>=1.3.0",
+    "pyinstaller>=6.19.0"
 ]
 
 # Tool configurations
@@ -70,13 +88,61 @@ select = [
 # COM812, COM819 - trailing comma conflicts
 # ISC002 - implicit string concat warnings
 # T201 - print statements are needed for CLI user interaction
+# E402 - module-import-not-at-top (deferred imports are intentional pattern)
+# PLC0415 - import-outside-top-level (same as E402)
+# PLR2004 - magic-value-comparison (too noisy for config-heavy code)
+# PLR0912, PLR0915, PLR0913, PLR0911 - complexity warnings (not refactoring now)
+# N999 - invalid module names (camelCase filenames like fn_setupApps.py are legacy)
+# PLW0603 - global statement (acceptable for module-level config)
+# S110 - try-except-pass (used for optional feature detection)
+# E501 - line too long (handled by formatter)
 ignore = [
     "W191", "E111", "E114", "E117",
     "D206", "D300",
     "Q000", "Q001", "Q002", "Q003",
     "COM812", "COM819",
     "ISC002",
-    "T201"
+    "T201",
+    "E501",
+    "E402",
+    "PLC0415",
+    "PLR2004",
+    "PLR0912", "PLR0915", "PLR0913", "PLR0911",
+    "N999",
+    "PLW0603",
+    "S110",
 ]
 
-# Add other tool configurations as needed
+[tool.ruff.lint.per-file-ignores]
+# Tests: allow assert, local imports, magic values, broad exceptions, ambiguous names, test passwords, seeded random
+"tests/**" = ["S101", "PLC0415", "E402", "PLR2004", "S108", "PLR0913", "PLR0915", "E741", "S105", "S104", "S311"]
+# API routers: Depends() in parameter defaults is the standard FastAPI DI pattern
+"money4band/api/**" = ["B008"]
+# Main entry point: allow local imports
+"main.py" = ["PLC0415", "E402"]
+# Source files: subprocess usage is intentional for Docker/system commands
+"money4band/**" = ["S603", "S607", "S605", "PLW1510", "S104", "S103", "S311"]
+# Repo maintenance scripts invoke git / build tools with trusted args
+"scripts/**" = ["S603", "S607", "PLW2901"]
+
+# Mypy configuration - gradual typing adoption
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+check_untyped_defs = true
+# Strict mode disabled for now - enable gradually:
+# disallow_untyped_defs = true
+# disallow_incomplete_defs = true
+
+# Bandit security scanner configuration
+[tool.bandit]
+exclude_dirs = ["tests", ".venv"]
+skips = ["B101"]  # skip assert checks (used in tests)
+
+# Coverage configuration
+[tool.coverage.run]
+source = ["money4band"]
+
+[tool.coverage.report]
+fail_under = 75

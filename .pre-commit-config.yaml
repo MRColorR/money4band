@@ -1,0 +1,64 @@
+# Pre-commit hooks for Money4Band
+# Install: uv tool install pre-commit && pre-commit install
+# Run manually: pre-commit run --all-files
+
+repos:
+  # Built-in credential detection (lightweight, no external deps)
+  - repo: local
+    hooks:
+      - id: check-secrets
+        name: Check for hardcoded credentials
+        entry: python scripts/check-secrets.py
+        language: python
+        pass_filenames: false
+        stages: [pre-commit]
+
+  # Gitleaks - comprehensive secret scanning
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.24.0
+    hooks:
+      - id: gitleaks
+
+  # App tables - regenerate from m4b-config.json catalog envelope
+  - repo: local
+    hooks:
+      - id: update-tables
+        name: App tables up-to-date
+        entry: uv run python scripts/update_tables.py --check
+        language: system
+        pass_filenames: false
+        files: (config/m4b-config\.json|config/catalog/.*\.json|README\.md|docs/APPS\.md|money4band/readme_generator\.py)
+        stages: [pre-commit]
+
+  # uv.lock - must stay derived from pyproject.toml (the source of truth).
+  # Without this, pyproject can change without relocking, leaving the exported
+  # requirements files stale even though they still match an outdated lock.
+  - repo: local
+    hooks:
+      - id: uv-lock-check
+        name: uv.lock in sync with pyproject.toml
+        entry: uv lock --check
+        language: system
+        pass_filenames: false
+        files: (pyproject\.toml|uv\.lock)
+        stages: [pre-commit]
+
+  # Requirements - generated from pyproject.toml via uv.lock (source of truth).
+  # requirements.txt = runtime only; requirements-dev.txt = runtime + dev.
+  - repo: local
+    hooks:
+      - id: sync-requirements
+        name: Requirements files up-to-date
+        entry: uv run python scripts/sync_requirements.py --check
+        language: system
+        pass_filenames: false
+        files: (pyproject\.toml|uv\.lock)
+        stages: [pre-commit]
+
+  # Ruff - linting and formatting
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.9
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format

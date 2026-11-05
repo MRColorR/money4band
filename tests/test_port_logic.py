@@ -8,8 +8,8 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from utils.fn_setupApps import assign_app_ports, collect_assigned_ports
-from utils.generator import generate_env_file, substitute_port_placeholders
+from money4band.apps.setup import assign_app_ports, collect_assigned_ports
+from money4band.docker.generator import generate_env_file, substitute_port_placeholders
 
 
 class TestPortLogic(unittest.TestCase):
@@ -21,14 +21,17 @@ class TestPortLogic(unittest.TestCase):
         app = {"compose_config": {"ports": ["${DAWN_PORT}:5000"]}}
         config = {"ports": [5000]}
 
-        with patch("utils.fn_setupApps.find_next_available_port") as mock_find_port:
+        with patch(
+            "money4band.network.port_manager.find_next_available_port"
+        ) as mock_find_port:
             mock_find_port.side_effect = lambda x, **kwargs: x  # Return the same port
 
             result = assign_app_ports(app_name, app, config)
 
             self.assertIsInstance(result, list)
             self.assertEqual(len(result), 1)
-            # With app_index=0, instance_number=0, the base port is 50000 + 0*100 + 0*10 = 50000
+            # app_index=0 and instance_number=0 zero out both offsets, so the
+            # port is just DEFAULT_PORT_BASE (50000) regardless of their values.
             self.assertEqual(result, [50000])
 
     def test_assign_app_ports_multiple_ports(self):
@@ -41,14 +44,17 @@ class TestPortLogic(unittest.TestCase):
         }
         config = {"ports": [5900, 6080]}
 
-        with patch("utils.fn_setupApps.find_next_available_port") as mock_find_port:
+        with patch(
+            "money4band.network.port_manager.find_next_available_port"
+        ) as mock_find_port:
             mock_find_port.side_effect = lambda x, **kwargs: x  # Return the same port
 
             result = assign_app_ports(app_name, app, config)
 
             self.assertIsInstance(result, list)
             self.assertEqual(len(result), 2)
-            # With app_index=0, instance_number=0, the base port is 50000 + 0*100 + 0*10 = 50000
+            # app_index=0 and instance_number=0 zero out both offsets, so the
+            # port is just DEFAULT_PORT_BASE (50000) regardless of their values.
             # First port: 50000 + 0 = 50000, Second port: 50000 + 1 = 50001
             self.assertEqual(result, [50000, 50001])
 
@@ -58,7 +64,9 @@ class TestPortLogic(unittest.TestCase):
         app = {"compose_config": {"ports": ["${MYSTNODE_PORT}:4449"]}}
         config = {}  # No ports in config
 
-        with patch("utils.fn_setupApps.find_next_available_port") as mock_find_port:
+        with patch(
+            "money4band.network.port_manager.find_next_available_port"
+        ) as mock_find_port:
             mock_find_port.side_effect = lambda x, **kwargs: x  # Return the same port
 
             result = assign_app_ports(app_name, app, config)
@@ -78,7 +86,9 @@ class TestPortLogic(unittest.TestCase):
         config = {}
         reserved_ports = {50000, 50001, 50002}
 
-        with patch("utils.fn_setupApps.find_next_available_port") as mock_find_port:
+        with patch(
+            "money4band.network.port_manager.find_next_available_port"
+        ) as mock_find_port:
             mock_find_port.side_effect = lambda x, **kwargs: next(
                 p for p in range(x, 65535) if p not in kwargs.get("exclude_ports", [])
             )
@@ -146,7 +156,9 @@ class TestPortLogic(unittest.TestCase):
         app = {"compose_config": {"ports": ["${DAWN_PORT}:5000"]}}
         config = {"ports": [5000]}  # Should be list
 
-        with patch("utils.fn_setupApps.find_next_available_port") as mock_find_port:
+        with patch(
+            "money4band.network.port_manager.find_next_available_port"
+        ) as mock_find_port:
             mock_find_port.return_value = 5000
 
             assigned_ports = assign_app_ports(app_name, app, config)
@@ -167,20 +179,23 @@ class TestPortLogic(unittest.TestCase):
         }
 
         app_config = {
-            "apps": [
-                {
-                    "name": "DAWN",
-                    "flags": {"email": {}, "password": {}},
-                    "compose_config": {"ports": ["${DAWN_PORT}:5000"]},
-                },
-                {
-                    "name": "WIPTER",
-                    "flags": {"email": {}, "password": {}},
-                    "compose_config": {
-                        "ports": ["${WIPTER_PORT_1}:5900", "${WIPTER_PORT_2}:6080"]
+            "supported": {
+                "active": True,
+                "entries": [
+                    {
+                        "name": "DAWN",
+                        "flags": {"email": {}, "password": {}},
+                        "compose_config": {"ports": ["${DAWN_PORT}:5000"]},
                     },
-                },
-            ]
+                    {
+                        "name": "WIPTER",
+                        "flags": {"email": {}, "password": {}},
+                        "compose_config": {
+                            "ports": ["${WIPTER_PORT_1}:5900", "${WIPTER_PORT_2}:6080"]
+                        },
+                    },
+                ],
+            }
         }
 
         user_config = {
@@ -221,7 +236,7 @@ class TestPortLogic(unittest.TestCase):
             self.assertIn("WIPTER_PORT_2=6081", env_content)
             # Should NOT have non-indexed WIPTER_PORT for multiple ports
 
-            # Watchtower scope vars are always emitted — defaults when watchtower key absent
+            # Watchtower scope vars are always emitted - defaults when watchtower key absent
             self.assertIn("M4B_WATCHTOWER_LABELS=true", env_content)
             self.assertIn("M4B_WATCHTOWER_SCOPE=money4band", env_content)
 
@@ -234,13 +249,14 @@ class TestPortLogic(unittest.TestCase):
         m4b_config = {
             "network": {"subnet": "172.19.7.0", "netmask": "27"},
             "system": {},
-            "watchtower": {"enable_labels": False, "scope": "custom-scope"},
+            "watchtower": {"scope": "custom-scope"},
         }
-        app_config = {"apps": []}
+        app_config = {"supported": {"active": True, "entries": []}}
         user_config = {
             "device_info": {"device_name": "testdev"},
             "resource_limits": {},
             "apps": {},
+            "watchtower": {"enable_labels": False},
         }
 
         with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".env") as f:
@@ -394,19 +410,29 @@ class TestCollectAssignedPorts(unittest.TestCase):
         # Simulate: main instance already owns 50000, 50001
         reserved_ports: set = {50000, 50001}
 
-        with patch("utils.fn_setupApps.find_next_available_port") as mock_fp:
+        with patch(
+            "money4band.network.port_manager.find_next_available_port"
+        ) as mock_fp:
             mock_fp.side_effect = lambda x, **kwargs: next(
                 p for p in range(x, 65535) if p not in kwargs.get("exclude_ports", [])
             )
 
             # First proxy instance (instance_number=1, app_index=0)
             ports_inst1 = assign_app_ports(
-                "wipter", app, {}, app_index=0, instance_number=1,
+                "wipter",
+                app,
+                {},
+                app_index=0,
+                instance_number=1,
                 reserved_ports=reserved_ports,
             )
             # Second proxy instance (instance_number=2, app_index=0)
             ports_inst2 = assign_app_ports(
-                "wipter", app, {}, app_index=0, instance_number=2,
+                "wipter",
+                app,
+                {},
+                app_index=0,
+                instance_number=2,
                 reserved_ports=reserved_ports,
             )
 
