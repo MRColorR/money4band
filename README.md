@@ -1,12 +1,18 @@
 # Money4Band
 
+<!-- Project README scaffold: https://github.com/MRColorR/project-template -->
+
+[Overview](#overview) | [Getting started](#getting-started) | [Documentation](#documentation) | [Contributing](#contributing) | [Support](#support) | [License](#license)
+
+## Overview
+
 <img  src="./.resources/.assets/M4B_logo_small.png?raw=true"  width="96"> - **Leave a star ⭐ if you like this project 🙂 thank you.**
 
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/MRColorR/money4band/release-on-tag.yml?style=flat-square&link=https%3A%2F%2Fgithub.com%2FMRColorR%2Fmoney4band)
 
 **|Easy automatic multi-app passive income project with Web Dashboard, Auto Updater, and Proxy Support :dollar::satisfied:|**
 
-## 🔍 Quick Overview
+<a name="-quick-overview"></a>
 
 **Money4Band (M4B)** leverages unused internet bandwidth, allowing you to make money with something you have and would otherwise be wasted. It utilizes containerized versions of apps like EarnApp, Honeygain, IPRoyal Pawns, PacketStream, Peer2Profit, Repocket, Earnfm, Proxyrack, Proxylite, Bitping, Grass, Packetshare, Gradient, Wipter and more. It's also safer than installing and using these native apps on your host system. - all managed through a single tool with:
 
@@ -24,7 +30,9 @@
 
 🌐 For a detailed overview and FAQ join our [Discord Community](#-join-the-money4band-community-on-discord).
 
-## 🚥 Getting Started
+## Getting started
+
+<a name="-getting-started"></a>
 
 ### 🛠️ Requirements
 
@@ -81,7 +89,11 @@ Follow these steps to set up and configure your Money4Band instance:
 
 4.  **Enjoy passive Earnings** monitoring your performance through the web dashboard.
 
-## 📋 App Compatibility and Sign Up Links
+## Documentation
+
+<a name="-app-compatibility-and-sign-up-links"></a>
+
+### App Compatibility and Sign Up Links
 
 Register an account on the app's sites clicking each apps' names in the following compatibility matrix
 
@@ -112,7 +124,9 @@ Register an account on the app's sites clicking each apps' names in the followin
 |                Go to [PROXYBASE](http://dash.proxybase.org/signup?ref=XfOz3zeURm)                 |                 :white_check_mark:                  |                    :white_check_mark:                    |        Unlimited        |
 |                          Go to [Wipter](https://wipter.com/)                                     |                 :white_check_mark:                  |                           :x:                            |        Unlimited        |
 
-## 🌐 Scale Up with Multi-Proxy Support
+<a name="-scale-up-with-multi-proxy-support"></a>
+
+### Scale Up with Multi-Proxy Support
 
 **Money4Band** has the ability to create multiple instances also using a proxy list, ideal for scaling up your setup. Quickly set up numerous instances each linked to a different proxy with ease.
 
@@ -127,7 +141,9 @@ To run multiple instances using different proxies:
 
 > ⚠️**Note:** While using multiple proxies, be aware that only certain apps permit proxy usage per their Terms of Service. We recommend using personal, private proxies with IPs not flagged as proxies and always respecting the ToS of each app.
 
-## 🧪 Compatibility and tested environments
+<a name="-compatibility-and-tested-environments"></a>
+
+### Compatibility and tested environments
 
 This Docker Stack should work on anything that may have docker installed. In particular, it has been tested on:
 
@@ -140,7 +156,9 @@ This Docker Stack should work on anything that may have docker installed. In par
 
 :yellow_circle:: All functions supported but not tested, Auto/manual setup supported
 
-## ❓ Need Help or Found an Issue?
+<a name="-need-help-or-found-an-issue"></a>
+
+### Need Help or Found an Issue?
 
 - For discussions, info, and feature requests, use the [Discussion tab](https://github.com/MRColorR/money4band/discussions) or join our [Discord Community](#-join-the-money4band-community-on-discord).
 
@@ -148,13 +166,25 @@ This Docker Stack should work on anything that may have docker installed. In par
 
 - For issues and bug reporting, use the [Issue tab](https://github.com/MRColorR/money4band/issues).
 
-## 🚀 Join the Money4Band Community on Discord!
+<a name="-join-the-money4band-community-on-discord"></a>
+
+### Join the Money4Band Community on Discord!
 
 Join our Discord server! It's a space for you to share your experiences, ask questions, and discuss everything related to Money4Band and its related projects like custom docker images created for M4B and so on.
 
 [Join the Money4Band Discord Community](https://discord.com/invite/Fq8eeazBAD)
 
-## 🫶 Support the Projects
+## Contributing
+
+See the [contribution guide](.github/CONTRIBUTING.md).
+
+Please include enough context to reproduce a problem or review a change.
+
+## Support
+
+Ko-fi supports Mattia / MrColorRain's work across projects.
+
+<a name="-support-the-projects"></a>
 
 Your contributions are vital in helping to sustain the development of open-source projects and tools made freely available to everyone. If you find value in my work and wish to show your support, kindly consider making a donation:
 
@@ -176,7 +206,17 @@ Your support, no matter how small, is enormously appreciated and directly fuels 
 
 ---
 
-### :warning: Disclaimer
+See the [supporters and sponsors directory](https://github.com/MRColorR/MRColorR/blob/main/SPONSORS.md) for acknowledgments.
+
+## License
+
+<a name="hash-license"></a>
+
+[GPL 3.0](https://www.gnu.org/licenses/gpl-3.0.html)
+
+<a name="warning-disclaimer"></a>
+
+### Disclaimer
 
 Always check that the laws of your country and the contractual terms of your internet plan allow the use of such applications. In any case, I do not take any responsibility for any consequences deriving from the use of such apps. This stack proposed by me simply brings these apps together, allows easy configuration even for the less experienced, and updates the apps' images automatically.
 
@@ -185,7 +225,3 @@ This project and its artifacts are provided "as is" and without warranty of any 
 The author makes no warranties, express or implied, that this script is free of errors, defects, or suitable for any particular purpose.
 
 The author shall not be held liable for any damages suffered by any user of this script, whether direct, indirect, incidental, consequential, or special, arising from the use of or inability to use this script or its documentation, even if the author has been advised of the possibility of such damages.
-
-## :hash: License
-
-[GPL 3.0](https://www.gnu.org/licenses/gpl-3.0.html)
