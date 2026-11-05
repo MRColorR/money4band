@@ -399,8 +399,18 @@ def start_all_stacks(
                         print(
                             f"{Fore.YELLOW}Starting instance: {instance}{Style.RESET_ALL}"
                         )
-                        # Proxy instances always need the proxy profile
+                        # Older instance folders may lack a saved catalog.
                         proxy_profiles = tuple(dict.fromkeys((*profiles, "proxy")))
+                        user_path = os.path.join(instance_dir, "user-config.json")
+                        app_path = os.path.join(instance_dir, "app-config.json")
+                        if os.path.isfile(user_path) and os.path.isfile(app_path):
+                            from money4band.docker.helper import get_active_profiles
+
+                            proxy_profiles = tuple(
+                                get_active_profiles(
+                                    user_path, loader.load_json_config(app_path)
+                                )
+                            )
                         instance_started = start_stack(
                             instance_files,
                             env_file,

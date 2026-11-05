@@ -73,8 +73,12 @@ By default, `enforce_install_limits` is `true` in `m4b-config.json`. This respec
 ## Supported Proxy Protocols
 
 - `socks5://` - SOCKS5 proxy (recommended)
-- `http://` - HTTP proxy
-- `https://` - HTTPS proxy
+- `http://` - HTTP CONNECT proxy, TCP only
+- `socks4://` - SOCKS4 proxy, TCP only
+
+The bundled tunnel rejects `https://` and `socks5h://` proxy URLs. An
+`http://` CONNECT proxy can still tunnel HTTPS connections to websites.
+[Tunnel protocol support](https://github.com/xjasonlyu/tun2socks/wiki/Proxy-Models)
 
 ## Tips
 

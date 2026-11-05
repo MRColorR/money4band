@@ -534,6 +534,20 @@ class TestCheckUpdateAvailable:
 
 
 class TestApplyGitUpdate:
+    def test_falls_back_to_unprefixed_release_tag(self, monkeypatch):
+        monkeypatch.setattr("money4band.updater._backup_preserved_files", lambda d: {})
+        calls = []
+
+        def run(cmd, **kwargs):
+            calls.append(cmd)
+            if "refs/tags/v5.0.0" in cmd[-1]:
+                raise subprocess.CalledProcessError(128, cmd, stderr="ref not found")
+
+        monkeypatch.setattr("money4band.updater.subprocess.run", run)
+        assert _apply_git_update("5.0.0") is True
+        assert calls[1][-1] == "+refs/tags/5.0.0:refs/tags/5.0.0"
+        assert calls[2][-1] == "refs/tags/5.0.0"
+
     def test_git_fetch_failure_returns_false(self, monkeypatch):
         monkeypatch.setattr("money4band.updater._backup_preserved_files", lambda d: {})
 
@@ -591,7 +605,8 @@ class TestVersionComparisons:
 
 
 class TestApplyBinaryUpdate:
-    def test_successful_download_replaces_binary(self, monkeypatch, tmp_path):
+    @pytest.mark.parametrize("prefixed", [True, False])
+    def test_successful_download_replaces_binary(self, monkeypatch, tmp_path, prefixed):
         """Successful download should write the new binary and rename the old one."""
         from money4band.updater import _apply_binary_update
 
@@ -610,6 +625,12 @@ class TestApplyBinaryUpdate:
         mock_resp.iter_bytes.return_value = [b"new-binary-data"]
         mock_client = MagicMock()
         mock_client.get.return_value = mock_resp
+        if not prefixed:
+            mock_client.get.side_effect = [
+                MagicMock(status_code=404),
+                mock_resp,
+                mock_resp,
+            ]
         monkeypatch.setattr("money4band.updater.get_client", lambda: mock_client)
 
         result = _apply_binary_update("5.1.0")
@@ -618,6 +639,8 @@ class TestApplyBinaryUpdate:
         assert current_exe.read_bytes() == b"new-binary-data"
         # Backup should exist
         assert (tmp_path / "m4b.exe.bak").exists()
+        tag = "v5.1.0" if prefixed else "5.1.0"
+        assert mock_client.get.call_args.args[0].endswith(f"/{tag}/checksums.sha256")
 
     def test_download_failure_returns_false(self, monkeypatch):
         """HTTP error during download should return False."""

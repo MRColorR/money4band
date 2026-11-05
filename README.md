@@ -58,10 +58,10 @@ Our maintainers and community **research** every app, **verify** its background,
 
 ### Option A: Download & Run (recommended)
 
-1. Go to the [**Releases Page**](https://github.com/MRColorR/money4band/releases/latest)
+1. Select the v5 release on the [**Releases Page**](https://github.com/MRColorR/money4band/releases).
 2. Download the single-file binary for your OS and architecture
    (e.g. `Money4Band-windows-amd64.exe`, `Money4Band-linux-arm64`)
-3. Run it:
+3. Run the downloaded executable directly. Choose the separate source ZIP if you want an archive.
 
 **Windows:** double-click the `.exe`, or run it from PowerShell to pass CLI
 subcommands. Unsigned build, so SmartScreen asks: **More info > Run anyway**.
@@ -89,7 +89,7 @@ verification are covered in the [Getting Started guide](docs/getting-started.md)
 
 ```bash
 git clone https://github.com/MRColorR/money4band.git && cd money4band
-uv sync && uv run python main.py
+uv sync --locked && uv run --locked python main.py
 ```
 
 > **No uv?** `pip install -r requirements.txt && python3 main.py` also works.
@@ -128,9 +128,11 @@ uv sync && uv run python main.py
 
 ## Supported Apps
 
-**35 apps** tracked across the ecosystem. [Full details, earnings estimates, and registration links here.](docs/APPS.md)
+The table covers the built-in catalog. See the [app directory](docs/APPS.md)
+for details and the [community catalog](https://github.com/MRColorR/money4band-community-catalog)
+for opt-in entries.
 
-> **Type legend:** [ok] core (out-of-box) - [com] community (opt-in via `m4b catalog enable community`) - [new] newcomer (no Docker image yet, listed for visibility) - [x] deprecated.
+> [ok] Built in. [x] Removed from default setup.
 >
 > App links below include referral codes that support the project at no cost to you.
 
@@ -138,43 +140,28 @@ uv sync && uv run python main.py
 | Type | App | Residential | VPS/DC | Payout |
 |:----:|-----|:-----------:|:------:|--------|
 | [ok] | [**AntGain**](https://antgain.app) | [ok] | - | - |
-| [ok] | [**BearShare**](https://bearshare.io) | [ok] | - | - |
 | [ok] | [**Bitping**](https://app.bitping.com?r=qm7mIuX3) | [ok] | [ok] | BITPING token (crypto), USDC |
 | [ok] | [**Earn.FM**](https://earn.fm/ref/MATTTAV6) | [ok] | [ok] | PayPal, USDT, gift cards |
-| [com] | [**EarnApp**](https://earnapp.com/i/3zulx7k) | [ok] | [x] | PayPal, gift cards, crypto |
-| [com] | [**GaGaNode**](https://www.gaganode.com) | [ok] | - | GaGa token (crypto) |
 | [ok] | [**Honeygain**](https://r.honeygain.me/MINDL15721) | [ok] | [x] | JumpToken (crypto), PayPal (via JumpTask) |
 | [ok] | [**Mysterium**](https://mystnodes.co/?referral_code=Tc7RaS7Fm12K3Xun6mlU9q9hbnjojjl9aRBW8ZA9) | [ok] | [ok] | MYST token, ETH, BNB |
-| [ok] | [**PacketShare**](https://www.packetshare.io/?code=A260871CFD822E35) | [ok] | - | - |
 | [ok] | [**PacketStream**](https://packetstream.io/?psr=3zSD) | [ok] | [x] | PayPal |
 | [ok] | [**Pawns (IPRoyal)**](https://pawns.app?r=MiNe) | [ok] | [x] | PayPal, crypto, gift cards |
 | [ok] | [**ProxyLite**](https://proxylite.ru/?r=PJTKXWN3) | [ok] | [ok] | crypto |
 | [ok] | [**Proxyrack Peer Program**](https://peer.proxyrack.com/ref/myoas6qttvhuvkzh8ffx90ns1ouhwgilfgamo5ex) | [ok] | [ok] | PayPal, crypto |
 | [ok] | [**Repocket**](https://link.repocket.co/hr8i) | [ok] | [ok] | PayPal, crypto |
-| [com] | [**Spide Network**](https://spide.network) | [ok] | [ok] | PayPal, crypto |
 | [ok] | [**Titan Network**](https://titannet.io) | [ok] | - | - |
-| [ok] | [**TraffMonetizer**](https://traffmonetizer.com/?aff=366499) | [ok] | [ok] | PayPal, crypto, wire transfer |
+| [ok] | [**TraffMonetizer**](https://traffmonetizer.com/?aff=366499) | [ok] | [x] | PayPal, crypto, wire transfer |
 | [ok] | [**URnetwork**](https://urnetwork.com) | [ok] | - | - |
-| [new] | [**Adnade**](https://adnade.com) | [ok] | - | - |
-| [new] | [**ByteBenefit**](https://bytebenefit.com) | [ok] | - | - |
-| [new] | [**Bytelixir**](https://bytelixir.com) | [ok] | - | crypto |
-| [new] | [**Earn.cc**](https://earn.cc) | [ok] | - | - |
-| [new] | [**Ebesucher**](https://www.ebesucher.com) | [ok] | - | - |
-| [new] | [**PassiveApp**](https://passiveapp.io) | [ok] | - | - |
-| [new] | [**Salad**](https://salad.com) | [ok] | [x] | - |
-| [new] | [**UpRock**](https://uprock.com) | [ok] | - | - |
-| [x] | [**Dawn Internet**](https://dawninternet.com?code=xo23vynw) | [ok] | - | - |
-| [x] | [**Gradient**](https://app.gradient.network/signup?code=9WOBKP) | [ok] | - | - |
-| [x] | [**Grass (Wynd Network)**](https://app.getgrass.io/register/?referralCode=qyvJmxgNUhcLo2f) | [ok] | [x] | GRASS token (crypto) |
-| [x] | [**Peer2Profit**](https://t.me/peer2profit_app_bot?start=165849012262da8d0aa13c8) | - | - | - |
-| [x] | [**ProxyBase**](http://peer.proxybase.org/signup?ref=XfOz3zeURm) | - | - | - |
-| [x] | [**SpeedShare**](https://speedshare.app/?ref=mindlessnerd) | - | - | - |
-| [x] | [**Teneo Protocol**](https://dashboard.teneo.pro/?code=qPgLn) | [ok] | - | - |
-| [x] | [**Wipter**](https://wipter.com/signup?ref=money4band) | - | - | - |
-| [x] | [**WizardGain**](https://wizardgain.com) | [ok] | [ok] | - |
+| [x] | **BearShare** | [ok] | - | - |
+| [x] | **PacketShare** | [ok] | - | - |
 <!-- END:APPS_TABLE -->
 
 > **[Registration links, earnings estimates, and full details](docs/APPS.md)**
+
+### Apps you install yourself
+
+Run EarnApp directly on an eligible personal device using the provider's
+installer. See the [standalone apps list](docs/APPS.md#standalone-apps).
 
 ---
 
@@ -212,21 +199,17 @@ Contributions are welcome! Please read the [Contributing Guide](.github/CONTRIBU
 
 ---
 
-<details>
-<summary><b>Support the Project</b></summary>
+## Support
 
-If M4B saves you time or earns you money, consider giving back. Every bit helps keep this project alive.
+Ko-fi supports Mattia / MrColorRain's work across projects.
 
-**Crypto:**
-- **BTC:** `1EzBrKjKyXzxydSUNagAP8XLeRzBTxfHcg`
-- **ETH:** `0xE65c32004b968cd1b4084bC3484C0dA051eeD3ee`
-- **SOL:** `6kUAWW8q5169qnUJdxxLsNMPpaKPvbUSmryKDYTb9epn`
-- **BNB:** `0xE65c32004b968cd1b4084bC3484C0dA051eeD3ee`
+Support ongoing development, testing and documentation through
+[Ko-fi](https://ko-fi.com/mrcolorrain). One-time contributions and monthly
+memberships are welcome, and you can pledge above a tier's minimum.
+Technical decisions remain independent.
 
-**Platforms:**
-[Patreon](https://patreon.com/mrcolorrain) - [Buy Me a Coffee](https://buymeacoffee.com/mrcolorrain) - [Ko-fi](https://ko-fi.com/mrcolorrain)
-
-</details>
+See the [supporters and sponsors directory](https://github.com/MRColorR/MRColorR/blob/main/SPONSORS.md)
+for acknowledgments.
 
 ---
 

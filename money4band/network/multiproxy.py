@@ -332,7 +332,7 @@ def setup_multiproxy_instances(
                 )
 
     for i, proxy in enumerate(proxies):
-        logger.info(f"Creating instance {i + 1}/{len(proxies)} with proxy: {proxy}")
+        logger.info("Creating proxy instance %d/%d", i + 1, len(proxies))
         instance_user_config = deepcopy(user_config)
         instance_m4b_config = deepcopy(m4b_config)
         instance_app_config = deepcopy(app_config)
@@ -448,7 +448,7 @@ def setup_multiproxy_instances(
         instance_m4b_config_path = os.path.join(instance_dir, "m4b-config.json")
         instance_app_config_path = os.path.join(instance_dir, "app-config.json")
 
-        write_json(instance_user_config, instance_user_config_path)
+        write_json(instance_user_config, instance_user_config_path, encrypt=True)
         write_json(instance_m4b_config, instance_m4b_config_path)
         write_json(instance_app_config, instance_app_config_path)
 

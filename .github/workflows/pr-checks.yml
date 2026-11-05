@@ -2,9 +2,9 @@ name: PR Checks
 
 on:
   pull_request:
-    branches: [main, "phase-*"]
+    branches: [main, "release/v5", "phase-*"]
   push:
-    branches: [main]
+    branches: [main, "release/v5"]
 
 permissions:
   contents: read
@@ -32,7 +32,7 @@ jobs:
         with:
           python-version: "3.13"
       - run: uv sync --frozen
-      - run: uv run python scripts/update_tables.py --check
+      - run: uv run --locked python scripts/update_tables.py --core-only --check
 
   secrets:
     name: Credential scan

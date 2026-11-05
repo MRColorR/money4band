@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
 
 import pytest
@@ -87,6 +88,23 @@ class TestLocalSource:
         src = LocalSource(path=str(abs_catalog))
         out = src.load(config_with_bundles)
         assert {e["name"] for e in out["supported"]} == {"ALPHA", "BETA"}
+
+    def test_frozen_release_hides_retired_entry_from_old_builtin_catalog(
+        self, config_with_bundles: Path, tmp_path: Path, monkeypatch
+    ) -> None:
+        bundle = tmp_path / "bundle"
+        write_entry(
+            {"name": "ALPHA", "additional_details": "Removed by the new release"},
+            bundle / "config" / "m4b-config.json",
+            "deprecated",
+        )
+        monkeypatch.setattr(sys, "_MEIPASS", str(bundle), raising=False)
+
+        entries = LocalSource(path="catalog", name="builtin").load(config_with_bundles)
+
+        assert [entry["name"] for entry in entries["supported"]] == ["BETA"]
+        assert {entry["name"] for entry in entries["deprecated"]} == {"ALPHA", "OMEGA"}
+        assert (config_with_bundles.parent / "catalog/supported/ALPHA.json").is_file()
 
     def test_load_missing_dir_returns_empty(self, tmp_path: Path) -> None:
         config_path = tmp_path / "config" / "app-config.json"

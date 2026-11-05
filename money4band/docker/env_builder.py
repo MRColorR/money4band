@@ -194,7 +194,7 @@ def _write_secure(path: str, content: str) -> None:
     """Write *content* to *path* with owner-only (0o600) permissions."""
     fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
     try:
-        with os.fdopen(fd, "w") as f:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
             f.write(content)
     except BaseException:
         try:
@@ -237,7 +237,7 @@ def write_env_metadata(env_lines: list[str], env_dir: str) -> None:
     """
     meta_lines = [line for line in env_lines if line.split("=", 1)[0] in _META_KEYS]
     meta_path = os.path.join(env_dir, ".env.meta")
-    with open(meta_path, "w") as f:
+    with open(meta_path, "w", encoding="utf-8") as f:
         f.write("# Auto-generated - non-sensitive metadata only.\n")
         f.write("\n".join(meta_lines) + "\n")
     logger.debug("Wrote env metadata to %s", meta_path)

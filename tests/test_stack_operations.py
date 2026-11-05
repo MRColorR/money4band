@@ -191,9 +191,14 @@ class TestStopStack:
 class TestStopAllStacks:
     @patch("money4band.docker.stop.input", return_value="")
     @patch("money4band.docker.stop.stop_stack", return_value=True)
-    def test_stops_main_and_instances(self, mock_stop, _input, tmp_path: Path) -> None:
+    def test_stops_main_and_instances(
+        self, mock_stop, _input, tmp_path: Path, monkeypatch
+    ) -> None:
         from money4band.docker.stop import stop_all_stacks
 
+        monkeypatch.setattr(
+            "money4band.docker.stop.is_user_in_docker_group", lambda: True
+        )
         compose = tmp_path / "docker-compose.yaml"
         compose.write_text(yaml.dump({"services": {}}))
         instances = tmp_path / "instances"

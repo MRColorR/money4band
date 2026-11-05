@@ -213,8 +213,9 @@ def _action_start_background_web(config_dir: str, port: int) -> None:
             f"\n{Fore.GREEN}Dashboard + API running in background "
             f"(PID {pid}), web-exposed.{Style.RESET_ALL}"
         )
-        print(f"  Dashboard: http://0.0.0.0:{port}/")
-        print(f"  API docs:  http://0.0.0.0:{port}/api/docs")
+        print(f"  Dashboard: http://localhost:{port}/")
+        print(f"  API docs:  http://localhost:{port}/api/docs")
+        print("  From another device, use this machine's IP address in the URL.")
         if api_key:
             print(f"  API key:   {api_key}")
     else:

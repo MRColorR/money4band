@@ -14,8 +14,8 @@
 
 ## Option A - Download the Binary (Recommended)
 
-1. Go to **[Releases](https://github.com/MRColorR/money4band/releases/latest)** and
-   download the asset for your platform:
+1. Select the v5 release on **[Releases](https://github.com/MRColorR/money4band/releases)**
+   and download the executable for your platform.
 
    | Platform | Asset |
    |----------|-------|
@@ -29,8 +29,9 @@
    Check your architecture with `uname -m` (`x86_64` = amd64, `aarch64` = arm64,
    `armv7l` = armv7). On Windows: **Settings > System > About > System type**.
 
-2. Put it in its own directory. First run creates `config/`, `template/` and
-   `.m4b/` next to the executable.
+2. Put the executable in its own directory. First run creates `config/`,
+   `template/` and `.m4b/` next to it. Choose the separate source ZIP if
+   you want an archive.
 
 3. Run it.
 
@@ -144,13 +145,24 @@ git clone https://github.com/MRColorR/money4band.git
 cd money4band
 
 # Using uv (recommended)
-uv sync
-uv run python main.py
+uv sync --locked
+uv run --locked python main.py
 
 # Or using pip
 pip install -r requirements.txt
 python main.py
 ```
+
+## Upgrade an existing installation
+
+For a v5 binary upgrade, stop the old stack and dashboard, back up the
+installation directory, and replace the executable with the verified file for
+your platform. Keep the existing configuration and encryption key with the
+installation. Then follow the catalog refresh steps in
+[App Management](app-management.md#removed-apps).
+
+If you are coming from v4, back up the v4 directory and install v5 in its own
+directory. Use the v5 setup wizard to configure the apps you still use.
 
 ## First-Time Setup
 

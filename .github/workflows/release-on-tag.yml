@@ -106,7 +106,7 @@ jobs:
       - name: Update app tables
         if: matrix.docker_platform == ''
         shell: bash
-        run: uv run python scripts/update_tables.py
+        run: uv run --locked python scripts/update_tables.py --core-only
 
       # Defence in depth: --add-data bundles config/ wholesale, so any
       # local user state present at build time would ship inside the

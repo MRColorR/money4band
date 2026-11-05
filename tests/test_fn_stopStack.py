@@ -338,8 +338,11 @@ class TestStopProxyInstances:
     @patch("money4band.docker.stop.stop_proxy_instances", return_value=False)
     @patch("money4band.docker.stop.stop_stack", return_value=True)
     def test_stop_all_reports_instance_failure(
-        self, mock_main_stop, mock_instances, _pause
+        self, mock_main_stop, mock_instances, _pause, monkeypatch
     ) -> None:
+        monkeypatch.setattr(
+            "money4band.docker.stop.is_user_in_docker_group", lambda: True
+        )
         # Main stack stops cleanly but an instance fails -> overall False.
         result = stop_all_stacks(skip_questions=True)
         assert result is False

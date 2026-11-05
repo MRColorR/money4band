@@ -7,7 +7,7 @@ from urllib.parse import urlparse
 logger = logging.getLogger(__name__)
 
 # Accepted proxy protocols for tun2socks / SOCKS / HTTP tunnels.
-ACCEPTED_PROXY_PROTOCOLS = frozenset({"http", "https", "socks4", "socks5", "socks5h"})
+ACCEPTED_PROXY_PROTOCOLS = frozenset({"http", "socks4", "socks5"})
 
 
 def is_port_in_use(port: int) -> bool:
@@ -79,11 +79,15 @@ def validate_proxy_url(url: str) -> tuple[bool, str]:
     if not parsed.hostname:
         return False, "Missing hostname in proxy URL."
 
-    if not parsed.port:
+    try:
+        port = parsed.port
+    except ValueError:
+        return False, "Proxy port must be an integer from 1 to 65535."
+    if port is None:
         return False, "Missing port in proxy URL."
 
-    if not 1 <= parsed.port <= 65535:
-        return False, f"Port {parsed.port} outside valid range (1-65535)."
+    if not 1 <= port <= 65535:
+        return False, "Proxy port must be an integer from 1 to 65535."
 
     return True, ""
 

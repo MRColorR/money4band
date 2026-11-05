@@ -375,28 +375,37 @@ def _restore_preserved_files(
         os.chmod(full_path, mode)
 
 
+def _release_tags(target_version: str) -> tuple[str, str]:
+    version = target_version.removeprefix("v")
+    return f"v{version}", version
+
+
 def _apply_git_update(target_version: str) -> bool:
-    """Update via git fetch + reset for git clone installs."""
-    tag = f"v{target_version}" if not target_version.startswith("v") else target_version
+    """Update via git fetch + checkout for git clone installs."""
 
     saved = _backup_preserved_files(parent_dir)
 
+    for tag in _release_tags(target_version):
+        ref = f"refs/tags/{tag}"
+        try:
+            subprocess.run(
+                ["git", "fetch", "--depth=1", "origin", f"+{ref}:{ref}"],
+                cwd=parent_dir,
+                check=True,
+                capture_output=True,
+                text=True,
+            )  # noqa: S603
+        except subprocess.CalledProcessError as exc:
+            logger.debug("Could not fetch %s: %s", ref, exc.stderr)
+        else:
+            break
+    else:
+        logger.error("Could not fetch a release tag for %s", target_version)
+        return False
+
     try:
         subprocess.run(
-            [
-                "git",
-                "fetch",
-                "--depth=1",
-                "origin",
-                f"+refs/tags/{tag}:refs/tags/{tag}",
-            ],
-            cwd=parent_dir,
-            check=True,
-            capture_output=True,
-            text=True,
-        )  # noqa: S603
-        subprocess.run(
-            ["git", "checkout", tag],
+            ["git", "checkout", "--detach", ref],
             cwd=parent_dir,
             check=True,
             capture_output=True,
@@ -458,7 +467,6 @@ def _apply_binary_update(target_version: str) -> bool:
     alongside each release (``checksums.sha256``).  Falls back to
     an unverified install with a warning if no checksum file is available.
     """
-    tag = f"v{target_version}" if not target_version.startswith("v") else target_version
     asset_name = _get_binary_asset_name()
     if asset_name is None:
         logger.error(
@@ -470,20 +478,27 @@ def _apply_binary_update(target_version: str) -> bool:
             _REPO,
         )
         return False
-    url = f"https://github.com/{_OWNER}/{_REPO}/releases/download/{tag}/{asset_name}"
-    checksum_url = (
-        f"https://github.com/{_OWNER}/{_REPO}/releases/download/{tag}/checksums.sha256"
-    )
-
     client = get_client()
+    preferred_tag, alternate_tag = _release_tags(target_version)
+    releases_url = f"https://github.com/{_OWNER}/{_REPO}/releases/download"
     try:
-        resp = client.get(url, timeout=http_client.REQUEST_TIMEOUT)
+        tag = preferred_tag
+        resp = client.get(
+            f"{releases_url}/{tag}/{asset_name}", timeout=http_client.REQUEST_TIMEOUT
+        )
+        if resp.status_code == httpx.codes.NOT_FOUND:
+            tag = alternate_tag
+            resp = client.get(
+                f"{releases_url}/{tag}/{asset_name}",
+                timeout=http_client.REQUEST_TIMEOUT,
+            )
         resp.raise_for_status()
     except httpx.HTTPError as e:
         logger.error("Binary download failed: %s", e)
         return False
 
     # Try to fetch the checksum file for integrity verification.
+    checksum_url = f"{releases_url}/{tag}/checksums.sha256"
     expected_hash: str | None = None
     try:
         cs_resp = client.get(checksum_url, timeout=http_client.REQUEST_TIMEOUT)

@@ -30,6 +30,7 @@ Two concrete sources are shipped:
 from __future__ import annotations
 
 import logging
+import sys
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any
@@ -125,7 +126,24 @@ class LocalSource(CatalogSource):
         if not root.is_dir():
             logger.debug("Local catalog root missing: %s", root)
             return {cat: [] for cat in CATEGORIES}
-        return {cat: read_entries_dir(root, cat) for cat in CATEGORIES}
+        entries = {cat: read_entries_dir(root, cat) for cat in CATEGORIES}
+        bundle_dir = getattr(sys, "_MEIPASS", None)
+        if self.name == "builtin" and self.path == "catalog" and bundle_dir:
+            # A one-file update replaces the executable while keeping the
+            # original catalog on disk. Apply its bundled retirements on read.
+            retired = read_entries_dir(
+                Path(bundle_dir) / "config" / "catalog", "deprecated"
+            )
+            retired = [entry for entry in retired if isinstance(entry.get("name"), str)]
+            retired_names = {entry["name"].upper() for entry in retired}
+            for category in CATEGORIES:
+                entries[category] = [
+                    entry
+                    for entry in entries[category]
+                    if str(entry.get("name", "")).upper() not in retired_names
+                ]
+            entries["deprecated"].extend(retired)
+        return entries
 
     def load_addons(self, config_path: str | Path) -> list[dict[str, Any]]:
         if not self.enabled:

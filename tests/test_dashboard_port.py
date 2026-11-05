@@ -326,6 +326,8 @@ class TestRunDashboardCommand:
             out = capsys.readouterr().out
             assert "WARNING" in out
             assert "Bearer" in out
+            assert "http://localhost:8088/" in out
+            assert "http://0.0.0.0:" not in out
 
     def test_localhost_no_security_warning(self, capsys):
         with (

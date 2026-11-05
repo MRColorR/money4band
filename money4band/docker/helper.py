@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import getpass
+import locale
 import logging
 import os
 import platform
@@ -41,21 +42,26 @@ def read_env_var(env_file: str, key: str) -> str | None:
 
     # Try .env first, then fall back to .env.meta (persists after secure delete).
     meta_file = os.path.join(os.path.dirname(os.path.abspath(env_file)), ".env.meta")
-    prefix = f"{key}="
+    prefix = f"{key}=".encode()
 
     for candidate in (env_file, meta_file):
         try:
             if os.path.isfile(candidate):
-                with open(candidate) as f:
+                with open(candidate, "rb") as f:
                     for line in f:
                         if line.startswith(prefix):
                             from money4band.docker.env_builder import (
                                 decode_env_value,
                             )
 
-                            value = decode_env_value(line.strip().split("=", 1)[1])
-                            logger.info("Found %s in %s: %s", key, candidate, value)
-                            return value
+                            raw = line[len(prefix) :]
+                            try:
+                                encoded = raw.decode("utf-8")
+                            except UnicodeDecodeError:
+                                # Older Windows builds wrote with the locale codec.
+                                encoded = raw.decode(locale.getpreferredencoding(False))
+                            logger.debug("Found %s in %s", key, candidate)
+                            return decode_env_value(encoded.rstrip())
         except Exception as e:
             logger.error("Error reading %s from %s: %s", key, candidate, e)
 

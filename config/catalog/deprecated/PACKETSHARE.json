@@ -1,6 +1,5 @@
 {
     "name": "PACKETSHARE",
-    "dashboard": "https://packetshare.io/ucenter.html",
     "compose_config": {
         "container_name": "${DEVICE_NAME}_packetshare",
         "hostname": "${DEVICE_NAME}_packetshare",
@@ -49,7 +48,7 @@
         "publisher": "PacketShare",
         "official_url": "https://packetshare.io",
         "tos_url": "undocumented",
-        "status": "active",
+        "status": "deprecated",
         "device_limits": {
             "max_devices_per_account": "undocumented",
             "max_devices_per_ip": "undocumented",
@@ -71,7 +70,7 @@
         },
         "docker": {
             "image_official": true,
-            "image_maintained": "unknown",
+            "image_maintained": "undocumented",
             "last_update": "unknown"
         },
         "earnings": {
@@ -91,24 +90,19 @@
         "sources": [
             "https://essay.utwente.nl/fileshare/file/108490/thesis-1.pdf"
         ],
-        "last_verified": "2026-03-21",
         "compose_layer_reasoning": "Insufficient official documentation to confirm IP type policy. Community evidence suggests residential focus. Conservative residential classification applied.",
         "install_limit_reasoning": "Very sparse official documentation. No official limits found.",
-        "recommendation": "keep",
-        "recommendation_reasoning": "Residential layer and unlimited limit kept. Low confidence - needs re-verification when more docs become available.",
+        "recommendation": "remove",
+        "recommendation_reasoning": "Removed from the built-in catalog. Neither published Docker tag provides a linux/amd64 image and the public signup site failed to respond.",
         "confidence_notes": "Only academic thesis reference found. Official documentation is extremely sparse."
     },
-    "referrals": [
-        {
-            "url": "https://www.packetshare.io/?code=A260871CFD822E35",
-            "contributor": "MRColorR"
-        }
-    ],
+    "referrals": [],
     "user_config_template": {
         "enabled": false,
         "email": "yourPACKETSHAREMail",
         "password": "yourPACKETSHAREPw",
         "service_enabled": false
     },
-    "profile": "residential"
+    "profile": "residential",
+    "additional_details": "Removed from the built-in catalog. Neither published Docker tag provides a linux/amd64 image and the public signup site failed to respond."
 }

@@ -218,17 +218,24 @@ class TestProxyValidation(unittest.TestCase):
         ok, _ = validate_proxy_url("socks5://10.0.0.1:1080")
         self.assertTrue(ok)
 
-    def test_valid_socks5h_proxy(self):
+    def test_rejects_unsupported_socks5h_transport(self):
         ok, _ = validate_proxy_url("socks5h://user:pass@proxy.example.com:9050")
-        self.assertTrue(ok)
+        self.assertFalse(ok)
 
     def test_valid_socks4_proxy(self):
         ok, _ = validate_proxy_url("socks4://192.168.1.1:1080")
         self.assertTrue(ok)
 
-    def test_valid_https_proxy(self):
+    def test_rejects_unsupported_https_transport(self):
         ok, _ = validate_proxy_url("https://proxy.example.com:443")
-        self.assertTrue(ok)
+        self.assertFalse(ok)
+
+    def test_rejects_invalid_proxy_ports(self):
+        for port in ("0", "65536", "not-a-port"):
+            with self.subTest(port=port):
+                ok, reason = validate_proxy_url(f"socks5://proxy.example.com:{port}")
+                self.assertFalse(ok)
+                self.assertIn("port", reason.lower())
 
     def test_valid_with_special_chars_in_password(self):
         ok, _ = validate_proxy_url("http://user:p%40ss%23@host.com:3128")
@@ -297,8 +304,7 @@ class TestProxyValidation(unittest.TestCase):
         self.assertIsInstance(ACCEPTED_PROXY_PROTOCOLS, frozenset)
 
     def test_all_expected_protocols_present(self):
-        for proto in ("http", "https", "socks4", "socks5", "socks5h"):
-            self.assertIn(proto, ACCEPTED_PROXY_PROTOCOLS)
+        self.assertEqual(ACCEPTED_PROXY_PROTOCOLS, {"http", "socks4", "socks5"})
 
 
 class TestProxyConnectivity(unittest.TestCase):

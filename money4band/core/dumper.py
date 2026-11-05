@@ -11,15 +11,16 @@ from money4band.core.crypto import encrypt_dict, is_file_encrypted
 logger = logging.getLogger(__name__)
 
 
-def write_json(data: dict[str, Any], filename: str) -> None:
+def write_json(data: dict[str, Any], filename: str, *, encrypt: bool = False) -> None:
     """Atomically write *data* to a JSON file.
 
     Uses write-to-temp + ``os.replace`` to prevent corruption on crash or
-    power loss.  If *filename* already exists and is encrypted, the new data
-    is written back in encrypted form.
+    power loss. Encrypt when requested or when replacing an encrypted file.
     """
     try:
-        should_encrypt = os.path.isfile(filename) and is_file_encrypted(filename)
+        should_encrypt = encrypt or (
+            os.path.isfile(filename) and is_file_encrypted(filename)
+        )
 
         dir_name = os.path.dirname(os.path.abspath(filename))
         fd, tmp_path = tempfile.mkstemp(dir=dir_name, suffix=".tmp")

@@ -6,15 +6,13 @@
 
 ## App Catalog
 
-M4B core ships with **15 passive-income apps**, all in the supported
-category. A default install (no remote sources enabled) shows exactly
-these 15:
+The built-in catalog includes 13 supported apps and two removed entries.
 
 | Category | Count | Description |
 |----------|-------|-------------|
-| **Supported** | 15 | Active, tested apps with official Docker images - included in setup |
+| **Supported** | 13 | Included in default setup |
 | **Newcomers** *(candidate)* | 0 | Empty by default - populated by opt-in remote sources |
-| **Deprecated** | 0 | Empty by default - populated by opt-in remote sources |
+| **Deprecated** | 2 | BearShare and PacketShare are excluded from default setup |
 
 > The internal category key for *Candidate* apps is `newcomers`; the CLI
 > surface accepts `candidate` (user-facing) while the on-disk layout and
@@ -38,6 +36,53 @@ m4b apps honeygain               # detailed info card for one app
 Interactively, the **App Catalog** screen also exposes a `m` shortcut to
 **manage category status** - toggle `newcomers` / `deprecated` on or off
 so they appear during `m4b setup`.
+
+### Removed apps
+
+- BearShare's old signup domain does not resolve. The domain listed by its
+  Docker publisher serves a registrar verification page. Its amd64 image
+  still opens its CLI help.
+- PacketShare's published tags lack a Linux amd64 image. Its 386 and arm64
+  images reach the client prompt, but the publisher's registration and
+  dashboard URLs failed the availability check.
+
+These checks establish why both apps are excluded from default setup.
+Their providers' shutdown status is unconfirmed.
+
+After upgrading an existing deployment, stop the previous stack, run
+`m4b generate`, and start it again. Recreate saved multi-proxy instances
+from the updated catalog to refresh their generated Compose files.
+
+### Standalone apps
+
+EarnApp belongs in the [standalone apps list](APPS.md#standalone-apps).
+EarnApp prohibits Docker and proxy use. If an older copy of the community
+catalog still shows EarnApp, disable that entry, stop any stack running it,
+and regenerate the Compose files before restarting the stack.
+[Docker policy](https://help.earnapp.com/hc/en-us/articles/10199416541969--Can-I-install-EarnApp-on-Hosting-Services-Virtual-Machines-or-Dockers)
+[Proxy policy](https://help.earnapp.com/hc/en-us/articles/10199339150609--Can-I-use-Proxies-or-VPNs-with-EarnApp)
+
+### Provider onboarding
+
+AntGain needs the API key from Account Settings. The Docker client generates
+its own device ID and persists it in its data directory. Keep
+`.data/.antgain` when recreating the service.
+[AntGain Docker instructions](https://hub.docker.com/r/pinors/antgain-cli)
+
+URnetwork requires a one-time Docker authorization for each provider state
+directory. From the stack directory, create `.data/.urnetwork` if needed and
+run the following command before starting the stack. Run it from each instance
+directory for separate multi-proxy devices.
+
+```sh
+docker run --rm -it -v "./.data/.urnetwork:/root/.urnetwork" bringyour/community-provider:g4-latest auth
+```
+
+The provider reads the authorization from that mount on later starts.
+For binary installations upgraded in place from 5.0.0, update
+`config/catalog/supported/URNETWORK.json` with the bundle from the new
+release's source ZIP before regenerating.
+[URnetwork container instructions](https://hub.docker.com/r/bringyour/community-provider)
 
 ### Catalog sources
 
@@ -288,7 +333,7 @@ is enabled AND the user opted in.
 > **not shipped in the core Money4Band catalog** because they bypass the
 > daily reward flow the host service expects. They live in the opt-in
 > [community catalog](https://github.com/MRColorR/money4band-community-catalog)
-> alongside EarnApp. Run `m4b catalog enable community` if you want them.
+> and require enabling that catalog.
 
 ### Addon bundle shape
 

@@ -1655,7 +1655,7 @@ def _setup_logging(args: argparse.Namespace) -> None:
 
     # Rotating file handler - captures everything at the configured level
     rotating_handler = RotatingFileHandler(
-        log_file_path, maxBytes=1 * 1024 * 1024, backupCount=3
+        log_file_path, maxBytes=1 * 1024 * 1024, backupCount=3, encoding="utf-8"
     )
     rotating_handler.setLevel(log_level)
 

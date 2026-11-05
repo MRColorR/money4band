@@ -4,7 +4,7 @@
     "compose_config": {
         "container_name": "${DEVICE_NAME}_urnetwork",
         "hostname": "${DEVICE_NAME}_urnetwork",
-        "image": "bringyour/community-provider:latest",
+        "image": "bringyour/community-provider:g4-latest",
         "command": "provide",
         "labels": [
             "com.centurylinklabs.watchtower.enable=true",
@@ -40,8 +40,8 @@
         "hostname": null
     },
     "flags": {
-        "auth_token": {
-            "claimURLBase": "Requires initial 'docker run --rm -it bringyour/community-provider:latest auth' to generate JWT token. Copy the token to UR_AUTH_TOKEN."
+        "manual": {
+            "instructions": "Run the URnetwork Docker auth command in the Money4Band app-management guide before starting this app. Authenticate using the same .data/.urnetwork directory mounted by its provider container."
         }
     },
     "install_limit": -1,
@@ -90,7 +90,9 @@
         "recommendation_reasoning": "Promoted to supported. Docker image verified on Docker Hub.",
         "confidence": "low",
         "confidence_notes": "Limited external validation. Requires deeper research before promoting to supported.",
-        "sources": [],
+        "sources": [
+            "https://hub.docker.com/r/bringyour/community-provider"
+        ],
         "last_verified": "2026-03-23"
     },
     "referrals": [
@@ -100,8 +102,7 @@
         }
     ],
     "user_config_template": {
-        "enabled": false,
-        "auth_token": "yourURNETWORKAuthToken"
+        "enabled": false
     },
     "profile": "universal"
 }

@@ -3,6 +3,19 @@
 All notable changes to this project are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [5.0.1]
+
+- Fixed Compose environment encoding on Windows and added a way to skip
+  the current app during credential setup.
+- Fixed dashboard links for web-exposed mode and self-update for release
+  tags with or without a `v` prefix.
+- Fixed proxy rotation to restart both single and multiple stacks with their
+  enabled Compose profiles. New and updated proxy instance configs are
+  written encrypted. Setup rejects URL schemes the bundled tunnel cannot use.
+- Moved BearShare and PacketShare out of default setup after onboarding
+  checks failed. Listed EarnApp separately as a native installation.
+- Corrected URnetwork authorization and TraffMonetizer's residential profile.
+
 ## [5.0.0]
 
 Major rewrite: config-driven CLI + optional web dashboard, replacing the

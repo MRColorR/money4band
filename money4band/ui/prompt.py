@@ -87,7 +87,6 @@ def ask_string(prompt: str, default: str = "", show_default: bool = True) -> str
         ):  # As default is empty if not specified then we throw this error
             print(f"{Fore.RED}Input cannot be empty.{Style.RESET_ALL}")
             continue
-        logger.debug(f"User response to '{prompt}': {response}")
         return response
 
 

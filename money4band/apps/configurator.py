@@ -225,12 +225,13 @@ def _configure_apps(
 
     for app in apps:
         app_name = app["name"].lower()
-        config = user_config["apps"].get(app_name, {})
+        config = user_config["apps"].get(app_name, {}).copy()
         cls()
         if config.get("enabled"):
             print(f"The app {app_name} is currently enabled.")
             if ask_question_yn("Do you want to disable it?"):
                 config["enabled"] = False
+                user_config["apps"][app_name] = config
                 continue
             print(f"Do you want to change the current {app_name} configuration?")
             for key, value in config.items():
@@ -243,6 +244,7 @@ def _configure_apps(
             f"Do you want to run {app['name'].title()}?"
         )
         if not config["enabled"]:
+            user_config["apps"][app_name] = config
             continue
         referrals = app.get("referrals") or []
         primary_link = (
@@ -256,12 +258,17 @@ def _configure_apps(
         print(
             f"{Fore.GREEN}Use CTRL+Click to open links or copy them:{Style.RESET_ALL}"
         )
-        input(f"\nPress {Fore.CYAN}Enter{Style.RESET_ALL} to continue...")
-        for flag_name, flag_config in app.get("flags", {}).items():
-            if flag_name in flag_function_mapper:
-                flag_function_mapper[flag_name](app, flag_config, config)
-            else:
-                logger.error(f"Flag {flag_name} not recognized")
+        print("Press Ctrl+C during credential entry to skip this app.")
+        try:
+            input(f"\nPress {Fore.CYAN}Enter{Style.RESET_ALL} to continue...")
+            for flag_name, flag_config in app.get("flags", {}).items():
+                if flag_name in flag_function_mapper:
+                    flag_function_mapper[flag_name](app, flag_config, config)
+                else:
+                    logger.error(f"Flag {flag_name} not recognized")
+        except KeyboardInterrupt:
+            print(f"\nSkipped {app_name}. Previous settings kept.")
+            continue
 
         # Port configuration with unified offset logic (instance 0 = main)
         if "ports" in app["compose_config"]:

@@ -10,6 +10,7 @@ from colorama import Fore, Style, just_fix_windows_console
 from money4band.core.dumper import write_json
 from money4band.core.loader import load_json_config
 from money4band.docker.generator import assemble_docker_compose, generate_env_file
+from money4band.docker.helper import get_active_profiles
 from money4band.docker.start import start_all_stacks
 from money4band.docker.stop import stop_all_stacks
 from money4band.network.networker import validate_proxy_list
@@ -93,7 +94,7 @@ def update_multiproxy_instances(
         return
 
     # Load proxies from file
-    with open(proxies_file) as file:
+    with open(proxies_file, encoding="utf-8-sig") as file:
         proxies = [line.strip() for line in file if line.strip()]
 
     if not proxies:
@@ -110,45 +111,45 @@ def update_multiproxy_instances(
 
     # Validate proxy URLs before proceeding
     validation = validate_proxy_list(proxies, check_connectivity=True, timeout=5.0)
-    invalid = [r for r in validation if not r["valid"]]
-    unreachable = [r for r in validation if r["valid"] and r["reachable"] is False]
+    invalid = [(i, r) for i, r in enumerate(validation, 1) if not r["valid"]]
+    unreachable = [
+        (i, r)
+        for i, r in enumerate(validation, 1)
+        if r["valid"] and r["reachable"] is False
+    ]
     if invalid:
         print(f"\n{Fore.RED}Invalid proxy URLs:{Style.RESET_ALL}")
-        for r in invalid:
-            print(f"  {Fore.RED}X{Style.RESET_ALL} {r['url']} - {r['reason']}")
+        for index, r in invalid:
+            print(f"  {Fore.RED}X{Style.RESET_ALL} Entry {index} - {r['reason']}")
         print(
             f"\n{Fore.RED}Fix the invalid proxies before proceeding.{Style.RESET_ALL}"
         )
         return
     if unreachable:
         print(f"\n{Fore.YELLOW}Unreachable proxies:{Style.RESET_ALL}")
-        for r in unreachable:
-            print(f"  {Fore.YELLOW}!{Style.RESET_ALL} {r['url']} - {r['reason']}")
+        for index, r in unreachable:
+            print(f"  {Fore.YELLOW}!{Style.RESET_ALL} Entry {index} - {r['reason']}")
         if not ask_question_yn(
             "Some proxies are unreachable. Continue anyway?", default=False
         ):
             print("Operation canceled.")
             return
 
-    stop_all_stacks(skip_questions=True)
+    if not stop_all_stacks(instances_dir=instances_dir, skip_questions=True):
+        print(
+            f"{Fore.RED}Could not stop all stacks. Proxies were not changed.{Style.RESET_ALL}"
+        )
+        return
 
     try:
-        logger.info(f"Updating main instance proxy with {proxies[0]}")
-        print(
-            f"{Fore.GREEN}Updating main instance proxy with {proxies[0]}{Style.RESET_ALL}"
-        )
         user_config = load_json_config(user_config_path)
-        old_proxy = user_config.get("proxies", {}).get("url", "None")
         new_proxy = proxies.pop(0)
         user_config["proxies"]["url"] = new_proxy
         user_config["proxies"]["enabled"] = True
 
         write_json(user_config, user_config_path)
 
-        logger.info(f"Updated main instance proxy URL: {old_proxy} -> {new_proxy}")
-        print(
-            f"{Fore.GREEN}Updated main instance proxy URL: {old_proxy} -> {new_proxy}{Style.RESET_ALL}"
-        )
+        print(f"{Fore.GREEN}Updated the main instance proxy.{Style.RESET_ALL}")
 
         # app_config_path aliases m4b-config.json: aggregate it via the
         # overlay loader, or the regenerated compose/.env drop every app.
@@ -165,7 +166,11 @@ def update_multiproxy_instances(
             is_main_instance=True,
         )
         generate_env_file(
-            m4b_config_path, app_config, user_config_path, env_output_path="./.env"
+            m4b_config_path,
+            app_config,
+            user_config_path,
+            env_output_path="./.env",
+            is_main_instance=True,
         )
     except Exception as e:
         logger.error(f"Failed to update main instance proxy: {str(e)}")
@@ -179,13 +184,7 @@ def update_multiproxy_instances(
         os.makedirs(instances_dir, exist_ok=True)
 
     # Check if there are any instances in the instances directory.
-    instances = os.listdir(instances_dir)
-    if not instances:
-        logger.error(f"No instances found in instances directory '{instances_dir}'.")
-        print(
-            f"{Fore.RED}No instances found in instances directory '{instances_dir}'. Please setup instances by following the main setup first.{Style.RESET_ALL}"
-        )
-        return
+    instances = sorted(os.listdir(instances_dir))
     # Tell the user how many instances are in the instances directory.
     logger.info(f"Found {len(instances)} instances in '{instances_dir}'.")
     print(
@@ -227,20 +226,16 @@ def update_multiproxy_instances(
         instance_user_config = load_json_config(instance_user_config_path)
 
         # Update proxy URL
-        old_proxy = instance_user_config.get("proxies", {}).get("url", "None")
         new_proxy = proxies.pop(0)
         instance_user_config["proxies"]["url"] = new_proxy
         instance_user_config["proxies"]["enabled"] = True
 
         # Write updated user-config
-        write_json(instance_user_config, instance_user_config_path)
+        write_json(instance_user_config, instance_user_config_path, encrypt=True)
 
         # Log the update
-        logger.info(
-            f"Updated instance '{instance}' proxy URL: {old_proxy} -> {new_proxy}"
-        )
         print(
-            f"{Fore.GREEN}Updated instance '{instance}' proxy URL: {old_proxy} -> {new_proxy}{Style.RESET_ALL}"
+            f"{Fore.GREEN}Updated the proxy for instance '{instance}'.{Style.RESET_ALL}"
         )
 
         # Regenerate docker-compose.yaml and .env files for the instance
@@ -260,10 +255,16 @@ def update_multiproxy_instances(
         time.sleep(sleep_time)
 
     # Start all stacks
-    start_all_stacks(skip_questions=True)
+    profiles = tuple(get_active_profiles(user_config, app_config))
+    if not start_all_stacks(
+        instances_dir=instances_dir, skip_questions=True, profiles=profiles
+    ):
+        print(
+            f"{Fore.RED}The new proxies were saved, but stack startup failed.{Style.RESET_ALL}"
+        )
+        return
 
-    print(f"{Fore.GREEN}Multiproxy instances updated successfully.{Style.RESET_ALL}")
-    logger.info("Multiproxy instances updated successfully.")
+    print(f"{Fore.GREEN}Proxy settings updated and stacks started.{Style.RESET_ALL}")
 
 
 def _install_limits_status_label(user_config_path: str) -> str:

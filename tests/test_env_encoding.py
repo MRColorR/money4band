@@ -13,6 +13,7 @@ import pytest
 from money4band.docker.env_builder import (
     build_env_lines,
     decode_env_value,
+    ephemeral_env_file,
     format_env_value,
 )
 from money4band.docker.helper import read_env_var
@@ -106,6 +107,16 @@ class TestBuildEnvLinesEncoding:
 
 
 class TestReadEnvVarRoundTrip:
+    def test_reads_metadata_from_legacy_windows_env(self, tmp_path):
+        path = tmp_path / ".env"
+        path.write_bytes(b"PASSWORD=caf\xe9\nDEVICE_NAME=legacy-node\n")
+        assert read_env_var(str(path), "DEVICE_NAME") == "legacy-node"
+
+    def test_pasted_unicode_round_trips_through_compose_env(self, tmp_path):
+        password = "pasted" + chr(0x200B) + "value"
+        with ephemeral_env_file([f"APP_PASSWORD={password}"], str(tmp_path)) as path:
+            assert read_env_var(path, "APP_PASSWORD") == password
+
     @pytest.mark.parametrize("raw", ["plain-name", "node$1", "my device", "a#b"])
     def test_written_value_reads_back_identical(self, tmp_path, raw: str) -> None:
         encoded = format_env_value(raw)

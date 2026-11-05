@@ -14,7 +14,8 @@ M4B only runs official Docker images published by each app's developer. Your ban
 
 ### Which apps should I run?
 
-Run `m4b apps` to see all supported apps. Start with the top earners (EarnApp, Honeygain, Pawns) and add more as you get comfortable.
+Run `m4b apps` to browse the Money4Band catalog. For EarnApp and other apps
+you install yourself, see the [standalone apps list](APPS.md#standalone-apps).
 
 ### Do I need a powerful machine?
 

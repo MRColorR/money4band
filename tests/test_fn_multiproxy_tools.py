@@ -74,6 +74,47 @@ class TestSubmenuMultiproxyTools:
 
 
 class TestUpdateMultiproxyInstances:
+    def test_single_proxy_update_restarts_with_enabled_profiles(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        monkeypatch.chdir(tmp_path)
+        proxies = tmp_path / "proxies.txt"
+        proxies.write_text("socks5://fixture-user:fixture-secret@localhost:9050\n")
+        user_cfg = tmp_path / "user-config.json"
+        user_cfg.write_text(
+            json.dumps({"apps": {"probe": {"enabled": True}}, "proxies": {}})
+        )
+        catalog = {
+            "supported": {
+                "active": True,
+                "entries": [{"name": "PROBE", "profile": "universal"}],
+            }
+        }
+        prefix = "money4band.network.proxy_tools"
+        with (
+            patch(f"{prefix}.ask_question_yn", return_value=True),
+            patch(f"{prefix}.validate_proxy_list", return_value=[]),
+            patch(f"{prefix}.stop_all_stacks", return_value=True),
+            patch(f"{prefix}.assemble_docker_compose"),
+            patch(f"{prefix}.generate_env_file"),
+            patch(
+                "money4band.core.loader.load_app_config_with_overlays",
+                return_value=catalog,
+            ),
+            patch(f"{prefix}.start_all_stacks", return_value=False) as start,
+        ):
+            update_multiproxy_instances(
+                proxies_file=str(proxies), user_config_path=str(user_cfg)
+            )
+        assert start.call_args.kwargs["profiles"] == (
+            "monitoring",
+            "proxy",
+            "universal",
+        )
+        output = capsys.readouterr().out
+        assert "stack startup failed" in output
+        assert "fixture-secret" not in output
+
     @patch("money4band.network.proxy_tools.ask_question_yn", return_value=False)
     @patch("builtins.input", return_value="")
     def test_user_cancels(self, _inp, _ask, capsys):

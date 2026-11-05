@@ -1,6 +1,5 @@
 {
     "name": "BEARSHARE",
-    "dashboard": "https://bearshare.io/dashboard",
     "compose_config": {
         "container_name": "${DEVICE_NAME}_bearshare",
         "hostname": "${DEVICE_NAME}_bearshare",
@@ -46,7 +45,7 @@
         "publisher": "BearShare",
         "official_url": "https://bearshare.io",
         "tos_url": "undocumented",
-        "status": "active",
+        "status": "deprecated",
         "device_limits": {
             "max_devices_per_account": "undocumented",
             "max_devices_per_ip": "undocumented",
@@ -68,7 +67,7 @@
         },
         "docker": {
             "image_official": true,
-            "image_maintained": true,
+            "image_maintained": "undocumented",
             "last_update": "2024-12"
         },
         "earnings": {
@@ -82,24 +81,19 @@
         },
         "compose_layer_reasoning": "Conservative residential classification. No IP policy documentation found.",
         "install_limit_reasoning": "No documented device caps.",
-        "recommendation": "promoted",
-        "recommendation_reasoning": "Promoted to supported. Docker image verified on Docker Hub.",
+        "recommendation": "remove",
+        "recommendation_reasoning": "Removed from the built-in catalog. The signup domain has no DNS record and the domain named on Docker Hub serves a registrar verification page.",
         "confidence": "low",
         "confidence_notes": "Limited external validation. Minimal public documentation.",
-        "sources": [],
-        "last_verified": "2026-03-23"
+        "sources": []
     },
-    "referrals": [
-        {
-            "url": "https://bearshare.io",
-            "contributor": "MRColorR"
-        }
-    ],
+    "referrals": [],
     "user_config_template": {
         "enabled": false,
         "email": "yourBEARSHAREMail",
         "password": "yourBEARSHAREPw",
         "service_enabled": false
     },
-    "profile": "residential"
+    "profile": "residential",
+    "additional_details": "Removed from the built-in catalog. The signup domain has no DNS record and the domain named on Docker Hub serves a registrar verification page."
 }

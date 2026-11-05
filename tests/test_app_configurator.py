@@ -5,6 +5,7 @@ from __future__ import annotations
 from unittest.mock import patch
 
 from money4band.apps.configurator import (
+    _configure_apps,
     configure_apikey,
     configure_apps,
     configure_cid,
@@ -17,6 +18,29 @@ from money4band.apps.configurator import (
     configure_uuid,
     flag_function_mapper,
 )
+
+
+def test_interrupting_credentials_keeps_previous_app_settings(monkeypatch, capsys):
+    existing = {"enabled": True, "email": "old@example.com", "password": "old"}
+    user = {"apps": {"first": existing.copy(), "second": {"enabled": False}}}
+    apps = [
+        {"name": "FIRST", "flags": {"email": {}, "password": {}}, "compose_config": {}},
+        {"name": "SECOND", "flags": {}, "compose_config": {}},
+    ]
+    replies = iter(["n", "y", "y", "", "new@example.com", None, "y", ""])
+
+    def read(_prompt):
+        reply = next(replies)
+        if reply is None:
+            raise KeyboardInterrupt
+        return reply
+
+    monkeypatch.setattr("builtins.input", read)
+    monkeypatch.setattr("money4band.apps.configurator.cls", lambda: None)
+    _configure_apps(user, apps, {})
+    assert user["apps"]["first"] == existing
+    assert user["apps"]["second"]["enabled"] is True
+    assert "Skipped first" in capsys.readouterr().out
 
 
 class TestConfigureEmail:

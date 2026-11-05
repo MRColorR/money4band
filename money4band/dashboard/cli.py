@@ -175,7 +175,9 @@ def run_dashboard_command(
 
     # Determine if the server is exposed beyond localhost.
     exposed = host not in ("127.0.0.1", "::1", "localhost")
-    display_host = "localhost" if not exposed else host
+    # The wildcard is a listener address. Use a reachable name in browser links.
+    wildcard = host == "0.0.0.0"  # nosec B104
+    display_host = "localhost" if not exposed or wildcard else host
 
     # Ensure key exists and display on startup so user has it.
     api_key = ensure_api_key_on_disk(config_dir)
@@ -193,6 +195,8 @@ def run_dashboard_command(
             f"{Fore.YELLOW}WARNING: Dashboard will be reachable from the "
             f"network ({host}).{Style.RESET_ALL}"
         )
+        if wildcard:
+            print("  From another device, use this machine's IP address in the URL.")
         print("  All API requests require the Bearer token.  Keep your API key secret.")
 
     print(

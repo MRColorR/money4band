@@ -23,7 +23,7 @@ Money4Band includes a **FastAPI-powered web dashboard** with a REST API. It runs
 m4b dashboard start
 
 # Background (detached process)
-m4b dashboard start   # from the interactive menu, choose "Start background"
+m4b dashboard start --background
 
 # Restart the dashboard
 m4b dashboard restart
@@ -57,7 +57,12 @@ Once started, the dashboard is available at:
 http://localhost:8088
 ```
 
-The port is configurable via `config/user-config.json` -> `dashboard.port`.
+Use `m4b dashboard status` to see whether the background server is running
+and which port it selected. With web-exposed mode, open the printed localhost
+URL on the host itself. On another device, substitute the host's reachable IP
+address and keep the port.
+
+The configured port lives at `m4b_dashboard.port` in `config/user-config.json`.
 
 ## API Authentication
 

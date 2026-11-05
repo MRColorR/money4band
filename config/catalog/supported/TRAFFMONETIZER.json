@@ -55,26 +55,26 @@
         "official_name": "TraffMonetizer",
         "publisher": "TraffMonetizer",
         "official_url": "https://traffmonetizer.com",
-        "tos_url": "https://traffmonetizer.com/en/terms-of-service",
+        "tos_url": "https://traffmonetizer.com/terms-of-service/",
         "status": "active",
         "device_limits": {
             "max_devices_per_account": "unlimited",
             "max_devices_per_ip": "undocumented",
             "max_ips_per_account": "unlimited",
-            "notes": "No documented device cap. Multiple VPS instances widely used by community with no ban reports."
+            "notes": "The terms state that devices on the same public IP share the available traffic."
         },
         "ip_policy": {
             "residential": true,
-            "datacenter": true,
-            "vps": true,
-            "vpn": "partial",
-            "proxy": "undocumented",
-            "mobile": true,
-            "adjacent_ips_accepted": true,
+            "datacenter": false,
+            "vps": false,
+            "vpn": false,
+            "proxy": false,
+            "mobile": "undocumented",
+            "adjacent_ips_accepted": "undocumented",
             "adjacent_ips_max": "undocumented",
             "ipv6": "undocumented",
             "geo_restrictions": "none known",
-            "quality_notes": "One of the most permissive platforms. Datacenter and VPS IPs widely used. No ban waves reported as of 2026."
+            "quality_notes": "The provider requires a residential IP and prohibits servers, VPNs and proxies."
         },
         "docker": {
             "image_official": true,
@@ -90,19 +90,19 @@
                 "wire transfer"
             ],
             "avg_monthly_residential_usd": "0.5-2",
-            "avg_monthly_datacenter_usd": "0.3-1"
+            "avg_monthly_datacenter_usd": "unknown"
         },
         "confidence": "medium",
         "sources": [
-            "https://blog.vpslog.org/blog/profit/",
-            "https://traffmonetizer.com/en/terms-of-service"
+            "https://traffmonetizer.com/terms-of-service/",
+            "https://traffmonetizer.com/downloads/"
         ],
         "last_verified": "2026-03-21",
-        "compose_layer_reasoning": "One of the most permissive platforms. Datacenter and VPS IPs widely used with no ban waves reported as of 2026.",
-        "install_limit_reasoning": "No documented device cap. Multiple VPS instances widely used by community with no ban reports.",
+        "compose_layer_reasoning": "Residential connections only, as required by the provider terms.",
+        "install_limit_reasoning": "No device cap stated in the terms.",
         "recommendation": "keep",
-        "recommendation_reasoning": "Universal layer and unlimited limit are correct. VPS/DC-friendly confirmed by community evidence.",
-        "confidence_notes": "Community VPS deployment reports and blog analyses confirm permissive policy. No official documentation on limits. Verified 2026-05-15 via container test: 'status' positional in 'start accept status --token X --device-name Y' is a valid CLI mode that prints a 'Connected: <ip> - <bool>; Accepting: <bool>' summary at startup in addition to the periodic 'Status: <ip> - connecting/disconnected' lines. Kept for clearer startup observability."
+        "recommendation_reasoning": "Keep the published Docker client for supported residential use.",
+        "confidence_notes": "Provider terms define network eligibility. The May 2026 container test confirmed the status argument prints a connection summary at startup."
     },
     "referrals": [
         {
@@ -114,5 +114,5 @@
         "enabled": false,
         "token": "yourTRAFFMONETIZERToken"
     },
-    "profile": "universal"
+    "profile": "residential"
 }
