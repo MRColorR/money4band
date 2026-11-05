@@ -4,7 +4,7 @@ altgraph==0.17.5
     # via
     #   macholib
     #   pyinstaller
-annotated-doc==0.0.4
+annotated-doc==0.0.5
     # via fastapi
 annotated-types==0.7.0
     # via pydantic
@@ -32,7 +32,7 @@ colorama==0.4.6
     #   money4band
     #   pytest
     #   uvicorn
-coverage==7.13.5
+coverage==7.16.2
     # via pytest-cov
 cryptography==46.0.6
     # via money4band
@@ -63,7 +63,7 @@ iniconfig==2.3.0
     # via pytest
 macholib==1.16.4 ; sys_platform == 'darwin'
     # via pyinstaller
-packaging==26.0
+packaging==26.3
     # via
     #   pyinstaller
     #   pyinstaller-hooks-contrib
@@ -82,10 +82,10 @@ pydantic==2.12.5
     # via fastapi
 pydantic-core==2.41.5
     # via pydantic
-pygments==2.19.2
+pygments==2.21.0
     # via pytest
 pyinstaller==6.19.0
-pyinstaller-hooks-contrib==2026.4
+pyinstaller-hooks-contrib==2026.9
     # via pyinstaller
 pytest==9.0.2
     # via
@@ -109,9 +109,7 @@ requests==2.33.1
     # via docker
 ruff==0.15.9
 setuptools==82.0.1
-    # via
-    #   pyinstaller
-    #   pyinstaller-hooks-contrib
+    # via pyinstaller
 starlette==1.0.0
     # via fastapi
 tomli==2.4.0 ; python_full_version <= '3.11'
