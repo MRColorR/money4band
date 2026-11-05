@@ -3,6 +3,13 @@
 All notable changes to this project are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [5.0.3]
+
+- Updated the Docker SDK and Python dependencies used by the application,
+  tests, and packaged builds.
+- Added a CI check that keeps the pip requirements in sync with `uv.lock`.
+- Updated the GitHub Actions artifact download step.
+
 ## [5.0.2]
 
 - Use a published uv setup action so GitHub checks and release builds can run.
