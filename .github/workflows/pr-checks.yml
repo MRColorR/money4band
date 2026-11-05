@@ -19,8 +19,8 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: "3.13"
-      - run: uv tool run ruff check .
-      - run: uv tool run ruff format --check .
+      - run: uv run --locked ruff check .
+      - run: uv run --locked ruff format --check .
 
   tables:
     name: App tables up-to-date
