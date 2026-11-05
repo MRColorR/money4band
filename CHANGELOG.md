@@ -3,6 +3,11 @@
 All notable changes to this project are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [5.0.2]
+
+- Use a published uv setup action so GitHub checks and release builds can run.
+- Launch each packaged executable before uploading release assets.
+
 ## [5.0.1]
 
 - Fixed Compose environment encoding on Windows and added a way to skip

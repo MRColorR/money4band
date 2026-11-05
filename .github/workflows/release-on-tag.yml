@@ -45,7 +45,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: astral-sh/setup-uv@v9
+      - uses: astral-sh/setup-uv@v8.3.2
       - uses: actions/setup-python@v7
         with:
           python-version: "3.13"
@@ -93,7 +93,7 @@ jobs:
 
       - name: Install uv
         if: matrix.docker_platform == ''
-        uses: astral-sh/setup-uv@v9
+        uses: astral-sh/setup-uv@v8.3.2
 
       # ---- Native builds (runner arch matches target arch) ----
       - name: Install dependencies
@@ -127,7 +127,8 @@ jobs:
         shell: bash
         run: |
           if [[ "$RUNNER_OS" == "Windows" ]]; then SEP=";"; else SEP=":"; fi
-          uv run pyinstaller $PYINSTALLER_ARGS \
+          read -r -a pyinstaller_args <<< "$PYINSTALLER_ARGS"
+          uv run pyinstaller "${pyinstaller_args[@]}" \
             --add-data "config${SEP}config" \
             --add-data "money4band${SEP}money4band" \
             --add-data "template${SEP}template"
@@ -155,6 +156,17 @@ jobs:
           docker create --name m4b-extract money4band-builder
           docker cp m4b-extract:/app/dist ./dist
           docker rm m4b-extract
+
+      - name: Smoke-test native executable
+        if: matrix.docker_platform == ''
+        shell: bash
+        run: ./dist/"Money4Band${{ runner.os == 'Windows' && '.exe' || '' }}" --help
+
+      - name: Smoke-test ARM executable
+        if: matrix.docker_platform != ''
+        run: |
+          docker run --rm --network none --platform ${{ matrix.docker_platform }} \
+            --entrypoint /app/dist/Money4Band money4band-builder --help
 
       # ---- Normalize the artifact name ----
       - name: Rename binary to release asset name (Unix)

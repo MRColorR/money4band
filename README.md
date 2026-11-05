@@ -31,7 +31,7 @@
 - [Quick Start](#-quick-start)
 - [Key Features](#-key-features)
 - [Supported Apps](#-supported-apps)
-- [Tested On](#-tested-on)
+- [Release targets](#release-targets)
 - [Documentation](#-documentation)
 - [Community & Support](#-community--support)
 - [Contributing](#-contributing)
@@ -165,11 +165,11 @@ installer. See the [standalone apps list](docs/APPS.md#standalone-apps).
 
 ---
 
-## Tested On
+## Release targets
 
 | Platform | Architecture | Devices |
 |----------|:------------|:--------|
-| Windows 11 (WSL2) | amd64, arm64 | Desktop, Laptop |
+| Windows (WSL2) | amd64 | Desktop, Laptop |
 | Linux (Debian/Ubuntu) | amd64, arm64 | Desktop, Laptop, Raspberry Pi |
 | macOS | amd64, arm64 | MacBook Pro |
 
