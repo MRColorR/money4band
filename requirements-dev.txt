@@ -63,7 +63,7 @@ iniconfig==2.3.0
     # via pytest
 macholib==1.16.4 ; sys_platform == 'darwin'
     # via pyinstaller
-packaging==26.0
+packaging==26.3
     # via
     #   pyinstaller
     #   pyinstaller-hooks-contrib
