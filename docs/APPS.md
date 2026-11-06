@@ -59,12 +59,3 @@ balance, and payout status.
 For instructions on enabling, adding, and refreshing opt-in sources,
 see [Catalog sources](app-management.md#catalog-sources).
 
-## Standalone apps
-
-Install and manage these apps directly through their providers, outside the
-Money4Band stack.
-
-| App | How to run it |
-| --- | --- |
-| [EarnApp](https://earnapp.com/i/3zulx7k) | Use the official client on an eligible personal device with a supported residential connection. EarnApp prohibits Docker and proxies. [Official installation guide](https://help.earnapp.com/hc/en-us/articles/10261224561553-Installation-instructions-and-hardware-software-requirements) |
-
