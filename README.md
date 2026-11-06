@@ -66,9 +66,9 @@ Start with a **built-in app** and select its name to visit the provider. Some li
 
 - **Built into Money4Band** · Available in **Setup Apps**.
 - **Optional community catalog** · Enable the [community catalog](docs/app-management.md) to add it.
-- **Standalone install** · Use the provider’s own installer. EarnApp is in this group.
+- **Standalone install** · Use the provider’s own installer.
 - **Candidate** · Tracked for evaluation. See the [app directory](docs/APPS.md) for details.
-- **Archived** · Listed for reference and unavailable in Money4Band setup.
+- **Archived** · Listed for reference and historical purposes, removed from M4B setup as they shutted down or not deemed reliabe enough.
 
 <!-- BEGIN:APPS_TABLE -->
 | App | How to run it |
@@ -111,7 +111,7 @@ Start with a **built-in app** and select its name to visit the provider. Some li
 | [**WizardGain**](https://wizardgain.com) | Archived |
 <!-- END:APPS_TABLE -->
 
-This table follows the `main` branch. See the [app directory](docs/APPS.md) for IP eligibility, device limits, and payout methods. For an installed release, use the directory at that release’s tag.
+This table follows the `main` branch. See the [app directory](docs/APPS.md) for IP eligibility, device limits, and payout methods.
 
 ---
 
@@ -129,7 +129,6 @@ This table follows the `main` branch. See the [app directory](docs/APPS.md) for 
 
 ### FAQ
 
-- [Why is EarnApp missing from setup?](docs/faq.md#why-is-earnapp-missing-from-setup)
 - [How do I update Money4Band?](docs/faq.md#how-do-i-update-m4b)
 - [How do I troubleshoot setup or containers?](docs/faq.md#setup-issues)
 
@@ -158,20 +157,6 @@ Your contributions are vital in helping to sustain the development of open-sourc
 ☕ [Support me on Ko-fi](https://ko-fi.com/mrcolorrain) · 💛 [Donate with cryptocurrency](https://github.com/MRColorR/MRColorR/blob/main/SPONSORS.md#cryptocurrency-wallets)
 
 Thank you for helping me keep building and sharing! 🙏 See the [supporters and sponsors directory](https://github.com/MRColorR/MRColorR/blob/main/SPONSORS.md).
-
-### Cryptocurrency wallets
-
-| Network | Wallet address |
-| --- | --- |
-| Bitcoin (BTC) | `1EzBrKjKyXzxydSUNagAP8XLeRzBTxfHcg` |
-| Ethereum (ETH) | `0xE65c32004b968cd1b4084bC3484C0dA051eeD3ee` |
-| Solana (SOL) | `6kUAWW8q5169qnUJdxxLsNMPpaKPvbUSmryKDYTb9epn` |
-| Polygon PoS | `0xE65c32004b968cd1b4084bC3484C0dA051eeD3ee` |
-| BNB Smart Chain (BNB) | `0xE65c32004b968cd1b4084bC3484C0dA051eeD3ee` |
-
-### Stargazers
-
-![Recorded GitHub star counts](docs/stargazers.svg)
 
 ---
 
