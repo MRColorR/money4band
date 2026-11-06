@@ -4,8 +4,6 @@
 
 <img align="right" src="money4band/resources/assets/M4B_logo.png" width="96" alt="Money4Band logo">
 
-**Put your unused internet bandwidth to work.** Set up apps like Honeygain, Pawns, and PacketStream together, then manage them from one dashboard. Money4Band is free and open source.
-
 [**⬇️ Download Money4Band**](https://github.com/MRColorR/money4band/releases/latest) · [🚀 Quick start](#quick-start) · [📋 Browse apps](#supported-apps) · [💬 Join Discord](https://discord.com/invite/Fq8eeazBAD) · [🫶 Support the project](#support)
 
 **Leave a star ⭐ if you like this project 🙂 Thank you!**
@@ -27,7 +25,9 @@
 
 ## Overview
 
-Bandwidth-sharing providers can pay you for traffic routed through your connection. Money4Band (M4B) handles the setup and runs each selected app in its own Docker container, so you can manage several providers without installing each client on your computer. Earnings depend on provider demand, your location, and the connection you use.
+**Money4Band (M4B)** turns your unused internet bandwidth into passive income. That bandwidth is there anyway whether you're using it or not. Why not put it to work? One command. All the bandwidth-sharing apps. Each one runs in its own isolated Docker container, so your system stays clean, your setup is safer than installing each app natively, and you earn more than any single app could deliver alone.
+
+Our maintainers and community **research** every app, **verify** its background, **track** payout history, and **monitor** real-world behavior over time. You don't have to figure out which apps are legit and which are a waste of time.
 
 ### Key Features
 
