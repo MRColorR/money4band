@@ -488,7 +488,7 @@ def assemble_docker_compose(
         generated_files: list[str] = []
         compose_dict = {"services": services}
         compose_dict.update(network_config)
-        volumes = {
+        volumes: dict[str, dict[str, Any]] = {
             mount["source"]: {}
             for service in services.values()
             for mount in service.get("volumes", [])
