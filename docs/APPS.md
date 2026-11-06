@@ -24,7 +24,6 @@ balance, and payout status.
 | [com] | [**GaGaNode**](https://www.gaganode.com) | [ok] | [ok] | - | - | - | GaGa token (crypto) | - |
 | [ok] | [**Honeygain**](https://r.honeygain.me/MINDL15721) | [ok] | [ok] | [x] | 10 | 1 | JumpToken (crypto), PayPal (via JumpTask) | $1-9 |
 | [ok] | [**Mysterium**](https://mystnodes.co/?referral_code=Tc7RaS7Fm12K3Xun6mlU9q9hbnjojjl9aRBW8ZA9) | [ok] | [ok] | [ok] | Unlimited | 1 | MYST token, ETH, BNB | $1-15 |
-| [ok] | [**NetYield**](https://netyield.io/) | [ok] | [ok] | [ok] | - | - | USDC | - |
 | [ok] | [**PacketStream**](https://packetstream.io/?psr=3zSD) | [ok] | [ok] | [x] | Unlimited | - | PayPal | $0.5-1.5 |
 | [ok] | [**Pawns (IPRoyal)**](https://pawns.app?r=MiNe) | [ok] | [ok] | [x] | Unlimited | 1 | PayPal, crypto, gift cards | $0.5-2 |
 | [ok] | [**ProxyLite**](https://proxylite.ru/?r=PJTKXWN3) | [ok] | [ok] | [ok] | Unlimited | - | crypto | - |
@@ -40,6 +39,7 @@ balance, and payout status.
 | [new] | [**Bytelixir**](https://bytelixir.com) | [soon] | [ok] | - | - | - | crypto | $0.5-1 |
 | [new] | [**Earn.cc**](https://earn.cc) | [soon] | [ok] | - | - | - | - | - |
 | [new] | [**Ebesucher**](https://www.ebesucher.com) | [soon] | [ok] | - | - | - | - | - |
+| [new] | [**NetYield**](https://netyield.io/) | [soon] | [ok] | [ok] | - | - | USDC | - |
 | [new] | [**PassiveApp**](https://passiveapp.io) | [soon] | [ok] | - | - | - | - | - |
 | [new] | [**Salad**](https://salad.com) | [soon] | [ok] | [x] | - | - | - | - |
 | [new] | [**UpRock**](https://uprock.com) | [soon] | [ok] | - | - | - | - | - |
@@ -70,7 +70,8 @@ Money4Band stack.
 
 ## NetYield setup and rates
 
-Choose NetYield in **Setup Apps** and enter an API key from your NetYield
+Enable the `newcomers` category with `m4b catalog category enable newcomers`.
+Then choose NetYield in **Setup Apps** and enter an API key from your NetYield
 dashboard. Money4Band stores the device identity in a Docker volume named
 `netyield-data` within the Compose project. Keep that volume when replacing
 the container. Money4Band enables one NetYield device per setup by default.

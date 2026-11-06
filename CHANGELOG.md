@@ -3,6 +3,11 @@
 All notable changes to this project are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [5.0.5]
+
+- Add NetYield as an opt-in candidate. Enable the `newcomers` catalog category
+  to configure it through Setup Apps.
+
 ## [5.0.4]
 
 - Hide saved app credentials and proxy credentials in setup output.
