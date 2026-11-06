@@ -1,10 +1,14 @@
-<p align="center">
-  <img src="money4band/resources/assets/M4B_logo.png" width="128" alt="Money4Band Logo">
-</p>
+# Money4Band
 
-<h1 align="center">Money4Band</h1>
+<!-- Project README scaffold: https://github.com/MRColorR/project-template -->
 
-<h3 align="center">Run bandwidth-sharing apps with Docker Compose.</h3>
+<img align="right" src="money4band/resources/assets/M4B_logo.png" width="96" alt="Money4Band logo">
+
+**Put your unused internet bandwidth to work.** Set up apps like Honeygain, Pawns, and PacketStream together, then manage them from one dashboard. Money4Band is free and open source.
+
+[**Download Money4Band**](https://github.com/MRColorR/money4band/releases/latest) · [Quick start](#quick-start) · [Browse apps](#supported-apps) · [Join Discord](https://discord.com/invite/Fq8eeazBAD) · [Support the project](#support)
+
+**Leave a star ⭐ if you like this project 🙂 Thank you!**
 
 <p align="center">
   <a href="https://github.com/MRColorR/money4band/releases/latest"><img src="https://img.shields.io/github/v/release/MRColorR/money4band?style=flat&label=Version" alt="Version"></a>
@@ -19,22 +23,26 @@
   <img src="https://img.shields.io/badge/macOS-444444?style=flat-square&logo=apple&logoColor=white" alt="macOS">
 </p>
 
-## What is Money4Band?
+<a name="what-is-money4band"></a>
 
-Money4Band (M4B) is a free, open-source tool for running bandwidth-sharing apps
-such as Honeygain, Pawns, PacketStream, and Repocket from one place. You choose
-the apps, sign up with their providers, and let Money4Band start them in Docker.
+## Overview
 
-- [Quick Start](#quick-start)
-- [Key Features](#key-features)
-- [Supported Apps](#supported-apps)
-- [Documentation](#documentation)
-- [FAQ](#faq)
-- [Community & Support](#community--support)
-- [Contributing](#contributing)
-- [License](#license)
+Bandwidth-sharing providers can pay you for traffic routed through your connection. Money4Band (M4B) handles the setup and runs each selected app in its own Docker container, so you can manage several providers without installing each client on your computer. Earnings depend on provider demand, your location, and the connection you use.
 
-## Quick Start
+### Key Features
+
+- **Get started with guided setup.** Pick your apps and enter your provider credentials. Money4Band generates the Docker Compose configuration. Automate app and stack management through the [CLI](docs/cli-reference.md) or [REST API](docs/dashboard-api.md).
+- **See your apps in one dashboard.** Check container health and resource usage and start, stop, or restart individual apps from your browser. Providers show earnings and payouts in their own dashboards.
+- **Start with one connection and scale when ready.** Run directly or create separate instances from a proxy list for apps that permit proxies. Check your connection with `m4b ip` and set per-app CPU and memory limits when needed.
+- **Protect and recover your setup.** Money4Band encrypts saved app credentials and offers backup and restore commands for your configuration.
+- **Keep your setup current.** Use `m4b update` for Money4Band itself and optionally enable Watchtower to update eligible app images. Send stack event notifications to services such as Discord or Telegram.
+- **Run on Windows, macOS, or Linux.** Choose the [release asset for your OS and CPU](docs/getting-started.md#option-a---download-the-binary-recommended). Individual Docker images have their own platform requirements.
+
+Explore [optional community apps and add-ons](docs/app-management.md), including reward-claim helpers for select providers, when their terms permit them.
+
+## Getting started
+
+### Quick Start
 
 Download Money4Band from the [latest stable release](https://github.com/MRColorR/money4band/releases/latest).
 The [installation guide](docs/getting-started.md#option-a---download-the-binary-recommended)
@@ -43,7 +51,7 @@ shows which file to pick for Windows, macOS, or Linux and how to open it.
 ![First run in three steps: start Docker, choose Setup Apps, then choose Start Stack.](docs/quick-start.svg)
 
 1. **Start Docker.** See the [requirements and setup instructions](docs/getting-started.md#prerequisites) for your system.
-2. **Open Money4Band and choose Setup Apps.** Pick the apps you want and enter the account details or keys they ask for.
+2. **Open Money4Band and choose Setup Apps.** Pick apps from the [table below](#supported-apps), create provider accounts, and enter the account details or keys they ask for.
 3. **Choose Start Stack** to run the apps you selected. Check whether they started in the [web dashboard](docs/dashboard-api.md) or with the [status command](docs/cli-reference.md#status).
 
 > [!TIP]
@@ -52,19 +60,15 @@ shows which file to pick for Windows, macOS, or Linux and how to open it.
 Prefer a Git checkout? Follow [Run from Source](docs/getting-started.md#option-b---run-from-source).
 Already installed? See [Upgrade an existing installation](docs/getting-started.md#upgrade-an-existing-installation).
 
-## Key Features
+### Supported Apps
 
-- Guided setup, scriptable CLI, and a web dashboard with a REST API
-- Direct, single-proxy, and multi-proxy Docker Compose stacks
-- Encrypted saved credentials, configuration profiles, and backup and restore
-- Optional app image updates with Watchtower, plus a separate Money4Band updater
-- Per-app resource limits, notifications, and opt-in community catalogs
+Start with a **built-in app** and select its name to visit the provider. Some links are referrals that support Money4Band.
 
-## Supported Apps
-
-Start with any app marked **Built into Money4Band**. Optional apps can be
-enabled through the community catalog. Standalone apps use the provider's
-own installer. Some app names link to referrals that support the project.
+- **Built into Money4Band** · Available in **Setup Apps**.
+- **Optional community catalog** · Enable the [community catalog](docs/app-management.md) to add it.
+- **Standalone install** · Use the provider’s own installer. EarnApp is in this group.
+- **Candidate** · Tracked for evaluation. See the [app directory](docs/APPS.md) for details.
+- **Archived** · Listed for reference and unavailable in Money4Band setup.
 
 <!-- BEGIN:APPS_TABLE -->
 | App | How to run it |
@@ -107,7 +111,7 @@ own installer. Some app names link to referrals that support the project.
 | [**WizardGain**](https://wizardgain.com) | Archived |
 <!-- END:APPS_TABLE -->
 
-See the [app directory](docs/APPS.md) for setup options, IP eligibility, and payout methods.
+This table follows the `main` branch. See the [app directory](docs/APPS.md) for IP eligibility, device limits, and payout methods. For an installed release, use the directory at that release’s tag.
 
 ---
 
@@ -123,13 +127,13 @@ See the [app directory](docs/APPS.md) for setup options, IP eligibility, and pay
 
 ---
 
-## FAQ
+### FAQ
 
 - [Why is EarnApp missing from setup?](docs/faq.md#why-is-earnapp-missing-from-setup)
 - [How do I update Money4Band?](docs/faq.md#how-do-i-update-m4b)
 - [How do I troubleshoot setup or containers?](docs/faq.md#setup-issues)
 
-## Community & Support
+### Community & Support
 
 - [**Discord**](https://discord.com/invite/Fq8eeazBAD) for chat, help, and shared experiences
 - [**Discussions**](https://github.com/MRColorR/money4band/discussions) for feature requests and ideas
@@ -139,23 +143,17 @@ See the [app directory](docs/APPS.md) for setup options, IP eligibility, and pay
 
 Contributions are welcome! Please read the [Contributing Guide](.github/CONTRIBUTING.md) and [Code of Conduct](.github/CODE_OF_CONDUCT.md) before opening a pull request.
 
+Please include enough context to reproduce a problem or review a change.
+
 ---
 
 ## Support
 
-Ko-fi supports MrColorRain's work across projects.
+Help fund ongoing development, testing, and documentation with a one-time contribution or monthly membership on [Ko-fi](https://ko-fi.com/mrcolorrain). Technical decisions remain independent.
 
-Support ongoing development, testing and documentation through
-[Ko-fi](https://ko-fi.com/mrcolorrain). One-time contributions and monthly
-memberships are welcome, and you can pledge above a tier's minimum.
-Technical decisions remain independent.
+Thank you to the people who support MrColorRain’s work. See the [supporters and sponsors directory](https://github.com/MRColorR/MRColorR/blob/main/SPONSORS.md).
 
-See the [supporters and sponsors directory](https://github.com/MRColorR/MRColorR/blob/main/SPONSORS.md)
-for acknowledgments.
-
----
-
-## Stargazers
+### Stargazers
 
 ![Recorded GitHub star counts](docs/stargazers.svg)
 
@@ -165,6 +163,6 @@ for acknowledgments.
 
 Money4Band is licensed under [GPL-3.0](LICENSE).
 
-## [!] Disclaimer
+### Disclaimer
 
 This project and its artifacts are provided "as is" and without warranty of any kind. The author makes no warranties, express or implied, that this script is free of errors, defects, or suitable for any particular purpose. The author shall not be retained liable for any damages suffered by any user of this script, whether direct, indirect, incidental, consequential, or special, arising from the use of or inability to use this script or its documentation, even if the author has been advised of the possibility of such damages. Always verify that the laws of your country and your ISP's terms allow these applications.
