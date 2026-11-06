@@ -64,6 +64,14 @@ and regenerate the Compose files before restarting the stack.
 
 ### Provider onboarding
 
+To migrate a MystNodes container to a new Raspberry Pi or host, stop the old
+node and back up `.data/mysterium-node` from that instance's stack directory.
+Restore it to the same relative path in the new stack before starting it, then
+follow MystNodes' instructions to reclaim the existing node in the dashboard.
+Money4Band's user-config backup covers settings and credentials. The node
+identity lives in its own data directory.
+[MystNodes migration guide](https://help.mystnodes.com/en/articles/8005511-how-to-migrate-your-node)
+
 AntGain needs the API key from Account Settings. The Docker client generates
 its own device ID and persists it in its data directory. Keep
 `.data/.antgain` when recreating the service.

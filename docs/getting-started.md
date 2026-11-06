@@ -1,6 +1,6 @@
 # Getting Started
 
-> From zero to passive income in under five minutes.
+Choose a release executable or run from a Git checkout. Both use Docker to run the apps.
 
 ---
 
@@ -9,13 +9,14 @@
 | Requirement | Minimum | Notes |
 |-------------|---------|-------|
 | OS | Windows 10+, macOS 12+, Linux (Debian/Ubuntu) | WSL2 supported on Windows |
-| Docker | Docker Engine 20.10+ or Docker Desktop | `m4b setup` can install it for you |
+| Docker | Docker Engine with Compose v2 or Docker Desktop | On Windows, use Docker Desktop with the WSL2 backend. |
 | Python | 3.10+ | Only needed when running from source |
 
 ## Option A - Download the Binary (Recommended)
 
-1. Select the v5 release on **[Releases](https://github.com/MRColorR/money4band/releases)**
-   and download the executable for your platform.
+1. Open the [latest stable release](https://github.com/MRColorR/money4band/releases/latest)
+   or choose a prerelease from [all releases](https://github.com/MRColorR/money4band/releases).
+   Download the executable for your platform.
 
    | Platform | Asset |
    |----------|-------|
@@ -87,9 +88,8 @@ Desktop must be running.
 
 ### Getting the `m4b` command
 
-Running the binary with no arguments opens the interactive menu, which covers
-everything. The `m4b <command>` form in these docs is the CLI surface, for
-scripting and one-shot actions:
+Running with no arguments opens the interactive menu. For commands shown as
+`m4b <command>`, use your executable or `python run.py` from a source checkout.
 
 ```bash
 ./Money4Band-linux-amd64            # interactive menu
@@ -117,26 +117,22 @@ place, so it needs write access to the directory it lives in. A symlink in
 `/usr/local/bin` would make the updater overwrite the link as root and leave the
 original file stale.
 
-The third surface is the REST API, started with `dashboard start` and documented
-in [Dashboard & API](dashboard-api.md). All three expose the same capabilities.
+For automation over HTTP, see [Dashboard & API](dashboard-api.md).
 
 ### Verify the download (optional)
 
 Every release publishes `checksums.sha256`. Download it alongside the binary:
 
 ```bash
-sha256sum -c checksums.sha256 --ignore-missing        # Linux
-shasum -a 256 -c checksums.sha256 --ignore-missing    # macOS
+sha256sum Money4Band-linux-amd64     # Linux
+shasum -a 256 Money4Band-macos-arm64  # macOS
 ```
 
 ```powershell
-# compare the output against the matching line in checksums.sha256
 Get-FileHash .\Money4Band-windows-amd64.exe -Algorithm SHA256
 ```
 
-`m4b update` verifies against the same file on every self-update.
-
-The interactive menu takes over from here.
+Compare the output with the line for your asset in `checksums.sha256`.
 
 ## Option B - Run from Source
 
@@ -144,52 +140,52 @@ The interactive menu takes over from here.
 git clone https://github.com/MRColorR/money4band.git
 cd money4band
 
-# Using uv (recommended)
-uv sync --locked
-uv run --locked python main.py
-
-# Or using pip
-pip install -r requirements.txt
-python main.py
+python run.py
 ```
+
+The launcher uses `uv` if available or creates a local virtual environment
+with pip. Use `python3` if your system exposes Python under that name.
 
 ## Upgrade an existing installation
 
-For a v5 binary upgrade, stop the old stack and dashboard, back up the
-installation directory, and replace the executable with the verified file for
-your platform. Keep the existing configuration and encryption key with the
-installation. Then follow the catalog refresh steps in
-[App Management](app-management.md#removed-apps).
+Stop the stack and dashboard and back up the installation before upgrading v5.
+
+- **Stable release.** Run `m4b update` and confirm the offered update. Restart
+  Money4Band when it finishes. The binary updater keeps the previous
+  executable beside the new one with a `.bak` suffix.
+- **Manual executable update or prerelease.** Download the desired release,
+  [verify the file](#verify-the-download-optional), and replace the executable
+  in your installation directory. Keep the existing configuration and
+  encryption key.
+
+Follow the [catalog refresh steps](app-management.md#removed-apps) before
+restarting the stack.
 
 If you are coming from v4, back up the v4 directory and install v5 in its own
 directory. Use the v5 setup wizard to configure the apps you still use.
 
 ## First-Time Setup
 
-When you launch M4B for the first time, choose **Setup Apps** from the menu (or run `m4b setup`):
+Start Docker and choose **Setup Apps** in the menu, or run `m4b setup`.
 
-1. **Docker check** - M4B verifies Docker is installed. If not, it offers to install it.
-2. **App selection** - Pick the apps you want to run. Each app shows its IP policy (residential / datacenter / universal) and payout info.
-3. **Credentials** - Enter the credentials required by each selected app (email, token, etc.). Credentials are encrypted with Fernet (AES-128-CBC) and stored in `config/user-config.json`.
-4. **Generation** - M4B generates your `docker-compose.yaml` and `.env` file.
-5. **Start** - Launch the stack with `m4b stack start` or choose **Start Stack** from the menu.
+1. Leave proxy use disabled for a direct connection. For one or more proxy
+   endpoints, see [Proxy Setup](proxy-setup.md).
+2. Select your apps and enter the credentials they request. See
+   [provider onboarding](app-management.md#provider-onboarding) for apps with
+   extra steps.
+3. Finish setup to generate your Compose and environment files. Choose
+   **Start Stack** or run `m4b stack start`.
 
 ## Verifying Everything Works
 
-```bash
-# Check container status
-m4b status
-
-# View IP quality score (important for earnings)
-m4b ip
-
-# Open the web dashboard (optional)
-m4b dashboard start
-```
+Run `m4b status` or open the [dashboard](dashboard-api.md#starting-the-dashboard)
+to check that the containers are running. Confirm enrollment and traffic in
+each provider's dashboard. If setup or startup fails, see
+[FAQ & Troubleshooting](faq.md).
 
 ## Next Steps
 
-- [CLI Reference](cli-reference.md) - all 24 subcommands
+- [CLI Reference](cli-reference.md) - command reference
 - [App Management](app-management.md) - enable / disable apps, community plugins
 - [Proxy Setup](proxy-setup.md) - scale across multiple proxies
 - [Dashboard & API](dashboard-api.md) - web UI for monitoring

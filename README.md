@@ -4,7 +4,7 @@
 
 <h1 align="center">Money4Band</h1>
 
-<h3 align="center">Earn passive income from your unused bandwidth - one command, all apps.</h3>
+<h3 align="center">Run bandwidth-sharing apps with Docker Compose.</h3>
 
 <p align="center">
   <a href="https://github.com/MRColorR/money4band/releases/latest"><img src="https://img.shields.io/github/v/release/MRColorR/money4band?style=flat&label=Version" alt="Version"></a>
@@ -20,121 +20,53 @@
   <img src="https://img.shields.io/badge/macOS-444444?style=flat-square&logo=apple&logoColor=white" alt="macOS">
 </p>
 
-<p align="center"><b>If you like this project, leave a . It helps more than you think.</b></p>
-
----
-
-## Table of Contents
-
-- [What is Money4Band?](#what-is-money4band)
-- [Prerequisites](#prerequisites)
-- [Quick Start](#-quick-start)
-- [Key Features](#-key-features)
-- [Supported Apps](#-supported-apps)
-- [Release targets](#release-targets)
-- [Documentation](#-documentation)
-- [Community & Support](#-community--support)
-- [Contributing](#-contributing)
-
----
-
 ## What is Money4Band?
 
-**Money4Band (M4B)** turns your unused internet bandwidth into passive income. That bandwidth is there anyway whether you're using it or not. Why not put it to work? One command. All the bandwidth-sharing apps. Each one runs in its own isolated Docker container, so your system stays clean, your setup is safer than installing each app natively, and you earn more than any single app could deliver alone.
+Money4Band (M4B) is an open-source manager for bandwidth-sharing apps such as
+Honeygain, Pawns, PacketStream, and Repocket. Choose the apps you want, enter
+their provider credentials, and run them together in Docker Compose.
 
-Our maintainers and community **research** every app, **verify** its background, **track** payout history, and **monitor** real-world behavior over time. You don't have to figure out which apps are legit and which are a waste of time. That work is already done.
-
-## Prerequisites
-
-| Requirement | Details |
-|-------------|---------|
-| **Docker** | Docker Engine 20.10+ or Docker Desktop |
-| **OS** | Windows 10/11 (WSL2), Linux, macOS |
-| **Architecture** | amd64 or arm64 |
-| **RAM** | 1 GB minimum (2 GB+ recommended) |
-| **Python** | 3.10+ (only for "from source" installs) |
+- [Quick Start](#quick-start)
+- [Key Features](#key-features)
+- [Supported Apps](#supported-apps)
+- [Documentation](#documentation)
+- [FAQ](#faq)
+- [Community & Support](#community--support)
+- [Contributing](#contributing)
+- [License](#license)
 
 ## Quick Start
 
-### Option A: Download & Run (recommended)
+1. Start Docker. Check the [platform requirements](docs/getting-started.md#prerequisites).
+2. Download the executable for your platform from the
+   [latest stable release](https://github.com/MRColorR/money4band/releases/latest),
+   or pick a prerelease from [all releases](https://github.com/MRColorR/money4band/releases).
+   Follow the [platform-specific launch steps](docs/getting-started.md#option-a---download-the-binary-recommended).
+3. Open **Setup Apps**, select your apps, and provide the requested credentials.
+   Leave proxies off for a direct connection, or follow the [proxy setup guide](docs/proxy-setup.md).
+4. Choose **Start Stack**, then check the containers in the dashboard or with
+   the [status command](docs/cli-reference.md#status).
 
-1. Select the v5 release on the [**Releases Page**](https://github.com/MRColorR/money4band/releases).
-2. Download the single-file binary for your OS and architecture
-   (e.g. `Money4Band-windows-amd64.exe`, `Money4Band-linux-arm64`)
-3. Run the downloaded executable directly. Choose the separate source ZIP if you want an archive.
-
-**Windows:** double-click the `.exe`, or run it from PowerShell to pass CLI
-subcommands. Unsigned build, so SmartScreen asks: **More info > Run anyway**.
-
-```powershell
-.\Money4Band-windows-amd64.exe
-```
-
-```bash
-# Linux. Downloads arrive without the executable bit
-chmod +x Money4Band-linux-arm64 && ./Money4Band-linux-arm64
-```
-
-```bash
-# macOS. Unsigned build, clear the Gatekeeper quarantine flag first
-xattr -d com.apple.quarantine Money4Band-macos-arm64
-chmod +x Money4Band-macos-arm64 && ./Money4Band-macos-arm64
-```
-
-First run creates `config/` and `template/` next to the executable, so put it in
-a dedicated directory. Docker group setup, `noexec` mounts and checksum
-verification are covered in the [Getting Started guide](docs/getting-started.md).
-
-### Option B: From source
-
-```bash
-git clone https://github.com/MRColorR/money4band.git && cd money4band
-uv sync --locked && uv run --locked python main.py
-```
-
-> **No uv?** `pip install -r requirements.txt && python3 main.py` also works.
-
-> **Even simpler:** `python run.py` auto-detects `uv` (or falls back to a
-> local venv + pip) and starts the app in one step. `run.bat` /
-> `./run.sh` are one-click wrappers for Windows / macOS-Linux.
-
-> See the [**Full Setup Guide**](https://github.com/MRColorR/money4band/wiki) for details.
-
-### What Happens Next?
-
-1. **Follow the guided setup.** M4B walks you through configuring each app.
-2. **Start the stack.** One command launches everything.
-3. **Watch it work.** Check your dashboard, see the earnings come in.
-
----
+Prefer a Git checkout? Follow [Run from Source](docs/getting-started.md#option-b---run-from-source).
+Already installed? See [Upgrade an existing installation](docs/getting-started.md#upgrade-an-existing-installation).
 
 ## Key Features
 
-- **CLI + Guided Setup.** Interactive wizard for beginners, `m4b` subcommands for power users - no Docker Compose files or manual configs needed.
-- **Safer than running apps natively.** Every app runs in its own isolated Docker container - no host installs, no conflicts, no leftover junk.
-- **Encrypted credentials.** All tokens, passwords, and API keys are encrypted at rest. Nothing is stored in plain text.
-- **Multi-proxy scaling.** Multiple IPs, multiple instances, one unified configuration.
-- **Auto-updates.** Watchtower keeps every app image fresh without you doing anything.
-- **Web dashboard.** All your apps, one clean interface.
-- **Auto-claim sidecars.** Daily rewards like Lucky Pot are claimed automatically for you.
-- **Resource limit profiles.** Fine-tune CPU and RAM per app with simple presets.
-- **IP quality scoring.** Know your IP reputation before deploying.
-- **Backup & restore.** One command to back up or restore your encrypted config.
-- **Webhook notifications.** Stack events pushed to Discord, Telegram, or anywhere Shoutrrr reaches.
-- **Cross-platform.** Windows, Linux, macOS. amd64 and arm64.
-- **Self-update.** `m4b update` keeps the CLI itself up to date.
-
----
+- Guided setup, scriptable CLI, and a web dashboard with a REST API
+- Direct, single-proxy, and multi-proxy Docker Compose stacks
+- Encrypted saved credentials, configuration profiles, and backup and restore
+- Optional app image updates with Watchtower, plus a separate Money4Band updater
+- Per-app resource limits, notifications, and opt-in community catalogs
 
 ## Supported Apps
 
-The table covers the built-in catalog. See the [app directory](docs/APPS.md)
+The table covers the built-in catalog on this branch. See the [app directory](docs/APPS.md)
 for details and the [community catalog](https://github.com/MRColorR/money4band-community-catalog)
 for opt-in entries.
 
 > [ok] Built in. [x] Removed from default setup.
 >
-> App links below include referral codes that support the project at no cost to you.
+> Some app links below include referral codes that support the project.
 
 <!-- BEGIN:APPS_TABLE -->
 | Type | App | Residential | VPS/DC | Payout |
@@ -156,22 +88,12 @@ for opt-in entries.
 | [x] | **PacketShare** | [ok] | - | - |
 <!-- END:APPS_TABLE -->
 
-> **[Registration links, earnings estimates, and full details](docs/APPS.md)**
+> **[Registration links, IP eligibility, and payout methods](docs/APPS.md)**
 
 ### Apps you install yourself
 
 Run EarnApp directly on an eligible personal device using the provider's
 installer. See the [standalone apps list](docs/APPS.md#standalone-apps).
-
----
-
-## Release targets
-
-| Platform | Architecture | Devices |
-|----------|:------------|:--------|
-| Windows (WSL2) | amd64 | Desktop, Laptop |
-| Linux (Debian/Ubuntu) | amd64, arm64 | Desktop, Laptop, Raspberry Pi |
-| macOS | amd64, arm64 | MacBook Pro |
 
 ---
 
@@ -186,6 +108,12 @@ installer. See the [standalone apps list](docs/APPS.md#standalone-apps).
 | [FAQ & Troubleshooting](docs/faq.md) | [App Directory](docs/APPS.md) |
 
 ---
+
+## FAQ
+
+- [Why is EarnApp missing from setup?](docs/faq.md#why-is-earnapp-missing-from-setup)
+- [How do I update Money4Band?](docs/faq.md#how-do-i-update-m4b)
+- [How do I troubleshoot setup or containers?](docs/faq.md#setup-issues)
 
 ## Community & Support
 
@@ -218,6 +146,10 @@ for acknowledgments.
 [![Stargazers over time](https://starchart.cc/MRColorR/money4band.svg?variant=adaptive)](https://starchart.cc/MRColorR/money4band)
 
 ---
+
+## License
+
+Money4Band is licensed under [GPL-3.0](LICENSE).
 
 ## [!] Disclaimer
 

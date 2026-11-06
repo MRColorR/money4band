@@ -1,12 +1,13 @@
 # Proxy & Multi-Proxy Setup
 
-> Scale your earnings across multiple IP addresses.
+Route one stack through a proxy or give each instance its own proxy.
 
 ---
 
 ## Why Use Proxies?
 
-Many bandwidth-sharing apps limit earnings per IP address. By routing containers through different proxies, you can run multiple instances - each appearing to come from a unique IP. M4B supports both single-proxy and multi-proxy configurations.
+Each proxy provides an exit IP for a stack. Check each provider's terms for
+proxy use and device or IP limits before enabling that app in a proxied stack.
 
 ## Single Proxy
 
@@ -14,7 +15,7 @@ Configure a single proxy in the interactive setup or directly in your config:
 
 1. Run `m4b setup` and select **Yes** when asked about proxy usage.
 2. Enter your proxy URL (e.g., `socks5://user:pass@proxy-host:1080`).
-3. M4B wraps your containers with a VPN tunnel container that routes traffic through the proxy.
+3. M4B wraps your containers with a tunnel container that routes traffic through the proxy.
 
 The proxy tunnel is injected into the generated `docker-compose.yaml`
 alongside the app containers, tagged with the `proxy` Docker Compose
@@ -68,7 +69,9 @@ From the proxy tools menu (`m4b proxy`):
 
 ### Install Limits
 
-By default, `enforce_install_limits` is `true` in `m4b-config.json`. This respects each app's documented device/IP limits to avoid account bans. You can toggle this from the proxy menu, but doing so is at your own risk.
+The `enforce_install_limits` setting defaults to `true` in
+`m4b-config.json`. Money4Band uses the limits recorded in its catalog.
+Check each provider's current rules for your account and network.
 
 ## Supported Proxy Protocols
 
@@ -82,6 +85,5 @@ The bundled tunnel rejects `https://` and `socks5h://` proxy URLs. An
 
 ## Tips
 
-- **IP quality matters.** Run `m4b ip` to check your IP score before investing in proxies. Residential IPs earn significantly more than datacenter IPs.
-- **Start small.** Test with 2-3 proxies before scaling up.
-- **Monitor earnings.** Not all apps support datacenter IPs. Check the app catalog (`m4b apps`) for each app's IP policy.
+- Start with a small number of proxies and verify each stack independently.
+- Check container status in Money4Band and enrollment in the provider's dashboard.
