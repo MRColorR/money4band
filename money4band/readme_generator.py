@@ -2,11 +2,13 @@ from __future__ import annotations
 
 """Auto-generate app tables in README.md and docs/APPS.md from m4b-config.json."""
 
+import json
 import logging
 import re
+from copy import deepcopy
 from pathlib import Path
 from typing import Any
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import parse_qs, quote, urlparse
 
 from money4band.core.loader import get_all_app_categories, get_category_entries
 
@@ -17,7 +19,7 @@ _BEGIN_MARKER = "<!-- BEGIN:APPS_TABLE -->"
 _END_MARKER = "<!-- END:APPS_TABLE -->"
 
 # Category -> display order (lower = first)
-_CATEGORY_ORDER = {"supported": 0, "newcomers": 1, "deprecated": 2}
+_CATEGORY_ORDER = {"supported": 0, "standalone": 1, "newcomers": 2, "deprecated": 3}
 
 # Status -> ASCII tag (lifecycle state inside its source)
 _STATUS_EMOJI: dict[str, str] = {
@@ -26,6 +28,7 @@ _STATUS_EMOJI: dict[str, str] = {
     "candidate": "[soon]",
     "deprecated": "[x]",
     "discontinued": "[x]",
+    "standalone": "[native]",
 }
 
 # Per-source row indicator used in the unified README table.
@@ -43,6 +46,8 @@ def _row_indicator(source: str, category: str) -> str:
         return "[x]"
     if category == "newcomers":
         return "[new]"
+    if category == "standalone":
+        return "[native]"
     return _SOURCE_EMOJI.get(source, "-")
 
 
@@ -66,6 +71,8 @@ def _effective_status(category: str, details: dict[str, Any]) -> str:
         return str(details.get("status", "deprecated"))
     if category == "newcomers":
         return "candidate"
+    if category == "standalone":
+        return "standalone"
     return str(details.get("status", "active"))
 
 
@@ -117,6 +124,31 @@ def _format_earnings(val: str | None) -> str:
     return f"${val}"
 
 
+def merge_documentation_catalog(
+    app_config: dict[str, Any], snapshot_path: Path, *, core_only: bool = False
+) -> dict[str, Any]:
+    """Add the checked-in documentation entries without changing the runtime catalog."""
+    combined = deepcopy(app_config)
+    snapshot = json.loads(snapshot_path.read_text(encoding="utf-8"))
+    seen = {
+        entry["name"].casefold()
+        for category in _CATEGORY_ORDER
+        for entry in get_category_entries(combined, category)
+    }
+    sources = (
+        ("standalone",) if core_only else ("standalone", "community", "openpassivehub")
+    )
+    for source in sources:
+        for category, entries in snapshot[source].items():
+            target = combined.setdefault(category, {"active": False, "entries": []})
+            for entry in entries:
+                key = entry["name"].casefold()
+                if key not in seen:
+                    target["entries"].append({**entry, "_source": source})
+                    seen.add(key)
+    return combined
+
+
 def _collect_apps(app_config: dict[str, Any]) -> list[dict[str, Any]]:
     """Collect all apps with metadata, sorted by category order then config order.
 
@@ -127,6 +159,8 @@ def _collect_apps(app_config: dict[str, Any]) -> list[dict[str, Any]]:
     """
     apps: list[dict[str, Any]] = []
     for cat in get_all_app_categories(app_config):
+        if cat not in _CATEGORY_ORDER:
+            continue
         order = _CATEGORY_ORDER.get(cat, 99)
         for entry in get_category_entries(app_config, cat):
             details = entry.get("app_details", {})
@@ -136,6 +170,14 @@ def _collect_apps(app_config: dict[str, Any]) -> list[dict[str, Any]]:
                 if referrals and isinstance(referrals[0], dict)
                 else ""
             )
+            if not primary_link and cat != "deprecated":
+                primary_link = details.get("official_url") or entry.get("dashboard", "")
+            if not isinstance(primary_link, str) or not primary_link.startswith(
+                ("https://", "http://")
+            ):
+                primary_link = ""
+            else:
+                primary_link = quote(primary_link, safe=":/?#[]@!$&'*+,;=%")
             source = entry.get("_source", "core")
             apps.append(
                 {
@@ -143,7 +185,11 @@ def _collect_apps(app_config: dict[str, Any]) -> list[dict[str, Any]]:
                     "details": details,
                     "category": cat,
                     "order": order,
-                    "name": details.get("official_name", entry.get("name", "?")),
+                    "name": str(details.get("official_name", entry.get("name", "?")))
+                    .replace("|", r"\|")
+                    .replace("[", r"\[")
+                    .replace("]", r"\]")
+                    .replace("\n", " "),
                     "link": primary_link,
                     "status": _effective_status(cat, details),
                     "source": source,
@@ -155,37 +201,30 @@ def _collect_apps(app_config: dict[str, Any]) -> list[dict[str, Any]]:
 
 
 # ---------------------------------------------------------------------------
-# README table: compact (App | Residential | VPS/DC | Payout)
+# README table: app name and setup path
 # ---------------------------------------------------------------------------
 
 
 def generate_readme_table(app_config: dict[str, Any]) -> str:
-    """Generate the compact markdown table for README.md.
-
-    Includes a ``Type`` column whose emoji is driven by
-    :func:`_row_indicator` ([ok] core | [com] community | [new] newcomer | [x]
-    deprecated). When the config only contains core entries the column
-    still renders, all rows just show [ok].
-    """
+    """Show every listed app and how a reader can run it."""
     apps = _collect_apps(app_config)
 
-    lines = [
-        "| Type | App | Residential | VPS/DC | Payout |",
-        "|:----:|-----|:-----------:|:------:|--------|",
-    ]
+    availability = {
+        "[ok]": "Built into Money4Band",
+        "[com]": "Optional community catalog",
+        "[native]": "Standalone install",
+        "[new]": "Candidate (see app directory)",
+        "[x]": "Archived",
+    }
+    lines = ["| App | How to run it |", "| --- | --- |"]
 
     for app in apps:
-        ip = app["details"].get("ip_policy", {})
-        earnings = app["details"].get("earnings", {})
         name = app["name"]
         link = app["link"]
 
         app_cell = f"[**{name}**]({link})" if link else f"**{name}**"
-        resi = _bool_md(ip.get("residential"))
-        dc = _bool_md(ip.get("datacenter"))
-        payout = _format_payout(earnings.get("payout_methods"))
-
-        lines.append(f"| {app['indicator']} | {app_cell} | {resi} | {dc} | {payout} |")
+        how_to_run = availability.get(app["indicator"], "See app directory")
+        lines.append(f"| {app_cell} | {how_to_run} |")
 
     return "\n".join(lines)
 
@@ -216,7 +255,7 @@ def generate_apps_md_table(app_config: dict[str, Any]) -> str:
             link_cell = f"[Visit]({link})"
             code = _extract_referral_code(link)
             if code:
-                link_cell += f" | code: `{code}`"
+                link_cell += f" (code: `{code}`)"
         else:
             link_cell = "-"
 
@@ -225,7 +264,7 @@ def generate_apps_md_table(app_config: dict[str, Any]) -> str:
         dc = _bool_md(ip.get("datacenter"))
         dev_acct = _format_devices(limits.get("max_devices_per_account"))
         dev_ip = _format_devices(limits.get("max_devices_per_ip"))
-        payout = _format_payout(earnings.get("payout_methods"))
+        payout = _format_payout(earnings.get("payout_methods")).replace("|", r"\|")
         est = _format_earnings(earnings.get("avg_monthly_residential_usd"))
 
         lines.append(
@@ -254,7 +293,9 @@ def _replace_between_markers(text: str, new_content: str) -> str | None:
     return result
 
 
-def update_readme(app_config: dict[str, Any], readme_path: str | Path) -> bool:
+def update_readme(
+    app_config: dict[str, Any], readme_path: str | Path, *, check: bool = False
+) -> bool:
     """Regenerate the apps table in README.md between markers. Returns True on success."""
     path = Path(readme_path)
     if not path.exists():
@@ -270,23 +311,24 @@ def update_readme(app_config: dict[str, Any], readme_path: str | Path) -> bool:
         )
         return False
 
-    path.write_text(updated, encoding="utf-8")
-
-    # Update the app count line just above the table
     app_count = len(_collect_apps(app_config))
-    updated = path.read_text(encoding="utf-8")
     updated = re.sub(
         r"\*\*\d+\+?\s+apps?\*\*\s+tracked",
         f"**{app_count} apps** tracked",
         updated,
     )
-    path.write_text(updated, encoding="utf-8")
+    if check:
+        return updated == text
+    if updated != text:
+        path.write_text(updated, encoding="utf-8", newline="\n")
 
     logger.info("README updated: %s (%d apps)", path, app_count)
     return True
 
 
-def update_apps_md(app_config: dict[str, Any], apps_md_path: str | Path) -> bool:
+def update_apps_md(
+    app_config: dict[str, Any], apps_md_path: str | Path, *, check: bool = False
+) -> bool:
     """Regenerate the app table in docs/APPS.md between markers. Returns True on success."""
     path = Path(apps_md_path)
     if not path.exists():
@@ -302,6 +344,9 @@ def update_apps_md(app_config: dict[str, Any], apps_md_path: str | Path) -> bool
         )
         return False
 
-    path.write_text(updated, encoding="utf-8")
+    if check:
+        return updated == text
+    if updated != text:
+        path.write_text(updated, encoding="utf-8", newline="\n")
     logger.info("APPS.md updated: %s", path)
     return True

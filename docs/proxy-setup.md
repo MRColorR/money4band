@@ -83,6 +83,14 @@ The bundled tunnel rejects `https://` and `socks5h://` proxy URLs. An
 `http://` CONNECT proxy can still tunnel HTTPS connections to websites.
 [Tunnel protocol support](https://github.com/xjasonlyu/tun2socks/wiki/Proxy-Models)
 
+## Proxy Providers
+
+These results describe specific endpoints tested with Money4Band.
+
+| Provider | Tested protocols | IP type and regions | Test results |
+| --- | --- | --- | --- |
+| [BirdProxies](https://birdproxies.com/) | SOCKS5 in Money4Band, HTTP CONNECT in a direct connection check | Five static US ISP endpoints | Each route kept its expected exit IP in the test samples. NetYield credited sandbox traffic through one of the routes. |
+
 ## Tips
 
 - Start with a small number of proxies and verify each stack independently.

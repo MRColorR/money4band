@@ -659,8 +659,14 @@ def _cmd_generate(args: argparse.Namespace) -> None:
     m4b_config_path, apps_config_path, user_config_path = _resolve_paths(args)
 
     if getattr(args, "docs", False):
+        from pathlib import Path
+
         from money4band.core.loader import load_app_config_with_overlays
-        from money4band.readme_generator import update_apps_md, update_readme
+        from money4band.readme_generator import (
+            merge_documentation_catalog,
+            update_apps_md,
+            update_readme,
+        )
 
         app_config = load_app_config_with_overlays(apps_config_path)
         readme_path = os.path.join(
@@ -669,6 +675,9 @@ def _cmd_generate(args: argparse.Namespace) -> None:
         apps_md_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)), "docs", "APPS.md"
         )
+        snapshot_path = Path(apps_md_path).with_name("catalog-snapshot.json")
+        if snapshot_path.is_file():
+            app_config = merge_documentation_catalog(app_config, snapshot_path)
         ok_readme = update_readme(app_config, readme_path)
         ok_apps = update_apps_md(app_config, apps_md_path)
         if ok_readme:

@@ -9,7 +9,6 @@
 <p align="center">
   <a href="https://github.com/MRColorR/money4band/releases/latest"><img src="https://img.shields.io/github/v/release/MRColorR/money4band?style=flat&label=Version" alt="Version"></a>
   <a href="https://github.com/MRColorR/money4band/actions/workflows/release-on-tag.yml"><img src="https://img.shields.io/github/actions/workflow/status/MRColorR/money4band/release-on-tag.yml?style=flat&label=Build" alt="Build"></a>
-  <a href="https://github.com/MRColorR/money4band/stargazers"><img src="https://img.shields.io/github/stars/MRColorR/money4band?style=flat&logo=github&color=orange" alt="Stars"></a>
   <a href="https://github.com/MRColorR/money4band/blob/main/LICENSE"><img src="https://img.shields.io/github/license/MRColorR/money4band?style=flat&color=purple" alt="License"></a>
   <a href="https://discord.com/invite/Fq8eeazBAD"><img src="https://img.shields.io/badge/Discord-Community-5865F2?style=flat&logo=discord&logoColor=white" alt="Discord"></a>
 </p>
@@ -60,40 +59,52 @@ Already installed? See [Upgrade an existing installation](docs/getting-started.m
 
 ## Supported Apps
 
-The table covers the built-in catalog on this branch. See the [app directory](docs/APPS.md)
-for details and the [community catalog](https://github.com/MRColorR/money4band-community-catalog)
-for opt-in entries.
-
-> [ok] Built in. [x] Removed from default setup.
->
-> Some app links below include referral codes that support the project.
+Start with any app marked **Built into Money4Band**. Optional apps can be
+enabled through the community catalog. Standalone apps use the provider's
+own installer. Some app names link to referrals that support the project.
 
 <!-- BEGIN:APPS_TABLE -->
-| Type | App | Residential | VPS/DC | Payout |
-|:----:|-----|:-----------:|:------:|--------|
-| [ok] | [**AntGain**](https://antgain.app) | [ok] | - | - |
-| [ok] | [**Bitping**](https://app.bitping.com?r=qm7mIuX3) | [ok] | [ok] | BITPING token (crypto), USDC |
-| [ok] | [**Earn.FM**](https://earn.fm/ref/MATTTAV6) | [ok] | [ok] | PayPal, USDT, gift cards |
-| [ok] | [**Honeygain**](https://r.honeygain.me/MINDL15721) | [ok] | [x] | JumpToken (crypto), PayPal (via JumpTask) |
-| [ok] | [**Mysterium**](https://mystnodes.co/?referral_code=Tc7RaS7Fm12K3Xun6mlU9q9hbnjojjl9aRBW8ZA9) | [ok] | [ok] | MYST token, ETH, BNB |
-| [ok] | [**PacketStream**](https://packetstream.io/?psr=3zSD) | [ok] | [x] | PayPal |
-| [ok] | [**Pawns (IPRoyal)**](https://pawns.app?r=MiNe) | [ok] | [x] | PayPal, crypto, gift cards |
-| [ok] | [**ProxyLite**](https://proxylite.ru/?r=PJTKXWN3) | [ok] | [ok] | crypto |
-| [ok] | [**Proxyrack Peer Program**](https://peer.proxyrack.com/ref/myoas6qttvhuvkzh8ffx90ns1ouhwgilfgamo5ex) | [ok] | [ok] | PayPal, crypto |
-| [ok] | [**Repocket**](https://link.repocket.co/hr8i) | [ok] | [ok] | PayPal, crypto |
-| [ok] | [**Titan Network**](https://titannet.io) | [ok] | - | - |
-| [ok] | [**TraffMonetizer**](https://traffmonetizer.com/?aff=366499) | [ok] | [x] | PayPal, crypto, wire transfer |
-| [ok] | [**URnetwork**](https://urnetwork.com) | [ok] | - | - |
-| [x] | **BearShare** | [ok] | - | - |
-| [x] | **PacketShare** | [ok] | - | - |
+| App | How to run it |
+| --- | --- |
+| [**AntGain**](https://antgain.app) | Built into Money4Band |
+| [**Bitping**](https://app.bitping.com?r=qm7mIuX3) | Built into Money4Band |
+| [**Earn.FM**](https://earn.fm/ref/MATTTAV6) | Built into Money4Band |
+| [**GaGaNode**](https://www.gaganode.com) | Optional community catalog |
+| [**Honeygain**](https://r.honeygain.me/MINDL15721) | Built into Money4Band |
+| [**Mysterium**](https://mystnodes.co/?referral_code=Tc7RaS7Fm12K3Xun6mlU9q9hbnjojjl9aRBW8ZA9) | Built into Money4Band |
+| [**NetYield**](https://netyield.io/) | Built into Money4Band |
+| [**PacketStream**](https://packetstream.io/?psr=3zSD) | Built into Money4Band |
+| [**Pawns (IPRoyal)**](https://pawns.app?r=MiNe) | Built into Money4Band |
+| [**ProxyLite**](https://proxylite.ru/?r=PJTKXWN3) | Built into Money4Band |
+| [**Proxyrack Peer Program**](https://peer.proxyrack.com/ref/myoas6qttvhuvkzh8ffx90ns1ouhwgilfgamo5ex) | Built into Money4Band |
+| [**Repocket**](https://link.repocket.co/hr8i) | Built into Money4Band |
+| [**Spide Network**](https://spide.network) | Optional community catalog |
+| [**Titan Network**](https://titannet.io) | Built into Money4Band |
+| [**TraffMonetizer**](https://traffmonetizer.com/?aff=366499) | Built into Money4Band |
+| [**URnetwork**](https://urnetwork.com) | Built into Money4Band |
+| [**EarnApp**](https://earnapp.com/i/3zulx7k) | Standalone install |
+| [**Adnade**](https://adnade.com) | Candidate (see app directory) |
+| [**ByteBenefit**](https://bytebenefit.com) | Candidate (see app directory) |
+| [**Bytelixir**](https://bytelixir.com) | Candidate (see app directory) |
+| [**Earn.cc**](https://earn.cc) | Candidate (see app directory) |
+| [**Ebesucher**](https://www.ebesucher.com) | Candidate (see app directory) |
+| [**PassiveApp**](https://passiveapp.io) | Candidate (see app directory) |
+| [**Salad**](https://salad.com) | Candidate (see app directory) |
+| [**UpRock**](https://uprock.com) | Candidate (see app directory) |
+| **BearShare** | Archived |
+| [**Dawn Internet**](https://dawninternet.com?code=xo23vynw) | Archived |
+| [**Gradient**](https://app.gradient.network/signup?code=9WOBKP) | Archived |
+| [**Grass (Wynd Network)**](https://app.getgrass.io/register/?referralCode=qyvJmxgNUhcLo2f) | Archived |
+| **PacketShare** | Archived |
+| [**Peer2Profit**](https://t.me/peer2profit_app_bot?start=165849012262da8d0aa13c8) | Archived |
+| [**ProxyBase**](http://peer.proxybase.org/signup?ref=XfOz3zeURm) | Archived |
+| [**SpeedShare**](https://speedshare.app/?ref=mindlessnerd) | Archived |
+| [**Teneo Protocol**](https://dashboard.teneo.pro/?code=qPgLn) | Archived |
+| [**Wipter**](https://wipter.com/signup?ref=money4band) | Archived |
+| [**WizardGain**](https://wizardgain.com) | Archived |
 <!-- END:APPS_TABLE -->
 
-> **[Registration links, IP eligibility, and payout methods](docs/APPS.md)**
-
-### Apps you install yourself
-
-Run EarnApp directly on an eligible personal device using the provider's
-installer. See the [standalone apps list](docs/APPS.md#standalone-apps).
+See the [app directory](docs/APPS.md) for setup options, IP eligibility, and payout methods.
 
 ---
 
@@ -102,7 +113,7 @@ installer. See the [standalone apps list](docs/APPS.md#standalone-apps).
 | | |
 |---|---|
 | [Getting Started](docs/getting-started.md) | [CLI Reference](docs/cli-reference.md) |
-| [Dashboard & API](docs/dashboard-api.md) | [Proxy & Multi-Proxy](docs/proxy-setup.md) |
+| [Dashboard & API](docs/dashboard-api.md) | [Proxy Setup](docs/proxy-setup.md) and [Proxy Providers](docs/proxy-setup.md#proxy-providers) |
 | [App Management](docs/app-management.md) | [Configuration](docs/configuration.md) |
 | [Security](docs/security.md) | [Notifications](docs/notifications.md) |
 | [FAQ & Troubleshooting](docs/faq.md) | [App Directory](docs/APPS.md) |
@@ -129,7 +140,7 @@ Contributions are welcome! Please read the [Contributing Guide](.github/CONTRIBU
 
 ## Support
 
-Ko-fi supports Mattia / MrColorRain's work across projects.
+Ko-fi supports MrColorRain's work across projects.
 
 Support ongoing development, testing and documentation through
 [Ko-fi](https://ko-fi.com/mrcolorrain). One-time contributions and monthly
@@ -143,7 +154,7 @@ for acknowledgments.
 
 ## Stargazers
 
-[![Stargazers over time](https://starchart.cc/MRColorR/money4band.svg?variant=adaptive)](https://starchart.cc/MRColorR/money4band)
+![Recorded GitHub star counts](docs/stargazers.svg)
 
 ---
 

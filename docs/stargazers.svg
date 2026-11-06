@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 180"
+    role="img" aria-labelledby="title description">
+  <title id="title">Money4Band GitHub stars</title>
+  <desc id="description">Recorded aggregate star counts from 2026-11-06 to 2026-11-06. Latest count: 471.</desc>
+  <rect x="1" y="1" width="718" height="178" rx="12" fill="#f8fafc" stroke="#cbd5e1"/>
+  <g font-family="system-ui, sans-serif" fill="#172033">
+    <text x="32" y="33" font-size="19" font-weight="600">Money4Band GitHub stars</text>
+    <text x="688" y="33" text-anchor="end" font-size="17">471 stars</text>
+    <g font-size="12" fill="#475569">
+      <text x="54" y="66" text-anchor="end">471</text>
+      <text x="54" y="144" text-anchor="end">0</text>
+      <text x="654" y="162" text-anchor="end">2026-11-06</text>
+    </g>
+  </g>
+  <path d="M64 62 H654 M64 140 H654" stroke="#cbd5e1"/>
+  <polyline points="64.0,62.0" fill="none" stroke="#2563eb" stroke-width="3"/>
+  <circle cx="64.0" cy="62.0" r="4.5" fill="#2563eb"/>
+</svg>

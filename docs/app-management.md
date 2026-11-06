@@ -6,11 +6,11 @@
 
 ## App Catalog
 
-The built-in catalog includes 13 supported apps and two removed entries.
+The built-in catalog includes 14 supported apps and two removed entries.
 
 | Category | Count | Description |
 |----------|-------|-------------|
-| **Supported** | 13 | Included in default setup |
+| **Supported** | 14 | Included in default setup |
 | **Newcomers** *(candidate)* | 0 | Empty by default - populated by opt-in remote sources |
 | **Deprecated** | 2 | BearShare and PacketShare are excluded from default setup |
 
