@@ -22,27 +22,35 @@
 </p>
 
 <a name="what-is-money4band"></a>
+<a name="overview"></a>
 
-## Overview
+## 🔍 Overview
 
 **Money4Band (M4B)** turns your unused internet bandwidth into passive income. That bandwidth is there anyway whether you're using it or not. Why not put it to work? One command. All the bandwidth-sharing apps. Each one runs in its own isolated Docker container, so your system stays clean, your setup is safer than installing each app natively, and you earn more than any single app could deliver alone.
 
 Our maintainers and community **research** every app, **verify** its background, **track** payout history, and **monitor** real-world behavior over time. You don't have to figure out which apps are legit and which are a waste of time.
 
-### Key Features
+<a name="key-features"></a>
 
-- 🚀 **Get started with guided setup.** Pick your apps and enter your provider credentials. Money4Band generates the Docker Compose configuration. Automate app and stack management through the [CLI](docs/cli-reference.md) or [REST API](docs/dashboard-api.md).
-- 📊 **See your apps in one dashboard.** Check container health and resource usage and start, stop, or restart individual apps from your browser. Providers show earnings and payouts in their own dashboards.
-- 🌍 **Start with one connection and scale when ready.** Run directly or create separate instances from a proxy list for apps that permit proxies. Check your connection with `m4b ip` and set per-app CPU and memory limits when needed.
-- 🔒 **Protect and recover your setup.** Money4Band encrypts saved app credentials and offers backup and restore commands for your configuration.
-- 🔄 **Keep your setup current.** Use `m4b update` for Money4Band itself and optionally enable Watchtower to update eligible app images. Send stack event notifications to services such as Discord or Telegram.
-- 💻 **Run on Windows, macOS, or Linux.** Choose the [release asset for your OS and CPU](docs/getting-started.md#option-a---download-the-binary-recommended). Individual Docker images have their own platform requirements.
+### ✨ Key Features
+
+- **🧊 Multiplatform and lightweight Docker stack.** Run the apps you select on Windows, macOS, or Linux and set CPU and memory limits per app. Choose the [release asset for your OS and CPU](docs/getting-started.md#option-a---download-the-binary-recommended).
+- **🔄 Automatic app updates.** Optionally enable Watchtower to keep eligible app images up to date. Use `m4b update` for Money4Band itself.
+- **📊 Web dashboard.** Monitor container health and resource usage, then start, stop, or restart apps from your browser. Providers show earnings and payouts in their own dashboards.
+- **🌍 Multi-proxy support.** Start with your own connection or create separate instances from a proxy list for apps that permit proxies. Check your connection with `m4b ip`.
+- **🔒 Safer than installing each app directly.** Each app runs in its own Docker container, keeping its dependencies separate and reducing what you install on your host.
+- **🚀 Guided setup and automation.** Pick your apps and enter your credentials. Money4Band generates the Compose configuration, and you can automate app and stack management through the [CLI](docs/cli-reference.md) or [REST API](docs/dashboard-api.md).
+- **🛟 Backups and notifications.** Money4Band encrypts saved app credentials, provides backup and restore commands, and can send stack notifications to Discord or Telegram.
 
 Explore [optional community apps and add-ons](docs/app-management.md), including reward-claim helpers for select providers, when their terms permit them.
 
-## Getting started
+<a name="getting-started"></a>
 
-### Quick Start
+## 🚥 Getting started
+
+<a name="quick-start"></a>
+
+### 🚀 Quick Start
 
 Download Money4Band from the [latest stable release](https://github.com/MRColorR/money4band/releases/latest).
 The [installation guide](docs/getting-started.md#option-a---download-the-binary-recommended)
@@ -60,7 +68,9 @@ shows which file to pick for Windows, macOS, or Linux and how to open it.
 Prefer a Git checkout? Follow [Run from Source](docs/getting-started.md#option-b---run-from-source).
 Already installed? See [Upgrade an existing installation](docs/getting-started.md#upgrade-an-existing-installation).
 
-### Supported Apps
+<a name="supported-apps"></a>
+
+### 📋 Supported Apps
 
 Start with a **built-in app** and select its name to visit the provider. Some links are referrals that support Money4Band.
 
@@ -115,7 +125,9 @@ This table follows the `main` branch. See the [app directory](docs/APPS.md) for 
 
 ---
 
-## Documentation
+<a name="documentation"></a>
+
+## 📚 Documentation
 
 | | |
 |---|---|
@@ -127,12 +139,16 @@ This table follows the `main` branch. See the [app directory](docs/APPS.md) for 
 
 ---
 
-### FAQ
+<a name="faq"></a>
+
+### ❓ FAQ
 
 - [How do I update Money4Band?](docs/faq.md#how-do-i-update-m4b)
 - [How do I troubleshoot setup or containers?](docs/faq.md#setup-issues)
 
-### Community & Support
+<a name="community--support"></a>
+
+### 💬 Community & Support
 
 💬 Come say hello, share your setup, or ask for a hand. We’d love to hear how you use Money4Band.
 
@@ -140,7 +156,9 @@ This table follows the `main` branch. See the [app directory](docs/APPS.md) for 
 - [**Discussions**](https://github.com/MRColorR/money4band/discussions) for feature requests and ideas
 - [**Issues**](https://github.com/MRColorR/money4band/issues) for bug reports
 
-## Contributing
+<a name="contributing"></a>
+
+## 🤝 Contributing
 
 Contributions are welcome! Please read the [Contributing Guide](.github/CONTRIBUTING.md) and [Code of Conduct](.github/CODE_OF_CONDUCT.md) before opening a pull request.
 
@@ -148,7 +166,9 @@ Please include enough context to reproduce a problem or review a change.
 
 ---
 
-## Support
+<a name="support"></a>
+
+## 🫶 Support
 
 **🫶 Support the project**
 
@@ -160,10 +180,14 @@ Thank you for helping me keep building and sharing! 🙏 See the [supporters and
 
 ---
 
-## License
+<a name="license"></a>
+
+## 📄 License
 
 Money4Band is licensed under [GPL-3.0](LICENSE).
 
-### Disclaimer
+<a name="disclaimer"></a>
+
+### ⚠️ Disclaimer
 
 This project and its artifacts are provided "as is" and without warranty of any kind. The author makes no warranties, express or implied, that this script is free of errors, defects, or suitable for any particular purpose. The author shall not be retained liable for any damages suffered by any user of this script, whether direct, indirect, incidental, consequential, or special, arising from the use of or inability to use this script or its documentation, even if the author has been advised of the possibility of such damages. Always verify that the laws of your country and your ISP's terms allow these applications.
