@@ -6,7 +6,7 @@
 
 **Put your unused internet bandwidth to work.** Set up apps like Honeygain, Pawns, and PacketStream together, then manage them from one dashboard. Money4Band is free and open source.
 
-[**Download Money4Band**](https://github.com/MRColorR/money4band/releases/latest) · [Quick start](#quick-start) · [Browse apps](#supported-apps) · [Join Discord](https://discord.com/invite/Fq8eeazBAD) · [Support the project](#support)
+[**⬇️ Download Money4Band**](https://github.com/MRColorR/money4band/releases/latest) · [🚀 Quick start](#quick-start) · [📋 Browse apps](#supported-apps) · [💬 Join Discord](https://discord.com/invite/Fq8eeazBAD) · [🫶 Support the project](#support)
 
 **Leave a star ⭐ if you like this project 🙂 Thank you!**
 
@@ -31,12 +31,12 @@ Bandwidth-sharing providers can pay you for traffic routed through your connecti
 
 ### Key Features
 
-- **Get started with guided setup.** Pick your apps and enter your provider credentials. Money4Band generates the Docker Compose configuration. Automate app and stack management through the [CLI](docs/cli-reference.md) or [REST API](docs/dashboard-api.md).
-- **See your apps in one dashboard.** Check container health and resource usage and start, stop, or restart individual apps from your browser. Providers show earnings and payouts in their own dashboards.
-- **Start with one connection and scale when ready.** Run directly or create separate instances from a proxy list for apps that permit proxies. Check your connection with `m4b ip` and set per-app CPU and memory limits when needed.
-- **Protect and recover your setup.** Money4Band encrypts saved app credentials and offers backup and restore commands for your configuration.
-- **Keep your setup current.** Use `m4b update` for Money4Band itself and optionally enable Watchtower to update eligible app images. Send stack event notifications to services such as Discord or Telegram.
-- **Run on Windows, macOS, or Linux.** Choose the [release asset for your OS and CPU](docs/getting-started.md#option-a---download-the-binary-recommended). Individual Docker images have their own platform requirements.
+- 🚀 **Get started with guided setup.** Pick your apps and enter your provider credentials. Money4Band generates the Docker Compose configuration. Automate app and stack management through the [CLI](docs/cli-reference.md) or [REST API](docs/dashboard-api.md).
+- 📊 **See your apps in one dashboard.** Check container health and resource usage and start, stop, or restart individual apps from your browser. Providers show earnings and payouts in their own dashboards.
+- 🌍 **Start with one connection and scale when ready.** Run directly or create separate instances from a proxy list for apps that permit proxies. Check your connection with `m4b ip` and set per-app CPU and memory limits when needed.
+- 🔒 **Protect and recover your setup.** Money4Band encrypts saved app credentials and offers backup and restore commands for your configuration.
+- 🔄 **Keep your setup current.** Use `m4b update` for Money4Band itself and optionally enable Watchtower to update eligible app images. Send stack event notifications to services such as Discord or Telegram.
+- 💻 **Run on Windows, macOS, or Linux.** Choose the [release asset for your OS and CPU](docs/getting-started.md#option-a---download-the-binary-recommended). Individual Docker images have their own platform requirements.
 
 Explore [optional community apps and add-ons](docs/app-management.md), including reward-claim helpers for select providers, when their terms permit them.
 
@@ -135,6 +135,8 @@ This table follows the `main` branch. See the [app directory](docs/APPS.md) for 
 
 ### Community & Support
 
+💬 Come say hello, share your setup, or ask for a hand. We’d love to hear how you use Money4Band.
+
 - [**Discord**](https://discord.com/invite/Fq8eeazBAD) for chat, help, and shared experiences
 - [**Discussions**](https://github.com/MRColorR/money4band/discussions) for feature requests and ideas
 - [**Issues**](https://github.com/MRColorR/money4band/issues) for bug reports
@@ -149,9 +151,23 @@ Please include enough context to reproduce a problem or review a change.
 
 ## Support
 
-Help fund ongoing development, testing, and documentation with a one-time contribution or monthly membership on [Ko-fi](https://ko-fi.com/mrcolorrain). Technical decisions remain independent.
+**🫶 Support the project**
 
-Thank you to the people who support MrColorRain’s work. See the [supporters and sponsors directory](https://github.com/MRColorR/MRColorR/blob/main/SPONSORS.md).
+Your contributions are vital in helping to sustain the development of open-source projects and tools made freely available to everyone. If you find value in my work and wish to show your support, kindly consider making a donation.
+
+☕ [Support me on Ko-fi](https://ko-fi.com/mrcolorrain) · 💛 [Donate with cryptocurrency](https://github.com/MRColorR/MRColorR/blob/main/SPONSORS.md#cryptocurrency-wallets)
+
+Thank you for helping me keep building and sharing! 🙏 See the [supporters and sponsors directory](https://github.com/MRColorR/MRColorR/blob/main/SPONSORS.md).
+
+### Cryptocurrency wallets
+
+| Network | Wallet address |
+| --- | --- |
+| Bitcoin (BTC) | `1EzBrKjKyXzxydSUNagAP8XLeRzBTxfHcg` |
+| Ethereum (ETH) | `0xE65c32004b968cd1b4084bC3484C0dA051eeD3ee` |
+| Solana (SOL) | `6kUAWW8q5169qnUJdxxLsNMPpaKPvbUSmryKDYTb9epn` |
+| Polygon PoS | `0xE65c32004b968cd1b4084bC3484C0dA051eeD3ee` |
+| BNB Smart Chain (BNB) | `0xE65c32004b968cd1b4084bC3484C0dA051eeD3ee` |
 
 ### Stargazers
 
