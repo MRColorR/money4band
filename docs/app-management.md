@@ -6,13 +6,10 @@
 
 ## App Catalog
 
-The built-in catalog includes 14 supported apps and two removed entries.
-
-| Category | Count | Description |
-|----------|-------|-------------|
-| **Supported** | 14 | Included in default setup |
-| **Newcomers** *(candidate)* | 0 | Empty by default - populated by opt-in remote sources |
-| **Deprecated** | 2 | BearShare and PacketShare are excluded from default setup |
+See the [app directory](APPS.md) for the complete list and each app’s status.
+Supported apps appear in setup by default. To try a candidate with a Docker
+integration, run `m4b catalog category enable newcomers`, then open **Setup Apps**.
+Standalone apps use their provider’s installer.
 
 > The internal category key for *Candidate* apps is `newcomers`; the CLI
 > surface accepts `candidate` (user-facing) while the on-disk layout and
@@ -52,15 +49,9 @@ Their providers' shutdown status is unconfirmed.
 After upgrading an existing deployment, stop the previous stack, run
 `m4b generate`, and start it again. Recreate saved multi-proxy instances
 from the updated catalog to refresh their generated Compose files.
-
-### Standalone apps
-
-EarnApp belongs in the [standalone apps list](APPS.md#standalone-apps).
-EarnApp prohibits Docker and proxy use. If an older copy of the community
-catalog still shows EarnApp, disable that entry, stop any stack running it,
-and regenerate the Compose files before restarting the stack.
-[Docker policy](https://help.earnapp.com/hc/en-us/articles/10199416541969--Can-I-install-EarnApp-on-Hosting-Services-Virtual-Machines-or-Dockers)
-[Proxy policy](https://help.earnapp.com/hc/en-us/articles/10199339150609--Can-I-use-Proxies-or-VPNs-with-EarnApp)
+If a provider now requires a standalone install, disable its old catalog
+entry before regenerating the stack and follow the provider’s installation
+and network requirements.
 
 ### Provider onboarding
 

@@ -103,11 +103,6 @@ jobs:
           uv sync --frozen
           uv pip install pyinstaller
 
-      - name: Update app tables
-        if: matrix.docker_platform == ''
-        shell: bash
-        run: uv run --locked python scripts/update_tables.py
-
       # Defence in depth: --add-data bundles config/ wholesale, so any
       # local user state present at build time would ship inside the
       # binary (credentials encrypted with the builder's key - unusable

@@ -19,12 +19,8 @@ Review the provider terms and [Money4Band security controls](security.md).
 
 Start with the [app directory](APPS.md). Run `m4b apps` to check the catalog
 in your installation and confirm the provider permits your network type.
-
-### Why is EarnApp missing from setup?
-
-EarnApp has a native Linux client and is listed under
-[Standalone apps](APPS.md#standalone-apps). Install it through EarnApp on
-an eligible device.
+See [App Management](app-management.md#app-catalog) for how to enable
+candidates and install standalone apps.
 
 ### Can I run Money4Band on multiple devices?
 
@@ -137,11 +133,9 @@ Start with `m4b clean --dry-run`. See the
 
 See [Runtime Data Directory](configuration.md#runtime-data-directory)
 for which files to keep with your install and how to migrate legacy data.
-
-### Can I move my MystNodes node to another Raspberry Pi?
-
-Yes, if you have a copy of the node's data directory. Follow the
-[MystNodes migration steps](app-management.md#provider-onboarding).
+Some apps store their device identity separately. Check the
+[provider setup and migration notes](app-management.md#provider-onboarding)
+before moving an existing stack.
 
 ---
 
