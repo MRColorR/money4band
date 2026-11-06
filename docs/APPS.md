@@ -59,26 +59,3 @@ balance, and payout status.
 For instructions on enabling, adding, and refreshing opt-in sources,
 see [Catalog sources](app-management.md#catalog-sources).
 
-## Standalone apps
-
-Install and manage these apps directly through their providers, outside the
-Money4Band stack.
-
-| App | How to run it |
-| --- | --- |
-| [EarnApp](https://earnapp.com/i/3zulx7k) | Use the official client on an eligible personal device with a supported residential connection. EarnApp prohibits Docker and proxies. [Official installation guide](https://help.earnapp.com/hc/en-us/articles/10261224561553-Installation-instructions-and-hardware-software-requirements) |
-
-## NetYield setup and rates
-
-Enable the `newcomers` category with `m4b catalog category enable newcomers`.
-Then choose NetYield in **Setup Apps** and enter an API key from your NetYield
-dashboard. Money4Band stores the device identity in a Docker volume named
-`netyield-data` within the Compose project. Keep that volume when replacing
-the container. Money4Band enables one NetYield device per setup by default.
-
-The provider confirmed eligibility for hosting, datacenter, residential,
-and mobile IPv4 connections. Its stated rates are $0.05 per GB for hosting
-and datacenter, $0.10 per GB for residential, and $0.20 per GB for mobile.
-The dashboard lists USDC payouts. If the client cannot resolve `netyield.io`,
-see [DNS configuration](configuration.md#dns-configuration) to set a resolver.
-[NetYield](https://netyield.io/) · [Official Docker image](https://hub.docker.com/r/netyield/peer-client)
