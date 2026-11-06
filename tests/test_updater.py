@@ -1,5 +1,6 @@
 """Tests for self-update functionality in updater.py."""
 
+import hashlib
 import json
 import os
 import subprocess
@@ -624,12 +625,14 @@ class TestApplyBinaryUpdate:
         mock_resp = MagicMock()
         mock_resp.iter_bytes.return_value = [b"new-binary-data"]
         mock_client = MagicMock()
-        mock_client.get.return_value = mock_resp
+        digest = hashlib.sha256(b"new-binary-data").hexdigest()
+        checksum = MagicMock(status_code=200, text=f"{digest}  m4b.exe\n")
+        mock_client.get.side_effect = [mock_resp, checksum]
         if not prefixed:
             mock_client.get.side_effect = [
                 MagicMock(status_code=404),
                 mock_resp,
-                mock_resp,
+                checksum,
             ]
         monkeypatch.setattr("money4band.updater.get_client", lambda: mock_client)
 
@@ -655,6 +658,33 @@ class TestApplyBinaryUpdate:
 
         assert _apply_binary_update("5.1.0") is False
 
+    @pytest.mark.parametrize(
+        "manifest", ["", "invalid  m4b.exe", f"{'0' * 64}  m4b.exe"]
+    )
+    def test_unverified_download_leaves_existing_files(
+        self, monkeypatch, tmp_path, manifest
+    ):
+        from money4band.updater import _apply_binary_update
+
+        current = tmp_path / "m4b.exe"
+        backup = tmp_path / "m4b.exe.bak"
+        current.write_bytes(b"current")
+        backup.write_bytes(b"backup")
+        monkeypatch.setattr("money4band.updater.sys.executable", str(current))
+        monkeypatch.setattr(
+            "money4band.updater._get_binary_asset_name", lambda: "m4b.exe"
+        )
+        client = MagicMock()
+        client.get.side_effect = [
+            MagicMock(iter_bytes=lambda **kwargs: [b"new"]),
+            MagicMock(status_code=200, text=manifest),
+        ]
+        monkeypatch.setattr("money4band.updater.get_client", lambda: client)
+        assert not _apply_binary_update("5.1.0")
+        assert current.read_bytes() == b"current"
+        assert backup.read_bytes() == b"backup"
+        assert sorted(tmp_path.iterdir()) == [current, backup]
+
     def test_os_error_during_rename_rolls_back(self, monkeypatch, tmp_path):
         """OSError during file replacement should attempt rollback."""
         from money4band.updater import _apply_binary_update
@@ -671,11 +701,15 @@ class TestApplyBinaryUpdate:
         mock_resp = MagicMock()
         mock_resp.iter_bytes.return_value = [b"new"]
         mock_client = MagicMock()
-        mock_client.get.return_value = mock_resp
+        digest = hashlib.sha256(b"new").hexdigest()
+        mock_client.get.side_effect = [
+            mock_resp,
+            MagicMock(status_code=200, text=f"{digest}  m4b.exe"),
+        ]
         monkeypatch.setattr("money4band.updater.get_client", lambda: mock_client)
 
         # Make the second rename fail (new -> current)
-        original_rename = os.rename
+        original_replace = os.replace
         call_count = 0
 
         def patched_rename(src, dst):
@@ -683,14 +717,14 @@ class TestApplyBinaryUpdate:
             call_count += 1
             if call_count == 2:  # second rename: tmp -> current
                 raise OSError("permission denied")
-            return original_rename(src, dst)
+            return original_replace(src, dst)
 
-        monkeypatch.setattr("os.rename", patched_rename)
+        monkeypatch.setattr("os.replace", patched_rename)
 
         result = _apply_binary_update("5.1.0")
         assert result is False
         # Original binary should be restored from backup
-        assert current_exe.exists()
+        assert current_exe.read_bytes() == b"old"
 
 
 # ---------------------------------------------------------------------------

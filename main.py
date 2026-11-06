@@ -25,7 +25,7 @@ from money4band.core.crypto import ensure_config_encrypted
 from money4band.core.reset import main as reset_main
 from money4band.system import detector
 from money4band.ui.cls import cls
-from money4band.updater import check_update_available, show_update_banner
+from money4band.updater import show_update_banner
 
 logger = logging.getLogger(__name__)
 
@@ -85,6 +85,19 @@ def _seed_bundled_dir(
         print(f"WARNING: could not seed {name} into {dest}: {exc}", file=sys.stderr)
 
 
+def _sync_bundled_version(installed: str, bundled: str) -> None:
+    """Stamp the running executable's version without replacing user settings."""
+    if not os.path.isfile(installed) or not os.path.isfile(bundled):
+        return
+    version = loader.load_json_config(bundled).get("project", {}).get("project_version")
+    config = loader.load_json_config(installed)
+    if version and config:
+        project = config.setdefault("project", {})
+        if project.get("project_version") != version:
+            project["project_version"] = version
+            dumper.write_json(config, installed)
+
+
 # Handle PyInstaller frozen executable path resolution
 if getattr(sys, "frozen", False):
     # Running as compiled executable (PyInstaller)
@@ -93,6 +106,14 @@ if getattr(sys, "frozen", False):
     _seed_bundled_dir(
         os.path.join(BASE_DIR, "config"), "config", ignore=_NEVER_SEED_INTO_CONFIG
     )
+    if bundle_dir := getattr(sys, "_MEIPASS", None):
+        try:
+            _sync_bundled_version(
+                os.path.join(BASE_DIR, "config", "m4b-config.json"),
+                os.path.join(bundle_dir, "config", "m4b-config.json"),
+            )
+        except (OSError, ValueError) as exc:
+            print(f"WARNING: could not update project version: {exc}", file=sys.stderr)
     # template/: read-only reference data - always refresh so a
     # self-updated binary resets from ITS templates, not v5.0.0's.
     _seed_bundled_dir(os.path.join(BASE_DIR, "template"), "template", refresh=True)
@@ -375,7 +396,6 @@ def mainmenu(
 
             nickname = ensure_nickname(user_config)
             print_banner(m4b_config, nickname=nickname)
-            check_update_available(m4b_config)
 
             # Dashboard status line below the banner.
             try:
@@ -809,7 +829,7 @@ def _cmd_update(args: argparse.Namespace) -> None:
 
     from money4band.updater import apply_update, check_for_update
 
-    new_version = check_for_update(m4b_config)
+    new_version = getattr(args, "version", None) or check_for_update(m4b_config)
     if not new_version:
         print(f"{Fore.GREEN}M4B is up to date.{Style.RESET_ALL}")
         return
@@ -835,6 +855,7 @@ def _cmd_update(args: argparse.Namespace) -> None:
         )
     else:
         print(f"{Fore.RED}Update failed. See logs for details.{Style.RESET_ALL}")
+        raise SystemExit(1)
 
 
 def _cmd_limit(args: argparse.Namespace) -> None:
@@ -1326,6 +1347,9 @@ def _build_parser() -> argparse.ArgumentParser:
     sub.add_parser("restore", help="Restore config from a backup")
 
     update_parser = sub.add_parser("update", help="Check for and apply M4B updates")
+    update_parser.add_argument(
+        "--version", help="Install a specific release, including a prerelease"
+    )
     update_parser.add_argument(
         "--force",
         action="store_true",

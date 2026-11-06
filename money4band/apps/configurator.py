@@ -22,6 +22,7 @@ def configure_email(
     email = ask_email(
         f"Enter your {app['name'].lower().title()} email:",
         default=config.get("email", ""),
+        show_default=False,
     )
     config["email"] = email
 
@@ -35,6 +36,7 @@ def configure_password(
     password = ask_string(
         f"Enter your {app['name'].lower().title()} password:",
         default=config.get("password", ""),
+        show_default=False,
     )
     config["password"] = password
 
@@ -48,6 +50,7 @@ def configure_apikey(
     apikey = ask_string(
         f"Enter your {app['name'].lower().title()} APIKey:",
         default=config.get("apikey", ""),
+        show_default=False,
     )
     config["apikey"] = apikey
 
@@ -61,6 +64,7 @@ def configure_userid(
     userid = ask_string(
         f"Enter your {app['name'].lower().title()} UserID:",
         default=config.get("userid", ""),
+        show_default=False,
     )
     config["userid"] = userid
 
@@ -93,7 +97,9 @@ def configure_uuid(
         print(
             "E.g. if existing registered node is sdk-node-b86301656baefekba8917349bdf0f3g4 then enter just b86301656baefekba8917349bdf0f3g4"
         )
-        uuid = ask_uuid("Insert uuid:", length, default=config.get("uuid", ""))
+        uuid = ask_uuid(
+            "Insert uuid:", length, default=config.get("uuid", ""), show_default=False
+        )
     else:
         uuid = generate_uuid(length)
         print(f"{Fore.GREEN}Generated UUID: {uuid}{Style.RESET_ALL}")
@@ -128,7 +134,9 @@ def configure_cid(
         "Example: For packetstream you can fetch it from your dashboard https://packetstream.io/dashboard/download?linux# then click on -> Looking for linux app -> now search for CID= in the code shown in the page, you need to enter the code after -e CID= (e.g. if in the code CID=6aTk, just enter 6aTk)"
     )
     cid = ask_string(
-        f"Enter your {app['name'].lower().title()} CID:", default=config.get("cid", "")
+        f"Enter your {app['name'].lower().title()} CID:",
+        default=config.get("cid", ""),
+        show_default=False,
     )
     config["cid"] = cid
 
@@ -142,6 +150,7 @@ def configure_code(
     code = ask_string(
         f"Enter your {app['name'].lower().title()} code:",
         default=config.get("code", ""),
+        show_default=False,
     )
     config["code"] = code
 
@@ -155,6 +164,7 @@ def configure_token(
     token = ask_string(
         f"Enter your {app['name'].lower().title()} token:",
         default=config.get("token", ""),
+        show_default=False,
     )
     config["token"] = token
 
@@ -233,11 +243,9 @@ def _configure_apps(
                 config["enabled"] = False
                 user_config["apps"][app_name] = config
                 continue
-            print(f"Do you want to change the current {app_name} configuration?")
-            for key, value in config.items():
-                if key != "enabled":
-                    print(f"{key}: {value}")
-            if not ask_question_yn(""):
+            if not ask_question_yn(
+                f"Do you want to change the current {app_name} configuration?"
+            ):
                 continue
 
         config["enabled"] = ask_question_yn(

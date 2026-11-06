@@ -150,16 +150,18 @@ with pip. Use `python3` if your system exposes Python under that name.
 
 Stop the stack and dashboard and back up the installation before upgrading v5.
 
-- **Stable release.** Run `m4b update` and confirm the offered update. Restart
-  Money4Band when it finishes. The binary updater keeps the previous
-  executable beside the new one with a `.bak` suffix.
-- **Manual executable update or prerelease.** Download the desired release,
+- **Stable release.** Run `m4b update` and confirm the offered update.
+- **Specific release or prerelease.** Run `m4b update --version X.Y.Z` with
+  the desired release version.
+- **Manual executable update.** Download the desired release,
   [verify the file](#verify-the-download-optional), and replace the executable
   in your installation directory. Keep the existing configuration and
   encryption key.
 
-Follow the [catalog refresh steps](app-management.md#removed-apps) before
-restarting the stack.
+The binary updater requires a matching checksum and keeps the previous
+executable beside the new one with a `.bak` suffix. Restart Money4Band after
+an update and follow the [catalog refresh steps](app-management.md#removed-apps)
+before restarting the stack.
 
 If you are coming from v4, back up the v4 directory and install v5 in its own
 directory. Use the v5 setup wizard to configure the apps you still use.

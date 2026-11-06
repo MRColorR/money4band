@@ -402,12 +402,15 @@ m4b notify test
 
 ### `update`
 
-Check for a newer stable Money4Band release and confirm installation.
+Check for a newer stable release and confirm before applying it. Specify
+`--version` to install a particular release, including a prerelease.
+Restart Money4Band after a successful update.
 
 ```bash
 m4b update
-m4b update --force  # skip confirmation
+m4b update --version X.Y.Z  # replace with the release version
+m4b update --force          # skip confirmation
 ```
 
 See [Upgrade an existing installation](getting-started.md#upgrade-an-existing-installation)
-for backup, restart, and manual prerelease instructions.
+for backup, restart, and manual update instructions.

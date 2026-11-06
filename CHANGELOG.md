@@ -3,6 +3,16 @@
 All notable changes to this project are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [5.0.4]
+
+- Hide saved app credentials and proxy credentials in setup output.
+- Refresh the displayed version after an executable upgrade and preserve
+  existing settings.
+- Verify the release checksum before replacing a binary and allow the CLI
+  updater to select a specific release.
+- Use the locked runtime environment when launching from source.
+- Simplify the setup and upgrade guides and document MystNodes restore.
+
 ## [5.0.3]
 
 - Updated the Docker SDK and Python dependencies used by the application,

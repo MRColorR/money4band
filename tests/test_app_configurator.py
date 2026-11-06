@@ -213,6 +213,22 @@ class TestFlagFunctionMapper:
 class TestConfigureApps:
     """Integration: configure_apps iterates categories and calls _configure_apps."""
 
+    def test_revisiting_enabled_app_does_not_print_saved_credentials(
+        self, monkeypatch, capsys
+    ):
+        from money4band.apps.configurator import _configure_apps
+
+        monkeypatch.setattr("money4band.apps.configurator.cls", lambda: None)
+        monkeypatch.setattr(
+            "money4band.apps.configurator.ask_question_yn", lambda *args: False
+        )
+        config = {"apps": {"example": {"enabled": True, "apikey": "synthetic-key"}}}
+
+        _configure_apps(config, [{"name": "example"}], {})
+
+        assert "synthetic-key" not in capsys.readouterr().out
+        assert config["apps"]["example"]["apikey"] == "synthetic-key"
+
     @patch(
         "money4band.apps.configurator.get_active_app_categories",
         return_value=["supported"],

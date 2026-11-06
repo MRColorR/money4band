@@ -286,15 +286,19 @@ def main(
                 validation = validate_proxy_list(
                     proxies, check_connectivity=True, timeout=5.0
                 )
-                invalid = [r for r in validation if not r["valid"]]
+                invalid = [
+                    (i, r) for i, r in enumerate(validation, 1) if not r["valid"]
+                ]
                 unreachable = [
-                    r for r in validation if r["valid"] and r["reachable"] is False
+                    (i, r)
+                    for i, r in enumerate(validation, 1)
+                    if r["valid"] and r["reachable"] is False
                 ]
                 if invalid:
                     print(f"\n{Fore.RED}Invalid proxy URLs:{Style.RESET_ALL}")
-                    for r in invalid:
+                    for index, r in invalid:
                         print(
-                            f"  {Fore.RED}X{Style.RESET_ALL} {r['url']} - {r['reason']}"
+                            f"  {Fore.RED}X{Style.RESET_ALL} Entry {index} - {r['reason']}"
                         )
                     print(
                         f"\n{Fore.RED}Fix proxies.txt and re-run setup.{Style.RESET_ALL}"
@@ -303,9 +307,9 @@ def main(
                     return
                 if unreachable:
                     print(f"\n{Fore.YELLOW}Unreachable proxies:{Style.RESET_ALL}")
-                    for r in unreachable:
+                    for index, r in unreachable:
                         print(
-                            f"  {Fore.YELLOW}!{Style.RESET_ALL} {r['url']} - {r['reason']}"
+                            f"  {Fore.YELLOW}!{Style.RESET_ALL} Entry {index} - {r['reason']}"
                         )
                     if not ask_question_yn(
                         "Some proxies are unreachable. Continue anyway?", default=False
