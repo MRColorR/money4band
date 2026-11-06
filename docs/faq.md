@@ -6,20 +6,38 @@
 
 ### How much can I earn?
 
-Earnings depend on your **IP quality**, **location**, and **number of apps**. Residential IPs in tier-1 countries (US, UK, DE) earn the most. Typical range: **$5-$50/month** per IP with all compatible apps running.
+Earnings vary with provider demand, location, network eligibility, and usage.
+Check each provider's dashboard for actual usage, balance, and payout status.
 
 ### Is this safe?
 
-M4B only runs official Docker images published by each app's developer. Your bandwidth is shared - not your personal data. M4B encrypts your credentials at rest and hardens containers with `no-new-privileges`.
+Money4Band runs apps in Docker and encrypts saved credentials. Each provider
+defines how its app uses your connection and which networks it accepts.
+Review the provider terms and [Money4Band security controls](security.md).
 
 ### Which apps should I run?
 
-Run `m4b apps` to browse the Money4Band catalog. For EarnApp and other apps
-you install yourself, see the [standalone apps list](APPS.md#standalone-apps).
+Start with the [app directory](APPS.md). Run `m4b apps` to check the catalog
+in your installation and confirm the provider permits your network type.
+
+### Why is EarnApp missing from setup?
+
+EarnApp has a native Linux client and is listed under
+[Standalone apps](APPS.md#standalone-apps). Install it through EarnApp on
+an eligible device.
+
+### Can I run Money4Band on multiple devices?
+
+Yes. Check each provider's device and IP limits before reusing an account
+or sharing a connection across hosts. For multiple instances on one host,
+see [Proxy Setup](proxy-setup.md) and use only apps that allow proxies.
 
 ### Do I need a powerful machine?
 
-No. M4B runs lightweight Docker containers. A Raspberry Pi 4 or old laptop is sufficient. Use `m4b limit minimal` to reduce resource usage further.
+Requirements depend on the apps you enable. Check the
+[platform requirements](getting-started.md#prerequisites) and use
+[`m4b limit minimal`](cli-reference.md#limit-profile) if you need tighter CPU
+and memory limits.
 
 ---
 
@@ -27,53 +45,35 @@ No. M4B runs lightweight Docker containers. A Raspberry Pi 4 or old laptop is su
 
 ### The release asset won't extract
 
-Release assets are single-file PyInstaller executables, not archives. Archive
-tools report an unknown format. Run the file directly:
-
-```bash
-chmod +x Money4Band-linux-arm64 && ./Money4Band-linux-arm64
-```
-
-For the source, use **Code > Download ZIP** and follow
-[Getting Started](getting-started.md), Option B.
+Run the platform executable directly. For a source archive, download
+**Source code (zip)** from the release or use **Code > Download ZIP** on
+GitHub. See [Getting Started](getting-started.md).
 
 ### "Permission denied" when running the binary
 
-Downloads do not carry the executable bit. Set it once:
-
-```bash
-chmod +x Money4Band-<os>-<arch>
-./Money4Band-<os>-<arch>
-```
-
-Still failing? The filesystem is probably mounted `noexec`, which is common on
-`/tmp`, USB sticks and NAS mounts. Move the binary under `$HOME` and retry.
+On Linux and macOS, set the executable bit with `chmod +x <filename>`.
+If the error persists on a USB stick or network share, see the
+[Linux launch instructions](getting-started.md#linux) for `noexec` mounts.
 
 ### macOS: "cannot be opened because the developer cannot be verified"
 
-The binaries are unsigned. Clear the quarantine attribute:
-
-```bash
-xattr -d com.apple.quarantine Money4Band-macos-arm64
-chmod +x Money4Band-macos-arm64 && ./Money4Band-macos-arm64
-```
+The release binary is unsigned. Follow the
+[macOS launch instructions](getting-started.md#macos) for opening it.
 
 ### "cannot execute binary file: Exec format error"
 
-Wrong architecture. Check yours with `uname -m` and download the matching asset:
-`x86_64` -> `amd64`, `aarch64`/`arm64` -> `arm64`, `armv7l` -> `armv7`.
+Check the architecture with `uname -m` and select the corresponding
+[release asset](getting-started.md#option-a---download-the-binary-recommended).
 
 ### Docker is not installed
 
-Run `m4b setup` - it offers to install Docker automatically. On Windows, you need WSL2 + Docker Desktop.
+See the [Docker prerequisites](getting-started.md#prerequisites) for your
+platform. Start Docker before running the stack.
 
 ### "Permission denied" on Linux
 
-Run with `sudo`, or add your user to the `docker` group:
-```bash
-sudo usermod -aG docker $USER
-# Log out and back in
-```
+If the message mentions the Docker socket, see
+[Docker access on Linux](getting-started.md#linux).
 
 ### Setup asks for credentials I don't have
 
@@ -88,15 +88,10 @@ Create an account on the app's website first, then:
 
 ### Containers keep restarting
 
-Check logs:
-```bash
-docker compose logs <container-name>
-```
-
-Common causes:
-- Invalid credentials (re-run `m4b setup`)
-- IP blocked by the app (check `m4b ip`)
-- Port conflict (check `m4b status`)
+Run `m4b status`, then check the container logs in the dashboard or run
+`docker compose logs <service>` from the affected stack directory. Check for
+rejected credentials, network eligibility errors, or port conflicts. Re-run
+`m4b setup` if you need to update credentials.
 
 ### Some apps show "unhealthy"
 
@@ -107,10 +102,9 @@ Health checks may fail if:
 
 ### Low earnings
 
-1. **Check IP quality**: `m4b ip` - datacenter or flagged IPs earn much less.
-2. **Check app status**: `m4b status` - ensure containers are healthy.
-3. **Add more apps**: `m4b apps` - not all apps may be enabled.
-4. **Consider residential proxies**: See [Proxy Setup](proxy-setup.md).
+Check whether the container is running with `m4b status`, then confirm the
+device and traffic are visible in the provider's dashboard. Ask the provider
+about payout delays or missing usage.
 
 ---
 
@@ -118,46 +112,36 @@ Health checks may fail if:
 
 ### I lost my master encryption key
 
-If the master key is lost, you cannot decrypt your saved credentials. The
-key lives in the M4B runtime data directory - resolved with this
-precedence (see [Configuration -> Runtime Data Directory](configuration.md#runtime-data-directory)):
-
-1. `$M4B_DATA_DIR` env var
-2. `<install>/.m4b/master.key` (portable, default for fresh installs)
-3. `~/.m4b/master.key` (legacy, still works for upgrades)
-
-If lost, run `m4b reset` to start fresh and re-enter credentials via `m4b setup`.
+Recover the original key from a backup if possible. See
+[Runtime Data Directory](configuration.md#runtime-data-directory) for the
+key location. If the key is gone, saved credentials cannot be decrypted.
+Run `m4b reset` and re-enter them with `m4b setup`.
 
 ### How do I change the DNS?
 
-```bash
-m4b dns list              # see available presets
-m4b dns set cloudflare    # use a preset
-m4b generate              # regenerate files with new DNS
-m4b stack restart          # restart stack
-```
-
-Or use the **interactive menu** which shows the same presets.
+See [DNS Configuration](configuration.md#dns-configuration) for the
+presets, commands, and restart steps.
 
 ### How do I start only specific app tiers (e.g. only residential apps)?
 
-`m4b stack start` auto-discovers profiles from your enabled apps. For
-finer control, use raw Docker Compose with `--profile`:
+Use [Docker Compose profiles](configuration.md#starting-selectively) to
+start selected tiers or named services.
 
-```bash
-# Only residential-IP apps
-docker compose --profile residential --env-file .env up -d
+### How do I clean up old containers / networks?
 
-# Residential + watchtower
-docker compose --profile residential --profile monitoring --env-file .env up -d
+Start with `m4b clean --dry-run`. See the
+[`clean` reference](cli-reference.md#clean) for scope and what the
+`--volumes` flag removes.
 
-# Specific services by name
-docker compose --env-file .env up -d honeygain bitping
-```
+### How do I make my install portable (USB stick, multi-machine)?
 
-Sidecars (the "pots") **inherit their parent app's profile** automatically.
-`--profile residential` brings up Honeygain AND `honeygain-pot` together
-- no extra flag needed.
+See [Runtime Data Directory](configuration.md#runtime-data-directory)
+for which files to keep with your install and how to migrate legacy data.
+
+### Can I move my MystNodes node to another Raspberry Pi?
+
+Yes, if you have a copy of the node's data directory. Follow the
+[MystNodes migration steps](app-management.md#provider-onboarding).
 
 ---
 
@@ -165,38 +149,15 @@ Sidecars (the "pots") **inherit their parent app's profile** automatically.
 
 ### Dashboard won't start
 
-- Check if port 8088 is already in use: `m4b dashboard status`
-- Try a different port in `config/user-config.json` -> `dashboard.port`
-- Ensure `fastapi` and `uvicorn` are installed (included in requirements)
+Run `m4b dashboard status`. If port 8088 is busy, see
+[Accessing the Dashboard](dashboard-api.md#accessing-the-dashboard) for the
+configured port and how to find the one in use.
 
 ### Can I access the dashboard remotely?
 
-The dashboard binds to `localhost` by default. Exposing it remotely requires additional setup (reverse proxy, HTTPS) and enables API key authentication. **Not recommended** without proper security.
-
----
-
-### How do I clean up old containers / networks?
-
-```bash
-m4b clean             # remove orphan containers + unused networks
-m4b clean --dry-run   # preview without removing
-m4b clean --volumes   # ALSO wipe per-app volumes (DESTRUCTIVE)
-```
-
-Only resources tagged with this M4B project's
-`com.docker.compose.project=<name>` label are touched. Other Docker
-Compose projects on the same host are never affected.
-
-### How do I make my install portable (USB stick, multi-machine)?
-
-```bash
-m4b config migrate-data-dir              # copy runtime state into <install>/.m4b/
-m4b config migrate-data-dir --remove-source   # wipe legacy ~/.m4b/ after verify
-```
-
-After this, the install dir carries its own master key, session salt, and
-backups. Move the folder freely between Windows boxes - encrypted config
-still decrypts because the key rides along.
+Yes. Follow [Starting the Dashboard](dashboard-api.md#starting-the-dashboard)
+and [API Authentication](dashboard-api.md#api-authentication) for web-exposed
+mode. See [Security](security.md#rest-api-hardening-v50) before exposing it.
 
 ---
 
@@ -204,12 +165,11 @@ still decrypts because the key rides along.
 
 ### How do I update M4B?
 
-```bash
-m4b update
-```
-
-For binary installs: download the latest release from GitHub.
+Run `m4b update` to check for and install an offered stable release. For
+prereleases, manual binary replacement, and v4 migration, follow
+[Upgrade an existing installation](getting-started.md#upgrade-an-existing-installation).
 
 ### How do I update app containers?
 
-Watchtower runs alongside your stack and automatically pulls new container images. No action needed.
+If enabled during setup, Watchtower updates eligible app images while the
+stack runs. Money4Band itself is updated separately.

@@ -1,6 +1,6 @@
 # CLI Reference
 
-> All 23 subcommands available via `m4b <command>` (or `python main.py <command>`).
+> Commands for the `m4b` entry point or `python run.py <command>` from a checkout.
 >
 > Running a release binary? `m4b` is not its filename. Either call
 > `./Money4Band-<os>-<arch> <command>` or set up the shorthand as described in
@@ -401,8 +401,13 @@ m4b notify test
 ## Maintenance
 
 ### `update`
-Check for M4B updates and apply if available.
+
+Check for a newer stable Money4Band release and confirm installation.
 
 ```bash
 m4b update
+m4b update --force  # skip confirmation
 ```
+
+See [Upgrade an existing installation](getting-started.md#upgrade-an-existing-installation)
+for backup, restart, and manual prerelease instructions.

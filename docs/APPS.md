@@ -9,8 +9,9 @@ visit the [community catalog](https://github.com/MRColorR/money4band-community-c
 and [OpenPassiveHub catalog](https://github.com/MRColorR/openpassivehub-catalog)
 for entries maintained outside this repository.
 
-Each row links to the app's signup page (including a referral code
-that supports this project at no extra cost to you).
+Some signup links include referral codes that support this project.
+Earnings estimates are approximate. Check your provider for actual usage,
+balance, and payout status.
 
 <!-- BEGIN:APPS_TABLE -->
 | Type | App | Link | M4B Status | Residential | VPS/DC | Devices/Account | Devices/IP | Payout Methods | Est. Monthly (USD) |
@@ -32,11 +33,8 @@ that supports this project at no extra cost to you).
 | [x] | **PacketShare** | - | [x] | [ok] | - | - | - | - | - |
 <!-- END:APPS_TABLE -->
 
-For opt-in CLI workflows (enabling community, adding openpassivehub,
-refreshing remote sources), see [App Management ->
-Catalog sources](app-management.md). For the v5 split rationale and the
-full per-app moved-entry table, see
-[CHANGELOG.md -> Catalog footprint](../CHANGELOG.md#catalog-footprint--20-apps-moved-out-of-m4b-core).
+For instructions on enabling, adding, and refreshing opt-in sources,
+see [Catalog sources](app-management.md#catalog-sources).
 
 ## Standalone apps
 
