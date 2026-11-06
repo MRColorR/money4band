@@ -205,6 +205,10 @@ def _collect_apps(app_config: dict[str, Any]) -> list[dict[str, Any]]:
 # ---------------------------------------------------------------------------
 
 
+def _format_app_name(name: str, link: str) -> str:
+    return f"[**{name}**]({link})" if link else f"**{name}**"
+
+
 def generate_readme_table(app_config: dict[str, Any]) -> str:
     """Show every listed app and how a reader can run it."""
     apps = _collect_apps(app_config)
@@ -219,10 +223,7 @@ def generate_readme_table(app_config: dict[str, Any]) -> str:
     lines = ["| App | How to run it |", "| --- | --- |"]
 
     for app in apps:
-        name = app["name"]
-        link = app["link"]
-
-        app_cell = f"[**{name}**]({link})" if link else f"**{name}**"
+        app_cell = _format_app_name(app["name"], app["link"])
         how_to_run = availability.get(app["indicator"], "See app directory")
         lines.append(f"| {app_cell} | {how_to_run} |")
 
@@ -239,8 +240,8 @@ def generate_apps_md_table(app_config: dict[str, Any]) -> str:
     apps = _collect_apps(app_config)
 
     lines = [
-        "| Type | App | Link | M4B Status | Residential | VPS/DC | Devices/Account | Devices/IP | Payout Methods | Est. Monthly (USD) |",
-        "|:----:|-----|------|:----------:|:-----------:|:------:|:---------------:|:----------:|----------------|:------------------:|",
+        "| Type | App | M4B Status | Residential | VPS/DC | Devices/Account | Devices/IP | Payout Methods | Est. Monthly (USD) |",
+        "|:----:|-----|:----------:|:-----------:|:------:|:---------------:|:----------:|----------------|:------------------:|",
     ]
 
     for app in apps:
@@ -248,16 +249,11 @@ def generate_apps_md_table(app_config: dict[str, Any]) -> str:
         ip = details.get("ip_policy", {})
         earnings = details.get("earnings", {})
         limits = details.get("device_limits", {})
-        name = app["name"]
         link = app["link"]
-
-        if link:
-            link_cell = f"[Visit]({link})"
-            code = _extract_referral_code(link)
-            if code:
-                link_cell += f" (code: `{code}`)"
-        else:
-            link_cell = "-"
+        app_cell = _format_app_name(app["name"], link)
+        code = _extract_referral_code(link)
+        if code:
+            app_cell += f" (code: `{code}`)"
 
         status_emoji = _STATUS_EMOJI.get(app["status"], "-")
         resi = _bool_md(ip.get("residential"))
@@ -268,7 +264,7 @@ def generate_apps_md_table(app_config: dict[str, Any]) -> str:
         est = _format_earnings(earnings.get("avg_monthly_residential_usd"))
 
         lines.append(
-            f"| {app['indicator']} | **{name}** | {link_cell} | {status_emoji} | {resi} | {dc} "
+            f"| {app['indicator']} | {app_cell} | {status_emoji} | {resi} | {dc} "
             f"| {dev_acct} | {dev_ip} | {payout} | {est} |"
         )
 

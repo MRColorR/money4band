@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="92" viewBox="0 0 600 92" role="img" aria-labelledby="title">
+  <title id="title">Money4Band first-run steps</title>
+  <rect width="600" height="92" rx="12" fill="#edf4ff"/>
+  <g fill="#fff" stroke="#b7c9e7">
+    <rect x="10" y="10" width="180" height="72" rx="8"/>
+    <rect x="210" y="10" width="180" height="72" rx="8"/>
+    <rect x="410" y="10" width="180" height="72" rx="8"/>
+  </g>
+  <path d="m197 41 5 5-5 5m200-10 5 5-5 5" fill="none" stroke="#365f9a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <g fill="#2455a4">
+    <circle cx="34" cy="46" r="14"/>
+    <circle cx="234" cy="46" r="14"/>
+    <circle cx="434" cy="46" r="14"/>
+  </g>
+  <g font-family="system-ui, sans-serif" font-weight="600">
+    <g fill="#fff" font-size="16" text-anchor="middle">
+      <text x="34" y="52">1</text>
+      <text x="234" y="52">2</text>
+      <text x="434" y="52">3</text>
+    </g>
+    <g fill="#142a49" font-size="19">
+      <text x="58" y="53">Start Docker</text>
+      <text x="258" y="53">Setup Apps</text>
+      <text x="458" y="53">Start Stack</text>
+    </g>
+  </g>
+</svg>

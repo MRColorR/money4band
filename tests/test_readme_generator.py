@@ -346,7 +346,7 @@ def test_documentation_snapshot_keeps_standalone_app_once(tmp_path: Path) -> Non
 class TestGenerateAppsMdTable:
     def test_header(self) -> None:
         table = generate_apps_md_table(_SAMPLE_CONFIG)
-        assert "| Type | App | Link | M4B Status |" in table
+        assert "| Type | App | M4B Status |" in table
 
     def test_status_emojis(self) -> None:
         table = generate_apps_md_table(_SAMPLE_CONFIG)
@@ -357,7 +357,10 @@ class TestGenerateAppsMdTable:
 
     def test_referral_code(self) -> None:
         table = generate_apps_md_table(_SAMPLE_CONFIG)
-        assert "code: `ABC123`" in table
+        assert (
+            "| [**UnstableApp**](https://example.com/signup?code=ABC123) "
+            "(code: `ABC123`) |" in table
+        )
 
     def test_device_limits(self) -> None:
         table = generate_apps_md_table(_SAMPLE_CONFIG)
