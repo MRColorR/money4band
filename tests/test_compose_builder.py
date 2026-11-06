@@ -328,6 +328,30 @@ class TestAssembleDockerCompose:
         "money4band.docker.compose_builder.check_img_arch_support", return_value=True
     )
     @patch("money4band.docker.compose_builder.http_client")
+    def test_shared_network_inherits_dns_and_declares_named_volume(
+        self, _http, _arch, tmp_path: Path
+    ) -> None:
+        m4b, app, user = _make_configs(tmp_path)
+        entry = app["supported"]["entries"][0]
+        entry["compose_config"]["volumes"] = [
+            {"type": "volume", "source": "device-data", "target": "/data"},
+            {"type": "bind", "source": "./tmp", "target": "/tmp"},
+        ]
+        entry["compose_config_proxy"] = {"network_mode": "service:proxy"}
+        user["proxies"]["enabled"] = True
+        user["settings"] = {"dns_mode": "custom", "dns_servers": ["1.1.1.1"]}
+        out = tmp_path / "docker-compose.yaml"
+        assemble_docker_compose(m4b, app, user, str(out))
+        data = yaml.safe_load(out.read_text())
+
+        assert data["volumes"] == {"device-data": {}}
+        assert data["services"]["proxy"]["dns"] == ["1.1.1.1"]
+        assert "dns" not in data["services"]["earnapp"]
+
+    @patch(
+        "money4band.docker.compose_builder.check_img_arch_support", return_value=True
+    )
+    @patch("money4band.docker.compose_builder.http_client")
     def test_network_config_present(self, _http, _arch, tmp_path: Path) -> None:
         m4b, app, user = _make_configs(tmp_path)
         out = str(tmp_path / "docker-compose.yaml")

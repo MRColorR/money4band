@@ -1,0 +1,545 @@
+{
+  "standalone": {
+    "standalone": [
+      {
+        "name": "EARNAPP",
+        "app_details": {
+          "official_name": "EarnApp",
+          "official_url": "https://earnapp.com/",
+          "ip_policy": {
+            "residential": true,
+            "datacenter": false
+          }
+        },
+        "referrals": [
+          {
+            "url": "https://earnapp.com/i/3zulx7k"
+          }
+        ]
+      }
+    ]
+  },
+  "community": {
+    "supported": [
+      {
+        "name": "GAGANODE",
+        "app_details": {
+          "official_name": "GaGaNode",
+          "official_url": "https://www.gaganode.com",
+          "status": "active",
+          "ip_policy": {
+            "residential": true,
+            "datacenter": "undocumented"
+          },
+          "device_limits": {
+            "max_devices_per_account": "undocumented",
+            "max_devices_per_ip": "undocumented"
+          },
+          "earnings": {
+            "payout_methods": [
+              "GaGa token (crypto)"
+            ],
+            "avg_monthly_residential_usd": "unknown"
+          }
+        },
+        "referrals": [
+          {
+            "url": "https://www.gaganode.com"
+          }
+        ]
+      },
+      {
+        "name": "SPIDE",
+        "app_details": {
+          "official_name": "Spide Network",
+          "official_url": "https://spide.network",
+          "status": "active",
+          "ip_policy": {
+            "residential": true,
+            "datacenter": true
+          },
+          "device_limits": {
+            "max_devices_per_account": "unlimited",
+            "max_devices_per_ip": 1
+          },
+          "earnings": {
+            "payout_methods": [
+              "PayPal",
+              "crypto"
+            ],
+            "avg_monthly_residential_usd": "unknown (early stage)"
+          }
+        },
+        "referrals": [
+          {
+            "url": "https://spide.network"
+          }
+        ]
+      }
+    ],
+    "newcomers": [],
+    "deprecated": [
+      {
+        "name": "DAWN",
+        "app_details": {
+          "official_name": "Dawn Internet",
+          "official_url": "https://dawninternet.com",
+          "status": "deprecated",
+          "ip_policy": {
+            "residential": true,
+            "datacenter": "undocumented"
+          },
+          "device_limits": {
+            "max_devices_per_account": "undocumented",
+            "max_devices_per_ip": "undocumented"
+          },
+          "earnings": {
+            "payout_methods": [
+              "undocumented"
+            ],
+            "avg_monthly_residential_usd": "unknown"
+          }
+        },
+        "referrals": [
+          {
+            "url": "https://dawninternet.com?code=xo23vynw"
+          }
+        ]
+      },
+      {
+        "name": "GRADIENT",
+        "app_details": {
+          "official_name": "Gradient",
+          "official_url": "https://gradient.network",
+          "status": "deprecated",
+          "ip_policy": {
+            "residential": true,
+            "datacenter": "partial"
+          },
+          "device_limits": {
+            "max_devices_per_account": "undocumented",
+            "max_devices_per_ip": "undocumented"
+          },
+          "earnings": {
+            "payout_methods": [
+              "undocumented"
+            ],
+            "avg_monthly_residential_usd": "unknown"
+          }
+        },
+        "referrals": [
+          {
+            "url": "https://app.gradient.network/signup?code=9WOBKP"
+          }
+        ]
+      },
+      {
+        "name": "GRASS",
+        "app_details": {
+          "official_name": "Grass (Wynd Network)",
+          "official_url": "https://www.getgrass.io",
+          "status": "deprecated",
+          "ip_policy": {
+            "residential": true,
+            "datacenter": false
+          },
+          "device_limits": {
+            "max_devices_per_account": "undocumented",
+            "max_devices_per_ip": "undocumented"
+          },
+          "earnings": {
+            "payout_methods": [
+              "GRASS token (crypto)"
+            ],
+            "avg_monthly_residential_usd": "unknown (token-based)"
+          }
+        },
+        "referrals": [
+          {
+            "url": "https://app.getgrass.io/register/?referralCode=qyvJmxgNUhcLo2f"
+          }
+        ]
+      },
+      {
+        "name": "PEER2PROFIT",
+        "app_details": {
+          "official_name": "Peer2Profit",
+          "official_url": "https://peer2profit.app",
+          "status": "deprecated",
+          "ip_policy": {
+            "residential": "N/A",
+            "datacenter": "N/A"
+          },
+          "device_limits": {
+            "max_devices_per_account": "N/A",
+            "max_devices_per_ip": "N/A"
+          },
+          "earnings": {
+            "payout_methods": [],
+            "avg_monthly_residential_usd": "N/A"
+          }
+        },
+        "referrals": [
+          {
+            "url": "https://t.me/peer2profit_app_bot?start=165849012262da8d0aa13c8"
+          }
+        ]
+      },
+      {
+        "name": "PROXYBASE",
+        "app_details": {
+          "official_name": "ProxyBase",
+          "official_url": "https://proxybase.com",
+          "status": "deprecated",
+          "ip_policy": {
+            "residential": "undocumented",
+            "datacenter": "undocumented"
+          },
+          "device_limits": {
+            "max_devices_per_account": "undocumented",
+            "max_devices_per_ip": "undocumented"
+          },
+          "earnings": {
+            "payout_methods": [
+              "undocumented"
+            ],
+            "avg_monthly_residential_usd": "unknown"
+          }
+        },
+        "referrals": [
+          {
+            "url": "http://peer.proxybase.org/signup?ref=XfOz3zeURm"
+          }
+        ]
+      },
+      {
+        "name": "SPEEDSHARE",
+        "app_details": {
+          "official_name": "SpeedShare",
+          "official_url": "unknown",
+          "status": "deprecated",
+          "ip_policy": {
+            "residential": "N/A",
+            "datacenter": "N/A"
+          },
+          "device_limits": {
+            "max_devices_per_account": "N/A",
+            "max_devices_per_ip": "N/A"
+          },
+          "earnings": {
+            "payout_methods": [],
+            "avg_monthly_residential_usd": "N/A"
+          }
+        },
+        "referrals": [
+          {
+            "url": "https://speedshare.app/?ref=mindlessnerd"
+          }
+        ]
+      },
+      {
+        "name": "TENEO",
+        "app_details": {
+          "official_name": "Teneo Protocol",
+          "official_url": "https://teneo.pro",
+          "status": "deprecated",
+          "ip_policy": {
+            "residential": true,
+            "datacenter": "undocumented"
+          },
+          "device_limits": {
+            "max_devices_per_account": "undocumented",
+            "max_devices_per_ip": "undocumented"
+          },
+          "earnings": {
+            "payout_methods": [
+              "undocumented"
+            ],
+            "avg_monthly_residential_usd": "unknown"
+          }
+        },
+        "referrals": [
+          {
+            "url": "https://dashboard.teneo.pro/?code=qPgLn"
+          }
+        ]
+      },
+      {
+        "name": "WIPTER",
+        "app_details": {
+          "official_name": "Wipter",
+          "official_url": "https://wipter.com",
+          "status": "deprecated",
+          "ip_policy": {
+            "residential": "undocumented",
+            "datacenter": "undocumented"
+          },
+          "device_limits": {
+            "max_devices_per_account": "undocumented",
+            "max_devices_per_ip": "undocumented"
+          },
+          "earnings": {
+            "payout_methods": [
+              "undocumented"
+            ],
+            "avg_monthly_residential_usd": "unknown"
+          }
+        },
+        "referrals": [
+          {
+            "url": "https://wipter.com/signup?ref=money4band"
+          }
+        ]
+      },
+      {
+        "name": "WIZARDGAIN",
+        "app_details": {
+          "official_name": "WizardGain",
+          "official_url": "https://wizardgain.com",
+          "status": "deprecated",
+          "ip_policy": {
+            "residential": true,
+            "datacenter": true
+          },
+          "device_limits": {
+            "max_devices_per_account": "undocumented",
+            "max_devices_per_ip": 1
+          },
+          "earnings": {
+            "payout_methods": [
+              "undocumented"
+            ],
+            "avg_monthly_residential_usd": "unknown"
+          }
+        },
+        "referrals": [
+          {
+            "url": "https://wizardgain.com"
+          }
+        ]
+      }
+    ]
+  },
+  "openpassivehub": {
+    "supported": [],
+    "newcomers": [
+      {
+        "name": "ADNADE",
+        "app_details": {
+          "official_name": "Adnade",
+          "official_url": "https://adnade.com",
+          "status": "active",
+          "ip_policy": {
+            "residential": true,
+            "datacenter": "undocumented"
+          },
+          "device_limits": {
+            "max_devices_per_account": "undocumented",
+            "max_devices_per_ip": "undocumented"
+          },
+          "earnings": {
+            "payout_methods": [
+              "undocumented"
+            ],
+            "avg_monthly_residential_usd": "unknown"
+          }
+        },
+        "referrals": [
+          {
+            "url": "https://adnade.com"
+          }
+        ]
+      },
+      {
+        "name": "BYTEBENEFIT",
+        "app_details": {
+          "official_name": "ByteBenefit",
+          "official_url": "https://bytebenefit.com",
+          "status": "active",
+          "ip_policy": {
+            "residential": true,
+            "datacenter": "undocumented"
+          },
+          "device_limits": {
+            "max_devices_per_account": "undocumented",
+            "max_devices_per_ip": "undocumented"
+          },
+          "earnings": {
+            "payout_methods": [
+              "undocumented"
+            ],
+            "avg_monthly_residential_usd": "unknown"
+          }
+        },
+        "referrals": [
+          {
+            "url": "https://bytebenefit.com"
+          }
+        ]
+      },
+      {
+        "name": "BYTELIXIR",
+        "app_details": {
+          "official_name": "Bytelixir",
+          "official_url": "https://bytelixir.com",
+          "status": "active",
+          "ip_policy": {
+            "residential": true,
+            "datacenter": "undocumented"
+          },
+          "device_limits": {
+            "max_devices_per_account": "undocumented",
+            "max_devices_per_ip": "undocumented"
+          },
+          "earnings": {
+            "payout_methods": [
+              "crypto"
+            ],
+            "avg_monthly_residential_usd": "0.5-1"
+          }
+        },
+        "referrals": [
+          {
+            "url": "https://bytelixir.com"
+          }
+        ]
+      },
+      {
+        "name": "EARNCC",
+        "app_details": {
+          "official_name": "Earn.cc",
+          "official_url": "https://earn.cc",
+          "status": "active",
+          "ip_policy": {
+            "residential": true,
+            "datacenter": "undocumented"
+          },
+          "device_limits": {
+            "max_devices_per_account": "undocumented",
+            "max_devices_per_ip": "undocumented"
+          },
+          "earnings": {
+            "payout_methods": [
+              "undocumented"
+            ],
+            "avg_monthly_residential_usd": "unknown"
+          }
+        },
+        "referrals": [
+          {
+            "url": "https://earn.cc"
+          }
+        ]
+      },
+      {
+        "name": "EBESUCHER",
+        "app_details": {
+          "official_name": "Ebesucher",
+          "official_url": "https://www.ebesucher.com",
+          "status": "active",
+          "ip_policy": {
+            "residential": true,
+            "datacenter": "undocumented"
+          },
+          "device_limits": {
+            "max_devices_per_account": "undocumented",
+            "max_devices_per_ip": "undocumented"
+          },
+          "earnings": {
+            "payout_methods": [
+              "undocumented"
+            ],
+            "avg_monthly_residential_usd": "unknown"
+          }
+        },
+        "referrals": [
+          {
+            "url": "https://www.ebesucher.com"
+          }
+        ]
+      },
+      {
+        "name": "PASSIVEAPP",
+        "app_details": {
+          "official_name": "PassiveApp",
+          "official_url": "https://passiveapp.io",
+          "status": "active",
+          "ip_policy": {
+            "residential": true,
+            "datacenter": "undocumented"
+          },
+          "device_limits": {
+            "max_devices_per_account": "undocumented",
+            "max_devices_per_ip": "undocumented"
+          },
+          "earnings": {
+            "payout_methods": [
+              "undocumented"
+            ],
+            "avg_monthly_residential_usd": "unknown"
+          }
+        },
+        "referrals": [
+          {
+            "url": "https://passiveapp.io"
+          }
+        ]
+      },
+      {
+        "name": "SALAD",
+        "app_details": {
+          "official_name": "Salad",
+          "official_url": "https://salad.com",
+          "status": "active",
+          "ip_policy": {
+            "residential": true,
+            "datacenter": false
+          },
+          "device_limits": {
+            "max_devices_per_account": "undocumented",
+            "max_devices_per_ip": "undocumented"
+          },
+          "earnings": {
+            "payout_methods": [
+              "undocumented"
+            ],
+            "avg_monthly_residential_usd": "unknown"
+          }
+        },
+        "referrals": [
+          {
+            "url": "https://salad.com"
+          }
+        ]
+      },
+      {
+        "name": "UPROCK",
+        "app_details": {
+          "official_name": "UpRock",
+          "official_url": "https://uprock.com",
+          "status": "active",
+          "ip_policy": {
+            "residential": true,
+            "datacenter": "undocumented"
+          },
+          "device_limits": {
+            "max_devices_per_account": "undocumented",
+            "max_devices_per_ip": "undocumented"
+          },
+          "earnings": {
+            "payout_methods": [
+              "undocumented"
+            ],
+            "avg_monthly_residential_usd": "unknown"
+          }
+        },
+        "referrals": [
+          {
+            "url": "https://uprock.com"
+          }
+        ]
+      }
+    ],
+    "deprecated": []
+  }
+}

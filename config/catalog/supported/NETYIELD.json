@@ -1,0 +1,48 @@
+{
+    "name": "NETYIELD",
+    "dashboard": "https://netyield.io/app/devices",
+    "profile": "universal",
+    "install_limit": 1,
+    "compose_config": {
+        "container_name": "${DEVICE_NAME}_netyield",
+        "hostname": "${DEVICE_NAME}_netyield",
+        "image": "netyield/peer-client:latest",
+        "command": ["--name", "${DEVICE_NAME}"],
+        "environment": ["NETYIELD_API_KEY=${NETYIELD_APIKEY}"],
+        "volumes": [{"type": "volume", "source": "netyield-data", "target": "/var/lib/netyield"}],
+        "read_only": true,
+        "tmpfs": ["/tmp:size=16m,mode=1777"],
+        "cap_drop": ["ALL"],
+        "restart": "unless-stopped"
+    },
+    "compose_config_proxy": {
+        "network_mode": "service:proxy",
+        "hostname": null
+    },
+    "flags": {"apikey": {}},
+    "referrals": [{"url": "https://netyield.io/", "contributor": "MRColorR"}],
+    "user_config_template": {"enabled": false, "apikey": ""},
+    "additional_details": "Get an API key from the NetYield dashboard. Keep the netyield-data volume to preserve the device identity. Provider rates per GB are $0.05 for hosting/datacenter, $0.10 for residential and $0.20 for mobile IPv4.",
+    "app_details": {
+        "official_name": "NetYield",
+        "publisher": "NetYield",
+        "official_url": "https://netyield.io/",
+        "status": "active",
+        "ip_policy": {
+            "residential": true,
+            "datacenter": true,
+            "vps": true,
+            "mobile": true,
+            "ipv6": "undocumented",
+            "quality_notes": "The provider confirmed hosting, datacenter, residential and mobile IPv4 eligibility. A static ISP proxy was verified with the sandbox."
+        },
+        "docker": {"image_official": true, "image_maintained": true},
+        "earnings": {
+            "model": "per-GB",
+            "payout_methods": ["USDC"],
+            "rates_usd_per_gb": {"datacenter": 0.05, "residential": 0.10, "mobile": 0.20}
+        },
+        "sources": ["https://netyield.io/", "https://hub.docker.com/r/netyield/peer-client"],
+        "last_verified": "2026-11-06"
+    }
+}

@@ -460,16 +460,20 @@ def assemble_docker_compose(
             if not svc_config.get("privileged", False):
                 svc_config.setdefault("security_opt", ["no-new-privileges:true"])
 
-        # Centralised DNS: custom servers replace per-service DNS; default
-        # mode strips leftover per-service entries so Docker uses the host.
+        # Shared-network services inherit the owning container's DNS.
         dns_cfg = user_config.get("settings", {})
-        if dns_cfg.get("dns_mode") == "custom":
-            dns_servers = dns_cfg.get("dns_servers", [])
-            if dns_servers:
-                for svc_config in services.values():
-                    svc_config["dns"] = list(dns_servers)
-        else:
-            for svc_config in services.values():
+        dns_servers = dns_cfg.get("dns_servers", [])
+        for svc_config in services.values():
+            shares_network = svc_config.get("network_mode", "").startswith(
+                ("service:", "container:")
+            )
+            if (
+                dns_cfg.get("dns_mode") == "custom"
+                and dns_servers
+                and not shares_network
+            ):
+                svc_config["dns"] = list(dns_servers)
+            else:
                 svc_config.pop("dns", None)
 
         # Apply ``profiles:`` to every service. Watchtower and tun2socks
@@ -484,6 +488,16 @@ def assemble_docker_compose(
         generated_files: list[str] = []
         compose_dict = {"services": services}
         compose_dict.update(network_config)
+        volumes = {
+            mount["source"]: {}
+            for service in services.values()
+            for mount in service.get("volumes", [])
+            if isinstance(mount, dict)
+            and mount.get("type") == "volume"
+            and mount.get("source")
+        }
+        if volumes:
+            compose_dict["volumes"] = volumes
         output_dir = os.path.dirname(compose_output_path) or "."
         # Strip any leftover layered compose files from prior runs.
         for stale_layer in (

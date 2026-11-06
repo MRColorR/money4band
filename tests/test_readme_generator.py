@@ -2,6 +2,7 @@ from __future__ import annotations
 
 """Tests for utils.readme_generator - auto-generation of README/APPS.md app tables."""
 
+import json
 from pathlib import Path
 from typing import Any
 
@@ -18,6 +19,7 @@ from money4band.readme_generator import (
     _replace_between_markers,
     generate_apps_md_table,
     generate_readme_table,
+    merge_documentation_catalog,
     update_apps_md,
     update_readme,
 )
@@ -266,27 +268,24 @@ class TestGenerateReadmeTable:
     def test_header(self) -> None:
         table = generate_readme_table(_SAMPLE_CONFIG)
         lines = table.split("\n")
-        assert "| Type | App | Residential | VPS/DC | Payout |" in lines[0]
+        assert lines[0] == "| App | How to run it |"
 
     def test_row_count(self) -> None:
         table = generate_readme_table(_SAMPLE_CONFIG)
-        # Data rows now start with "| <emoji> | ..." - header lines start "| Type"/"|:".
         data_rows = [
             l
             for l in table.split("\n")
-            if l.startswith("|") and not l.startswith(("| Type", "|:"))
+            if l.startswith("|") and not l.startswith(("| App", "| ---"))
         ]
         assert len(data_rows) == 4
 
-    def test_type_indicator_present(self) -> None:
+    def test_setup_paths_present(self) -> None:
         table = generate_readme_table(_SAMPLE_CONFIG)
-        # Sample config has no _source on any entry -> default "core" -> [ok].
-        # Plus a deprecated entry -> [x]; plus a newcomers entry -> [new].
-        assert "[ok]" in table  # [ok] core
-        assert "[x]" in table  # [x] deprecated
-        assert "[new]" in table  # [new] newcomer
+        assert "Built into Money4Band" in table
+        assert "Archived" in table
+        assert "Candidate" in table
 
-    def test_community_source_emoji(self) -> None:
+    def test_community_setup_path(self) -> None:
         from copy import deepcopy
 
         from money4band.readme_generator import generate_readme_table
@@ -294,24 +293,49 @@ class TestGenerateReadmeTable:
         cfg = deepcopy(_SAMPLE_CONFIG)
         cfg["supported"]["entries"][0]["_source"] = "community"
         table = generate_readme_table(cfg)
-        assert "[com]" in table  # [com] community
+        assert "Optional community catalog" in table
 
     def test_active_app_row(self) -> None:
         table = generate_readme_table(_SAMPLE_CONFIG)
         assert "[**TestApp**](https://example.com/ref/123)" in table
-        assert "[ok]" in table  # residential = True
-        assert "[x]" in table  # datacenter = False
 
-    def test_payout_in_row(self) -> None:
-        table = generate_readme_table(_SAMPLE_CONFIG)
-        assert "PayPal, crypto" in table
+    def test_standalone_app_with_referral(self) -> None:
+        config = {
+            "standalone": {
+                "entries": [
+                    {
+                        "name": "NATIVEAPP",
+                        "referrals": [{"url": "https://example.com/ref/native"}],
+                    }
+                ]
+            }
+        }
+        assert (
+            "| [**NATIVEAPP**](https://example.com/ref/native) | Standalone install |"
+            in generate_readme_table(config)
+        )
 
-    def test_undocumented_payout_dash(self) -> None:
-        table = generate_readme_table(_SAMPLE_CONFIG)
-        # UnstableApp has payout_methods=["undocumented"] -> should show -
-        lines = [l for l in table.split("\n") if "UnstableApp" in l]
-        assert len(lines) == 1
-        assert "-" in lines[0]
+
+def test_documentation_snapshot_keeps_standalone_app_once(tmp_path: Path) -> None:
+    snapshot = tmp_path / "catalog-snapshot.json"
+    snapshot.write_text(
+        json.dumps(
+            {
+                "standalone": {"standalone": [{"name": "NATIVEAPP"}]},
+                "community": {"supported": [{"name": "COMMUNITYAPP"}]},
+                "openpassivehub": {"newcomers": [{"name": "NATIVEAPP"}]},
+            }
+        ),
+        encoding="utf-8",
+    )
+    config = merge_documentation_catalog(_SAMPLE_CONFIG, snapshot)
+
+    assert "standalone" not in _SAMPLE_CONFIG
+    assert generate_readme_table(config).count("NATIVEAPP") == 1
+    assert "NATIVEAPP** | Standalone install" in generate_readme_table(config)
+    assert "COMMUNITYAPP** | Optional community catalog" in generate_readme_table(
+        config
+    )
 
 
 # ---------------------------------------------------------------------------

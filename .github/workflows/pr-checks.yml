@@ -34,7 +34,8 @@ jobs:
         with:
           python-version: "3.13"
       - run: uv sync --frozen
-      - run: uv run --locked python scripts/update_tables.py --core-only --check
+      - run: uv run --locked python scripts/update_tables.py --check
+      - run: python scripts/update_star_chart.py --check
 
   secrets:
     name: Credential scan
