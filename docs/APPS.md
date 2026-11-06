@@ -4,6 +4,8 @@ The table combines the built-in catalog, external catalog snapshots, and
 standalone apps. To refresh the external data and regenerate both app tables,
 run `python scripts/update_tables.py --refresh` from the repository root.
 
+See [New apps](#new-apps) for recent additions to the built-in catalog.
+
 [ok] Built in. [com] Optional community app. [new] Candidate.
 [native] Standalone install. [x] Archived.
 See [App Management](app-management.md) for the opt-in workflow and
@@ -68,7 +70,11 @@ Money4Band stack.
 | --- | --- |
 | [EarnApp](https://earnapp.com/i/3zulx7k) | Use the official client on an eligible personal device with a supported residential connection. EarnApp prohibits Docker and proxies. [Official installation guide](https://help.earnapp.com/hc/en-us/articles/10261224561553-Installation-instructions-and-hardware-software-requirements) |
 
-## NetYield setup and rates
+## New apps
+
+These apps were added to the built-in catalog on `main` after release `5.0.4`.
+
+### NetYield setup and rates
 
 Choose NetYield in **Setup Apps** and enter an API key from your NetYield
 dashboard. Money4Band stores the device identity in a Docker volume named

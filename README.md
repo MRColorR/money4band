@@ -62,6 +62,8 @@ Already installed? See [Upgrade an existing installation](docs/getting-started.m
 
 ### Supported Apps
 
+🆕 **New on `main`** · [NetYield](docs/APPS.md#netyield-setup-and-rates) is now available through **Setup Apps**.
+
 Start with a **built-in app** and select its name to visit the provider. Some links are referrals that support Money4Band.
 
 - **Built into Money4Band** · Available in **Setup Apps**.
