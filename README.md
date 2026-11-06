@@ -79,7 +79,6 @@ Start with a **built-in app** and select its name to visit the provider. Some li
 | [**GaGaNode**](https://www.gaganode.com) | Optional community catalog |
 | [**Honeygain**](https://r.honeygain.me/MINDL15721) | Built into Money4Band |
 | [**Mysterium**](https://mystnodes.co/?referral_code=Tc7RaS7Fm12K3Xun6mlU9q9hbnjojjl9aRBW8ZA9) | Built into Money4Band |
-| [**NetYield**](https://netyield.io/) | Built into Money4Band |
 | [**PacketStream**](https://packetstream.io/?psr=3zSD) | Built into Money4Band |
 | [**Pawns (IPRoyal)**](https://pawns.app?r=MiNe) | Built into Money4Band |
 | [**ProxyLite**](https://proxylite.ru/?r=PJTKXWN3) | Built into Money4Band |
@@ -95,6 +94,7 @@ Start with a **built-in app** and select its name to visit the provider. Some li
 | [**Bytelixir**](https://bytelixir.com) | Candidate (see app directory) |
 | [**Earn.cc**](https://earn.cc) | Candidate (see app directory) |
 | [**Ebesucher**](https://www.ebesucher.com) | Candidate (see app directory) |
+| [**NetYield**](https://netyield.io/) | Candidate (see app directory) |
 | [**PassiveApp**](https://passiveapp.io) | Candidate (see app directory) |
 | [**Salad**](https://salad.com) | Candidate (see app directory) |
 | [**UpRock**](https://uprock.com) | Candidate (see app directory) |
