@@ -464,8 +464,7 @@ def _apply_binary_update(target_version: str) -> bool:
     """Download and replace the running binary for frozen installs.
 
     Verifies the download against a SHA-256 checksum file published
-    alongside each release (``checksums.sha256``).  Falls back to
-    an unverified install with a warning if no checksum file is available.
+    alongside each release (``checksums.sha256``).
     """
     asset_name = _get_binary_asset_name()
     if asset_name is None:
@@ -497,7 +496,6 @@ def _apply_binary_update(target_version: str) -> bool:
         logger.error("Binary download failed: %s", e)
         return False
 
-    # Try to fetch the checksum file for integrity verification.
     checksum_url = f"{releases_url}/{tag}/checksums.sha256"
     expected_hash: str | None = None
     try:
@@ -508,67 +506,73 @@ def _apply_binary_update(target_version: str) -> bool:
                 if len(parts) >= 2 and parts[1].lstrip("*") == asset_name:
                     expected_hash = parts[0].lower()
                     break
-    except httpx.HTTPError:
-        logger.warning("Could not fetch checksums.sha256 - skipping verification.")
+    except httpx.HTTPError as exc:
+        logger.error("Could not fetch checksums.sha256: %s", exc)
+        return False
+    if not expected_hash or not re.fullmatch(r"[0-9a-f]{64}", expected_hash):
+        logger.error("No valid release checksum for %s", asset_name)
+        return False
 
     current_exe = sys.executable
     backup_exe = current_exe + ".bak"
 
-    fd, tmp_path = tempfile.mkstemp(
-        suffix=os.path.splitext(current_exe)[1],
-        dir=os.path.dirname(current_exe),
-    )
+    tmp_path: str | None = None
+    moved_current = False
     try:
         import hashlib
 
+        fd, tmp_path = tempfile.mkstemp(
+            suffix=os.path.splitext(current_exe)[1],
+            dir=os.path.dirname(current_exe),
+        )
         sha256 = hashlib.sha256()
         with os.fdopen(fd, "wb") as f:
             for chunk in resp.iter_bytes(chunk_size=8192):
                 f.write(chunk)
                 sha256.update(chunk)
 
-        # Verify checksum if available.
         actual_hash = sha256.hexdigest()
-        if expected_hash:
-            if actual_hash != expected_hash:
-                logger.error(
-                    "Checksum mismatch! expected=%s actual=%s",
-                    expected_hash,
-                    actual_hash,
-                )
-                os.unlink(tmp_path)
-                return False
-            logger.info("Checksum verified: %s", actual_hash)
-        else:
-            logger.warning(
-                "No checksum available for %s - accepting download on HTTPS trust only.",
-                asset_name,
+        if actual_hash != expected_hash:
+            logger.error(
+                "Checksum mismatch! expected=%s actual=%s",
+                expected_hash,
+                actual_hash,
             )
+            return False
+        logger.info("Checksum verified: %s", actual_hash)
 
         # Make executable on Unix (owner-only - this replaces our own binary)
         if platform.system() != "Windows":
             os.chmod(tmp_path, 0o700)
 
         # Rename current -> backup, new -> current
-        if os.path.exists(backup_exe):
-            os.unlink(backup_exe)
-        os.rename(current_exe, backup_exe)
-        os.rename(tmp_path, current_exe)
+        os.replace(current_exe, backup_exe)
+        moved_current = True
+        os.replace(tmp_path, current_exe)
         return True
     except OSError as e:
         logger.error("Binary replacement failed: %s", e)
-        # Try to restore from backup
-        if os.path.exists(backup_exe) and not os.path.exists(current_exe):
-            os.rename(backup_exe, current_exe)
-        try:
-            os.unlink(tmp_path)
-        except OSError:
-            pass
+        if moved_current:
+            try:
+                os.replace(backup_exe, current_exe)
+            except OSError as rollback_error:
+                logger.error(
+                    "Restore the executable from %s: %s", backup_exe, rollback_error
+                )
         return False
+    finally:
+        if tmp_path:
+            try:
+                Path(tmp_path).unlink(missing_ok=True)
+            except OSError as exc:
+                logger.warning("Could not remove temporary update file: %s", exc)
 
 
 def apply_update(target_version: str) -> bool:
     """Apply an update - dispatches to git or binary strategy."""
+    if not re.fullmatch(r"v?[0-9]+\.[0-9]+\.[0-9]+", target_version):
+        logger.error("Invalid release version. Use a version such as 5.0.3.")
+        return False
     if is_git_install():
         return _apply_git_update(target_version)
     elif getattr(sys, "frozen", False):

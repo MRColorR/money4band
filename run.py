@@ -47,10 +47,8 @@ def main() -> int:
 
     # Preferred path: uv manages the environment and run.
     if shutil.which("uv"):
-        print("[run] uv detected -> syncing runtime dependencies")
-        if _run(["uv", "sync", "--no-dev"]) != 0:
-            _die("'uv sync' failed")
-        return _run(["uv", "run", "python", "main.py", *args])
+        print("[run] uv detected -> using locked runtime dependencies")
+        return _run(["uv", "run", "--locked", "--no-dev", "python", "main.py", *args])
 
     # Fallback: stdlib venv + pip with the current interpreter.
     print("[run] uv not found -> using venv + pip")

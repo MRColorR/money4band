@@ -9,6 +9,7 @@ decrypt and leaks the builder's data.
 
 from __future__ import annotations
 
+import json
 import sys
 from unittest.mock import patch
 
@@ -86,6 +87,19 @@ class TestEnsureConfigDir:
         with patch.object(sys, "_MEIPASS", str(tmp_path), create=True):
             m4b_main._ensure_config_dir(args)
         assert list(custom.iterdir()) == []
+
+
+def test_bundled_version_sync_preserves_existing_settings(tmp_path):
+    installed = tmp_path / "installed.json"
+    bundled = tmp_path / "bundled.json"
+    config = {"project": {"project_version": "5.0.2", "name": "custom"}, "menu": []}
+    installed.write_text(json.dumps(config), encoding="utf-8")
+    bundled.write_text('{"project": {"project_version": "5.0.3"}}', encoding="utf-8")
+
+    m4b_main._sync_bundled_version(str(installed), str(bundled))
+
+    config["project"]["project_version"] = "5.0.3"
+    assert json.loads(installed.read_text(encoding="utf-8")) == config
 
 
 class TestTemplateSeeding:

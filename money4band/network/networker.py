@@ -66,8 +66,8 @@ def validate_proxy_url(url: str) -> tuple[bool, str]:
 
     try:
         parsed = urlparse(url.strip())
-    except Exception as exc:
-        return False, f"Failed to parse URL: {exc}"
+    except ValueError:
+        return False, "Failed to parse proxy URL."
 
     scheme = (parsed.scheme or "").lower()
     if scheme not in ACCEPTED_PROXY_PROTOCOLS:
