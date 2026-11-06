@@ -21,9 +21,9 @@
 
 ## What is Money4Band?
 
-Money4Band (M4B) is an open-source manager for bandwidth-sharing apps such as
-Honeygain, Pawns, PacketStream, and Repocket. Choose the apps you want, enter
-their provider credentials, and run them together in Docker Compose.
+Money4Band (M4B) is a free, open-source tool for running bandwidth-sharing apps
+such as Honeygain, Pawns, PacketStream, and Repocket from one place. You choose
+the apps, sign up with their providers, and let Money4Band start them in Docker.
 
 - [Quick Start](#quick-start)
 - [Key Features](#key-features)
@@ -36,15 +36,18 @@ their provider credentials, and run them together in Docker Compose.
 
 ## Quick Start
 
-1. Start Docker. Check the [platform requirements](docs/getting-started.md#prerequisites).
-2. Download the executable for your platform from the
-   [latest stable release](https://github.com/MRColorR/money4band/releases/latest),
-   or pick a prerelease from [all releases](https://github.com/MRColorR/money4band/releases).
-   Follow the [platform-specific launch steps](docs/getting-started.md#option-a---download-the-binary-recommended).
-3. Open **Setup Apps**, select your apps, and provide the requested credentials.
-   Leave proxies off for a direct connection, or follow the [proxy setup guide](docs/proxy-setup.md).
-4. Choose **Start Stack**, then check the containers in the dashboard or with
-   the [status command](docs/cli-reference.md#status).
+Download Money4Band from the [latest stable release](https://github.com/MRColorR/money4band/releases/latest).
+The [installation guide](docs/getting-started.md#option-a---download-the-binary-recommended)
+shows which file to pick for Windows, macOS, or Linux and how to open it.
+
+![First run in three steps: start Docker, choose Setup Apps, then choose Start Stack.](docs/quick-start.svg)
+
+1. **Start Docker.** See the [requirements and setup instructions](docs/getting-started.md#prerequisites) for your system.
+2. **Open Money4Band and choose Setup Apps.** Pick the apps you want and enter the account details or keys they ask for.
+3. **Choose Start Stack** to run the apps you selected. Check whether they started in the [web dashboard](docs/dashboard-api.md) or with the [status command](docs/cli-reference.md#status).
+
+> [!TIP]
+> For a first run, leave proxies off to use your usual internet connection. You can set up a proxy later for apps that permit it. See the [proxy setup guide](docs/proxy-setup.md).
 
 Prefer a Git checkout? Follow [Run from Source](docs/getting-started.md#option-b---run-from-source).
 Already installed? See [Upgrade an existing installation](docs/getting-started.md#upgrade-an-existing-installation).
