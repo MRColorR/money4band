@@ -88,6 +88,19 @@ class TestEnsureConfigDir:
             m4b_main._ensure_config_dir(args)
         assert list(custom.iterdir()) == []
 
+    def test_existing_custom_dir_receives_new_catalog_entries(self, tmp_path):
+        import argparse
+
+        bundle = tmp_path / "bundle"
+        entry = bundle / "config" / "catalog" / "newcomers" / "NETYIELD.json"
+        entry.parent.mkdir(parents=True)
+        entry.write_text('{"name": "NETYIELD"}', encoding="utf-8")
+        custom = tmp_path / "custom_cfg"
+        custom.mkdir()
+        with patch.object(sys, "_MEIPASS", str(bundle), create=True):
+            m4b_main._ensure_config_dir(argparse.Namespace(config_dir=str(custom)))
+        assert (custom / "catalog" / "newcomers" / "NETYIELD.json").is_file()
+
 
 def test_bundled_version_sync_preserves_existing_settings(tmp_path):
     installed = tmp_path / "installed.json"
@@ -100,6 +113,41 @@ def test_bundled_version_sync_preserves_existing_settings(tmp_path):
 
     config["project"]["project_version"] = "5.0.3"
     assert json.loads(installed.read_text(encoding="utf-8")) == config
+
+
+def test_bundled_catalog_adds_newcomer_to_existing_install(tmp_path):
+    installed = tmp_path / "installed" / "m4b-config.json"
+    bundled = tmp_path / "bundle" / "m4b-config.json"
+    source = bundled.parent / "catalog" / "newcomers" / "NETYIELD.json"
+    source.parent.mkdir(parents=True)
+    source.write_text('{"name": "NETYIELD", "flags": {}}', encoding="utf-8")
+    installed.parent.mkdir()
+    installed.write_text('{"mine": true}', encoding="utf-8")
+
+    m4b_main._sync_bundled_catalog(str(installed), str(bundled))
+    target = installed.parent / "catalog" / "newcomers" / "NETYIELD.json"
+    assert json.loads(target.read_text(encoding="utf-8"))["name"] == "NETYIELD"
+    assert json.loads(installed.read_text(encoding="utf-8")) == {"mine": True}
+
+    target.write_text('{"name": "NETYIELD", "custom": true}', encoding="utf-8")
+    m4b_main._sync_bundled_catalog(str(installed), str(bundled))
+    assert json.loads(target.read_text(encoding="utf-8"))["custom"] is True
+
+
+def test_bundled_catalog_moves_existing_entry_without_losing_edits(tmp_path):
+    installed = tmp_path / "installed" / "m4b-config.json"
+    bundled = tmp_path / "bundle" / "m4b-config.json"
+    source = bundled.parent / "catalog" / "newcomers" / "NETYIELD.json"
+    source.parent.mkdir(parents=True)
+    source.write_text('{"name": "NETYIELD"}', encoding="utf-8")
+    previous = installed.parent / "catalog" / "supported" / "NETYIELD.json"
+    previous.parent.mkdir(parents=True)
+    previous.write_text('{"name": "NETYIELD", "custom": true}', encoding="utf-8")
+
+    m4b_main._sync_bundled_catalog(str(installed), str(bundled))
+    assert not previous.exists()
+    target = installed.parent / "catalog" / "newcomers" / "NETYIELD.json"
+    assert json.loads(target.read_text(encoding="utf-8"))["custom"] is True
 
 
 class TestTemplateSeeding:

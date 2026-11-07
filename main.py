@@ -98,6 +98,36 @@ def _sync_bundled_version(installed: str, bundled: str) -> None:
             dumper.write_json(config, installed)
 
 
+def _sync_bundled_catalog(installed: str, bundled: str) -> None:
+    """Install new bundled entries and follow category moves, preserving edits."""
+    from money4band.core.catalog_store import ADDONS_DIRNAME, CATEGORIES, catalog_root
+
+    categories = (*CATEGORIES, ADDONS_DIRNAME)
+    source = catalog_root(bundled)
+    destination = catalog_root(installed)
+    for category in categories:
+        for entry in (source / category).glob("*.json"):
+            target = destination / category / entry.name
+            if target.exists():
+                continue
+            target.parent.mkdir(parents=True, exist_ok=True)
+            previous = next(
+                (
+                    destination / name / entry.name
+                    for name in categories
+                    if (destination / name / entry.name).is_file()
+                ),
+                None,
+            )
+            if previous is not None:
+                os.replace(previous, target)
+            else:
+                data = loader.load_json_config(str(entry))
+                if not data:
+                    raise ValueError(f"Invalid bundled catalog entry: {entry}")
+                dumper.write_json(data, str(target))
+
+
 # Handle PyInstaller frozen executable path resolution
 if getattr(sys, "frozen", False):
     # Running as compiled executable (PyInstaller)
@@ -112,8 +142,12 @@ if getattr(sys, "frozen", False):
                 os.path.join(BASE_DIR, "config", "m4b-config.json"),
                 os.path.join(bundle_dir, "config", "m4b-config.json"),
             )
+            _sync_bundled_catalog(
+                os.path.join(BASE_DIR, "config", "m4b-config.json"),
+                os.path.join(bundle_dir, "config", "m4b-config.json"),
+            )
         except (OSError, ValueError) as exc:
-            print(f"WARNING: could not update project version: {exc}", file=sys.stderr)
+            print(f"WARNING: could not sync bundled defaults: {exc}", file=sys.stderr)
     # template/: read-only reference data - always refresh so a
     # self-updated binary resets from ITS templates, not v5.0.0's.
     _seed_bundled_dir(os.path.join(BASE_DIR, "template"), "template", refresh=True)
@@ -153,9 +187,14 @@ def _ensure_config_dir(args: argparse.Namespace) -> None:
     FileNotFoundError on m4b-config.json.
     """
     config_dir = getattr(args, "config_dir", "")
-    if not config_dir or os.path.isdir(config_dir):
+    if not config_dir:
         return
     _seed_bundled_dir(config_dir, "config", ignore=_NEVER_SEED_INTO_CONFIG)
+    if bundle_dir := getattr(sys, "_MEIPASS", None):
+        _sync_bundled_catalog(
+            os.path.join(config_dir, "m4b-config.json"),
+            os.path.join(bundle_dir, "config", "m4b-config.json"),
+        )
 
 
 def _ensure_user_config(args: argparse.Namespace, user_config_path: str) -> None:
