@@ -125,6 +125,18 @@ This table follows the `main` branch. See the [app directory](docs/APPS.md) for 
 
 ---
 
+<a name="proxy-providers"></a>
+
+### 🌍 Proxy Providers
+
+For apps that support and permit proxy use, choose a provider for your
+[multi-proxy setup](docs/proxy-setup.md). Referral links support Money4Band
+through a commission on qualifying purchases.
+
+| Provider | Description |
+| --- | --- |
+| [BirdProxies](https://birdproxies.com/@money4band) | Static ISP and residential proxies for dedicated connections in your multi-proxy setup.<br>Bonus code: `MONEY4BAND` — 10% off. |
+
 <a name="documentation"></a>
 
 ## 📚 Documentation
