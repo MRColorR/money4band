@@ -14,7 +14,7 @@ from tempfile import TemporaryDirectory
 def main() -> None:
     executable = Path(sys.argv[1]).resolve(strict=True)
     root = Path(__file__).resolve().parent.parent
-    bundled_entry = root / "config/catalog/newcomers/NETYIELD.json"
+    bundled_entry = root / "config/catalog/supported/NETYIELD.json"
     current_config = json.loads(
         (root / "config/m4b-config.json").read_text(encoding="utf-8")
     )
@@ -26,11 +26,11 @@ def main() -> None:
             shutil.copy2(executable, binary)
             config = installation / "config"
             credentials = config / "user-config.json"
-            previous_entry = config / "catalog/supported/NETYIELD.json"
+            previous_entry = config / "catalog/newcomers/NETYIELD.json"
             if scenario != "fresh":
                 config.mkdir()
                 old_config = deepcopy(current_config)
-                old_config["project"]["project_version"] = "5.0.6"
+                old_config["project"]["project_version"] = "5.0.7"
                 (config / "m4b-config.json").write_text(
                     json.dumps(old_config), encoding="utf-8"
                 )
@@ -51,7 +51,7 @@ def main() -> None:
                 text=True,
                 timeout=120,
             )
-            target = config / "catalog/newcomers/NETYIELD.json"
+            target = config / "catalog/supported/NETYIELD.json"
             entry = json.loads(target.read_text(encoding="utf-8"))
             if entry.get("name") != "NETYIELD":
                 raise RuntimeError(f"{scenario}: NetYield missing from the catalog")
