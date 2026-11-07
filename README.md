@@ -38,7 +38,7 @@ Our maintainers and community **research** every app, **verify** its background,
 - **🔄 Automatic app updates.** Optionally enable Watchtower to keep eligible app images up to date. Check for Money4Band updates through **System Info** or `m4b update`.
 - **📊 Web dashboard.** Monitor container health and resource usage, then start, stop, or restart apps from your browser. Providers show earnings and payouts in their own dashboards.
 - **🌍 Multi-proxy support.** Start with your own connection or create separate instances from a proxy list for apps that permit proxies. Check your connection with `m4b ip`.
-- **🔒 Safer than installing each app directly.** Each app runs in its own Docker container, keeping its dependencies separate and reducing what you install on your host.
+- **🔒 Safer than installing each app directly.** Each app runs in an isolated Docker container, keeping its dependencies separate and reducing exposure of your host system.
 - **🚀 Guided setup and automation.** Pick your apps and enter your credentials. Money4Band generates the Compose configuration, and you can automate app and stack management through the [CLI](docs/cli-reference.md) or [REST API](docs/dashboard-api.md).
 - **🛟 Backups and notifications.** Money4Band encrypts saved app credentials, provides backup and restore commands, and can send stack notifications to Discord or Telegram.
 
@@ -162,7 +162,7 @@ through a commission on qualifying purchases.
 
 ### 💬 Community & Support
 
-💬 Come say hello, share your setup, or ask for a hand. We’d love to hear how you use Money4Band.
+Come say hello, share your setup, or ask for a hand. We’d love to hear how you use Money4Band.
 
 - [**Discord**](https://discord.com/invite/Fq8eeazBAD) for chat, help, and shared experiences
 - [**Discussions**](https://github.com/MRColorR/money4band/discussions) for feature requests and ideas
@@ -181,8 +181,6 @@ Please include enough context to reproduce a problem or review a change.
 <a name="support"></a>
 
 ## 🫶 Support
-
-**🫶 Support the project**
 
 Your contributions are vital in helping to sustain the development of open-source projects and tools made freely available to everyone. If you find value in my work and wish to show your support, kindly consider making a donation.
 
