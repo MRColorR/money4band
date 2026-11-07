@@ -2,11 +2,11 @@
 
 <!-- Project README scaffold: https://github.com/MRColorR/project-template -->
 
-<img align="right" src="money4band/resources/assets/M4B_logo.png" width="96" alt="Money4Band logo">
+<img align="right" src="money4band/resources/assets/M4B_logo.png" width="320" alt="Money4Band logo">
 
 [**⬇️ Download Money4Band**](https://github.com/MRColorR/money4band/releases/latest) · [🚀 Quick start](#quick-start) · [📋 Browse apps](#supported-apps) · [💬 Join Discord](https://discord.com/invite/Fq8eeazBAD) · [🫶 Support the project](#support)
 
-**Leave a star ⭐ if you like this project 🙂 Thank you!**
+
 
 <p align="center">
   <a href="https://github.com/MRColorR/money4band/releases/latest"><img src="https://img.shields.io/github/v/release/MRColorR/money4band?style=flat&label=Version" alt="Version"></a>
@@ -20,7 +20,9 @@
   <img src="https://img.shields.io/badge/Linux-FCC624?style=flat-square&logo=linux&logoColor=black" alt="Linux">
   <img src="https://img.shields.io/badge/macOS-444444?style=flat-square&logo=apple&logoColor=white" alt="macOS">
 </p>
-
+<p align="center">
+  <strong>**Leave a star ⭐ if you like this project 🙂 Thank you!**</strong>
+</p>
 <a name="what-is-money4band"></a>
 <a name="overview"></a>
 
