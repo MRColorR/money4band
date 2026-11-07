@@ -81,11 +81,12 @@ The bundled tunnel rejects `https://` and `socks5h://` proxy URLs. An
 
 ## Proxy Providers
 
-These results describe specific endpoints tested with Money4Band.
+Choose a provider for apps that support and permit proxy use. Referral links
+support Money4Band through a commission on qualifying purchases.
 
-| Provider | Tested protocols | IP type and regions | Test results |
-| --- | --- | --- | --- |
-| [BirdProxies](https://birdproxies.com/) | SOCKS5 in Money4Band, HTTP CONNECT in a direct connection check | Five static US ISP endpoints | Each route kept its expected exit IP in the test samples. NetYield credited sandbox traffic through one of the routes. |
+| Provider | Description |
+| --- | --- |
+| [BirdProxies](https://birdproxies.com/@money4band) | Static ISP and residential proxies for dedicated connections in your multi-proxy setup.<br>Bonus code: `MONEY4BAND` — 10% off. |
 
 ## Tips
 
