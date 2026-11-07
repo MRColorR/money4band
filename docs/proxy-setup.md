@@ -86,7 +86,7 @@ support Money4Band through a commission on qualifying purchases.
 
 | Provider | Description |
 | --- | --- |
-| [BirdProxies](https://birdproxies.com/@money4band) | Static ISP and residential proxies for dedicated connections in your multi-proxy setup.<br>Bonus code: `MONEY4BAND` — 10% off. |
+| [BirdProxies](https://birdproxies.com/@money4band) | Static ISP and residential proxies for dedicated connections in your multi-proxy setup.<br>Bonus code: `MONEY4BAND` - 10% off. |
 
 ## Tips
 
