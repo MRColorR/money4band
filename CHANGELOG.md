@@ -3,6 +3,14 @@
 All notable changes to this project are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [5.0.7]
+
+- Add missing bundled catalog entries when an executable starts beside an
+  existing configuration directory, including custom configuration paths.
+- Follow catalog category moves while preserving existing entry edits.
+- Verify packaged executables against fresh and existing installations
+  before uploading release assets.
+
 ## [5.0.6]
 
 - Fix Linux ARM release builds by keeping documentation generation out of
