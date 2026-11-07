@@ -160,13 +160,14 @@ jobs:
       - name: Smoke-test native executable
         if: matrix.docker_platform == ''
         shell: bash
-        run: ./dist/"Money4Band${{ runner.os == 'Windows' && '.exe' || '' }}" --help
+        run: uv run --locked python scripts/check_release_upgrade.py ./dist/"Money4Band${{ runner.os == 'Windows' && '.exe' || '' }}"
 
       - name: Smoke-test ARM executable
         if: matrix.docker_platform != ''
         run: |
           docker run --rm --network none --platform ${{ matrix.docker_platform }} \
-            --entrypoint /app/dist/Money4Band money4band-builder --help
+            --entrypoint /app/.venv/bin/python money4band-builder \
+            /app/scripts/check_release_upgrade.py /app/dist/Money4Band
 
       # ---- Normalize the artifact name ----
       - name: Rename binary to release asset name (Unix)

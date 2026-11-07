@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 
 name = "money4band"
 description = "Multi-app Docker orchestrator for passive income apps"
-version = "5.0.6"
+version = "5.0.7"
 authors = [
     { name = "MRColorR" }
 ]
