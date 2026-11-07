@@ -21,7 +21,7 @@
     <g fill="#142a49" font-size="19">
       <text x="58" y="53">Start Docker</text>
       <text x="258" y="53">Setup Apps</text>
-      <text x="458" y="53">Start Stack</text>
+      <text x="458" y="52" font-size="15">Start apps stack</text>
     </g>
   </g>
 </svg>

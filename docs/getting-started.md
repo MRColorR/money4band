@@ -150,7 +150,8 @@ with pip. Use `python3` if your system exposes Python under that name.
 
 Stop the stack and dashboard and back up the installation before upgrading v5.
 
-- **Stable release.** Run `m4b update` and confirm the offered update.
+- **Stable release.** Open **System Info**, choose **Check for updates**,
+  and confirm the offered update. The CLI equivalent is `m4b update`.
 - **Specific release or prerelease.** Run `m4b update --version X.Y.Z` with
   the desired release version.
 - **Manual executable update.** Download the desired release,
@@ -176,11 +177,11 @@ Start Docker and choose **Setup Apps** in the menu, or run `m4b setup`.
    [provider onboarding](app-management.md#provider-onboarding) for apps with
    extra steps.
 3. Finish setup to generate your Compose and environment files. Choose
-   **Start Stack** or run `m4b stack start`.
+   **Start apps stack** or run `m4b stack start`.
 
 ## Verifying Everything Works
 
-Run `m4b status` or open the [dashboard](dashboard-api.md#starting-the-dashboard)
+Open the [dashboard](dashboard-api.md#starting-the-dashboard) or use `m4b status`
 to check that the containers are running. Confirm enrollment and traffic in
 each provider's dashboard. If setup or startup fails, see
 [FAQ & Troubleshooting](faq.md).
