@@ -18,15 +18,6 @@ Choose a release executable or run from a Git checkout. Both use Docker to run t
    or choose a prerelease from [all releases](https://github.com/MRColorR/money4band/releases).
    Download the executable for your platform.
 
-   | Platform | Asset |
-   |----------|-------|
-   | Windows amd64 | `Money4Band-windows-amd64.exe` |
-   | Linux amd64 | `Money4Band-linux-amd64` |
-   | Linux arm64 | `Money4Band-linux-arm64` |
-   | Linux armv7 | `Money4Band-linux-armv7` |
-   | macOS arm64 (Apple Silicon) | `Money4Band-macos-arm64` |
-   | macOS amd64 (Intel) | `Money4Band-macos-amd64` |
-
    Check your architecture with `uname -m` (`x86_64` = amd64, `aarch64` = arm64,
    `armv7l` = armv7). On Windows: **Settings > System > About > System type**.
 
