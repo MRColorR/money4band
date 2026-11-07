@@ -13,6 +13,8 @@ import json
 import sys
 from unittest.mock import patch
 
+import pytest
+
 import main as m4b_main
 
 
@@ -134,19 +136,25 @@ def test_bundled_catalog_adds_newcomer_to_existing_install(tmp_path):
     assert json.loads(target.read_text(encoding="utf-8"))["custom"] is True
 
 
-def test_bundled_catalog_moves_existing_entry_without_losing_edits(tmp_path):
+@pytest.mark.parametrize(
+    ("old_category", "new_category"),
+    [("supported", "newcomers"), ("newcomers", "supported")],
+)
+def test_bundled_catalog_moves_existing_entry_without_losing_edits(
+    tmp_path, old_category, new_category
+):
     installed = tmp_path / "installed" / "m4b-config.json"
     bundled = tmp_path / "bundle" / "m4b-config.json"
-    source = bundled.parent / "catalog" / "newcomers" / "NETYIELD.json"
+    source = bundled.parent / "catalog" / new_category / "NETYIELD.json"
     source.parent.mkdir(parents=True)
     source.write_text('{"name": "NETYIELD"}', encoding="utf-8")
-    previous = installed.parent / "catalog" / "supported" / "NETYIELD.json"
+    previous = installed.parent / "catalog" / old_category / "NETYIELD.json"
     previous.parent.mkdir(parents=True)
     previous.write_text('{"name": "NETYIELD", "custom": true}', encoding="utf-8")
 
     m4b_main._sync_bundled_catalog(str(installed), str(bundled))
     assert not previous.exists()
-    target = installed.parent / "catalog" / "newcomers" / "NETYIELD.json"
+    target = installed.parent / "catalog" / new_category / "NETYIELD.json"
     assert json.loads(target.read_text(encoding="utf-8"))["custom"] is True
 
 

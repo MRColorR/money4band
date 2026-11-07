@@ -3,6 +3,13 @@
 All notable changes to this project are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [5.1.0]
+
+- Promote NetYield to the default supported catalog so it is available
+  directly through Setup Apps.
+- Verify packaged upgrades from the previous newcomers entry to the
+  supported entry while preserving existing configuration.
+
 ## [5.0.7]
 
 - Add missing bundled catalog entries when an executable starts beside an
