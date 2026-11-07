@@ -8,7 +8,9 @@
 
 See the [app directory](APPS.md) for the complete list and each app’s status.
 Supported apps appear in setup by default. To try a candidate with a Docker
-integration, run `m4b catalog category enable newcomers`, then open **Setup Apps**.
+integration, enable the **newcomers** category in **App Catalog & Links**,
+then open **Setup Apps**. The same category setting is available through
+the CLI and API.
 Standalone apps use their provider’s installer.
 
 > The internal category key for *Candidate* apps is `newcomers`; the CLI
@@ -32,7 +34,7 @@ m4b apps honeygain               # detailed info card for one app
 
 Interactively, the **App Catalog** screen also exposes a `m` shortcut to
 **manage category status** - toggle `newcomers` / `deprecated` on or off
-so they appear during `m4b setup`.
+so they appear during **Setup Apps**.
 
 ### Removed apps
 
@@ -46,8 +48,8 @@ so they appear during `m4b setup`.
 These checks establish why both apps are excluded from default setup.
 Their providers' shutdown status is unconfirmed.
 
-After upgrading an existing deployment, stop the previous stack, run
-`m4b generate`, and start it again. Recreate saved multi-proxy instances
+After upgrading an existing deployment, stop the previous stack, choose
+**Regenerate files from config**, and start it again. Recreate saved multi-proxy instances
 from the updated catalog to refresh their generated Compose files.
 If a provider now requires a standalone install, disable its old catalog
 entry before regenerating the stack and follow the provider’s installation
@@ -85,7 +87,8 @@ release's source ZIP before regenerating.
 
 ### Catalog sources
 
-`community` ships preconfigured and disabled. Turn it on:
+`community` ships preconfigured and disabled. Open source management in
+**App Catalog & Links**, enable the source, and refresh it. The CLI equivalents are:
 
 ```bash
 m4b catalog list                 # configured sources and their state
@@ -312,13 +315,13 @@ schema. The required fields are validated by
 
 ## Enabling / Disabling Apps
 
-During `m4b setup`, you choose which apps to enable. To modify later:
+Use **Setup Apps** to choose which apps to enable and configure their credentials.
+You can change those selections later through the setup wizard or the
+app settings in the dashboard/API.
 
-1. Run `m4b setup` again - existing credentials are preserved (the wizard
-   only prompts for newly enabled apps).
-2. Or edit `config/user-config.json` directly (flip `apps.<name>.enabled`)
-   and run `m4b generate` to regenerate the compose files.
-3. Or use the REST API / web dashboard (`PUT /api/apps/<name>`).
+For command-line use, run `m4b setup`. After changing settings directly,
+regenerate the stack files before restarting. See the [CLI reference](cli-reference.md)
+and [Dashboard & API](dashboard-api.md) for the corresponding controls.
 
 ## Auto-Claim Sidecars (Addons)
 
@@ -351,7 +354,7 @@ is enabled AND the user opted in.
 }
 ```
 
-**Enablement is opt-in.** During `m4b setup`, after you enter credentials
+**Enablement is opt-in.** During **Setup Apps**, after you enter credentials
 for a parent app that has a matching addon, the wizard asks:
 
 ```
@@ -361,8 +364,8 @@ Enable MYAPP_POT for MyApp? (y/n)
 ```
 
 Your choice is stored as `apps.<name_lower>.service_enabled` in
-`user-config.json`. Toggle it later by re-running `m4b setup`, editing
-the JSON directly (then `m4b generate`), or via the web dashboard.
+`user-config.json`. Toggle it later through **Setup Apps** or the web dashboard.
+Regenerate the stack files after editing the JSON directly.
 
 > **Profile inheritance.** Sidecars do NOT declare their own `profile`
 > field. At generation time the sidecar service inherits its parent's

@@ -23,7 +23,9 @@ build
 
 # CI & docs
 .github
-docs
+docs/*
+!docs/APPS.md
+!docs/catalog-snapshot.json
 tests
 CHANGELOG.md
 CONTRIBUTING.md

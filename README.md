@@ -35,7 +35,7 @@ Our maintainers and community **research** every app, **verify** its background,
 ### ✨ Key Features
 
 - **🧊 Multiplatform and lightweight Docker stack.** Run the apps you select on Windows, macOS, or Linux and set CPU and memory limits per app. Choose the [release asset for your OS and CPU](docs/getting-started.md#option-a---download-the-binary-recommended).
-- **🔄 Automatic app updates.** Optionally enable Watchtower to keep eligible app images up to date. Use `m4b update` for Money4Band itself.
+- **🔄 Automatic app updates.** Optionally enable Watchtower to keep eligible app images up to date. Check for Money4Band updates through **System Info** or `m4b update`.
 - **📊 Web dashboard.** Monitor container health and resource usage, then start, stop, or restart apps from your browser. Providers show earnings and payouts in their own dashboards.
 - **🌍 Multi-proxy support.** Start with your own connection or create separate instances from a proxy list for apps that permit proxies. Check your connection with `m4b ip`.
 - **🔒 Safer than installing each app directly.** Each app runs in its own Docker container, keeping its dependencies separate and reducing what you install on your host.
@@ -56,11 +56,11 @@ Download Money4Band from the [latest stable release](https://github.com/MRColorR
 The [installation guide](docs/getting-started.md#option-a---download-the-binary-recommended)
 shows which file to pick for Windows, macOS, or Linux and how to open it.
 
-![First run in three steps: start Docker, choose Setup Apps, then choose Start Stack.](docs/quick-start.svg)
+![First run in three steps: start Docker, choose Setup Apps, then choose Start apps stack.](docs/quick-start.svg)
 
 1. **Start Docker.** See the [requirements and setup instructions](docs/getting-started.md#prerequisites) for your system.
 2. **Open Money4Band and choose Setup Apps.** Pick apps from the [table below](#supported-apps), create provider accounts, and enter the account details or keys they ask for.
-3. **Choose Start Stack** to run the apps you selected. Check whether they started in the [web dashboard](docs/dashboard-api.md) or with the [status command](docs/cli-reference.md#status).
+3. **Choose Start apps stack** to run the apps you selected. Check whether they started in the [web dashboard](docs/dashboard-api.md) or with the [status command](docs/cli-reference.md#status).
 
 > [!TIP]
 > For a first run, leave proxies off to use your usual internet connection. You can set up a proxy later for apps that permit it. See the [proxy setup guide](docs/proxy-setup.md).

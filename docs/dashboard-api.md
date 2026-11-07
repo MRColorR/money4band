@@ -16,6 +16,9 @@ Money4Band includes a **FastAPI-powered web dashboard** with a REST API. It runs
 
 ## Starting the Dashboard
 
+Open **M4B Dashboard and APIs** to choose how to start the dashboard. The
+following CLI commands provide the same start and restart options.
+
 ### From CLI
 
 ```bash
@@ -37,7 +40,9 @@ m4b --dashboard true stack start
 
 ### From Interactive Menu
 
-Choose **Dashboard** -> **Start foreground**, **Start background**, **Start (web-exposed)**, or **Restart**.
+Choose **M4B Dashboard and APIs**, then select **Start Dashboard + API**
+in foreground, background, or web-exposed mode. Use **Restart Dashboard + API**
+to restart it.
 
 ### Auto-Start
 

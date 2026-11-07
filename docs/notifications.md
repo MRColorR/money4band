@@ -10,7 +10,8 @@ M4B uses [Shoutrrr](https://containrrr.dev/shoutrrr/) to send fire-and-forget no
 
 ## Setup
 
-From the interactive menu, choose the notification setup option, or configure directly in `user-config.json`:
+Open **Setup Apps** and configure notifications when prompted after enabling
+Watchtower, or configure them directly in `user-config.json`:
 
 ```json
 {

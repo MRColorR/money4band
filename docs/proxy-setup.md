@@ -13,8 +13,9 @@ proxy use and device or IP limits before enabling that app in a proxied stack.
 
 Configure a single proxy in the interactive setup or directly in your config:
 
-1. Run `m4b setup` and select **Yes** when asked about proxy usage.
-2. Enter your proxy URL (e.g., `socks5://user:pass@proxy-host:1080`).
+1. Open **Setup Apps** and select **Yes** when asked about proxy usage.
+2. When setup asks for `proxies.txt`, provide a file containing one proxy URL
+   such as `socks5://user:pass@proxy-host:1080`.
 3. M4B wraps your containers with a tunnel container that routes traffic through the proxy.
 
 The proxy tunnel is injected into the generated `docker-compose.yaml`
@@ -27,21 +28,19 @@ Multi-proxy lets you create **N independent instances**, each routed through a d
 
 ### Setup
 
-1. Open the proxy tools menu:
-   ```bash
-   m4b proxy
-   ```
+1. Open **Setup Apps** and enable proxy use.
 
-2. Choose **Update multi-proxy instances**.
+2. Prepare `proxies.txt` when setup asks for it.
 
-3. Provide a `proxies.txt` file with one proxy URL per line:
+3. List one proxy URL per line:
    ```
    socks5://user:pass@proxy1:1080
    socks5://user:pass@proxy2:1080
    http://user:pass@proxy3:8080
    ```
 
-4. M4B creates a separate directory for each proxy instance, each with its own:
+4. Complete setup. M4B uses one proxy for the main stack and creates additional
+   instance directories for the remaining proxies, each with its own:
    - `docker-compose.yaml`
    - `.env` file
    - Unique device name & UUID
@@ -49,23 +48,20 @@ Multi-proxy lets you create **N independent instances**, each routed through a d
 
 ### How It Works
 
-```
-instances/
-|-- proxy-1/    -> compose stack using proxy1
-|-- proxy-2/    -> compose stack using proxy2
-+-- proxy-3/    -> compose stack using proxy3
-```
+The additional stacks live under `m4b_proxy_instances/`.
 
 Each instance gets its own subnet (calculated automatically to avoid conflicts) and runs as an independent Docker Compose project.
 
 ### Managing Instances
 
-From the proxy tools menu (`m4b proxy`):
+From **Multiproxy Tools** (also opened by `m4b proxy`):
 
-- **Start all** / **Stop all** - Bulk operations across all instances
-- **Update instances** - Regenerate from `proxies.txt`
-- **Cleanup** - Remove all instance directories
-- **Toggle install limits** - Enable/disable per-app instance limits
+- **Update Proxies for Multiproxy Instances** updates existing instances from `proxies.txt`.
+- **Toggle Install-Limit Enforcement** enables or disables per-app instance limits.
+
+Use **Start apps stack** and **Stop apps stack** in the main menu to control
+the stack and its proxy instances. The CLI equivalents are described under
+[Stack Operations](cli-reference.md#stack-operations).
 
 ### Install Limits
 

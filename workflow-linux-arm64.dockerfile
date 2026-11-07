@@ -30,6 +30,9 @@ COPY . .
 # Install Python dependencies + PyInstaller via uv
 RUN uv sync --frozen && uv pip install pyinstaller
 
+# Update app tables before bundling.
+RUN uv run --locked python scripts/update_tables.py
+
 # Defence in depth: the PyInstaller --add-data below bundles config/
 # wholesale, so any local user state copied in by `COPY . .` would ship
 # inside the binary (credentials encrypted with the builder's key -

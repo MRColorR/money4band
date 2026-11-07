@@ -84,10 +84,10 @@ Create an account on the app's website first, then:
 
 ### Containers keep restarting
 
-Run `m4b status`, then check the container logs in the dashboard or run
+Check container status in the dashboard or with `m4b status`, then inspect logs using
 `docker compose logs <service>` from the affected stack directory. Check for
-rejected credentials, network eligibility errors, or port conflicts. Re-run
-`m4b setup` if you need to update credentials.
+rejected credentials, network eligibility errors, or port conflicts. Open
+**Setup Apps** if you need to update credentials.
 
 ### Some apps show "unhealthy"
 
@@ -98,7 +98,7 @@ Health checks may fail if:
 
 ### Low earnings
 
-Check whether the container is running with `m4b status`, then confirm the
+Check whether the container is running in the dashboard or with `m4b status`, then confirm the
 device and traffic are visible in the provider's dashboard. Ask the provider
 about payout delays or missing usage.
 
@@ -111,7 +111,8 @@ about payout delays or missing usage.
 Recover the original key from a backup if possible. See
 [Runtime Data Directory](configuration.md#runtime-data-directory) for the
 key location. If the key is gone, saved credentials cannot be decrypted.
-Run `m4b reset` and re-enter them with `m4b setup`.
+Choose **Reset user-config File**, then re-enter them through **Setup Apps**.
+The CLI equivalents are `m4b reset` and `m4b setup`.
 
 ### How do I change the DNS?
 
@@ -143,7 +144,8 @@ before moving an existing stack.
 
 ### Dashboard won't start
 
-Run `m4b dashboard status`. If port 8088 is busy, see
+Open **M4B Dashboard and APIs** to check the dashboard, or use `m4b dashboard status`.
+If port 8088 is busy, see
 [Accessing the Dashboard](dashboard-api.md#accessing-the-dashboard) for the
 configured port and how to find the one in use.
 
@@ -159,7 +161,8 @@ mode. See [Security](security.md#rest-api-hardening-v50) before exposing it.
 
 ### How do I update M4B?
 
-Run `m4b update` to check for and install an offered stable release. For
+Open **System Info → Check for updates** to check for and install an offered
+stable release, or use `m4b update`. For
 prereleases, manual binary replacement, and v4 migration, follow
 [Upgrade an existing installation](getting-started.md#upgrade-an-existing-installation).
 

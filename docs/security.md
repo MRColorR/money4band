@@ -21,7 +21,7 @@ All sensitive data in `user-config.json` is encrypted at rest using **Fernet** (
 - The master key **never** leaves your machine.
 - It is **never** included in backups or Docker volumes.
 - File permissions are set to owner-only read/write.
-- If you lose the key, you must re-enter your credentials via `m4b setup`.
+- If you lose the key, you must re-enter your credentials through **Setup Apps**.
 
 ## Log Scrubbing
 
@@ -106,9 +106,9 @@ generic failure messages to clients (no info disclosure).
 ## Best Practices
 
 1. **Don't share** the master key or `config/user-config.json`.
-2. **Use `m4b backup`** regularly to protect against data loss.
-3. **Keep M4B updated** (`m4b update`) for security patches.
-4. **Review IP quality** (`m4b ip`) - some proxy providers may flag your IP.
+2. **Back up your configuration** regularly. See [Backup & Restore](configuration.md#backup--restore).
+3. **Keep M4B updated** through **System Info → Check for updates** or `m4b update`.
+4. **Review IP quality** before choosing a connection. See [Network & Proxy](cli-reference.md#network--proxy).
 5. **Use the dashboard locally** - avoid exposing it to the internet without HTTPS.
 6. **Dashboard cookie auth** - when using web-exposed mode, the API key is stored as an `httpOnly`, `samesite=strict` cookie.
 7. **Run portable installs from a writable dir** - the data dir lands in `<install>/.m4b/` by default for fresh installs; PyInstaller binary on a USB stick is fully self-contained.

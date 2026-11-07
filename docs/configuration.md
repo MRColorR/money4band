@@ -104,6 +104,9 @@ Profiles are stored at `config/profiles/{name}/` and include both `user-config.j
 
 Control how much CPU and memory containers are allowed to use:
 
+Open **Resource Profiles** to view or change the active profile. The CLI
+and API expose the same profile settings.
+
 | Profile | CPU Limit | Memory Limit | Use Case |
 |---------|-----------|--------------|----------|
 | `minimal` | 20% | 10% | Background, shared machine |
@@ -118,7 +121,8 @@ m4b limit conservative   # switch profile
 
 ## DNS Configuration
 
-Configure which DNS servers your containers use:
+Configure which DNS servers your containers use through **System Info → DNS settings**,
+or use the CLI examples below.
 
 ```bash
 m4b dns                                      # show current DNS config
@@ -181,6 +185,10 @@ Honeygain AND its `honeygain-pot` together - no separate flag needed,
 no orphan-pot edge cases.
 
 ## Backup & Restore
+
+Create a backup before changing or moving an installation. Restore a saved
+backup when you need its settings back. See [CLI backup and restore](cli-reference.md#backup--restore)
+or the backup endpoints in [Dashboard & API](dashboard-api.md).
 
 ```bash
 m4b backup    # create encrypted backup -> <data-dir>/backups/
