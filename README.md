@@ -2,7 +2,7 @@
 
 <!-- Project README scaffold: https://github.com/MRColorR/project-template -->
 
-<img align="right" src="money4band/resources/assets/M4B_logo.png" width="320" alt="Money4Band logo">
+<img align="right" src="money4band/resources/assets/M4B_logo.png" width="300" alt="Money4Band logo">
 
 [**⬇️ Download Money4Band**](https://github.com/MRColorR/money4band/releases/latest) · [🚀 Quick start](#quick-start) · [📋 Browse apps](#supported-apps) · [💬 Join Discord](https://discord.com/invite/Fq8eeazBAD) · [🫶 Support the project](#support)
 
@@ -132,8 +132,7 @@ This table follows the `main` branch. See the [app directory](docs/APPS.md) for 
 ### 🌍 Proxy Providers
 
 For apps that support and permit proxy use, choose a provider for your
-[multi-proxy setup](docs/proxy-setup.md). Referral links support Money4Band
-through a commission on qualifying purchases.
+[multi-proxy setup](docs/proxy-setup.md).
 
 | Provider | Description |
 | --- | --- |
