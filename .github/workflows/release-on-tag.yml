@@ -45,12 +45,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
       - uses: astral-sh/setup-uv@v10.3.3
       - uses: actions/setup-python@v7
         with:
           python-version: "3.13"
       - run: uv sync --frozen --group dev
+      - name: Generate release contributor weights
+        run: uv run --locked python scripts/compute_weights.py
       - run: uv run python -m pytest --tb=short -q
+      - name: Share tested contributor weights with every build
+        uses: actions/upload-artifact@v7
+        with:
+          name: contributor-weights
+          path: config/weights.json
+          if-no-files-found: error
 
   build:
     needs: test
@@ -84,6 +94,12 @@ jobs:
         with:
           fetch-depth: 0
           fetch-tags: true
+
+      - name: Use the tested release contributor weights
+        uses: actions/download-artifact@v8
+        with:
+          name: contributor-weights
+          path: config
 
       - name: Set up Python 3.13
         if: matrix.docker_platform == ''
@@ -209,7 +225,7 @@ jobs:
         shell: bash
         run: |
           cd artifacts
-          sha256sum Money4Band-* > checksums.sha256
+          sha256sum Money4Band-* weights.json > checksums.sha256
           cat checksums.sha256
 
       - name: Create a GitHub release

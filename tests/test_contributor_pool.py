@@ -166,3 +166,23 @@ class TestResolveReferralUrl:
             "App", pool, sticky={"app": "   "}, rng=random.Random(0)
         )
         assert got == "https://fallback"
+
+
+def test_packaged_weights_override_stale_installation_weights(tmp_path, monkeypatch):
+    import sys
+
+    from money4band.api import _deps
+
+    installed = tmp_path / "installed"
+    bundled = tmp_path / "bundle"
+    for base, value in ((installed, 1), (bundled, 9)):
+        (base / "config").mkdir(parents=True)
+        (base / "config" / "weights.json").write_text(
+            '{"alice": ' + str(value) + "}", encoding="utf-8"
+        )
+    monkeypatch.setattr(_deps._paths, "base_dir", str(installed))
+    monkeypatch.setattr(sys, "_MEIPASS", str(bundled), raising=False)
+
+    assert _deps.load_contributor_weights() == {"alice": 9.0}
+    monkeypatch.delattr(sys, "_MEIPASS")
+    assert _deps.load_contributor_weights() == {"alice": 1.0}

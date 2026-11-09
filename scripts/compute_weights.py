@@ -3,6 +3,11 @@
 Writes ``config/weights.json`` consumed by
 :mod:`money4band.apps.contributor_pool`.
 
+Release CI generates this file once before testing and packaging, then
+shares the same snapshot across all executable builds and release assets.
+Source checkouts retain the committed fallback; run this script locally
+to regenerate it from the checked-out history.
+
 Algorithm: sliding window ``[reference_ts - WINDOW_DAYS, reference_ts
 - AGE_FLOOR_DAYS]`` anchored to the latest commit timestamp (never to
 wall clock - the pool stays non-empty even after long quiet periods).

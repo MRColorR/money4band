@@ -8,6 +8,7 @@ FastAPI's ``Depends()`` mechanism.
 from __future__ import annotations
 
 import os
+import sys
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -225,10 +226,10 @@ def get_picked_referrals() -> dict[str, str]:
 
 
 def _weights_path() -> str:
-    """Resolve the path to the repo's ``config/weights.json`` artifact."""
+    """Use the running release's weights, or the source checkout's file."""
     from money4band.apps.contributor_pool import WEIGHTS_RELATIVE_PATH
 
-    base = _paths.base_dir or os.getcwd()
+    base = getattr(sys, "_MEIPASS", None) or _paths.base_dir or os.getcwd()
     return os.path.join(base, WEIGHTS_RELATIVE_PATH)
 
 

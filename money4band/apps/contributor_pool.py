@@ -11,10 +11,11 @@ Design contract
       [{"url": "...", "contributor": "alice", "added": "2026-01-01",
         "verified": true, "verified_by": ["bob", "carol"]}, ...]
 
-- Each of the three M4B catalog repos ships a ``weights.json`` file
-  that maps ``contributor -> weight``. The file is regenerated weekly
-  in CI by :mod:`scripts.compute_weights` (sliding 365-day window,
-  ``MIN_WEIGHT`` cutoff).
+- ``config/weights.json`` maps ``contributor -> weight``. Release CI
+  regenerates it once from the tagged history with
+  :mod:`scripts.compute_weights` and bundles that snapshot in every
+  executable (sliding 365-day window, ``MIN_WEIGHT`` cutoff). Source
+  checkouts use the committed fallback unless regenerated locally.
 
 - The picker selects one referral by **weighted random** where every
   referral's weight equals the contributor's weight from
