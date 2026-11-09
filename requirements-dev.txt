@@ -70,7 +70,7 @@ packaging==26.3
     #   pytest
 pefile==2024.8.26 ; sys_platform == 'win32'
     # via pyinstaller
-pluggy==1.6.0
+pluggy==1.7.0
     # via
     #   pytest
     #   pytest-cov
