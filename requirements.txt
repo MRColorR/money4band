@@ -4,7 +4,7 @@ annotated-doc==0.0.5
     # via fastapi
 annotated-types==0.7.0
     # via pydantic
-anyio==4.13.0
+anyio==4.16.0
     # via
     #   httpx
     #   starlette
@@ -43,7 +43,7 @@ httptools==0.7.1
     # via uvicorn
 httpx==0.28.1
     # via money4band
-idna==3.11
+idna==3.20
     # via
     #   anyio
     #   httpx
@@ -68,7 +68,7 @@ requests==2.33.1
     # via docker
 starlette==1.0.0
     # via fastapi
-typing-extensions==4.15.0
+typing-extensions==4.16.0
     # via
     #   anyio
     #   cryptography
@@ -79,7 +79,7 @@ typing-extensions==4.15.0
     #   starlette
     #   typing-inspection
     #   uvicorn
-typing-inspection==0.4.2
+typing-inspection==0.4.5
     # via
     #   fastapi
     #   pydantic
