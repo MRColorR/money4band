@@ -213,7 +213,7 @@ jobs:
           cat checksums.sha256
 
       - name: Create a GitHub release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         if: startsWith(github.ref, 'refs/tags/')
         with:
           name: "Money4Band ${{ github.ref_name }}"
