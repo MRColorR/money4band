@@ -8,7 +8,7 @@ annotated-doc==0.0.5
     # via fastapi
 annotated-types==0.7.0
     # via pydantic
-anyio==4.13.0
+anyio==4.16.0
     # via
     #   httpx
     #   starlette
@@ -54,7 +54,7 @@ httptools==0.7.1
     # via uvicorn
 httpx==0.28.1
     # via money4band
-idna==3.11
+idna==3.20
     # via
     #   anyio
     #   httpx
@@ -70,7 +70,7 @@ packaging==26.3
     #   pytest
 pefile==2024.8.26 ; sys_platform == 'win32'
     # via pyinstaller
-pluggy==1.6.0
+pluggy==1.7.0
     # via
     #   pytest
     #   pytest-cov
@@ -84,7 +84,7 @@ pydantic-core==2.41.5
     # via pydantic
 pygments==2.21.0
     # via pytest
-pyinstaller==6.19.0
+pyinstaller==6.22.3
 pyinstaller-hooks-contrib==2026.9
     # via pyinstaller
 pytest==9.0.2
@@ -116,7 +116,7 @@ tomli==2.4.0 ; python_full_version <= '3.11'
     # via
     #   coverage
     #   pytest
-typing-extensions==4.15.0
+typing-extensions==4.16.0
     # via
     #   anyio
     #   cryptography
@@ -128,7 +128,7 @@ typing-extensions==4.15.0
     #   starlette
     #   typing-inspection
     #   uvicorn
-typing-inspection==0.4.2
+typing-inspection==0.4.5
     # via
     #   fastapi
     #   pydantic

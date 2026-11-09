@@ -45,7 +45,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: astral-sh/setup-uv@v8.3.2
+      - uses: astral-sh/setup-uv@v10.3.3
       - uses: actions/setup-python@v7
         with:
           python-version: "3.13"
@@ -93,7 +93,7 @@ jobs:
 
       - name: Install uv
         if: matrix.docker_platform == ''
-        uses: astral-sh/setup-uv@v8.3.2
+        uses: astral-sh/setup-uv@v10.3.3
 
       # ---- Native builds (runner arch matches target arch) ----
       - name: Install dependencies
@@ -213,7 +213,7 @@ jobs:
           cat checksums.sha256
 
       - name: Create a GitHub release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         if: startsWith(github.ref, 'refs/tags/')
         with:
           name: "Money4Band ${{ github.ref_name }}"

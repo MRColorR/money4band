@@ -1,4 +1,4 @@
-name: Refresh app tables and star chart
+name: Refresh app tables
 
 on:
   schedule:
@@ -21,23 +21,22 @@ jobs:
       GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v7
-      - uses: astral-sh/setup-uv@v8.3.2
+      - uses: astral-sh/setup-uv@v10.3.3
       - uses: actions/setup-python@v7
         with:
           python-version: "3.13"
 
       - name: Refresh generated documentation
         run: |
-          title='Refresh generated app tables and star chart'
-          pending=$(gh pr list --state open --json title --jq 'map(select(.title == "Refresh generated app tables and star chart")) | length')
+          title='Refresh generated app tables'
+          pending=$(gh pr list --state open --json title --jq 'map(select(.title == "Refresh generated app tables")) | length')
           if [ "$pending" -gt 0 ]; then
             echo 'A generated documentation update is already open.'
             exit 0
           fi
 
           uv run --locked python scripts/update_tables.py --refresh
-          python scripts/update_star_chart.py
-          git add README.md docs/APPS.md docs/catalog-snapshot.json docs/stargazers.json docs/stargazers.svg
+          git add README.md docs/APPS.md docs/catalog-snapshot.json
           if git diff --cached --quiet; then
             exit 0
           fi
@@ -46,7 +45,7 @@ jobs:
           git switch -c "$branch"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "docs: refresh app tables and star chart"
+          git commit -m "docs: refresh app tables"
           git push origin "$branch"
           gh pr create --head "$branch" --base "$GITHUB_REF_NAME" --title "$title" \
-            --body "Refresh the public catalog snapshots and record the latest aggregate GitHub star count."
+            --body "Refresh the public catalog snapshots and generated app tables."
