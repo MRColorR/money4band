@@ -54,7 +54,7 @@ httptools==0.7.1
     # via uvicorn
 httpx==0.28.1
     # via money4band
-idna==3.11
+idna==3.20
     # via
     #   anyio
     #   httpx
