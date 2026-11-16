@@ -112,7 +112,7 @@ setuptools==82.0.1
     # via pyinstaller
 starlette==1.0.0
     # via fastapi
-tomli==2.4.0 ; python_full_version <= '3.11'
+tomli==2.5.0 ; python_full_version <= '3.11'
     # via
     #   coverage
     #   pytest
