@@ -49,7 +49,11 @@ CLAUDE.md
 # Catalog runtime cache (populated by `m4b catalog refresh`)
 # Shipped: config/catalog/{supported,newcomers,deprecated,addons}
 # Anything else under config/catalog/ is runtime state from remote sources.
-config/catalog/community/
+/config/catalog/*
+!/config/catalog/supported/
+!/config/catalog/newcomers/
+!/config/catalog/deprecated/
+!/config/catalog/addons/
 **/.etag
 **/.fetched_at
 # Internal planning doc
@@ -57,3 +61,7 @@ config/catalog/community/
 
 # Local setup resume state
 config/.setup_progress.json
+
+# User-created profiles and app overlays
+/config/profiles/
+/config/apps.d/*.json
