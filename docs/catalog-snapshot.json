@@ -22,33 +22,6 @@
   "community": {
     "supported": [
       {
-        "name": "GAGANODE",
-        "app_details": {
-          "official_name": "GaGaNode",
-          "official_url": "https://www.gaganode.com",
-          "status": "active",
-          "ip_policy": {
-            "residential": true,
-            "datacenter": "undocumented"
-          },
-          "device_limits": {
-            "max_devices_per_account": "undocumented",
-            "max_devices_per_ip": "undocumented"
-          },
-          "earnings": {
-            "payout_methods": [
-              "GaGa token (crypto)"
-            ],
-            "avg_monthly_residential_usd": "unknown"
-          }
-        },
-        "referrals": [
-          {
-            "url": "https://www.gaganode.com"
-          }
-        ]
-      },
-      {
         "name": "SPIDE",
         "app_details": {
           "official_name": "Spide Network",
@@ -105,6 +78,28 @@
             "url": "https://dawninternet.com?code=xo23vynw"
           }
         ]
+      },
+      {
+        "name": "GAGANODE",
+        "app_details": {
+          "official_name": "GaGaNode",
+          "official_url": "https://www.gaganode.com",
+          "status": "deprecated",
+          "ip_policy": {
+            "residential": true,
+            "datacenter": "undocumented"
+          },
+          "device_limits": {
+            "max_devices_per_account": "undocumented",
+            "max_devices_per_ip": "undocumented"
+          },
+          "earnings": {
+            "payout_methods": [
+              "GaGa token (crypto)"
+            ],
+            "avg_monthly_residential_usd": "unknown"
+          }
+        }
       },
       {
         "name": "GRADIENT",
@@ -324,37 +319,10 @@
     "supported": [],
     "newcomers": [
       {
-        "name": "ADNADE",
-        "app_details": {
-          "official_name": "Adnade",
-          "official_url": "https://adnade.com",
-          "status": "active",
-          "ip_policy": {
-            "residential": true,
-            "datacenter": "undocumented"
-          },
-          "device_limits": {
-            "max_devices_per_account": "undocumented",
-            "max_devices_per_ip": "undocumented"
-          },
-          "earnings": {
-            "payout_methods": [
-              "undocumented"
-            ],
-            "avg_monthly_residential_usd": "unknown"
-          }
-        },
-        "referrals": [
-          {
-            "url": "https://adnade.com"
-          }
-        ]
-      },
-      {
         "name": "BYTEBENEFIT",
         "app_details": {
           "official_name": "ByteBenefit",
-          "official_url": "https://bytebenefit.com",
+          "official_url": "https://bytebenefit.io",
           "status": "active",
           "ip_policy": {
             "residential": true,
@@ -373,7 +341,7 @@
         },
         "referrals": [
           {
-            "url": "https://bytebenefit.com"
+            "url": "https://bytebenefit.io"
           }
         ]
       },
@@ -540,6 +508,29 @@
         ]
       }
     ],
-    "deprecated": []
+    "deprecated": [
+      {
+        "name": "ADNADE",
+        "app_details": {
+          "official_name": "Adnade",
+          "official_url": "https://adnade.com",
+          "status": "deprecated",
+          "ip_policy": {
+            "residential": true,
+            "datacenter": "undocumented"
+          },
+          "device_limits": {
+            "max_devices_per_account": "undocumented",
+            "max_devices_per_ip": "undocumented"
+          },
+          "earnings": {
+            "payout_methods": [
+              "undocumented"
+            ],
+            "avg_monthly_residential_usd": "unknown"
+          }
+        }
+      }
+    ]
   }
 }

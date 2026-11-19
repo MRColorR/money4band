@@ -3,6 +3,16 @@
 All notable changes to this project are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [5.1.1]
+
+- Correct URnetwork and ByteBenefit website links after verifying their current sites.
+- Archive Adnade and GaGaNode entries in their external catalogs because their
+  cataloged signup services are unavailable. Retain the review evidence without
+  claiming that either project has permanently shut down.
+- Refresh the shared app tables from the corrected upstream catalogs.
+- Include the dependency updates and release-time contributor weights already
+  merged since 5.1.0. Packaged upgrades use the running release's embedded weights.
+
 ## [5.1.0]
 
 - Promote NetYield to the default supported catalog so it is available

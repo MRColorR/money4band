@@ -21,7 +21,6 @@ balance, and payout status.
 | [ok] | [**AntGain**](https://antgain.app) | [ok] | [ok] | - | - | - | - | - |
 | [ok] | [**Bitping**](https://app.bitping.com?r=qm7mIuX3) | [ok] | [ok] | [ok] | Unlimited | - | BITPING token (crypto), USDC | $0.1-1 |
 | [ok] | [**Earn.FM**](https://earn.fm/ref/MATTTAV6) | [ok] | [ok] | [ok] | Unlimited | - | PayPal, USDT, gift cards | $0.6-3 |
-| [com] | [**GaGaNode**](https://www.gaganode.com) | [ok] | [ok] | - | - | - | GaGa token (crypto) | - |
 | [ok] | [**Honeygain**](https://r.honeygain.me/MINDL15721) | [ok] | [ok] | [x] | 10 | 1 | JumpToken (crypto), PayPal (via JumpTask) | $1-9 |
 | [ok] | [**Mysterium**](https://mystnodes.co/?referral_code=Tc7RaS7Fm12K3Xun6mlU9q9hbnjojjl9aRBW8ZA9) | [ok] | [ok] | [ok] | Unlimited | 1 | MYST token, ETH, BNB | $1-15 |
 | [ok] | [**NetYield**](https://netyield.io/) | [ok] | [ok] | [ok] | - | - | USDC | - |
@@ -33,18 +32,19 @@ balance, and payout status.
 | [com] | [**Spide Network**](https://spide.network) | [ok] | [ok] | [ok] | Unlimited | 1 | PayPal, crypto | - |
 | [ok] | [**Titan Network**](https://titannet.io) | [ok] | [ok] | - | - | - | - | - |
 | [ok] | [**TraffMonetizer**](https://traffmonetizer.com/?aff=366499) | [ok] | [ok] | [x] | Unlimited | - | PayPal, crypto, wire transfer | $0.5-2 |
-| [ok] | [**URnetwork**](https://urnetwork.com) | [ok] | [ok] | - | - | - | - | - |
+| [ok] | [**URnetwork**](https://ur.io) | [ok] | [ok] | - | - | - | - | - |
 | [native] | [**EarnApp**](https://earnapp.com/i/3zulx7k) | [native] | [ok] | [x] | - | - | - | - |
-| [new] | [**Adnade**](https://adnade.com) | [soon] | [ok] | - | - | - | - | - |
-| [new] | [**ByteBenefit**](https://bytebenefit.com) | [soon] | [ok] | - | - | - | - | - |
+| [new] | [**ByteBenefit**](https://bytebenefit.io) | [soon] | [ok] | - | - | - | - | - |
 | [new] | [**Bytelixir**](https://bytelixir.com) | [soon] | [ok] | - | - | - | crypto | $0.5-1 |
 | [new] | [**Earn.cc**](https://earn.cc) | [soon] | [ok] | - | - | - | - | - |
 | [new] | [**Ebesucher**](https://www.ebesucher.com) | [soon] | [ok] | - | - | - | - | - |
 | [new] | [**PassiveApp**](https://passiveapp.io) | [soon] | [ok] | - | - | - | - | - |
 | [new] | [**Salad**](https://salad.com) | [soon] | [ok] | [x] | - | - | - | - |
 | [new] | [**UpRock**](https://uprock.com) | [soon] | [ok] | - | - | - | - | - |
+| [x] | **Adnade** | [x] | [ok] | - | - | - | - | - |
 | [x] | **BearShare** | [x] | [ok] | - | - | - | - | - |
 | [x] | [**Dawn Internet**](https://dawninternet.com?code=xo23vynw) (code: `xo23vynw`) | [x] | [ok] | - | - | - | - | - |
+| [x] | **GaGaNode** | [x] | [ok] | - | - | - | GaGa token (crypto) | - |
 | [x] | [**Gradient**](https://app.gradient.network/signup?code=9WOBKP) (code: `9WOBKP`) | [x] | [ok] | - | - | - | - | - |
 | [x] | [**Grass (Wynd Network)**](https://app.getgrass.io/register/?referralCode=qyvJmxgNUhcLo2f) | [x] | [ok] | [x] | - | - | GRASS token (crypto) | - |
 | [x] | **PacketShare** | [x] | [ok] | - | - | - | - | - |
