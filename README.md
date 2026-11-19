@@ -85,26 +85,26 @@ Start with a **built-in app** and select its name to visit the provider. Some li
 <!-- BEGIN:APPS_TABLE -->
 | App | How to run it |
 | --- | --- |
-| [**AntGain**](https://antgain.app) | Built into Money4Band |
+| [**AntGain**](https://link.antgain.app/EYOOXFDK) | Built into Money4Band |
 | [**Bitping**](https://app.bitping.com?r=qm7mIuX3) | Built into Money4Band |
 | [**Earn.FM**](https://earn.fm/ref/MATTTAV6) | Built into Money4Band |
-| [**Honeygain**](https://r.honeygain.me/MINDL15721) | Built into Money4Band |
+| [**Honeygain**](https://join.honeygain.com/MINDL15721) | Built into Money4Band |
 | [**Mysterium**](https://mystnodes.co/?referral_code=Tc7RaS7Fm12K3Xun6mlU9q9hbnjojjl9aRBW8ZA9) | Built into Money4Band |
 | [**NetYield**](https://netyield.io/) | Built into Money4Band |
-| [**PacketStream**](https://packetstream.io/?psr=3zSD) | Built into Money4Band |
-| [**Pawns (IPRoyal)**](https://pawns.app?r=MiNe) | Built into Money4Band |
+| [**PacketStream**](https://packetstream.io/share-bandwidth/?psr=v3wayrm3g9) | Built into Money4Band |
+| [**Pawns (IPRoyal)**](https://pawns.app/?r=MiNe) | Built into Money4Band |
 | [**ProxyLite**](https://proxylite.ru/?r=PJTKXWN3) | Built into Money4Band |
 | [**Proxyrack Peer Program**](https://peer.proxyrack.com/ref/myoas6qttvhuvkzh8ffx90ns1ouhwgilfgamo5ex) | Built into Money4Band |
 | [**Repocket**](https://link.repocket.co/hr8i) | Built into Money4Band |
-| [**Spide Network**](https://spide.network) | Optional community catalog |
+| [**Spide Network**](https://spide.network/register.html?206a39) | Optional community catalog |
 | [**Titan Network**](https://titannet.io) | Built into Money4Band |
 | [**TraffMonetizer**](https://traffmonetizer.com/?aff=366499) | Built into Money4Band |
 | [**URnetwork**](https://ur.io) | Built into Money4Band |
 | [**EarnApp**](https://earnapp.com/i/3zulx7k) | Standalone install |
-| [**ByteBenefit**](https://bytebenefit.io) | Candidate (see app directory) |
+| [**ByteBenefit**](https://bytebenefit.io/invited?ref=FrrXA1) | Candidate (see app directory) |
 | [**Bytelixir**](https://bytelixir.com) | Candidate (see app directory) |
 | [**Earn.cc**](https://earn.cc) | Candidate (see app directory) |
-| [**Ebesucher**](https://www.ebesucher.com) | Candidate (see app directory) |
+| [**Ebesucher**](https://www.ebesucher.com/?ref=mindlessnerds) | Candidate (see app directory) |
 | [**PassiveApp**](https://passiveapp.io) | Candidate (see app directory) |
 | [**Salad**](https://salad.com) | Candidate (see app directory) |
 | [**UpRock**](https://uprock.com) | Candidate (see app directory) |

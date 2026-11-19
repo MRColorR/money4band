@@ -5,7 +5,6 @@
         "container_name": "${DEVICE_NAME}_antgain",
         "hostname": "${DEVICE_NAME}_antgain",
         "image": "pinors/antgain-cli:latest",
-        "platform": "linux/amd64",
         "environment": [
             "ANTGAIN_API_KEY=${ANTGAIN_APIKEY}"
         ],
@@ -28,8 +27,17 @@
             }
         },
         "healthcheck": {
-            "disable": true
-        }
+            "test": [
+                "CMD",
+                "antgain",
+                "health"
+            ],
+            "interval": "30s",
+            "timeout": "5s",
+            "start_period": "120s",
+            "retries": 3
+        },
+        "stop_grace_period": "30s"
     },
     "compose_config_proxy": {
         "network_mode": "service:proxy",
@@ -49,7 +57,7 @@
             "max_devices_per_account": "undocumented",
             "max_devices_per_ip": "undocumented",
             "max_ips_per_account": "undocumented",
-            "notes": "Limited documentation. Other projects support it. linux/amd64 platform only."
+            "notes": "The published Docker manifest provides linux/amd64, linux/arm64 and linux/arm/v7. Native amd64 and emulated arm64 CLI startup were checked."
         },
         "ip_policy": {
             "residential": true,
@@ -67,11 +75,11 @@
         "docker": {
             "image_official": true,
             "image_maintained": true,
-            "last_update": "2026-02"
+            "last_update": "2026-10"
         },
         "earnings": {
             "model": "undocumented",
-            "min_payout": "undocumented",
+            "min_payout": "$5",
             "payout_methods": [
                 "undocumented"
             ],
@@ -79,22 +87,23 @@
             "avg_monthly_datacenter_usd": "unknown"
         },
         "warnings": [
-            "Negative community sentiment - service reportedly declining",
-            "linux/amd64 platform only - no ARM support",
-            "Service viability unverified"
+            "Authenticated enrollment and payouts have not been verified by this catalog review."
         ],
         "confidence": "low",
-        "sources": [],
-        "last_verified": "2026-03-23",
+        "sources": [
+            "https://docs.antgain.app/node/docker",
+            "https://docs.antgain.app/rewards"
+        ],
+        "last_verified": "2026-11-19",
         "compose_layer_reasoning": "Insufficient documentation. Conservative datacenter classification.",
-        "install_limit_reasoning": "No documented caps. linux/amd64 platform only.",
+        "install_limit_reasoning": "No documented account-wide device cap. Check current provider terms before deploying multiple nodes.",
         "recommendation": "promoted",
         "recommendation_reasoning": "Promoted to supported. Docker image verified on Docker Hub.",
-        "confidence_notes": "Other projects disable healthcheck on this app. Negative community reports."
+        "confidence_notes": "Official image and API-key environment match the current Docker guide. The existing /data parent mount retains /data/.antgain state. Dashboard and referral checked; authenticated enrollment and payouts were not tested."
     },
     "referrals": [
         {
-            "url": "https://antgain.app",
+            "url": "https://link.antgain.app/EYOOXFDK",
             "contributor": "MRColorR"
         }
     ],

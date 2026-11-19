@@ -1,7 +1,7 @@
 {
     "name": "MYSTNODE",
     "manual_onboard": true,
-    "dashboard": "https://mystnodes.com/nodes",
+    "dashboard": "https://my.mystnodes.com/nodes",
     "compose_config": {
         "container_name": "${DEVICE_NAME}_mystnode",
         "hostname": "${DEVICE_NAME}_mystnode",

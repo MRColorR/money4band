@@ -106,5 +106,6 @@
     "user_config_template": {
         "enabled": false
     },
-    "profile": "universal"
+    "profile": "universal",
+    "additional_details": "Referral code: YDATQM. Enter it in URnetwork's referral-code field. The current program grants 3 GiB/day to both parties, for up to 20 referrals; this is a data allowance, not a cash commission."
 }

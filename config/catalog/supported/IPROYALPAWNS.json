@@ -54,7 +54,7 @@
         "official_name": "Pawns (IPRoyal)",
         "publisher": "IPRoyal",
         "official_url": "https://pawns.app",
-        "tos_url": "https://iproyal.com/terms-of-service/",
+        "tos_url": "https://pawns.app/terms-of-use/",
         "status": "active",
         "device_limits": {
             "max_devices_per_account": "unlimited",
@@ -94,7 +94,8 @@
         "confidence": "high",
         "sources": [
             "https://iproyal.com/IPRoyal_Residential_Proxy_Sourcing_Documentation.pdf",
-            "https://greenfrognest.com/IPRoyalLMDS.php"
+            "https://greenfrognest.com/IPRoyalLMDS.php",
+            "https://help.pawns.app/en/articles/8658934-what-are-referral-earnings"
         ],
         "last_verified": "2026-03-21",
         "compose_layer_reasoning": "IPRoyal custom monitoring prevents datacenter IPs. Datacenter ASNs automatically removed from pool.",
@@ -105,7 +106,7 @@
     },
     "referrals": [
         {
-            "url": "https://pawns.app?r=MiNe",
+            "url": "https://pawns.app/?r=MiNe",
             "contributor": "MRColorR"
         }
     ],
@@ -114,5 +115,6 @@
         "email": "yourIPROYALPAWNSMail",
         "password": "yourIPROYALPAWNSPw"
     },
-    "profile": "residential"
+    "profile": "residential",
+    "additional_details": "Referral rewards: the current help article describes $1 at each of the referred user's first three payouts, totaling $3 for each party. Do not assume a lifetime percentage commission; check the current account terms."
 }

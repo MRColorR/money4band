@@ -1,6 +1,6 @@
 {
     "name": "PACKETSTREAM",
-    "dashboard": "https://packetstream.io/dashboard",
+    "dashboard": "https://app.packetstream.io/dashboard",
     "compose_config": {
         "container_name": "${DEVICE_NAME}_packetstream",
         "hostname": "${DEVICE_NAME}_packetstream",
@@ -94,7 +94,7 @@
     },
     "referrals": [
         {
-            "url": "https://packetstream.io/?psr=3zSD",
+            "url": "https://packetstream.io/share-bandwidth/?psr=v3wayrm3g9",
             "contributor": "MRColorR"
         }
     ],

@@ -83,11 +83,11 @@
             "last_update": "2024-11"
         },
         "earnings": {
-            "model": "per-GB + JumpTask bonus",
-            "min_payout": "$20 PayPal",
+            "model": "per-GB credits",
+            "min_payout": "$20 Honeygain; $0.50 JumpTask ($1 first payout)",
             "payout_methods": [
-                "JumpToken (crypto)",
-                "PayPal (via JumpTask)"
+                "PayPal (Tipalti)",
+                "JumpTask credits (GIFQ gift cards or PayPal)"
             ],
             "avg_monthly_residential_usd": "1-9",
             "avg_monthly_datacenter_usd": null
@@ -95,7 +95,9 @@
         "confidence": "high",
         "sources": [
             "https://support.honeygain.com/hc/en-us/articles/360011188779",
-            "https://support.honeygain.com/hc/en-us/articles/360013096900"
+            "https://support.honeygain.com/hc/en-us/articles/360013096900",
+            "https://support.honeygain.com/hc/en-us/articles/30688365428636-How-to-request-a-payout",
+            "https://support.honeygain.com/hc/en-us/articles/30688558061084-What-are-credits-JumpTask"
         ],
         "last_verified": "2026-03-21",
         "compose_layer_reasoning": "Officially forbids non-residential IP types; VPN/Datacenter IPs result in account suspension.",
@@ -106,7 +108,7 @@
     },
     "referrals": [
         {
-            "url": "https://r.honeygain.me/MINDL15721",
+            "url": "https://join.honeygain.com/MINDL15721",
             "contributor": "MRColorR"
         }
     ],
