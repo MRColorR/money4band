@@ -54,3 +54,6 @@ config/catalog/community/
 **/.fetched_at
 # Internal planning doc
 *PLAN.md
+
+# Local setup resume state
+config/.setup_progress.json
