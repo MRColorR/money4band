@@ -34,7 +34,7 @@ packages = ["money4band", "main.py"]
 
 [dependency-groups]
 dev = [
-    "ruff>=0.15.9",
+    "ruff>=0.17.5",
     "pytest>=9.0.2",
     "pytest-cov>=7.1.0",
     "pytest-mock>=3.15.1",
@@ -91,7 +91,7 @@ select = [
 # E402 - module-import-not-at-top (deferred imports are intentional pattern)
 # PLC0415 - import-outside-top-level (same as E402)
 # PLR2004 - magic-value-comparison (too noisy for config-heavy code)
-# PLR0912, PLR0915, PLR0913, PLR0911 - complexity warnings (not refactoring now)
+# PLR0912, PLR0915, PLR0913, PLR0917, PLR0911 - complexity warnings (not refactoring now)
 # N999 - invalid module names (camelCase filenames like fn_setupApps.py are legacy)
 # PLW0603 - global statement (acceptable for module-level config)
 # S110 - try-except-pass (used for optional feature detection)
@@ -107,7 +107,7 @@ ignore = [
     "E402",
     "PLC0415",
     "PLR2004",
-    "PLR0912", "PLR0915", "PLR0913", "PLR0911",
+    "PLR0912", "PLR0915", "PLR0913", "PLR0917", "PLR0911",
     "N999",
     "PLW0603",
     "S110",
