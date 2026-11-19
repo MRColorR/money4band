@@ -1,6 +1,6 @@
 {
     "name": "URNETWORK",
-    "dashboard": "https://urnetwork.com/dashboard",
+    "dashboard": "https://ur.io/app",
     "compose_config": {
         "container_name": "${DEVICE_NAME}_urnetwork",
         "hostname": "${DEVICE_NAME}_urnetwork",
@@ -48,7 +48,7 @@
     "app_details": {
         "official_name": "URnetwork",
         "publisher": "BringYour Inc.",
-        "official_url": "https://urnetwork.com",
+        "official_url": "https://ur.io",
         "tos_url": "undocumented",
         "status": "active",
         "device_limits": {
@@ -89,15 +89,17 @@
         "recommendation": "promoted",
         "recommendation_reasoning": "Promoted to supported. Docker image verified on Docker Hub.",
         "confidence": "low",
-        "confidence_notes": "Limited external validation. Requires deeper research before promoting to supported.",
+        "confidence_notes": "Current official website, web app and documentation verified. This review does not validate authenticated enrollment or payouts.",
         "sources": [
-            "https://hub.docker.com/r/bringyour/community-provider"
+            "https://hub.docker.com/r/bringyour/community-provider",
+            "https://ur.io",
+            "https://ur.io/docs"
         ],
-        "last_verified": "2026-03-23"
+        "last_verified": "2026-11-19"
     },
     "referrals": [
         {
-            "url": "https://urnetwork.com",
+            "url": "https://ur.io",
             "contributor": "MRColorR"
         }
     ],
