@@ -61,6 +61,8 @@ CLAUDE.md
 
 # Local setup resume state
 config/.setup_progress.json
+# Atomic config writes interrupted before rename
+/config/*.tmp
 
 # User-created profiles and app overlays
 /config/profiles/

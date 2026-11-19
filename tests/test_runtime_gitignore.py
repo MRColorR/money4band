@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import shutil
 import subprocess
+import tempfile
 from pathlib import Path
 
 import pytest
@@ -59,6 +60,12 @@ def test_generated_user_data_stays_out_of_git(tmp_path, monkeypatch):
             config / "catalog" / source,
             {"supported": [{"name": "REMOTEAPP"}]},
         )
+
+    # Atomic config writers can leave this intermediate file after a hard crash.
+    with tempfile.NamedTemporaryFile(
+        dir=config, suffix=".tmp", delete=False
+    ) as pending:
+        pending.write(b'{"device_name": "test-device"}')
 
     assert run_git("ls-files", "--others", "--exclude-standard") == ""
     assert set(run_git("ls-files").splitlines()) == {".gitignore", *shipped}
