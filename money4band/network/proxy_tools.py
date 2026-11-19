@@ -50,7 +50,7 @@ def toggle_install_limits(
             f"{Style.RESET_ALL}"
         )
     logger.info("enforce_install_limits toggled to %s", new_value)
-    input(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
+    input(f"\n  Press {Fore.CYAN}Enter{Style.RESET_ALL} to go back...")
 
 
 def update_multiproxy_instances(
@@ -82,7 +82,7 @@ def update_multiproxy_instances(
     ):
         print("Operation canceled.")
         logger.info("User canceled the update of multiproxy instances.")
-        input(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
+        input(f"\n  Press {Fore.CYAN}Enter{Style.RESET_ALL} to go back...")
         return
 
     # Ensure proxies.txt exists

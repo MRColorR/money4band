@@ -184,11 +184,11 @@
         "name": "PROXYBASE",
         "app_details": {
           "official_name": "ProxyBase",
-          "official_url": "https://proxybase.com",
+          "official_url": "https://peer.proxybase.org/",
           "status": "deprecated",
           "ip_policy": {
-            "residential": "undocumented",
-            "datacenter": "undocumented"
+            "residential": true,
+            "datacenter": false
           },
           "device_limits": {
             "max_devices_per_account": "undocumented",
@@ -373,33 +373,6 @@
         ]
       },
       {
-        "name": "EARNCC",
-        "app_details": {
-          "official_name": "Earn.cc",
-          "official_url": "https://earn.cc",
-          "status": "active",
-          "ip_policy": {
-            "residential": true,
-            "datacenter": "undocumented"
-          },
-          "device_limits": {
-            "max_devices_per_account": "undocumented",
-            "max_devices_per_ip": "undocumented"
-          },
-          "earnings": {
-            "payout_methods": [
-              "undocumented"
-            ],
-            "avg_monthly_residential_usd": "unknown"
-          }
-        },
-        "referrals": [
-          {
-            "url": "https://earn.cc"
-          }
-        ]
-      },
-      {
         "name": "EBESUCHER",
         "app_details": {
           "official_name": "Ebesucher",
@@ -430,7 +403,7 @@
         "name": "PASSIVEAPP",
         "app_details": {
           "official_name": "PassiveApp",
-          "official_url": "https://passiveapp.io",
+          "official_url": "https://www.passiveapp.com/",
           "status": "active",
           "ip_policy": {
             "residential": true,
@@ -442,14 +415,16 @@
           },
           "earnings": {
             "payout_methods": [
-              "undocumented"
+              "PayPal",
+              "crypto",
+              "gift cards"
             ],
             "avg_monthly_residential_usd": "unknown"
           }
         },
         "referrals": [
           {
-            "url": "https://passiveapp.io"
+            "url": "https://www.passiveapp.com/"
           }
         ]
       },
@@ -514,6 +489,28 @@
         "app_details": {
           "official_name": "Adnade",
           "official_url": "https://adnade.com",
+          "status": "deprecated",
+          "ip_policy": {
+            "residential": true,
+            "datacenter": "undocumented"
+          },
+          "device_limits": {
+            "max_devices_per_account": "undocumented",
+            "max_devices_per_ip": "undocumented"
+          },
+          "earnings": {
+            "payout_methods": [
+              "undocumented"
+            ],
+            "avg_monthly_residential_usd": "unknown"
+          }
+        }
+      },
+      {
+        "name": "EARNCC",
+        "app_details": {
+          "official_name": "Earn.cc",
+          "official_url": "https://earn.cc",
           "status": "deprecated",
           "ip_policy": {
             "residential": true,

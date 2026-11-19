@@ -3,15 +3,23 @@
 from __future__ import annotations
 
 import logging
+import time
 from typing import Any
 
 from colorama import Fore, Style
 
 from money4band.core.loader import get_active_app_categories, get_category_entries
-from money4band.docker.generator import generate_uuid
+from money4band.docker.generator import generate_uuid, validate_uuid
 from money4band.network.port_manager import assign_app_ports
 from money4band.ui.cls import cls
-from money4band.ui.prompt import ask_email, ask_question_yn, ask_string, ask_uuid
+from money4band.ui.prompt import (
+    SkipAppError,
+    ask_email,
+    ask_question_yn,
+    ask_string,
+    ask_uuid,
+    wait_for_enter,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +30,8 @@ def configure_email(
     email = ask_email(
         f"Enter your {app['name'].lower().title()} email:",
         default=config.get("email", ""),
-        show_default=False,
+        show_default=True,
+        allow_skip=True,
     )
     config["email"] = email
 
@@ -37,6 +46,7 @@ def configure_password(
         f"Enter your {app['name'].lower().title()} password:",
         default=config.get("password", ""),
         show_default=False,
+        allow_skip=True,
     )
     config["password"] = password
 
@@ -51,6 +61,7 @@ def configure_apikey(
         f"Enter your {app['name'].lower().title()} APIKey:",
         default=config.get("apikey", ""),
         show_default=False,
+        allow_skip=True,
     )
     config["apikey"] = apikey
 
@@ -65,6 +76,7 @@ def configure_userid(
         f"Enter your {app['name'].lower().title()} UserID:",
         default=config.get("userid", ""),
         show_default=False,
+        allow_skip=True,
     )
     config["userid"] = userid
 
@@ -98,7 +110,11 @@ def configure_uuid(
             "E.g. if existing registered node is sdk-node-b86301656baefekba8917349bdf0f3g4 then enter just b86301656baefekba8917349bdf0f3g4"
         )
         uuid = ask_uuid(
-            "Insert uuid:", length, default=config.get("uuid", ""), show_default=False
+            "Insert uuid:",
+            length,
+            default=config.get("uuid", ""),
+            show_default=False,
+            allow_skip=True,
         )
     else:
         uuid = generate_uuid(length)
@@ -119,11 +135,28 @@ def configure_uuid(
             )
         except Exception as e:
             logger.error(f"Error writing claim instructions to file: {e}")
-        input(f"\nPress {Fore.CYAN}Enter{Style.RESET_ALL} to continue...")
+        wait_for_enter(
+            f"\nPress {Fore.CYAN}Enter{Style.RESET_ALL} to continue...", allow_skip=True
+        )
 
     prefix = flag_config.get("prefix", "")
     uuid = f"{prefix}{uuid}"
     config["uuid"] = uuid
+
+
+def configure_machine_id(
+    app: dict[str, Any], flag_config: dict[str, Any], config: dict[str, Any]
+) -> None:
+    """Preserve or generate the stable machine identity expected by the client."""
+    length = flag_config["length"]
+    existing = config.get("machine_id", "")
+    default = existing if validate_uuid(existing, length) else generate_uuid(length)
+    config["machine_id"] = ask_uuid(
+        f"{app['name'].title()} machine ID (Enter keeps this identity)",
+        length,
+        default=default,
+        allow_skip=True,
+    )
 
 
 def configure_cid(
@@ -131,12 +164,13 @@ def configure_cid(
 ) -> None:
     print(f"Find your CID inside your {app['name'].lower().title()} dashboard/profile.")
     print(
-        "Example: For packetstream you can fetch it from your dashboard https://packetstream.io/dashboard/download?linux# then click on -> Looking for linux app -> now search for CID= in the code shown in the page, you need to enter the code after -e CID= (e.g. if in the code CID=6aTk, just enter 6aTk)"
+        "Example: For packetstream you can fetch it from your dashboard https://app.packetstream.io/dashboard/download then select Linux. Copy the value after --cid in the install command (or CID= in older instructions), without quotes. Do not use your referral code."
     )
     cid = ask_string(
         f"Enter your {app['name'].lower().title()} CID:",
         default=config.get("cid", ""),
         show_default=False,
+        allow_skip=True,
     )
     config["cid"] = cid
 
@@ -151,6 +185,7 @@ def configure_code(
         f"Enter your {app['name'].lower().title()} code:",
         default=config.get("code", ""),
         show_default=False,
+        allow_skip=True,
     )
     config["code"] = code
 
@@ -165,6 +200,7 @@ def configure_token(
         f"Enter your {app['name'].lower().title()} token:",
         default=config.get("token", ""),
         show_default=False,
+        allow_skip=True,
     )
     config["token"] = token
 
@@ -184,7 +220,9 @@ def configure_manual(
     print(
         f"{Fore.YELLOW}Please after completing this automated setup check also the app's website for further instructions if there are any.{Style.RESET_ALL}"
     )
-    input(f"\nPress {Fore.CYAN}Enter{Style.RESET_ALL} to continue...")
+    wait_for_enter(
+        f"\nPress {Fore.CYAN}Enter{Style.RESET_ALL} to continue...", allow_skip=True
+    )
 
 
 flag_function_mapper = {
@@ -193,6 +231,7 @@ flag_function_mapper = {
     "apikey": configure_apikey,
     "userid": configure_userid,
     "uuid": configure_uuid,
+    "machine_id": configure_machine_id,
     "cid": configure_cid,
     "code": configure_code,
     "token": configure_token,
@@ -237,6 +276,9 @@ def _configure_apps(
         app_name = app["name"].lower()
         config = user_config["apps"].get(app_name, {}).copy()
         cls()
+        print(
+            "During credential entry, Ctrl+C or /skip cancels this app and continues setup."
+        )
         if config.get("enabled"):
             print(f"The app {app_name} is currently enabled.")
             if ask_question_yn("Do you want to disable it?"):
@@ -266,16 +308,22 @@ def _configure_apps(
         print(
             f"{Fore.GREEN}Use CTRL+Click to open links or copy them:{Style.RESET_ALL}"
         )
-        print("Press Ctrl+C during credential entry to skip this app.")
+        print(
+            "Press Enter to continue. Type /skip or press Ctrl+C at any credential prompt to skip this app. Previous settings are kept."
+        )
         try:
-            input(f"\nPress {Fore.CYAN}Enter{Style.RESET_ALL} to continue...")
+            wait_for_enter(
+                f"\nPress {Fore.CYAN}Enter{Style.RESET_ALL} to continue...",
+                allow_skip=True,
+            )
             for flag_name, flag_config in app.get("flags", {}).items():
                 if flag_name in flag_function_mapper:
                     flag_function_mapper[flag_name](app, flag_config, config)
                 else:
                     logger.error(f"Flag {flag_name} not recognized")
-        except KeyboardInterrupt:
+        except (KeyboardInterrupt, SkipAppError):
             print(f"\nSkipped {app_name}. Previous settings kept.")
+            time.sleep(m4b_config.get("system", {}).get("sleep_time", 3))
             continue
 
         # Port configuration with unified offset logic (instance 0 = main)

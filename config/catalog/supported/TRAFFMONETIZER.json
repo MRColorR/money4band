@@ -1,25 +1,24 @@
 {
     "name": "TRAFFMONETIZER",
-    "dashboard": "https://app.traffmonetizer.com/dashboard",
+    "dashboard": "https://app.traffmonetizer.io/",
     "compose_config": {
         "container_name": "${DEVICE_NAME}_traffmonetizer",
         "hostname": "${DEVICE_NAME}_traffmonetizer",
         "image": "traffmonetizer/cli_v2:latest",
         "environment": [
-            "TRAFFMONETIZER_DUMMY=''"
+            "HOME=/var/lib/tm"
         ],
         "labels": [
             "com.centurylinklabs.watchtower.enable=true",
             "com.centurylinklabs.watchtower.scope=${M4B_WATCHTOWER_SCOPE}"
         ],
         "command": [
-            "start",
-            "accept",
-            "status",
             "--token",
             "${TRAFFMONETIZER_TOKEN}",
             "--device-name",
-            "${DEVICE_NAME}"
+            "${DEVICE_NAME}",
+            "start",
+            "accept"
         ],
         "restart": "always",
         "cpus": "${APP_CPU_LIMIT_LITTLE}",
@@ -33,15 +32,11 @@
             }
         },
         "healthcheck": {
-            "test": [
-                "CMD-SHELL",
-                "pgrep -f Cli || exit 1"
-            ],
-            "interval": "120s",
-            "timeout": "10s",
-            "retries": 3,
-            "start_period": "60s"
-        }
+            "disable": true
+        },
+        "volumes": [
+            ".data/.traffmonetizer:/var/lib/tm"
+        ]
     },
     "compose_config_proxy": {
         "network_mode": "service:proxy",
@@ -54,8 +49,8 @@
     "app_details": {
         "official_name": "TraffMonetizer",
         "publisher": "TraffMonetizer",
-        "official_url": "https://traffmonetizer.com",
-        "tos_url": "https://traffmonetizer.com/terms-of-service/",
+        "official_url": "https://traffmonetizer.io",
+        "tos_url": "https://traffmonetizer.io/terms-of-service/",
         "status": "active",
         "device_limits": {
             "max_devices_per_account": "unlimited",
@@ -83,30 +78,30 @@
         },
         "earnings": {
             "model": "per-GB (credits)",
-            "min_payout": "$10",
+            "min_payout": "$10 (wire transfer: $1,000)",
             "payout_methods": [
-                "PayPal",
-                "crypto",
-                "wire transfer"
+                "USDT (TRC20; check dashboard for other networks)",
+                "wire transfer ($1,000 minimum)"
             ],
             "avg_monthly_residential_usd": "0.5-2",
             "avg_monthly_datacenter_usd": "unknown"
         },
         "confidence": "medium",
         "sources": [
-            "https://traffmonetizer.com/terms-of-service/",
-            "https://traffmonetizer.com/downloads/"
+            "https://traffmonetizer.io/",
+            "https://traffmonetizer.io/terms-of-service/",
+            "https://hub.docker.com/r/traffmonetizer/cli_v2"
         ],
-        "last_verified": "2026-03-21",
+        "last_verified": "2026-11-19",
         "compose_layer_reasoning": "Residential connections only, as required by the provider terms.",
         "install_limit_reasoning": "No device cap stated in the terms.",
         "recommendation": "keep",
         "recommendation_reasoning": "Keep the published Docker client for supported residential use.",
-        "confidence_notes": "Provider terms define network eligibility. The May 2026 container test confirmed the status argument prints a connection summary at startup."
+        "confidence_notes": "Current official Docker documentation and registry verified. ARM tags arm64v8 and arm32v7 publish matching architecture metadata. HOME and persistent storage preserve identity. The current image has no shell; the previous shell health check is disabled. Authenticated connectivity and payouts remain untested in this review."
     },
     "referrals": [
         {
-            "url": "https://traffmonetizer.com/?aff=366499",
+            "url": "https://traffmonetizer.io/?aff=366499",
             "contributor": "MRColorR"
         }
     ],
@@ -114,5 +109,6 @@
         "enabled": false,
         "token": "yourTRAFFMONETIZERToken"
     },
-    "profile": "residential"
+    "profile": "residential",
+    "additional_details": "TraffMonetizer moved to traffmonetizer.io. Pull the current image before recreating older containers. Keep the .data/.traffmonetizer directory to preserve the device identity; adding this storage to an older stateless container registers a new identity once. The official public site lists a $10 minimum, USDT TRC20 and wire transfers from $1,000; check the account dashboard for current payout networks."
 }

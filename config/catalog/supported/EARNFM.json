@@ -25,8 +25,10 @@
         },
         "healthcheck": {
             "test": [
-                "CMD-SHELL",
-                "pgrep -f earnfm || exit 1"
+                "CMD",
+                "pidof",
+                "main",
+                "earnfm_example"
             ],
             "interval": "120s",
             "timeout": "10s",
@@ -56,16 +58,16 @@
         },
         "ip_policy": {
             "residential": true,
-            "datacenter": true,
-            "vps": true,
-            "vpn": "partial",
-            "proxy": true,
+            "datacenter": false,
+            "vps": false,
+            "vpn": false,
+            "proxy": false,
             "mobile": true,
             "adjacent_ips_accepted": true,
             "adjacent_ips_max": "unlimited",
             "ipv6": "undocumented",
             "geo_restrictions": "none known",
-            "quality_notes": "Fleetshare image explicitly designed for 'multiple proxies or static IP addresses routed to a server'. Confirms datacenter/proxy acceptance."
+            "quality_notes": "The current end-user help centre blocks datacenter, proxy and VPN connections. Fleetshare SDK rates describe a separate developer product and are not evidence that the standard client permits these IP types."
         },
         "docker": {
             "image_official": true,
@@ -77,24 +79,28 @@
         },
         "earnings": {
             "model": "per-GB",
-            "min_payout": "$5-15",
+            "min_payout": "$15",
             "payout_methods": [
                 "PayPal",
-                "USDT",
+                "BTC",
+                "LTC",
+                "USDT TRC20",
                 "gift cards"
             ],
             "avg_monthly_residential_usd": "0.6-3",
-            "avg_monthly_datacenter_usd": "0.3-2"
+            "avg_monthly_datacenter_usd": null
         },
         "confidence": "high",
         "sources": [
             "https://hub.docker.com/r/earnfm/fleetshare",
             "https://hub.docker.com/r/earnfm/earnfm-client",
             "https://help.earn.fm/portal/en/kb/articles/can-i-run-earnfm-at-scale-8-10-2023",
-            "https://earn.fm/fleetshare"
+            "https://earn.fm/fleetshare",
+            "https://help.earn.fm/portal/en/kb/technical-questions",
+            "https://help.earn.fm/portal/en/kb/articles/what-payment-methods-are-there"
         ],
         "last_verified": "2026-03-21",
-        "compose_layer_reasoning": "Fleetshare image explicitly designed for 'multiple proxies or static IP addresses routed to a server'. Docker Hub description confirms datacenter and static IP block support.",
+        "compose_layer_reasoning": "Residential profile follows the current end-user help centre; developer SDK eligibility is separate.",
         "install_limit_reasoning": "No documented device caps. Fleetshare allows bulk sharing of IPs (min 50) via socks5 or static routing. Designed for scale.",
         "recommendation": "update-config",
         "recommendation_reasoning": "Changed compose_layer from datacenter to universal. Fleetshare confirms both residential and DC/VPS acceptance.",
@@ -110,5 +116,5 @@
         "enabled": false,
         "apikey": "yourEARNFMAPIKey"
     },
-    "profile": "universal"
+    "profile": "residential"
 }

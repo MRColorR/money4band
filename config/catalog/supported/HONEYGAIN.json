@@ -34,8 +34,9 @@
         },
         "healthcheck": {
             "test": [
-                "CMD-SHELL",
-                "pgrep -f honeygain || exit 1"
+                "CMD",
+                "pidof",
+                "honeygain"
             ],
             "interval": "120s",
             "timeout": "10s",

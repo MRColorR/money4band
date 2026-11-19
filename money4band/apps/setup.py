@@ -70,7 +70,7 @@ from money4band.ui.notification_setup import (  # noqa: F401
     setup_notifications,
     validate_notification_url,
 )
-from money4band.ui.prompt import ask_question_yn
+from money4band.ui.prompt import ask_question_yn, pause
 from money4band.ui.summary import generate_setup_summary
 
 logger = logging.getLogger(__name__)
@@ -379,7 +379,7 @@ def main(
         # Generate and display post-setup summary
         generate_setup_summary(user_config, app_config)
         logger.info("Setup completed")
-        input(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
+        pause(f"\n  Press {Fore.CYAN}Enter{Style.RESET_ALL} to go back...")
 
     except FileNotFoundError as e:
         logger.error(f"File not found: {str(e)}")

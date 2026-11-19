@@ -215,7 +215,7 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
         version = result.stdout.strip() if result.returncode == 0 else "unknown"
         print(f"{Fore.GREEN}Docker is already installed: {version}{Style.RESET_ALL}\n")
         logger.info("Docker already installed: %s", version)
-        input(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
+        input(f"\n  Press {Fore.CYAN}Enter{Style.RESET_ALL} to go back...")
         return
 
     print(
@@ -231,7 +231,7 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
             print(f"  Auto-install available:  {description}")
             if ask_question_yn("Do you want to install Docker now?"):
                 if installer():
-                    input(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
+                    input(f"\n  Press {Fore.CYAN}Enter{Style.RESET_ALL} to go back...")
                     return
                 # installer failed - fall through to guide
                 print(
@@ -242,4 +242,4 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> N
 
     show_docker_guide()
     logger.info("Showed Docker installation guide for %s", platform.system())
-    input(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
+    input(f"\n  Press {Fore.CYAN}Enter{Style.RESET_ALL} to go back...")

@@ -572,6 +572,10 @@ def _register_auto_dashboard_cleanup(config_dir: str, pid: int) -> None:
     atexit.register(_shutdown)
 
     def _signal_handler(signum: int, _frame: object) -> None:
+        if signum == _signal.SIGINT:
+            # Credential collection handles Ctrl+C to cancel one app. If it
+            # propagates out of the CLI, atexit performs dashboard cleanup.
+            raise KeyboardInterrupt
         _shutdown()
         # Restore default and re-raise so the process actually exits with
         # the conventional 128+signum status.

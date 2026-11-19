@@ -98,19 +98,19 @@ Start with a **built-in app** and select its name to visit the provider. Some li
 | [**Repocket**](https://link.repocket.co/hr8i) | Built into Money4Band |
 | [**Spide Network**](https://spide.network/register.html?206a39) | Optional community catalog |
 | [**Titan Network**](https://titannet.io) | Built into Money4Band |
-| [**TraffMonetizer**](https://traffmonetizer.com/?aff=366499) | Built into Money4Band |
+| [**TraffMonetizer**](https://traffmonetizer.io/?aff=366499) | Built into Money4Band |
 | [**URnetwork**](https://ur.io) | Built into Money4Band |
 | [**EarnApp**](https://earnapp.com/i/3zulx7k) | Standalone install |
 | [**ByteBenefit**](https://bytebenefit.io/invited?ref=FrrXA1) | Candidate (see app directory) |
 | [**Bytelixir**](https://bytelixir.com) | Candidate (see app directory) |
-| [**Earn.cc**](https://earn.cc) | Candidate (see app directory) |
 | [**Ebesucher**](https://www.ebesucher.com/?ref=mindlessnerds) | Candidate (see app directory) |
-| [**PassiveApp**](https://passiveapp.io) | Candidate (see app directory) |
+| [**PassiveApp**](https://www.passiveapp.com/) | Candidate (see app directory) |
 | [**Salad**](https://salad.com) | Candidate (see app directory) |
 | [**UpRock**](https://uprock.com) | Candidate (see app directory) |
 | **Adnade** | Archived |
 | **BearShare** | Archived |
 | [**Dawn Internet**](https://dawninternet.com?code=xo23vynw) | Archived |
+| **Earn.cc** | Archived |
 | **GaGaNode** | Archived |
 | [**Gradient**](https://app.gradient.network/signup?code=9WOBKP) | Archived |
 | [**Grass (Wynd Network)**](https://app.getgrass.io/register/?referralCode=qyvJmxgNUhcLo2f) | Archived |

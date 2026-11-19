@@ -198,7 +198,7 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> b
         logger.error("User config not found at %s", user_config_path)
         print(f"{Fore.RED}Error: User config not found.{Style.RESET_ALL}")
         print("Please run 'Setup Apps' first to create the initial configuration.")
-        pause(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
+        pause(f"\n  Press {Fore.CYAN}Enter{Style.RESET_ALL} to go back...")
         return False
 
     try:
@@ -214,7 +214,7 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> b
     except Exception as e:
         logger.error("Error loading config files: %s", e)
         print(f"{Fore.RED}Error loading config files: {e}{Style.RESET_ALL}")
-        pause(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
+        pause(f"\n  Press {Fore.CYAN}Enter{Style.RESET_ALL} to go back...")
         return False
 
     # Show summary
@@ -275,7 +275,7 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> b
     print()
     if not ask_question_yn("Regenerate files with this configuration?"):
         print("Cancelled.")
-        pause(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
+        pause(f"\n  Press {Fore.CYAN}Enter{Style.RESET_ALL} to go back...")
         return True
 
     # Create backup of existing files
@@ -474,8 +474,8 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> b
             print(
                 f"{Fore.YELLOW}Your previous files are backed up in {backup_dir}/{Style.RESET_ALL}"
             )
-        pause(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
+        pause(f"\n  Press {Fore.CYAN}Enter{Style.RESET_ALL} to go back...")
         return False
 
-    pause(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
+    pause(f"\n  Press {Fore.CYAN}Enter{Style.RESET_ALL} to go back...")
     return True

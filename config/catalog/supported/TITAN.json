@@ -39,8 +39,8 @@
         "hostname": null
     },
     "flags": {
-        "hash": {
-            "claimURLBase": "After starting, bind the device: docker run --rm -v .data/.titanedge:/root/.titanedge nezha123/titan-edge bind --hash=YOUR_HASH https://api-test1.container1.titannet.io/api/v2/device/binding"
+        "manual": {
+            "instructions": "After starting, bind the device: docker run --rm -v \"./.data/.titanedge:/root/.titanedge\" nezha123/titan-edge bind --hash=YOUR_HASH https://api-test1.container1.titannet.io/api/v2/device/binding. Obtain YOUR_HASH from your Titan account and follow the current provider binding instructions. Preserve .data/.titanedge to retain this device identity. This step is completed after starting the stack."
         }
     },
     "install_limit": -1,

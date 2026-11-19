@@ -39,7 +39,7 @@
         "official_name": "Repocket",
         "publisher": "Repocket",
         "official_url": "https://repocket.com",
-        "tos_url": "https://repocket.co/terms",
+        "tos_url": "https://repocket.com/eula",
         "status": "active",
         "device_limits": {
             "max_devices_per_account": "unlimited",

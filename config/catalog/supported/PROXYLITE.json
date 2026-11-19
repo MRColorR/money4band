@@ -1,6 +1,6 @@
 {
     "name": "PROXYLITE",
-    "dashboard": "https://proxylite.ru/",
+    "dashboard": "https://lk.proxylite.ru/",
     "compose_config": {
         "container_name": "${DEVICE_NAME}_proxylite",
         "hostname": "${DEVICE_NAME}_proxylite",

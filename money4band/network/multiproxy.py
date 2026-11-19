@@ -207,18 +207,17 @@ def regenerate_uuids_for_apps(
             app_name = app["name"].lower()
             app_user_config = user_config["apps"].get(app_name, {})
 
-            # Check if the app has a UUID flag and is enabled
-            if app_user_config.get("enabled") and "uuid" in app.get("flags", {}):
-                uuid_length = app["flags"]["uuid"].get("length", 32)
-                prefix = app["flags"]["uuid"].get("prefix", "")
-                postfix = app["flags"]["uuid"].get("postfix", "")
-
-                # Generate the new UUID part
-                new_uuid_part = generate_uuid(uuid_length)
-                new_uuid = f"{prefix}{new_uuid_part}{postfix}"
-
-                app_user_config["uuid"] = new_uuid
-                logger.info(f"Generated new UUID for {app_name}: {new_uuid}")
+            if not app_user_config.get("enabled"):
+                continue
+            for field in ("uuid", "machine_id"):
+                flag = app.get("flags", {}).get(field)
+                if flag is None:
+                    continue
+                length = flag.get("length", 32)
+                prefix = flag.get("prefix", "")
+                postfix = flag.get("postfix", "")
+                app_user_config[field] = f"{prefix}{generate_uuid(length)}{postfix}"
+                logger.info("Generated new %s for %s", field, app_name)
 
 
 def setup_multiproxy_instances(

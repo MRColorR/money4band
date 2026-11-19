@@ -374,7 +374,7 @@ class TestSidecarSetupPrompt:
                     "money4band.apps.configurator.ask_string", return_value="pw"
                 ):
                     with mock.patch("money4band.apps.configurator.cls"):
-                        with mock.patch("builtins.input"):
+                        with mock.patch("builtins.input", return_value=""):
                             _configure_apps(
                                 user_config,
                                 [_HONEYGAIN_APP],
@@ -402,7 +402,7 @@ class TestSidecarSetupPrompt:
                     "money4band.apps.configurator.ask_string", return_value="pw"
                 ):
                     with mock.patch("money4band.apps.configurator.cls"):
-                        with mock.patch("builtins.input"):
+                        with mock.patch("builtins.input", return_value=""):
                             _configure_apps(
                                 user_config,
                                 [_HONEYGAIN_APP],
@@ -428,7 +428,7 @@ class TestSidecarSetupPrompt:
                 "money4band.apps.configurator.ask_string", return_value="tok"
             ):
                 with mock.patch("money4band.apps.configurator.cls"):
-                    with mock.patch("builtins.input"):
+                    with mock.patch("builtins.input", return_value=""):
                         _configure_apps(user_config, [_NO_SERVICE_APP], _m4b_config())
 
         assert mock_yn.call_count == 1

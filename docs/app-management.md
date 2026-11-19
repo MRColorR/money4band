@@ -13,6 +13,20 @@ then open **Setup Apps**. The same category setting is available through
 the CLI and API.
 Standalone apps use their provider’s installer.
 
+During **Setup Apps**, press **Enter** to continue to credential entry.
+Type **`/skip`** or press **Ctrl+C** at a credential prompt to cancel changes
+for that app and continue with the next one. Previous settings are preserved;
+this does not disable an app that was already enabled. Use the disable option
+when revisiting an enabled app if you want to turn it off.
+When editing credentials, **Enter** keeps an existing value. The email is
+shown; passwords and keys are masked. After cancelling an app, the confirmation
+stays visible for the configured message delay before setup continues.
+
+Relative bind mounts under `.data/` keep app state with the installation
+folder. Preserve that directory when moving the installation. Named Docker
+volumes live in Docker storage and must be backed up or transferred separately;
+a configuration backup does not include every provider’s data volume.
+
 > The internal category key for *Candidate* apps is `newcomers`; the CLI
 > surface accepts `candidate` (user-facing) while the on-disk layout and
 > API use `newcomers`.
@@ -56,6 +70,11 @@ entry before regenerating the stack and follow the provider’s installation
 and network requirements.
 
 ### Provider onboarding
+
+Starting a container is only the first check. Complete any provider onboarding
+or device claim, then verify the device and traffic in its dashboard. Docker's
+process health checks do not establish that a provider accepted the account,
+that traffic is available, or that earnings have been credited.
 
 To migrate a MystNodes container to a new Raspberry Pi or host, stop the old
 node and back up `.data/mysterium-node` from that instance's stack directory.

@@ -43,7 +43,10 @@
             "timeout": "15s",
             "retries": 3,
             "start_period": "90s"
-        }
+        },
+        "devices": [
+            "/dev/net/tun:/dev/net/tun"
+        ]
     },
     "compose_config_proxy": {
         "network_mode": "service:proxy",
@@ -52,7 +55,7 @@
     },
     "flags": {
         "manual": {
-            "instructions": "Log into your device's mystnode local webdashboard, navigate to the Myst Node page and follow the onscreen instruction to complete the setup.\n\nDisclaimer: If you want to further optimize UPnP and port forwarding, consider setting manually 'network: host' for mystnode in your Docker compose. This may improve mystnode performance, but do this only if you know what you are doing and you are aware of potential security implications."
+            "instructions": "After starting the stack, open this node's local WebUI using the host port listed in the setup summary. Complete node onboarding, choose your beneficiary wallet and claim the node at https://my.mystnodes.com/nodes. Keep .data/mysterium-node to retain its identity. The Docker host must provide /dev/net/tun. An online dashboard entry alone does not prove working VPN sessions; check node monitoring and transferred data. For remote hosts, use an SSH tunnel to the published WebUI port. Follow the official connectivity guide before changing router or UDP forwarding settings."
         }
     },
     "install_limit": -1,
@@ -105,7 +108,9 @@
             "https://mystnodes.com",
             "https://hub.docker.com/r/mysteriumnetwork/myst",
             "https://github.com/mysteriumnetwork/node",
-            "https://docs.mysterium.network/content-page"
+            "https://docs.mysterium.network/content-page",
+            "https://help.mystnodes.com/en/articles/8005230-tun-device-errors-and-troubleshooting",
+            "https://help.mystnodes.com/en/articles/8006242-running-a-mystnodes-as-docker-image-on-windows-and-macos-hosts"
         ],
         "last_verified": "2026-03-21",
         "compose_layer_reasoning": "Decentralized VPN exit node network. Algorithm assesses IP location and quality. Both residential and datacenter nodes supported - residential earn premium prices.",

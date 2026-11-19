@@ -116,5 +116,5 @@
         "password": "yourIPROYALPAWNSPw"
     },
     "profile": "residential",
-    "additional_details": "Referral rewards: the current help article describes $1 at each of the referred user's first three payouts, totaling $3 for each party. Do not assume a lifetime percentage commission; check the current account terms."
+    "additional_details": "The official Docker CLI accepts email and password and has no OTP or API-key option. If it returns \"please use SDK or gui app\", verify that the image is current and contact Pawns support or use its official desktop app. This error does not establish that the service has shut down or that disabling 2FA would fix it."
 }

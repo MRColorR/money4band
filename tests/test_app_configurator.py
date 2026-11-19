@@ -202,6 +202,7 @@ class TestFlagFunctionMapper:
             "apikey",
             "userid",
             "uuid",
+            "machine_id",
             "cid",
             "code",
             "token",
