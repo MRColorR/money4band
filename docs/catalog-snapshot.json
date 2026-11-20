@@ -20,36 +20,7 @@
     ]
   },
   "community": {
-    "supported": [
-      {
-        "name": "SPIDE",
-        "app_details": {
-          "official_name": "Spide Network",
-          "official_url": "https://spide.network",
-          "status": "active",
-          "ip_policy": {
-            "residential": true,
-            "datacenter": false
-          },
-          "device_limits": {
-            "max_devices_per_account": "unlimited",
-            "max_devices_per_ip": 1
-          },
-          "earnings": {
-            "payout_methods": [
-              "PayPal",
-              "BTC"
-            ],
-            "avg_monthly_residential_usd": "unknown (early stage)"
-          }
-        },
-        "referrals": [
-          {
-            "url": "https://spide.network/register.html?206a39"
-          }
-        ]
-      }
-    ],
+    "supported": [],
     "newcomers": [],
     "deprecated": [
       {
@@ -202,6 +173,34 @@
         "referrals": [
           {
             "url": "https://speedshare.app/?ref=mindlessnerd"
+          }
+        ]
+      },
+      {
+        "name": "SPIDE",
+        "app_details": {
+          "official_name": "Spide Network",
+          "official_url": "https://spide.network",
+          "status": "deprecated",
+          "ip_policy": {
+            "residential": true,
+            "datacenter": false
+          },
+          "device_limits": {
+            "max_devices_per_account": "unlimited",
+            "max_devices_per_ip": 1
+          },
+          "earnings": {
+            "payout_methods": [
+              "PayPal",
+              "BTC"
+            ],
+            "avg_monthly_residential_usd": "unknown (early stage)"
+          }
+        },
+        "referrals": [
+          {
+            "url": "https://spide.network/register.html?206a39"
           }
         ]
       },

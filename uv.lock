@@ -749,7 +749,7 @@ wheels = [
 
 [[package]]
 name = "money4band"
-version = "5.1.1"
+version = "5.1.2"
 source = { editable = "." }
 dependencies = [
     { name = "colorama" },

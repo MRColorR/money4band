@@ -30,7 +30,6 @@ balance, and payout status.
 | [ok] | [**ProxyLite**](https://proxylite.ru/?r=PJTKXWN3) | [ok] | [ok] | - | - | - | Sberbank (Russia), mobile credit (supported countries), YuMoney, bank cards (Belarus) | - |
 | [ok] | [**Proxyrack Peer Program**](https://peer.proxyrack.com/ref/myoas6qttvhuvkzh8ffx90ns1ouhwgilfgamo5ex) | [ok] | [ok] | [ok] | 500 | - | PayPal, crypto | $0.5-2 |
 | [ok] | [**Repocket**](https://link.repocket.co/hr8i) | [ok] | [ok] | [ok] | - | - | PayPal, crypto | $1-5 |
-| [com] | [**Spide Network**](https://spide.network/register.html?206a39) | [ok] | [ok] | [x] | Unlimited | 1 | PayPal, BTC | - |
 | [ok] | [**Titan Network**](https://titannet.io) | [ok] | [ok] | - | - | - | - | - |
 | [ok] | [**TraffMonetizer**](https://traffmonetizer.io/?aff=366499) | [ok] | [ok] | [x] | - | - | USDT (TRC20; check dashboard for other networks), wire transfer ($1,000 minimum) | $0.5-2 |
 | [ok] | [**URnetwork**](https://ur.io) | [ok] | [ok] | - | - | - | - | - |
@@ -51,6 +50,7 @@ balance, and payout status.
 | [x] | [**PacketShare**](https://packetshare.io) | [x] | [ok] | - | - | - | - | - |
 | [x] | [**Peer2Profit**](https://t.me/peer2profit_app_bot?start=165849012262da8d0aa13c8) | [x] | - | - | - | - | - | - |
 | [x] | [**SpeedShare**](https://speedshare.app/?ref=mindlessnerd) | [x] | - | - | - | - | - | - |
+| [x] | [**Spide Network**](https://spide.network/register.html?206a39) | [x] | [ok] | [x] | Unlimited | 1 | PayPal, BTC | - |
 | [x] | [**Teneo Protocol**](https://dashboard.teneo.pro/?code=qPgLn) (code: `qPgLn`) | [x] | [ok] | - | - | - | - | - |
 | [x] | [**Wipter**](https://wipter.com/signup?ref=money4band) | [x] | [ok] | [ok] | - | - | - | - |
 | [x] | [**WizardGain**](https://wizardgain.com) | [x] | [ok] | [ok] | - | 1 | - | - |

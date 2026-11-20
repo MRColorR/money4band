@@ -43,6 +43,31 @@ def test_interrupting_credentials_keeps_previous_app_settings(monkeypatch, capsy
     assert "Skipped first" in capsys.readouterr().out
 
 
+def test_machine_id_and_cid_use_field_instructions_and_shared_enter_hint(
+    monkeypatch, capsys
+):
+    from money4band.apps.configurator import configure_machine_id
+
+    prompts = []
+    monkeypatch.setattr("builtins.input", lambda prompt: prompts.append(prompt) or "")
+    config = {"machine_id": "a" * 32, "cid": "saved-cid"}
+    configure_machine_id(
+        {"name": "APP"},
+        {"length": 32, "instructions": "Restore a device with its Machine ID."},
+        config,
+    )
+    configure_cid(
+        {"name": "APP"},
+        {"instructions": "Copy CID from the installation command."},
+        config,
+    )
+    output = capsys.readouterr().out
+    assert output.count("Restore a device with its Machine ID.") == 1
+    assert output.count("Copy CID from the installation command.") == 1
+    assert all(prompt.count("Enter to keep") == 1 for prompt in prompts)
+    assert config == {"machine_id": "a" * 32, "cid": "saved-cid"}
+
+
 class TestConfigureEmail:
     """Prompt stores user-supplied email in config dict."""
 

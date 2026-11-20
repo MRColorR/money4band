@@ -25,9 +25,16 @@ from money4band.ui.prompt import (
 logger = logging.getLogger(__name__)
 
 
+def _show_instructions(flag_config: dict[str, Any], fallback: str = "") -> None:
+    instructions = flag_config.get("instructions", fallback)
+    if instructions:
+        print(instructions)
+
+
 def configure_email(
     app: dict[str, Any], flag_config: dict[str, Any], config: dict[str, Any]
 ) -> None:
+    _show_instructions(flag_config)
     email = ask_email(
         f"Enter your {app['name'].lower().title()} email:",
         default=config.get("email", ""),
@@ -40,8 +47,9 @@ def configure_email(
 def configure_password(
     app: dict[str, Any], flag_config: dict[str, Any], config: dict[str, Any]
 ) -> None:
-    print(
-        "If you signed up with Google or Apple, set an account password before using this client."
+    _show_instructions(
+        flag_config,
+        "If you signed up with Google or Apple, set an account password before using this client.",
     )
     password = ask_string(
         f"Enter your {app['name'].lower().title()} password:",
@@ -55,8 +63,9 @@ def configure_password(
 def configure_apikey(
     app: dict[str, Any], flag_config: dict[str, Any], config: dict[str, Any]
 ) -> None:
-    print(
-        f"Find/Generate your APIKey inside your {app['name'].lower().title()} dashboard/profile."
+    _show_instructions(
+        flag_config,
+        f"Find your API key in the {app['name'].title()} dashboard.",
     )
     apikey = ask_string(
         f"Enter your {app['name'].lower().title()} APIKey:",
@@ -70,8 +79,9 @@ def configure_apikey(
 def configure_userid(
     app: dict[str, Any], flag_config: dict[str, Any], config: dict[str, Any]
 ) -> None:
-    print(
-        f"Find your UserID inside your {app['name'].lower().title()} dashboard/profile."
+    _show_instructions(
+        flag_config,
+        f"Find your user ID in the {app['name'].title()} dashboard.",
     )
     userid = ask_string(
         f"Enter your {app['name'].lower().title()} UserID:",
@@ -85,7 +95,7 @@ def configure_userid(
 def configure_uuid(
     app: dict[str, Any], flag_config: dict[str, Any], config: dict[str, Any]
 ) -> None:
-    print(f"Starting UUID generation/import for {app['name'].lower().title()}")
+    _show_instructions(flag_config)
     if "length" not in flag_config:
         print(
             f"{Fore.RED}Error: Length not specified for UUID generation/import{Style.RESET_ALL}"
@@ -143,8 +153,12 @@ def configure_machine_id(
     length = flag_config["length"]
     existing = config.get("machine_id", "")
     default = existing if validate_uuid(existing, length) else generate_uuid(length)
+    _show_instructions(
+        flag_config,
+        "Use an existing Machine ID to restore a device, or keep the suggested value.",
+    )
     config["machine_id"] = ask_uuid(
-        f"{app['name'].title()} Machine ID (Enter keeps it) (Machine ID is not the Device Key)",
+        f"Enter your {app['name'].title()} Machine ID:",
         length,
         default=default,
         allow_skip=True,
@@ -154,10 +168,8 @@ def configure_machine_id(
 def configure_cid(
     app: dict[str, Any], flag_config: dict[str, Any], config: dict[str, Any]
 ) -> None:
-    print(
-        flag_config.get(
-            "instructions", f"Find your CID in the {app['name'].title()} dashboard."
-        )
+    _show_instructions(
+        flag_config, f"Find your CID in the {app['name'].title()} dashboard."
     )
     cid = ask_string(
         f"Enter your {app['name'].lower().title()} CID:",
@@ -171,8 +183,8 @@ def configure_cid(
 def configure_code(
     app: dict[str, Any], flag_config: dict[str, Any], config: dict[str, Any]
 ) -> None:
-    print(
-        f"Find your code inside your {app['name'].lower().title()} dashboard/profile."
+    _show_instructions(
+        flag_config, f"Find your code in the {app['name'].title()} dashboard."
     )
     code = ask_string(
         f"Enter your {app['name'].lower().title()} code:",
@@ -186,8 +198,8 @@ def configure_code(
 def configure_token(
     app: dict[str, Any], flag_config: dict[str, Any], config: dict[str, Any]
 ) -> None:
-    print(
-        f"Find your token inside your {app['name'].lower().title()} dashboard/profile."
+    _show_instructions(
+        flag_config, f"Find your token in the {app['name'].title()} dashboard."
     )
     token = ask_string(
         f"Enter your {app['name'].lower().title()} token:",

@@ -97,7 +97,6 @@ Start with a **built-in app** and select its name to visit the provider. Some li
 | [**ProxyLite**](https://proxylite.ru/?r=PJTKXWN3) | Built into Money4Band |
 | [**Proxyrack Peer Program**](https://peer.proxyrack.com/ref/myoas6qttvhuvkzh8ffx90ns1ouhwgilfgamo5ex) | Built into Money4Band |
 | [**Repocket**](https://link.repocket.co/hr8i) | Built into Money4Band |
-| [**Spide Network**](https://spide.network/register.html?206a39) | Optional community catalog |
 | [**Titan Network**](https://titannet.io) | Built into Money4Band |
 | [**TraffMonetizer**](https://traffmonetizer.io/?aff=366499) | Built into Money4Band |
 | [**URnetwork**](https://ur.io) | Built into Money4Band |
@@ -118,6 +117,7 @@ Start with a **built-in app** and select its name to visit the provider. Some li
 | [**PacketShare**](https://packetshare.io) | Archived |
 | [**Peer2Profit**](https://t.me/peer2profit_app_bot?start=165849012262da8d0aa13c8) | Archived |
 | [**SpeedShare**](https://speedshare.app/?ref=mindlessnerd) | Archived |
+| [**Spide Network**](https://spide.network/register.html?206a39) | Archived |
 | [**Teneo Protocol**](https://dashboard.teneo.pro/?code=qPgLn) | Archived |
 | [**Wipter**](https://wipter.com/signup?ref=money4band) | Archived |
 | [**WizardGain**](https://wizardgain.com) | Archived |

@@ -3,6 +3,16 @@
 All notable changes to this project are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [5.1.2]
+
+- Fix app setup cancellation, credential reuse, port assignment and startup guidance.
+- Refresh provider links and client settings; add ProxyBase to the built-in catalog.
+- Preserve local user data during updates and keep catalog preferences out of shipped defaults.
+- Show catalog sources in the menu, CLI, dashboard and API. Enable built-in candidates by default.
+- Save per-device registration instructions for main and multi-proxy stacks.
+- Simplify app information and resource-profile selection.
+- Archive the failing Spide Docker integration while retaining its referral and provider links.
+
 ## [5.1.1]
 
 - Correct URnetwork and ByteBenefit website links after verifying their current sites.

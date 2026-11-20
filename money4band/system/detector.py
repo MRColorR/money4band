@@ -204,6 +204,8 @@ def calculate_resource_limits(
 def show_resource_profile_info(
     m4b_config: dict[str, Any],
     user_config: dict[str, Any],
+    *,
+    selectable: bool = False,
 ) -> None:
     """Print the active profile, system stats, and per-tier limits."""
     from colorama import Fore, Style
@@ -220,7 +222,8 @@ def show_resource_profile_info(
     )
 
     rl = user_config.get("resource_limits", {})
-    print(f"\n  {'Tier':<8} {'Mem Limit':<12} {'Mem Reserv':<12} {'CPU Limit'}")
+    print(f"\n  {Fore.CYAN}Per-app limits (calculated):{Style.RESET_ALL}")
+    print(f"  {'Tier':<8} {'RAM max':<12} {'RAM soft':<12} {'CPU max (cores)'}")
     print(f"  {'-' * 8} {'-' * 12} {'-' * 12} {'-' * 9}")
     for tier in ("little", "medium", "big", "huge"):
         ml = rl.get(f"app_mem_limit_{tier}", "?")
@@ -228,19 +231,20 @@ def show_resource_profile_info(
         cl = rl.get(f"app_cpu_limit_{tier}", "?")
         print(f"  {tier.upper():<8} {ml:<12} {mr:<12} {cl}")
 
-    # Show what each profile would allocate on THIS device
     profiles = m4b_config.get("resource_profiles", {}).get("profiles", {})
-    print(f"\n  {Fore.CYAN}Profile comparison on this device:{Style.RESET_ALL}")
-    print(f"  {'Profile':<14} {'CPU%':<6} {'RAM%':<6} {'Base CPUs':<11} {'Base RAM'}")
-    print(f"  {'-' * 14} {'-' * 6} {'-' * 6} {'-' * 11} {'-' * 10}")
-    for pname, pdef in profiles.items():
+    print("  RAM soft applies under memory pressure; RAM is not preallocated.")
+    heading = "Choose a preset" if selectable else "Available presets"
+    print(f"\n  {Fore.CYAN}{heading}:{Style.RESET_ALL}")
+    print("  Preset percentages scale per-app limits, not the whole stack.")
+    prefix = "#  " if selectable else ""
+    print(f"  {prefix}{'Profile':<14} {'CPU scale':<11} {'RAM scale'}")
+    print(f"  {'-' * len(prefix)}{'-' * 14} {'-' * 11} {'-' * 9}")
+    for index, (pname, pdef) in enumerate(profiles.items(), 1):
         cpu_pct = pdef.get("cpu_pct", 0)
         ram_pct = pdef.get("ram_pct", 0)
-        marker = f" {Fore.GREEN}<-{Style.RESET_ALL}" if pname == active else ""
-        print(
-            f"  {pname:<14} {cpu_pct:<6.0%} {ram_pct:<6.0%} "
-            f"{cores * cpu_pct:<11.1f} {total_mem * ram_pct:.0f} MB{marker}"
-        )
+        marker = f" {Fore.GREEN}(active){Style.RESET_ALL}" if pname == active else ""
+        prefix = f"{index}. " if selectable else ""
+        print(f"  {prefix}{pname:<14} {cpu_pct:<11.0%} {ram_pct:.0%}{marker}")
 
 
 # ---------------------------------------------------------------------------
