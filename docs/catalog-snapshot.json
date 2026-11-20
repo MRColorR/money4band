@@ -29,7 +29,7 @@
           "status": "active",
           "ip_policy": {
             "residential": true,
-            "datacenter": true
+            "datacenter": false
           },
           "device_limits": {
             "max_devices_per_account": "unlimited",
@@ -38,7 +38,7 @@
           "earnings": {
             "payout_methods": [
               "PayPal",
-              "crypto"
+              "BTC"
             ],
             "avg_monthly_residential_usd": "unknown (early stage)"
           }
@@ -84,7 +84,7 @@
         "name": "DAWN",
         "app_details": {
           "official_name": "Dawn Internet",
-          "official_url": "https://dawninternet.com",
+          "official_url": "https://infrastructure.finance/",
           "status": "deprecated",
           "ip_policy": {
             "residential": true,
@@ -100,12 +100,7 @@
             ],
             "avg_monthly_residential_usd": "unknown"
           }
-        },
-        "referrals": [
-          {
-            "url": "https://dawninternet.com?code=xo23vynw"
-          }
-        ]
+        }
       },
       {
         "name": "GAGANODE",
@@ -160,7 +155,7 @@
         "name": "GRASS",
         "app_details": {
           "official_name": "Grass (Wynd Network)",
-          "official_url": "https://www.getgrass.io",
+          "official_url": "https://www.grass.io/",
           "status": "deprecated",
           "ip_policy": {
             "residential": true,
@@ -179,7 +174,7 @@
         },
         "referrals": [
           {
-            "url": "https://app.getgrass.io/register/?referralCode=qyvJmxgNUhcLo2f"
+            "url": "https://app.grass.io/register?referralCode=qyvJmxgNUhcLo2f"
           }
         ]
       },
@@ -212,7 +207,7 @@
         "name": "SPEEDSHARE",
         "app_details": {
           "official_name": "SpeedShare",
-          "official_url": "unknown",
+          "official_url": "https://speedshare.app/",
           "status": "deprecated",
           "ip_policy": {
             "residential": "N/A",
@@ -237,7 +232,7 @@
         "name": "TENEO",
         "app_details": {
           "official_name": "Teneo Protocol",
-          "official_url": "https://teneo.pro",
+          "official_url": "https://teneo-protocol.ai/",
           "status": "deprecated",
           "ip_policy": {
             "residential": true,
@@ -267,8 +262,8 @@
           "official_url": "https://wipter.com",
           "status": "deprecated",
           "ip_policy": {
-            "residential": "undocumented",
-            "datacenter": "undocumented"
+            "residential": true,
+            "datacenter": true
           },
           "device_limits": {
             "max_devices_per_account": "undocumented",
@@ -389,7 +384,8 @@
           },
           "earnings": {
             "payout_methods": [
-              "undocumented"
+              "PayPal",
+              "bank transfer"
             ],
             "avg_monthly_residential_usd": "unknown"
           }
@@ -445,7 +441,10 @@
           },
           "earnings": {
             "payout_methods": [
-              "undocumented"
+              "PayPal",
+              "crypto rewards",
+              "prepaid cards",
+              "gift cards"
             ],
             "avg_monthly_residential_usd": "unknown"
           }

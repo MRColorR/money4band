@@ -57,7 +57,7 @@
         "official_name": "Honeygain",
         "publisher": "Honeygain UAB",
         "official_url": "https://honeygain.com",
-        "tos_url": "https://www.honeygain.com/terms-of-service/",
+        "tos_url": "https://www.honeygain.com/terms-of-use/",
         "status": "active",
         "device_limits": {
             "max_devices_per_account": 10,
@@ -95,10 +95,11 @@
         },
         "confidence": "high",
         "sources": [
-            "https://support.honeygain.com/hc/en-us/articles/360011188779",
-            "https://support.honeygain.com/hc/en-us/articles/360013096900",
             "https://support.honeygain.com/hc/en-us/articles/30688365428636-How-to-request-a-payout",
-            "https://support.honeygain.com/hc/en-us/articles/30688558061084-What-are-credits-JumpTask"
+            "https://support.honeygain.com/hc/en-us/articles/30688558061084-What-are-credits-JumpTask",
+            "https://support.honeygain.com/hc/en-us/articles/30688479267868-How-to-run-Honeygain-on-Docker",
+            "https://support.honeygain.com/hc/en-us/articles/30688346556956-How-many-devices-can-I-use-and-how-do-I-manage-them",
+            "https://support.honeygain.com/hc/en-us/articles/30688404694428-Error-Network-overused"
         ],
         "last_verified": "2026-03-21",
         "compose_layer_reasoning": "Officially forbids non-residential IP types; VPN/Datacenter IPs result in account suspension.",

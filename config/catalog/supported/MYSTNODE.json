@@ -63,7 +63,7 @@
         "official_name": "Mysterium",
         "publisher": "Mysterium Network Foundation",
         "official_url": "https://mystnodes.com",
-        "tos_url": "https://mysterium.network/terms",
+        "tos_url": "https://www.mystnodes.com/legal/terms-and-conditions",
         "status": "active",
         "device_limits": {
             "max_devices_per_account": "unlimited",
@@ -108,7 +108,6 @@
             "https://mystnodes.com",
             "https://hub.docker.com/r/mysteriumnetwork/myst",
             "https://github.com/mysteriumnetwork/node",
-            "https://docs.mysterium.network/content-page",
             "https://help.mystnodes.com/en/articles/8005230-tun-device-errors-and-troubleshooting",
             "https://help.mystnodes.com/en/articles/8006242-running-a-mystnodes-as-docker-image-on-windows-and-macos-hosts"
         ],

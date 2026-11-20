@@ -110,11 +110,11 @@ Start with a **built-in app** and select its name to visit the provider. Some li
 | [**UpRock**](https://uprock.com) | Candidate (see app directory) |
 | **Adnade** | Archived |
 | **BearShare** | Archived |
-| [**Dawn Internet**](https://dawninternet.com?code=xo23vynw) | Archived |
+| **Dawn Internet** | Archived |
 | **Earn.cc** | Archived |
 | **GaGaNode** | Archived |
 | [**Gradient**](https://app.gradient.network/signup?code=9WOBKP) | Archived |
-| [**Grass (Wynd Network)**](https://app.getgrass.io/register/?referralCode=qyvJmxgNUhcLo2f) | Archived |
+| [**Grass (Wynd Network)**](https://app.grass.io/register?referralCode=qyvJmxgNUhcLo2f) | Archived |
 | **PacketShare** | Archived |
 | [**Peer2Profit**](https://t.me/peer2profit_app_bot?start=165849012262da8d0aa13c8) | Archived |
 | [**SpeedShare**](https://speedshare.app/?ref=mindlessnerd) | Archived |

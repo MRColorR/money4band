@@ -47,7 +47,7 @@
         "official_name": "PacketStream",
         "publisher": "PacketStream",
         "official_url": "https://packetstream.io",
-        "tos_url": "https://packetstream.io/tos",
+        "tos_url": "https://packetstream.io/terms-of-service/",
         "status": "active",
         "device_limits": {
             "max_devices_per_account": "unlimited",
@@ -84,7 +84,8 @@
         },
         "confidence": "high",
         "sources": [
-            "https://packetstream.io/share-bandwidth/"
+            "https://packetstream.io/share-bandwidth/",
+            "https://packetstream.io/install.sh"
         ],
         "last_verified": "2026-03-21",
         "compose_layer_reasoning": "Official FAQ explicitly states datacenter and business IPs not accepted. Requires 'geographic diversity and residential characteristics'.",

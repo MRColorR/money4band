@@ -3,6 +3,8 @@ from __future__ import annotations
 """Per-app detail card and app listing from app_details metadata."""
 
 import logging
+import shutil
+import textwrap
 from typing import Any
 
 from colorama import Fore, Style, just_fix_windows_console
@@ -87,6 +89,8 @@ def show_app_detail(app_config: dict[str, Any], app_name: str) -> bool:
     print(f"\n{Fore.CYAN}Identity{Style.RESET_ALL}")
     print(f"  {'Publisher:':<{w}} {publisher}")
     print(f"  {'Website:':<{w}} {url}")
+    if entry.get("dashboard"):
+        print(f"  {'Dashboard:':<{w}} {entry['dashboard']}")
 
     tos = details.get("tos_url")
     if tos:
@@ -165,6 +169,22 @@ def show_app_detail(app_config: dict[str, Any], app_name: str) -> bool:
     layer = entry.get("profile", "-")
     print(f"  {'Compose layer:':<{w}} {layer}")
 
+    additional = entry.get("additional_details")
+    if additional:
+        print(f"\n{Fore.CYAN}Setup and availability notes{Style.RESET_ALL}")
+        width = max(40, min(100, shutil.get_terminal_size((100, 24)).columns - 2))
+        for paragraph in additional.splitlines():
+            print(
+                textwrap.fill(
+                    paragraph,
+                    width=width,
+                    initial_indent="  ",
+                    subsequent_indent="  ",
+                    break_long_words=False,
+                    break_on_hyphens=False,
+                )
+            )
+
     # Warnings
     warnings = details.get("warnings", [])
     if warnings:
@@ -239,10 +259,5 @@ def list_apps(app_config: dict[str, Any], category_filter: str | None = None) ->
             print(
                 f"  {name:<18} {status:<23} {resi:>13} {dc:>13} {payout:<22} {limit_str:>5}"
             )
-
-            # Show removal reason for deprecated apps
-            additional = entry.get("additional_details", "")
-            if additional and cat == "deprecated":
-                print(f"    {Fore.YELLOW}-> {additional}{Style.RESET_ALL}")
 
     print()

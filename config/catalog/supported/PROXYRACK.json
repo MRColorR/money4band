@@ -51,8 +51,8 @@
     "app_details": {
         "official_name": "Proxyrack Peer Program",
         "publisher": "Proxyrack",
-        "official_url": "https://proxyrack.com/peer-program/",
-        "tos_url": "https://proxyrack.com/terms/",
+        "official_url": "https://www.proxyrack.com/become-a-peer/",
+        "tos_url": "https://www.proxyrack.com/terms-of-use/",
         "status": "active",
         "device_limits": {
             "max_devices_per_account": 500,
@@ -90,7 +90,9 @@
         },
         "confidence": "high",
         "sources": [
-            "https://help.proxyrack.com/en/articles/6532812-device-limit"
+            "https://help.proxyrack.com/en/articles/6532812-device-limit",
+            "https://www.proxyrack.com/become-a-peer/",
+            "https://hub.docker.com/r/proxyrack/pop"
         ],
         "last_verified": "2026-03-21",
         "compose_layer_reasoning": "Community confirms VPS/DC IPs accepted. One of the more permissive platforms for datacenter proxies.",

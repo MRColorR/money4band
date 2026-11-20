@@ -155,10 +155,10 @@ class TestFnAppCatalog(unittest.TestCase):
     @patch("money4band.apps.catalog.print")
     @patch("money4band.apps.catalog.cls")
     @patch("money4band.apps.catalog.input", create=True)
-    def test_deprecated_apps_show_links_and_reason(
+    def test_deprecated_apps_keep_links_without_inline_notes(
         self, mock_input, mock_cls, mock_print, _mock_term
     ):
-        """Deprecated apps show referral link + removal reason (same format as supported)."""
+        """Archived entries remain visible; long notes belong to the detail view."""
         mock_input.return_value = ""
 
         fn_app_catalog(self._APP_CONFIG)
@@ -168,7 +168,15 @@ class TestFnAppCatalog(unittest.TestCase):
         self.assertIn(
             "https://app.getgrass.io/register/?referralCode=qyvJmxgNUhcLo2f", out
         )
-        self.assertIn(">> Docker image unavailability", out)
+        self.assertNotIn("Docker image unavailability", out)
+        self.assertIn("App details", out)
+
+    @patch("money4band.apps.info.show_app_detail")
+    @patch("money4band.apps.catalog.cls")
+    @patch("money4band.apps.catalog.input", side_effect=["i", "grass", ""], create=True)
+    def test_details_are_accessible_from_interactive_menu(self, _input, _cls, detail):
+        self.assertTrue(fn_app_catalog(self._APP_CONFIG))
+        detail.assert_called_once_with(self._APP_CONFIG, "grass")
 
     @patch("money4band.apps.catalog.logger.error")
     def test_fn_app_catalog_exception(self, mock_logging_error):

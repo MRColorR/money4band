@@ -89,7 +89,10 @@
         "recommendation_reasoning": "Promoted to supported. Docker image verified on Docker Hub.",
         "confidence": "low",
         "confidence_notes": "Limited external validation. Primarily edge compute, not bandwidth sharing.",
-        "sources": [],
+        "sources": [
+            "https://www.titannet.io/earn/application",
+            "https://hub.docker.com/r/nezha123/titan-edge"
+        ],
         "last_verified": "2026-03-23"
     },
     "referrals": [
@@ -102,5 +105,6 @@
         "enabled": false,
         "hash": "yourTITANHash"
     },
-    "profile": "universal"
+    "profile": "universal",
+    "additional_details": "The configured Docker image and binding procedure are a legacy integration. The current official earning-app guide describes native Windows, macOS and Android onboarding with verification and consent. Authenticated compatibility of this Docker integration with the current provider account flow has not been verified; the native application guide is not a replacement Docker setup."
 }

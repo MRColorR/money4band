@@ -13,6 +13,11 @@ then open **Setup Apps**. The same category setting is available through
 the CLI and API.
 Standalone apps use their provider’s installer.
 
+The catalog list keeps links and key facts compact. Choose **App details**
+in the interactive catalog to read setup notes, availability information and
+archive reasons. The same details are available through `m4b apps APP_NAME`
+and the app-detail API.
+
 During **Setup Apps**, press **Enter** to continue to credential entry.
 Type **`/skip`** or press **Ctrl+C** at a credential prompt to cancel changes
 for that app and continue with the next one. Previous settings are preserved;

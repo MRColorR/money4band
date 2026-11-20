@@ -2,7 +2,37 @@
 
 from __future__ import annotations
 
+import os
+import re
+
 from money4band.apps.info import _find_app, list_apps, show_app_detail
+
+
+def test_notes_remain_available_in_wrapped_detail_not_catalog_lists(
+    capsys, monkeypatch
+):
+    from money4band.apps.catalog import _display_catalog
+
+    monkeypatch.setattr(
+        "shutil.get_terminal_size", lambda *_: os.terminal_size((80, 24))
+    )
+    note = "Keep the provider data directory when recreating this app. " * 5
+    for category in ("supported", "deprecated"):
+        config = {
+            category: {
+                "active": True,
+                "entries": [{"name": "EXAMPLE", "additional_details": note}],
+            }
+        }
+        _display_catalog(config)
+        list_apps(config)
+        assert "Keep the provider" not in capsys.readouterr().out
+        assert show_app_detail(config, "example")
+        output = re.sub(r"\x1b\[[0-9;]*m", "", capsys.readouterr().out)
+        assert "Setup and availability notes" in output
+        assert "Keep the provider" in output
+        assert max(map(len, output.splitlines())) <= 80
+
 
 # ---------------------------------------------------------------------------
 # Fixtures

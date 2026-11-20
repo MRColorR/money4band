@@ -93,9 +93,10 @@
         },
         "confidence": "high",
         "sources": [
-            "https://iproyal.com/IPRoyal_Residential_Proxy_Sourcing_Documentation.pdf",
-            "https://greenfrognest.com/IPRoyalLMDS.php",
-            "https://help.pawns.app/en/articles/8658934-what-are-referral-earnings"
+            "https://hub.docker.com/r/iproyal/pawns-cli",
+            "https://pawns.app/blog/how-to-install-and-run-the-pawns-app-container-in-docker/",
+            "https://help.pawns.app/en/articles/8658934-what-are-referral-earnings",
+            "https://pawns.app/terms-of-use/"
         ],
         "last_verified": "2026-03-21",
         "compose_layer_reasoning": "IPRoyal custom monitoring prevents datacenter IPs. Datacenter ASNs automatically removed from pool.",

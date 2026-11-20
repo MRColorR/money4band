@@ -4,7 +4,7 @@ import logging
 import shutil
 from typing import Any
 
-from colorama import Back, Fore, Style, just_fix_windows_console
+from colorama import Fore, Style, just_fix_windows_console
 
 from money4band.core.loader import (
     get_all_app_categories,
@@ -28,8 +28,7 @@ def _display_catalog(app_config: dict[str, Any]) -> None:
     Compact (narrow):   ``Name  Layer  Payout`` on line 1,
                         full link indented on line 2.
 
-    Decorators use only broadly-supported characters:
-    ``->`` link prefix, ``>>`` removal reason, ``-`` separator.
+    Notes and removal reasons belong to the app detail card, not list rows.
     """
     term_width = shutil.get_terminal_size((120, 24)).columns
 
@@ -46,10 +45,10 @@ def _display_catalog(app_config: dict[str, Any]) -> None:
         status = (
             f"{Fore.GREEN}ACTIVE{Style.RESET_ALL}"
             if active
-            else f"{Fore.RED}INACTIVE{Style.RESET_ALL}"
+            else f"{Style.DIM}INACTIVE{Style.RESET_ALL}"
         )
         print(
-            f"\n{Back.YELLOW}{Fore.BLACK}--- {category.upper()} [{status}{Back.YELLOW}{Fore.BLACK}] ---{Style.RESET_ALL}"
+            f"\n{Fore.CYAN}--- {category.upper()} [{status}{Fore.CYAN}] ---{Style.RESET_ALL}"
         )
 
         # Collect rows
@@ -69,7 +68,6 @@ def _display_catalog(app_config: dict[str, Any]) -> None:
                     .get("earnings", {})
                     .get("min_payout", "-"),
                     "layer": app.get("profile", "-"),
-                    "reason": app.get("additional_details", ""),
                 }
             )
 
@@ -106,8 +104,6 @@ def _display_catalog(app_config: dict[str, Any]) -> None:
                     f"{Fore.CYAN}{row['link']:<{w_link}}{Style.RESET_ALL}  "
                     f"{row['layer']:<{w_layer}}  {row['payout']}"
                 )
-                if row["reason"]:
-                    print(f"    {Fore.YELLOW}>> {row['reason']}{Style.RESET_ALL}")
         else:
             # -- Compact mode: name/layer/payout line + link on its own line --
             header = (
@@ -125,8 +121,6 @@ def _display_catalog(app_config: dict[str, Any]) -> None:
                 )
                 if row["link"]:
                     print(f"    {Fore.CYAN}-> {row['link']}{Style.RESET_ALL}")
-                if row["reason"]:
-                    print(f"    {Fore.YELLOW}>> {row['reason']}{Style.RESET_ALL}")
 
         print()
 
@@ -211,6 +205,7 @@ def fn_app_catalog(
         print("Info: Use CTRL+Click to open links or copy them")
         print()
         has_sources = m4b_config_path is not None
+        print(f"  {Fore.CYAN}i{Style.RESET_ALL} App details")
         if has_sources:
             print(
                 f"  {Fore.CYAN}m{Style.RESET_ALL} Manage categories  |  "
@@ -223,6 +218,15 @@ def fn_app_catalog(
                 f"{Fore.CYAN}b{Style.RESET_ALL} Back"
             )
         choice = input("Select: ").strip().lower()
+        if choice == "i":
+            from money4band.apps.info import show_app_detail
+
+            name = input("App name (or Enter to go back): ").strip()
+            if name:
+                cls()
+                show_app_detail(app_config, name)
+                input("\nPress Enter to return to the catalog...")
+            return True
         if choice == "m":
             _manage_categories(app_config, app_config_path)
             return True
