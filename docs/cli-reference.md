@@ -156,7 +156,7 @@ List all apps grouped by category.
 ```bash
 m4b apps                           # all categories
 m4b apps --category supported      # supported (default, always active)
-m4b apps --category candidate      # newcomers (candidates, opt-in)
+m4b apps --category candidate      # candidate apps
 m4b apps --category deprecated     # deprecated (removed for cause)
 ```
 

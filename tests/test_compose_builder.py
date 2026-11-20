@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 from pathlib import Path
 from unittest.mock import patch
@@ -386,3 +387,44 @@ class TestAssembleDockerCompose:
             assert not (tmp_path / legacy).exists()
         # Single new compose file written.
         assert os.path.isfile(out)
+
+
+@pytest.mark.parametrize(
+    "platform,tag",
+    [
+        ("linux/amd64", "latest"),
+        ("linux/arm64", "arm64v8"),
+        ("linux/arm/v7", "arm32v7"),
+    ],
+)
+@pytest.mark.parametrize("proxy", [False, True])
+def test_traffmonetizer_selects_native_image_and_keeps_identity(
+    tmp_path, platform, tag, proxy
+):
+    root = Path(__file__).resolve().parents[1]
+    entry = json.loads(
+        (root / "config/catalog/supported/TRAFFMONETIZER.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    m4b, catalog, user = _make_configs(tmp_path)
+    catalog["supported"]["entries"] = [entry]
+    user["apps"] = {"traffmonetizer": {"enabled": True, "docker_platform": platform}}
+    user["proxies"]["enabled"] = proxy
+    tags = {
+        "results": [
+            {"name": "latest", "images": [{"architecture": "amd64"}]},
+            {"name": "arm64v8", "images": [{"architecture": "arm64"}]},
+            {"name": "arm32v7", "images": [{"architecture": "arm", "variant": "v7"}]},
+        ]
+    }
+    out = tmp_path / "docker-compose.yaml"
+    with patch("money4band.docker.checker.fetch_docker_tags", return_value=tags):
+        assemble_docker_compose(m4b, catalog, user, str(out), is_main_instance=True)
+    service = yaml.safe_load(out.read_text())["services"]["traffmonetizer"]
+    assert service["image"] == "traffmonetizer/cli_v2:" + tag
+    assert service["platform"] == platform
+    assert "HOME=/var/lib/tm" in service["environment"]
+    assert ".data/.traffmonetizer:/var/lib/tm" in service["volumes"]
+    assert service["command"][-2:] == ["start", "accept"]
+    assert (service.get("network_mode") == "service:proxy") is proxy

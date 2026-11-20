@@ -104,10 +104,6 @@ def main() -> None:
         entry.setdefault("app_details", {}).setdefault("docker", {})
         if name in DOCKER_UPDATES:
             entry["app_details"]["docker"].update(DOCKER_UPDATES[name])
-        entry["app_details"]["recommendation"] = "promoted"
-        entry["app_details"]["recommendation_reasoning"] = (
-            "Promoted to supported. Docker image verified on Docker Hub."
-        )
         entry["app_details"]["last_verified"] = "2026-03-23"
 
         if name == "BEARSHARE":

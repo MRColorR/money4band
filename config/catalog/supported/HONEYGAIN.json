@@ -34,8 +34,9 @@
         },
         "healthcheck": {
             "test": [
-                "CMD-SHELL",
-                "pgrep -f honeygain || exit 1"
+                "CMD",
+                "pidof",
+                "honeygain"
             ],
             "interval": "120s",
             "timeout": "10s",
@@ -56,13 +57,13 @@
         "official_name": "Honeygain",
         "publisher": "Honeygain UAB",
         "official_url": "https://honeygain.com",
-        "tos_url": "https://www.honeygain.com/terms-of-service/",
+        "tos_url": "https://www.honeygain.com/terms-of-use/",
         "status": "active",
         "device_limits": {
             "max_devices_per_account": 10,
             "max_devices_per_ip": 1,
             "max_ips_per_account": 10,
-            "notes": "10 concurrent active devices per account. Exactly 1 device per IP - additional devices show 'Network overused' error. Devices inactive 14+ days don't count. Swarmbytes wholesale tier available for 100+ IPs."
+            "notes": "Devices inactive for more than 14 days do not count toward the active-device limit."
         },
         "ip_policy": {
             "residential": true,
@@ -75,7 +76,7 @@
             "adjacent_ips_max": 1,
             "ipv6": "partial",
             "geo_restrictions": "none known",
-            "quality_notes": "Strictly residential/mobile. VPN/Datacenter IPs result in account suspension. VM/emulator support restricted."
+            "quality_notes": "Residential and mobile connections only. VPNs and datacenter IPs are not permitted."
         },
         "docker": {
             "image_official": true,
@@ -83,30 +84,28 @@
             "last_update": "2024-11"
         },
         "earnings": {
-            "model": "per-GB + JumpTask bonus",
-            "min_payout": "$20 PayPal",
+            "model": "per-GB credits",
+            "min_payout": "$20 Honeygain; $0.50 JumpTask ($1 first payout)",
             "payout_methods": [
-                "JumpToken (crypto)",
-                "PayPal (via JumpTask)"
+                "PayPal (Tipalti)",
+                "JumpTask credits (GIFQ gift cards or PayPal)"
             ],
             "avg_monthly_residential_usd": "1-9",
             "avg_monthly_datacenter_usd": null
         },
         "confidence": "high",
         "sources": [
-            "https://support.honeygain.com/hc/en-us/articles/360011188779",
-            "https://support.honeygain.com/hc/en-us/articles/360013096900"
+            "https://support.honeygain.com/hc/en-us/articles/30688365428636-How-to-request-a-payout",
+            "https://support.honeygain.com/hc/en-us/articles/30688558061084-What-are-credits-JumpTask",
+            "https://support.honeygain.com/hc/en-us/articles/30688479267868-How-to-run-Honeygain-on-Docker",
+            "https://support.honeygain.com/hc/en-us/articles/30688346556956-How-many-devices-can-I-use-and-how-do-I-manage-them",
+            "https://support.honeygain.com/hc/en-us/articles/30688404694428-Error-Network-overused"
         ],
-        "last_verified": "2026-03-21",
-        "compose_layer_reasoning": "Officially forbids non-residential IP types; VPN/Datacenter IPs result in account suspension.",
-        "install_limit_reasoning": "Hard technical limit of 1 device per IP. Extra devices show 'Network overused' error. Account cap is 10, but per-IP limit must be 1.",
-        "recommendation": "update-config",
-        "recommendation_reasoning": "Updated install_limit from 10 to 1 per IP. Account allows 10 devices but each requires unique IP.",
-        "confidence_notes": "Official support docs verified for 2026. Device limits confirmed in multiple help articles."
+        "last_verified": "2026-03-21"
     },
     "referrals": [
         {
-            "url": "https://r.honeygain.me/MINDL15721",
+            "url": "https://join.honeygain.com/MINDL15721",
             "contributor": "MRColorR"
         }
     ],

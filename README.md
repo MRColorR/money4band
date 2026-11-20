@@ -80,44 +80,44 @@ Start with a **built-in app** and select its name to visit the provider. Some li
 - **Optional community catalog** · Enable the [community catalog](docs/app-management.md) to add it.
 - **Standalone install** · Use the provider’s own installer.
 - **Candidate** · Tracked for evaluation. See the [app directory](docs/APPS.md) for details.
-- **Archived** · Listed for reference and historical purposes, removed from M4B setup as they shutted down or not deemed reliabe enough.
+- **Archived** · Older integrations, disabled by default as they shutted down or not deemed reliabe enough.
 
 <!-- BEGIN:APPS_TABLE -->
 | App | How to run it |
 | --- | --- |
-| [**AntGain**](https://antgain.app) | Built into Money4Band |
+| [**AntGain**](https://link.antgain.app/EYOOXFDK) | Built into Money4Band |
 | [**Bitping**](https://app.bitping.com?r=qm7mIuX3) | Built into Money4Band |
 | [**Earn.FM**](https://earn.fm/ref/MATTTAV6) | Built into Money4Band |
-| [**Honeygain**](https://r.honeygain.me/MINDL15721) | Built into Money4Band |
+| [**Honeygain**](https://join.honeygain.com/MINDL15721) | Built into Money4Band |
 | [**Mysterium**](https://mystnodes.co/?referral_code=Tc7RaS7Fm12K3Xun6mlU9q9hbnjojjl9aRBW8ZA9) | Built into Money4Band |
 | [**NetYield**](https://netyield.io/) | Built into Money4Band |
-| [**PacketStream**](https://packetstream.io/?psr=3zSD) | Built into Money4Band |
-| [**Pawns (IPRoyal)**](https://pawns.app?r=MiNe) | Built into Money4Band |
+| [**PacketStream**](https://packetstream.io/share-bandwidth/?psr=v3wayrm3g9) | Built into Money4Band |
+| [**Pawns (IPRoyal)**](https://pawns.app/?r=MiNe) | Built into Money4Band |
+| [**ProxyBase**](https://peer.proxybase.org/dashboard/signup?referral=XfOz3zeURm) | Built into Money4Band |
 | [**ProxyLite**](https://proxylite.ru/?r=PJTKXWN3) | Built into Money4Band |
 | [**Proxyrack Peer Program**](https://peer.proxyrack.com/ref/myoas6qttvhuvkzh8ffx90ns1ouhwgilfgamo5ex) | Built into Money4Band |
 | [**Repocket**](https://link.repocket.co/hr8i) | Built into Money4Band |
-| [**Spide Network**](https://spide.network) | Optional community catalog |
 | [**Titan Network**](https://titannet.io) | Built into Money4Band |
-| [**TraffMonetizer**](https://traffmonetizer.com/?aff=366499) | Built into Money4Band |
+| [**TraffMonetizer**](https://traffmonetizer.io/?aff=366499) | Built into Money4Band |
 | [**URnetwork**](https://ur.io) | Built into Money4Band |
 | [**EarnApp**](https://earnapp.com/i/3zulx7k) | Standalone install |
-| [**ByteBenefit**](https://bytebenefit.io) | Candidate (see app directory) |
+| [**ByteBenefit**](https://bytebenefit.io/invited?ref=FrrXA1) | Candidate (see app directory) |
 | [**Bytelixir**](https://bytelixir.com) | Candidate (see app directory) |
-| [**Earn.cc**](https://earn.cc) | Candidate (see app directory) |
-| [**Ebesucher**](https://www.ebesucher.com) | Candidate (see app directory) |
-| [**PassiveApp**](https://passiveapp.io) | Candidate (see app directory) |
+| [**Ebesucher**](https://www.ebesucher.com/?ref=mindlessnerds) | Candidate (see app directory) |
+| [**PassiveApp**](https://www.passiveapp.com/) | Candidate (see app directory) |
 | [**Salad**](https://salad.com) | Candidate (see app directory) |
 | [**UpRock**](https://uprock.com) | Candidate (see app directory) |
-| **Adnade** | Archived |
-| **BearShare** | Archived |
+| [**Adnade**](https://adnade.com) | Archived |
+| [**BearShare**](https://bearshare.io) | Archived |
 | [**Dawn Internet**](https://dawninternet.com?code=xo23vynw) | Archived |
-| **GaGaNode** | Archived |
+| [**Earn.cc**](https://earn.cc) | Archived |
+| [**GaGaNode**](https://www.gaganode.com) | Archived |
 | [**Gradient**](https://app.gradient.network/signup?code=9WOBKP) | Archived |
-| [**Grass (Wynd Network)**](https://app.getgrass.io/register/?referralCode=qyvJmxgNUhcLo2f) | Archived |
-| **PacketShare** | Archived |
+| [**Grass (Wynd Network)**](https://app.grass.io/register?referralCode=qyvJmxgNUhcLo2f) | Archived |
+| [**PacketShare**](https://packetshare.io) | Archived |
 | [**Peer2Profit**](https://t.me/peer2profit_app_bot?start=165849012262da8d0aa13c8) | Archived |
-| [**ProxyBase**](http://peer.proxybase.org/signup?ref=XfOz3zeURm) | Archived |
 | [**SpeedShare**](https://speedshare.app/?ref=mindlessnerd) | Archived |
+| [**Spide Network**](https://spide.network/register.html?206a39) | Archived |
 | [**Teneo Protocol**](https://dashboard.teneo.pro/?code=qPgLn) | Archived |
 | [**Wipter**](https://wipter.com/signup?ref=money4band) | Archived |
 | [**WizardGain**](https://wizardgain.com) | Archived |

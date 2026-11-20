@@ -56,7 +56,7 @@ def stop_stack(
         print(
             f"{Fore.BLUE}Docker stack removal for '{instance_name}' instance canceled.{Style.RESET_ALL}"
         )
-        pause(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
+        pause(f"\n  Press {Fore.CYAN}Enter{Style.RESET_ALL} to go back...")
         return False
 
     event = threading.Event()
@@ -208,7 +208,7 @@ def stop_all_stacks(
         f"This will stop all the apps for '{main_instance_name}' and any multi-proxy instances and delete the docker stacks previously created. Do you wish to proceed?"
     ):
         print(f"{Fore.BLUE}Docker stack removal canceled.{Style.RESET_ALL}")
-        pause(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
+        pause(f"\n  Press {Fore.CYAN}Enter{Style.RESET_ALL} to go back...")
         return True
 
     if platform.system().lower() == "linux" and not is_user_in_docker_group():
@@ -220,7 +220,7 @@ def stop_all_stacks(
         return stopped and instances_ok
     finally:
         if not skip_questions:
-            pause(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
+            pause(f"\n  Press {Fore.CYAN}Enter{Style.RESET_ALL} to go back...")
 
 
 def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> bool:
@@ -243,7 +243,7 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> b
                 hint_message="It looks like there is nothing to stop.",
             )
             if missing:
-                pause(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
+                pause(f"\n  Press {Fore.CYAN}Enter{Style.RESET_ALL} to go back...")
                 return True
 
         return stop_all_stacks(

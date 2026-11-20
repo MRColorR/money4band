@@ -59,16 +59,11 @@ def main(
         m4b_config = load_json_config(m4b_config_path)
         user_config = load_json_config(user_config_path)
 
-        detector.show_resource_profile_info(m4b_config, user_config)
+        detector.show_resource_profile_info(m4b_config, user_config, selectable=True)
 
         valid = detector.get_valid_profiles(m4b_config)
         active = detector.get_active_profile(user_config)
 
-        # Numbered profile picker
-        print(f"\n  {Fore.CYAN}Switch profile:{Style.RESET_ALL}")
-        for i, name in enumerate(valid, 1):
-            marker = f" {Fore.GREEN}(active){Style.RESET_ALL}" if name == active else ""
-            print(f"    {i}. {name}{marker}")
         print(f"\n  {Fore.CYAN}b{Style.RESET_ALL} Back")
 
         choice = input("Select: ").strip().lower()
@@ -92,8 +87,7 @@ def main(
                     )
                     print(f"\n{Fore.GREEN}Switched to: {selected}{Style.RESET_ALL}")
                     print(
-                        f"{Fore.YELLOW}Restart your stack (`m4b start`) "
-                        f"for new limits to take effect.{Style.RESET_ALL}"
+                        f"{Fore.YELLOW}Restart apps stack to apply the new limits.{Style.RESET_ALL}"
                     )
                 input("\nPress Enter to continue...")
             else:

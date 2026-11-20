@@ -3,10 +3,14 @@ from __future__ import annotations
 """Per-app detail card and app listing from app_details metadata."""
 
 import logging
+import shutil
+import textwrap
 from typing import Any
 
 from colorama import Fore, Style, just_fix_windows_console
 
+from money4band.apps.earnings import parse_earnings_range
+from money4band.apps.sources import get_catalog_source
 from money4band.core.loader import (
     get_all_app_categories,
     get_category_entries,
@@ -85,8 +89,11 @@ def show_app_detail(app_config: dict[str, Any], app_name: str) -> bool:
     )
     url = details.get("official_url", primary_referral or "-")
     print(f"\n{Fore.CYAN}Identity{Style.RESET_ALL}")
+    print(f"  {'Catalog source:':<{w}} {get_catalog_source(entry)}")
     print(f"  {'Publisher:':<{w}} {publisher}")
     print(f"  {'Website:':<{w}} {url}")
+    if entry.get("dashboard"):
+        print(f"  {'Dashboard:':<{w}} {entry['dashboard']}")
 
     tos = details.get("tos_url")
     if tos:
@@ -139,10 +146,10 @@ def show_app_detail(app_config: dict[str, Any], app_name: str) -> bool:
         if min_p:
             print(f"  {'Min payout:':<{w}} {min_p}")
         res = earnings.get("avg_monthly_residential_usd")
-        if res:
+        if parse_earnings_range(res) is not None:
             print(f"  {'Avg/month (resi):':<{w}} ${res}")
         dc = earnings.get("avg_monthly_datacenter_usd")
-        if dc:
+        if parse_earnings_range(dc) is not None:
             print(f"  {'Avg/month (DC):':<{w}} ${dc}")
 
     # Docker
@@ -165,22 +172,28 @@ def show_app_detail(app_config: dict[str, Any], app_name: str) -> bool:
     layer = entry.get("profile", "-")
     print(f"  {'Compose layer:':<{w}} {layer}")
 
+    additional = entry.get("additional_details")
+    if additional:
+        print(f"\n{Fore.CYAN}Setup and availability notes{Style.RESET_ALL}")
+        width = max(40, min(100, shutil.get_terminal_size((100, 24)).columns - 2))
+        for paragraph in additional.splitlines():
+            print(
+                textwrap.fill(
+                    paragraph,
+                    width=width,
+                    initial_indent="  ",
+                    subsequent_indent="  ",
+                    break_long_words=False,
+                    break_on_hyphens=False,
+                )
+            )
+
     # Warnings
     warnings = details.get("warnings", [])
     if warnings:
         print(f"\n{Fore.YELLOW}Warnings{Style.RESET_ALL}")
         for warn in warnings:
             print(f"  {Fore.YELLOW}! {warn}{Style.RESET_ALL}")
-
-    # Confidence & verification
-    confidence = details.get("confidence")
-    verified = details.get("last_verified")
-    if confidence or verified:
-        print(f"\n{Fore.CYAN}Data Quality{Style.RESET_ALL}")
-        if confidence:
-            print(f"  {'Confidence:':<{w}} {confidence}")
-        if verified:
-            print(f"  {'Last verified:':<{w}} {verified}")
 
     print()
     return True
@@ -209,9 +222,9 @@ def list_apps(app_config: dict[str, Any], category_filter: str | None = None) ->
     just_fix_windows_console()
 
     print(
-        f"\n{Fore.CYAN}{'Name':<20} {'Status':<14} {'Resi':>4} {'DC':>4} {'Payout':<22} {'Limit':>7}{Style.RESET_ALL}"
+        f"\n{Fore.CYAN}{'Name':<20} {'Source':<14} {'Status':<14} {'Resi':>4} {'DC':>4} {'Payout':<22} {'Limit':>7}{Style.RESET_ALL}"
     )
-    print(f"{'-' * 73}")
+    print(f"{'-' * 88}")
 
     for cat in get_all_app_categories(app_config):
         if category_filter and category_filter.lower() not in cat.lower():
@@ -237,12 +250,7 @@ def list_apps(app_config: dict[str, Any], category_filter: str | None = None) ->
                 status = f"{Fore.GREEN}active{Style.RESET_ALL}"
 
             print(
-                f"  {name:<18} {status:<23} {resi:>13} {dc:>13} {payout:<22} {limit_str:>5}"
+                f"  {name:<18} {get_catalog_source(entry):<14} {status:<23} {resi:>13} {dc:>13} {payout:<22} {limit_str:>5}"
             )
-
-            # Show removal reason for deprecated apps
-            additional = entry.get("additional_details", "")
-            if additional and cat == "deprecated":
-                print(f"    {Fore.YELLOW}-> {additional}{Style.RESET_ALL}")
 
     print()

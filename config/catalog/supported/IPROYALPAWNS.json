@@ -54,13 +54,13 @@
         "official_name": "Pawns (IPRoyal)",
         "publisher": "IPRoyal",
         "official_url": "https://pawns.app",
-        "tos_url": "https://iproyal.com/terms-of-service/",
+        "tos_url": "https://pawns.app/terms-of-use/",
         "status": "active",
         "device_limits": {
             "max_devices_per_account": "unlimited",
             "max_devices_per_ip": 1,
             "max_ips_per_account": "unlimited",
-            "notes": "1 node per unique public IP. Unlimited accounts but each requires distinct public IP. Cloning VMs on same IP explicitly disallowed and may trigger bans."
+            "notes": "One device per public IP."
         },
         "ip_policy": {
             "residential": true,
@@ -73,7 +73,7 @@
             "adjacent_ips_max": "undocumented",
             "ipv6": "undocumented",
             "geo_restrictions": "none known",
-            "quality_notes": "IPRoyal custom monitoring prevents datacenter IPs. Datacenter ASNs automatically removed from pool."
+            "quality_notes": "Residential and mobile connections only."
         },
         "docker": {
             "image_official": true,
@@ -93,19 +93,16 @@
         },
         "confidence": "high",
         "sources": [
-            "https://iproyal.com/IPRoyal_Residential_Proxy_Sourcing_Documentation.pdf",
-            "https://greenfrognest.com/IPRoyalLMDS.php"
+            "https://hub.docker.com/r/iproyal/pawns-cli",
+            "https://pawns.app/blog/how-to-install-and-run-the-pawns-app-container-in-docker/",
+            "https://help.pawns.app/en/articles/8658934-what-are-referral-earnings",
+            "https://pawns.app/terms-of-use/"
         ],
-        "last_verified": "2026-03-21",
-        "compose_layer_reasoning": "IPRoyal custom monitoring prevents datacenter IPs. Datacenter ASNs automatically removed from pool.",
-        "install_limit_reasoning": "1 node per unique public IP. Cloning VMs on same IP explicitly disallowed and may trigger bans.",
-        "recommendation": "update-config",
-        "recommendation_reasoning": "Corrected install_limit to 1 per IP. IPRoyal Sourcing Documentation confirms strict per-IP enforcement.",
-        "confidence_notes": "IPRoyal proxy sourcing documentation and community reports confirm residential-only policy."
+        "last_verified": "2026-03-21"
     },
     "referrals": [
         {
-            "url": "https://pawns.app?r=MiNe",
+            "url": "https://pawns.app/?r=MiNe",
             "contributor": "MRColorR"
         }
     ],
@@ -114,5 +111,6 @@
         "email": "yourIPROYALPAWNSMail",
         "password": "yourIPROYALPAWNSPw"
     },
-    "profile": "residential"
+    "profile": "residential",
+    "additional_details": "Use your account email and password. The Docker CLI has no OTP or API-key option. For the error \"please use SDK or gui app\", contact Pawns support or use the official desktop app."
 }

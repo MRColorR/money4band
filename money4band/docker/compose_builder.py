@@ -516,6 +516,10 @@ def assemble_docker_compose(
             yaml.dump(compose_dict, f, sort_keys=False, default_flow_style=False)
         generated_files.append(compose_output_path)
 
+        from money4band.apps.claim_instructions import write_claim_instructions
+
+        write_claim_instructions(app_config, user_config, output_dir, services)
+
         logger.info(f"Docker Compose file(s) assembled: {generated_files}")
         if disabled_apps_due_to_incompatibility:
             # disable the apps and save updated config

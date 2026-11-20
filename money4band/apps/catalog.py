@@ -4,8 +4,10 @@ import logging
 import shutil
 from typing import Any
 
-from colorama import Back, Fore, Style, just_fix_windows_console
+from colorama import Fore, Style, just_fix_windows_console
 
+from money4band.apps.links import primary_app_link
+from money4band.apps.sources import get_catalog_source
 from money4band.core.loader import (
     get_all_app_categories,
     get_category_entries,
@@ -24,12 +26,11 @@ def _display_catalog(app_config: dict[str, Any]) -> None:
     Adapts to terminal width so referral links are **never** truncated
     and remain fully clickable (Ctrl+Click).
 
-    Wide  (table fits): ``Name  Link  Layer  Payout`` on one line.
-    Compact (narrow):   ``Name  Layer  Payout`` on line 1,
+    Wide  (table fits): ``Name  Source  Link  Layer  Payout`` on one line.
+    Compact (narrow):   ``Name  Source  Layer  Payout`` on line 1,
                         full link indented on line 2.
 
-    Decorators use only broadly-supported characters:
-    ``->`` link prefix, ``>>`` removal reason, ``-`` separator.
+    Notes and removal reasons belong to the app detail card, not list rows.
     """
     term_width = shutil.get_terminal_size((120, 24)).columns
 
@@ -46,36 +47,31 @@ def _display_catalog(app_config: dict[str, Any]) -> None:
         status = (
             f"{Fore.GREEN}ACTIVE{Style.RESET_ALL}"
             if active
-            else f"{Fore.RED}INACTIVE{Style.RESET_ALL}"
+            else f"{Style.DIM}INACTIVE{Style.RESET_ALL}"
         )
         print(
-            f"\n{Back.YELLOW}{Fore.BLACK}--- {category.upper()} [{status}{Back.YELLOW}{Fore.BLACK}] ---{Style.RESET_ALL}"
+            f"\n{Fore.CYAN}--- {category.upper()} [{status}{Fore.CYAN}] ---{Style.RESET_ALL}"
         )
 
         # Collect rows
         rows: list[dict[str, str]] = []
         for app in apps:
-            referrals = app.get("referrals") or []
-            primary_link = (
-                referrals[0].get("url", "")
-                if referrals and isinstance(referrals[0], dict)
-                else ""
-            )
             rows.append(
                 {
                     "name": app["name"],
-                    "link": primary_link,
+                    "source": get_catalog_source(app),
+                    "link": primary_app_link(app),
                     "payout": app.get("app_details", {})
                     .get("earnings", {})
                     .get("min_payout", "-"),
                     "layer": app.get("profile", "-"),
-                    "reason": app.get("additional_details", ""),
                 }
             )
 
         # Column widths (data-driven)
         w_name = max((len(r["name"]) for r in rows), default=4)
         w_name = max(w_name, 4)
+        w_source = max(6, max((len(r["source"]) for r in rows), default=6))
         w_link = max((len(r["link"]) for r in rows), default=4)
         w_link = max(w_link, 4)
         w_layer = max((len(r["layer"]) for r in rows), default=5)
@@ -83,50 +79,46 @@ def _display_catalog(app_config: dict[str, Any]) -> None:
         w_payout = max((len(r["payout"]) for r in rows), default=6)
         w_payout = max(w_payout, 6)
 
-        # Can all four columns fit on one line?
-        #   2 (indent) + name + 2 + link + 2 + layer + 2 + payout
-        full_width = 2 + w_name + 2 + w_link + 2 + w_layer + 2 + w_payout
+        full_width = 2 + w_name + 2 + w_source + 2 + w_link + 2 + w_layer + 2 + w_payout
         compact = full_width > term_width
 
         if not compact:
             # -- Wide mode: single-line rows --
             header = (
-                f"  {Fore.CYAN}{'Name':<{w_name}}  {'Link':<{w_link}}  "
+                f"  {Fore.CYAN}{'Name':<{w_name}}  {'Source':<{w_source}}  {'Link':<{w_link}}  "
                 f"{'Layer':<{w_layer}}  {'Payout':<{w_payout}}{Style.RESET_ALL}"
             )
-            separator = (
-                f"  {'-' * w_name}  {'-' * w_link}  {'-' * w_layer}  {'-' * w_payout}"
-            )
+            separator = f"  {'-' * w_name}  {'-' * w_source}  {'-' * w_link}  {'-' * w_layer}  {'-' * w_payout}"
             print(header)
             print(separator)
 
             for row in rows:
                 print(
                     f"  {Fore.GREEN}{row['name']:<{w_name}}{Style.RESET_ALL}  "
+                    f"{row['source']:<{w_source}}  "
                     f"{Fore.CYAN}{row['link']:<{w_link}}{Style.RESET_ALL}  "
                     f"{row['layer']:<{w_layer}}  {row['payout']}"
                 )
-                if row["reason"]:
-                    print(f"    {Fore.YELLOW}>> {row['reason']}{Style.RESET_ALL}")
         else:
             # -- Compact mode: name/layer/payout line + link on its own line --
             header = (
-                f"  {Fore.CYAN}{'Name':<{w_name}}  "
+                f"  {Fore.CYAN}{'Name':<{w_name}}  {'Source':<{w_source}}  "
                 f"{'Layer':<{w_layer}}  {'Payout':<{w_payout}}{Style.RESET_ALL}"
             )
-            separator = f"  {'-' * w_name}  {'-' * w_layer}  {'-' * w_payout}"
+            separator = (
+                f"  {'-' * w_name}  {'-' * w_source}  {'-' * w_layer}  {'-' * w_payout}"
+            )
             print(header)
             print(separator)
 
             for row in rows:
                 print(
                     f"  {Fore.GREEN}{row['name']:<{w_name}}{Style.RESET_ALL}  "
+                    f"{row['source']:<{w_source}}  "
                     f"{row['layer']:<{w_layer}}  {row['payout']}"
                 )
                 if row["link"]:
                     print(f"    {Fore.CYAN}-> {row['link']}{Style.RESET_ALL}")
-                if row["reason"]:
-                    print(f"    {Fore.YELLOW}>> {row['reason']}{Style.RESET_ALL}")
 
         print()
 
@@ -178,11 +170,9 @@ def _manage_categories(app_config: dict[str, Any], app_config_path: str | None) 
     print(f"\n{cat_key} is now [{new_badge}]")
 
     if app_config_path:
-        # Write only the envelope's active flag - per-file bundles are
-        # not rewritten here.
-        from money4band.core.catalog_store import set_category_active
+        from money4band.apps.catalog_manager import set_category
 
-        set_category_active(app_config_path, cat_key, new_status)
+        set_category(app_config_path, cat_key, new_status)
         logger.info(
             "Saved category status change: %s -> active=%s", cat_key, new_status
         )
@@ -211,6 +201,7 @@ def fn_app_catalog(
         print("Info: Use CTRL+Click to open links or copy them")
         print()
         has_sources = m4b_config_path is not None
+        print(f"  {Fore.CYAN}i{Style.RESET_ALL} App details")
         if has_sources:
             print(
                 f"  {Fore.CYAN}m{Style.RESET_ALL} Manage categories  |  "
@@ -223,6 +214,15 @@ def fn_app_catalog(
                 f"{Fore.CYAN}b{Style.RESET_ALL} Back"
             )
         choice = input("Select: ").strip().lower()
+        if choice == "i":
+            from money4band.apps.info import show_app_detail
+
+            name = input("App name (or Enter to go back): ").strip()
+            if name:
+                cls()
+                show_app_detail(app_config, name)
+                input("\nPress Enter to return to the catalog...")
+            return True
         if choice == "m":
             _manage_categories(app_config, app_config_path)
             return True

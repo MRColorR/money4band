@@ -125,6 +125,30 @@ class TestMove:
 
 
 class TestEnvelope:
+    def test_fresh_install_defaults_match_shipped_config(self):
+        shipped = json.loads(
+            (Path(__file__).resolve().parents[1] / "config/m4b-config.json").read_text()
+        )["catalog"]
+        expected = {
+            "supported": {"active": True},
+            "newcomers": {"active": True},
+            "deprecated": {"active": False},
+        }
+        assert default_envelope()["categories"] == expected
+        assert shipped["categories"] == expected
+        assert (
+            next(s for s in shipped["catalog_sources"] if s["name"] == "builtin")[
+                "enabled"
+            ]
+            is True
+        )
+        assert (
+            next(s for s in shipped["catalog_sources"] if s["name"] == "community")[
+                "enabled"
+            ]
+            is False
+        )
+
     def test_set_category_active_flips_flag(self, tmp_path: Path):
         config = tmp_path / "m4b-config.json"
         write_envelope(default_envelope(), config)

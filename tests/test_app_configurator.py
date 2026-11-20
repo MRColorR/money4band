@@ -43,6 +43,31 @@ def test_interrupting_credentials_keeps_previous_app_settings(monkeypatch, capsy
     assert "Skipped first" in capsys.readouterr().out
 
 
+def test_machine_id_and_cid_use_field_instructions_and_shared_enter_hint(
+    monkeypatch, capsys
+):
+    from money4band.apps.configurator import configure_machine_id
+
+    prompts = []
+    monkeypatch.setattr("builtins.input", lambda prompt: prompts.append(prompt) or "")
+    config = {"machine_id": "a" * 32, "cid": "saved-cid"}
+    configure_machine_id(
+        {"name": "APP"},
+        {"length": 32, "instructions": "Restore a device with its Machine ID."},
+        config,
+    )
+    configure_cid(
+        {"name": "APP"},
+        {"instructions": "Copy CID from the installation command."},
+        config,
+    )
+    output = capsys.readouterr().out
+    assert output.count("Restore a device with its Machine ID.") == 1
+    assert output.count("Copy CID from the installation command.") == 1
+    assert all(prompt.count("Enter to keep") == 1 for prompt in prompts)
+    assert config == {"machine_id": "a" * 32, "cid": "saved-cid"}
+
+
 class TestConfigureEmail:
     """Prompt stores user-supplied email in config dict."""
 
@@ -123,7 +148,7 @@ class TestConfigureManual:
         configure_manual({"name": "APP"}, {"instructions": "Do X then Y"}, config)
         out = capsys.readouterr().out
         assert "Do X then Y" in out
-        assert "manual configuration" in out.lower()
+        assert "App" in out
 
     def test_missing_instructions_prints_error(self, capsys):
         config: dict = {}
@@ -178,14 +203,16 @@ class TestConfigureUuid:
     @patch("money4band.apps.configurator.ask_question_yn", return_value=False)
     @patch("money4band.apps.configurator.generate_uuid", return_value="abcd")
     @patch("builtins.input", return_value="")
-    def test_claim_url_written(self, _inp, _gen, _ask, tmp_path, monkeypatch):
+    def test_claim_file_waits_until_stack_generation(
+        self, _inp, _gen, _ask, tmp_path, monkeypatch
+    ):
         monkeypatch.chdir(tmp_path)
         config: dict = {}
         flag_config = {"length": 4, "claimURLBase": "https://claim.example.com/"}
         configure_uuid({"name": "TESTAPP"}, flag_config, config)
         claim_file = tmp_path / "claim_instructions_testapp.txt"
-        assert claim_file.exists()
-        assert "abcd" in claim_file.read_text()
+        assert not claim_file.exists()
+        assert config["uuid"] == "abcd"
 
 
 class TestFlagFunctionMapper:
@@ -202,6 +229,7 @@ class TestFlagFunctionMapper:
             "apikey",
             "userid",
             "uuid",
+            "machine_id",
             "cid",
             "code",
             "token",

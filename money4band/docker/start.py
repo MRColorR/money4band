@@ -98,7 +98,7 @@ def start_stack(
         print(
             f"{Fore.BLUE}Docker stack startup for '{instance_name}' instance canceled.{Style.RESET_ALL}"
         )
-        input(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
+        input(f"\n  Press {Fore.CYAN}Enter{Style.RESET_ALL} to go back...")
         return False
 
     event = threading.Event()
@@ -121,7 +121,7 @@ def start_stack(
             f"Run 'm4b generate' to regenerate it.{Style.RESET_ALL}"
         )
         if not skip_questions:
-            input(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
+            input(f"\n  Press {Fore.CYAN}Enter{Style.RESET_ALL} to go back...")
         return False
 
     try:
@@ -161,8 +161,13 @@ def start_stack(
             # Securely wipe the .env - credentials should not persist on disk
             # after compose-up bakes them into running containers.
             secure_delete_env(env_file)
+            from money4band.apps.claim_instructions import refresh_claim_keys
+
+            refresh_claim_keys(
+                os.path.dirname(os.path.abspath(compose_files[0])), use_sudo=use_sudo
+            )
             print(
-                f"{Fore.GREEN}All Apps for '{instance_name}' instance started.{Style.RESET_ALL}"
+                f"{Fore.GREEN}Stack '{instance_name}' launched. Check app status and complete any provider onboarding.{Style.RESET_ALL}"
             )
             logger.info(f"Stack for '{instance_name}' started successfully.")
             _notify_event(
@@ -180,7 +185,7 @@ def start_stack(
                 f"Stack '{instance_name}' failed to start (exit {result}).",
             )
             if not skip_questions:
-                input(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
+                input(f"\n  Press {Fore.CYAN}Enter{Style.RESET_ALL} to go back...")
         return result == 0
     except Exception as e:
         print(
@@ -189,7 +194,7 @@ def start_stack(
         logger.error(f"Unexpected error: {str(e)}")
         _notify_event("stack_error", f"Stack '{instance_name}' error: {e}")
         if not skip_questions:
-            input(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
+            input(f"\n  Press {Fore.CYAN}Enter{Style.RESET_ALL} to go back...")
     finally:
         event.set()
         spinner_thread.join()
@@ -227,7 +232,7 @@ def start_all_stacks(
         f"This will launch all the apps for '{main_instance_name}' and any multi-proxy instances using the configured .env files and docker-compose.yaml files. Docker must be already installed and running. Do you wish to proceed?"
     ):
         print(f"{Fore.BLUE}Docker stack startup canceled.{Style.RESET_ALL}")
-        pause(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
+        pause(f"\n  Press {Fore.CYAN}Enter{Style.RESET_ALL} to go back...")
         return True
 
     if platform.system().lower() == "linux" and not is_user_in_docker_group():
@@ -431,13 +436,13 @@ def start_all_stacks(
         if all_started:
             generate_container_url_list(None, None, main_env_file)
             print(
-                f"{Fore.YELLOW}Use the previously generated apps nodes URLs to add your device in any apps dashboard that require node claiming/registration (e.g., Earnapp, ProxyRack, etc.){Style.RESET_ALL}"
+                f"{Fore.YELLOW}Use the setup summary and generated dashboard URLs to complete any required provider onboarding or device registration.{Style.RESET_ALL}"
             )
             logger.info("All stacks started.")
         return all_started
     finally:
         if not skip_questions:
-            pause(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
+            pause(f"\n  Press {Fore.CYAN}Enter{Style.RESET_ALL} to go back...")
 
 
 def get_container_names_from_env(env_file: str) -> list[str]:
@@ -594,7 +599,7 @@ def main(app_config_path: str, m4b_config_path: str, user_config_path: str) -> b
             print(
                 "Please run the setup wizard first to generate the configuration files."
             )
-            pause(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
+            pause(f"\n  Press {Fore.CYAN}Enter{Style.RESET_ALL} to go back...")
             return False
 
         from money4band.docker.helper import get_active_profiles

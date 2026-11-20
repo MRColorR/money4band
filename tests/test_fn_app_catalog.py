@@ -1,5 +1,4 @@
 import io
-import json
 import os
 import re
 import unittest
@@ -39,6 +38,7 @@ class TestFnAppCatalog(unittest.TestCase):
                 },
                 {
                     "name": "HONEYGAIN",
+                    "_source": "community",
                     "dashboard": "https://dashboard.honeygain.com/",
                     "referrals": [
                         {
@@ -106,6 +106,9 @@ class TestFnAppCatalog(unittest.TestCase):
         self.assertIn("Link", out)
         self.assertIn("Layer", out)
         self.assertIn("Payout", out)
+        self.assertIn("Source", out)
+        self.assertRegex(out, r"HONEYGAIN\s+community")
+        self.assertRegex(out, r"EARNAPP\s+builtin")
 
         # Full referral links present and never truncated
         self.assertIn("https://earnapp.com/i/3zulx7k", out)
@@ -139,6 +142,8 @@ class TestFnAppCatalog(unittest.TestCase):
         self.assertIn("Name", out)
         self.assertIn("Layer", out)
         self.assertIn("Payout", out)
+        self.assertIn("Source", out)
+        self.assertRegex(out, r"HONEYGAIN\s+community")
 
         # Full links still present with -> prefix
         self.assertIn("-> https://earnapp.com/i/3zulx7k", out)
@@ -155,10 +160,10 @@ class TestFnAppCatalog(unittest.TestCase):
     @patch("money4band.apps.catalog.print")
     @patch("money4band.apps.catalog.cls")
     @patch("money4band.apps.catalog.input", create=True)
-    def test_deprecated_apps_show_links_and_reason(
+    def test_deprecated_apps_keep_links_without_inline_notes(
         self, mock_input, mock_cls, mock_print, _mock_term
     ):
-        """Deprecated apps show referral link + removal reason (same format as supported)."""
+        """Archived entries remain visible; long notes belong to the detail view."""
         mock_input.return_value = ""
 
         fn_app_catalog(self._APP_CONFIG)
@@ -168,7 +173,15 @@ class TestFnAppCatalog(unittest.TestCase):
         self.assertIn(
             "https://app.getgrass.io/register/?referralCode=qyvJmxgNUhcLo2f", out
         )
-        self.assertIn(">> Docker image unavailability", out)
+        self.assertNotIn("Docker image unavailability", out)
+        self.assertIn("App details", out)
+
+    @patch("money4band.apps.info.show_app_detail")
+    @patch("money4band.apps.catalog.cls")
+    @patch("money4band.apps.catalog.input", side_effect=["i", "grass", ""], create=True)
+    def test_details_are_accessible_from_interactive_menu(self, _input, _cls, detail):
+        self.assertTrue(fn_app_catalog(self._APP_CONFIG))
+        detail.assert_called_once_with(self._APP_CONFIG, "grass")
 
     @patch("money4band.apps.catalog.logger.error")
     def test_fn_app_catalog_exception(self, mock_logging_error):
@@ -244,26 +257,24 @@ class TestManageCategories(unittest.TestCase):
     def test_toggle_persists_to_file(self, _inp, tmp_path=None):
         import copy
         import tempfile
+        from pathlib import Path
 
+        from money4band.core.catalog_overrides import load_user_overrides
         from money4band.core.catalog_store import default_envelope, write_envelope
 
         cfg = copy.deepcopy(self._APP_CONFIG)
-        # Persistence targets the v2 envelope. The in-memory aggregated
-        # dict (cfg) is what _manage_categories displays; the companion
-        # envelope file is what it writes back.
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".json") as f:
-            cfg_path = f.name
-        try:
+        with tempfile.TemporaryDirectory() as folder:
+            cfg_path = str(Path(folder) / "m4b-config.json")
             envelope = default_envelope()
             first_key = list(cfg.keys())[0]
             envelope["categories"][first_key] = {"active": True}
             write_envelope(envelope, cfg_path)
+            shipped = Path(cfg_path).read_bytes()
 
             _manage_categories(cfg, cfg_path)
-            saved = json.loads(open(cfg_path).read())
-            assert saved["categories"][first_key]["active"] is False
-        finally:
-            os.unlink(cfg_path)
+            assert Path(cfg_path).read_bytes() == shipped
+            overrides = load_user_overrides(Path(folder) / "user-config.json")
+            assert overrides["categories"][first_key]["active"] is False
 
     @patch("money4band.apps.catalog.input", create=True, return_value="xyz")
     def test_invalid_input(self, _inp, capsys=None):

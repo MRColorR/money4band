@@ -1,6 +1,6 @@
 {
     "name": "PROXYLITE",
-    "dashboard": "https://proxylite.ru/",
+    "dashboard": "https://lk.proxylite.ru/",
     "compose_config": {
         "container_name": "${DEVICE_NAME}_proxylite",
         "hostname": "${DEVICE_NAME}_proxylite",
@@ -46,53 +46,53 @@
         "official_name": "ProxyLite",
         "publisher": "ProxyLite",
         "official_url": "https://proxylite.ru",
-        "tos_url": "https://www.proxylite.com/terms-of-service",
+        "tos_url": "https://app.proxylite.ru/legal/proxylite_android_user_agreement.pdf",
         "status": "active",
         "device_limits": {
-            "max_devices_per_account": "unlimited",
+            "max_devices_per_account": "undocumented",
             "max_devices_per_ip": "undocumented",
-            "max_ips_per_account": "unlimited",
-            "notes": "Commercial proxy provider using P2P nodes. No documented device cap."
+            "max_ips_per_account": "undocumented",
+            "notes": "Multiple devices require distinct public IPs. Account-wide limits are undocumented."
         },
         "ip_policy": {
             "residential": true,
-            "datacenter": true,
-            "vps": true,
+            "datacenter": "undocumented",
+            "vps": "undocumented",
             "vpn": "undocumented",
-            "proxy": true,
+            "proxy": "undocumented",
             "mobile": true,
-            "adjacent_ips_accepted": true,
-            "adjacent_ips_max": "unlimited",
-            "ipv6": true,
-            "geo_restrictions": "Does not support mainland China. Russian-origin service - international availability may vary.",
-            "quality_notes": "Supports residential, static datacenter, and ISP proxy types. Community VPS deployments widely practiced with no ban reports."
+            "adjacent_ips_accepted": "undocumented",
+            "adjacent_ips_max": "undocumented",
+            "ipv6": "undocumented",
+            "geo_restrictions": "undocumented",
+            "quality_notes": "Residential computers and Android devices. Datacenter, VPN and proxy eligibility is undocumented."
         },
         "docker": {
             "image_official": true,
             "image_maintained": true,
-            "last_update": "2024-12"
+            "last_update": "2022-01-22"
         },
         "earnings": {
-            "model": "per-GB",
+            "model": "bandwidth sharing (Coins)",
             "min_payout": "undocumented",
             "payout_methods": [
-                "crypto"
+                "Sberbank (Russia)",
+                "mobile credit (supported countries)",
+                "YuMoney",
+                "bank cards (Belarus)"
             ],
             "avg_monthly_residential_usd": "unknown",
             "avg_monthly_datacenter_usd": "unknown"
         },
         "confidence": "medium",
         "sources": [
-            "https://www.proxylite.com/",
-            "https://hub.docker.com/u/proxylite",
-            "https://www.reddit.com/r/oraclecloud/comments/1df74jc/"
+            "https://proxylite.ru/",
+            "https://proxylite.ru/download.php",
+            "https://proxylite.ru/faq.php",
+            "https://hub.docker.com/r/proxylite/proxyservice",
+            "https://app.proxylite.ru/legal/proxylite_android_user_agreement.pdf"
         ],
-        "last_verified": "2026-03-21",
-        "compose_layer_reasoning": "Supports residential, static datacenter, and ISP proxy types. Community VPS deployments widely practiced with no ban reports. Russian-origin service.",
-        "install_limit_reasoning": "Commercial scale supports high device density. No documented device cap.",
-        "recommendation": "update-config",
-        "recommendation_reasoning": "Changed compose_layer from datacenter to universal. Verified support for all IP types including residential.",
-        "confidence_notes": "Live service site and dashboard verified. Reddit VPS deployment reports confirm multi-IP-type support."
+        "last_verified": "2026-03-21"
     },
     "referrals": [
         {

@@ -1,6 +1,6 @@
 {
     "name": "PACKETSTREAM",
-    "dashboard": "https://packetstream.io/dashboard",
+    "dashboard": "https://app.packetstream.io/dashboard",
     "compose_config": {
         "container_name": "${DEVICE_NAME}_packetstream",
         "hostname": "${DEVICE_NAME}_packetstream",
@@ -25,8 +25,9 @@
         },
         "healthcheck": {
             "test": [
-                "CMD-SHELL",
-                "pgrep -f psclient || exit 1"
+                "CMD",
+                "pidof",
+                "psclient"
             ],
             "interval": "120s",
             "timeout": "10s",
@@ -39,20 +40,22 @@
         "hostname": null
     },
     "flags": {
-        "cid": {}
+        "cid": {
+            "instructions": "Open https://app.packetstream.io/dashboard/download, select Linux and copy the CID from the installation command, without quotes."
+        }
     },
     "install_limit": -1,
     "app_details": {
         "official_name": "PacketStream",
         "publisher": "PacketStream",
         "official_url": "https://packetstream.io",
-        "tos_url": "https://packetstream.io/tos",
+        "tos_url": "https://packetstream.io/terms-of-service/",
         "status": "active",
         "device_limits": {
-            "max_devices_per_account": "unlimited",
+            "max_devices_per_account": "undocumented",
             "max_devices_per_ip": "undocumented",
-            "max_ips_per_account": "unlimited",
-            "notes": "No explicit device cap found. Multiple instances possible with different IPs."
+            "max_ips_per_account": "undocumented",
+            "notes": "Use distinct public IPs for multiple devices."
         },
         "ip_policy": {
             "residential": true,
@@ -65,7 +68,7 @@
             "adjacent_ips_max": "undocumented",
             "ipv6": "undocumented",
             "geo_restrictions": "none known",
-            "quality_notes": "Official FAQ explicitly states datacenter and business IPs not accepted. Requires 'geographic diversity and residential characteristics'."
+            "quality_notes": "Residential connections only; datacenter and business IPs are not accepted."
         },
         "docker": {
             "image_official": true,
@@ -83,18 +86,14 @@
         },
         "confidence": "high",
         "sources": [
-            "https://packetstream.io/share-bandwidth/"
+            "https://packetstream.io/share-bandwidth/",
+            "https://packetstream.io/install.sh"
         ],
-        "last_verified": "2026-03-21",
-        "compose_layer_reasoning": "Official FAQ explicitly states datacenter and business IPs not accepted. Requires 'geographic diversity and residential characteristics'.",
-        "install_limit_reasoning": "No explicit device cap found in official documentation. Multiple instances possible with different IPs.",
-        "recommendation": "keep",
-        "recommendation_reasoning": "No config changes needed. Residential layer and unlimited limit are correct.",
-        "confidence_notes": "PacketStream share-bandwidth page and FAQ verified."
+        "last_verified": "2026-03-21"
     },
     "referrals": [
         {
-            "url": "https://packetstream.io/?psr=3zSD",
+            "url": "https://packetstream.io/share-bandwidth/?psr=v3wayrm3g9",
             "contributor": "MRColorR"
         }
     ],
@@ -102,5 +101,6 @@
         "enabled": false,
         "cid": "yourPACKETSTREAMCID"
     },
-    "profile": "residential"
+    "profile": "residential",
+    "additional_details": "Copy the CID from the Linux installation command in your account dashboard."
 }

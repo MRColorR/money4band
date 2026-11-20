@@ -285,8 +285,17 @@ class TestResourceProfiles(unittest.TestCase):
                 "app_cpu_limit_huge": 1.0,
             },
         }
-        # Should not raise
-        show_resource_profile_info(self._M4B_CFG, user_config)
+        import io
+
+        with patch("sys.stdout", new_callable=io.StringIO) as output:
+            show_resource_profile_info(self._M4B_CFG, user_config, selectable=True)
+        text = output.getvalue()
+        self.assertIn("Per-app limits (calculated)", text)
+        self.assertIn("RAM soft", text)
+        self.assertIn("Choose a preset", text)
+        self.assertNotIn("Base CPUs", text)
+        for index, name in enumerate(get_valid_profiles(self._M4B_CFG), 1):
+            self.assertEqual(text.count(f"{index}. {name}"), 1)
 
 
 if __name__ == "__main__":

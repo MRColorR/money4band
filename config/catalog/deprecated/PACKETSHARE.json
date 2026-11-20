@@ -52,8 +52,7 @@
         "device_limits": {
             "max_devices_per_account": "undocumented",
             "max_devices_per_ip": "undocumented",
-            "max_ips_per_account": "undocumented",
-            "notes": "Very sparse official documentation. No official limits found."
+            "max_ips_per_account": "undocumented"
         },
         "ip_policy": {
             "residential": true,
@@ -65,8 +64,7 @@
             "adjacent_ips_accepted": "undocumented",
             "adjacent_ips_max": "undocumented",
             "ipv6": "undocumented",
-            "geo_restrictions": "none known",
-            "quality_notes": "Insufficient official documentation to confirm IP type policy. Community evidence suggests residential focus."
+            "geo_restrictions": "none known"
         },
         "docker": {
             "image_official": true,
@@ -83,18 +81,13 @@
             "avg_monthly_datacenter_usd": "unknown"
         },
         "warnings": [
-            "Very sparse official documentation",
-            "IP policy and earnings unverified"
+            "No linux/amd64 image available.",
+            "IP policy and payout terms are undocumented."
         ],
         "confidence": "low",
         "sources": [
             "https://essay.utwente.nl/fileshare/file/108490/thesis-1.pdf"
-        ],
-        "compose_layer_reasoning": "Insufficient official documentation to confirm IP type policy. Community evidence suggests residential focus. Conservative residential classification applied.",
-        "install_limit_reasoning": "Very sparse official documentation. No official limits found.",
-        "recommendation": "remove",
-        "recommendation_reasoning": "Removed from the built-in catalog. Neither published Docker tag provides a linux/amd64 image and the public signup site failed to respond.",
-        "confidence_notes": "Only academic thesis reference found. Official documentation is extremely sparse."
+        ]
     },
     "referrals": [],
     "user_config_template": {
@@ -104,5 +97,5 @@
         "service_enabled": false
     },
     "profile": "residential",
-    "additional_details": "Removed from the built-in catalog. Neither published Docker tag provides a linux/amd64 image and the public signup site failed to respond."
+    "additional_details": "Archived: no linux/amd64 image available."
 }

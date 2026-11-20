@@ -1,7 +1,7 @@
 {
     "name": "MYSTNODE",
     "manual_onboard": true,
-    "dashboard": "https://mystnodes.com/nodes",
+    "dashboard": "https://my.mystnodes.com/nodes",
     "compose_config": {
         "container_name": "${DEVICE_NAME}_mystnode",
         "hostname": "${DEVICE_NAME}_mystnode",
@@ -43,7 +43,10 @@
             "timeout": "15s",
             "retries": 3,
             "start_period": "90s"
-        }
+        },
+        "devices": [
+            "/dev/net/tun:/dev/net/tun"
+        ]
     },
     "compose_config_proxy": {
         "network_mode": "service:proxy",
@@ -52,7 +55,7 @@
     },
     "flags": {
         "manual": {
-            "instructions": "Log into your device's mystnode local webdashboard, navigate to the Myst Node page and follow the onscreen instruction to complete the setup.\n\nDisclaimer: If you want to further optimize UPnP and port forwarding, consider setting manually 'network: host' for mystnode in your Docker compose. This may improve mystnode performance, but do this only if you know what you are doing and you are aware of potential security implications."
+            "instructions": "After starting the stack, open the local WebUI shown in the setup summary. Complete onboarding, choose your beneficiary wallet and claim the node at https://my.mystnodes.com/nodes. Keep .data/mysterium-node to preserve its identity. The Docker host needs /dev/net/tun. Use an SSH tunnel to reach the WebUI on a remote host."
         }
     },
     "install_limit": -1,
@@ -60,13 +63,13 @@
         "official_name": "Mysterium",
         "publisher": "Mysterium Network Foundation",
         "official_url": "https://mystnodes.com",
-        "tos_url": "https://mysterium.network/terms",
+        "tos_url": "https://www.mystnodes.com/legal/terms-and-conditions",
         "status": "active",
         "device_limits": {
-            "max_devices_per_account": "unlimited",
+            "max_devices_per_account": "undocumented",
             "max_devices_per_ip": 1,
-            "max_ips_per_account": "unlimited",
-            "notes": "Decentralized network. Unique IP required per node for discoverability. No documented cap. Residential nodes earn more per task due to higher buyer demand."
+            "max_ips_per_account": "undocumented",
+            "notes": "Each node needs a distinct public IP."
         },
         "ip_policy": {
             "residential": true,
@@ -79,7 +82,7 @@
             "adjacent_ips_max": "unlimited",
             "ipv6": true,
             "geo_restrictions": "none known",
-            "quality_notes": "Algorithm assesses IP location and quality. Residential nodes command premium prices. Staking MYST tokens can boost earnings. Whitelisting (KYC) may be required in some regions."
+            "quality_notes": "Task availability depends on IP location and quality."
         },
         "docker": {
             "image_official": true,
@@ -98,21 +101,17 @@
             "avg_monthly_datacenter_usd": "0.5-3"
         },
         "warnings": [
-            "Requires NET_ADMIN capability for VPN tunnel creation (TUN/TAP) - legitimate technical requirement for VPN exit node functionality"
+            "Requires /dev/net/tun and NET_ADMIN."
         ],
         "confidence": "high",
         "sources": [
             "https://mystnodes.com",
             "https://hub.docker.com/r/mysteriumnetwork/myst",
             "https://github.com/mysteriumnetwork/node",
-            "https://docs.mysterium.network/content-page"
+            "https://help.mystnodes.com/en/articles/8005230-tun-device-errors-and-troubleshooting",
+            "https://help.mystnodes.com/en/articles/8006242-running-a-mystnodes-as-docker-image-on-windows-and-macos-hosts"
         ],
-        "last_verified": "2026-03-21",
-        "compose_layer_reasoning": "Decentralized VPN exit node network. Algorithm assesses IP location and quality. Both residential and datacenter nodes supported - residential earn premium prices.",
-        "install_limit_reasoning": "Decentralized architecture supports massive scaling. Unique IP required per node for network discoverability.",
-        "recommendation": "update-config",
-        "recommendation_reasoning": "Changed compose_layer from datacenter to universal. Verified residential+DC support in official docs and Docker Hub.",
-        "confidence_notes": "Official GitHub, Docker Hub, and Mysterium docs verified. Well-documented open-source project. Verified 2026-05-15 via container test: vendor default binds dashboard to 0.0.0.0:4449 inside the container; the published port mapping reaches the dashboard from the host without any extra startup flag. Command 'service --agreed-terms-and-conditions' is sufficient."
+        "last_verified": "2026-03-21"
     },
     "referrals": [
         {

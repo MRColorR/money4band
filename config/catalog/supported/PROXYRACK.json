@@ -51,14 +51,13 @@
     "app_details": {
         "official_name": "Proxyrack Peer Program",
         "publisher": "Proxyrack",
-        "official_url": "https://proxyrack.com/peer-program/",
-        "tos_url": "https://proxyrack.com/terms/",
+        "official_url": "https://www.proxyrack.com/become-a-peer/",
+        "tos_url": "https://www.proxyrack.com/terms-of-use/",
         "status": "active",
         "device_limits": {
             "max_devices_per_account": 500,
             "max_devices_per_ip": "undocumented",
-            "max_ips_per_account": 500,
-            "notes": "Official help article confirms hard 500-device limit per account for 'fair usage and optimal performance'."
+            "max_ips_per_account": 500
         },
         "ip_policy": {
             "residential": true,
@@ -71,7 +70,7 @@
             "adjacent_ips_max": "undocumented",
             "ipv6": "undocumented",
             "geo_restrictions": "none known",
-            "quality_notes": "Community confirms VPS/DC IPs accepted. One of the more permissive platforms."
+            "quality_notes": "Residential and datacenter connections are accepted."
         },
         "docker": {
             "image_official": true,
@@ -90,14 +89,11 @@
         },
         "confidence": "high",
         "sources": [
-            "https://help.proxyrack.com/en/articles/6532812-device-limit"
+            "https://help.proxyrack.com/en/articles/6532812-device-limit",
+            "https://www.proxyrack.com/become-a-peer/",
+            "https://hub.docker.com/r/proxyrack/pop"
         ],
-        "last_verified": "2026-03-21",
-        "compose_layer_reasoning": "Community confirms VPS/DC IPs accepted. One of the more permissive platforms for datacenter proxies.",
-        "install_limit_reasoning": "Official help article confirms hard 500-device limit per account for 'fair usage and optimal performance'.",
-        "recommendation": "keep",
-        "recommendation_reasoning": "Datacenter layer and 500-device limit are correct per official documentation.",
-        "confidence_notes": "Official Proxyrack help center article on device limits verified."
+        "last_verified": "2026-03-21"
     },
     "referrals": [
         {

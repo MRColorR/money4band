@@ -1,6 +1,6 @@
 {
     "name": "BITPING",
-    "dashboard": "https://app.bitping.com/earnings",
+    "dashboard": "https://nodes.bitping.com/dashboard",
     "compose_config": {
         "container_name": "${DEVICE_NAME}_bitping",
         "hostname": "${DEVICE_NAME}_bitping",
@@ -54,10 +54,10 @@
         "tos_url": "https://bitping.com/terms",
         "status": "active",
         "device_limits": {
-            "max_devices_per_account": "unlimited",
+            "max_devices_per_account": "undocumented",
             "max_devices_per_ip": "undocumented",
-            "max_ips_per_account": "unlimited",
-            "notes": "No documented device cap. Officially supports servers, PCs, and Raspberry Pi. Docker explicitly supported."
+            "max_ips_per_account": "undocumented",
+            "notes": "Supports servers, PCs and Raspberry Pi."
         },
         "ip_policy": {
             "residential": true,
@@ -70,7 +70,7 @@
             "adjacent_ips_max": "undocumented",
             "ipv6": "undocumented",
             "geo_restrictions": "none known",
-            "quality_notes": "Network monitoring/testing model (not pure bandwidth sharing). Node quality depends on geo location and latency, not IP type. Servers explicitly listed as supported."
+            "quality_notes": "Network monitoring tasks depend on location and latency."
         },
         "docker": {
             "image_official": true,
@@ -79,24 +79,21 @@
         },
         "earnings": {
             "model": "task-based (network monitoring)",
-            "min_payout": "$1 BITPING token",
+            "min_payout": "More than $0.05",
             "payout_methods": [
-                "BITPING token (crypto)",
-                "USDC"
+                "SOL (see dashboard for available currencies)"
             ],
             "avg_monthly_residential_usd": "0.1-1",
             "avg_monthly_datacenter_usd": "0.1-1"
         },
         "confidence": "high",
         "sources": [
-            "https://bitping.com/help/nodes/system-requirements"
+            "https://bitping.com/help/nodes/system-requirements",
+            "https://bitping.com/help/nodes/installing-the-node/",
+            "https://bitping.com/help/nodes/troubleshooting-solana-payouts",
+            "https://bitping.com/help/nodes/troubleshooting-protocols"
         ],
-        "last_verified": "2026-03-21",
-        "compose_layer_reasoning": "Network monitoring/testing model (not pure bandwidth sharing). Node quality depends on geo location and latency, not IP type. Servers explicitly listed as supported platform.",
-        "install_limit_reasoning": "No documented device cap. Officially supports servers, PCs, and Raspberry Pi. Docker explicitly supported.",
-        "recommendation": "keep",
-        "recommendation_reasoning": "Datacenter layer and unlimited limit are correct. Task-based model accepts all IP types.",
-        "confidence_notes": "Bitping system requirements page confirms server and Docker support."
+        "last_verified": "2026-03-21"
     },
     "referrals": [
         {

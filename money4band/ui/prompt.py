@@ -11,6 +11,26 @@ from money4band.docker.generator import validate_uuid
 logger = logging.getLogger(__name__)
 
 
+class SkipAppError(Exception):
+    """Cancel the current app's pending setup without aborting the wizard."""
+
+
+def _read_response(message: str, *, allow_skip: bool = False) -> str:
+    response = input(message).strip()
+    if allow_skip and response == "/skip":
+        raise SkipAppError
+    return response
+
+
+def wait_for_enter(message: str, *, allow_skip: bool = False) -> None:
+    """Wait for Enter, with an explicit cancellation command during app setup."""
+    while _read_response(message, allow_skip=allow_skip):
+        print(
+            "Press Enter to continue."
+            + (" Type /skip to skip this app." if allow_skip else "")
+        )
+
+
 def pause(message: str) -> None:
     """Wait for the user to press a key before continuing.
 
@@ -61,7 +81,27 @@ def ask_question_yn(question: str, default: bool = False) -> bool:
     return done
 
 
-def ask_string(prompt: str, default: str = "", show_default: bool = True) -> str:
+def _format_text_prompt(
+    prompt: str, default: str, show_default: bool, *, allow_skip: bool = False
+) -> str:
+    """Own the delimiter so labels supplied by callers never duplicate it."""
+    prompt_text = f"{Fore.GREEN}{prompt.rstrip().rstrip(':')}"
+    if show_default:
+        prompt_text += f" (default/current value: {Fore.YELLOW}{default}{Fore.GREEN})"
+        if allow_skip and default:
+            prompt_text += " (Enter to keep)"
+    elif allow_skip and default and not default.startswith("your"):
+        prompt_text += " (current: ********; Enter to keep)"
+    return prompt_text + f":{Style.RESET_ALL} "
+
+
+def ask_string(
+    prompt: str,
+    default: str = "",
+    show_default: bool = True,
+    *,
+    allow_skip: bool = False,
+) -> str:
     """
     Ask the user for a string and return it.
 
@@ -69,17 +109,17 @@ def ask_string(prompt: str, default: str = "", show_default: bool = True) -> str
         prompt (str): The prompt to display to the user.
         default (str, optional): The default value if the user enters an empty string. Defaults to "".
         show_default (bool, optional): Whether to show the default value in the prompt. Defaults to True.
+        allow_skip: Raise SkipAppError on /skip during app credential collection.
 
     Returns:
         str: The string entered by the user.
     """
-    prompt_text = f"{Fore.GREEN}{prompt}"
-    if show_default:
-        prompt_text += f" (default/current value: {Fore.YELLOW}{default}{Fore.GREEN})"
-    prompt_text += f":{Style.RESET_ALL} "
+    prompt_text = _format_text_prompt(
+        prompt, default, show_default, allow_skip=allow_skip
+    )
 
     while True:
-        response = input(prompt_text).strip()
+        response = _read_response(prompt_text, allow_skip=allow_skip)
         if not response:
             response = default
         if (
@@ -90,7 +130,13 @@ def ask_string(prompt: str, default: str = "", show_default: bool = True) -> str
         return response
 
 
-def ask_email(prompt: str, default: str = "", show_default: bool = True) -> str:
+def ask_email(
+    prompt: str,
+    default: str = "",
+    show_default: bool = True,
+    *,
+    allow_skip: bool = False,
+) -> str:
     """
     Ask the user for an email address and validate it.
 
@@ -98,17 +144,17 @@ def ask_email(prompt: str, default: str = "", show_default: bool = True) -> str:
         prompt (str): The prompt to display to the user.
         default (str, optional): The default value if the user enters an empty string. Defaults to "".
         show_default (bool, optional): Whether to show the default value in the prompt. Defaults to True.
+        allow_skip: Raise SkipAppError on /skip during app credential collection.
 
     Returns:
         str: The validated email address.
     """
-    prompt_text = f"{Fore.GREEN}{prompt}"
-    if show_default:
-        prompt_text += f" (default/current value: {Fore.YELLOW}{default}{Fore.GREEN})"
-    prompt_text += f":{Style.RESET_ALL} "
+    prompt_text = _format_text_prompt(
+        prompt, default, show_default, allow_skip=allow_skip
+    )
 
     while True:
-        email = input(prompt_text).strip()
+        email = _read_response(prompt_text, allow_skip=allow_skip)
         if not email:
             email = default
         if not email:  # As default is empty if not specified then we throw this error
@@ -128,7 +174,12 @@ def ask_email(prompt: str, default: str = "", show_default: bool = True) -> str:
 
 
 def ask_uuid(
-    prompt: str, length: int, default: str = "", show_default: bool = True
+    prompt: str,
+    length: int,
+    default: str = "",
+    show_default: bool = True,
+    *,
+    allow_skip: bool = False,
 ) -> str:
     """
     Ask the user for a UUID and validate it.
@@ -138,17 +189,17 @@ def ask_uuid(
         length (int): The expected length of the UUID.
         default (str, optional): The default value if the user enters an empty string. Defaults to "".
         show_default (bool, optional): Whether to show the default value in the prompt. Defaults to True.
+        allow_skip: Raise SkipAppError on /skip during app credential collection.
 
     Returns:
         str: The validated UUID.
     """
-    prompt_text = f"{Fore.GREEN}{prompt}"
-    if show_default:
-        prompt_text += f" (default/current value: {Fore.YELLOW}{default}{Fore.GREEN})"
-    prompt_text += f":{Style.RESET_ALL} "
+    prompt_text = _format_text_prompt(
+        prompt, default, show_default, allow_skip=allow_skip
+    )
 
     while True:
-        uuid = input(prompt_text).lower().strip()
+        uuid = _read_response(prompt_text, allow_skip=allow_skip).lower()
         if not uuid:
             uuid = default
         if not uuid:  # As default is empty if not specified then we throw this error

@@ -14,6 +14,39 @@ from money4band.docker.generator import (
 )
 
 
+def test_compose_generation_saves_device_instructions(tmp_path, monkeypatch):
+    import copy
+
+    monkeypatch.setattr(
+        "money4band.docker.compose_builder.check_img_arch_support", lambda *args: True
+    )
+    app = {
+        "name": "SPIDE",
+        "profile": "residential",
+        "compose_config": {
+            "image": "example/spide:latest",
+            "container_name": "${DEVICE_NAME}_spide",
+        },
+        "flags": {
+            "manual": {
+                "instructions": "Register the Device Key.",
+                "device_key_from_logs": True,
+            }
+        },
+    }
+    catalog = {"supported": {"active": True, "entries": [app]}}
+    user = copy.deepcopy(_USER_CFG_BASE)
+    user["apps"] = {"spide": {"enabled": True, "machine_id": "a" * 32}}
+    assemble_docker_compose(
+        _M4B_CFG, catalog, user, str(tmp_path / "docker-compose.yaml")
+    )
+    text = (tmp_path / "claim_instructions_spide.txt").read_text()
+    assert "Device: testdev" in text
+    assert "Container: testdev_spide" in text
+    assert "Machine ID: " + "a" * 32 in text
+    assert "Device Key: available after startup" in text
+
+
 class TestGeneratorFunctions(unittest.TestCase):
     def test_validate_uuid(self):
         valid_uuid = "1234567890abcdef1234567890abcdef"

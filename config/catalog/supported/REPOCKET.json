@@ -1,12 +1,11 @@
 {
     "name": "REPOCKET",
-    "dashboard": "https://app.repocket.co/#home",
+    "dashboard": "https://repocket.com/dashboard/share-internet",
     "compose_config": {
         "container_name": "${DEVICE_NAME}_repocket",
         "hostname": "${DEVICE_NAME}_repocket",
         "image": "repocket/repocket:latest",
         "environment": [
-            "RP_EMAIL=$REPOCKET_EMAIL",
             "RP_API_KEY=$REPOCKET_APIKEY"
         ],
         "labels": [
@@ -25,14 +24,7 @@
             }
         },
         "healthcheck": {
-            "test": [
-                "CMD-SHELL",
-                "pgrep -f repocket || exit 1"
-            ],
-            "interval": "120s",
-            "timeout": "10s",
-            "retries": 3,
-            "start_period": "60s"
+            "disable": true
         }
     },
     "compose_config_proxy": {
@@ -40,21 +32,19 @@
         "hostname": null
     },
     "flags": {
-        "email": {},
         "apikey": {}
     },
     "install_limit": -1,
     "app_details": {
         "official_name": "Repocket",
         "publisher": "Repocket",
-        "official_url": "https://repocket.co",
-        "tos_url": "https://repocket.co/terms",
+        "official_url": "https://repocket.com",
+        "tos_url": "https://repocket.com/eula",
         "status": "active",
         "device_limits": {
-            "max_devices_per_account": "unlimited",
+            "max_devices_per_account": "undocumented",
             "max_devices_per_ip": "undocumented",
-            "max_ips_per_account": "unlimited",
-            "notes": "No documented device cap. Mixed Trustpilot reviews note inability to see all connected devices in dashboard."
+            "max_ips_per_account": "undocumented"
         },
         "ip_policy": {
             "residential": true,
@@ -67,7 +57,7 @@
             "adjacent_ips_max": "undocumented",
             "ipv6": "undocumented",
             "geo_restrictions": "none known",
-            "quality_notes": "Frequently cited as VPS-friendly. Port 7072 identified in traffic analysis."
+            "quality_notes": "Residential, datacenter and mobile connections are accepted."
         },
         "docker": {
             "image_official": true,
@@ -87,14 +77,10 @@
         "confidence": "medium",
         "sources": [
             "https://essay.utwente.nl/fileshare/file/108490/thesis-1.pdf",
-            "https://blog.vpslog.org/blog/profit/"
+            "https://blog.vpslog.org/blog/profit/",
+            "https://hub.docker.com/r/repocket/repocket"
         ],
-        "last_verified": "2026-03-21",
-        "compose_layer_reasoning": "Frequently cited as VPS-friendly in academic research and community reports. Port 7072 identified in traffic analysis.",
-        "install_limit_reasoning": "No documented device cap. Mixed Trustpilot reviews note dashboard limitations but no ban reports for multi-device.",
-        "recommendation": "keep",
-        "recommendation_reasoning": "Datacenter layer and unlimited limit are correct. VPS-friendly confirmed.",
-        "confidence_notes": "University of Twente thesis and community blog analyses confirm VPS acceptance."
+        "last_verified": "2026-03-21"
     },
     "referrals": [
         {
@@ -104,7 +90,6 @@
     ],
     "user_config_template": {
         "enabled": false,
-        "email": "yourREPOCKETMail",
         "apikey": "yourREPOCKETAPIKey"
     },
     "profile": "datacenter"

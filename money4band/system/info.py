@@ -349,7 +349,7 @@ def _interactive_update(m4b_config: dict[str, Any]) -> None:
     new_version = check_for_update(m4b_config)
     if not new_version:
         print(f"\n{Fore.GREEN}M4B is up to date.{Style.RESET_ALL}")
-        input(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
+        input(f"\n  Press {Fore.CYAN}Enter{Style.RESET_ALL} to go back...")
         return
 
     current = m4b_config.get("project", {}).get("project_version", "?")
@@ -368,10 +368,10 @@ def _interactive_update(m4b_config: dict[str, Any]) -> None:
             f"{Fore.GREEN}Updated to v{new_version}. "
             f"Please restart M4B.{Style.RESET_ALL}"
         )
-        input(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
+        input(f"\n  Press {Fore.CYAN}Enter{Style.RESET_ALL} to go back...")
     else:
         print(f"{Fore.RED}Update failed. See logs for details.{Style.RESET_ALL}")
-        input(f"\n  Press {Fore.CYAN}b{Style.RESET_ALL} to go back...")
+        input(f"\n  Press {Fore.CYAN}Enter{Style.RESET_ALL} to go back...")
 
 
 # ---------------------------------------------------------------------------
