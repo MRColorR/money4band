@@ -155,7 +155,7 @@ def merge_community_apps(app_config: dict[str, Any], apps_d_dir: str) -> dict[st
         if name in existing_names:
             logger.info("Skipping duplicate community app: %s", name)
             continue
-        candidates["entries"].append(entry)
+        candidates["entries"].append({**entry, "_source": "apps.d"})
         existing_names.add(name)
         added += 1
 

@@ -29,7 +29,7 @@ window.onload = () => {
 
             const tdName = document.createElement('td');
             tdName.className = 'u-border-2 u-border-grey-10 u-border-no-left u-border-no-right u-table-cell';
-            tdName.textContent = app.name;
+            tdName.textContent = `${app.name} [${app._source || 'builtin'}]`;
             tdName.title = app.additional_details || '';
 
             const tdDashboard = document.createElement('td');

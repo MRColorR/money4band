@@ -252,7 +252,8 @@ def load_catalog_entries(
         want only active ones should filter the result on ``.category``
         after calling :func:`get_active_app_categories`.
     """
-    from money4band.apps.schema import SOURCE_BUILTIN, CatalogEntry
+    from money4band.apps.schema import CatalogEntry
+    from money4band.apps.sources import get_catalog_source
 
     if categories is None:
         categories = get_all_app_categories(app_config)
@@ -264,7 +265,9 @@ def load_catalog_entries(
                 continue
             try:
                 out.append(
-                    CatalogEntry.from_raw(raw, source=SOURCE_BUILTIN, category=cat_key)
+                    CatalogEntry.from_raw(
+                        raw, source=get_catalog_source(raw), category=cat_key
+                    )
                 )
             except (TypeError, ValueError) as exc:
                 logger.warning("Skipping invalid catalog entry in %s: %s", cat_key, exc)

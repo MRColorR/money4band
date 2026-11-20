@@ -44,6 +44,12 @@ logger = logging.getLogger(__name__)
 MIN_REFRESH_INTERVAL = 3600.0  # seconds
 
 
+def get_catalog_source(entry: dict[str, Any]) -> str:
+    """Return the source name assigned by the catalog loader."""
+    source = entry.get("_source")
+    return source if isinstance(source, str) and source else "builtin"
+
+
 class CatalogSource(ABC):
     """Abstract catalog source.
 
@@ -433,7 +439,7 @@ def aggregate_from_sources(
             if key in seen_names:
                 continue
             seen_names.add(key)
-            merged[cat].append(entry)
+            merged[cat].append({**entry, "_source": "builtin"})
 
     for src in sources:
         if not src.available():
@@ -462,7 +468,7 @@ def aggregate_from_sources(
                     )
                     continue
                 seen_names.add(key)
-                merged[cat].append(entry)
+                merged[cat].append({**entry, "_source": src.name})
 
     for cat in CATEGORIES:
         meta = cats.get(cat) if isinstance(cats, dict) else None
@@ -490,7 +496,7 @@ def aggregate_from_sources(
             if key in seen_addons:
                 continue
             seen_addons.add(key)
-            merged_addons.append(addon)
+            merged_addons.append({**addon, "_source": src.name})
     result["addons"] = merged_addons
 
     return result
@@ -502,4 +508,5 @@ __all__ = [
     "RemoteSource",
     "aggregate_from_sources",
     "build_sources",
+    "get_catalog_source",
 ]

@@ -58,8 +58,8 @@ class AppSummary(BaseModel):
     source: str = Field(
         "builtin",
         description=(
-            "Catalog source: 'builtin' (shipped), 'community' (apps.d overlay), "
-            "'remote' (fetched community catalog), 'local' (user override)."
+            "Configured catalog name (for example builtin or community), "
+            "or apps.d for a local app file."
         ),
     )
     managed_by_m4b: bool = Field(

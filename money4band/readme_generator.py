@@ -35,6 +35,7 @@ _STATUS_EMOJI: dict[str, str] = {
 # Per-source row indicator used in the unified README table.
 # Category overrides source for the "needs attention" buckets.
 _SOURCE_EMOJI: dict[str, str] = {
+    "builtin": "[ok]",
     "core": "[ok]",  # ships in core, works out-of-box
     "community": "[com]",  # needs `m4b catalog sources enable community`
     "openpassivehub": "[new]",  # newcomer, no Docker yet

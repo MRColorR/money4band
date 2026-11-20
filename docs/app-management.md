@@ -7,13 +7,14 @@
 ## App Catalog
 
 See the [app directory](APPS.md) for the complete list and each app’s status.
-Supported apps appear in setup by default. To try a candidate with a Docker
-integration, enable the **newcomers** category in **App Catalog & Links**,
-then open **Setup Apps**. The same category setting is available through
-the CLI and API.
+Supported and candidate categories are enabled by default; archived apps are disabled.
+Enable optional catalog sources through **App Catalog & Links**, then choose
+your apps in **Setup Apps**. Category and source settings are also available
+through the CLI and API. Existing preferences are preserved during upgrades.
 Standalone apps use their provider’s installer.
 
-The catalog list keeps links and key facts compact. Choose **App details**
+The **Source** column identifies the catalog: `builtin`, `community`, a custom
+source name, or `apps.d` for a local app file. Choose **App details**
 in the interactive catalog to read setup notes, availability information and
 archive reasons. The same details are available through `m4b apps APP_NAME`
 and the app-detail API.
@@ -158,6 +159,7 @@ The envelope is tiny (lives under `m4b-config.json -> catalog`):
   "catalog_sources": [
     {
       "type": "local",
+      "name": "builtin",
       "path": "catalog",
       "default_source": "builtin",
       "enabled": true
@@ -165,7 +167,7 @@ The envelope is tiny (lives under `m4b-config.json -> catalog`):
   ],
   "categories": {
     "supported":  {"active": true},
-    "newcomers":  {"active": false},
+    "newcomers":  {"active": true},
     "deprecated": {"active": false}
   }
 }
@@ -264,7 +266,7 @@ Example envelope with a second (disabled by default) remote source:
       "enabled": false,
       "timeout": 5.0 }
   ],
-  "categories": { "supported": {"active": true}, "newcomers": {"active": false}, "deprecated": {"active": false} }
+  "categories": { "supported": {"active": true}, "newcomers": {"active": true}, "deprecated": {"active": false} }
 }
 ```
 

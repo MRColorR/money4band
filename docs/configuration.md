@@ -70,7 +70,7 @@ The envelope itself is intentionally small:
     ],
     "categories": {
       "supported":  { "active": true  },
-      "newcomers":  { "active": false },
+      "newcomers":  { "active": true },
       "deprecated": { "active": false }
     }
   }

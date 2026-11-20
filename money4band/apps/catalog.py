@@ -7,6 +7,7 @@ from typing import Any
 from colorama import Fore, Style, just_fix_windows_console
 
 from money4band.apps.links import primary_app_link
+from money4band.apps.sources import get_catalog_source
 from money4band.core.loader import (
     get_all_app_categories,
     get_category_entries,
@@ -25,8 +26,8 @@ def _display_catalog(app_config: dict[str, Any]) -> None:
     Adapts to terminal width so referral links are **never** truncated
     and remain fully clickable (Ctrl+Click).
 
-    Wide  (table fits): ``Name  Link  Layer  Payout`` on one line.
-    Compact (narrow):   ``Name  Layer  Payout`` on line 1,
+    Wide  (table fits): ``Name  Source  Link  Layer  Payout`` on one line.
+    Compact (narrow):   ``Name  Source  Layer  Payout`` on line 1,
                         full link indented on line 2.
 
     Notes and removal reasons belong to the app detail card, not list rows.
@@ -58,6 +59,7 @@ def _display_catalog(app_config: dict[str, Any]) -> None:
             rows.append(
                 {
                     "name": app["name"],
+                    "source": get_catalog_source(app),
                     "link": primary_app_link(app),
                     "payout": app.get("app_details", {})
                     .get("earnings", {})
@@ -69,6 +71,7 @@ def _display_catalog(app_config: dict[str, Any]) -> None:
         # Column widths (data-driven)
         w_name = max((len(r["name"]) for r in rows), default=4)
         w_name = max(w_name, 4)
+        w_source = max(6, max((len(r["source"]) for r in rows), default=6))
         w_link = max((len(r["link"]) for r in rows), default=4)
         w_link = max(w_link, 4)
         w_layer = max((len(r["layer"]) for r in rows), default=5)
@@ -76,42 +79,42 @@ def _display_catalog(app_config: dict[str, Any]) -> None:
         w_payout = max((len(r["payout"]) for r in rows), default=6)
         w_payout = max(w_payout, 6)
 
-        # Can all four columns fit on one line?
-        #   2 (indent) + name + 2 + link + 2 + layer + 2 + payout
-        full_width = 2 + w_name + 2 + w_link + 2 + w_layer + 2 + w_payout
+        full_width = 2 + w_name + 2 + w_source + 2 + w_link + 2 + w_layer + 2 + w_payout
         compact = full_width > term_width
 
         if not compact:
             # -- Wide mode: single-line rows --
             header = (
-                f"  {Fore.CYAN}{'Name':<{w_name}}  {'Link':<{w_link}}  "
+                f"  {Fore.CYAN}{'Name':<{w_name}}  {'Source':<{w_source}}  {'Link':<{w_link}}  "
                 f"{'Layer':<{w_layer}}  {'Payout':<{w_payout}}{Style.RESET_ALL}"
             )
-            separator = (
-                f"  {'-' * w_name}  {'-' * w_link}  {'-' * w_layer}  {'-' * w_payout}"
-            )
+            separator = f"  {'-' * w_name}  {'-' * w_source}  {'-' * w_link}  {'-' * w_layer}  {'-' * w_payout}"
             print(header)
             print(separator)
 
             for row in rows:
                 print(
                     f"  {Fore.GREEN}{row['name']:<{w_name}}{Style.RESET_ALL}  "
+                    f"{row['source']:<{w_source}}  "
                     f"{Fore.CYAN}{row['link']:<{w_link}}{Style.RESET_ALL}  "
                     f"{row['layer']:<{w_layer}}  {row['payout']}"
                 )
         else:
             # -- Compact mode: name/layer/payout line + link on its own line --
             header = (
-                f"  {Fore.CYAN}{'Name':<{w_name}}  "
+                f"  {Fore.CYAN}{'Name':<{w_name}}  {'Source':<{w_source}}  "
                 f"{'Layer':<{w_layer}}  {'Payout':<{w_payout}}{Style.RESET_ALL}"
             )
-            separator = f"  {'-' * w_name}  {'-' * w_layer}  {'-' * w_payout}"
+            separator = (
+                f"  {'-' * w_name}  {'-' * w_source}  {'-' * w_layer}  {'-' * w_payout}"
+            )
             print(header)
             print(separator)
 
             for row in rows:
                 print(
                     f"  {Fore.GREEN}{row['name']:<{w_name}}{Style.RESET_ALL}  "
+                    f"{row['source']:<{w_source}}  "
                     f"{row['layer']:<{w_layer}}  {row['payout']}"
                 )
                 if row["link"]:

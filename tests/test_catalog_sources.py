@@ -442,7 +442,9 @@ class TestAggregateFromSources:
             }
         }
         result = aggregate_from_sources(envelope, tmp_path / "app-config.json")
-        assert result["supported"]["entries"] == [{"name": "ALPHA"}]
+        assert result["supported"]["entries"] == [
+            {"name": "ALPHA", "_source": "builtin"}
+        ]
         assert result["deprecated"]["entries"] == []
 
     def test_single_local_matches_direct_read(self, config_with_bundles: Path) -> None:
@@ -538,6 +540,39 @@ class TestAggregateFromSources:
 
 
 class TestLoaderIntegration:
+    def test_origin_is_assigned_by_loader_and_shared_with_typed_api_readers(
+        self, config_with_bundles: Path, tmp_path: Path
+    ) -> None:
+        from money4band.api._deps import is_managed_by_m4b, resolve_source
+        from money4band.core.loader import (
+            load_app_config_with_overlays,
+            load_catalog_entries,
+        )
+
+        remote = tmp_path / "other"
+        (remote / "supported").mkdir(parents=True)
+        raw = {"name": "DELTA", "_source": "builtin"}
+        (remote / "supported" / "DELTA.json").write_text(json.dumps(raw))
+        envelope = json.loads(config_with_bundles.read_text())
+        envelope["catalog_sources"].append(
+            {
+                "name": "community",
+                "type": "local",
+                "path": str(remote),
+                "enabled": True,
+            }
+        )
+        write_envelope(envelope, config_with_bundles)
+        config = load_app_config_with_overlays(str(config_with_bundles))
+        entries = {entry["name"]: entry for entry in config["supported"]["entries"]}
+        assert entries["ALPHA"]["_source"] == "builtin"
+        assert entries["DELTA"]["_source"] == "community"
+        assert resolve_source(entries["DELTA"]) == "community"
+        assert not is_managed_by_m4b("supported", resolve_source(entries["DELTA"]))
+        assert json.loads((remote / "supported" / "DELTA.json").read_text()) == raw
+        typed = {entry.id: entry for entry in load_catalog_entries(config)}
+        assert typed["DELTA"].source == "community"
+
     def test_loader_uses_source_aggregation(self, config_with_bundles: Path) -> None:
         from money4band.core.loader import load_app_config_with_overlays
 

@@ -385,7 +385,7 @@
                 "active": true
             },
             "newcomers": {
-                "active": false
+                "active": true
             },
             "deprecated": {
                 "active": false

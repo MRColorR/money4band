@@ -10,6 +10,7 @@ from typing import Any
 from colorama import Fore, Style, just_fix_windows_console
 
 from money4band.apps.earnings import parse_earnings_range
+from money4band.apps.sources import get_catalog_source
 from money4band.core.loader import (
     get_all_app_categories,
     get_category_entries,
@@ -88,6 +89,7 @@ def show_app_detail(app_config: dict[str, Any], app_name: str) -> bool:
     )
     url = details.get("official_url", primary_referral or "-")
     print(f"\n{Fore.CYAN}Identity{Style.RESET_ALL}")
+    print(f"  {'Catalog source:':<{w}} {get_catalog_source(entry)}")
     print(f"  {'Publisher:':<{w}} {publisher}")
     print(f"  {'Website:':<{w}} {url}")
     if entry.get("dashboard"):
@@ -220,9 +222,9 @@ def list_apps(app_config: dict[str, Any], category_filter: str | None = None) ->
     just_fix_windows_console()
 
     print(
-        f"\n{Fore.CYAN}{'Name':<20} {'Status':<14} {'Resi':>4} {'DC':>4} {'Payout':<22} {'Limit':>7}{Style.RESET_ALL}"
+        f"\n{Fore.CYAN}{'Name':<20} {'Source':<14} {'Status':<14} {'Resi':>4} {'DC':>4} {'Payout':<22} {'Limit':>7}{Style.RESET_ALL}"
     )
-    print(f"{'-' * 73}")
+    print(f"{'-' * 88}")
 
     for cat in get_all_app_categories(app_config):
         if category_filter and category_filter.lower() not in cat.lower():
@@ -248,7 +250,7 @@ def list_apps(app_config: dict[str, Any], category_filter: str | None = None) ->
                 status = f"{Fore.GREEN}active{Style.RESET_ALL}"
 
             print(
-                f"  {name:<18} {status:<23} {resi:>13} {dc:>13} {payout:<22} {limit_str:>5}"
+                f"  {name:<18} {get_catalog_source(entry):<14} {status:<23} {resi:>13} {dc:>13} {payout:<22} {limit_str:>5}"
             )
 
     print()

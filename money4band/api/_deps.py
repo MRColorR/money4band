@@ -12,6 +12,7 @@ import sys
 from dataclasses import dataclass, field
 from typing import Any
 
+from money4band.apps.sources import get_catalog_source
 from money4band.core.loader import load_json_config
 
 
@@ -181,23 +182,12 @@ def iter_all_apps(
 # Provenance helpers
 # ---------------------------------------------------------------------------
 #
-# ``source`` describes *where* a catalog entry came from:
-#   * ``builtin``   - shipped inside the core catalog envelope.
-#   * ``community`` - user overlay from ``config/apps.d/*.json``.
-#   * ``remote``    - fetched from a remote catalog source.
-#   * ``local``     - user-local override.
-#
-# Entries loaded through ``iter_all_apps`` default to ``builtin``;
-# the resolver below is the single seam where other sources override
-# the provenance.
+# ``source`` is the configured catalog name, or ``apps.d`` for a user overlay.
 
 
 def resolve_source(entry: dict) -> str:
-    """Return the catalog source for a single app entry."""
-    explicit = entry.get("_source")
-    if isinstance(explicit, str) and explicit:
-        return explicit
-    return "builtin"
+    """Return the catalog name assigned by the loader."""
+    return get_catalog_source(entry)
 
 
 def is_managed_by_m4b(category: str, source: str) -> bool:

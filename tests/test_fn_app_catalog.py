@@ -38,6 +38,7 @@ class TestFnAppCatalog(unittest.TestCase):
                 },
                 {
                     "name": "HONEYGAIN",
+                    "_source": "community",
                     "dashboard": "https://dashboard.honeygain.com/",
                     "referrals": [
                         {
@@ -105,6 +106,9 @@ class TestFnAppCatalog(unittest.TestCase):
         self.assertIn("Link", out)
         self.assertIn("Layer", out)
         self.assertIn("Payout", out)
+        self.assertIn("Source", out)
+        self.assertRegex(out, r"HONEYGAIN\s+community")
+        self.assertRegex(out, r"EARNAPP\s+builtin")
 
         # Full referral links present and never truncated
         self.assertIn("https://earnapp.com/i/3zulx7k", out)
@@ -138,6 +142,8 @@ class TestFnAppCatalog(unittest.TestCase):
         self.assertIn("Name", out)
         self.assertIn("Layer", out)
         self.assertIn("Payout", out)
+        self.assertIn("Source", out)
+        self.assertRegex(out, r"HONEYGAIN\s+community")
 
         # Full links still present with -> prefix
         self.assertIn("-> https://earnapp.com/i/3zulx7k", out)

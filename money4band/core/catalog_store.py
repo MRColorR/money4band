@@ -20,7 +20,7 @@ Envelope shape (lives under ``m4b-config.json -> catalog``)::
         ],
         "categories": {
             "supported":  {"active": true},
-            "newcomers":  {"active": false},
+            "newcomers":  {"active": true},
             "deprecated": {"active": false}
         }
     }
@@ -303,7 +303,7 @@ def default_envelope() -> dict[str, Any]:
         ],
         "categories": {
             "supported": {"active": True},
-            "newcomers": {"active": False},
+            "newcomers": {"active": True},
             "deprecated": {"active": False},
         },
     }
