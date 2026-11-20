@@ -5,6 +5,8 @@ from __future__ import annotations
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 from money4band.docker.start import (
     _extract_app_names_from_compose,
     get_container_names_from_env,
@@ -13,6 +15,13 @@ from money4band.docker.start import (
     start_stack,
     validate_env_files,
 )
+
+
+@pytest.fixture(autouse=True)
+def claim_refresh(monkeypatch):
+    mock = MagicMock()
+    monkeypatch.setattr("money4band.apps.claim_instructions.refresh_claim_keys", mock)
+    return mock
 
 
 class TestGetDeviceNameFromEnv:
@@ -59,7 +68,7 @@ class TestStartStack:
     @patch("money4band.docker.start.show_spinner")
     @patch("money4band.docker.start.is_user_root", return_value=True)
     def test_successful_start(
-        self, _root, _spin, _proj, mock_run, _notify, tmp_path
+        self, _root, _spin, _proj, mock_run, _notify, tmp_path, claim_refresh
     ) -> None:
         env = tmp_path / ".env"
         env.write_text("DEVICE_NAME=test\nCOMPOSE_PROJECT_NAME=m4b\n")
@@ -75,6 +84,9 @@ class TestStartStack:
         assert "up" in cmd
         assert "-d" in cmd
         assert "--env-file" in cmd
+        claim_refresh.assert_called_once_with(
+            str(Path("docker-compose.yaml").resolve().parent), use_sudo=False
+        )
 
     @patch("money4band.docker.start._notify_event")
     @patch("money4band.docker.start.run_docker_command", return_value=1)

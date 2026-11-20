@@ -122,20 +122,11 @@ def configure_uuid(
         print(f"{Fore.GREEN}Generated UUID: {uuid}{Style.RESET_ALL}")
     if "claimURLBase" in flag_config:
         print(
-            f"{Fore.BLUE}Save the following instructions/link somewhere to claim/register your {app['name'].lower().title()} "
-            f"node/device after completing the setup and starting the apps stack:{Style.RESET_ALL}"
+            f"{Fore.BLUE}Register {app['name'].title()} after starting the stack:{Style.RESET_ALL}"
         )
         print(
             f"{Fore.BLUE}{Style.BRIGHT}{flag_config['claimURLBase']}{uuid}{Style.RESET_ALL}"
         )
-        try:
-            with open(f"claim_instructions_{app['name'].lower()}.txt", "w") as f:
-                f.write(f"{flag_config['claimURLBase']}{uuid}")
-            print(
-                f"{Fore.GREEN}Claim instructions written to claim_instructions_{app['name'].lower()}.txt{Style.RESET_ALL}"
-            )
-        except Exception as e:
-            logger.error(f"Error writing claim instructions to file: {e}")
         wait_for_enter(
             f"\nPress {Fore.CYAN}Enter{Style.RESET_ALL} to continue...", allow_skip=True
         )
@@ -153,7 +144,7 @@ def configure_machine_id(
     existing = config.get("machine_id", "")
     default = existing if validate_uuid(existing, length) else generate_uuid(length)
     config["machine_id"] = ask_uuid(
-        f"{app['name'].title()} machine ID (Enter keeps this identity)",
+        f"{app['name'].title()} Machine ID (Enter keeps it) (Machine ID is not the Device Key)",
         length,
         default=default,
         allow_skip=True,

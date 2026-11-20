@@ -161,6 +161,11 @@ def start_stack(
             # Securely wipe the .env - credentials should not persist on disk
             # after compose-up bakes them into running containers.
             secure_delete_env(env_file)
+            from money4band.apps.claim_instructions import refresh_claim_keys
+
+            refresh_claim_keys(
+                os.path.dirname(os.path.abspath(compose_files[0])), use_sudo=use_sudo
+            )
             print(
                 f"{Fore.GREEN}Stack '{instance_name}' launched. Check app status and complete any provider onboarding.{Style.RESET_ALL}"
             )

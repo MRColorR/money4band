@@ -178,14 +178,16 @@ class TestConfigureUuid:
     @patch("money4band.apps.configurator.ask_question_yn", return_value=False)
     @patch("money4band.apps.configurator.generate_uuid", return_value="abcd")
     @patch("builtins.input", return_value="")
-    def test_claim_url_written(self, _inp, _gen, _ask, tmp_path, monkeypatch):
+    def test_claim_file_waits_until_stack_generation(
+        self, _inp, _gen, _ask, tmp_path, monkeypatch
+    ):
         monkeypatch.chdir(tmp_path)
         config: dict = {}
         flag_config = {"length": 4, "claimURLBase": "https://claim.example.com/"}
         configure_uuid({"name": "TESTAPP"}, flag_config, config)
         claim_file = tmp_path / "claim_instructions_testapp.txt"
-        assert claim_file.exists()
-        assert "abcd" in claim_file.read_text()
+        assert not claim_file.exists()
+        assert config["uuid"] == "abcd"
 
 
 class TestFlagFunctionMapper:

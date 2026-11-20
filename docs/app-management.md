@@ -28,6 +28,10 @@ When editing credentials, **Enter** keeps an existing value. The email is
 shown; passwords and keys are masked. After cancelling an app, the confirmation
 stays visible for the configured message delay before setup continues.
 
+Apps with extra onboarding steps get a `claim_instructions_<app>.txt` file
+in their stack directory, including each multi-proxy instance. It contains
+the device name, registration IDs, dashboard and next steps. These local files are ignored by Git.
+
 Relative bind mounts under `.data/` keep app state with the installation
 folder. Preserve that directory when moving the installation. Named Docker
 volumes live in Docker storage and must be backed up or transferred separately;

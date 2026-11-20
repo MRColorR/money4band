@@ -9,6 +9,7 @@ from pathlib import Path
 
 import pytest
 
+from money4band.apps.claim_instructions import write_claim_instructions
 from money4band.apps.remote_cache import replace_entries
 from money4band.apps.wizard import run_app_wizard
 from money4band.core import progress
@@ -48,6 +49,25 @@ def test_generated_user_data_stays_out_of_git(tmp_path, monkeypatch):
     user = config / "user-config.json"
     user.write_text('{"device_name": "test-device"}', encoding="utf-8")
     (tmp_path / ".env").write_text("DEVICE_NAME=test-device", encoding="utf-8")
+    write_claim_instructions(
+        {
+            "supported": {
+                "active": True,
+                "entries": [
+                    {
+                        "name": "APP",
+                        "flags": {"manual": {"instructions": "Register the device."}},
+                    }
+                ],
+            }
+        },
+        {
+            "device_info": {"device_name": "test-device"},
+            "apps": {"app": {"uuid": "test-identity"}},
+        },
+        tmp_path,
+        {"app": {"container_name": "test_app"}},
+    )
     create_profile("home", str(config), str(tmp_path), str(user))
     monkeypatch.setattr(progress, "PROGRESS_FILE", str(config / ".setup_progress.json"))
     progress.save_progress([1])
