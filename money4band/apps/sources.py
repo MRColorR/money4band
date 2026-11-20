@@ -397,7 +397,7 @@ def aggregate_from_sources(
 
     Walks ``envelope["catalog_sources"]`` in order. Each available source
     contributes its entries; the first source to claim a given entry name
-    (case-insensitive) in a given category wins. Category ``active``
+    (case-insensitive) across all categories wins. Category ``active``
     flags come from ``envelope["categories"]``.
     """
     result: dict[str, Any] = {
@@ -412,7 +412,7 @@ def aggregate_from_sources(
     sources = build_sources(envelope, config_path)
     cats = envelope.get("categories") or {}
 
-    seen_names: dict[str, set[str]] = {cat: set() for cat in CATEGORIES}
+    seen_names: set[str] = set()
     merged: dict[str, list[dict[str, Any]]] = {cat: [] for cat in CATEGORIES}
 
     # Inline entries (``categories.<name>.entries``) count as the first,
@@ -430,9 +430,9 @@ def aggregate_from_sources(
             if not isinstance(raw_name, str) or not raw_name:
                 continue
             key = raw_name.upper()
-            if key in seen_names[cat]:
+            if key in seen_names:
                 continue
-            seen_names[cat].add(key)
+            seen_names.add(key)
             merged[cat].append(entry)
 
     for src in sources:
@@ -453,7 +453,7 @@ def aggregate_from_sources(
                 if not isinstance(raw_name, str) or not raw_name:
                     continue
                 key = raw_name.upper()
-                if key in seen_names[cat]:
+                if key in seen_names:
                     logger.debug(
                         "Dropping duplicate %s/%s from source %r (earlier source won)",
                         cat,
@@ -461,7 +461,7 @@ def aggregate_from_sources(
                         src.name,
                     )
                     continue
-                seen_names[cat].add(key)
+                seen_names.add(key)
                 merged[cat].append(entry)
 
     for cat in CATEGORIES:

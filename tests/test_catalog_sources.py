@@ -410,6 +410,41 @@ class TestBuildSources:
 
 
 class TestAggregateFromSources:
+    @pytest.mark.parametrize("old_category", ["newcomers", "deprecated"])
+    def test_promotion_drops_old_remote_category_entry(
+        self, tmp_path: Path, config_with_bundles: Path, old_category: str
+    ) -> None:
+        remote = tmp_path / "previous_catalog"
+        (remote / old_category).mkdir(parents=True)
+        (remote / old_category / "ALPHA.json").write_text(
+            json.dumps({"name": "alpha", "app_details": {"docker": "old/alpha"}})
+        )
+        envelope = json.loads(config_with_bundles.read_text())
+        envelope["catalog_sources"].append(
+            {"type": "local", "path": str(remote), "enabled": True}
+        )
+        result = aggregate_from_sources(envelope, config_with_bundles)
+        occurrences = [
+            (category, entry)
+            for category in ("supported", "newcomers", "deprecated")
+            for entry in result[category]["entries"]
+            if entry["name"].casefold() == "alpha"
+        ]
+        assert len(occurrences) == 1
+        assert occurrences[0][0] == "supported"
+        assert occurrences[0][1]["app_details"]["docker"] == "alpha/alpha"
+
+    def test_inline_entries_are_unique_across_categories(self, tmp_path: Path) -> None:
+        envelope = {
+            "categories": {
+                "supported": {"active": True, "entries": [{"name": "ALPHA"}]},
+                "deprecated": {"active": True, "entries": [{"name": "alpha"}]},
+            }
+        }
+        result = aggregate_from_sources(envelope, tmp_path / "app-config.json")
+        assert result["supported"]["entries"] == [{"name": "ALPHA"}]
+        assert result["deprecated"]["entries"] == []
+
     def test_single_local_matches_direct_read(self, config_with_bundles: Path) -> None:
         envelope = json.loads(config_with_bundles.read_text())
         result = aggregate_from_sources(envelope, config_with_bundles)
