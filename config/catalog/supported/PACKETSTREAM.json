@@ -40,7 +40,9 @@
         "hostname": null
     },
     "flags": {
-        "cid": {}
+        "cid": {
+            "instructions": "Open https://app.packetstream.io/dashboard/download, select Linux and copy the CID from the installation command, without quotes."
+        }
     },
     "install_limit": -1,
     "app_details": {
@@ -50,10 +52,10 @@
         "tos_url": "https://packetstream.io/terms-of-service/",
         "status": "active",
         "device_limits": {
-            "max_devices_per_account": "unlimited",
+            "max_devices_per_account": "undocumented",
             "max_devices_per_ip": "undocumented",
-            "max_ips_per_account": "unlimited",
-            "notes": "No explicit device cap found. Multiple instances possible with different IPs."
+            "max_ips_per_account": "undocumented",
+            "notes": "Use distinct public IPs for multiple devices."
         },
         "ip_policy": {
             "residential": true,
@@ -66,7 +68,7 @@
             "adjacent_ips_max": "undocumented",
             "ipv6": "undocumented",
             "geo_restrictions": "none known",
-            "quality_notes": "Official FAQ explicitly states datacenter and business IPs not accepted. Requires 'geographic diversity and residential characteristics'."
+            "quality_notes": "Residential connections only; datacenter and business IPs are not accepted."
         },
         "docker": {
             "image_official": true,

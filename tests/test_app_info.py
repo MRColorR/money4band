@@ -194,6 +194,32 @@ class TestFindApp:
 
 
 class TestShowAppDetail:
+    def test_unknown_estimates_are_not_shown_as_dollar_amounts(self, capsys):
+        config = {
+            "supported": {
+                "active": True,
+                "entries": [
+                    {
+                        "name": "APP",
+                        "app_details": {
+                            "earnings": {
+                                "avg_monthly_residential_usd": "unknown",
+                                "avg_monthly_datacenter_usd": "N/A",
+                            }
+                        },
+                    }
+                ],
+            }
+        }
+        assert show_app_detail(config, "app")
+        output = capsys.readouterr().out
+        assert "Avg/month" not in output
+        config["supported"]["entries"][0]["app_details"]["earnings"][
+            "avg_monthly_residential_usd"
+        ] = "1-9"
+        assert show_app_detail(config, "app")
+        assert "$1-9" in capsys.readouterr().out
+
     def test_found_returns_true(self, capsys):
         result = show_app_detail(_SAMPLE_CONFIG, "earnapp")
         assert result is True
@@ -243,10 +269,12 @@ class TestShowAppDetail:
         assert "Install limit:" in output
         assert "1" in output
 
-    def test_displays_confidence(self, capsys):
+    def test_internal_review_metadata_stays_out_of_detail(self, capsys):
         show_app_detail(_SAMPLE_CONFIG, "earnapp")
         output = capsys.readouterr().out
-        assert "high" in output
+        assert "Data Quality" not in output
+        assert "Confidence:" not in output
+        assert "Last verified:" not in output
 
     def test_deprecated_badge(self, capsys):
         show_app_detail(_SAMPLE_CONFIG, "wipter")

@@ -9,6 +9,7 @@ from typing import Any
 
 from colorama import Fore, Style, just_fix_windows_console
 
+from money4band.apps.earnings import parse_earnings_range
 from money4band.core.loader import (
     get_all_app_categories,
     get_category_entries,
@@ -143,10 +144,10 @@ def show_app_detail(app_config: dict[str, Any], app_name: str) -> bool:
         if min_p:
             print(f"  {'Min payout:':<{w}} {min_p}")
         res = earnings.get("avg_monthly_residential_usd")
-        if res:
+        if parse_earnings_range(res) is not None:
             print(f"  {'Avg/month (resi):':<{w}} ${res}")
         dc = earnings.get("avg_monthly_datacenter_usd")
-        if dc:
+        if parse_earnings_range(dc) is not None:
             print(f"  {'Avg/month (DC):':<{w}} ${dc}")
 
     # Docker
@@ -191,16 +192,6 @@ def show_app_detail(app_config: dict[str, Any], app_name: str) -> bool:
         print(f"\n{Fore.YELLOW}Warnings{Style.RESET_ALL}")
         for warn in warnings:
             print(f"  {Fore.YELLOW}! {warn}{Style.RESET_ALL}")
-
-    # Confidence & verification
-    confidence = details.get("confidence")
-    verified = details.get("last_verified")
-    if confidence or verified:
-        print(f"\n{Fore.CYAN}Data Quality{Style.RESET_ALL}")
-        if confidence:
-            print(f"  {'Confidence:':<{w}} {confidence}")
-        if verified:
-            print(f"  {'Last verified:':<{w}} {verified}")
 
     print()
     return True

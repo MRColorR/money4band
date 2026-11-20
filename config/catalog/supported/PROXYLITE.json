@@ -64,7 +64,7 @@
             "adjacent_ips_accepted": "undocumented",
             "adjacent_ips_max": "undocumented",
             "ipv6": "undocumented",
-            "geo_restrictions": "undocumented; review the linked earning-service agreement",
+            "geo_restrictions": "undocumented",
             "quality_notes": "Residential computers and Android devices. Datacenter, VPN and proxy eligibility is undocumented."
         },
         "docker": {

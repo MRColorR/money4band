@@ -54,10 +54,10 @@
         "tos_url": "https://bitping.com/terms",
         "status": "active",
         "device_limits": {
-            "max_devices_per_account": "unlimited",
+            "max_devices_per_account": "undocumented",
             "max_devices_per_ip": "undocumented",
-            "max_ips_per_account": "unlimited",
-            "notes": "No documented device cap. Officially supports servers, PCs, and Raspberry Pi. Docker explicitly supported."
+            "max_ips_per_account": "undocumented",
+            "notes": "Supports servers, PCs and Raspberry Pi."
         },
         "ip_policy": {
             "residential": true,
@@ -70,7 +70,7 @@
             "adjacent_ips_max": "undocumented",
             "ipv6": "undocumented",
             "geo_restrictions": "none known",
-            "quality_notes": "Network monitoring/testing model (not pure bandwidth sharing). Node quality depends on geo location and latency, not IP type. Servers explicitly listed as supported."
+            "quality_notes": "Network monitoring tasks depend on location and latency."
         },
         "docker": {
             "image_official": true,

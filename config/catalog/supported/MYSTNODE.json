@@ -55,7 +55,7 @@
     },
     "flags": {
         "manual": {
-            "instructions": "After starting the stack, open this node's local WebUI using the host port listed in the setup summary. Complete node onboarding, choose your beneficiary wallet and claim the node at https://my.mystnodes.com/nodes. Keep .data/mysterium-node to retain its identity. The Docker host must provide /dev/net/tun. An online dashboard entry alone does not prove working VPN sessions; check node monitoring and transferred data. For remote hosts, use an SSH tunnel to the published WebUI port. Follow the official connectivity guide before changing router or UDP forwarding settings."
+            "instructions": "After starting the stack, open the local WebUI shown in the setup summary. Complete onboarding, choose your beneficiary wallet and claim the node at https://my.mystnodes.com/nodes. Keep .data/mysterium-node to preserve its identity. The Docker host needs /dev/net/tun. Use an SSH tunnel to reach the WebUI on a remote host."
         }
     },
     "install_limit": -1,
@@ -66,10 +66,10 @@
         "tos_url": "https://www.mystnodes.com/legal/terms-and-conditions",
         "status": "active",
         "device_limits": {
-            "max_devices_per_account": "unlimited",
+            "max_devices_per_account": "undocumented",
             "max_devices_per_ip": 1,
-            "max_ips_per_account": "unlimited",
-            "notes": "Decentralized network. Unique IP required per node for discoverability. No documented cap. Residential nodes earn more per task due to higher buyer demand."
+            "max_ips_per_account": "undocumented",
+            "notes": "Each node needs a distinct public IP."
         },
         "ip_policy": {
             "residential": true,
@@ -82,7 +82,7 @@
             "adjacent_ips_max": "unlimited",
             "ipv6": true,
             "geo_restrictions": "none known",
-            "quality_notes": "Algorithm assesses IP location and quality. Residential nodes command premium prices. Staking MYST tokens can boost earnings. Whitelisting (KYC) may be required in some regions."
+            "quality_notes": "Task availability depends on IP location and quality."
         },
         "docker": {
             "image_official": true,
@@ -101,7 +101,7 @@
             "avg_monthly_datacenter_usd": "0.5-3"
         },
         "warnings": [
-            "Requires NET_ADMIN capability for VPN tunnel creation (TUN/TAP) - legitimate technical requirement for VPN exit node functionality"
+            "Requires /dev/net/tun and NET_ADMIN."
         ],
         "confidence": "high",
         "sources": [

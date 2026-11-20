@@ -60,7 +60,7 @@
             "max_devices_per_account": "unlimited",
             "max_devices_per_ip": 1,
             "max_ips_per_account": "unlimited",
-            "notes": "1 node per unique public IP. Unlimited accounts but each requires distinct public IP. Cloning VMs on same IP explicitly disallowed and may trigger bans."
+            "notes": "One device per public IP."
         },
         "ip_policy": {
             "residential": true,
@@ -73,7 +73,7 @@
             "adjacent_ips_max": "undocumented",
             "ipv6": "undocumented",
             "geo_restrictions": "none known",
-            "quality_notes": "IPRoyal custom monitoring prevents datacenter IPs. Datacenter ASNs automatically removed from pool."
+            "quality_notes": "Residential and mobile connections only."
         },
         "docker": {
             "image_official": true,

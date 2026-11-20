@@ -53,10 +53,10 @@
         "tos_url": "https://traffmonetizer.io/terms-of-service/",
         "status": "active",
         "device_limits": {
-            "max_devices_per_account": "unlimited",
+            "max_devices_per_account": "undocumented",
             "max_devices_per_ip": "undocumented",
-            "max_ips_per_account": "unlimited",
-            "notes": "The terms state that devices on the same public IP share the available traffic."
+            "max_ips_per_account": "undocumented",
+            "notes": "Devices on the same public IP share the available traffic."
         },
         "ip_policy": {
             "residential": true,

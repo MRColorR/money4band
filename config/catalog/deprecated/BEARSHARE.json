@@ -49,8 +49,7 @@
         "device_limits": {
             "max_devices_per_account": "undocumented",
             "max_devices_per_ip": "undocumented",
-            "max_ips_per_account": "undocumented",
-            "notes": "Official Docker image exists. Companion auto-claim sidecar service available."
+            "max_ips_per_account": "undocumented"
         },
         "ip_policy": {
             "residential": true,
@@ -62,8 +61,7 @@
             "adjacent_ips_accepted": "undocumented",
             "adjacent_ips_max": "undocumented",
             "ipv6": "undocumented",
-            "geo_restrictions": "none known",
-            "quality_notes": "Insufficient documentation. Supports email/password auth."
+            "geo_restrictions": "none known"
         },
         "docker": {
             "image_official": true,

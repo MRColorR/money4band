@@ -54,8 +54,7 @@
         "device_limits": {
             "max_devices_per_account": "undocumented",
             "max_devices_per_ip": "undocumented",
-            "max_ips_per_account": "undocumented",
-            "notes": "Supports standard and proxy mode (bulk operations with socks5 proxy file). JWT-based auth."
+            "max_ips_per_account": "undocumented"
         },
         "ip_policy": {
             "residential": true,
@@ -68,7 +67,7 @@
             "adjacent_ips_max": "undocumented",
             "ipv6": "undocumented",
             "geo_restrictions": "none known",
-            "quality_notes": "Marketplace penalizes same-subnet providers. IP diversity increases traffic weight. Supports proxy mode for fleetshare-style bulk operations."
+            "quality_notes": "Supports direct connections and SOCKS5 proxy mode."
         },
         "docker": {
             "image_official": true,
@@ -102,5 +101,5 @@
         "enabled": false
     },
     "profile": "universal",
-    "additional_details": "Referral code: YDATQM. Enter it in URnetwork's referral-code field. The current program grants 3 GiB/day to both parties, for up to 20 referrals; this is a data allowance, not a cash commission."
+    "additional_details": "Referral code: YDATQM. Both parties receive 3 GiB/day of data allowance, up to 20 referrals."
 }

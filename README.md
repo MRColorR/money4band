@@ -80,7 +80,7 @@ Start with a **built-in app** and select its name to visit the provider. Some li
 - **Optional community catalog** · Enable the [community catalog](docs/app-management.md) to add it.
 - **Standalone install** · Use the provider’s own installer.
 - **Candidate** · Tracked for evaluation. See the [app directory](docs/APPS.md) for details.
-- **Archived** · Listed for reference and historical purposes, removed from M4B setup as they shutted down or not deemed reliabe enough.
+- **Archived** · Older integrations, disabled by default as they shutted down or not deemed reliabe enough.
 
 <!-- BEGIN:APPS_TABLE -->
 | App | How to run it |

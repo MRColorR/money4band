@@ -57,8 +57,7 @@
         "device_limits": {
             "max_devices_per_account": 500,
             "max_devices_per_ip": "undocumented",
-            "max_ips_per_account": 500,
-            "notes": "Official help article confirms hard 500-device limit per account for 'fair usage and optimal performance'."
+            "max_ips_per_account": 500
         },
         "ip_policy": {
             "residential": true,
@@ -71,7 +70,7 @@
             "adjacent_ips_max": "undocumented",
             "ipv6": "undocumented",
             "geo_restrictions": "none known",
-            "quality_notes": "Community confirms VPS/DC IPs accepted. One of the more permissive platforms."
+            "quality_notes": "Residential and datacenter connections are accepted."
         },
         "docker": {
             "image_official": true,

@@ -52,8 +52,7 @@
         "device_limits": {
             "max_devices_per_account": "undocumented",
             "max_devices_per_ip": "undocumented",
-            "max_ips_per_account": "undocumented",
-            "notes": "Very sparse official documentation. No official limits found."
+            "max_ips_per_account": "undocumented"
         },
         "ip_policy": {
             "residential": true,
@@ -65,8 +64,7 @@
             "adjacent_ips_accepted": "undocumented",
             "adjacent_ips_max": "undocumented",
             "ipv6": "undocumented",
-            "geo_restrictions": "none known",
-            "quality_notes": "Insufficient official documentation to confirm IP type policy. Community evidence suggests residential focus."
+            "geo_restrictions": "none known"
         },
         "docker": {
             "image_official": true,

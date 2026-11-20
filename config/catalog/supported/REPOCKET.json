@@ -42,10 +42,9 @@
         "tos_url": "https://repocket.com/eula",
         "status": "active",
         "device_limits": {
-            "max_devices_per_account": "unlimited",
+            "max_devices_per_account": "undocumented",
             "max_devices_per_ip": "undocumented",
-            "max_ips_per_account": "unlimited",
-            "notes": "Device limits are undocumented."
+            "max_ips_per_account": "undocumented"
         },
         "ip_policy": {
             "residential": true,
@@ -58,7 +57,7 @@
             "adjacent_ips_max": "undocumented",
             "ipv6": "undocumented",
             "geo_restrictions": "none known",
-            "quality_notes": "Frequently cited as VPS-friendly. Port 7072 identified in traffic analysis."
+            "quality_notes": "Residential, datacenter and mobile connections are accepted."
         },
         "docker": {
             "image_official": true,

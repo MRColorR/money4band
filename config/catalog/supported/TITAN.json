@@ -40,7 +40,7 @@
     },
     "flags": {
         "manual": {
-            "instructions": "After starting, bind the device: docker run --rm -v \"./.data/.titanedge:/root/.titanedge\" nezha123/titan-edge bind --hash=YOUR_HASH https://api-test1.container1.titannet.io/api/v2/device/binding. Obtain YOUR_HASH from your Titan account and follow the current provider binding instructions. Preserve .data/.titanedge to retain this device identity. This step is completed after starting the stack."
+            "instructions": "After starting the stack, run from its directory: docker run --rm -v \"./.data/.titanedge:/root/.titanedge\" nezha123/titan-edge:latest bind --hash=YOUR_HASH https://api-test1.container1.titannet.io/api/v2/device/binding. Replace YOUR_HASH with the identity hash from your Titan account. Keep .data/.titanedge to preserve the node identity."
         }
     },
     "install_limit": -1,
@@ -53,8 +53,7 @@
         "device_limits": {
             "max_devices_per_account": "undocumented",
             "max_devices_per_ip": "undocumented",
-            "max_ips_per_account": "undocumented",
-            "notes": "Edge compute platform. Two-step setup: run container, then bind device with identity hash."
+            "max_ips_per_account": "undocumented"
         },
         "ip_policy": {
             "residential": true,
@@ -67,7 +66,7 @@
             "adjacent_ips_max": "undocumented",
             "ipv6": "undocumented",
             "geo_restrictions": "none known",
-            "quality_notes": "Edge compute network. Not pure bandwidth sharing."
+            "quality_notes": "Edge compute network."
         },
         "docker": {
             "image_official": true,

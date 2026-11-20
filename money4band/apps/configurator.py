@@ -41,7 +41,7 @@ def configure_password(
     app: dict[str, Any], flag_config: dict[str, Any], config: dict[str, Any]
 ) -> None:
     print(
-        f"Note: If you are using login with Google, remember to set also a password for your {app['name'].lower().title()} account!"
+        "If you signed up with Google or Apple, set an account password before using this client."
     )
     password = ask_string(
         f"Enter your {app['name'].lower().title()} password:",
@@ -163,9 +163,10 @@ def configure_machine_id(
 def configure_cid(
     app: dict[str, Any], flag_config: dict[str, Any], config: dict[str, Any]
 ) -> None:
-    print(f"Find your CID inside your {app['name'].lower().title()} dashboard/profile.")
     print(
-        "Example: For packetstream you can fetch it from your dashboard https://app.packetstream.io/dashboard/download then select Linux. Copy the value after --cid in the install command (or CID= in older instructions), without quotes. Do not use your referral code."
+        flag_config.get(
+            "instructions", f"Find your CID in the {app['name'].title()} dashboard."
+        )
     )
     cid = ask_string(
         f"Enter your {app['name'].lower().title()} CID:",
@@ -215,12 +216,9 @@ def configure_manual(
         )
         return
     print(
-        f'{Fore.BLUE}"{app["name"].lower().title()} requires further manual configuration.{Style.RESET_ALL}'
+        f"{Fore.BLUE}Complete these steps for {app['name'].title()}:{Style.RESET_ALL}"
     )
     print(f"{Fore.YELLOW}{flag_config['instructions']}{Style.RESET_ALL}")
-    print(
-        f"{Fore.YELLOW}Please after completing this automated setup check also the app's website for further instructions if there are any.{Style.RESET_ALL}"
-    )
     wait_for_enter(
         f"\nPress {Fore.CYAN}Enter{Style.RESET_ALL} to continue...", allow_skip=True
     )

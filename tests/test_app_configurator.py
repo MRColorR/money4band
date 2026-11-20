@@ -123,7 +123,7 @@ class TestConfigureManual:
         configure_manual({"name": "APP"}, {"instructions": "Do X then Y"}, config)
         out = capsys.readouterr().out
         assert "Do X then Y" in out
-        assert "manual configuration" in out.lower()
+        assert "App" in out
 
     def test_missing_instructions_prints_error(self, capsys):
         config: dict = {}

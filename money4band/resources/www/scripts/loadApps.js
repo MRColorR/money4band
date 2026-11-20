@@ -1,4 +1,7 @@
 window.onload = () => {
+    const validUrl = (...urls) => urls.find(
+      url => typeof url === 'string' && /^https?:\/\//.test(url)
+    ) || '';
     m4bFetch('/api/config/app')
       .then(response => response.json())
       .then(config => {
@@ -26,20 +29,18 @@ window.onload = () => {
 
             const tdName = document.createElement('td');
             tdName.className = 'u-border-2 u-border-grey-10 u-border-no-left u-border-no-right u-table-cell';
-            let nameText = app.name;
-            if (!isActive && app.additional_details) {
-              nameText += ` (${app.additional_details})`;
-            }
-            tdName.textContent = nameText;
+            tdName.textContent = app.name;
+            tdName.title = app.additional_details || '';
 
             const tdDashboard = document.createElement('td');
             tdDashboard.className = 'u-border-2 u-border-grey-10 u-border-no-left u-border-no-right u-table-cell';
             const dashLink = document.createElement('a');
             dashLink.className = `u-active-none u-border-none u-btn u-button-link u-button-style u-hover-none u-none u-text-palette-1-base u-btn-${index+1}`;
-            dashLink.href = (app.dashboard && app.dashboard.startsWith('http')) ? app.dashboard : '#';
+            const dashboardUrl = validUrl(app.dashboard);
+            if (dashboardUrl) dashLink.href = dashboardUrl;
             dashLink.target = '_blank';
             dashLink.rel = 'nofollow';
-            dashLink.textContent = 'Dashboard';
+            dashLink.textContent = dashboardUrl ? 'Dashboard' : '-';
             tdDashboard.appendChild(dashLink);
 
             const tdInvite = document.createElement('td');
@@ -48,10 +49,11 @@ window.onload = () => {
             inviteLink.className = `u-active-none u-border-none u-btn u-button-link u-button-style u-hover-none u-none u-text-palette-1-base u-btn-${index+2}`;
             const primaryReferral = Array.isArray(app.referrals) && app.referrals.length > 0 ? app.referrals[0] : null;
             const pickedUrl = typeof app.picked_referral_url === 'string' ? app.picked_referral_url : '';
-            const referralUrl = pickedUrl || (primaryReferral && typeof primaryReferral.url === 'string' ? primaryReferral.url : '');
-            inviteLink.href = (referralUrl && referralUrl.startsWith('http')) ? referralUrl : '#';
+            const referralUrl = validUrl(pickedUrl, primaryReferral && primaryReferral.url);
+            const websiteUrl = validUrl(referralUrl, app.app_details && app.app_details.official_url, app.dashboard);
+            if (websiteUrl) inviteLink.href = websiteUrl;
             inviteLink.target = '_blank';
-            inviteLink.textContent = 'Invite friends';
+            inviteLink.textContent = referralUrl ? 'Invite friends' : (websiteUrl ? 'Website' : '-');
             tdInvite.appendChild(inviteLink);
 
             tr.appendChild(tdName);

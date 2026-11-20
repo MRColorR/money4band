@@ -38,8 +38,7 @@ a configuration backup does not include every provider’s data volume.
 
 ### Opt-in additions via remote catalog sources
 
-20 entries previously bundled in v4 were moved to dedicated catalog
-repositories in v5 so M4B core stays small and audit-clean.
+Enable an additional catalog source to see its apps alongside the built-in catalog.
 
 View the catalog:
 
@@ -47,7 +46,7 @@ View the catalog:
 m4b apps                         # full catalog grouped by category
 m4b apps --category supported    # only supported
 m4b apps --category candidate    # only newcomers (candidates)
-m4b apps --category deprecated   # only deprecated (with removal notes)
+m4b apps --category deprecated   # archived apps
 m4b apps honeygain               # detailed info card for one app
 ```
 
@@ -57,15 +56,8 @@ so they appear during **Setup Apps**.
 
 ### Removed apps
 
-- BearShare's old signup domain does not resolve. The domain listed by its
-  Docker publisher serves a registrar verification page. Its amd64 image
-  still opens its CLI help.
-- PacketShare's published tags lack a Linux amd64 image. Its 386 and arm64
-  images reach the client prompt, but the publisher's registration and
-  dashboard URLs failed the availability check.
-
-These checks establish why both apps are excluded from default setup.
-Their providers' shutdown status is unconfirmed.
+Archived integrations are disabled by default. See the [app directory](APPS.md)
+for their status and **App details** for the reason.
 
 After upgrading an existing deployment, stop the previous stack, choose
 **Regenerate files from config**, and start it again. Recreate saved multi-proxy instances
@@ -76,10 +68,8 @@ and network requirements.
 
 ### Provider onboarding
 
-Starting a container is only the first check. Complete any provider onboarding
-or device claim, then verify the device and traffic in its dashboard. Docker's
-process health checks do not establish that a provider accepted the account,
-that traffic is available, or that earnings have been credited.
+Complete any provider onboarding or device claim, then confirm the device
+and traffic in the provider's dashboard.
 
 To migrate a MystNodes container to a new Raspberry Pi or host, stop the old
 node and back up `.data/mysterium-node` from that instance's stack directory.
@@ -183,9 +173,7 @@ The envelope is tiny (lives under `m4b-config.json -> catalog`):
 
 At load time the loader walks every declared `catalog_sources[]` entry,
 reads the per-file bundles, and aggregates them back into the in-memory
-shape used by the rest of the codebase. Adding, moving or removing an
-app is a single-file change - no more merge conflicts on a 3600-line
-monolith.
+shape used by the rest of the codebase. Each app is maintained in its own JSON file.
 
 ### Migration
 
@@ -466,15 +454,6 @@ for the full profile reference and sidecar inheritance rules.
 
 ## Promoting Candidates to Supported
 
-Maintainers move a newcomer into `supported` with:
-
-```bash
-python scripts/promote_apps.py <NAME>
-```
-
-The script reads `config/catalog/newcomers/<NAME>.json`, stamps
-`app_details.docker`, `recommendation`, `last_verified`, adds any
-`*_SIDECAR` services if applicable, and calls
-`catalog_store.move_entry()` to relocate the bundle to
-`config/catalog/supported/<NAME>.json`. The move is atomic and a single
-file change - no envelope edits required.
+After testing the provider integration, move its JSON bundle from `newcomers/`
+to `supported/` and update its status. Keep one entry per app across catalogs.
+Rebuild the affected catalog manifest and regenerate the app tables before publishing.

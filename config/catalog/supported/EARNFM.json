@@ -51,10 +51,9 @@
         "tos_url": "https://earn.fm/terms",
         "status": "active",
         "device_limits": {
-            "max_devices_per_account": "unlimited",
+            "max_devices_per_account": "undocumented",
             "max_devices_per_ip": "undocumented",
-            "max_ips_per_account": "unlimited",
-            "notes": "Device limits are undocumented. The standard client requires residential connections."
+            "max_ips_per_account": "undocumented"
         },
         "ip_policy": {
             "residential": true,
