@@ -105,6 +105,7 @@ Start with a **built-in app** and select its name to visit the provider. Some li
 | [**Bytelixir**](https://bytelixir.com) | Candidate (see app directory) |
 | [**Ebesucher**](https://www.ebesucher.com/?ref=mindlessnerds) | Candidate (see app directory) |
 | [**PassiveApp**](https://www.passiveapp.com/) | Candidate (see app directory) |
+| [**ProxyBase**](https://peer.proxybase.org/dashboard/signup?referral=XfOz3zeURm) | Candidate (see app directory) |
 | [**Salad**](https://salad.com) | Candidate (see app directory) |
 | [**UpRock**](https://uprock.com) | Candidate (see app directory) |
 | **Adnade** | Archived |
@@ -116,7 +117,6 @@ Start with a **built-in app** and select its name to visit the provider. Some li
 | [**Grass (Wynd Network)**](https://app.getgrass.io/register/?referralCode=qyvJmxgNUhcLo2f) | Archived |
 | **PacketShare** | Archived |
 | [**Peer2Profit**](https://t.me/peer2profit_app_bot?start=165849012262da8d0aa13c8) | Archived |
-| [**ProxyBase**](http://peer.proxybase.org/signup?ref=XfOz3zeURm) | Archived |
 | [**SpeedShare**](https://speedshare.app/?ref=mindlessnerd) | Archived |
 | [**Teneo Protocol**](https://dashboard.teneo.pro/?code=qPgLn) | Archived |
 | [**Wipter**](https://wipter.com/signup?ref=money4band) | Archived |

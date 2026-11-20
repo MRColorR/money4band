@@ -38,6 +38,7 @@ balance, and payout status.
 | [new] | [**Bytelixir**](https://bytelixir.com) | [soon] | [ok] | - | - | - | crypto | $0.5-1 |
 | [new] | [**Ebesucher**](https://www.ebesucher.com/?ref=mindlessnerds) | [soon] | [ok] | - | - | - | - | - |
 | [new] | [**PassiveApp**](https://www.passiveapp.com/) | [soon] | [ok] | - | - | - | PayPal, crypto, gift cards | - |
+| [new] | [**ProxyBase**](https://peer.proxybase.org/dashboard/signup?referral=XfOz3zeURm) | [soon] | [ok] | [ok] | - | 1 | - | - |
 | [new] | [**Salad**](https://salad.com) | [soon] | [ok] | [x] | - | - | - | - |
 | [new] | [**UpRock**](https://uprock.com) | [soon] | [ok] | - | - | - | - | - |
 | [x] | **Adnade** | [x] | [ok] | - | - | - | - | - |
@@ -49,7 +50,6 @@ balance, and payout status.
 | [x] | [**Grass (Wynd Network)**](https://app.getgrass.io/register/?referralCode=qyvJmxgNUhcLo2f) | [x] | [ok] | [x] | - | - | GRASS token (crypto) | - |
 | [x] | **PacketShare** | [x] | [ok] | - | - | - | - | - |
 | [x] | [**Peer2Profit**](https://t.me/peer2profit_app_bot?start=165849012262da8d0aa13c8) | [x] | - | - | - | - | - | - |
-| [x] | [**ProxyBase**](http://peer.proxybase.org/signup?ref=XfOz3zeURm) | [x] | [ok] | [x] | - | - | - | - |
 | [x] | [**SpeedShare**](https://speedshare.app/?ref=mindlessnerd) | [x] | - | - | - | - | - | - |
 | [x] | [**Teneo Protocol**](https://dashboard.teneo.pro/?code=qPgLn) (code: `qPgLn`) | [x] | [ok] | - | - | - | - | - |
 | [x] | [**Wipter**](https://wipter.com/signup?ref=money4band) | [x] | - | - | - | - | - | - |
