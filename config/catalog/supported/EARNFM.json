@@ -54,7 +54,7 @@
             "max_devices_per_account": "unlimited",
             "max_devices_per_ip": "undocumented",
             "max_ips_per_account": "unlimited",
-            "notes": "Fleetshare allows bulk sharing of IPs (min 50) via socks5 or static routing. No meaningful device cap. Designed for scale."
+            "notes": "Device limits are undocumented. The standard client requires residential connections."
         },
         "ip_policy": {
             "residential": true,
@@ -67,7 +67,7 @@
             "adjacent_ips_max": "unlimited",
             "ipv6": "undocumented",
             "geo_restrictions": "none known",
-            "quality_notes": "The current end-user help centre blocks datacenter, proxy and VPN connections. Fleetshare SDK rates describe a separate developer product and are not evidence that the standard client permits these IP types."
+            "quality_notes": "The standard client requires residential connections. Datacenter IPs, VPNs and proxies are not permitted."
         },
         "docker": {
             "image_official": true,
@@ -99,12 +99,7 @@
             "https://help.earn.fm/portal/en/kb/technical-questions",
             "https://help.earn.fm/portal/en/kb/articles/what-payment-methods-are-there"
         ],
-        "last_verified": "2026-03-21",
-        "compose_layer_reasoning": "Residential profile follows the current end-user help centre; developer SDK eligibility is separate.",
-        "install_limit_reasoning": "No documented device caps. Fleetshare allows bulk sharing of IPs (min 50) via socks5 or static routing. Designed for scale.",
-        "recommendation": "update-config",
-        "recommendation_reasoning": "Changed compose_layer from datacenter to universal. Fleetshare confirms both residential and DC/VPS acceptance.",
-        "confidence_notes": "Fleetshare Docker Hub docs and Earn.FM help articles confirm DC/VPS acceptance."
+        "last_verified": "2026-03-21"
     },
     "referrals": [
         {

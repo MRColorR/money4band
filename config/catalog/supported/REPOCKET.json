@@ -45,7 +45,7 @@
             "max_devices_per_account": "unlimited",
             "max_devices_per_ip": "undocumented",
             "max_ips_per_account": "unlimited",
-            "notes": "No documented device cap. Mixed Trustpilot reviews note inability to see all connected devices in dashboard."
+            "notes": "Device limits are undocumented."
         },
         "ip_policy": {
             "residential": true,
@@ -81,12 +81,7 @@
             "https://blog.vpslog.org/blog/profit/",
             "https://hub.docker.com/r/repocket/repocket"
         ],
-        "last_verified": "2026-03-21",
-        "compose_layer_reasoning": "Frequently cited as VPS-friendly in academic research and community reports. Port 7072 identified in traffic analysis.",
-        "install_limit_reasoning": "No documented device cap. Mixed Trustpilot reviews note dashboard limitations but no ban reports for multi-device.",
-        "recommendation": "keep",
-        "recommendation_reasoning": "Datacenter layer and unlimited limit are correct. VPS-friendly confirmed.",
-        "confidence_notes": "University of Twente thesis and community blog analyses confirm VPS acceptance. Current official container requires only RP_API_KEY. It has no shell or published health probe; shell-based health checks are disabled."
+        "last_verified": "2026-03-21"
     },
     "referrals": [
         {

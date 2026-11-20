@@ -56,8 +56,7 @@
         "device_limits": {
             "max_devices_per_account": "undocumented",
             "max_devices_per_ip": "undocumented",
-            "max_ips_per_account": "undocumented",
-            "notes": "The published Docker manifest provides linux/amd64, linux/arm64 and linux/arm/v7. Native amd64 and emulated arm64 CLI startup were checked."
+            "max_ips_per_account": "undocumented"
         },
         "ip_policy": {
             "residential": true,
@@ -75,7 +74,12 @@
         "docker": {
             "image_official": true,
             "image_maintained": true,
-            "last_update": "2026-10"
+            "last_update": "2026-10",
+            "architectures": [
+                "linux/amd64",
+                "linux/arm64",
+                "linux/arm/v7"
+            ]
         },
         "earnings": {
             "model": "undocumented",
@@ -86,20 +90,12 @@
             "avg_monthly_residential_usd": "unknown",
             "avg_monthly_datacenter_usd": "unknown"
         },
-        "warnings": [
-            "Authenticated enrollment and payouts have not been verified by this catalog review."
-        ],
         "confidence": "low",
         "sources": [
             "https://docs.antgain.app/node/docker",
             "https://docs.antgain.app/rewards"
         ],
-        "last_verified": "2026-11-19",
-        "compose_layer_reasoning": "Insufficient documentation. Conservative datacenter classification.",
-        "install_limit_reasoning": "No documented account-wide device cap. Check current provider terms before deploying multiple nodes.",
-        "recommendation": "promoted",
-        "recommendation_reasoning": "Promoted to supported. Docker image verified on Docker Hub.",
-        "confidence_notes": "Official image and API-key environment match the current Docker guide. The existing /data parent mount retains /data/.antgain state. Dashboard and referral checked; authenticated enrollment and payouts were not tested."
+        "last_verified": "2026-11-19"
     },
     "referrals": [
         {

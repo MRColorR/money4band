@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qs, quote, urlparse
 
+from money4band.apps.links import primary_app_link
 from money4band.core.loader import get_all_app_categories, get_category_entries
 
 logger = logging.getLogger(__name__)
@@ -164,20 +165,7 @@ def _collect_apps(app_config: dict[str, Any]) -> list[dict[str, Any]]:
         order = _CATEGORY_ORDER.get(cat, 99)
         for entry in get_category_entries(app_config, cat):
             details = entry.get("app_details", {})
-            referrals = entry.get("referrals") or []
-            primary_link = (
-                referrals[0].get("url", "")
-                if referrals and isinstance(referrals[0], dict)
-                else ""
-            )
-            if not primary_link:
-                primary_link = details.get("official_url") or entry.get("dashboard", "")
-            if not isinstance(primary_link, str) or not primary_link.startswith(
-                ("https://", "http://")
-            ):
-                primary_link = ""
-            else:
-                primary_link = quote(primary_link, safe=":/?#[]@!$&'*+,;=%")
+            primary_link = quote(primary_app_link(entry), safe=":/?#[]@!$&'*+,;=%")
             source = entry.get("_source", "core")
             apps.append(
                 {

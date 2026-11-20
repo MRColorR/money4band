@@ -87,12 +87,7 @@
             "https://packetstream.io/share-bandwidth/",
             "https://packetstream.io/install.sh"
         ],
-        "last_verified": "2026-03-21",
-        "compose_layer_reasoning": "Official FAQ explicitly states datacenter and business IPs not accepted. Requires 'geographic diversity and residential characteristics'.",
-        "install_limit_reasoning": "No explicit device cap found in official documentation. Multiple instances possible with different IPs.",
-        "recommendation": "keep",
-        "recommendation_reasoning": "No config changes needed. Residential layer and unlimited limit are correct.",
-        "confidence_notes": "PacketStream share-bandwidth page and FAQ verified."
+        "last_verified": "2026-03-21"
     },
     "referrals": [
         {
@@ -105,5 +100,5 @@
         "cid": "yourPACKETSTREAMCID"
     },
     "profile": "residential",
-    "additional_details": "Copy the CID from the Linux installation command in your account dashboard. The current official Linux installer uses a newer bootstrap client with persistent storage; Money4Band currently deploys the published packetstream/psclient image. Check traffic in the provider dashboard, because a running process alone does not confirm earnings."
+    "additional_details": "Copy the CID from the Linux installation command in your account dashboard."
 }

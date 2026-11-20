@@ -93,6 +93,7 @@ Start with a **built-in app** and select its name to visit the provider. Some li
 | [**NetYield**](https://netyield.io/) | Built into Money4Band |
 | [**PacketStream**](https://packetstream.io/share-bandwidth/?psr=v3wayrm3g9) | Built into Money4Band |
 | [**Pawns (IPRoyal)**](https://pawns.app/?r=MiNe) | Built into Money4Band |
+| [**ProxyBase**](https://peer.proxybase.org/dashboard/signup?referral=XfOz3zeURm) | Built into Money4Band |
 | [**ProxyLite**](https://proxylite.ru/?r=PJTKXWN3) | Built into Money4Band |
 | [**Proxyrack Peer Program**](https://peer.proxyrack.com/ref/myoas6qttvhuvkzh8ffx90ns1ouhwgilfgamo5ex) | Built into Money4Band |
 | [**Repocket**](https://link.repocket.co/hr8i) | Built into Money4Band |
@@ -105,7 +106,6 @@ Start with a **built-in app** and select its name to visit the provider. Some li
 | [**Bytelixir**](https://bytelixir.com) | Candidate (see app directory) |
 | [**Ebesucher**](https://www.ebesucher.com/?ref=mindlessnerds) | Candidate (see app directory) |
 | [**PassiveApp**](https://www.passiveapp.com/) | Candidate (see app directory) |
-| [**ProxyBase**](https://peer.proxybase.org/dashboard/signup?referral=XfOz3zeURm) | Candidate (see app directory) |
 | [**Salad**](https://salad.com) | Candidate (see app directory) |
 | [**UpRock**](https://uprock.com) | Candidate (see app directory) |
 | [**Adnade**](https://adnade.com) | Archived |

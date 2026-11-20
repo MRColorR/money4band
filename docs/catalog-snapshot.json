@@ -50,35 +50,7 @@
         ]
       }
     ],
-    "newcomers": [
-      {
-        "name": "PROXYBASE",
-        "app_details": {
-          "official_name": "ProxyBase",
-          "official_url": "https://peer.proxybase.org/",
-          "status": "candidate",
-          "ip_policy": {
-            "residential": true,
-            "datacenter": true
-          },
-          "device_limits": {
-            "max_devices_per_account": "undocumented",
-            "max_devices_per_ip": 1
-          },
-          "earnings": {
-            "payout_methods": [
-              "undocumented"
-            ],
-            "avg_monthly_residential_usd": "unknown"
-          }
-        },
-        "referrals": [
-          {
-            "url": "https://peer.proxybase.org/dashboard/signup?referral=XfOz3zeURm"
-          }
-        ]
-      }
-    ],
+    "newcomers": [],
     "deprecated": [
       {
         "name": "DAWN",

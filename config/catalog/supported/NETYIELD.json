@@ -34,7 +34,7 @@
             "vps": true,
             "mobile": true,
             "ipv6": "undocumented",
-            "quality_notes": "The provider confirmed hosting, datacenter, residential and mobile IPv4 eligibility. A static ISP proxy was verified with the sandbox."
+            "quality_notes": "Hosting, datacenter, residential and mobile IPv4 connections are eligible."
         },
         "docker": {"image_official": true, "image_maintained": true},
         "earnings": {

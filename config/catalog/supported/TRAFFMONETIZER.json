@@ -92,12 +92,7 @@
             "https://traffmonetizer.io/terms-of-service/",
             "https://hub.docker.com/r/traffmonetizer/cli_v2"
         ],
-        "last_verified": "2026-11-19",
-        "compose_layer_reasoning": "Residential connections only, as required by the provider terms.",
-        "install_limit_reasoning": "No device cap stated in the terms.",
-        "recommendation": "keep",
-        "recommendation_reasoning": "Keep the published Docker client for supported residential use.",
-        "confidence_notes": "Current official Docker documentation and registry verified. ARM tags arm64v8 and arm32v7 publish matching architecture metadata. HOME and persistent storage preserve identity. The current image has no shell; the previous shell health check is disabled. Authenticated connectivity and payouts remain untested in this review."
+        "last_verified": "2026-11-19"
     },
     "referrals": [
         {
@@ -110,5 +105,5 @@
         "token": "yourTRAFFMONETIZERToken"
     },
     "profile": "residential",
-    "additional_details": "TraffMonetizer moved to traffmonetizer.io. Pull the current image before recreating older containers. Keep the .data/.traffmonetizer directory to preserve the device identity; adding this storage to an older stateless container registers a new identity once. The official public site lists a $10 minimum, USDT TRC20 and wire transfers from $1,000; check the account dashboard for current payout networks."
+    "additional_details": "Keep .data/.traffmonetizer when recreating the container to preserve its device identity. Adding this storage to an existing stateless installation creates a new device identity."
 }

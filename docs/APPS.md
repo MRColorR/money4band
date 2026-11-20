@@ -26,7 +26,8 @@ balance, and payout status.
 | [ok] | [**NetYield**](https://netyield.io/) | [ok] | [ok] | [ok] | - | - | USDC | - |
 | [ok] | [**PacketStream**](https://packetstream.io/share-bandwidth/?psr=v3wayrm3g9) | [ok] | [ok] | [x] | Unlimited | - | PayPal | $0.5-1.5 |
 | [ok] | [**Pawns (IPRoyal)**](https://pawns.app/?r=MiNe) | [ok] | [ok] | [x] | Unlimited | 1 | PayPal, crypto, gift cards | $0.5-2 |
-| [ok] | [**ProxyLite**](https://proxylite.ru/?r=PJTKXWN3) | [ok] | [ok] | - | - | - | BTC, PayPal, cards and Payeer advertised; confirm in dashboard | - |
+| [ok] | [**ProxyBase**](https://peer.proxybase.org/dashboard/signup?referral=XfOz3zeURm) | [ok] | [ok] | [ok] | - | 1 | - | - |
+| [ok] | [**ProxyLite**](https://proxylite.ru/?r=PJTKXWN3) | [ok] | [ok] | - | - | - | Sberbank (Russia), mobile credit (supported countries), YuMoney, bank cards (Belarus) | - |
 | [ok] | [**Proxyrack Peer Program**](https://peer.proxyrack.com/ref/myoas6qttvhuvkzh8ffx90ns1ouhwgilfgamo5ex) | [ok] | [ok] | [ok] | 500 | - | PayPal, crypto | $0.5-2 |
 | [ok] | [**Repocket**](https://link.repocket.co/hr8i) | [ok] | [ok] | [ok] | Unlimited | - | PayPal, crypto | $1-5 |
 | [com] | [**Spide Network**](https://spide.network/register.html?206a39) | [ok] | [ok] | [x] | Unlimited | 1 | PayPal, BTC | - |
@@ -38,7 +39,6 @@ balance, and payout status.
 | [new] | [**Bytelixir**](https://bytelixir.com) | [soon] | [ok] | - | - | - | crypto | $0.5-1 |
 | [new] | [**Ebesucher**](https://www.ebesucher.com/?ref=mindlessnerds) | [soon] | [ok] | - | - | - | PayPal, bank transfer | - |
 | [new] | [**PassiveApp**](https://www.passiveapp.com/) | [soon] | [ok] | - | - | - | PayPal, crypto, gift cards | - |
-| [new] | [**ProxyBase**](https://peer.proxybase.org/dashboard/signup?referral=XfOz3zeURm) | [soon] | [ok] | [ok] | - | 1 | - | - |
 | [new] | [**Salad**](https://salad.com) | [soon] | [ok] | [x] | - | - | PayPal, crypto rewards, prepaid cards, gift cards | - |
 | [new] | [**UpRock**](https://uprock.com) | [soon] | [ok] | - | - | - | - | - |
 | [x] | [**Adnade**](https://adnade.com) | [x] | [ok] | - | - | - | - | - |

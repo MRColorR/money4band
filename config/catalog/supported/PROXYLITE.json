@@ -52,7 +52,7 @@
             "max_devices_per_account": "undocumented",
             "max_devices_per_ip": "undocumented",
             "max_ips_per_account": "undocumented",
-            "notes": "The earning-service site describes multiple devices with distinct public IPs; no account-wide device/IP cap is published."
+            "notes": "Multiple devices require distinct public IPs. Account-wide limits are undocumented."
         },
         "ip_policy": {
             "residential": true,
@@ -65,7 +65,7 @@
             "adjacent_ips_max": "undocumented",
             "ipv6": "undocumented",
             "geo_restrictions": "undocumented; review the linked earning-service agreement",
-            "quality_notes": "The earning service is proxylite.ru. Its public pages describe computers and Android devices with distinct exit IPs. Datacenter, VPN and proxy eligibility is not established by those pages; commercial products on proxylite.com do not establish this service policy."
+            "quality_notes": "Residential computers and Android devices. Datacenter, VPN and proxy eligibility is undocumented."
         },
         "docker": {
             "image_official": true,
@@ -76,7 +76,10 @@
             "model": "bandwidth sharing (Coins)",
             "min_payout": "undocumented",
             "payout_methods": [
-                "BTC, PayPal, cards and Payeer advertised; confirm in dashboard"
+                "Sberbank (Russia)",
+                "mobile credit (supported countries)",
+                "YuMoney",
+                "bank cards (Belarus)"
             ],
             "avg_monthly_residential_usd": "unknown",
             "avg_monthly_datacenter_usd": "unknown"
@@ -89,12 +92,7 @@
             "https://hub.docker.com/r/proxylite/proxyservice",
             "https://app.proxylite.ru/legal/proxylite_android_user_agreement.pdf"
         ],
-        "last_verified": "2026-03-21",
-        "compose_layer_reasoning": "Historical universal profile retained; eligibility for datacenter and proxy use remains undocumented by the earning service.",
-        "install_limit_reasoning": "No published account-wide cap verified; the earning service describes distinct public IPs for multiple devices.",
-        "recommendation": "update-config",
-        "recommendation_reasoning": "Keep the verified image and user-ID setup. Do not infer earning-service IP policy from a similarly named commercial proxy site.",
-        "confidence_notes": "Official proxylite.ru download page links the configured Docker image and USER_ID setup. Replaced unrelated proxylite.com references; datacenter/proxy eligibility and current payout availability need provider confirmation."
+        "last_verified": "2026-03-21"
     },
     "referrals": [
         {

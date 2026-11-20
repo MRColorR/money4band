@@ -6,6 +6,7 @@ from typing import Any
 
 from colorama import Fore, Style, just_fix_windows_console
 
+from money4band.apps.links import primary_app_link
 from money4band.core.loader import (
     get_all_app_categories,
     get_category_entries,
@@ -54,16 +55,10 @@ def _display_catalog(app_config: dict[str, Any]) -> None:
         # Collect rows
         rows: list[dict[str, str]] = []
         for app in apps:
-            referrals = app.get("referrals") or []
-            primary_link = (
-                referrals[0].get("url", "")
-                if referrals and isinstance(referrals[0], dict)
-                else ""
-            )
             rows.append(
                 {
                     "name": app["name"],
-                    "link": primary_link,
+                    "link": primary_app_link(app),
                     "payout": app.get("app_details", {})
                     .get("earnings", {})
                     .get("min_payout", "-"),
@@ -172,11 +167,9 @@ def _manage_categories(app_config: dict[str, Any], app_config_path: str | None) 
     print(f"\n{cat_key} is now [{new_badge}]")
 
     if app_config_path:
-        # Write only the envelope's active flag - per-file bundles are
-        # not rewritten here.
-        from money4band.core.catalog_store import set_category_active
+        from money4band.apps.catalog_manager import set_category
 
-        set_category_active(app_config_path, cat_key, new_status)
+        set_category(app_config_path, cat_key, new_status)
         logger.info(
             "Saved category status change: %s -> active=%s", cat_key, new_status
         )

@@ -90,14 +90,10 @@
         "sources": [
             "https://bitping.com/help/nodes/system-requirements",
             "https://bitping.com/help/nodes/installing-the-node/",
-            "https://bitping.com/help/nodes/troubleshooting-solana-payouts"
+            "https://bitping.com/help/nodes/troubleshooting-solana-payouts",
+            "https://bitping.com/help/nodes/troubleshooting-protocols"
         ],
-        "last_verified": "2026-03-21",
-        "compose_layer_reasoning": "Network monitoring/testing model (not pure bandwidth sharing). Node quality depends on geo location and latency, not IP type. Servers explicitly listed as supported platform.",
-        "install_limit_reasoning": "No documented device cap. Officially supports servers, PCs, and Raspberry Pi. Docker explicitly supported.",
-        "recommendation": "keep",
-        "recommendation_reasoning": "Datacenter layer and unlimited limit are correct. Task-based model accepts all IP types.",
-        "confidence_notes": "Bitping system requirements page confirms server and Docker support."
+        "last_verified": "2026-03-21"
     },
     "referrals": [
         {

@@ -94,12 +94,7 @@
             "https://www.proxyrack.com/become-a-peer/",
             "https://hub.docker.com/r/proxyrack/pop"
         ],
-        "last_verified": "2026-03-21",
-        "compose_layer_reasoning": "Community confirms VPS/DC IPs accepted. One of the more permissive platforms for datacenter proxies.",
-        "install_limit_reasoning": "Official help article confirms hard 500-device limit per account for 'fair usage and optimal performance'.",
-        "recommendation": "keep",
-        "recommendation_reasoning": "Datacenter layer and 500-device limit are correct per official documentation.",
-        "confidence_notes": "Official Proxyrack help center article on device limits verified."
+        "last_verified": "2026-03-21"
     },
     "referrals": [
         {

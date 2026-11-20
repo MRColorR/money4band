@@ -98,12 +98,7 @@
             "https://help.pawns.app/en/articles/8658934-what-are-referral-earnings",
             "https://pawns.app/terms-of-use/"
         ],
-        "last_verified": "2026-03-21",
-        "compose_layer_reasoning": "IPRoyal custom monitoring prevents datacenter IPs. Datacenter ASNs automatically removed from pool.",
-        "install_limit_reasoning": "1 node per unique public IP. Cloning VMs on same IP explicitly disallowed and may trigger bans.",
-        "recommendation": "update-config",
-        "recommendation_reasoning": "Corrected install_limit to 1 per IP. IPRoyal Sourcing Documentation confirms strict per-IP enforcement.",
-        "confidence_notes": "IPRoyal proxy sourcing documentation and community reports confirm residential-only policy."
+        "last_verified": "2026-03-21"
     },
     "referrals": [
         {
@@ -117,5 +112,5 @@
         "password": "yourIPROYALPAWNSPw"
     },
     "profile": "residential",
-    "additional_details": "The official Docker CLI accepts email and password and has no OTP or API-key option. If it returns \"please use SDK or gui app\", verify that the image is current and contact Pawns support or use its official desktop app. This error does not establish that the service has shut down or that disabling 2FA would fix it."
+    "additional_details": "Use your account email and password. The Docker CLI has no OTP or API-key option. For the error \"please use SDK or gui app\", contact Pawns support or use the official desktop app."
 }

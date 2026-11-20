@@ -33,7 +33,13 @@ def _has_tag(image: str) -> bool:
 def test_every_catalog_image_has_explicit_tag():
     offenders: list[str] = []
     checked = 0
-    for path in _CONFIG_DIR.rglob("*.json"):
+    catalog = _CONFIG_DIR / "catalog"
+    paths = (
+        path
+        for category in ("supported", "newcomers", "deprecated", "addons")
+        for path in (catalog / category).glob("*.json")
+    )
+    for path in paths:
         try:
             data = json.loads(path.read_text(encoding="utf-8"))
         except (ValueError, OSError):

@@ -101,12 +101,7 @@
             "https://support.honeygain.com/hc/en-us/articles/30688346556956-How-many-devices-can-I-use-and-how-do-I-manage-them",
             "https://support.honeygain.com/hc/en-us/articles/30688404694428-Error-Network-overused"
         ],
-        "last_verified": "2026-03-21",
-        "compose_layer_reasoning": "Officially forbids non-residential IP types; VPN/Datacenter IPs result in account suspension.",
-        "install_limit_reasoning": "Hard technical limit of 1 device per IP. Extra devices show 'Network overused' error. Account cap is 10, but per-IP limit must be 1.",
-        "recommendation": "update-config",
-        "recommendation_reasoning": "Updated install_limit from 10 to 1 per IP. Account allows 10 devices but each requires unique IP.",
-        "confidence_notes": "Official support docs verified for 2026. Device limits confirmed in multiple help articles."
+        "last_verified": "2026-03-21"
     },
     "referrals": [
         {

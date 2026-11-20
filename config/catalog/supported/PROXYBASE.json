@@ -1,0 +1,116 @@
+{
+    "name": "PROXYBASE",
+    "dashboard": "https://peer.proxybase.org/dashboard/",
+    "compose_config": {
+        "container_name": "${DEVICE_NAME}_proxybase",
+        "hostname": "${DEVICE_NAME}_proxybase",
+        "image": "ghcr.io/proxybaseorg/peer-cli:latest",
+        "environment": [
+            "ACCESS_TOKEN=${PROXYBASE_TOKEN}",
+            "DEVICE_NAME=${DEVICE_NAME}"
+        ],
+        "labels": [
+            "com.centurylinklabs.watchtower.enable=true",
+            "com.centurylinklabs.watchtower.scope=${M4B_WATCHTOWER_SCOPE}"
+        ],
+        "restart": "always",
+        "cpus": "${APP_CPU_LIMIT_BIG}",
+        "mem_reservation": "${APP_MEM_RESERV_BIG}",
+        "mem_limit": "${APP_MEM_LIMIT_BIG}",
+        "logging": {
+            "driver": "json-file",
+            "options": {
+                "max-size": "10m",
+                "max-file": "3"
+            }
+        },
+        "healthcheck": {
+            "disable": true
+        },
+        "read_only": true,
+        "tmpfs": [
+            "/tmp:size=16m,mode=1777"
+        ],
+        "cap_drop": [
+            "ALL"
+        ]
+    },
+    "compose_config_proxy": {
+        "network_mode": "service:proxy",
+        "hostname": null
+    },
+    "flags": {
+        "token": {}
+    },
+    "install_limit": 1,
+    "app_details": {
+        "official_name": "ProxyBase",
+        "publisher": "ProxyBase",
+        "official_url": "https://peer.proxybase.org/",
+        "tos_url": "undocumented",
+        "status": "active",
+        "device_limits": {
+            "max_devices_per_account": "undocumented",
+            "max_devices_per_ip": 1,
+            "max_ips_per_account": "undocumented",
+            "notes": "One device per public IP."
+        },
+        "ip_policy": {
+            "residential": true,
+            "datacenter": true,
+            "vps": true,
+            "vpn": false,
+            "proxy": false,
+            "mobile": "undocumented",
+            "adjacent_ips_accepted": "undocumented",
+            "adjacent_ips_max": "undocumented",
+            "ipv6": "undocumented",
+            "geo_restrictions": "undocumented",
+            "quality_notes": "Residential and datacenter connections are eligible. VPNs and proxies are not permitted."
+        },
+        "docker": {
+            "image_official": true,
+            "image_maintained": true,
+            "architectures": [
+                "linux/amd64",
+                "linux/arm64",
+                "linux/arm/v7"
+            ]
+        },
+        "earnings": {
+            "model": "per-GB",
+            "min_payout": "$0.20",
+            "payout_methods": [
+                "undocumented"
+            ],
+            "avg_monthly_residential_usd": "unknown",
+            "avg_monthly_datacenter_usd": "unknown",
+            "rates_usd_per_gb": {
+                "residential": 0.5,
+                "datacenter": 0.1
+            }
+        },
+        "warnings": [
+            "Experimental integration.",
+            "GHCR architecture detection is unavailable; Money4Band uses the configured fallback platform."
+        ],
+        "confidence": "medium",
+        "sources": [
+            "https://peer.proxybase.org/",
+            "https://github.com/proxybaseorg/Peer-App-Universal-Releases"
+        ],
+        "last_verified": "2026-11-20"
+    },
+    "referrals": [
+        {
+            "url": "https://peer.proxybase.org/dashboard/signup?referral=XfOz3zeURm",
+            "contributor": "MRColorR"
+        }
+    ],
+    "user_config_template": {
+        "enabled": false,
+        "token": ""
+    },
+    "additional_details": "Use the access token from your ProxyBase dashboard. Direct connections only; VPNs and proxies are not permitted.",
+    "profile": "universal"
+}

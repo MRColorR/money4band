@@ -1,5 +1,4 @@
 import io
-import json
 import os
 import re
 import unittest
@@ -252,26 +251,24 @@ class TestManageCategories(unittest.TestCase):
     def test_toggle_persists_to_file(self, _inp, tmp_path=None):
         import copy
         import tempfile
+        from pathlib import Path
 
+        from money4band.core.catalog_overrides import load_user_overrides
         from money4band.core.catalog_store import default_envelope, write_envelope
 
         cfg = copy.deepcopy(self._APP_CONFIG)
-        # Persistence targets the v2 envelope. The in-memory aggregated
-        # dict (cfg) is what _manage_categories displays; the companion
-        # envelope file is what it writes back.
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".json") as f:
-            cfg_path = f.name
-        try:
+        with tempfile.TemporaryDirectory() as folder:
+            cfg_path = str(Path(folder) / "m4b-config.json")
             envelope = default_envelope()
             first_key = list(cfg.keys())[0]
             envelope["categories"][first_key] = {"active": True}
             write_envelope(envelope, cfg_path)
+            shipped = Path(cfg_path).read_bytes()
 
             _manage_categories(cfg, cfg_path)
-            saved = json.loads(open(cfg_path).read())
-            assert saved["categories"][first_key]["active"] is False
-        finally:
-            os.unlink(cfg_path)
+            assert Path(cfg_path).read_bytes() == shipped
+            overrides = load_user_overrides(Path(folder) / "user-config.json")
+            assert overrides["categories"][first_key]["active"] is False
 
     @patch("money4band.apps.catalog.input", create=True, return_value="xyz")
     def test_invalid_input(self, _inp, capsys=None):
