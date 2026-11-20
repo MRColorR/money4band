@@ -108,14 +108,14 @@ Start with a **built-in app** and select its name to visit the provider. Some li
 | [**ProxyBase**](https://peer.proxybase.org/dashboard/signup?referral=XfOz3zeURm) | Candidate (see app directory) |
 | [**Salad**](https://salad.com) | Candidate (see app directory) |
 | [**UpRock**](https://uprock.com) | Candidate (see app directory) |
-| **Adnade** | Archived |
-| **BearShare** | Archived |
-| **Dawn Internet** | Archived |
-| **Earn.cc** | Archived |
-| **GaGaNode** | Archived |
+| [**Adnade**](https://adnade.com) | Archived |
+| [**BearShare**](https://bearshare.io) | Archived |
+| [**Dawn Internet**](https://dawninternet.com?code=xo23vynw) | Archived |
+| [**Earn.cc**](https://earn.cc) | Archived |
+| [**GaGaNode**](https://www.gaganode.com) | Archived |
 | [**Gradient**](https://app.gradient.network/signup?code=9WOBKP) | Archived |
 | [**Grass (Wynd Network)**](https://app.grass.io/register?referralCode=qyvJmxgNUhcLo2f) | Archived |
-| **PacketShare** | Archived |
+| [**PacketShare**](https://packetshare.io) | Archived |
 | [**Peer2Profit**](https://t.me/peer2profit_app_bot?start=165849012262da8d0aa13c8) | Archived |
 | [**SpeedShare**](https://speedshare.app/?ref=mindlessnerd) | Archived |
 | [**Teneo Protocol**](https://dashboard.teneo.pro/?code=qPgLn) | Archived |

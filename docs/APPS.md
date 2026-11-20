@@ -41,14 +41,14 @@ balance, and payout status.
 | [new] | [**ProxyBase**](https://peer.proxybase.org/dashboard/signup?referral=XfOz3zeURm) | [soon] | [ok] | [ok] | - | 1 | - | - |
 | [new] | [**Salad**](https://salad.com) | [soon] | [ok] | [x] | - | - | PayPal, crypto rewards, prepaid cards, gift cards | - |
 | [new] | [**UpRock**](https://uprock.com) | [soon] | [ok] | - | - | - | - | - |
-| [x] | **Adnade** | [x] | [ok] | - | - | - | - | - |
-| [x] | **BearShare** | [x] | [ok] | - | - | - | - | - |
-| [x] | **Dawn Internet** | [x] | [ok] | - | - | - | - | - |
-| [x] | **Earn.cc** | [x] | [ok] | - | - | - | - | - |
-| [x] | **GaGaNode** | [x] | [ok] | - | - | - | GaGa token (crypto) | - |
+| [x] | [**Adnade**](https://adnade.com) | [x] | [ok] | - | - | - | - | - |
+| [x] | [**BearShare**](https://bearshare.io) | [x] | [ok] | - | - | - | - | - |
+| [x] | [**Dawn Internet**](https://dawninternet.com?code=xo23vynw) (code: `xo23vynw`) | [x] | [ok] | - | - | - | - | - |
+| [x] | [**Earn.cc**](https://earn.cc) | [x] | [ok] | - | - | - | - | - |
+| [x] | [**GaGaNode**](https://www.gaganode.com) | [x] | [ok] | - | - | - | GaGa token (crypto) | - |
 | [x] | [**Gradient**](https://app.gradient.network/signup?code=9WOBKP) (code: `9WOBKP`) | [x] | [ok] | - | - | - | - | - |
 | [x] | [**Grass (Wynd Network)**](https://app.grass.io/register?referralCode=qyvJmxgNUhcLo2f) | [x] | [ok] | [x] | - | - | GRASS token (crypto) | - |
-| [x] | **PacketShare** | [x] | [ok] | - | - | - | - | - |
+| [x] | [**PacketShare**](https://packetshare.io) | [x] | [ok] | - | - | - | - | - |
 | [x] | [**Peer2Profit**](https://t.me/peer2profit_app_bot?start=165849012262da8d0aa13c8) | [x] | - | - | - | - | - | - |
 | [x] | [**SpeedShare**](https://speedshare.app/?ref=mindlessnerd) | [x] | - | - | - | - | - | - |
 | [x] | [**Teneo Protocol**](https://dashboard.teneo.pro/?code=qPgLn) (code: `qPgLn`) | [x] | [ok] | - | - | - | - | - |

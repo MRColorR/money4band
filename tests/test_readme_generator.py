@@ -244,6 +244,34 @@ class TestFormatHelpers:
 
 
 class TestCollectApps:
+    def test_archived_apps_keep_referral_or_historical_site_links(self) -> None:
+        for entry, expected in (
+            (
+                {
+                    "referrals": [{"url": "https://old.example.com?code=ABC"}],
+                    "app_details": {"official_url": "https://old.example.com"},
+                },
+                "https://old.example.com?code=ABC",
+            ),
+            (
+                {"app_details": {"official_url": "https://old.example.com"}},
+                "https://old.example.com",
+            ),
+            (
+                {"dashboard": "https://old.example.com/dashboard"},
+                "https://old.example.com/dashboard",
+            ),
+        ):
+            config = {
+                "deprecated": {
+                    "active": False,
+                    "entries": [{"name": "OLDAPP", **entry}],
+                }
+            }
+            assert _collect_apps(config)[0]["link"] == expected
+            assert f"]({expected})" in generate_readme_table(config)
+            assert f"]({expected})" in generate_apps_md_table(config)
+
     def test_count(self) -> None:
         apps = _collect_apps(_SAMPLE_CONFIG)
         assert len(apps) == 4

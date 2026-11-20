@@ -84,7 +84,7 @@
         "name": "DAWN",
         "app_details": {
           "official_name": "Dawn Internet",
-          "official_url": "https://infrastructure.finance/",
+          "official_url": "https://dawninternet.com",
           "status": "deprecated",
           "ip_policy": {
             "residential": true,
@@ -100,7 +100,12 @@
             ],
             "avg_monthly_residential_usd": "unknown"
           }
-        }
+        },
+        "referrals": [
+          {
+            "url": "https://dawninternet.com?code=xo23vynw"
+          }
+        ]
       },
       {
         "name": "GAGANODE",

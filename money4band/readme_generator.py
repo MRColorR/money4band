@@ -170,7 +170,7 @@ def _collect_apps(app_config: dict[str, Any]) -> list[dict[str, Any]]:
                 if referrals and isinstance(referrals[0], dict)
                 else ""
             )
-            if not primary_link and cat != "deprecated":
+            if not primary_link:
                 primary_link = details.get("official_url") or entry.get("dashboard", "")
             if not isinstance(primary_link, str) or not primary_link.startswith(
                 ("https://", "http://")
