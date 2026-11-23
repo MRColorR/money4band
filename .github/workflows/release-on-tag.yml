@@ -47,7 +47,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      - uses: astral-sh/setup-uv@v10.3.3
+      - uses: astral-sh/setup-uv@v10.4.0
       - uses: actions/setup-python@v7
         with:
           python-version: "3.13"
@@ -109,7 +109,7 @@ jobs:
 
       - name: Install uv
         if: matrix.docker_platform == ''
-        uses: astral-sh/setup-uv@v10.3.3
+        uses: astral-sh/setup-uv@v10.4.0
 
       # ---- Native builds (runner arch matches target arch) ----
       - name: Install dependencies
