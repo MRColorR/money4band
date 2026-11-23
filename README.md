@@ -21,7 +21,7 @@
   <img src="https://img.shields.io/badge/macOS-444444?style=flat-square&logo=apple&logoColor=white" alt="macOS">
 </p>
 <p align="center">
-  <strong>**Leave a star ⭐ if you like this project 🙂 Thank you!**</strong>
+  <strong>Leave a star ⭐ if you like this project 🙂 Thank you!</strong>
 </p>
 <a name="what-is-money4band"></a>
 <a name="overview"></a>
