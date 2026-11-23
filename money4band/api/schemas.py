@@ -42,6 +42,7 @@ class ReferralOut(BaseModel):
     added: str | None = None
     verified: bool = False
     verified_by: list[str] = Field(default_factory=list)
+    code: str | None = None
 
 
 class AppSummary(BaseModel):

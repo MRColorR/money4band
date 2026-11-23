@@ -296,7 +296,7 @@ schema. The required fields are validated by
 | Field | Type | Notes |
 |-------|------|-------|
 | `dashboard` | string | URL of the app's web dashboard (rendered by `m4b links`) |
-| `referrals` | array | `[{url, contributor, added?, verified?, verified_by?[]}]` - referral pool (never a bare `link` string) |
+| `referrals` | array | `[{url, contributor, code?, added?, verified?, verified_by?[]}]` - referral pool (never a bare `link` string). For providers that require a manual code, set `code` and use the official signup page as `url` when no referral URL is available. |
 | `additional_details` | string | Optional Markdown note - explains removal reason, ToS caveats, etc. |
 | `app_details` | object | Rich metadata (publisher, IP policy, device limits, earnings, Docker status, `last_verified`). Used by `m4b apps <name>` and the dashboard |
 | `user_config_template` | object | Default user-config slice (`{enabled: false, <cred_key>: "", service_enabled?: false}`) merged into `user-config.json -> apps.<name_lower>` on reset / first enable |

@@ -10,6 +10,7 @@ from typing import Any
 from colorama import Fore, Style, just_fix_windows_console
 
 from money4band.apps.earnings import parse_earnings_range
+from money4band.apps.links import app_referral_code
 from money4band.apps.sources import get_catalog_source
 from money4band.core.loader import (
     get_all_app_categories,
@@ -99,8 +100,12 @@ def show_app_detail(app_config: dict[str, Any], app_name: str) -> bool:
     if tos:
         print(f"  {'Terms of Service:':<{w}} {tos}")
 
-    if primary_referral:
+    if isinstance(primary_referral, str) and primary_referral.startswith(
+        ("https://", "http://")
+    ):
         print(f"  {'Referral link:':<{w}} {primary_referral}")
+    if code := app_referral_code(entry):
+        print(f"  {'Referral code:':<{w}} {code}")
 
     # IP Policy
     ip_policy = details.get("ip_policy", {})

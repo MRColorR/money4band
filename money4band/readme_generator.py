@@ -8,9 +8,12 @@ import re
 from copy import deepcopy
 from pathlib import Path
 from typing import Any
-from urllib.parse import parse_qs, quote, urlparse
+from urllib.parse import quote
 
-from money4band.apps.links import primary_app_link
+from money4band.apps.links import (
+    app_referral_code,
+    primary_app_link,
+)
 from money4band.core.loader import get_all_app_categories, get_category_entries
 
 logger = logging.getLogger(__name__)
@@ -76,18 +79,6 @@ def _effective_status(category: str, details: dict[str, Any]) -> str:
     if category == "standalone":
         return "standalone"
     return str(details.get("status", "active"))
-
-
-def _extract_referral_code(url: str) -> str | None:
-    """Extract a short referral code from a URL query string (code= param only, max 10 chars)."""
-    try:
-        qs = parse_qs(urlparse(url).query)
-        codes = qs.get("code", [])
-        if codes and len(codes[0]) <= 10:
-            return codes[0]
-    except Exception:  # noqa: BLE001
-        pass
-    return None
 
 
 def _format_devices(val: Any) -> str:
@@ -194,8 +185,12 @@ def _collect_apps(app_config: dict[str, Any]) -> list[dict[str, Any]]:
 # ---------------------------------------------------------------------------
 
 
-def _format_app_name(name: str, link: str) -> str:
-    return f"[**{name}**]({link})" if link else f"**{name}**"
+def _format_app_name(name: str, link: str, code: str | None = None) -> str:
+    label = f"[**{name}**]({link})" if link else f"**{name}**"
+    if code:
+        escaped = code.replace("|", r"\|").replace("`", "&#96;").replace("\n", " ")
+        label += f" (code: `{escaped}`)"
+    return label
 
 
 def generate_readme_table(app_config: dict[str, Any]) -> str:
@@ -212,7 +207,9 @@ def generate_readme_table(app_config: dict[str, Any]) -> str:
     lines = ["| App | How to run it |", "| --- | --- |"]
 
     for app in apps:
-        app_cell = _format_app_name(app["name"], app["link"])
+        app_cell = _format_app_name(
+            app["name"], app["link"], app_referral_code(app["entry"])
+        )
         how_to_run = availability.get(app["indicator"], "See app directory")
         lines.append(f"| {app_cell} | {how_to_run} |")
 
@@ -239,10 +236,7 @@ def generate_apps_md_table(app_config: dict[str, Any]) -> str:
         earnings = details.get("earnings", {})
         limits = details.get("device_limits", {})
         link = app["link"]
-        app_cell = _format_app_name(app["name"], link)
-        code = _extract_referral_code(link)
-        if code:
-            app_cell += f" (code: `{code}`)"
+        app_cell = _format_app_name(app["name"], link, app_referral_code(app["entry"]))
 
         status_emoji = _STATUS_EMOJI.get(app["status"], "-")
         resi = _bool_md(ip.get("residential"))

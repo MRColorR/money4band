@@ -32,7 +32,7 @@ balance, and payout status.
 | [ok] | [**Repocket**](https://link.repocket.co/hr8i) | [ok] | [ok] | [ok] | - | - | PayPal, crypto | $1-5 |
 | [ok] | [**Titan Network**](https://titannet.io) | [ok] | [ok] | - | - | - | - | - |
 | [ok] | [**TraffMonetizer**](https://traffmonetizer.io/?aff=366499) | [ok] | [ok] | [x] | - | - | USDT (TRC20; check dashboard for other networks), wire transfer ($1,000 minimum) | $0.5-2 |
-| [ok] | [**URnetwork**](https://ur.io/c?bonus=YDATQM) | [ok] | [ok] | - | - | - | - | - |
+| [ok] | [**URnetwork**](https://ur.io/c?bonus=YDATQM) (code: `YDATQM`) | [ok] | [ok] | - | - | - | - | - |
 | [native] | [**EarnApp**](https://earnapp.com/i/3zulx7k) | [native] | [ok] | [x] | - | - | - | - |
 | [new] | [**ByteBenefit**](https://bytebenefit.io/invited?ref=FrrXA1) | [soon] | [ok] | - | - | - | - | - |
 | [new] | [**Bytelixir**](https://bytelixir.com) | [soon] | [ok] | - | - | - | crypto | $0.5-1 |

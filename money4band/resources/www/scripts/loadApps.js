@@ -55,6 +55,24 @@ window.onload = () => {
             inviteLink.target = '_blank';
             inviteLink.textContent = referralUrl ? 'Invite friends' : (websiteUrl ? 'Website' : '-');
             tdInvite.appendChild(inviteLink);
+            const selectedReferral = pickedUrl && Array.isArray(app.referrals)
+              ? app.referrals.find(referral => referral.url === pickedUrl)
+              : primaryReferral;
+            let code = selectedReferral && typeof selectedReferral.code === 'string'
+              ? selectedReferral.code.trim() : '';
+            if (!code && websiteUrl) {
+              try {
+                const urlCode = new URL(websiteUrl).searchParams.get('code');
+                if (urlCode && urlCode.length <= 10) code = urlCode;
+              } catch {
+                // A malformed catalog URL must not prevent other rows from loading.
+              }
+            }
+            if (code) {
+              const codeLabel = document.createElement('span');
+              codeLabel.textContent = ` (code: ${code})`;
+              tdInvite.appendChild(codeLabel);
+            }
 
             tr.appendChild(tdName);
             tr.appendChild(tdDashboard);

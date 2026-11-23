@@ -99,7 +99,7 @@ Start with a **built-in app** and select its name to visit the provider. Some li
 | [**Repocket**](https://link.repocket.co/hr8i) | Built into Money4Band |
 | [**Titan Network**](https://titannet.io) | Built into Money4Band |
 | [**TraffMonetizer**](https://traffmonetizer.io/?aff=366499) | Built into Money4Band |
-| [**URnetwork**](https://ur.io/c?bonus=YDATQM) | Built into Money4Band |
+| [**URnetwork**](https://ur.io/c?bonus=YDATQM) (code: `YDATQM`) | Built into Money4Band |
 | [**EarnApp**](https://earnapp.com/i/3zulx7k) | Standalone install |
 | [**ByteBenefit**](https://bytebenefit.io/invited?ref=FrrXA1) | Candidate (see app directory) |
 | [**Bytelixir**](https://bytelixir.com) | Candidate (see app directory) |
@@ -109,16 +109,16 @@ Start with a **built-in app** and select its name to visit the provider. Some li
 | [**UpRock**](https://uprock.com) | Candidate (see app directory) |
 | [**Adnade**](https://adnade.com) | Archived |
 | [**BearShare**](https://bearshare.io) | Archived |
-| [**Dawn Internet**](https://dawninternet.com?code=xo23vynw) | Archived |
+| [**Dawn Internet**](https://dawninternet.com?code=xo23vynw) (code: `xo23vynw`) | Archived |
 | [**Earn.cc**](https://earn.cc) | Archived |
 | [**GaGaNode**](https://www.gaganode.com) | Archived |
-| [**Gradient**](https://app.gradient.network/signup?code=9WOBKP) | Archived |
+| [**Gradient**](https://app.gradient.network/signup?code=9WOBKP) (code: `9WOBKP`) | Archived |
 | [**Grass (Wynd Network)**](https://app.grass.io/register?referralCode=qyvJmxgNUhcLo2f) | Archived |
 | [**PacketShare**](https://www.packetshare.io/?code=A260871CFD822E35) | Archived |
 | [**Peer2Profit**](https://t.me/peer2profit_app_bot?start=165849012262da8d0aa13c8) | Archived |
 | [**SpeedShare**](https://speedshare.app/?ref=mindlessnerd) | Archived |
 | [**Spide Network**](https://spide.network/register.html?206a39) | Archived |
-| [**Teneo Protocol**](https://dashboard.teneo.pro/?code=qPgLn) | Archived |
+| [**Teneo Protocol**](https://dashboard.teneo.pro/?code=qPgLn) (code: `qPgLn`) | Archived |
 | [**Wipter**](https://wipter.com/signup?ref=money4band) | Archived |
 | [**WizardGain**](https://wizardgain.com) | Archived |
 <!-- END:APPS_TABLE -->

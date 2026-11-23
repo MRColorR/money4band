@@ -207,6 +207,7 @@ class Referral:
     added: str | None = None  # ISO-8601 date the entry was added
     verified: bool = False
     verified_by: tuple[str, ...] = ()
+    code: str | None = None
 
     @classmethod
     def from_raw(cls, data: Any) -> Referral:
@@ -229,6 +230,9 @@ class Referral:
                 added=added if isinstance(added, str) else None,
                 verified=verified,
                 verified_by=verified_by,
+                code=data["code"].strip()
+                if isinstance(data.get("code"), str) and data["code"].strip()
+                else None,
             )
         raise TypeError(f"Cannot build Referral from {type(data).__name__}")
 

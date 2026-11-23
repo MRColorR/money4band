@@ -6,13 +6,13 @@ import json
 from pathlib import Path
 from typing import Any
 
+from money4band.apps.links import extract_referral_code as _extract_referral_code
 from money4band.readme_generator import (
     _BEGIN_MARKER,
     _END_MARKER,
     _bool_md,
     _collect_apps,
     _effective_status,
-    _extract_referral_code,
     _format_devices,
     _format_earnings,
     _format_payout,

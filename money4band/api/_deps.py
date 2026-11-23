@@ -290,6 +290,11 @@ def normalize_referrals(raw: Any) -> list[dict]:
             {
                 "url": url.strip(),
                 "contributor": str(item.get("contributor") or "MRColorR"),
+                **(
+                    {"code": item["code"].strip()}
+                    if isinstance(item.get("code"), str) and item["code"].strip()
+                    else {}
+                ),
                 "added": item["added"] if isinstance(item.get("added"), str) else None,
                 "verified": bool(item.get("verified", False)),
                 "verified_by": [

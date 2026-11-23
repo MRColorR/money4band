@@ -6,7 +6,7 @@ from typing import Any
 
 from colorama import Fore, Style, just_fix_windows_console
 
-from money4band.apps.links import primary_app_link
+from money4band.apps.links import app_link_text
 from money4band.apps.sources import get_catalog_source
 from money4band.core.loader import (
     get_all_app_categories,
@@ -60,7 +60,7 @@ def _display_catalog(app_config: dict[str, Any]) -> None:
                 {
                     "name": app["name"],
                     "source": get_catalog_source(app),
-                    "link": primary_app_link(app),
+                    "link": app_link_text(app),
                     "payout": app.get("app_details", {})
                     .get("earnings", {})
                     .get("min_payout", "-"),

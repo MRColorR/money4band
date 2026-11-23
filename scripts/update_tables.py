@@ -50,7 +50,9 @@ def documentation_entry(entry: dict[str, Any]) -> dict[str, Any]:
     projected: dict[str, Any] = {"name": name, "app_details": display}
     referrals = entry.get("referrals") or []
     if referrals:
-        projected["referrals"] = [{"url": referrals[0]["url"]}]
+        projected["referrals"] = [
+            {key: referrals[0][key] for key in ("url", "code") if key in referrals[0]}
+        ]
     return projected
 
 

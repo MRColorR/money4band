@@ -8,7 +8,7 @@ from typing import Any
 
 from colorama import Fore, Style
 
-from money4band.apps.links import primary_app_link
+from money4band.apps.links import app_link_text
 from money4band.core.loader import get_active_app_categories, get_category_entries
 from money4band.docker.generator import generate_uuid, validate_uuid
 from money4band.network.port_manager import assign_app_ports
@@ -298,7 +298,7 @@ def _configure_apps(
         if not config["enabled"]:
             user_config["apps"][app_name] = config
             continue
-        primary_link = primary_app_link(app)
+        primary_link = app_link_text(app)
         print(
             f"{Fore.CYAN}Go to {app['name'].title()} {primary_link} and register{Style.RESET_ALL}"
         )
