@@ -108,7 +108,7 @@ pyyaml==6.0.3
     # via
     #   money4band
     #   uvicorn
-requests==2.33.1
+requests==2.34.2
     # via docker
 ruff==0.17.5
 setuptools==82.0.1
