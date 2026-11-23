@@ -89,7 +89,12 @@
             "https://essay.utwente.nl/fileshare/file/108490/thesis-1.pdf"
         ]
     },
-    "referrals": [],
+    "referrals": [
+        {
+            "url": "https://www.packetshare.io/?code=A260871CFD822E35",
+            "contributor": "MRColorR"
+        }
+    ],
     "user_config_template": {
         "enabled": false,
         "email": "yourPACKETSHAREMail",

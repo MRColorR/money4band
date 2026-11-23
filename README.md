@@ -90,7 +90,7 @@ Start with a **built-in app** and select its name to visit the provider. Some li
 | [**Earn.FM**](https://earn.fm/ref/MATTTAV6) | Built into Money4Band |
 | [**Honeygain**](https://join.honeygain.com/MINDL15721) | Built into Money4Band |
 | [**Mysterium**](https://mystnodes.co/?referral_code=Tc7RaS7Fm12K3Xun6mlU9q9hbnjojjl9aRBW8ZA9) | Built into Money4Band |
-| [**NetYield**](https://netyield.io/) | Built into Money4Band |
+| [**NetYield**](https://netyield.io/register?ref=MKL0VKGM) | Built into Money4Band |
 | [**PacketStream**](https://packetstream.io/share-bandwidth/?psr=v3wayrm3g9) | Built into Money4Band |
 | [**Pawns (IPRoyal)**](https://pawns.app/?r=MiNe) | Built into Money4Band |
 | [**ProxyBase**](https://peer.proxybase.org/dashboard/signup?referral=XfOz3zeURm) | Built into Money4Band |
@@ -99,7 +99,7 @@ Start with a **built-in app** and select its name to visit the provider. Some li
 | [**Repocket**](https://link.repocket.co/hr8i) | Built into Money4Band |
 | [**Titan Network**](https://titannet.io) | Built into Money4Band |
 | [**TraffMonetizer**](https://traffmonetizer.io/?aff=366499) | Built into Money4Band |
-| [**URnetwork**](https://ur.io) | Built into Money4Band |
+| [**URnetwork**](https://ur.io/c?bonus=YDATQM) | Built into Money4Band |
 | [**EarnApp**](https://earnapp.com/i/3zulx7k) | Standalone install |
 | [**ByteBenefit**](https://bytebenefit.io/invited?ref=FrrXA1) | Candidate (see app directory) |
 | [**Bytelixir**](https://bytelixir.com) | Candidate (see app directory) |
@@ -114,7 +114,7 @@ Start with a **built-in app** and select its name to visit the provider. Some li
 | [**GaGaNode**](https://www.gaganode.com) | Archived |
 | [**Gradient**](https://app.gradient.network/signup?code=9WOBKP) | Archived |
 | [**Grass (Wynd Network)**](https://app.grass.io/register?referralCode=qyvJmxgNUhcLo2f) | Archived |
-| [**PacketShare**](https://packetshare.io) | Archived |
+| [**PacketShare**](https://www.packetshare.io/?code=A260871CFD822E35) | Archived |
 | [**Peer2Profit**](https://t.me/peer2profit_app_bot?start=165849012262da8d0aa13c8) | Archived |
 | [**SpeedShare**](https://speedshare.app/?ref=mindlessnerd) | Archived |
 | [**Spide Network**](https://spide.network/register.html?206a39) | Archived |
