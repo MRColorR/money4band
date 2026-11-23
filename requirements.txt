@@ -91,7 +91,7 @@ urllib3==2.6.3
     # via
     #   docker
     #   requests
-uvicorn==0.43.0
+uvicorn==0.54.0
     # via money4band
 uvloop==0.22.1 ; platform_python_implementation != 'PyPy' and sys_platform != 'cygwin' and sys_platform != 'win32'
     # via uvicorn
